@@ -23,6 +23,9 @@
 
 using namespace chibios_rt;
 
+/**
+ * Blinks two LEDs, a demonstration of how to write a thread in C++.
+ */
 class BlinkLEDThread : public chibios_rt::BaseStaticThread<128> {
 protected:
     void main(void) override {
@@ -56,16 +59,22 @@ int main(void) {
     halInit();
     System::init();
 
+    // Initialize GPIO to the LEDs.
     palSetPadMode(GPIOA, 6, PAL_MODE_OUTPUT_PUSHPULL);
     palSetPadMode(GPIOA, 7, PAL_MODE_OUTPUT_PUSHPULL);
 
+    // Start button monitor threads.
     buttonK0.start(NORMALPRIO);
     buttonK1.start(NORMALPRIO);
 
+    // Start LED blink thread, defined above.
     leds.start(NORMALPRIO - 1);
 
+    // Start ChibiOS shell at high priority,
+    // so even if a thread stucks, we still have access to shell.
     serialShell.start(HIGHPRIO);
 
+    // See chconf.h for what this #define means.
     #if CH_CFG_NO_IDLE_THREAD
         // ChibiOS idle thread has been disabled,
         // main() should implement infinite loop

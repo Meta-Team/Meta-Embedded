@@ -6,6 +6,7 @@
 #include "chprintf.h"
 #include "shell.h"
 
+// List of available shell commands, needed by serial_shell.hpp
 extern const ShellCommand shellCommands[];
 
 #endif

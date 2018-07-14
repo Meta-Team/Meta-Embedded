@@ -1,5 +1,9 @@
 #include "port_to_string.hpp"
 
+/**
+ * Translates ioportid & ioportmask, and writes the 4 char result
+ * to a given pointer of char location (usually a string).
+ */
 void portToString(ioportid_t ioportid, ioportmask_t ioportmask, char* result) {
     result[0] = 'P';
     if(ioportid == GPIOA) {

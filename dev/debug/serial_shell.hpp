@@ -8,15 +8,19 @@
 
 #include "serial_shell_commands.hpp"
 
+/**
+ * SerialShellThread: as its name suggests.
+ * Extends BaseThread to call the shell thread.
+ */
 class SerialShellThread : public chibios_rt::BaseThread {
 protected:
     THD_WORKING_AREA(wa, 1024);
-
     void main(void) override;
 public:
     chibios_rt::ThreadReference start(tprio_t prio) override;
 };
 
+// Create the shell thread.
 static SerialShellThread serialShell;
 
 #endif
