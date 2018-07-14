@@ -13,7 +13,7 @@ void ButtonMonitorThread::main(void) {
     char name[] = "btn_PXXX";
     portToString(_ioportid, _ioportmask, name + 4);
     setName(name);
-    while(true) {
+    while(!shouldTerminate()) {
         // The keys are inverted (press -> 0, release -> 1)
         while(palReadPad(_ioportid, _ioportmask)) {
             // Wait for the button to be pressed

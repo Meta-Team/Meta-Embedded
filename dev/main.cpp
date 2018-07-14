@@ -23,11 +23,11 @@
 
 using namespace chibios_rt;
 
-
-class BlinkLEDThread : public chibios_rt::BaseStaticThread<512> {
+class BlinkLEDThread : public chibios_rt::BaseStaticThread<128> {
 protected:
     void main(void) override {
-        while (true) {
+        setName("blink_led");
+        while(!shouldTerminate()) {
             sleep(TIME_MS2I(100));
             if(buttonK0.toggle) {
                 LED_D2_ON;
@@ -66,8 +66,15 @@ int main(void) {
 
     serialShell.start(HIGHPRIO);
 
-    while(true) {
-        BaseThread::sleep(TIME_MS2I(10000));
-    }
+    #if CH_CFG_NO_IDLE_THREAD
+        // ChibiOS idle thread has been disabled,
+        // main() should implement infinite loop
+        while(true) {}
+    #else
+        // When main() quits, the main thread will somehow
+        // enter an infinite loop, so we set the priority to lowest
+        // before quitting, to let other threads run normally
+        BaseThread::setPriority(1);
+    #endif
     return 0;
 }
