@@ -23,6 +23,35 @@
 
 using namespace chibios_rt;
 
+
+class BlinkLEDThread : public chibios_rt::BaseStaticThread<512> {
+protected:
+    void main(void) override {
+        while (true) {
+            sleep(TIME_MS2I(100));
+            if(buttonK0.toggle) {
+                LED_D2_ON;
+                LED_D3_OFF;
+                sleep(TIME_MS2I((1 + buttonK1.counter % 3) * 100));
+                LED_D2_OFF;
+                LED_D3_ON;
+                sleep(TIME_MS2I((1 + buttonK1.counter % 3) * 100));
+            } else {
+                LED_D2_ON;
+                LED_D3_ON;
+                sleep(TIME_MS2I((1 + buttonK1.counter % 3) * 100));
+                LED_D2_OFF;
+                LED_D3_OFF;
+                sleep(TIME_MS2I((1 + buttonK1.counter % 3) * 100));
+            }
+        }
+    }
+public:
+    BlinkLEDThread() {}
+};
+
+static BlinkLEDThread leds;
+
 int main(void) {
     halInit();
     System::init();
@@ -33,24 +62,12 @@ int main(void) {
     buttonK0.start(NORMALPRIO);
     buttonK1.start(NORMALPRIO);
 
-    shellStart();
+    leds.start(NORMALPRIO - 1);
 
-    while (true) {
-        if(buttonK0.toggle) {
-            LED_D2_ON;
-            LED_D3_OFF;
-            BaseThread::sleep(TIME_MS2I((1 + buttonK1.counter % 3) * 100));
-            LED_D2_OFF;
-            LED_D3_ON;
-            BaseThread::sleep(TIME_MS2I((1 + buttonK1.counter % 3) * 100));
-        } else {
-            LED_D2_ON;
-            LED_D3_ON;
-            BaseThread::sleep(TIME_MS2I((1 + buttonK1.counter % 3) * 100));
-            LED_D2_OFF;
-            LED_D3_OFF;
-            BaseThread::sleep(TIME_MS2I((1 + buttonK1.counter % 3) * 100));
-        }
+    serialShell.start(HIGHPRIO);
+
+    while(true) {
+        BaseThread::sleep(TIME_MS2I(10000));
     }
     return 0;
 }
