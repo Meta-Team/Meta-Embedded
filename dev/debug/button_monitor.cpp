@@ -3,7 +3,7 @@
 using namespace chibios_rt;
 
 ButtonMonitorThread::ButtonMonitorThread(ioportid_t ioportid, ioportmask_t ioportmask)
-        : BaseStaticThread<256>() {
+        : BaseStaticThread<64>() {
     _ioportid = ioportid;
     _ioportmask = ioportmask;
 }
