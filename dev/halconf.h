@@ -513,16 +513,6 @@
 #define USB_USE_WAIT                        FALSE
 #endif
 
-/*===========================================================================*/
-/* ChibiOS Shell related settings.                                           */
-/*===========================================================================*/
-
-// Disable shell test commands, so we don't rely on test codes
-#define SHELL_CMD_TEST_ENABLED              FALSE
-
-// Disable exiting the shell
-#define SHELL_CMD_EXIT_ENABLED              FALSE
-
 #endif /* HALCONF_H */
 
 /** @} */

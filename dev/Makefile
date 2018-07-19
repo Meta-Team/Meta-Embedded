@@ -5,7 +5,7 @@
 
 # Compiler options here.
 ifeq ($(USE_OPT),)
-  USE_OPT = -O0 -ggdb -fomit-frame-pointer -falign-functions=16
+  USE_OPT = -O2 -ggdb -fomit-frame-pointer -falign-functions=16 -D SHELL_CONFIG_FILE
 endif
 
 # C specific options here (added to USE_OPT).
@@ -107,8 +107,7 @@ include $(CHIBIOS)/os/various/shell/shell.mk
 include $(CHIBIOS)/dev/dev.mk
 
 # Define linker script file here
-# RM board uses STM32F427II, which has same memory size config as STM32F429
-LDSCRIPT= $(STARTUPLD)/STM32F429xI.ld
+LDSCRIPT= $(STARTUPLD)/STM32F407xG.ld
 
 # C sources that can be compiled in ARM or THUMB mode depending on the global
 # setting.

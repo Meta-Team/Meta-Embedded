@@ -23,33 +23,67 @@
 
 using namespace chibios_rt;
 
+/**
+ * Blinks two LEDs, a demonstration of how to write a thread in C++.
+ */
+class BlinkLEDThread : public chibios_rt::BaseStaticThread<128> {
+protected:
+    void main(void) override {
+        setName("blink_led");
+        while(!shouldTerminate()) {
+            sleep(TIME_MS2I(100));
+            if(buttonK0.toggle) {
+                LED_D2_ON;
+                LED_D3_OFF;
+                sleep(TIME_MS2I((1 + buttonK1.counter % 3) * 100));
+                LED_D2_OFF;
+                LED_D3_ON;
+                sleep(TIME_MS2I((1 + buttonK1.counter % 3) * 100));
+            } else {
+                LED_D2_ON;
+                LED_D3_ON;
+                sleep(TIME_MS2I((1 + buttonK1.counter % 3) * 100));
+                LED_D2_OFF;
+                LED_D3_OFF;
+                sleep(TIME_MS2I((1 + buttonK1.counter % 3) * 100));
+            }
+        }
+    }
+public:
+    BlinkLEDThread() {}
+};
+
+static BlinkLEDThread leds;
+
 int main(void) {
     halInit();
     System::init();
 
-    palSetPadMode(GPIOF, 14, PAL_MODE_OUTPUT_PUSHPULL);
-    palSetPadMode(GPIOE, 7, PAL_MODE_OUTPUT_PUSHPULL);
+    // Initialize GPIO to the LEDs.
+    palSetPadMode(GPIOA, 6, PAL_MODE_OUTPUT_PUSHPULL);
+    palSetPadMode(GPIOA, 7, PAL_MODE_OUTPUT_PUSHPULL);
 
+    // Start button monitor threads.
     buttonK0.start(NORMALPRIO);
+    buttonK1.start(NORMALPRIO);
 
-    shellStart();
+    // Start LED blink thread, defined above.
+    leds.start(NORMALPRIO - 1);
 
-    while (true) {
-        if(buttonK0.pressed) {
-            LED_RED_ON;
-            LED_GREEN_OFF;
-            BaseThread::sleep(TIME_MS2I((1 + buttonK0.counter % 3) * 100));
-            LED_RED_OFF;
-            LED_GREEN_ON;
-            BaseThread::sleep(TIME_MS2I((1 + buttonK0.counter % 3) * 100));
-        } else {
-            LED_RED_ON;
-            LED_GREEN_ON;
-            BaseThread::sleep(TIME_MS2I((1 + buttonK0.counter % 3) * 100));
-            LED_RED_OFF;
-            LED_GREEN_OFF;
-            BaseThread::sleep(TIME_MS2I((1 + buttonK0.counter % 3) * 100));
-        }
-    }
+    // Start ChibiOS shell at high priority,
+    // so even if a thread stucks, we still have access to shell.
+    serialShell.start(HIGHPRIO);
+
+    // See chconf.h for what this #define means.
+    #if CH_CFG_NO_IDLE_THREAD
+        // ChibiOS idle thread has been disabled,
+        // main() should implement infinite loop
+        while(true) {}
+    #else
+        // When main() quits, the main thread will somehow
+        // enter an infinite loop, so we set the priority to lowest
+        // before quitting, to let other threads run normally
+        BaseThread::setPriority(1);
+    #endif
     return 0;
 }
