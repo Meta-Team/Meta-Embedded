@@ -27,29 +27,28 @@ int main(void) {
     halInit();
     System::init();
 
-    palSetPadMode(GPIOA, 6, PAL_MODE_OUTPUT_PUSHPULL);
-    palSetPadMode(GPIOA, 7, PAL_MODE_OUTPUT_PUSHPULL);
+    palSetPadMode(GPIOF, 14, PAL_MODE_OUTPUT_PUSHPULL);
+    palSetPadMode(GPIOE, 7, PAL_MODE_OUTPUT_PUSHPULL);
 
     buttonK0.start(NORMALPRIO);
-    buttonK1.start(NORMALPRIO);
 
     shellStart();
 
     while (true) {
-        if(buttonK0.toggle) {
-            LED_D2_ON;
-            LED_D3_OFF;
-            BaseThread::sleep(TIME_MS2I((1 + buttonK1.counter % 3) * 100));
-            LED_D2_OFF;
-            LED_D3_ON;
-            BaseThread::sleep(TIME_MS2I((1 + buttonK1.counter % 3) * 100));
+        if(buttonK0.pressed) {
+            LED_RED_ON;
+            LED_GREEN_OFF;
+            BaseThread::sleep(TIME_MS2I((1 + buttonK0.counter % 3) * 100));
+            LED_RED_OFF;
+            LED_GREEN_ON;
+            BaseThread::sleep(TIME_MS2I((1 + buttonK0.counter % 3) * 100));
         } else {
-            LED_D2_ON;
-            LED_D3_ON;
-            BaseThread::sleep(TIME_MS2I((1 + buttonK1.counter % 3) * 100));
-            LED_D2_OFF;
-            LED_D3_OFF;
-            BaseThread::sleep(TIME_MS2I((1 + buttonK1.counter % 3) * 100));
+            LED_RED_ON;
+            LED_GREEN_ON;
+            BaseThread::sleep(TIME_MS2I((1 + buttonK0.counter % 3) * 100));
+            LED_RED_OFF;
+            LED_GREEN_OFF;
+            BaseThread::sleep(TIME_MS2I((1 + buttonK0.counter % 3) * 100));
         }
     }
     return 0;

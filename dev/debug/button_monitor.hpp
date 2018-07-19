@@ -18,7 +18,6 @@ public:
     ButtonMonitorThread(ioportid_t ioportid, ioportmask_t ioportmask);
 };
 
-static ButtonMonitorThread buttonK0(GPIOE, 4);
-static ButtonMonitorThread buttonK1(GPIOE, 3);
+static ButtonMonitorThread buttonK0(GPIOD, 10);
 
 #endif

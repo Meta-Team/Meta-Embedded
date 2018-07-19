@@ -15,7 +15,7 @@ set(DEVCPPSRC
         dev/debug/button_monitor.cpp
         dev/debug/serial_shell.cpp
         dev/debug/serial_shell_commands.cpp
-        dev/main.cpp)
+        dev/main.cpp dev/debug/led.cpp)
 
 # Our include directories
 include_directories(dev
