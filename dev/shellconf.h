@@ -11,4 +11,7 @@
 // Disable exiting the shell
 #define SHELL_CMD_EXIT_ENABLED              FALSE
 
+// Disable history in the shell
+#define SHELL_USE_HISTORY                   FALSE
+
 #endif

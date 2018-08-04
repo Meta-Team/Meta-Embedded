@@ -15,8 +15,12 @@ static SerialConfig shellSerialConfig = {115200, 0, 0, 0};
  * Second parameter is the list of commands, provided in serial_shell_commands.hpp
  */
 static const ShellConfig shellConfig = {
-    (BaseSequentialStream*) &SD1,
+    (BaseSequentialStream*) &SD6,
     shellCommands
+#if (SHELL_USE_HISTORY == TRUE)
+    ,new char[64],
+    64
+#endif
 };
 
 /**
@@ -34,9 +38,9 @@ void SerialShellThread::main(void) {
  */
 chibios_rt::ThreadReference SerialShellThread::start(tprio_t prio) {
     // Remember to change GPIO pins here
-    palSetPadMode(GPIOA, 9, PAL_MODE_ALTERNATE(7));
-    palSetPadMode(GPIOA, 10, PAL_MODE_ALTERNATE(7));
-    sdStart(&SD1, &shellSerialConfig);
+    palSetPadMode(GPIOG, 14, PAL_MODE_ALTERNATE(8));
+    palSetPadMode(GPIOG, 9, PAL_MODE_ALTERNATE(8));
+    sdStart(&SD6, &shellSerialConfig);
     // Call init provided by shell
     shellInit();
     

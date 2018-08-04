@@ -27,3 +27,5 @@ include_directories(dev
 # There is no need to edit them
 include(os/ch.cmake)
 add_library(cmake ${DEVCPPSRC} ${ALLCSRC})
+
+add_definitions("-DSHELL_CONFIG_FILE")

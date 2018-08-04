@@ -32,20 +32,20 @@ protected:
         setName("blink_led");
         while(!shouldTerminate()) {
             sleep(TIME_MS2I(100));
-            if(buttonK0.toggle) {
-                LED_D2_ON;
-                LED_D3_OFF;
-                sleep(TIME_MS2I((1 + buttonK1.counter % 3) * 100));
-                LED_D2_OFF;
-                LED_D3_ON;
-                sleep(TIME_MS2I((1 + buttonK1.counter % 3) * 100));
+            if(buttonK0.pressed) {
+                LED_RED_ON;
+                LED_GREEN_OFF;
+                sleep(TIME_MS2I((1 + buttonK0.counter % 3) * 100));
+                LED_RED_OFF;
+                LED_GREEN_ON;
+                sleep(TIME_MS2I((1 + buttonK0.counter % 3) * 100));
             } else {
-                LED_D2_ON;
-                LED_D3_ON;
-                sleep(TIME_MS2I((1 + buttonK1.counter % 3) * 100));
-                LED_D2_OFF;
-                LED_D3_OFF;
-                sleep(TIME_MS2I((1 + buttonK1.counter % 3) * 100));
+                LED_RED_ON;
+                LED_GREEN_ON;
+                sleep(TIME_MS2I((1 + buttonK0.counter % 3) * 100));
+                LED_RED_OFF;
+                LED_GREEN_OFF;
+                sleep(TIME_MS2I((1 + buttonK0.counter % 3) * 100));
             }
         }
     }
@@ -60,12 +60,11 @@ int main(void) {
     System::init();
 
     // Initialize GPIO to the LEDs.
-    palSetPadMode(GPIOA, 6, PAL_MODE_OUTPUT_PUSHPULL);
-    palSetPadMode(GPIOA, 7, PAL_MODE_OUTPUT_PUSHPULL);
+    palSetPadMode(GPIOF, 14, PAL_MODE_OUTPUT_PUSHPULL);
+    palSetPadMode(GPIOE, 7, PAL_MODE_OUTPUT_PUSHPULL);
 
     // Start button monitor threads.
     buttonK0.start(NORMALPRIO);
-    buttonK1.start(NORMALPRIO);
 
     // Start LED blink thread, defined above.
     leds.start(NORMALPRIO - 1);
