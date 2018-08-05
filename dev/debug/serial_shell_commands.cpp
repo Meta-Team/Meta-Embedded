@@ -14,6 +14,8 @@ static void cmd_hello(BaseSequentialStream *chp, int argc, char *argv[]) {
     chprintf(chp, "Hello World from ChibiOS!" SHELL_NEWLINE_STR);
 }
 
+#define EMPTY_STACK_PATTERN 1431655765L
+
 /**
  * Echo the CPU usage data of each threads.
  * @param chp
@@ -41,15 +43,28 @@ static void cmd_show_thread_stats(BaseSequentialStream *chp, int argc, char *arg
     }
 
     // Print the header
-    chprintf(chp, "     thread name       best    average      worst    count   all" SHELL_NEWLINE_STR);
+    chprintf(chp, "     thread name       best    average      worst    count   all  free stack" SHELL_NEWLINE_STR);
 
     // Iterate threads again and show data.
     thd_ref = reg.firstThread();
     while (!thd_ref.isNull()) {
         thd = thd_ref.getInner();
-        chprintf(chp, "%16s %10lu %10lu %10lu %8lu  %3u%%" SHELL_NEWLINE_STR,
+
+        uint32_t *stack_p = (uint32_t *)thd->ctx.sp;
+        uint32_t *stklimit_p = (uint32_t *)thd->wabase;
+
+        uint32_t *p = stklimit_p;
+        while (p <= stack_p && *p == EMPTY_STACK_PATTERN) {
+            p++;
+        }
+
+        unsigned long free_stack = (p - stklimit_p) * sizeof(uint32_t);
+
+        chprintf(chp, "%16s %10lu %10lu %10lu %8lu  %3u%%  %10lu" SHELL_NEWLINE_STR,
                  thd->name, thd->stats.best, (unsigned long)(thd->stats.cumulative / thd->stats.n),
-                 thd->stats.worst, thd->stats.n, (unsigned int)(100 * thd->stats.cumulative / sum));
+                 thd->stats.worst, thd->stats.n, (unsigned int)(100 * thd->stats.cumulative / sum),
+                 free_stack);
+
         thd_ref = reg.nextThread(thd_ref);
     }
 

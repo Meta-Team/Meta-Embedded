@@ -5,7 +5,7 @@
 #include "hal.h"
 #include "port_to_string.hpp"
 
-class ButtonMonitorThread : public chibios_rt::BaseStaticThread<64> {
+class ButtonMonitorThread : public chibios_rt::BaseStaticThread<128> {
 private:
     ioportid_t _ioportid;
     ioportmask_t _ioportmask;

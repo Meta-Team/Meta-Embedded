@@ -26,7 +26,7 @@ using namespace chibios_rt;
 /**
  * Blinks two LEDs, a demonstration of how to write a thread in C++.
  */
-class BlinkLEDThread : public chibios_rt::BaseStaticThread<128> {
+class BlinkLEDThread : public chibios_rt::BaseStaticThread<256> {
 protected:
     void main(void) override {
         setName("blink_led");
