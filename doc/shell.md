@@ -33,6 +33,8 @@ Echo hello world.
 **Usage**: ```hello```
 
 ## stats
-Echo the CPU usage data of each threads.
+Echo the CPU usage data and stack status of each threads.
+
+![](./resource/shell_stats.png)
 
 **Usage**: ```stats```

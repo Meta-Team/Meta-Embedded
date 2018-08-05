@@ -17,7 +17,7 @@ static void cmd_hello(BaseSequentialStream *chp, int argc, char *argv[]) {
 #define EMPTY_STACK_PATTERN 1431655765L //0x55555555
 
 /**
- * Echo the CPU usage data of each threads.
+ * Echo the CPU usage data and stack status of each threads.
  * @param chp
  * @param argc
  * @param argv
@@ -51,7 +51,7 @@ static void cmd_show_thread_stats(BaseSequentialStream *chp, int argc, char *arg
         thd = thd_ref.getInner();
 
         /*
-         * These code refers to ChibiOS Eclipse plug-in.
+         * Inspired by ChibiOS Eclipse plug-in.
          */
         uint32_t *stack_p = (uint32_t *)thd->ctx.sp;
         uint32_t *stklimit_p = (uint32_t *)thd->wabase;
