@@ -14,7 +14,7 @@ static void cmd_hello(BaseSequentialStream *chp, int argc, char *argv[]) {
     chprintf(chp, "Hello World from ChibiOS!" SHELL_NEWLINE_STR);
 }
 
-#define EMPTY_STACK_PATTERN 1431655765L
+#define EMPTY_STACK_PATTERN 1431655765L //0x55555555
 
 /**
  * Echo the CPU usage data of each threads.
@@ -50,10 +50,17 @@ static void cmd_show_thread_stats(BaseSequentialStream *chp, int argc, char *arg
     while (!thd_ref.isNull()) {
         thd = thd_ref.getInner();
 
+        /*
+         * These code refers to ChibiOS Eclipse plug-in.
+         */
         uint32_t *stack_p = (uint32_t *)thd->ctx.sp;
         uint32_t *stklimit_p = (uint32_t *)thd->wabase;
 
         uint32_t *p = stklimit_p;
+        /*
+         * Empty stack area is filled with 0x55.
+         * See chconf.h CH_DBG_FILL_THREADS.
+         */
         while (p <= stack_p && *p == EMPTY_STACK_PATTERN) {
             p++;
         }

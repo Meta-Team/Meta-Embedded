@@ -3,3 +3,10 @@
 //
 
 #include "led.hpp"
+
+extern "C" {
+void set_led_when_halt(void) {
+    LED_RED_ON;
+    LED_GREEN_OFF;
+}
+}

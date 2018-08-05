@@ -586,6 +586,11 @@
  */
 #define CH_CFG_SYSTEM_HALT_HOOK(reason) {                                   \
   /* System halt code here.*/                                               \
+  /* Recommended style. */                                                  \
+  /* See http://www.chibios.com/forum/viewtopic.php?t=3351 */               \
+  extern void set_led_when_halt(void);                                      \
+  chSysUnconditionalLock();                                                 \
+  set_led_when_halt();                                                      \
 }
 
 /**

@@ -15,11 +15,11 @@ static SerialConfig shellSerialConfig = {115200, 0, 0, 0};
  * Second parameter is the list of commands, provided in serial_shell_commands.hpp
  */
 static const ShellConfig shellConfig = {
-    (BaseSequentialStream*) &SD6,
-    shellCommands
+        (BaseSequentialStream *) &SD6,
+        shellCommands
 #if (SHELL_USE_HISTORY == TRUE)
-    ,new char[64],
-    64
+,new char[64],
+64
 #endif
 };
 
@@ -43,11 +43,11 @@ chibios_rt::ThreadReference SerialShellThread::start(tprio_t prio) {
     sdStart(&SD6, &shellSerialConfig);
     // Call init provided by shell
     shellInit();
-    
+
     // Create a thread and name it
     thread_t *shellThreadRef = chThdCreateStatic(
-        wa, sizeof(wa), prio,
-        shellThread, (void*) &shellConfig);
+            wa, sizeof(wa), prio,
+            shellThread, (void *) &shellConfig);
     chRegSetThreadNameX(shellThreadRef, "shell");
 
     // Return reference to thread

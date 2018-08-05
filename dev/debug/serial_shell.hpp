@@ -15,7 +15,9 @@
 class SerialShellThread : public chibios_rt::BaseThread {
 protected:
     THD_WORKING_AREA(wa, 2048);
+
     void main(void) override;
+
 public:
     chibios_rt::ThreadReference start(tprio_t prio) override;
 };
