@@ -11,6 +11,9 @@
 #define LED_GREEN_OFF palClearPad(GPIOE, 7)
 #define LED_GREEN_TOGGLE palTogglePad(GPIOE, 7)
 
+#define BUZZER_ON palSetPad(GPIOB, 4)
+#define BUZZER_OFF palClearPad(GPIOB, 4)
+
 extern "C" {
 #include "chconf.h"
 // LED_RED_ON and LED_GREEN_OFF when halt.

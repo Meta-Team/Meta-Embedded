@@ -25,4 +25,6 @@ public:
 // Create the shell thread.
 static SerialShellThread serialShell;
 
+int sprint(const char *fmt, ...);
+
 #endif

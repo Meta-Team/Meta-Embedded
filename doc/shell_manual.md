@@ -1,25 +1,24 @@
-Shell Manual
-------------
+# Shell Manual
 
-# ChibiOS Build-in Commands
+## ChibiOS Build-in Commands
 Defined in os/various/shell/shell_cmd.c.
 
-## echo
+### echo
 Echo message.
 
 **Usage**: ```echo message```
 
-## systime
+### systime
 Show system time.
 
 **Usage**: ```systime```
 
-## mem
+### mem
 Show memory usage summary.
 
 **Usage**: ```mem```
 
-## threads
+### threads
 Show threads.
 
 **Usage**: ```threads```
@@ -27,14 +26,25 @@ Show threads.
 
 # User-Defined Commands
 
-## hello
+### hello
 Echo hello world.
 
 **Usage**: ```hello```
 
-## stats
+### stats
 Echo the CPU usage data and stack status of each threads.
 
 ![](./resource/shell_stats.png)
 
 **Usage**: ```stats```
+
+
+## Remote Interpreter Unit Test
+
+### pause
+Pause the output of remote data.
+**Usage**: ```pause```
+
+### resume
+Resume the output of remote data.
+**Usage** ```resume```

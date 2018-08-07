@@ -4,7 +4,8 @@ cmake_minimum_required(VERSION 3.10)
 project(Insouled_ChibiOS_CPP)
 
 # Actual compile command
-add_custom_target(ch.elf COMMAND make -j -C ${Insouled_ChibiOS_CPP_SOURCE_DIR}/dev)
+add_custom_target(Main COMMAND make -j -C ${Insouled_ChibiOS_CPP_SOURCE_DIR}/dev UNIT_TEST=NONE)
+add_custom_target(UnitTest_Remote_Interpreter COMMAND make -j -C ${Insouled_ChibiOS_CPP_SOURCE_DIR}/dev UNIT_TEST=REMOTE_INTERPRETER)
 
 # make clean
 add_custom_target(clean_make COMMAND make clean -C ${Insouled_ChibiOS_CPP_SOURCE_DIR}/dev)
@@ -15,17 +16,18 @@ set(DEVCPPSRC
         dev/debug/button_monitor.cpp
         dev/debug/serial_shell.cpp
         dev/debug/serial_shell_commands.cpp
-        dev/main.cpp dev/debug/led.cpp)
+        dev/main.cpp dev/debug/led.cpp dev/remote_interpreter/remote_interpreter.cpp dev/remote_interpreter/remote_interpreter.hpp dev/remote_interpreter/remote_interpreter_unit_test.cpp dev/debug/unit_test_common.cpp dev/debug/unit_test_common.hpp)
 
 # Our include directories
 include_directories(dev
         dev/common
-        dev/debug)
+        dev/debug
+        dev/remote_interpreter)
 
 
 # This target is used to make CLion IDE work properly
 # There is no need to edit them
 include(os/ch.cmake)
-add_library(cmake ${DEVCPPSRC} ${ALLCSRC})
+add_library(useless_cmake_target ${DEVCPPSRC} ${ALLCSRC})
 
 add_definitions("-DSHELL_CONFIG_FILE")

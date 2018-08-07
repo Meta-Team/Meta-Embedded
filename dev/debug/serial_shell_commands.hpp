@@ -6,7 +6,11 @@
 #include "chprintf.h"
 #include "shell.h"
 
+#define MAX_COMMAND_COUNT 10
+
 // List of available shell commands, needed by serial_shell.hpp
-extern const ShellCommand shellCommands[];
+extern ShellCommand shellCommands[MAX_COMMAND_COUNT + 1];
+
+void shellAddCommands(ShellCommand *commandList);
 
 #endif

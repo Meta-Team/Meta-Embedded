@@ -39,6 +39,8 @@ protected:
                 LED_RED_OFF;
                 LED_GREEN_ON;
                 sleep(TIME_MS2I((1 + buttonK0.counter % 3) * 100));
+
+                BUZZER_ON;
             } else {
                 LED_RED_ON;
                 LED_GREEN_ON;
@@ -46,6 +48,8 @@ protected:
                 LED_RED_OFF;
                 LED_GREEN_OFF;
                 sleep(TIME_MS2I((1 + buttonK0.counter % 3) * 100));
+
+                BUZZER_OFF;
             }
         }
     }
@@ -62,6 +66,8 @@ int main(void) {
     // Initialize GPIO to the LEDs.
     palSetPadMode(GPIOF, 14, PAL_MODE_OUTPUT_PUSHPULL);
     palSetPadMode(GPIOE, 7, PAL_MODE_OUTPUT_PUSHPULL);
+
+    palSetPadMode(GPIOB, 4, PAL_MODE_OUTPUT_PUSHPULL);
 
     // Start button monitor threads.
     buttonK0.start(NORMALPRIO);

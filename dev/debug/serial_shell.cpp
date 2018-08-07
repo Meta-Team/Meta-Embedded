@@ -53,3 +53,8 @@ chibios_rt::ThreadReference SerialShellThread::start(tprio_t prio) {
     // Return reference to thread
     return chibios_rt::ThreadReference(shellThreadRef);
 }
+
+int sprint(const char *fmt, ...) {
+    va_list ap;
+    return chprintf(shellConfig.sc_channel, fmt, ap);
+}

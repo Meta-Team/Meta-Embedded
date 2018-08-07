@@ -83,8 +83,20 @@ static void cmd_show_thread_stats(BaseSequentialStream *chp, int argc, char *arg
  * Must be at the bottom of file, otherwise it won't find the functions.
  * {NULL, NULL} is a marker of end of list and mustn't be removed.
  */
-const ShellCommand shellCommands[] = {
+ShellCommand shellCommands[MAX_COMMAND_COUNT + 1] = {
     {"hello", cmd_hello},
     {"stats", cmd_show_thread_stats},
     {NULL, NULL}
 };
+
+void shellAddCommands(ShellCommand *commandList) {
+    int i = 0;
+    while (i < MAX_COMMAND_COUNT && shellCommands[i].sc_name != NULL) i++;
+    while (i < MAX_COMMAND_COUNT && commandList->sc_name != NULL) {
+        shellCommands[i].sc_name = commandList->sc_name;
+        shellCommands[i].sc_function = commandList->sc_function;
+        i++;
+        commandList++;
+    }
+    shellCommands[i] = {NULL, NULL};
+}
