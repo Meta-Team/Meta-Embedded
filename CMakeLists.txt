@@ -3,12 +3,21 @@ set(CMAKE_CXX_STANDARD 11)
 cmake_minimum_required(VERSION 3.10)
 project(Insouled_ChibiOS_CPP)
 
+
+IF (CMAKE_SYSTEM_NAME MATCHES "Darwin")
+    MESSAGE("Use make to compile.")
+    set(MAKE_EXECUTABLE make)
+ELSE()
+    MESSAGE("Use mingw32-make to compile.")
+    set(MAKE_EXECUTABLE mingw32-make)
+ENDIF()
+
 # Actual compile command
-add_custom_target(Main COMMAND make -j -C ${Insouled_ChibiOS_CPP_SOURCE_DIR}/dev UNIT_TEST=NONE)
-add_custom_target(UnitTest_Remote_Interpreter COMMAND make -j -C ${Insouled_ChibiOS_CPP_SOURCE_DIR}/dev UNIT_TEST=REMOTE_INTERPRETER)
+add_custom_target(Main COMMAND ${MAKE_EXECUTABLE} -j -C ${Insouled_ChibiOS_CPP_SOURCE_DIR}/dev UNIT_TEST=NONE)
+add_custom_target(UnitTest_Remote_Interpreter COMMAND ${MAKE_EXECUTABLE} -j -C ${Insouled_ChibiOS_CPP_SOURCE_DIR}/dev UNIT_TEST=REMOTE_INTERPRETER)
 
 # make clean
-add_custom_target(clean_make COMMAND make clean -C ${Insouled_ChibiOS_CPP_SOURCE_DIR}/dev)
+add_custom_target(clean_make COMMAND ${MAKE_EXECUTABLE} clean -C ${Insouled_ChibiOS_CPP_SOURCE_DIR}/dev)
 
 # Our source files
 set(DEVCPPSRC
