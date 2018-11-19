@@ -1,7 +1,7 @@
 set(CMAKE_CXX_STANDARD 11)
 
 cmake_minimum_required(VERSION 3.10)
-project(Insouled_ChibiOS_CPP)
+project(Meta_Infantry)
 
 
 IF (CMAKE_SYSTEM_NAME MATCHES "Darwin")
@@ -13,11 +13,11 @@ ELSE()
 ENDIF()
 
 # Actual compile command
-add_custom_target(Main COMMAND ${MAKE_EXECUTABLE} -j -C ${Insouled_ChibiOS_CPP_SOURCE_DIR}/dev UNIT_TEST=NONE)
-add_custom_target(UnitTest_Remote_Interpreter COMMAND ${MAKE_EXECUTABLE} -j -C ${Insouled_ChibiOS_CPP_SOURCE_DIR}/dev UNIT_TEST=REMOTE_INTERPRETER)
+add_custom_target(Main COMMAND ${MAKE_EXECUTABLE} -j -C ${Meta_Infantry_SOURCE_DIR}/dev UNIT_TEST=NONE)
+add_custom_target(UnitTest_Remote_Interpreter COMMAND ${MAKE_EXECUTABLE} -j -C ${Meta_Infantry_SOURCE_DIR}/dev UNIT_TEST=REMOTE_INTERPRETER)
 
 # make clean
-add_custom_target(clean_make COMMAND ${MAKE_EXECUTABLE} clean -C ${Insouled_ChibiOS_CPP_SOURCE_DIR}/dev)
+add_custom_target(clean_make COMMAND ${MAKE_EXECUTABLE} clean -C ${Meta_Infantry_SOURCE_DIR}/dev)
 
 # Our source files
 set(DEVCPPSRC

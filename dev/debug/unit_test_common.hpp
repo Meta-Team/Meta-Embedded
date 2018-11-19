@@ -10,8 +10,8 @@
  *      It's expected to get started in the main body of the unit test.
  */
 
-#ifndef INSOULED_CHIBIOS_CPP_UNIT_TEST_COMMON_HPP
-#define INSOULED_CHIBIOS_CPP_UNIT_TEST_COMMON_HPP
+#ifndef Meta_Infantry_UNIT_TEST_COMMON_HPP
+#define Meta_Infantry_UNIT_TEST_COMMON_HPP
 
 #include "ch.hpp"
 #include "hal.h"
@@ -27,4 +27,4 @@ protected:
     void main(void) override;
 };
 
-#endif //INSOULED_CHIBIOS_CPP_UNIT_TEST_COMMON_HPP
+#endif //Meta_Infantry_UNIT_TEST_COMMON_HPP

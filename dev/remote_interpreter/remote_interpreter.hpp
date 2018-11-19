@@ -14,8 +14,8 @@
  *        using `remoteInit()`, and pass the pointer to other components.
  */
 
-#ifndef INSOULED_CHIBIOS_CPP_REMOTE_INTERPRETER_HPP
-#define INSOULED_CHIBIOS_CPP_REMOTE_INTERPRETER_HPP
+#ifndef Meta_Infantry_REMOTE_INTERPRETER_HPP
+#define Meta_Infantry_REMOTE_INTERPRETER_HPP
 
 #include "ch.hpp"
 #include "hal.h"
@@ -117,4 +117,4 @@ RemoteInterpreter *remoteInit();
  */
 RemoteInterpreter *remoteGetInterpreter();
 
-#endif //INSOULED_CHIBIOS_CPP_REMOTE_INTERPRETER_HPP
+#endif //Meta_Infantry_REMOTE_INTERPRETER_HPP
