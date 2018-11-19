@@ -37,6 +37,8 @@ static constexpr UARTConfig remoteUartConfig = {
  * @return the pointer of remote interpreter.
  */
 RemoteInterpreter *remoteInit() {
+    palSetPadMode(GPIOA, 2, PAL_MODE_ALTERNATE(7));
+    palSetPadMode(GPIOA, 3, PAL_MODE_ALTERNATE(7));
     palSetPadMode(REMOTE_UART_PORT, REMOTE_UART_PAD, REMOTE_UART_MODE);
     uartStart(&REMOTE_UART_DRIVE, &remoteUartConfig);
     uartStartReceive(&REMOTE_UART_DRIVE, REMOTE_DATA_BUF_SIZE, _remote._rx_buf);
@@ -54,17 +56,17 @@ RemoteInterpreter *remoteGetInterpreter() {
 // Interpret data from buf to specific formats
 void RemoteInterpreter::_processRemoteData() {
 
-    rc.ch0 = ((float) ((_rx_buf[0] | _rx_buf[1] << 8) & 0x07FF) - 1024.0f) / 660.0f;
-    rc.ch1 = ((float) ((_rx_buf[1] >> 3 | _rx_buf[2] << 5) & 0x07FF) - 1024.0f) / 660.0f;
-    rc.ch2 = ((float) ((_rx_buf[2] >> 6 | _rx_buf[3] << 2 | _rx_buf[4] << 10) & 0x07FF) - 1024.0f) / 660.0f;
-    rc.ch3 = ((float) ((_rx_buf[4] >> 1 | _rx_buf[5] << 7) & 0x07FF) - 1024.0f) / 660.0f;
+    rc.ch0 = (((_rx_buf[0] | _rx_buf[1] << 8) & 0x07FF) - 1024.0f) / 660.0f;
+    rc.ch1 = (((_rx_buf[1] >> 3 | _rx_buf[2] << 5) & 0x07FF) - 1024.0f) / 660.0f;
+    rc.ch2 = (((_rx_buf[2] >> 6 | _rx_buf[3] << 2 | _rx_buf[4] << 10) & 0x07FF) - 1024.0f) / 660.0f;
+    rc.ch3 = (((_rx_buf[4] >> 1 | _rx_buf[5] << 7) & 0x07FF) - 1024.0f) / 660.0f;
 
     rc.s1 = (RemoteRCSStatus) ((_rx_buf[5] >> 6) & 0x0003);
     rc.s2 = (RemoteRCSStatus) ((_rx_buf[5] >> 4) & 0x0003);
 
-    mouse.x = ((float) (_rx_buf[6] | _rx_buf[7] << 8)) / 32768.0f;
-    mouse.y = ((float) (_rx_buf[8] | _rx_buf[9] << 8)) / 32768.0f;
-    mouse.z = ((float) (_rx_buf[10] | _rx_buf[11] << 8)) / 32768.0f;
+    mouse.x = (int16_t) (_rx_buf[6] | _rx_buf[7] << 8);
+    mouse.y = (int16_t) (_rx_buf[8] | _rx_buf[9] << 8);
+    mouse.z = (int16_t) (_rx_buf[10] | _rx_buf[11] << 8);
 
     mouse.press_left = (bool) _rx_buf[12];
     mouse.press_right = (bool) _rx_buf[13];

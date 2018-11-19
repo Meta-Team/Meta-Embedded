@@ -63,9 +63,9 @@ public:
      * @brief data of mouse.
      */
     struct {
-        float x; // speed at x axis. Normalized: -1.0(fastest leftward) - 1.0(fastest rightward)
-        float y; // speed at y axis. Normalized: -1.0(fastest upward) - 1.0(fastest downward)
-        float z; // speed at z axis (unknown). Normalized: -1.0 - 1.0
+        int x; // speed at x axis. Normalized: -1.0(fastest leftward) - 1.0(fastest rightward)
+        int y; // speed at y axis. Normalized: -1.0(fastest upward) - 1.0(fastest downward)
+        int z; // speed at z axis (unknown). Normalized: -1.0 - 1.0
         bool press_left;
         bool press_right;
     } mouse;
@@ -98,7 +98,7 @@ public:
 
 
     // Store buf data retrieved from UART.
-    uint8_t _rx_buf[REMOTE_DATA_BUF_SIZE];
+    char _rx_buf[REMOTE_DATA_BUF_SIZE];
 
     // Call back function when data is completely retrieved.
     void _processRemoteData();
