@@ -22,8 +22,6 @@ DEV_COMMON_INC = . \
 
 DEV_MAIN_CSRC =
 DEV_MAIN_CPPSRC = interfaces/remote_interpreter.cpp \
-				  interfaces/gimbal_process_function.cpp \
-				  interfaces/send_currents_functions.cpp \
 			      main.cpp
 DEV_MAIN_INC = interfaces
 
