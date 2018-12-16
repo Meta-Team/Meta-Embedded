@@ -6,7 +6,7 @@
 #include "chprintf.h"
 #include "shell.h"
 
-#include "serial_shell_commands.hpp"
+#include "serial_shell_commands.h"
 
 /**
  * SerialShellThread: as its name suggests.

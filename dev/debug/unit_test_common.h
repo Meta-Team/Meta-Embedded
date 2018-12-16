@@ -15,7 +15,7 @@
 
 #include "ch.hpp"
 #include "hal.h"
-#include "led.hpp"
+#include "led.h"
 
 /**
  * @name UnitTestBlinkLEDThread

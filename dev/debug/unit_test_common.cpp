@@ -1,7 +1,7 @@
 //
 // Created by liuzikai on 2018/8/6.
 //
-#include "unit_test_common.hpp"
+#include "unit_test_common.h"
 
 void UnitTestBlinkLEDThread::main(void) {
     // Initialize GPIO to the LEDs.

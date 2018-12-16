@@ -5,10 +5,10 @@
 #include "ch.hpp"
 #include "hal.h"
 
-#include "led.hpp"
-#include "serial_shell.hpp"
-#include "unit_test_common.hpp"
-#include "remote_interpreter.hpp"
+#include "led.h"
+#include "serial_shell.h"
+#include "unit_test_common.h"
+#include "remote_interpreter.h"
 
 using namespace chibios_rt;
 

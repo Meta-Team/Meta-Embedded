@@ -3,7 +3,7 @@
 
 #include "ch.hpp"
 #include "hal.h"
-#include "port_to_string.hpp"
+#include "../common/port_to_string.h"
 
 class ButtonMonitorThread : public chibios_rt::BaseStaticThread<128> {
 private:
