@@ -7,8 +7,8 @@
 
 #include "led.hpp"
 #include "serial_shell.hpp"
-#include "unit_test_common.hpp"
-#include "remote_interpreter.hpp"
+#include "unit_test_common.h"
+#include "remote_interpreter.h"
 
 using namespace chibios_rt;
 

@@ -17,7 +17,7 @@
 #include "ch.hpp"
 #include "hal.h"
 
-#include "button_monitor.hpp"
+#include "button_monitor.h"
 #include "led.hpp"
 #include "serial_shell.hpp"
 

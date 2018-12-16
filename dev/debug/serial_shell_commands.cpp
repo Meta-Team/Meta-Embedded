@@ -1,4 +1,4 @@
-#include "serial_shell_commands.hpp"
+#include "serial_shell_commands.h"
 using namespace chibios_rt;
 
 /**

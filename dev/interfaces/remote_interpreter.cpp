@@ -2,7 +2,7 @@
 // Created by liuzikai on 2018/8/6.
 //
 
-#include "remote_interpreter.hpp"
+#include "remote_interpreter.h"
 
 // Initialize the object directly to avoid using `new` which may cause compile errors.
 RemoteInterpreter _remote = RemoteInterpreter();

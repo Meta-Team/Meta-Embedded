@@ -13,11 +13,11 @@ ELSE()
 ENDIF()
 
 # Actual compile command
-add_custom_target(Main COMMAND ${MAKE_EXECUTABLE} -j -C ${Meta_Infantry_SOURCE_DIR}/dev UNIT_TEST=NONE)
-add_custom_target(UnitTest_Remote_Interpreter COMMAND ${MAKE_EXECUTABLE} -j -C ${Meta_Infantry_SOURCE_DIR}/dev UNIT_TEST=REMOTE_INTERPRETER)
+add_custom_target(MAIN COMMAND ${MAKE_EXECUTABLE} -j -C ${Meta_Infantry_SOURCE_DIR}/dev DEV_MODULE=MAIN)
+add_custom_target(UT_REMOTE_INTERPRETER COMMAND ${MAKE_EXECUTABLE} -j -C ${Meta_Infantry_SOURCE_DIR}/dev DEV_MODULE=REMOTE_INTERPRETER)
 
 # make clean
-add_custom_target(clean_make COMMAND ${MAKE_EXECUTABLE} clean -C ${Meta_Infantry_SOURCE_DIR}/dev)
+add_custom_target(MAKE_CLEAN COMMAND ${MAKE_EXECUTABLE} clean -C ${Meta_Infantry_SOURCE_DIR}/dev)
 
 # Our source files
 set(DEVCPPSRC
@@ -25,13 +25,19 @@ set(DEVCPPSRC
         dev/debug/button_monitor.cpp
         dev/debug/serial_shell.cpp
         dev/debug/serial_shell_commands.cpp
-        dev/main.cpp dev/debug/led.cpp dev/remote_interpreter/remote_interpreter.cpp dev/remote_interpreter/remote_interpreter.hpp dev/remote_interpreter/remote_interpreter_unit_test.cpp dev/debug/unit_test_common.cpp dev/debug/unit_test_common.hpp)
+        dev/main.cpp
+        dev/debug/led.cpp
+        dev/interfaces/remote_interpreter.cpp
+        dev/interfaces/remote_interpreter_unit_test.cpp
+        dev/interfaces/gimbal_process_function.cpp
+        dev/interfaces/send_currents_functions.cpp
+        dev/debug/unit_test_common.cpp)
 
 # Our include directories
 include_directories(dev
         dev/common
         dev/debug
-        dev/remote_interpreter)
+        dev/interfaces)
 
 
 # This target is used to make CLion IDE work properly

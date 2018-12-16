@@ -1,38 +1,36 @@
-# Common files and directories
-DEV_COMMON_CSRC = 
+# ===========================================================================
+# Common Includes and Sources
 
-DEV_COMMON_CPPSRC = $(CHIBIOS)/dev/common/port_to_string.cpp \
-			        $(CHIBIOS)/dev/debug/button_monitor.cpp \
-			        $(CHIBIOS)/dev/debug/serial_shell.cpp \
-			        $(CHIBIOS)/dev/debug/serial_shell_commands.cpp \
-			        $(CHIBIOS)/dev/debug/led.cpp
+DEV_COMMON_CSRC =
+DEV_COMMON_CPPSRC = common/port_to_string.cpp \
+			        debug/button_monitor.cpp \
+			        debug/serial_shell.cpp \
+			        debug/serial_shell_commands.cpp \
+			        debug/led.cpp
+DEV_COMMON_INC = . \
+		         common \
+		         debug
 
-DEV_COMMON_INC = $(CHIBIOS)/dev \
-		         $(CHIBIOS)/dev/common \
-		         $(CHIBIOS)/dev/debug
-
-# Remote Interpreter
-REMOTE_INTERPRETER_CSRC =
-REMOTE_INTERPRETER_CPPSRC = $(CHIBIOS)/dev/remote_interpreter/remote_interpreter.cpp
-REMOTE_INTERPRETER_INC = $(CHIBIOS)/dev/remote_interpreter
-
-UNIT_TEST_REMOTE_INTERPRETER_CSRC = $(REMOTE_INTERPRETER_CSRC)
-UNIT_TEST_REMOTE_INTERPRETER_CPPSRC = $(REMOTE_INTERPRETER_CPPSRC) \
-                                      $(CHIBIOS)/dev/debug/unit_test_common.cpp \
-                                      $(CHIBIOS)/dev/remote_interpreter/remote_interpreter_unit_test.cpp
-UNIT_TEST_REMOTE_INTERPRETER_INC = $(REMOTE_INTERPRETER_INC)
+DEV_MAIN_CSRC =
+DEV_MAIN_CPPSRC = interfaces/remote_interpreter.cpp \
+				  interfaces/gimbal_process_function.cpp \
+				  interfaces/send_currents_functions.cpp \
+			      main.cpp
+DEV_MAIN_INC = interfaces
 
 
-# Main
-UNIT_TEST_NONE_CSRC = $(REMOTE_INTERPRETER_CSRC)
-UNIT_TEST_NONE_CPPSRC = $(REMOTE_INTERPRETER_CPPSRC) \
-	                    $(CHIBIOS)/dev/main.cpp
-UNIT_TEST_NONE_INC = $(REMOTE_INTERPRETER_INC)
+
+DEV_REMOTE_INTERPRETER_CSRC =
+DEV_REMOTE_INTERPRETER_CPPSRC = debug/unit_test_common.cpp \
+						        interfaces/remote_interpreter.cpp \
+                                interfaces/remote_interpreter_unit_test.cpp
+DEV_REMOTE_INTERPRETER_INC = interfaces
+
 
 # Rules
 ALLCSRC += $(DEV_COMMON_CSRC) \
-           $(UNIT_TEST_$(UNIT_TEST)_CSRC)
+           $(DEV_$(DEV_MODULE)_CSRC)
 ALLCPPSRC += $(DEV_COMMON_CPPSRC) \
-		   $(UNIT_TEST_$(UNIT_TEST)_CPPSRC)
+		     $(DEV_$(DEV_MODULE)_CPPSRC)
 ALLINC  += $(DEV_COMMON_INC) \
-		   $(UNIT_TEST_$(UNIT_TEST)_INC)
+		   $(DEV_$(DEV_MODULE)_INC)
