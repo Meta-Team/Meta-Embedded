@@ -25,8 +25,7 @@ set(DEVCPPSRC
         dev/debug/button_monitor.cpp
         dev/debug/serial_shell.cpp
         dev/debug/serial_shell_commands.cpp
-        dev/main.cpp dev/debug/led.cpp dev/remote_interpreter/remote_interpreter.cpp dev/remote_interpreter/remote_interpreter.hpp dev/remote_interpreter/remote_interpreter_unit_test.cpp dev/debug/unit_test_common.cpp dev/debug/unit_test_common.hpp)
-
+        dev/main.cpp dev/debug/led.cpp dev/remote_interpreter/remote_interpreter.cpp dev/remote_interpreter/remote_interpreter.hpp dev/remote_interpreter/remote_interpreter_unit_test.cpp dev/debug/unit_test_common.cpp dev/debug/unit_test_common.hpp dev/send_currents_functions.cpp dev/send_currents_functions.h)
 # Our include directories
 include_directories(dev
         dev/common
