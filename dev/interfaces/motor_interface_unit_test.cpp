@@ -7,11 +7,14 @@
 
 #include "led.h"
 #include "serial_shell.h"
-#include "remote_interpreter.h"
+#include "gimbal_process_function.h"
+#include "send_currents_functions.h"
 
 using namespace chibios_rt;
 
-RemoteInterpreter *remote = NULL;
+class MotorFeedBackReceiveThread : public BaseStaticThread <256> {
+
+};
 
 // Print the remote info.
 static void cmd_remote_print(BaseSequentialStream *chp, int argc, char *argv[]) {
@@ -22,17 +25,17 @@ static void cmd_remote_print(BaseSequentialStream *chp, int argc, char *argv[]) 
     }
     chprintf(chp, "ch0 ch1 ch2 ch3 s1 s2 mouse_x mouse_y mouse_z L R" SHELL_NEWLINE_STR);
     chprintf(chp, "%3d %3d %3d %3d %2d %2d %7d %7d %7d %1d %1d" SHELL_NEWLINE_STR,
-           (int) (remote->rc.ch0 * 100), (int) (remote->rc.ch1 * 100),
-           (int) (remote->rc.ch2 * 100), (int) (remote->rc.ch3 * 100),
-           remote->rc.s1, remote->rc.s2,
-           remote->mouse.x, remote->mouse.y, remote->mouse.z,
-           remote->mouse.press_left, remote->mouse.press_right);
+             (int) (remote->rc.ch0 * 100), (int) (remote->rc.ch1 * 100),
+             (int) (remote->rc.ch2 * 100), (int) (remote->rc.ch3 * 100),
+             remote->rc.s1, remote->rc.s2,
+             remote->mouse.x, remote->mouse.y, remote->mouse.z,
+             remote->mouse.press_left, remote->mouse.press_right);
     chprintf(chp, SHELL_NEWLINE_STR);
     chprintf(chp, "W S A D SHIFT CTRL Q E R F G Z X C V B" SHELL_NEWLINE_STR);
     chprintf(chp, "%d %d %d %d %5d %4d %d %d %d %d %d %d %d %d %d %d" SHELL_NEWLINE_STR,
-           remote->key.w, remote->key.s, remote->key.a, remote->key.d, remote->key.shift, remote->key.ctrl,
-           remote->key.q, remote->key.e, remote->key.r, remote->key.f, remote->key.g, remote->key.z,
-           remote->key.x, remote->key.c, remote->key.v, remote->key.b);
+             remote->key.w, remote->key.s, remote->key.a, remote->key.d, remote->key.shift, remote->key.ctrl,
+             remote->key.q, remote->key.e, remote->key.r, remote->key.f, remote->key.g, remote->key.z,
+             remote->key.x, remote->key.c, remote->key.v, remote->key.b);
     chprintf(chp, SHELL_NEWLINE_STR SHELL_NEWLINE_STR);
 }
 
@@ -50,6 +53,9 @@ int main(void) {
     // Start ChibiOS shell at high priority,
     // so even if a thread stucks, we still have access to shell.
     serialShell.start(HIGHPRIO);
+
+    // Start led blink thread common for unit test
+    blinkLEDThread.start(HIGHPRIO - 1);
 
     remote = remoteInit();
 

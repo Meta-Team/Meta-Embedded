@@ -3,8 +3,8 @@
 
 #include "ch.hpp"
 #include "hal.h"
-#include "chprintf.h"
 #include "shell.h"
+#include "chprintf.h"
 
 #include "serial_shell_commands.h"
 

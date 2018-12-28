@@ -10,9 +10,9 @@
 #include "ch.hpp"
 #include "hal.h"
 
-class gimbal_process {
+class GimbalFeedbackProcessor {
 public:
-    uint8_t data8[8];
+
     typedef struct {
         int16_t actual_angle_base_round; // The number of round(s) that motor has rotated related to original position
         float actual_angle;

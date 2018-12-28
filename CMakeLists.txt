@@ -31,7 +31,8 @@ set(DEVCPPSRC
         dev/interfaces/remote_interpreter_unit_test.cpp
         dev/interfaces/gimbal_process_function.cpp
         dev/interfaces/send_currents_functions.cpp
-        dev/debug/unit_test_common.cpp)
+        dev/interfaces/motor_interface_unit_test.cpp
+        )
 
 # Our include directories
 include_directories(dev
