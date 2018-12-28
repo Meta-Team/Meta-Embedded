@@ -6,7 +6,7 @@
 #include <stdint.h>
 #include "send_currents_functions.h"
 
-void Send_Currents:: send_chassis_currents() {
+void Send_Currents::send_chassis_currents() {
 
     // limit the maximum current of each of the motors
     ABS_LIMIT(chassis.motor[0].target_current, CHASSIS_MOTOR_MAX_CURRENT);
@@ -31,7 +31,7 @@ void Send_Currents:: send_chassis_currents() {
     canTransmit(&CAND1, CAN_ANY_MAILBOX, &txmsg_chassis, MS2ST(10));
 }
 
-void Send_Currents:: send_gimbal_currents() {
+void Send_Currents::send_gimbal_currents() {
 
     // limit the maximum current of each of the motors
     ABS_LIMIT(gimbal.motor[GIMBAL_MOTOR_YAW].target_current, GIMBAL_MOTOR_MAX_CURRENT);
