@@ -5,11 +5,15 @@
 #ifndef META_INFANTRY_SEND_CURRENTS_FUNCTIONS_H
 #define META_INFANTRY_SEND_CURRENTS_FUNCTIONS_H
 
-#define GIMBAL_MOTOR_YAW 0
-#define GIMBAL_MOTOR_PIT 1
+#define GIMBAL_MOTOR_YAW 0x205
+#define GIMBAL_MOTOR_PIT 0x206
 // need exact value to define
-#define GIMBAL_MOTOR_MAX_CURRENT
-#define CHASSIS_MOTOR_MAX_CURRENT
+#define GIMBAL_MOTOR_MAX_CURRENT 10000
+#define CHASSIS_MOTOR_MAX_CURRENT 10000
+
+#include <stdint.h>
+#include "ch.hpp"
+#include "hal.h"
 
 class Send_Currents{
 
