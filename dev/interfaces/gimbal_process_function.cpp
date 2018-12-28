@@ -6,7 +6,7 @@
 
 void gimbal_process::process_gimbal_feedback(CANRxFrame *rxmsg) {
 
-    int motor_id = rxmsg->SID - 0x205;//get the motor id (YAW)
+    uint32_t motor_id = rxmsg->SID - 0x205;//get the motor id (YAW)
     uint16_t feedback_angle_orig = (rxmsg->data8[0] << 8 |
                                     rxmsg->data8[1]);//set the present angle location by combining the data
 
@@ -28,7 +28,6 @@ void gimbal_process::process_gimbal_feedback(CANRxFrame *rxmsg) {
         angle -= 360.0f;
 
     //update the actual angle
-    motor[motor_id].actual_angle_last = motor[motor_id].actual_angle;//update the last gimbal angle to the angle before this change
     motor[motor_id].actual_angle = motor[motor_id].actual_angle + angle;//update the present angle
     if (motor[motor_id].actual_angle > 360.0f) {
         //if the actual_angle is greater than 360, then we can know that it has already turn a round in counter clockwise direction

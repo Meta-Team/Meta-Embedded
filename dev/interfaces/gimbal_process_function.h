@@ -14,12 +14,8 @@ class gimbal_process {
 public:
     uint8_t data8[8];
     typedef struct {
-        uint16_t actual_angle_orig;
         int16_t actual_angle_base_round; // The number of round(s) that motor has rotated related to original position
-        int16_t actual_angle;
-        int16_t delta_angle;
-        int16_t target_angle;
-        int16_t target_current;
+        float actual_angle;
     } gimbal_motor;
 
     gimbal_motor motor[2];
