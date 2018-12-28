@@ -4,23 +4,23 @@
 #include "gimbal_process_function.h"
 
 
-
 void gimbal_process::process_gimbal_feedback(CANRxFrame *rxmsg) {
 
     int motor_id = rxmsg->SID - 0x205;//get the motor id (YAW)
-    uint16_t feedback_angle_orig = (rxmsg->data8[0] << 8 | rxmsg->data8[1]);//set the present angle location by combining the data
+    uint16_t feedback_angle_orig = (rxmsg->data8[0] << 8 |
+                                    rxmsg->data8[1]);//set the present angle location by combining the data
 
 #ifdef DEBUG_FEEDBACK_GIMBAL_ORIG_ANGLE
     if (motor_id == GIMBAL_MOTOR_YAW) {
-		print("[GIMBAL_ORIG] Yaw = %d\n", (int)feedback_angle_orig);
-	}
-	else if (motor_id == GIMBAL_MOTOR_PIT) {
-		print("[GIMBAL_ORIG] Pit = %d\n", (int)feedback_angle_orig);
-	}
+        print("[GIMBAL_ORIG] Yaw = %d\n", (int)feedback_angle_orig);
+    }
+    else if (motor_id == GIMBAL_MOTOR_PIT) {
+        print("[GIMBAL_ORIG] Pit = %d\n", (int)feedback_angle_orig);
+    }
 #endif
 
     //calculate the angle that the motor moves in degree, and we assume that the absolute value of the angle is smaller than 180 degrees
-    float angle = ((float)feedback_angle_orig - (float)gimbal_fi_orig[motor_id]) * 360.0f / 8192.0f;
+    float angle = ((float) feedback_angle_orig - (float) gimbal_fi_orig[motor_id]) * 360.0f / 8192.0f;
     //make sure that the angle is in [-180,180]
     if (angle < -180.0f)
         angle += 360.0f;
