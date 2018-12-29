@@ -75,15 +75,15 @@ bool GimbalInterface::process_motor_feedback(CANRxFrame *rxmsg) {
         angle -= 360.0f;
 
     //update the actual angle
-    motor[motor_id].actual_angle = motor[motor_id].actual_angle + angle;//update the present angle
-    if (motor[motor_id].actual_angle > 360.0f) {
+    motor->actual_angle = motor->actual_angle + angle;//update the present angle
+    if (motor->actual_angle > 360.0f) {
         //if the actual_angle is greater than 360, then we can know that it has already turn a round in counter clockwise direction
-        motor[motor_id].actual_angle -= 360.0f;//set the angle to be within [0,360]
-        motor[motor_id].actual_angle_base_round++;//round count increases 1
+        motor->actual_angle -= 360.0f;//set the angle to be within [0,360]
+        motor->round_count++;//round count increases 1
     }
-    if (motor[motor_id].actual_angle < 0) {
+    if (motor->actual_angle < 0) {
         //if the actual_angle is smaller than 0, then we can know that it has already turn a round in clockwise direction
-        motor[motor_id].actual_angle += 360.0f;//set the angle to be within [0,360]
-        motor[motor_id].actual_angle_base_round--;//round count decreases 1
+        motor->actual_angle += 360.0f;//set the angle to be within [0,360]
+        motor->round_count--;//round count decreases 1
     }
 }
