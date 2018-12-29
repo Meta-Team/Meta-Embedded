@@ -34,8 +34,7 @@ DEV_MAIN_INC = interfaces
 # ===========================================================================
 
 DEV_REMOTE_INTERPRETER_CSRC =
-DEV_REMOTE_INTERPRETER_CPPSRC = debug/unit_test_common.cpp \
-						        interfaces/remote_interpreter.cpp \
+DEV_REMOTE_INTERPRETER_CPPSRC = interfaces/remote_interpreter.cpp \
                                 interfaces/remote_interpreter_unit_test.cpp
 DEV_REMOTE_INTERPRETER_INC = interfaces
 

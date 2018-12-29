@@ -28,8 +28,7 @@ set(DEVCPPSRC
         dev/main.cpp
         dev/debug/led.cpp
         dev/interfaces/remote_interpreter.cpp
-        dev/interfaces/remote_interpreter_unit_test.cpp
-        dev/debug/unit_test_common.cpp)
+        dev/interfaces/remote_interpreter_unit_test.cpp)
 
 # Our include directories
 include_directories(dev

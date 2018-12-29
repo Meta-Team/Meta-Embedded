@@ -18,8 +18,8 @@
 #include "hal.h"
 
 #include "button_monitor.h"
-#include "led.hpp"
-#include "serial_shell.hpp"
+#include "led.h"
+#include "serial_shell.h"
 
 using namespace chibios_rt;
 
