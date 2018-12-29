@@ -8,10 +8,6 @@
  *        components. It handles data flow from the DR16 receiver, and
  *        interprets data to specific format for other program components
  *        which need remote control data.
- * @usage For a component using remote data, it's expected to hold a pointer
- *        of `RemoteInterpreter`, and retrieve data from it.
- *        For the main handler, it's expected to initialize an interpreter
- *        using `remoteInit()`, and pass the pointer to other components.
  */
 
 #ifndef Meta_Infantry_REMOTE_INTERPRETER_HPP
@@ -20,61 +16,41 @@
 #include "ch.hpp"
 #include "hal.h"
 
-/** Hardware configurations. */
-// Currently the rx pin of the receiver is PB7, with alternate mode 7 (UART1).
-#define REMOTE_UART_DRIVE UARTD1
-#define REMOTE_UART_PORT GPIOB
-#define REMOTE_UART_PAD 7
-#define REMOTE_UART_MODE PAL_MODE_ALTERNATE(7)
+
 #define REMOTE_DATA_BUF_SIZE 18
 
 /**
- * @name RemoteRCSStatus
- * @brief The status of the s1 and s2 control on rc.
- */
-enum RemoteRCSStatus {
-    REMOTE_RC_S_UP = 1,
-    REMOTE_RC_S_DOWN = 2,
-    REMOTE_RC_S_MIDDLE = 3
-};
-
-/**
- * @name RemoteInterpreter
+ * @name Remote
  * @brief This class holds interpreted remote data.
  */
-class RemoteInterpreter {
+class Remote {
+
 public:
 
-    /**
-     * @name rc
-     * @brief data of remote controller.
-     */
-    struct {
+    enum RemoteRCSStatus {
+        REMOTE_RC_S_UP = 1,
+        REMOTE_RC_S_DOWN = 2,
+        REMOTE_RC_S_MIDDLE = 3
+    };
+
+    typedef struct {
         float ch0; // normalized: -1.0(leftmost) - 1.0(rightmost)
         float ch1; // normalized: -1.0(downmost) - 1.0(upmost)
         float ch2; // normalized: -1.0(leftmost) - 1.0(rightmost)
         float ch3; // normalized: -1.0(downmost) - 1.0(upmost)
         RemoteRCSStatus s1;
         RemoteRCSStatus s2;
-    } rc;
+    } rc_t;
 
-    /**
-     * @name mouse
-     * @brief data of mouse.
-     */
-    struct {
+    typedef struct {
         int x; // speed at x axis. Normalized: -1.0(fastest leftward) - 1.0(fastest rightward)
         int y; // speed at y axis. Normalized: -1.0(fastest upward) - 1.0(fastest downward)
         int z; // speed at z axis (unknown). Normalized: -1.0 - 1.0
         bool press_left;
         bool press_right;
-    } mouse;
+    } mouse_t;
 
-    /**
-     * @name key
-     * @brief status of keys.
-     */
-    union {
+    typedef union {
         struct {
             bool w:1;
             bool s:1;
@@ -93,28 +69,30 @@ public:
             bool v:1;
             bool b:1;
         };
-        uint16_t _key_code; // hold key code data, for internal use.
-    } key;
+        uint16_t _key_code; // hold key code data, for internal use
+    } keyboard_t;
 
+    /** Interface variables **/
 
-    // Store buf data retrieved from UART.
-    char _rx_buf[REMOTE_DATA_BUF_SIZE];
+    static rc_t rc;
+    static mouse_t mouse;
+    static keyboard_t key;
 
-    // Call back function when data is completely retrieved.
-    void _processRemoteData();
+    /** Interface functions **/
+
+    static void start_receive();
+
+    static void uart_received_callback(UARTDriver *uartp); // call back function when data is completely retrieved
+
+private:
+
+    static char rx_buf[]; // store buf data retrieved from UART
+
+    static const int rx_buf_size = 18;
+
+    friend void uartStart(UARTDriver *uartp, const UARTConfig *config);
+    friend void uartStartReceive(UARTDriver *uartp, size_t n, void *rxbuf);
 
 };
-
-/**
- * Initialize a remote interpreter instance and return its pointer.
- * @return the pointer of remote interpreter.
- */
-RemoteInterpreter *remoteInit();
-
-/**
- * Get the pointer initialized remote interpreter.
- * @return the pointer of remote interpreter.
- */
-RemoteInterpreter *remoteGetInterpreter();
 
 #endif //Meta_Infantry_REMOTE_INTERPRETER_HPP

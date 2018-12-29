@@ -11,9 +11,7 @@
 
 using namespace chibios_rt;
 
-RemoteInterpreter *remote = NULL;
-
-// Print the remote info.
+// Print the remote info
 static void cmd_remote_print(BaseSequentialStream *chp, int argc, char *argv[]) {
     (void)argv;
     if (argc > 0) {
@@ -22,43 +20,39 @@ static void cmd_remote_print(BaseSequentialStream *chp, int argc, char *argv[]) 
     }
     chprintf(chp, "ch0 ch1 ch2 ch3 s1 s2 mouse_x mouse_y mouse_z L R" SHELL_NEWLINE_STR);
     chprintf(chp, "%3d %3d %3d %3d %2d %2d %7d %7d %7d %1d %1d" SHELL_NEWLINE_STR,
-           (int) (remote->rc.ch0 * 100), (int) (remote->rc.ch1 * 100),
-           (int) (remote->rc.ch2 * 100), (int) (remote->rc.ch3 * 100),
-           remote->rc.s1, remote->rc.s2,
-           remote->mouse.x, remote->mouse.y, remote->mouse.z,
-           remote->mouse.press_left, remote->mouse.press_right);
+           (int) (Remote::rc.ch0 * 100), (int) (Remote::rc.ch1 * 100),
+           (int) (Remote::rc.ch2 * 100), (int) (Remote::rc.ch3 * 100),
+           Remote::rc.s1, Remote::rc.s2,
+           Remote::mouse.x, Remote::mouse.y, Remote::mouse.z,
+           Remote::mouse.press_left, Remote::mouse.press_right);
     chprintf(chp, SHELL_NEWLINE_STR);
     chprintf(chp, "W S A D SHIFT CTRL Q E R F G Z X C V B" SHELL_NEWLINE_STR);
     chprintf(chp, "%d %d %d %d %5d %4d %d %d %d %d %d %d %d %d %d %d" SHELL_NEWLINE_STR,
-           remote->key.w, remote->key.s, remote->key.a, remote->key.d, remote->key.shift, remote->key.ctrl,
-           remote->key.q, remote->key.e, remote->key.r, remote->key.f, remote->key.g, remote->key.z,
-           remote->key.x, remote->key.c, remote->key.v, remote->key.b);
+           Remote::key.w, Remote::key.s, Remote::key.a, Remote::key.d, Remote::key.shift, Remote::key.ctrl,
+           Remote::key.q, Remote::key.e, Remote::key.r, Remote::key.f, Remote::key.g, Remote::key.z,
+           Remote::key.x, Remote::key.c, Remote::key.v, Remote::key.b);
     chprintf(chp, SHELL_NEWLINE_STR SHELL_NEWLINE_STR);
 }
 
-
-// Shell commands to pause and resume the echos.
 ShellCommand remoteShellCommands[] = {
         {"p", cmd_remote_print},
-        {NULL, NULL}
+        {nullptr, nullptr}
 };
 
-int main(void) {
+int main() {
     halInit();
     System::init();
 
-    // Start ChibiOS shell at high priority,
-    // so even if a thread stucks, we still have access to shell.
+    // Start ChibiOS shell at high priority, so even if a thread stucks, we still have access to shell.
     serialShell.start(HIGHPRIO);
 
-    remote = remoteInit();
+    Remote::start_receive();
 
     shellAddCommands(remoteShellCommands);
 
     // See chconf.h for what this #define means.
 #if CH_CFG_NO_IDLE_THREAD
-    // ChibiOS idle thread has been disabled,
-    // main() should implement infinite loop
+    // ChibiOS idle thread has been disabled, main() should implement infinite loop
     while (true) {}
 #else
     // When main() quits, the main thread will somehow
