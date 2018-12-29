@@ -40,6 +40,19 @@ DEV_REMOTE_INTERPRETER_CPPSRC = interfaces/remote_interpreter.cpp \
                                 interfaces/remote_interpreter_unit_test.cpp
 DEV_REMOTE_INTERPRETER_INC = interfaces
 
+# ===========================================================================
+# GIMBAL_INTERFACE MODULES
+#
+#	Include CANInterface, GimbalInterface and the unit test modules.
+#
+# ===========================================================================
+
+DEV_GIMBAL_INTERFACE_CSRC =
+DEV_GIMBAL_INTERFACE_CPPSRC = interfaces/can_interface.cpp \
+                                interfaces/gimbal_interface.cpp \
+                                interfaces/gimbal_interface_unit_test.cpp
+DEV_GIMBAL_INTERFACE_INC = interfaces
+
 
 # ===========================================================================
 # RULES

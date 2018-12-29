@@ -27,6 +27,10 @@
 
 #include <stdarg.h>
 
+#if defined(SHELL_CONFIG_FILE)
+#include "shellconf.h"
+#endif
+
 /**
  * @brief   Float type support.
  */

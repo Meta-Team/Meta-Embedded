@@ -14,6 +14,7 @@
 // Disable history in the shell
 #define SHELL_USE_HISTORY                   FALSE
 
+// Enable float in chprintf
 #define CHPRINTF_USE_FLOAT                  TRUE
 
 #endif

@@ -51,6 +51,7 @@ bool GimbalInterface::send_gimbal_currents() {
     txmsg.data8[4] =  txmsg.data8[5] = txmsg.data8[6] = txmsg.data8[7] = 0;
 
     can->send_msg(&txmsg);
+    return true;
 }
 
 bool GimbalInterface::process_motor_feedback(CANRxFrame *rxmsg) {
@@ -61,13 +62,16 @@ bool GimbalInterface::process_motor_feedback(CANRxFrame *rxmsg) {
     else
         return false;
 
+    // set the present angle location by combining the data
+    motor->actual_angle_raw = (rxmsg->data8[0] << 8 | rxmsg->data8[1]);
 
-    uint16_t feedback_angle_raw = (rxmsg->data8[0] << 8 |
-                                    rxmsg->data8[1]); // set the present angle location by combining the data
+    // TODO: revise the logic
+    // TODO: add support for angular velocity calculation
+    return false;
 
     // calculate the angle that the motor moves in degree,
     // and we assume that the absolute value of the angle is smaller than 180 degrees
-    float angle = (feedback_angle_raw - motor->front_angle_raw) * 360.0f / 8192.0f;
+    float angle = (motor->actual_angle_raw - motor->front_angle_raw) * 360.0f / 8192.0f;
     //make sure that the angle is in [-180,180]
     if (angle < -180.0f)
         angle += 360.0f;
@@ -75,15 +79,15 @@ bool GimbalInterface::process_motor_feedback(CANRxFrame *rxmsg) {
         angle -= 360.0f;
 
     //update the actual angle
-    motor[motor_id].actual_angle = motor[motor_id].actual_angle + angle;//update the present angle
-    if (motor[motor_id].actual_angle > 360.0f) {
+    motor->actual_angle = motor->actual_angle + angle;//update the present angle
+    if (motor->actual_angle > 360.0f) {
         //if the actual_angle is greater than 360, then we can know that it has already turn a round in counter clockwise direction
-        motor[motor_id].actual_angle -= 360.0f;//set the angle to be within [0,360]
-        motor[motor_id].actual_angle_base_round++;//round count increases 1
+        motor->actual_angle -= 360.0f;//set the angle to be within [0,360]
+        motor->round_count++;//round count increases 1
     }
-    if (motor[motor_id].actual_angle < 0) {
+    if (motor->actual_angle < 0) {
         //if the actual_angle is smaller than 0, then we can know that it has already turn a round in clockwise direction
-        motor[motor_id].actual_angle += 360.0f;//set the angle to be within [0,360]
-        motor[motor_id].actual_angle_base_round--;//round count decreases 1
+        motor->actual_angle += 360.0f;//set the angle to be within [0,360]
+        motor->round_count--;//round count decreases 1
     }
 }
