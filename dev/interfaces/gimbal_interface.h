@@ -35,9 +35,11 @@ public:
 
         int target_current;
 
-        uint16_t front_angle_raw;
+        uint16_t front_angle_raw;  // the actual angle of motor when the gimbal is pointing to the exact front
 
-        uint16_t actual_angle_raw;
+        uint16_t last_angle_raw;  // the raw actual angle of the last feedback, in [0, 8191]
+
+        uint16_t new_angle_raw;  // the raw actual angle of the newest feedback, in [0, 8191]
 
         /* Normalized Angle and Rounds
          *  Using the front angle_raw as reference.
@@ -49,7 +51,7 @@ public:
 
         time_msecs_t sample_time;  // last sample time, for velocity calculation
 
-        float angular_velocity;  // instant angular velocity [degree/ms]
+        float angular_velocity;  // instant angular velocity [degree/ms], positive when ***wise, negative otherwise
 
         int actual_current;  // feedback current
 
