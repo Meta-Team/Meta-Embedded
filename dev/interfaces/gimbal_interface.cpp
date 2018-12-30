@@ -67,20 +67,21 @@ bool GimbalInterface::process_motor_feedback(CANRxFrame *rxmsg) {
     else
         return false;
 
-    // get the present absolute angle value by combining the data
-    motor->new_angle_raw = (rxmsg->data8[0] << 8 | rxmsg->data8[1]);
+    // get the present absolute angle value by combining the data into a temporary variable
+    uint16_t new_actual_angle_raw = (rxmsg->data8[0] << 8 | rxmsg->data8[1]);
 
-    // check whether this new raw angle is valuable
-    if (motor->new_angle_raw > 8191){
+    // check whether this new raw angle is valid
+    if (new_actual_angle_raw > 8191){
         return false;
     }
 
     // calculate the angle movement in raw data
     // and we assume that the absolute value of the angle movement is smaller than 180 degrees(4096 of raw data)
-    int16_t angle_movement = motor->new_angle_raw - motor->last_angle_raw;
+    // currently motor->actual_angle_raw holds the actual angle of last time
+    int angle_movement = (int) new_actual_angle_raw - (int) motor->actual_angle_raw;
 
-    // update the last_angle_raw
-    motor->last_angle_raw = motor->new_angle_raw;
+    // update the actual_angle_raw
+    motor->actual_angle_raw = new_actual_angle_raw;
 
     // make sure that the angle movement is in [-4096,4096] ([-180,180] in degree)
     if (angle_movement < -4096){

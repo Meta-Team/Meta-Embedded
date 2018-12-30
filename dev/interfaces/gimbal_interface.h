@@ -37,9 +37,7 @@ public:
 
         uint16_t front_angle_raw;  // the angle of motor when the gimbal is pointing to the exact front
 
-        uint16_t last_angle_raw;  // the raw angle of the last feedback, in [0, 8191]
-
-        uint16_t new_angle_raw;  // the raw angle of the newest feedback, in [0, 8191]
+        uint16_t actual_angle_raw;  // the raw angle of the newest feedback, in [0, 8191]
 
         /* Normalized Angle and Rounds
          *  Using the front angle_raw as reference.
@@ -84,6 +82,8 @@ public:
         pitch.id = PIT_ID;
         pitch.enabled = false;
         pitch.sample_time = 0;
+        yaw.actual_angle = pitch.actual_angle = 0.0;
+        yaw.actual_angle_raw = pitch.actual_angle_raw = 0;
     }
 
     /**
