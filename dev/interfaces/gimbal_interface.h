@@ -35,19 +35,20 @@ public:
 
         int target_current;
 
-        uint16_t front_angle_raw;  // the actual angle of motor when the gimbal is pointing to the exact front
+        uint16_t front_angle_raw;  // the angle of motor when the gimbal is pointing to the exact front
 
-        uint16_t last_angle_raw;  // the raw actual angle of the last feedback, in [0, 8191]
+        uint16_t last_angle_raw;  // the raw angle of the last feedback, in [0, 8191]
 
-        uint16_t new_angle_raw;  // the raw actual angle of the newest feedback, in [0, 8191]
+        uint16_t new_angle_raw;  // the raw angle of the newest feedback, in [0, 8191]
 
         /* Normalized Angle and Rounds
          *  Using the front angle_raw as reference.
          *  Range: -180.0 () to 180.0 ()
          */
         // TODO: test the sign of clockwise and counter-clockwise
-        float actual_angle;
-        int round_count;
+        float actual_angle; // the actual angle of the gimbal, compared with the front
+
+        int round_count;  // the rounds that the gimbal turns
 
         time_msecs_t sample_time;  // last sample time, for velocity calculation
 
