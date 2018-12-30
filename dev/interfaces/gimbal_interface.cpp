@@ -95,9 +95,6 @@ bool GimbalInterface::process_motor_feedback(CANRxFrame *rxmsg) {
         }
     }
 
-    // get the angular velocity
-    motor->angular_velocity = angle_movement * 360.0f / (motor->sample_time * 8192);
-
     // update the present actual angle
     motor->actual_angle = motor->actual_angle + angle_movement * 360.0f / 8192;
 
@@ -112,6 +109,12 @@ bool GimbalInterface::process_motor_feedback(CANRxFrame *rxmsg) {
         motor->actual_angle += 360.0f;//set the angle to be within [0,360]
         motor->round_count--;//round count decreases 1
     }
+
+
+    // calculate the angular velocity
+    uint32_t new_sample_time = TIME_I2MS(chibios_rt::System::getTime());
+    motor->angular_velocity = angle_movement * 360.0f / 8192 / (motor->sample_time - new_sample_time);
+    motor->sample_time = new_sample_time;
 
     return true;
 
