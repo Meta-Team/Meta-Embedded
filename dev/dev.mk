@@ -10,7 +10,7 @@ DEV_COMMON_CSRC =
 DEV_COMMON_CPPSRC = common/port_to_string.cpp \
 			        debug/button_monitor.cpp \
 			        debug/serial_shell.cpp \
-			        debug/serial_shell_commands.cpp \
+			        debug/shell_debug_commands.cpp \
 			        debug/led.cpp
 DEV_COMMON_INC = . \
 		         common \
@@ -49,8 +49,9 @@ DEV_REMOTE_INTERPRETER_INC = interfaces
 
 DEV_GIMBAL_INTERFACE_CSRC =
 DEV_GIMBAL_INTERFACE_CPPSRC = interfaces/can_interface.cpp \
-                                interfaces/gimbal_interface.cpp \
-                                interfaces/gimbal_interface_unit_test.cpp
+                              interfaces/gimbal_interface.cpp \
+                              interfaces/gimbal_interface_unit_test.cpp \
+                              debug/gimbal_feedback_module.cpp
 DEV_GIMBAL_INTERFACE_INC = interfaces
 
 

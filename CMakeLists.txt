@@ -25,13 +25,13 @@ set(DEVCPPSRC
         dev/common/port_to_string.cpp
         dev/debug/button_monitor.cpp
         dev/debug/serial_shell.cpp
-        dev/debug/serial_shell_commands.cpp
+        dev/debug/shell_debug_commands.cpp
         dev/main.cpp
         dev/debug/led.cpp
         dev/interfaces/remote_interpreter.cpp
         dev/interfaces/remote_interpreter_unit_test.cpp
         dev/interfaces/gimbal_interface_unit_test.cpp
-        dev/interfaces/gimbal_interface.cpp dev/interfaces/gimbal_interface.h dev/interfaces/can_interface.cpp dev/interfaces/can_interface.h)
+        dev/interfaces/gimbal_interface.cpp dev/interfaces/gimbal_interface.h dev/interfaces/can_interface.cpp dev/interfaces/can_interface.h dev/debug/gimbal_feedback_module.cpp dev/debug/gimbal_feedback_module.h)
 
 # Our include directories
 include_directories(dev

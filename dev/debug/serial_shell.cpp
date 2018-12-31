@@ -53,3 +53,14 @@ chibios_rt::ThreadReference SerialShellThread::start(tprio_t prio) {
     // Return reference to thread
     return chibios_rt::ThreadReference(shellThreadRef);
 }
+
+int sprintf(const char *fmt, ...) {
+    va_list ap;
+    int formatted_bytes;
+
+    va_start(ap, fmt);
+    formatted_bytes = chvprintf((BaseSequentialStream *) &SD6, fmt, ap);
+    va_end(ap);
+
+    return formatted_bytes;
+}

@@ -9,6 +9,7 @@
 #include "serial_shell.h"
 #include "can_interface.h"
 #include "gimbal_interface.h"
+#include "gimbal_feedback_module.h"
 
 using namespace chibios_rt;
 
@@ -27,7 +28,10 @@ static void can1_callback (CANRxFrame *rxmsg) {
     }
 }
 
+
 CANInterface can1(&CAND1, can1_callback);
+GimbalFeedbackModule feedbackModule;
+
 
 /**
  * @brief set enabled state of yaw and pitch motor
@@ -125,9 +129,11 @@ int main(void) {
 
     shellAddCommands(remoteShellCommands);
 
-    can1.start_can();
-    can1.start_thread(HIGHPRIO - 1);
-    GimbalInterface::set_can_interface(&can1);
+    feedbackModule.start_thread(NORMALPRIO);
+
+//    can1.start_can();
+//    can1.start_thread(HIGHPRIO - 1);
+//    GimbalInterface::set_can_interface(&can1);
 
     // See chconf.h for what this #define means.
 #if CH_CFG_NO_IDLE_THREAD

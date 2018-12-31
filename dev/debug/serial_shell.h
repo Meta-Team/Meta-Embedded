@@ -6,7 +6,7 @@
 #include "shell.h"
 #include "chprintf.h"
 
-#include "serial_shell_commands.h"
+#include "shell_debug_commands.h"
 
 /**
  * SerialShellThread: as its name suggests.
@@ -25,6 +25,6 @@ public:
 // Create the shell thread.
 static SerialShellThread serialShell;
 
-int sprint(const char *fmt, ...);
+int sprintf(const char *fmt, ...);
 
 #endif
