@@ -28,9 +28,17 @@ static void can1_callback (CANRxFrame *rxmsg) {
     }
 }
 
+float empty_target_angle = 0.0;
+float empty_target_velocity = 0.0;
 
 CANInterface can1(&CAND1, can1_callback);
-GimbalFeedbackModule feedbackModule;
+GimbalFeedbackModule feedbackModule (200,  // 200ms interval
+        &empty_target_angle,
+        &empty_target_velocity,
+        &GimbalInterface::yaw.target_current,
+        &empty_target_angle,
+        &empty_target_velocity,
+        &GimbalInterface::pitch.target_current);
 
 
 /**

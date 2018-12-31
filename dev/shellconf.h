@@ -14,6 +14,9 @@
 // Disable history in the shell
 #define SHELL_USE_HISTORY                   FALSE
 
+// Clear shell prompt string
+#define SHELL_PROMPT_STR                    ""
+
 // Enable float in chprintf
 #define CHPRINTF_USE_FLOAT                  TRUE
 

@@ -43,7 +43,7 @@ static void cmd_show_thread_stats(BaseSequentialStream *chp, int argc, char *arg
     }
 
     // Print the header
-    chprintf(chp, "     thread name       best    average      worst    count   all  free stack" SHELL_NEWLINE_STR);
+    chprintf(chp, "thread name       best    average      worst    count   all  free stack" SHELL_NEWLINE_STR);
 
     // Iterate threads again and show data.
     thd_ref = reg.firstThread();
@@ -67,7 +67,7 @@ static void cmd_show_thread_stats(BaseSequentialStream *chp, int argc, char *arg
 
         unsigned long free_stack = (p - stklimit_p) * sizeof(uint32_t);
 
-        chprintf(chp, "%16s %10lu %10lu %10lu %8lu  %3u%%  %10lu" SHELL_NEWLINE_STR,
+        chprintf(chp, "%11s %10lu %10lu %10lu %8lu  %3u%%  %10lu" SHELL_NEWLINE_STR,
                  thd->name, thd->stats.best, (unsigned long)(thd->stats.cumulative / thd->stats.n),
                  thd->stats.worst, thd->stats.n, (unsigned int)(100 * thd->stats.cumulative / sum),
                  free_stack);
