@@ -112,8 +112,8 @@ static void cmd_gimbal_set_target_currents(BaseSequentialStream *chp, int argc, 
 
     GimbalInterface::yaw.target_current = atoi(argv[0]);
     GimbalInterface::pitch.target_current = atoi(argv[1]);
-    chprintf(chp, "Gimbal yaw target_current = %u" SHELL_NEWLINE_STR, GimbalInterface::yaw.target_current);
-    chprintf(chp, "Gimbal pitch target_current = %u" SHELL_NEWLINE_STR, GimbalInterface::pitch.target_current);
+    chprintf(chp, "Gimbal yaw target_current = %d" SHELL_NEWLINE_STR, GimbalInterface::yaw.target_current);
+    chprintf(chp, "Gimbal pitch target_current = %d" SHELL_NEWLINE_STR, GimbalInterface::pitch.target_current);
 
     GimbalInterface::send_gimbal_currents();
     chprintf(chp, "Gimbal target_current sent" SHELL_NEWLINE_STR);
