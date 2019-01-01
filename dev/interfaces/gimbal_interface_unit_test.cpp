@@ -79,23 +79,7 @@ static void cmd_gimbal_fix_front_angle(BaseSequentialStream *chp, int argc, char
     chprintf(chp, "Gimbal pitch front_angle_raw = %u" SHELL_NEWLINE_STR, GimbalInterface::pitch.front_angle_raw);
 }
 
-/**
- * @brief convert string to signed integer
- * @param s        the string to be converted
- * @return the integer
- * @note no error check
- */
-static int atoi (char* s) {
-    int ret = 0;
-    char* p = s;
-    if (*p == '-') p++;
-    while (*p) {
-        ret = ret * 10 + (*p - '0');
-        p++;
-    }
-    if (s[0] == '-') ret = -ret;
-    return ret;
-}
+
 
 /**
  * @brief set target currents of yaw and pitch
@@ -110,8 +94,8 @@ static void cmd_gimbal_set_target_currents(BaseSequentialStream *chp, int argc, 
         return;
     }
 
-    GimbalInterface::yaw.target_current = atoi(argv[0]);
-    GimbalInterface::pitch.target_current = atoi(argv[1]);
+    GimbalInterface::yaw.target_current = Shell::atoi(argv[0]);
+    GimbalInterface::pitch.target_current = Shell::atoi(argv[1]);
     chprintf(chp, "Gimbal yaw target_current = %d" SHELL_NEWLINE_STR, GimbalInterface::yaw.target_current);
     chprintf(chp, "Gimbal pitch target_current = %d" SHELL_NEWLINE_STR, GimbalInterface::pitch.target_current);
 
@@ -133,9 +117,9 @@ int main(void) {
 
     // Start ChibiOS shell at high priority,
     // so even if a thread stucks, we still have access to shell.
-    serialShell.start(HIGHPRIO);
+    Shell::start(HIGHPRIO);
 
-    shellAddCommands(remoteShellCommands);
+    Shell::addCommands(remoteShellCommands);
 
     feedbackModule.start_thread(NORMALPRIO);
 
