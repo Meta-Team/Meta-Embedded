@@ -37,14 +37,3 @@ Echo the CPU usage data and stack status of each threads.
 ![](./resource/shell_stats.png)
 
 **Usage**: ```stats```
-
-
-## Remote Interpreter Unit Test
-
-### pause
-Pause the output of remote data.
-**Usage**: ```pause```
-
-### resume
-Resume the output of remote data.
-**Usage** ```resume```
