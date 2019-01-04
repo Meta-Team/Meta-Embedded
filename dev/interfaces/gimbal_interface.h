@@ -11,6 +11,10 @@
 #include "hal.h"
 #include "can_interface.h"
 
+/**
+ * Enable clip at the moment of sending current.
+ * Only for safety. There is NO signal for clipping. Be sure to eliminate it if more current is needed.
+ */
 #define GIMBAL_INTERFACE_ENABLE_CLIP                  TRUE
 
 #if GIMBAL_INTERFACE_ENABLE_CLIP
@@ -30,29 +34,47 @@ public:
     /** Motor Interface **/
     typedef struct motor {
 
+    public:
+
         motor_id_t id;
         bool enabled;  // if not enabled, 0 current will be sent in send_gimbal_currents
 
+        // +: clockwise, -: counter-clockwise
         int target_current;
 
-        uint16_t front_angle_raw;  // the angle of motor when the gimbal is pointing to the exact front
-
-        uint16_t actual_angle_raw;  // the raw angle of the newest feedback, in [0, 8191]
-
-        /* Normalized Angle and Rounds
+        /**
+         * Normalized Angle and Rounds
          *  Using the front angle_raw as reference.
-         *  Range: -180.0 () to 180.0 ()
+         *  Range: -180.0 (clockwise) to 180.0 (counter-clockwise)
          */
-        // TODO: test the sign of clockwise and counter-clockwise
         float actual_angle; // the actual angle of the gimbal, compared with the front
-
         int round_count;  // the rounds that the gimbal turns
 
-        time_msecs_t sample_time;  // last sample time, for velocity calculation
-
-        float angular_velocity;  // instant angular velocity [degree/ms], positive when ***wise, negative otherwise
+        float angular_velocity;  // instant angular velocity [degree/s], positive when counter-clockwise, negative otherwise
 
         int actual_current;  // feedback current
+
+        // Set current angle as the front angle
+        void reset_front_angle() {
+            actual_angle = 0;
+            round_count = 0;
+        }
+
+        // Get total angle from the original front angle
+        float get_accumulate_angle() {
+            return actual_angle + round_count * 360.0f;
+        }
+
+    private:
+
+        uint16_t last_angle_raw;  // the raw angle of the newest feedback, in [0, 8191]
+
+        // For velocity sampling
+        int sample_count;
+        int sample_movement_sum;
+        time_msecs_t sample_time;  // last sample time, for velocity calculation
+
+        friend GimbalInterface;
 
     } motor_t;
 
@@ -79,11 +101,18 @@ public:
         yaw.id = YAW_ID;
         yaw.enabled = false;
         yaw.sample_time = 0;
+        yaw.sample_count = 0;
+        yaw.sample_movement_sum = 0;
+        yaw.actual_angle = 0;
+        yaw.last_angle_raw = 0;
+
         pitch.id = PIT_ID;
         pitch.enabled = false;
         pitch.sample_time = 0;
-        yaw.actual_angle = pitch.actual_angle = 0.0;
-        yaw.actual_angle_raw = pitch.actual_angle_raw = 0;
+        pitch.sample_count = 0;
+        pitch.sample_movement_sum = 0;
+        pitch.actual_angle = 0.0;
+        pitch.last_angle_raw = 0;
     }
 
     /**
@@ -98,6 +127,9 @@ public:
 private:
 
     static CANInterface* can;
+
+    // Count of feedback for one sample of angular velocity
+    static constexpr int velocity_sample_interval = 100;
 
 };
 

@@ -7,6 +7,8 @@
 
 #include "ch.hpp"
 #include "hal.h"
+#include "led.h"
+#include "serial_shell.h"
 
 class CANInterface : public chibios_rt::BaseStaticThread <256> {
 public:
