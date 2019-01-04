@@ -72,11 +72,12 @@ static void cmd_gimbal_fix_front_angle(BaseSequentialStream *chp, int argc, char
         shellUsage(chp, "g_fix");
         return;
     }
-    GimbalInterface::yaw.front_angle_raw = GimbalInterface::yaw.actual_angle_raw;
-    GimbalInterface::pitch.front_angle_raw = GimbalInterface::pitch.actual_angle_raw;
+    GimbalInterface::yaw.actual_angle = 0;
+    GimbalInterface::yaw.round_count = 0;
+    GimbalInterface::pitch.actual_angle = 0;
+    GimbalInterface::pitch.round_count = 0;
 
-    chprintf(chp, "Gimbal yaw front_angle_raw = %u" SHELL_NEWLINE_STR, GimbalInterface::yaw.front_angle_raw);
-    chprintf(chp, "Gimbal pitch front_angle_raw = %u" SHELL_NEWLINE_STR, GimbalInterface::pitch.front_angle_raw);
+    chprintf(chp, "Gimbal actual angle clear!" SHELL_NEWLINE_STR);
 }
 
 
@@ -117,15 +118,18 @@ int main(void) {
 
     // Start ChibiOS shell at high priority,
     // so even if a thread stucks, we still have access to shell.
-    Shell::start(HIGHPRIO);
 
+
+    init_led();
+
+    Shell::start(HIGHPRIO);
     Shell::addCommands(remoteShellCommands);
 
     feedbackModule.start_thread(NORMALPRIO);
 
-//    can1.start_can();
-//    can1.start_thread(HIGHPRIO - 1);
-//    GimbalInterface::set_can_interface(&can1);
+    can1.start_can();
+    can1.start_thread(HIGHPRIO - 1);
+    GimbalInterface::set_can_interface(&can1);
 
     // See chconf.h for what this #define means.
 #if CH_CFG_NO_IDLE_THREAD

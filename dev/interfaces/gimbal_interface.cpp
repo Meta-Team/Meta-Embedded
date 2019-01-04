@@ -77,11 +77,11 @@ bool GimbalInterface::process_motor_feedback(CANRxFrame *rxmsg) {
 
     // calculate the angle movement in raw data
     // and we assume that the absolute value of the angle movement is smaller than 180 degrees(4096 of raw data)
-    // currently motor->actual_angle_raw holds the actual angle of last time
-    int angle_movement = (int) new_actual_angle_raw - (int) motor->actual_angle_raw;
+    // currently motor->last_angle_raw holds the actual angle of last time
+    int angle_movement = (int) new_actual_angle_raw - (int) motor->last_angle_raw;
 
-    // update the actual_angle_raw
-    motor->actual_angle_raw = new_actual_angle_raw;
+    // update the last_angle_raw
+    motor->last_angle_raw = new_actual_angle_raw;
 
     // make sure that the angle movement is in [-4096,4096] ([-180,180] in degree)
     if (angle_movement < -4096){
@@ -96,28 +96,35 @@ bool GimbalInterface::process_motor_feedback(CANRxFrame *rxmsg) {
         }
     }
 
-    // update the present actual angle
+    // the key idea is to add the change of angle to actual angle.
     motor->actual_angle = motor->actual_angle + angle_movement * 360.0f / 8192;
 
     // modify the actual angle and update the round count when appropriate
-    if (motor->actual_angle > 360.0f) {
+    if (motor->actual_angle > 180.0f) {
         //if the actual_angle is greater than 360, then we can know that it has already turn a round in ***wise direction
         motor->actual_angle -= 360.0f;//set the angle to be within [0,360]
         motor->round_count++;//round count increases 1
     }
-    if (motor->actual_angle < 0.0f) {
+    if (motor->actual_angle < -180.0f) {
         // if the actual_angle is smaller than 0, then we can know that it has already turn a round in ***wise direction
         motor->actual_angle += 360.0f;//set the angle to be within [0,360]
         motor->round_count--;//round count decreases 1
     }
 
+    // Sum angle movements for velocity_sample_interval times, and calculate the average.
+    motor->sample_movement_sum += angle_movement;
+    motor->sample_count++;
+    if (motor->sample_count >= velocity_sample_interval) {
+        // calculate the angular velocity
+        time_msecs_t new_sample_time = TIME_I2MS(chibios_rt::System::getTime());
+        motor->angular_velocity = motor->sample_movement_sum * 360.0f * 1000.0f/ 8192.0f / (float) (new_sample_time - motor->sample_time);
+        motor->sample_time = new_sample_time;
 
-    // calculate the angular velocity
-    uint32_t new_sample_time = TIME_I2MS(chibios_rt::System::getTime());
-    motor->angular_velocity = angle_movement * 360.0f / 8192 / (motor->sample_time - new_sample_time);
-    motor->sample_time = new_sample_time;
+        motor->sample_movement_sum = 0;
+        motor->sample_count = 0;
+    }
+
+    motor->actual_current = (int16_t)(rxmsg->data8[2] << 8 | rxmsg->data8[3]);
 
     return true;
-
-    //TODO: I think an initialization function of the gimbal motor is needed, such as setting the front angle at the beginning
 }

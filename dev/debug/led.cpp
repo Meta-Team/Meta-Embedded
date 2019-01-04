@@ -6,7 +6,7 @@
 
 extern "C" {
 void set_led_when_halt(void) {
-    LED_RED_ON;
-    LED_GREEN_OFF;
+    palClearPad(GPIOF, GPIOF_LED_GREEN); // LED_RED_ON
+    palSetPad(GPIOF, GPIOF_LED_GREEN); // LED_GREEN_OFF
 }
 }
