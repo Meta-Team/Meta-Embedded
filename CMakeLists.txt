@@ -23,7 +23,7 @@ add_custom_target(MAKE_CLEAN COMMAND ${MAKE_EXECUTABLE} clean -C ${Meta_Infantry
 # Our source files
 set(DEVCPPSRC
         dev/common/port_to_string.cpp
-        dev/debug/button_monitor.cpp
+        dev/module/button_monitor.cpp
         dev/debug/serial_shell.cpp
         dev/debug/shell_debug_commands.cpp
         dev/main.cpp
@@ -31,13 +31,15 @@ set(DEVCPPSRC
         dev/interfaces/remote_interpreter.cpp
         dev/interfaces/remote_interpreter_unit_test.cpp
         dev/interfaces/gimbal_interface_unit_test.cpp
-        dev/interfaces/gimbal_interface.cpp dev/interfaces/gimbal_interface.h dev/interfaces/can_interface.cpp dev/interfaces/can_interface.h dev/debug/gimbal_feedback_module.cpp dev/debug/gimbal_feedback_module.h dev/module/pid_controller.cpp dev/module/pid_controller.h)
+        dev/interfaces/gimbal_interface.cpp dev/interfaces/gimbal_interface.h dev/interfaces/can_interface.cpp dev/interfaces/can_interface.h dev/debug/gimbal_feedback_module.cpp dev/debug/gimbal_feedback_module.h dev/module/pid_controller.cpp dev/module/pid_controller.h dev/control/gimbal_controller.cpp dev/control/gimbal_controller.h)
 
 # Our include directories
 include_directories(dev
         dev/common
         dev/debug
-        dev/interfaces)
+        dev/interfaces
+        dev/module
+        dev/control)
 
 
 # This target is used to make CLion IDE work properly

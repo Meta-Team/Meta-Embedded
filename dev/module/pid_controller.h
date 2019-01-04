@@ -7,51 +7,67 @@
 #define META_INFANTRY_PID_CONTROLLER_H
 
 
-
+/**
+ * PID controller unit
+ */
 class PIDController {
 
-
 public:
-
-    typedef struct {
-
-    } pid_unit_t;
-
-    typedef enum {
-        PI, //PID only use P & I
-        PID,    //fully PID
-    } pid_mode_t;
-
-    PIDController(int _motor_id, pid_mode_t _pid_mode, float _kp, float _ki, float _kd, float _i_limit, float _out_limit)
-        : motor_id(_motor_id), pid_mode(_pid_mode), kp(_kp), ki(_ki), kd(_kd), i_limit(_i_limit), out_limit(_out_limit) {
-
-        pid_change(kp, ki, kd, i_limit, out_limit);
-
-        p_out = i_out = d_out = out = 0.0;
-        pid_unit.error[0] = pid_unit.error[1] = 0.0;
-    }; //initialize pid_controller
-    void pid_change(float kp, float ki, float kd, float i_limit, float out_limit);
-    float pid_calc(float now, float target);
-
-private:
-
-    int motor_id;   // motor id
-    pid_mode_t pid_mode;
 
     float kp;
     float ki;
     float kd;
 
-    float error[2];
+    float i_limit;  // limit for integral value
+    float out_limit;  // limit for total output
+
+    float out;
+
+    /**
+     * Constructor for new PID controller unit
+     * @param _kp
+     * @param _ki
+     * @param _kd
+     * @param _i_limit
+     * @param _out_limit
+     */
+    PIDController(float _kp, float _ki, float _kd, float _i_limit, float _out_limit) {
+        change_parameters(kp, ki, kd, i_limit, out_limit);
+        p_out = i_out = d_out = out = 0.0;
+        error[0] = error[1] = 0.0;
+    };
+
+    /**
+     * Change PID parameters
+     * @param _kp
+     * @param _ki
+     * @param _kd
+     * @param _i_limit
+     * @param _out_limit
+     */
+    void change_parameters(float _kp, float _ki, float _kd, float _i_limit, float _out_limit) {
+        kp = _kp;
+        ki = _ki;
+        kd = _kd;
+        i_limit = _i_limit;
+        out_limit = _out_limit;
+    }
+
+    /**
+     * Perform one calculation
+     * @param now
+     * @param target
+     * @return out
+     */
+    float calc(float now, float target);
+
+private:
+
+    float error[2]; // error[0]: error of this time, error[1]: error of last time
 
     float p_out;
     float i_out;
     float d_out;
-
-    float i_limit;
-    float out_limit;
-
-    float out;
 
 };
 
