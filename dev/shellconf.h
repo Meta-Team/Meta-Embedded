@@ -1,5 +1,5 @@
-#ifndef _SHELLCONF_H_
-#define _SHELLCONF_H_
+#ifndef SHELLCONF_H
+#define SHELLCONF_H
 
 /*===========================================================================*/
 /* ChibiOS Shell related settings.                                           */
@@ -14,6 +14,13 @@
 // Disable history in the shell
 #define SHELL_USE_HISTORY                   FALSE
 
+// Clear shell prompt string
+#define SHELL_PROMPT_STR                    ""
+
+// Enable float in chprintf
 #define CHPRINTF_USE_FLOAT                  TRUE
+
+// Enlarge the maximum number of arguments
+#define SHELL_MAX_ARGUMENTS                 10
 
 #endif

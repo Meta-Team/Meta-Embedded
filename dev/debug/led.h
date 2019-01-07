@@ -1,23 +1,46 @@
-#ifndef _LED_HPP_
-#define _LED_HPP_
+#ifndef META_INFANTRY_LED_H
+#define META_INFANTRY_LED_H
 
 #include "ch.hpp"
 #include "hal.h"
 
-#define LED_RED_ON palSetPad(GPIOF, 14)
-#define LED_RED_OFF palClearPad(GPIOF, 14)
-#define LED_RED_TOGGLE palTogglePad(GPIOF, 14)
-#define LED_GREEN_ON palSetPad(GPIOE, 7)
-#define LED_GREEN_OFF palClearPad(GPIOE, 7)
-#define LED_GREEN_TOGGLE palTogglePad(GPIOE, 7)
+// Class for control LEDs
 
-#define BUZZER_ON palSetPad(GPIOB, 4)
-#define BUZZER_OFF palClearPad(GPIOB, 4)
+class LED {
+
+public:
+
+    static void green_off() {
+        palSetPad(GPIOF, GPIOF_LED_GREEN);
+    }
+
+    static void green_on() {
+        palClearPad(GPIOF, GPIOF_LED_GREEN);
+    }
+
+    static void green_toggle() {
+        palTogglePad(GPIOF, GPIOF_LED_GREEN);
+    }
+
+    static void red_off() {
+        palSetPad(GPIOF, GPIOF_LED_GREEN);
+    }
+
+    static void red_on() {
+        palClearPad(GPIOF, GPIOF_LED_GREEN);
+    }
+
+    static void red_toggle() {
+        palTogglePad(GPIOF, GPIOF_LED_GREEN);
+    }
+};
 
 extern "C" {
 #include "chconf.h"
 // LED_RED_ON and LED_GREEN_OFF when halt.
 void set_led_when_halt(void);
 }
+
+void init_led();
 
 #endif

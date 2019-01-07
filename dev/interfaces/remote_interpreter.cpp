@@ -44,8 +44,8 @@ void Remote::uart_received_callback(UARTDriver *uartp) {
     rc.ch2 = (((rx_buf[2] >> 6 | rx_buf[3] << 2 | rx_buf[4] << 10) & 0x07FF) - 1024.0f) / 660.0f;
     rc.ch3 = (((rx_buf[4] >> 1 | rx_buf[5] << 7) & 0x07FF) - 1024.0f) / 660.0f;
 
-    rc.s1 = (RemoteRCSStatus) ((rx_buf[5] >> 6) & 0x0003);
-    rc.s2 = (RemoteRCSStatus) ((rx_buf[5] >> 4) & 0x0003);
+    rc.s1 = (rc_status_t) ((rx_buf[5] >> 6) & 0x0003);
+    rc.s2 = (rc_status_t) ((rx_buf[5] >> 4) & 0x0003);
 
     mouse.x = (int16_t) (rx_buf[6] | rx_buf[7] << 8);
     mouse.y = (int16_t) (rx_buf[8] | rx_buf[9] << 8);

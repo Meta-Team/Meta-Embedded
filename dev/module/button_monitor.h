@@ -1,5 +1,5 @@
-#ifndef _BUTTON_MONITOR_HPP_
-#define _BUTTON_MONITOR_HPP_
+#ifndef META_INFANTRY_BUTTON_MONITOR_H
+#define META_INFANTRY_BUTTON_MONITOR_H
 
 #include "ch.hpp"
 #include "hal.h"

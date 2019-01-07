@@ -44,11 +44,11 @@ int main() {
     System::init();
 
     // Start ChibiOS shell at high priority, so even if a thread stucks, we still have access to shell.
-    serialShell.start(HIGHPRIO);
+    Shell::start(HIGHPRIO);
 
     Remote::start_receive();
 
-    shellAddCommands(remoteShellCommands);
+    Shell::addCommands(remoteShellCommands);
 
     // See chconf.h for what this #define means.
 #if CH_CFG_NO_IDLE_THREAD

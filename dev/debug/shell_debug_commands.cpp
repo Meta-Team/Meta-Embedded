@@ -1,4 +1,4 @@
-#include "serial_shell_commands.h"
+#include "shell_debug_commands.h"
 using namespace chibios_rt;
 
 /**
@@ -43,7 +43,7 @@ static void cmd_show_thread_stats(BaseSequentialStream *chp, int argc, char *arg
     }
 
     // Print the header
-    chprintf(chp, "     thread name       best    average      worst    count   all  free stack" SHELL_NEWLINE_STR);
+    chprintf(chp, "thread name       best    average      worst    count   all  free stack" SHELL_NEWLINE_STR);
 
     // Iterate threads again and show data.
     thd_ref = reg.firstThread();
@@ -67,7 +67,7 @@ static void cmd_show_thread_stats(BaseSequentialStream *chp, int argc, char *arg
 
         unsigned long free_stack = (p - stklimit_p) * sizeof(uint32_t);
 
-        chprintf(chp, "%16s %10lu %10lu %10lu %8lu  %3u%%  %10lu" SHELL_NEWLINE_STR,
+        chprintf(chp, "%11s %10lu %10lu %10lu %8lu  %3u%%  %10lu" SHELL_NEWLINE_STR,
                  thd->name, thd->stats.best, (unsigned long)(thd->stats.cumulative / thd->stats.n),
                  thd->stats.worst, thd->stats.n, (unsigned int)(100 * thd->stats.cumulative / sum),
                  free_stack);
@@ -83,20 +83,8 @@ static void cmd_show_thread_stats(BaseSequentialStream *chp, int argc, char *arg
  * Must be at the bottom of file, otherwise it won't find the functions.
  * {NULL, NULL} is a marker of end of list and mustn't be removed.
  */
-ShellCommand shellCommands[MAX_COMMAND_COUNT + 1] = {
+ShellCommand shell_debug_commands[3] = {
     {"hello", cmd_hello},
     {"stats", cmd_show_thread_stats},
-    {NULL, NULL}
+    {nullptr, nullptr}
 };
-
-void shellAddCommands(ShellCommand *commandList) {
-    int i = 0;
-    while (i < MAX_COMMAND_COUNT && shellCommands[i].sc_name != NULL) i++;
-    while (i < MAX_COMMAND_COUNT && commandList->sc_name != NULL) {
-        shellCommands[i].sc_name = commandList->sc_name;
-        shellCommands[i].sc_function = commandList->sc_function;
-        i++;
-        commandList++;
-    }
-    shellCommands[i] = {NULL, NULL};
-}

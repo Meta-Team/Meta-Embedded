@@ -3,41 +3,40 @@
 using namespace chibios_rt;
 
 /**
- * Config of the serial port used by the shell.
- * First parameter is the bitrate.
- * Other three are for parity, stop bits, etc which we don't care.
+ * Declaration for class variables
  */
-static SerialConfig shellSerialConfig = {115200, 0, 0, 0};
+ShellCommand Shell::shellCommands[Shell::maxCommandCount + 1] = {nullptr, nullptr};
+ShellConfig Shell::shellConfig;
+SerialConfig Shell::shellSerialConfig = {115200, 0, 0, 0};
+bool Shell::enabled = false;
 
 /**
- * Config of the shell.
- * First parameter is the Serial port.
- * Second parameter is the list of commands, provided in serial_shell_commands.hpp
+ * The working area for the shell thread
  */
-static const ShellConfig shellConfig = {
-        (BaseSequentialStream *) &SD6,
-        shellCommands
-#if (SHELL_USE_HISTORY == TRUE)
-,new char[64],
-64
-#endif
-};
-
-/**
- * Main function of SerialShellThread which will do nothing.
- * This function will never be called, it's here or G++ will be angry.
- * SerialShellThread calls the thread provided by shell instead.
- */
-void SerialShellThread::main(void) {
-}
+THD_WORKING_AREA(wa, 4096);
 
 /**
  * Function to start the thread.
  * Instead of calling main(), as BaseStaticThread does,
  * it calls the thread provided by ChibiOS shell.
  */
-chibios_rt::ThreadReference SerialShellThread::start(tprio_t prio) {
-    // Remember to change GPIO pins here
+bool Shell::start(tprio_t prio) {
+
+    if (enabled) return false;
+
+    addCommands(shell_debug_commands); // add common debug commands
+
+    // Configure shell
+    shellConfig = {
+            (BaseSequentialStream *) &SD6,
+            shellCommands
+#if (SHELL_USE_HISTORY == TRUE)
+    ,new char[64],
+64
+#endif
+    };
+
+    // Set the GPIO pins
     palSetPadMode(GPIOG, 14, PAL_MODE_ALTERNATE(8));
     palSetPadMode(GPIOG, 9, PAL_MODE_ALTERNATE(8));
     sdStart(&SD6, &shellSerialConfig);
@@ -50,6 +49,32 @@ chibios_rt::ThreadReference SerialShellThread::start(tprio_t prio) {
             shellThread, (void *) &shellConfig);
     chRegSetThreadNameX(shellThreadRef, "shell");
 
-    // Return reference to thread
-    return chibios_rt::ThreadReference(shellThreadRef);
+    enabled = true;
+    return true;
+}
+
+
+bool Shell::addCommands(ShellCommand *commandList) {
+    int i = 0;
+    while (i < maxCommandCount && shellCommands[i].sc_name != nullptr) i++;
+    while (i < maxCommandCount && commandList->sc_name != nullptr) {
+        shellCommands[i].sc_name = commandList->sc_name;
+        shellCommands[i].sc_function = commandList->sc_function;
+        i++;
+        commandList++;
+    }
+    shellCommands[i] = {nullptr, nullptr};
+    return (commandList->sc_name == nullptr);
+}
+
+
+int Shell::printf(const char *fmt, ...) {
+    va_list ap;
+    int formatted_bytes;
+
+    va_start(ap, fmt);
+    formatted_bytes = chvprintf((BaseSequentialStream *) &SD6, fmt, ap);
+    va_end(ap);
+
+    return formatted_bytes;
 }
