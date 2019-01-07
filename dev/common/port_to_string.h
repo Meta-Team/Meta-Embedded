@@ -1,5 +1,5 @@
-#ifndef _PORT_TO_STRING_HPP_
-#define _PORT_TO_STRING_HPP_
+#ifndef META_INFANTRY_PORT_TO_STRING_H
+#define META_INFANTRY_PORT_TO_STRING_H
 
 #include "ch.hpp"
 #include "hal.h"

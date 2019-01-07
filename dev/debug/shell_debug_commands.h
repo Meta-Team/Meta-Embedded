@@ -1,5 +1,5 @@
-#ifndef _SERIAL_SHELL_COMMANDS_HPP_
-#define _SERIAL_SHELL_COMMANDS_HPP_
+#ifndef META_INFANTRY_SHELL_COMMANDS_H
+#define META_INFANTRY_SHELL_COMMANDS_H
 
 #include "ch.hpp"
 #include "hal.h"

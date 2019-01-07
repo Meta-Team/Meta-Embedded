@@ -10,8 +10,8 @@
  *        which need remote control data.
  */
 
-#ifndef Meta_Infantry_REMOTE_INTERPRETER_HPP
-#define Meta_Infantry_REMOTE_INTERPRETER_HPP
+#ifndef META_INFANTRY_REMOTE_INTERPRETER_H
+#define META_INFANTRY_REMOTE_INTERPRETER_H
 
 #include "ch.hpp"
 #include "hal.h"
@@ -95,4 +95,4 @@ private:
 
 };
 
-#endif //Meta_Infantry_REMOTE_INTERPRETER_HPP
+#endif //META_INFANTRY_REMOTE_INTERPRETER_H

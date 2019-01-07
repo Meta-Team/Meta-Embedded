@@ -4,8 +4,8 @@
 // Feng Chuhao wrote code about sending gimbal currents.
 //
 
-#ifndef META_INFANTRY_GIMBAL_H
-#define META_INFANTRY_GIMBAL_H
+#ifndef META_INFANTRY_GIMBAL_INTERFACE_H
+#define META_INFANTRY_GIMBAL_INTERFACE_H
 
 #include "ch.hpp"
 #include "hal.h"
@@ -136,4 +136,4 @@ private:
 };
 
 
-#endif //META_INFANTRY_GIMBAL_H
+#endif //META_INFANTRY_GIMBAL_INTERFACE_H

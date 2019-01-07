@@ -1,5 +1,5 @@
-#ifndef _SHELLCONF_H_
-#define _SHELLCONF_H_
+#ifndef SHELLCONF_H
+#define SHELLCONF_H
 
 /*===========================================================================*/
 /* ChibiOS Shell related settings.                                           */
