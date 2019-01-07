@@ -32,7 +32,7 @@ public:
     } motor_id_t;
 
     /** Motor Interface **/
-    typedef struct motor {
+    typedef struct {
 
     public:
 
@@ -65,6 +65,9 @@ public:
             return actual_angle + round_count * 360.0f;
         }
 
+        // For velocity sampling and gimbal feedback module
+        time_msecs_t sample_time;  // last sample time, for velocity calculation
+
     private:
 
         uint16_t last_angle_raw;  // the raw angle of the newest feedback, in [0, 8191]
@@ -72,7 +75,6 @@ public:
         // For velocity sampling
         int sample_count;
         int sample_movement_sum;
-        time_msecs_t sample_time;  // last sample time, for velocity calculation
 
         friend GimbalInterface;
 

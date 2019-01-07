@@ -66,11 +66,11 @@ public:
      * @brief convert string to signed integer
      * @param s        the string to be converted
      * @return the integer
-     * @note no error check
+     * @note NO ERROR CHECK
      */
-    static inline int atoi (char* s) {
+    static inline int atoi (const char* s) {
         int ret = 0;
-        char* p = s;
+        const char* p = s;
         if (*p == '-') p++;
         while (*p) {
             ret = ret * 10 + (*p - '0');
@@ -79,6 +79,30 @@ public:
         if (s[0] == '-') ret = -ret;
         return ret;
     }
+
+    /**
+     * @brief convert string to float
+     * @param s        the string to be converted
+     * @return the float
+     * @note NO ERROR CHECK
+     */
+    static inline float atof(const char* s){
+        int rez = 0;
+        float fact = 1;
+        if (*s == '-'){
+            s++;
+            fact = -1;
+        }
+        for (int point_seen = 0; *s; s++){
+            if (*s == '.'){
+                point_seen = 1;
+                continue;
+            };
+            if (point_seen) fact /= 10.0f;
+            rez = rez * 10 + (*s - '0');
+        };
+        return (float) rez * fact;
+    };
 };
 
 

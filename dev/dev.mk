@@ -8,7 +8,6 @@
 
 DEV_COMMON_CSRC =
 DEV_COMMON_CPPSRC = common/port_to_string.cpp \
-			        debug/button_monitor.cpp \
 			        debug/serial_shell.cpp \
 			        debug/shell_debug_commands.cpp \
 			        debug/led.cpp
@@ -41,7 +40,8 @@ DEV_REMOTE_INTERPRETER_INC = interfaces
 # ===========================================================================
 # GIMBAL_INTERFACE MODULES
 #
-#	Include CANInterface, GimbalInterface and the unit test modules.
+#	Include CANInterface, GimbalInterface, GimbalFeedbackModule and the unit
+#   test modules.
 #
 # ===========================================================================
 
@@ -51,6 +51,25 @@ DEV_GIMBAL_INTERFACE_CPPSRC = interfaces/can_interface.cpp \
                               interfaces/gimbal_interface_unit_test.cpp \
                               debug/gimbal_feedback_module.cpp
 DEV_GIMBAL_INTERFACE_INC = interfaces
+
+# ===========================================================================
+# GIMBAL MODULES
+#
+#	Include CANInterface, GimbalInterface, GimbalController,
+# 	GimbalFeedbackModule and the unit test and adjustment modules.
+#
+# ===========================================================================
+
+DEV_GIMBAL_CSRC =
+DEV_GIMBAL_CPPSRC = interfaces/can_interface.cpp \
+                    interfaces/gimbal_interface.cpp \
+                    module/pid_controller.cpp \
+                    control/gimbal_controller.cpp \
+					debug/gimbal_feedback_module.cpp \
+                    control/gimbal_controller_unit_test.cpp
+DEV_GIMBAL_INC = interfaces \
+				 module \
+				 control
 
 
 # ===========================================================================

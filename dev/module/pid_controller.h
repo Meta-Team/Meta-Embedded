@@ -23,6 +23,12 @@ public:
 
     float out;
 
+    PIDController() {
+        change_parameters(0, 0, 0, 0, 0);
+        p_out = i_out = d_out = out = 0.0;
+        error[0] = error[1] = 0.0;
+    }
+
     /**
      * Constructor for new PID controller unit
      * @param _kp
@@ -32,7 +38,7 @@ public:
      * @param _out_limit
      */
     PIDController(float _kp, float _ki, float _kd, float _i_limit, float _out_limit) {
-        change_parameters(kp, ki, kd, i_limit, out_limit);
+        change_parameters(_kp, _ki, _kd, _i_limit, _out_limit);
         p_out = i_out = d_out = out = 0.0;
         error[0] = error[1] = 0.0;
     };

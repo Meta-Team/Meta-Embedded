@@ -27,7 +27,7 @@ class Remote {
 
 public:
 
-    enum RemoteRCSStatus {
+    enum rc_status_t {
         REMOTE_RC_S_UP = 1,
         REMOTE_RC_S_DOWN = 2,
         REMOTE_RC_S_MIDDLE = 3
@@ -38,8 +38,8 @@ public:
         float ch1; // normalized: -1.0(downmost) - 1.0(upmost)
         float ch2; // normalized: -1.0(leftmost) - 1.0(rightmost)
         float ch3; // normalized: -1.0(downmost) - 1.0(upmost)
-        RemoteRCSStatus s1;
-        RemoteRCSStatus s2;
+        rc_status_t s1;
+        rc_status_t s2;
     } rc_t;
 
     typedef struct {
