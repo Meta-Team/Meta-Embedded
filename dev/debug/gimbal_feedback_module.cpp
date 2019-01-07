@@ -14,7 +14,7 @@ void GimbalFeedbackModule::main() {
         float yaw_target_velocity = (ptr_yaw_target_velocity ? *ptr_yaw_target_velocity : 0);
         int yaw_target_current = (ptr_yaw_target_current ? *ptr_yaw_target_current : 0);
         Shell::printf("!gy,%u,%.2f,%.2f,%.2f,%.2f,%d,%d" SHELL_NEWLINE_STR,
-                GimbalInterface::yaw.sample_time,
+                TIME_I2MS(chibios_rt::System::getTime()),
                 GimbalInterface::yaw.actual_angle, yaw_target_angle,
                 GimbalInterface::yaw.angular_velocity, yaw_target_velocity,
                 GimbalInterface::yaw.actual_current, yaw_target_current);

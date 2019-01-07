@@ -20,4 +20,7 @@
 // Enable float in chprintf
 #define CHPRINTF_USE_FLOAT                  TRUE
 
+// Enlarge the maximum number of arguments
+#define SHELL_MAX_ARGUMENTS                 10
+
 #endif

@@ -99,8 +99,8 @@ static void cmd_gimbal_set_target_velocities(BaseSequentialStream *chp, int argc
         return;
     }
 
-    yaw_target_velocity = Shell::atoi(argv[0]);
-    pitch_target_velocity = Shell::atoi(argv[1]);
+    yaw_target_velocity = Shell::atof(argv[0]);
+    pitch_target_velocity = Shell::atof(argv[1]);
     chprintf(chp, "Gimbal yaw target_velocity = %f" SHELL_NEWLINE_STR, yaw_target_velocity);
     chprintf(chp, "Gimbal pitch target_velocity = %f" SHELL_NEWLINE_STR, pitch_target_velocity);
 
@@ -121,8 +121,8 @@ static void cmd_gimbal_set_target_angle(BaseSequentialStream *chp, int argc, cha
         return;
     }
 
-    yaw_target_angle = Shell::atoi(argv[0]);
-    pitch_target_angle = Shell::atoi(argv[1]);
+    yaw_target_angle = Shell::atof(argv[0]);
+    pitch_target_angle = Shell::atof(argv[1]);
     chprintf(chp, "Gimbal yaw target_angle = %f" SHELL_NEWLINE_STR, yaw_target_angle);
     chprintf(chp, "Gimbal pitch target_angle = %f" SHELL_NEWLINE_STR, pitch_target_angle);
 
@@ -235,7 +235,7 @@ protected:
             GimbalInterface::pitch.target_current = (int) GimbalController::pitch.v_to_i(
                     GimbalInterface::pitch.angular_velocity, _pitch_target_velocity);
 
-            GimbalInterface::send_gimbal_currents();
+//            GimbalInterface::send_gimbal_currents();
 
             chSysUnlock();
             sleep(TIME_MS2I(gimbal_thread_interval));
@@ -252,9 +252,9 @@ int main(void) {
 
     feedbackModule.start_thread(NORMALPRIO);
 
-    can1.start_can();
-    can1.start_thread(HIGHPRIO - 1);
-    GimbalInterface::set_can_interface(&can1);
+//    can1.start_can();
+//    can1.start_thread(HIGHPRIO - 1);
+//    GimbalInterface::set_can_interface(&can1);
 
     gimbalThread.start(HIGHPRIO - 2);
 
