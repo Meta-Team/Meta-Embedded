@@ -131,7 +131,7 @@ private:
     static CANInterface* can;
 
     // Count of feedback for one sample of angular velocity
-    static constexpr int velocity_sample_interval = 100;
+    static constexpr int velocity_sample_interval = 50;
 
 };
 

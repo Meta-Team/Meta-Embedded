@@ -15,7 +15,6 @@ CANInterface* GimbalInterface::can = nullptr;
 bool GimbalInterface::send_gimbal_currents() {
 
     if (!can) return false;
-    if (!yaw.enabled && !pitch.enabled) return true;
 
     CANTxFrame txmsg;
 
@@ -29,8 +28,8 @@ bool GimbalInterface::send_gimbal_currents() {
 #if GIMBAL_INTERFACE_ENABLE_CLIP
         ABS_LIMIT(yaw.target_current, GIMBAL_INTERFACE_MAX_CURRENT);
 #endif
-        txmsg.data8[0] = (uint8_t) (yaw.target_current >> 8); //upper byte
-        txmsg.data8[1] = (uint8_t) yaw.target_current; // lower byte
+        txmsg.data8[0] = (uint8_t) (-yaw.target_current >> 8); //upper byte
+        txmsg.data8[1] = (uint8_t) -yaw.target_current; // lower byte
 
     } else {
         txmsg.data8[0] = txmsg.data8[1] = 0;
@@ -41,8 +40,8 @@ bool GimbalInterface::send_gimbal_currents() {
 #if GIMBAL_INTERFACE_ENABLE_CLIP
         ABS_LIMIT(pitch.target_current, GIMBAL_INTERFACE_MAX_CURRENT);
 #endif
-        txmsg.data8[2] = (uint8_t) (yaw.target_current >> 8); //upper byte
-        txmsg.data8[3] = (uint8_t) yaw.target_current; // lower byte
+        txmsg.data8[2] = (uint8_t) (-pitch.target_current >> 8); //upper byte
+        txmsg.data8[3] = (uint8_t) -pitch.target_current; // lower byte
 
     } else {
         txmsg.data8[2] = txmsg.data8[3] = 0;
