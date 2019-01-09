@@ -14,9 +14,11 @@ float PIDController::calc(float now, float target) {
     d_out = kd * (error[0] - error[1]);
 
     if (i_out > i_limit) i_out = i_limit;
+    if (i_out < -i_limit) i_out = -i_limit;
 
     out = p_out + i_out + d_out;
     if (out > out_limit) out = out_limit;
+    if (out < -out_limit) out = -out_limit;
 
     return out;
 }
