@@ -67,6 +67,13 @@ public:
      */
     float calc(float now, float target);
 
+    /**
+     * @brief clear i_out, mainly for debug and test
+     */
+    void clear_i_out() {
+        i_out = 0.0f;
+    }
+
 private:
 
     float error[2]; // error[0]: error of this time, error[1]: error of last time

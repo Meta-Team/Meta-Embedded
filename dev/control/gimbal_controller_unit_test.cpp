@@ -33,12 +33,12 @@ static void can1_callback(CANRxFrame *rxmsg) {
 int const gimbal_thread_interval = 50; // ms
 int const maximum_current = 4000; // mA
 
-float const yaw_min_angle = -120; // degree
-float const yaw_max_angle = 120; // degree
+float const yaw_min_angle = -150; // degree
+float const yaw_max_angle = 150; // degree
 float const pitch_min_angle = -45; // degree
 float const pitch_max_angle = 45; // degree
 
-float const yaw_max_speed = 200; // absolute maximum, degree/s
+float const yaw_max_speed = 500; // absolute maximum, degree/s
 float const pitch_max_speed = 100; // absolute maximum, degree/s
 
 bool enable_angle_to_v_pid = false;
@@ -111,6 +111,10 @@ static void cmd_gimbal_set_target_velocities(BaseSequentialStream *chp, int argc
 
     yaw_target_velocity = Shell::atof(argv[0]);
     pitch_target_velocity = Shell::atof(argv[1]);
+    GimbalController::yaw.v_to_i_pid.clear_i_out();
+    GimbalController::yaw.angle_to_v_pid.clear_i_out();
+    GimbalController::pitch.v_to_i_pid.clear_i_out();
+    GimbalController::pitch.angle_to_v_pid.clear_i_out();
 //    chprintf(chp, "Gimbal yaw target_velocity = %f" SHELL_NEWLINE_STR, yaw_target_velocity);
 //    chprintf(chp, "Gimbal pitch target_velocity = %f" SHELL_NEWLINE_STR, pitch_target_velocity);
 
@@ -133,6 +137,10 @@ static void cmd_gimbal_set_target_angle(BaseSequentialStream *chp, int argc, cha
 
     yaw_target_angle = Shell::atof(argv[0]);
     pitch_target_angle = Shell::atof(argv[1]);
+    GimbalController::yaw.v_to_i_pid.clear_i_out();
+    GimbalController::yaw.angle_to_v_pid.clear_i_out();
+    GimbalController::pitch.v_to_i_pid.clear_i_out();
+    GimbalController::pitch.angle_to_v_pid.clear_i_out();
 //    chprintf(chp, "Gimbal yaw target_angle = %f" SHELL_NEWLINE_STR, yaw_target_angle);
 //    chprintf(chp, "Gimbal pitch target_angle = %f" SHELL_NEWLINE_STR, pitch_target_angle);
 
@@ -169,6 +177,10 @@ static void cmd_gimbal_set_parameters(BaseSequentialStream *chp, int argc, char 
                                      Shell::atof(argv[4]),
                                      Shell::atof(argv[5]),
                                      Shell::atof(argv[6]));
+    GimbalController::yaw.v_to_i_pid.clear_i_out();
+    GimbalController::yaw.angle_to_v_pid.clear_i_out();
+    GimbalController::pitch.v_to_i_pid.clear_i_out();
+    GimbalController::pitch.angle_to_v_pid.clear_i_out();
     chprintf(chp, "!ps" SHELL_NEWLINE_STR); // echo parameters set
 }
 
@@ -303,7 +315,7 @@ protected:
 
             }
 
-//            GimbalInterface::send_gimbal_currents();
+            GimbalInterface::send_gimbal_currents();
             
             sleep(TIME_MS2I(gimbal_thread_interval));
         }
