@@ -1,0 +1,660 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6"/>
+	<Project>
+		<Option title="Meta_Infantry"/>
+		<Option makefile_is_custom="1"/>
+		<Option compiler="gcc"/>
+		<Option virtualFolders="CMake Files\;CMake Files\os\;"/>
+		<Build>
+			<Target title="all">
+				<Option working_dir="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/cmake-build-debug-arm-none-eabi"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="C:/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/Administrator/Documents/GitHub/Meta-Infantry/cmake-build-debug-arm-none-eabi/Makefile&quot;  VERBOSE=1 all"/>
+					<CompileFile command="C:/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/Administrator/Documents/GitHub/Meta-Infantry/cmake-build-debug-arm-none-eabi/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="C:/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/Administrator/Documents/GitHub/Meta-Infantry/cmake-build-debug-arm-none-eabi/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="C:/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/Administrator/Documents/GitHub/Meta-Infantry/cmake-build-debug-arm-none-eabi/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="edit_cache">
+				<Option working_dir="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/cmake-build-debug-arm-none-eabi"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="C:/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/Administrator/Documents/GitHub/Meta-Infantry/cmake-build-debug-arm-none-eabi/Makefile&quot;  VERBOSE=1 edit_cache"/>
+					<CompileFile command="C:/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/Administrator/Documents/GitHub/Meta-Infantry/cmake-build-debug-arm-none-eabi/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="C:/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/Administrator/Documents/GitHub/Meta-Infantry/cmake-build-debug-arm-none-eabi/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="C:/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/Administrator/Documents/GitHub/Meta-Infantry/cmake-build-debug-arm-none-eabi/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="MAIN">
+				<Option working_dir="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/cmake-build-debug-arm-none-eabi"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="C:/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/Administrator/Documents/GitHub/Meta-Infantry/cmake-build-debug-arm-none-eabi/Makefile&quot;  VERBOSE=1 MAIN"/>
+					<CompileFile command="C:/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/Administrator/Documents/GitHub/Meta-Infantry/cmake-build-debug-arm-none-eabi/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="C:/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/Administrator/Documents/GitHub/Meta-Infantry/cmake-build-debug-arm-none-eabi/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="C:/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/Administrator/Documents/GitHub/Meta-Infantry/cmake-build-debug-arm-none-eabi/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="UT_REMOTE_INTERPRETER">
+				<Option working_dir="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/cmake-build-debug-arm-none-eabi"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="C:/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/Administrator/Documents/GitHub/Meta-Infantry/cmake-build-debug-arm-none-eabi/Makefile&quot;  VERBOSE=1 UT_REMOTE_INTERPRETER"/>
+					<CompileFile command="C:/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/Administrator/Documents/GitHub/Meta-Infantry/cmake-build-debug-arm-none-eabi/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="C:/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/Administrator/Documents/GitHub/Meta-Infantry/cmake-build-debug-arm-none-eabi/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="C:/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/Administrator/Documents/GitHub/Meta-Infantry/cmake-build-debug-arm-none-eabi/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="UT_GIMBAL_INTERFACE">
+				<Option working_dir="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/cmake-build-debug-arm-none-eabi"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="C:/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/Administrator/Documents/GitHub/Meta-Infantry/cmake-build-debug-arm-none-eabi/Makefile&quot;  VERBOSE=1 UT_GIMBAL_INTERFACE"/>
+					<CompileFile command="C:/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/Administrator/Documents/GitHub/Meta-Infantry/cmake-build-debug-arm-none-eabi/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="C:/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/Administrator/Documents/GitHub/Meta-Infantry/cmake-build-debug-arm-none-eabi/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="C:/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/Administrator/Documents/GitHub/Meta-Infantry/cmake-build-debug-arm-none-eabi/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="useless_cmake_target">
+				<Option output="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/cmake-build-debug-arm-none-eabi/libuseless_cmake_target.a" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/cmake-build-debug-arm-none-eabi"/>
+				<Option object_output="./"/>
+				<Option type="2"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-DSHELL_CONFIG_FILE"/>
+					<Add directory="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/dev"/>
+					<Add directory="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/dev/common"/>
+					<Add directory="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/dev/debug"/>
+					<Add directory="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/dev/interfaces"/>
+					<Add directory="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/dev/module"/>
+					<Add directory="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/dev/control"/>
+					<Add directory="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/./os/license"/>
+					<Add directory="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/./os/common/portability/GCC"/>
+					<Add directory="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/./os/common/startup/ARMCMx/compilers/GCC"/>
+					<Add directory="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/./os/common/startup/ARMCMx/devices/STM32F4xx"/>
+					<Add directory="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/./os/common/ext/ARM/CMSIS/Core/Include"/>
+					<Add directory="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/./os/common/ext/ST/STM32F4xx"/>
+					<Add directory="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/./os/hal/include"/>
+					<Add directory="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/./os/hal/ports/common/ARMCMx"/>
+					<Add directory="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/./os/hal/ports/STM32/STM32F4xx"/>
+					<Add directory="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/./os/hal/ports/STM32/LLD/ADCv2"/>
+					<Add directory="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/./os/hal/ports/STM32/LLD/CANv1"/>
+					<Add directory="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/./os/hal/ports/STM32/LLD/DACv1"/>
+					<Add directory="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/./os/hal/ports/STM32/LLD/DMAv2"/>
+					<Add directory="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/./os/hal/ports/STM32/LLD/EXTIv1"/>
+					<Add directory="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/./os/hal/ports/STM32/LLD/GPIOv2"/>
+					<Add directory="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/./os/hal/ports/STM32/LLD/I2Cv1"/>
+					<Add directory="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/./os/hal/ports/STM32/LLD/MACv1"/>
+					<Add directory="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/./os/hal/ports/STM32/LLD/OTGv1"/>
+					<Add directory="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/./os/hal/ports/STM32/LLD/QUADSPIv1"/>
+					<Add directory="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/./os/hal/ports/STM32/LLD/RTCv2"/>
+					<Add directory="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/./os/hal/ports/STM32/LLD/SPIv1"/>
+					<Add directory="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/./os/hal/ports/STM32/LLD/SDIOv1"/>
+					<Add directory="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/./os/hal/ports/STM32/LLD/TIMv1"/>
+					<Add directory="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/./os/hal/ports/STM32/LLD/USARTv1"/>
+					<Add directory="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/./os/hal/ports/STM32/LLD/xWDGv1"/>
+					<Add directory="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/./dev/board"/>
+					<Add directory="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/./os/hal/osal/rt"/>
+					<Add directory="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/./os/rt/include"/>
+					<Add directory="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/./os/common/oslib/include"/>
+					<Add directory="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/./os/common/ports/ARMCMx"/>
+					<Add directory="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/./os/common/ports/ARMCMx/compilers/GCC"/>
+					<Add directory="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/./os/various/cpp_wrappers"/>
+					<Add directory="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/./os/hal/lib/streams"/>
+					<Add directory="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/./os/various/shell"/>
+					<Add directory="e:\arm-none-eabi2017\bin\../lib/gcc/arm-none-eabi/5.4.1/../../../../arm-none-eabi/include/c++/5.4.1"/>
+					<Add directory="e:\arm-none-eabi2017\bin\../lib/gcc/arm-none-eabi/5.4.1/../../../../arm-none-eabi/include/c++/5.4.1/arm-none-eabi"/>
+					<Add directory="e:\arm-none-eabi2017\bin\../lib/gcc/arm-none-eabi/5.4.1/../../../../arm-none-eabi/include/c++/5.4.1/backward"/>
+					<Add directory="e:\arm-none-eabi2017\bin\../lib/gcc/arm-none-eabi/5.4.1/include"/>
+					<Add directory="e:\arm-none-eabi2017\bin\../lib/gcc/arm-none-eabi/5.4.1/include-fixed"/>
+					<Add directory="e:\arm-none-eabi2017\bin\../lib/gcc/arm-none-eabi/5.4.1/../../../../arm-none-eabi/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="C:/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/Administrator/Documents/GitHub/Meta-Infantry/cmake-build-debug-arm-none-eabi/Makefile&quot;  VERBOSE=1 useless_cmake_target"/>
+					<CompileFile command="C:/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/Administrator/Documents/GitHub/Meta-Infantry/cmake-build-debug-arm-none-eabi/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="C:/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/Administrator/Documents/GitHub/Meta-Infantry/cmake-build-debug-arm-none-eabi/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="C:/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/Administrator/Documents/GitHub/Meta-Infantry/cmake-build-debug-arm-none-eabi/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="useless_cmake_target/fast">
+				<Option output="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/cmake-build-debug-arm-none-eabi/libuseless_cmake_target.a" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/cmake-build-debug-arm-none-eabi"/>
+				<Option object_output="./"/>
+				<Option type="2"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-DSHELL_CONFIG_FILE"/>
+					<Add directory="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/dev"/>
+					<Add directory="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/dev/common"/>
+					<Add directory="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/dev/debug"/>
+					<Add directory="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/dev/interfaces"/>
+					<Add directory="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/dev/module"/>
+					<Add directory="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/dev/control"/>
+					<Add directory="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/./os/license"/>
+					<Add directory="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/./os/common/portability/GCC"/>
+					<Add directory="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/./os/common/startup/ARMCMx/compilers/GCC"/>
+					<Add directory="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/./os/common/startup/ARMCMx/devices/STM32F4xx"/>
+					<Add directory="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/./os/common/ext/ARM/CMSIS/Core/Include"/>
+					<Add directory="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/./os/common/ext/ST/STM32F4xx"/>
+					<Add directory="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/./os/hal/include"/>
+					<Add directory="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/./os/hal/ports/common/ARMCMx"/>
+					<Add directory="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/./os/hal/ports/STM32/STM32F4xx"/>
+					<Add directory="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/./os/hal/ports/STM32/LLD/ADCv2"/>
+					<Add directory="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/./os/hal/ports/STM32/LLD/CANv1"/>
+					<Add directory="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/./os/hal/ports/STM32/LLD/DACv1"/>
+					<Add directory="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/./os/hal/ports/STM32/LLD/DMAv2"/>
+					<Add directory="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/./os/hal/ports/STM32/LLD/EXTIv1"/>
+					<Add directory="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/./os/hal/ports/STM32/LLD/GPIOv2"/>
+					<Add directory="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/./os/hal/ports/STM32/LLD/I2Cv1"/>
+					<Add directory="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/./os/hal/ports/STM32/LLD/MACv1"/>
+					<Add directory="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/./os/hal/ports/STM32/LLD/OTGv1"/>
+					<Add directory="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/./os/hal/ports/STM32/LLD/QUADSPIv1"/>
+					<Add directory="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/./os/hal/ports/STM32/LLD/RTCv2"/>
+					<Add directory="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/./os/hal/ports/STM32/LLD/SPIv1"/>
+					<Add directory="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/./os/hal/ports/STM32/LLD/SDIOv1"/>
+					<Add directory="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/./os/hal/ports/STM32/LLD/TIMv1"/>
+					<Add directory="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/./os/hal/ports/STM32/LLD/USARTv1"/>
+					<Add directory="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/./os/hal/ports/STM32/LLD/xWDGv1"/>
+					<Add directory="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/./dev/board"/>
+					<Add directory="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/./os/hal/osal/rt"/>
+					<Add directory="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/./os/rt/include"/>
+					<Add directory="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/./os/common/oslib/include"/>
+					<Add directory="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/./os/common/ports/ARMCMx"/>
+					<Add directory="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/./os/common/ports/ARMCMx/compilers/GCC"/>
+					<Add directory="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/./os/various/cpp_wrappers"/>
+					<Add directory="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/./os/hal/lib/streams"/>
+					<Add directory="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/./os/various/shell"/>
+					<Add directory="e:\arm-none-eabi2017\bin\../lib/gcc/arm-none-eabi/5.4.1/../../../../arm-none-eabi/include/c++/5.4.1"/>
+					<Add directory="e:\arm-none-eabi2017\bin\../lib/gcc/arm-none-eabi/5.4.1/../../../../arm-none-eabi/include/c++/5.4.1/arm-none-eabi"/>
+					<Add directory="e:\arm-none-eabi2017\bin\../lib/gcc/arm-none-eabi/5.4.1/../../../../arm-none-eabi/include/c++/5.4.1/backward"/>
+					<Add directory="e:\arm-none-eabi2017\bin\../lib/gcc/arm-none-eabi/5.4.1/include"/>
+					<Add directory="e:\arm-none-eabi2017\bin\../lib/gcc/arm-none-eabi/5.4.1/include-fixed"/>
+					<Add directory="e:\arm-none-eabi2017\bin\../lib/gcc/arm-none-eabi/5.4.1/../../../../arm-none-eabi/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="C:/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/Administrator/Documents/GitHub/Meta-Infantry/cmake-build-debug-arm-none-eabi/Makefile&quot;  VERBOSE=1 useless_cmake_target/fast"/>
+					<CompileFile command="C:/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/Administrator/Documents/GitHub/Meta-Infantry/cmake-build-debug-arm-none-eabi/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="C:/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/Administrator/Documents/GitHub/Meta-Infantry/cmake-build-debug-arm-none-eabi/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="C:/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/Administrator/Documents/GitHub/Meta-Infantry/cmake-build-debug-arm-none-eabi/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="UT_GIMBAL">
+				<Option working_dir="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/cmake-build-debug-arm-none-eabi"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="C:/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/Administrator/Documents/GitHub/Meta-Infantry/cmake-build-debug-arm-none-eabi/Makefile&quot;  VERBOSE=1 UT_GIMBAL"/>
+					<CompileFile command="C:/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/Administrator/Documents/GitHub/Meta-Infantry/cmake-build-debug-arm-none-eabi/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="C:/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/Administrator/Documents/GitHub/Meta-Infantry/cmake-build-debug-arm-none-eabi/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="C:/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/Administrator/Documents/GitHub/Meta-Infantry/cmake-build-debug-arm-none-eabi/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="MAKE_CLEAN">
+				<Option working_dir="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/cmake-build-debug-arm-none-eabi"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="C:/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/Administrator/Documents/GitHub/Meta-Infantry/cmake-build-debug-arm-none-eabi/Makefile&quot;  VERBOSE=1 MAKE_CLEAN"/>
+					<CompileFile command="C:/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/Administrator/Documents/GitHub/Meta-Infantry/cmake-build-debug-arm-none-eabi/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="C:/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/Administrator/Documents/GitHub/Meta-Infantry/cmake-build-debug-arm-none-eabi/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="C:/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/Administrator/Documents/GitHub/Meta-Infantry/cmake-build-debug-arm-none-eabi/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="rebuild_cache">
+				<Option working_dir="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/cmake-build-debug-arm-none-eabi"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="C:/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/Administrator/Documents/GitHub/Meta-Infantry/cmake-build-debug-arm-none-eabi/Makefile&quot;  VERBOSE=1 rebuild_cache"/>
+					<CompileFile command="C:/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/Administrator/Documents/GitHub/Meta-Infantry/cmake-build-debug-arm-none-eabi/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="C:/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/Administrator/Documents/GitHub/Meta-Infantry/cmake-build-debug-arm-none-eabi/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="C:/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/Administrator/Documents/GitHub/Meta-Infantry/cmake-build-debug-arm-none-eabi/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+		</Build>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/dev/board/board.c">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/dev/board/board.h">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/dev/common/port_to_string.cpp">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/dev/common/port_to_string.h">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/dev/control/chasis_controller.cpp">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/dev/control/chasis_controller.h">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/dev/control/gimbal_controller.cpp">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/dev/control/gimbal_controller.h">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/dev/control/gimbal_controller_unit_test.cpp">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/dev/debug/gimbal_feedback_module.cpp">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/dev/debug/gimbal_feedback_module.h">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/dev/debug/led.cpp">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/dev/debug/led.h">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/dev/debug/serial_shell.cpp">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/dev/debug/serial_shell.h">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/dev/debug/shell_debug_commands.cpp">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/dev/debug/shell_debug_commands.h">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/dev/interfaces/can_interface.cpp">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/dev/interfaces/can_interface.h">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/dev/interfaces/gimbal_interface.cpp">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/dev/interfaces/gimbal_interface.h">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/dev/interfaces/gimbal_interface_unit_test.cpp">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/dev/interfaces/remote_interpreter.cpp">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/dev/interfaces/remote_interpreter.h">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/dev/interfaces/remote_interpreter_unit_test.cpp">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/dev/main.cpp">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/dev/module/button_monitor.cpp">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/dev/module/button_monitor.h">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/dev/module/pid_controller.cpp">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/dev/module/pid_controller.h">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/common/oslib/src/chfactory.c">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/common/oslib/src/chheap.c">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/common/oslib/src/chmboxes.c">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/common/oslib/src/chmemcore.c">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/common/oslib/src/chmempools.c">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/common/ports/ARMCMx/chcore.c">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/common/ports/ARMCMx/chcore.h">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/common/ports/ARMCMx/chcore_v7m.c">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/common/ports/ARMCMx/chcore_v7m.h">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/common/startup/ARMCMx/compilers/GCC/crt1.c">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/hal/lib/fallback/I2C/hal_i2c_lld.c">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/hal/lib/fallback/I2C/hal_i2c_lld.h">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/hal/lib/streams/chprintf.c">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/hal/lib/streams/chprintf.h">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/hal/lib/streams/memstreams.c">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/hal/lib/streams/memstreams.h">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/hal/lib/streams/nullstreams.c">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/hal/lib/streams/nullstreams.h">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/hal/osal/rt/osal.c">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/hal/osal/rt/osal.h">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/hal/ports/STM32/LLD/ADCv2/hal_adc_lld.c">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/hal/ports/STM32/LLD/ADCv2/hal_adc_lld.h">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/hal/ports/STM32/LLD/CANv1/hal_can_lld.c">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/hal/ports/STM32/LLD/CANv1/hal_can_lld.h">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/hal/ports/STM32/LLD/DACv1/hal_dac_lld.c">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/hal/ports/STM32/LLD/DACv1/hal_dac_lld.h">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/hal/ports/STM32/LLD/DMAv2/stm32_dma.c">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/hal/ports/STM32/LLD/DMAv2/stm32_dma.h">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/hal/ports/STM32/LLD/EXTIv1/hal_ext_lld.c">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/hal/ports/STM32/LLD/EXTIv1/hal_ext_lld.h">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/hal/ports/STM32/LLD/GPIOv2/hal_pal_lld.c">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/hal/ports/STM32/LLD/GPIOv2/hal_pal_lld.h">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/hal/ports/STM32/LLD/I2Cv1/hal_i2c_lld.c">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/hal/ports/STM32/LLD/I2Cv1/hal_i2c_lld.h">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/hal/ports/STM32/LLD/MACv1/hal_mac_lld.c">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/hal/ports/STM32/LLD/MACv1/hal_mac_lld.h">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/hal/ports/STM32/LLD/OTGv1/hal_usb_lld.c">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/hal/ports/STM32/LLD/OTGv1/hal_usb_lld.h">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/hal/ports/STM32/LLD/QUADSPIv1/hal_qspi_lld.c">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/hal/ports/STM32/LLD/QUADSPIv1/hal_qspi_lld.h">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/hal/ports/STM32/LLD/RTCv2/hal_rtc_lld.c">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/hal/ports/STM32/LLD/RTCv2/hal_rtc_lld.h">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/hal/ports/STM32/LLD/SDIOv1/hal_sdc_lld.c">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/hal/ports/STM32/LLD/SDIOv1/hal_sdc_lld.h">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/hal/ports/STM32/LLD/SPIv1/hal_i2s_lld.c">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/hal/ports/STM32/LLD/SPIv1/hal_i2s_lld.h">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/hal/ports/STM32/LLD/SPIv1/hal_spi_lld.c">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/hal/ports/STM32/LLD/SPIv1/hal_spi_lld.h">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/hal/ports/STM32/LLD/TIMv1/hal_gpt_lld.c">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/hal/ports/STM32/LLD/TIMv1/hal_gpt_lld.h">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/hal/ports/STM32/LLD/TIMv1/hal_icu_lld.c">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/hal/ports/STM32/LLD/TIMv1/hal_icu_lld.h">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/hal/ports/STM32/LLD/TIMv1/hal_pwm_lld.c">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/hal/ports/STM32/LLD/TIMv1/hal_pwm_lld.h">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/hal/ports/STM32/LLD/USARTv1/hal_serial_lld.c">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/hal/ports/STM32/LLD/USARTv1/hal_serial_lld.h">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/hal/ports/STM32/LLD/USARTv1/hal_uart_lld.c">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/hal/ports/STM32/LLD/USARTv1/hal_uart_lld.h">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/hal/ports/STM32/LLD/xWDGv1/hal_wdg_lld.c">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/hal/ports/STM32/LLD/xWDGv1/hal_wdg_lld.h">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/hal/ports/STM32/STM32F4xx/hal_lld.c">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/hal/ports/STM32/STM32F4xx/hal_lld.h">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/hal/ports/STM32/STM32F4xx/stm32_isr.c">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/hal/ports/STM32/STM32F4xx/stm32_isr.h">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/hal/ports/common/ARMCMx/nvic.c">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/hal/ports/common/ARMCMx/nvic.h">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/hal/src/hal.c">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/hal/src/hal_adc.c">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/hal/src/hal_buffers.c">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/hal/src/hal_can.c">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/hal/src/hal_crypto.c">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/hal/src/hal_dac.c">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/hal/src/hal_ext.c">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/hal/src/hal_gpt.c">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/hal/src/hal_i2c.c">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/hal/src/hal_i2s.c">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/hal/src/hal_icu.c">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/hal/src/hal_mac.c">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/hal/src/hal_mmc_spi.c">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/hal/src/hal_mmcsd.c">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/hal/src/hal_pal.c">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/hal/src/hal_pwm.c">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/hal/src/hal_qspi.c">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/hal/src/hal_queues.c">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/hal/src/hal_rtc.c">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/hal/src/hal_sdc.c">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/hal/src/hal_serial.c">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/hal/src/hal_serial_usb.c">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/hal/src/hal_spi.c">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/hal/src/hal_st.c">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/hal/src/hal_uart.c">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/hal/src/hal_usb.c">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/hal/src/hal_wdg.c">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/rt/src/chcond.c">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/rt/src/chdebug.c">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/rt/src/chdynamic.c">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/rt/src/chevents.c">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/rt/src/chmsg.c">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/rt/src/chmtx.c">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/rt/src/chregistry.c">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/rt/src/chschd.c">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/rt/src/chsem.c">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/rt/src/chstats.c">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/rt/src/chsys.c">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/rt/src/chthreads.c">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/rt/src/chtm.c">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/rt/src/chtrace.c">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/rt/src/chvt.c">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/various/cpp_wrappers/ch.cpp">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/various/cpp_wrappers/ch.hpp">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/various/cpp_wrappers/syscalls_cpp.cpp">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/various/cpp_wrappers/syscalls_cpp.hpp">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/various/shell/shell.c">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/various/shell/shell.h">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/various/shell/shell_cmd.c">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/various/shell/shell_cmd.h">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/os/ch.cmake">
+			<Option virtualFolder="CMake Files\os\"/>
+		</Unit>
+	</Project>
+</CodeBlocks_project_file>
