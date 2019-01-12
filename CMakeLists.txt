@@ -17,6 +17,7 @@ add_custom_target(MAIN COMMAND ${MAKE_EXECUTABLE} -j -C ${Meta_Infantry_SOURCE_D
 add_custom_target(UT_REMOTE_INTERPRETER COMMAND ${MAKE_EXECUTABLE} -j -C ${Meta_Infantry_SOURCE_DIR}/dev DEV_MODULE=REMOTE_INTERPRETER)
 add_custom_target(UT_GIMBAL_INTERFACE COMMAND ${MAKE_EXECUTABLE} -j -C ${Meta_Infantry_SOURCE_DIR}/dev DEV_MODULE=GIMBAL_INTERFACE)
 add_custom_target(UT_GIMBAL COMMAND ${MAKE_EXECUTABLE} -j -C ${Meta_Infantry_SOURCE_DIR}/dev DEV_MODULE=GIMBAL)
+add_custom_target(UT_CHASSIS COMMAND ${MAKE_EXECUTABLE} -j -C ${Meta_Infantry_SOURCE_DIR}/dev DEV_MODULE=CHASSIS)
 
 # make clean
 add_custom_target(MAKE_CLEAN COMMAND ${MAKE_EXECUTABLE} clean -C ${Meta_Infantry_SOURCE_DIR}/dev)

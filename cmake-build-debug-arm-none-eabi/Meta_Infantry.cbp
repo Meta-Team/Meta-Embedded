@@ -17,16 +17,6 @@
 					<DistClean command="C:/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/Administrator/Documents/GitHub/Meta-Infantry/cmake-build-debug-arm-none-eabi/Makefile&quot;  VERBOSE=1 clean"/>
 				</MakeCommands>
 			</Target>
-			<Target title="edit_cache">
-				<Option working_dir="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/cmake-build-debug-arm-none-eabi"/>
-				<Option type="4"/>
-				<MakeCommands>
-					<Build command="C:/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/Administrator/Documents/GitHub/Meta-Infantry/cmake-build-debug-arm-none-eabi/Makefile&quot;  VERBOSE=1 edit_cache"/>
-					<CompileFile command="C:/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/Administrator/Documents/GitHub/Meta-Infantry/cmake-build-debug-arm-none-eabi/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
-					<Clean command="C:/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/Administrator/Documents/GitHub/Meta-Infantry/cmake-build-debug-arm-none-eabi/Makefile&quot;  VERBOSE=1 clean"/>
-					<DistClean command="C:/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/Administrator/Documents/GitHub/Meta-Infantry/cmake-build-debug-arm-none-eabi/Makefile&quot;  VERBOSE=1 clean"/>
-				</MakeCommands>
-			</Target>
 			<Target title="MAIN">
 				<Option working_dir="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/cmake-build-debug-arm-none-eabi"/>
 				<Option type="4"/>
@@ -37,11 +27,31 @@
 					<DistClean command="C:/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/Administrator/Documents/GitHub/Meta-Infantry/cmake-build-debug-arm-none-eabi/Makefile&quot;  VERBOSE=1 clean"/>
 				</MakeCommands>
 			</Target>
+			<Target title="edit_cache">
+				<Option working_dir="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/cmake-build-debug-arm-none-eabi"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="C:/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/Administrator/Documents/GitHub/Meta-Infantry/cmake-build-debug-arm-none-eabi/Makefile&quot;  VERBOSE=1 edit_cache"/>
+					<CompileFile command="C:/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/Administrator/Documents/GitHub/Meta-Infantry/cmake-build-debug-arm-none-eabi/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="C:/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/Administrator/Documents/GitHub/Meta-Infantry/cmake-build-debug-arm-none-eabi/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="C:/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/Administrator/Documents/GitHub/Meta-Infantry/cmake-build-debug-arm-none-eabi/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
 			<Target title="UT_REMOTE_INTERPRETER">
 				<Option working_dir="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/cmake-build-debug-arm-none-eabi"/>
 				<Option type="4"/>
 				<MakeCommands>
 					<Build command="C:/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/Administrator/Documents/GitHub/Meta-Infantry/cmake-build-debug-arm-none-eabi/Makefile&quot;  VERBOSE=1 UT_REMOTE_INTERPRETER"/>
+					<CompileFile command="C:/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/Administrator/Documents/GitHub/Meta-Infantry/cmake-build-debug-arm-none-eabi/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="C:/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/Administrator/Documents/GitHub/Meta-Infantry/cmake-build-debug-arm-none-eabi/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="C:/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/Administrator/Documents/GitHub/Meta-Infantry/cmake-build-debug-arm-none-eabi/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="UT_CHASSIS">
+				<Option working_dir="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/cmake-build-debug-arm-none-eabi"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="C:/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/Administrator/Documents/GitHub/Meta-Infantry/cmake-build-debug-arm-none-eabi/Makefile&quot;  VERBOSE=1 UT_CHASSIS"/>
 					<CompileFile command="C:/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/Administrator/Documents/GitHub/Meta-Infantry/cmake-build-debug-arm-none-eabi/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
 					<Clean command="C:/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/Administrator/Documents/GitHub/Meta-Infantry/cmake-build-debug-arm-none-eabi/Makefile&quot;  VERBOSE=1 clean"/>
 					<DistClean command="C:/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/Administrator/Documents/GitHub/Meta-Infantry/cmake-build-debug-arm-none-eabi/Makefile&quot;  VERBOSE=1 clean"/>
@@ -267,6 +277,12 @@
 			<Option target="useless_cmake_target"/>
 		</Unit>
 		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/dev/interfaces/can_interface.h">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/dev/interfaces/chassis_interface.cpp">
+			<Option target="useless_cmake_target"/>
+		</Unit>
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/dev/interfaces/chassis_interface.h">
 			<Option target="useless_cmake_target"/>
 		</Unit>
 		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/dev/interfaces/gimbal_interface.cpp">
