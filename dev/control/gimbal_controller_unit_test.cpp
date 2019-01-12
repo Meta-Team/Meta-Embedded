@@ -33,12 +33,12 @@ static void can1_callback(CANRxFrame *rxmsg) {
 int const gimbal_thread_interval = 50; // ms
 int const maximum_current = 4000; // mA
 
-float const yaw_min_angle = -120; // degree
-float const yaw_max_angle = 120; // degree
+float const yaw_min_angle = -150; // degree
+float const yaw_max_angle = 150; // degree
 float const pitch_min_angle = -45; // degree
 float const pitch_max_angle = 45; // degree
 
-float const yaw_max_speed = 200; // absolute maximum, degree/s
+float const yaw_max_speed = 500; // absolute maximum, degree/s
 float const pitch_max_speed = 100; // absolute maximum, degree/s
 
 bool enable_angle_to_v_pid = false;
@@ -111,6 +111,10 @@ static void cmd_gimbal_set_target_velocities(BaseSequentialStream *chp, int argc
 
     yaw_target_velocity = Shell::atof(argv[0]);
     pitch_target_velocity = Shell::atof(argv[1]);
+    GimbalController::yaw.v_to_i_pid.clear_i_out();
+    GimbalController::yaw.angle_to_v_pid.clear_i_out();
+    GimbalController::pitch.v_to_i_pid.clear_i_out();
+    GimbalController::pitch.angle_to_v_pid.clear_i_out();
 //    chprintf(chp, "Gimbal yaw target_velocity = %f" SHELL_NEWLINE_STR, yaw_target_velocity);
 //    chprintf(chp, "Gimbal pitch target_velocity = %f" SHELL_NEWLINE_STR, pitch_target_velocity);
 
@@ -133,6 +137,10 @@ static void cmd_gimbal_set_target_angle(BaseSequentialStream *chp, int argc, cha
 
     yaw_target_angle = Shell::atof(argv[0]);
     pitch_target_angle = Shell::atof(argv[1]);
+    GimbalController::yaw.v_to_i_pid.clear_i_out();
+    GimbalController::yaw.angle_to_v_pid.clear_i_out();
+    GimbalController::pitch.v_to_i_pid.clear_i_out();
+    GimbalController::pitch.angle_to_v_pid.clear_i_out();
 //    chprintf(chp, "Gimbal yaw target_angle = %f" SHELL_NEWLINE_STR, yaw_target_angle);
 //    chprintf(chp, "Gimbal pitch target_angle = %f" SHELL_NEWLINE_STR, pitch_target_angle);
 
@@ -169,6 +177,10 @@ static void cmd_gimbal_set_parameters(BaseSequentialStream *chp, int argc, char 
                                      Shell::atof(argv[4]),
                                      Shell::atof(argv[5]),
                                      Shell::atof(argv[6]));
+    GimbalController::yaw.v_to_i_pid.clear_i_out();
+    GimbalController::yaw.angle_to_v_pid.clear_i_out();
+    GimbalController::pitch.v_to_i_pid.clear_i_out();
+    GimbalController::pitch.angle_to_v_pid.clear_i_out();
     chprintf(chp, "!ps" SHELL_NEWLINE_STR); // echo parameters set
 }
 
@@ -236,23 +248,23 @@ protected:
                 if (GimbalInterface::yaw.actual_angle > yaw_max_angle) {
                     Shell::printf("!dyA" SHELL_NEWLINE_STR);
                     GimbalInterface::yaw.enabled = false;
-//                    GimbalInterface::send_gimbal_currents();
+                    GimbalInterface::send_gimbal_currents();
                     continue; // make sure there is no chSysLock() before
                 } else if (GimbalInterface::yaw.actual_angle < yaw_min_angle) {
                     Shell::printf("!dya" SHELL_NEWLINE_STR);
                     GimbalInterface::yaw.enabled = false;
-//                    GimbalInterface::send_gimbal_currents();
+                    GimbalInterface::send_gimbal_currents();
                     continue; // make sure there is no chSysLock() before
                 }
                 if (GimbalInterface::pitch.actual_angle > pitch_max_angle) {
                     Shell::printf("!dpA" SHELL_NEWLINE_STR);
                     GimbalInterface::pitch.enabled = false;
-//                    GimbalInterface::send_gimbal_currents();
+                    GimbalInterface::send_gimbal_currents();
                     continue; // make sure there is no chSysLock() before
                 } else if (GimbalInterface::pitch.actual_angle < pitch_min_angle) {
                     Shell::printf("!dpa" SHELL_NEWLINE_STR);
                     GimbalInterface::pitch.enabled = false;
-//                    GimbalInterface::send_gimbal_currents();
+                    GimbalInterface::send_gimbal_currents();
                     continue; // make sure there is no chSysLock() before
                 }
 
@@ -269,13 +281,13 @@ protected:
                 if (GimbalInterface::yaw.angular_velocity > yaw_max_speed || GimbalInterface::yaw.angular_velocity < -yaw_max_speed) {
                     Shell::printf("!dyv" SHELL_NEWLINE_STR);
                     GimbalInterface::yaw.enabled = false;
-//                    GimbalInterface::send_gimbal_currents();
+                    GimbalInterface::send_gimbal_currents();
                     continue; // make sure there is no chSysLock() before
                 }
                 if (GimbalInterface::pitch.angular_velocity > pitch_max_speed || GimbalInterface::pitch.angular_velocity < -pitch_max_speed) {
                     Shell::printf("!dpv" SHELL_NEWLINE_STR);
                     GimbalInterface::pitch.enabled = false;
-//                    GimbalInterface::send_gimbal_currents();
+                    GimbalInterface::send_gimbal_currents();
                     continue; // make sure there is no chSysLock() before
                 }
 
@@ -289,13 +301,13 @@ protected:
                 if (GimbalInterface::yaw.target_current > maximum_current || GimbalInterface::yaw.target_current < -maximum_current) {
                     Shell::printf("!dyc" SHELL_NEWLINE_STR);
                     GimbalInterface::yaw.enabled = false;
-//                    GimbalInterface::send_gimbal_currents();
+                    GimbalInterface::send_gimbal_currents();
                     continue; // make sure there is no chSysLock() before
                 }
                 if (GimbalInterface::pitch.target_current > maximum_current || GimbalInterface::pitch.target_current < -maximum_current) {
                     Shell::printf("!dpc" SHELL_NEWLINE_STR);
                     GimbalInterface::pitch.enabled = false;
-//                    GimbalInterface::send_gimbal_currents();
+                    GimbalInterface::send_gimbal_currents();
                     continue; // make sure there is no chSysLock() before
                 }
                 
@@ -303,7 +315,7 @@ protected:
 
             }
 
-//            GimbalInterface::send_gimbal_currents();
+            GimbalInterface::send_gimbal_currents();
             
             sleep(TIME_MS2I(gimbal_thread_interval));
         }
@@ -319,9 +331,9 @@ int main(void) {
 
     feedbackModule.start_thread(NORMALPRIO);
 
-//    can1.start_can();
-//    can1.start_thread(HIGHPRIO - 1);
-//    GimbalInterface::set_can_interface(&can1);
+    can1.start_can();
+    can1.start_thread(HIGHPRIO - 1);
+    GimbalInterface::set_can_interface(&can1);
 
     gimbalThread.start(HIGHPRIO - 2);
 

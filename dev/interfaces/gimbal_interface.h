@@ -39,8 +39,13 @@ public:
         motor_id_t id;
         bool enabled;  // if not enabled, 0 current will be sent in send_gimbal_currents
 
-        // +: clockwise, -: counter-clockwise
+        /**
+         * REVERSED target current
+         *  Reversed to meet the sign of pid.
+         *  -: clockwise, +: counter-clockwise
+         */
         int target_current;
+
 
         /**
          * Normalized Angle and Rounds
