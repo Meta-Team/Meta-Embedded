@@ -23,7 +23,7 @@ public:
     /**
      * @brief initialize a can interface
      * @param driver              pointer to can driver
-     * @param rx_callback_func    pointer to callback function when a message is reveived
+     * @param rx_callback_func    pointer to callback function when a message is received
      */
     CANInterface(CANDriver* driver, can_callback_func rx_callback_func) {
         can_driver = driver;
