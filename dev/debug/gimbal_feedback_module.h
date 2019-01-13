@@ -51,9 +51,15 @@ public:
         ptr_pitch_target_angle = p_pitch_target_angle;
         ptr_pitch_target_velocity = p_pitch_target_velocity;
         ptr_pitch_target_current = p_pitch_target_current;
+
+        enable_yaw_feedback = false;
+        enable_pitch_feedback = false;
     }
 
-    int feedback_interval;
+    int feedback_interval; // ms
+
+    bool enable_yaw_feedback;
+    bool enable_pitch_feedback;
 
 private:
 
