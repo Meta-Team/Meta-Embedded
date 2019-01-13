@@ -8,14 +8,8 @@
 #include "ch.hpp"
 #include "hal.h"
 #include "can_interface.h"
+#include "chassis_common.h"
 
-enum chassis_motor_id_t {  // goes in a counter-clockwise order
-    CHASSIS_FR, // front right motor, 0
-    CHASSIS_FL, // front left motor, 1
-    CHASSIS_BL, // back left motor, 2
-    CHASSIS_BR, // back right motor, 3
-    CHASSIS_MOTOR_COUNT
-};
 
 /**
  * Enable clip at the moment of sending current.
