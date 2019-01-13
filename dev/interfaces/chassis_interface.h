@@ -1,5 +1,7 @@
 //
 // Created by liuzikai on 2019-01-12.
+// Sending function is written by Feng Chuhao
+// Receiving function is written by Qian Cheng
 //
 
 #ifndef META_INFANTRY_CHASSIS_INTERFACE_H
@@ -36,6 +38,13 @@ public:
 
         chassis_motor_id_t id;
 
+        uint16_t actual_angle_raw;
+        int16_t actual_rpm_raw;
+        int16_t actual_current_raw;
+        uint8_t actual_temperature_raw;
+
+        float actual_angular_velocity; // degree/s
+
         // +: ??, -: ??
         // TODO: determine the direction of motor with positive and negative currents
         int target_current;
@@ -58,9 +67,14 @@ public:
         can = can_interface;
     }
 
+    static void process_chassis_feedback(CANRxFrame *rxmsg);
+
 private:
 
     static CANInterface* can;
+
+    // TODO: confirm the decelerate ratio of the motor
+    static float constexpr chassis_motor_decelerate_ratio = 19.0f;
 
 };
 
