@@ -119,6 +119,7 @@ bool GimbalInterface::process_motor_feedback(CANRxFrame *rxmsg) {
         // calculate the angular velocity
         time_msecs_t new_sample_time = TIME_I2MS(chibios_rt::System::getTime());
         motor->angular_velocity = motor->sample_movement_sum * 360.0f * 1000.0f/ 8192.0f / (float) (new_sample_time - motor->sample_time);
+//        motor->angular_velocity = motor->sample_movement_sum * 360.0f / 8192.0f / (float) velocity_sample_interval / 0.001f;
         motor->sample_time = new_sample_time;
 
         motor->sample_movement_sum = 0;
