@@ -48,6 +48,6 @@ void ShootInterface::shoot_calc_init() {
 
     palSetPadMode(GPIOI, 6, PAL_MODE_ALTERNATE(3));
 
-    pwmStart(&PWMD8, &friction_wheels_pwmcfg);
+    pwmStart(&FRICTION_WHEEL_PWM_TIM, &friction_wheels_pwmcfg);
 
 }
