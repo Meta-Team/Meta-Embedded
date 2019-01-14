@@ -90,6 +90,19 @@ ShellCommand chassisInterfaceCommands[] = {
         {nullptr,    nullptr}
 };
 
+class GimbalThread : public BaseStaticThread<256> {
+protected:
+    void main() final {
+        setName("chassis");
+        while (!shouldTerminate()) {
+
+            ChassisInterface::send_chassis_currents();
+
+            sleep(TIME_MS2I(100));
+        }
+    }
+} chassisThread;
+
 
 int main(void) {
     halInit();
@@ -104,6 +117,8 @@ int main(void) {
     can1.start_can();
     can1.start_thread(HIGHPRIO - 1);
     ChassisInterface::set_can_interface(&can1);
+
+    chassisThread.start(NORMALPRIO);
 
     // See chconf.h for what this #define means.
 #if CH_CFG_NO_IDLE_THREAD
