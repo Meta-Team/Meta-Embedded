@@ -9,6 +9,20 @@
 static uint8_t imuRXData[MPU6500_RX_BUF_SIZE];
 static uint8_t imuTXData[MPU6500_TX_BUF_SIZE];
 
+/**
+* @brief rotate the acceleration components with the bias matrix
+* @param bias matrix and acceleration components
+* @return accelerate type
+*/
+static accelerate_t matrix3Convert(float bias[][3], float accel_x, float accel_y, float accel_z) {
+    accelerate_t converted_accel;
+    converted_accel.ax = bias[0][0] * accel_x + bias[0][1] * accel_y + bias[0][2] * accel_z;
+    converted_accel.ay = bias[1][0] * accel_x + bias[1][1] * accel_y + bias[1][2] * accel_z;
+    converted_accel.az = bias[2][0] * accel_x + bias[2][1] * accel_y + bias[2][2] * accel_z;
+    return converted_accel;
+}
+
+
 void IMUController::IMUInit() {
     // read to set bias here
     getData();
@@ -16,13 +30,13 @@ void IMUController::IMUInit() {
 
 void IMUController::getData() {
     uint32_t current_time =  chVTGetSystemTimeX();
-    this->dt = TIME_I2S(current_time - this->prev_t);
-    this->prev_t = current_time;
+    dt = TIME_I2S(current_time - prev_t);
+    prev_t = current_time;
     // get dt
 
     // get the cofficient converting the raw data to degree
     float _gyro_psc;
-    switch(this->_gyro_config)
+    switch(_gyro_config)
     {
         case MPU6500_GYRO_SCALE_250:
             _gyro_psc = (1.0f / 131.0f) * PI/180.0f;
@@ -36,10 +50,12 @@ void IMUController::getData() {
         case MPU6500_GYRO_SCALE_2000:
             _gyro_psc = (1.0f /  16.4f) * PI/180.0f;
             break;
+        default:
+            return;
     }
 
     float _accel_psc;
-    switch(this->_accel_config)
+    switch(_accel_config)
     {
         case MPU6500_ACCEL_SCALE_2G:
             _accel_psc = (GRAV / 16384.0f);
@@ -53,6 +69,8 @@ void IMUController::getData() {
         case MPU6500_ACCEL_SCALE_16G:
             _accel_psc = (GRAV /  2048.0f);
             break;
+        default:
+            return;
     }
     /*Here to read data*/
 
@@ -63,11 +81,9 @@ void IMUController::getData() {
     float gyro_y = _gyro_psc * (int16_t)((imuRXData[10]<<8) | imuRXData[11]);  // Gyro Y 
     float gyro_z = _gyro_psc * (int16_t)((imuRXData[12]<<8) | imuRXData[13]);  // Gyro Z 
 
-    this->gyro_data.x = (gyro_x + _gyro_bias) / this->dt;
-    this->gyro_data.y = (gyro_y + _gyro_bias) / this->dt;
-    this->gyro_data.z = (gyro_z + _gyro_bias) / this->dt;
+    gyro_data.wx = (gyro_x + _gyro_bias) / dt;
+    gyro_data.wy = (gyro_y + _gyro_bias) / dt;
+    gyro_data.wz = (gyro_z + _gyro_bias) / dt;
 
-    Matrix accel_data_matrix(1, 3);
-    // fill the matrix with accel_x, accel_y and accel_z
-    this->accel_data = matrix_multiply_to_accelerate_t(accel_data_matrix, _accel_bias);
+    accel_data = matrix3Convert(_accel_bias, accel_x, accel_y, accel_z);
 }

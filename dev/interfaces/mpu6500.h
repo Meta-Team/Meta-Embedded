@@ -55,11 +55,12 @@ public:
     */
     void getData();
 
-    IMUController(gyro_scale input_gyro_config, accel_scale input_accel_config):_accel_bias(3, 3) {
+    IMUController(gyro_scale input_gyro_config, accel_scale input_accel_config) {
 /*        imu_q = {1, 0 ,0 ,0};*/
         _gyro_config = input_gyro_config;
         _accel_config = input_accel_config;
         dt = 0;
+        prev_t = 0;
         IMUInit();
     }
 
@@ -69,17 +70,22 @@ private:
     float prev_t;
 
     gyro_scale _gyro_config;
-    accel_scale _accel_config
+    accel_scale _accel_config;
 
     float _gyro_bias;  // for gyro bias
-    Matrix _accel_bias;  // a matrix for accel bias (need the support of matrix)
+    float _accel_bias[3][3];  // a matrix for accel bias (need the support of matrix)
 
 /*    quaternion_t imu_q;*/
 
     angel_speed_t gyro_data;  // final data of gyro
     accelerate_t accel_data;  // final data of acceleration
 
+    /**
+    * @brief Initialize the IMU parameter
+    * @param none
+    * @return none
+    */
     void IMUInit();
-}
+};
 
 #endif
