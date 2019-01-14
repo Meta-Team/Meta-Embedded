@@ -36,7 +36,11 @@ bool ChassisInterface::send_chassis_currents() {
 }
 
 void ChassisInterface::process_chassis_feedback(CANRxFrame *rxmsg) {
+
+    if (rxmsg->SID > 0x204 || rxmsg->SID < 0x201) return;
+
     int motor_id = (int) (rxmsg->SID - 0x201);
+
     motor[motor_id].actual_angle_raw = (uint16_t) (rxmsg->data8[0] << 8 | rxmsg->data8[1]);
     motor[motor_id].actual_rpm_raw = (int16_t) (rxmsg->data8[2] << 8 | rxmsg->data8[3]);
     motor[motor_id].actual_current_raw = (int16_t) (rxmsg->data8[4] << 8 | rxmsg->data8[5]);

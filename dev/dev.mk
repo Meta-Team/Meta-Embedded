@@ -38,15 +38,16 @@ DEV_REMOTE_INTERPRETER_CPPSRC = interfaces/remote_interpreter.cpp \
 DEV_REMOTE_INTERPRETER_INC = interfaces
 
 # ===========================================================================
-# CHASSIS_CONTROL MODULES
+# CHASSIS_INTERFACE MODULES
 #
-#	Include chassis control sources and the unit test modules.
+#	Include chassis interface sources and the unit test modules.
 #
 # ===========================================================================
-DEV_CHASSIS_CONTROL_CSRC =
-DEV_CHASSIS_CONTROL_CPPSRC = control/chassis_controller.cpp
-DEV_CHASSIS_CONTROL_INC = control \
-                           module
+DEV_CHASSIS_INTERFACE_CSRC =
+DEV_CHASSIS_INTERFACE_CPPSRC = interfaces/can_interface.cpp \
+							   interfaces/chassis_interface.cpp \
+                               interfaces/chassis_interface_unit_test.cpp
+DEV_CHASSIS_INTERFACE_INC =  interfaces
 
 # ===========================================================================
 # GIMBAL_INTERFACE MODULES

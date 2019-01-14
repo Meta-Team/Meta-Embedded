@@ -16,98 +16,80 @@ using namespace chibios_rt;
  * @brief callback function for CAN1
  * @param rxmsg
  */
-static void can1_callback (CANRxFrame *rxmsg) {
+static void can1_callback(CANRxFrame *rxmsg) {
     switch (rxmsg->SID) {
-        case 0x205:
-        case 0x206:
-            GimbalInterface::process_motor_feedback(rxmsg);
+        case 0x201:
+        case 0x202:
+        case 0x203:
+        case 0x204:
+            ChassisInterface::process_chassis_feedback(rxmsg);
             break;
         default:
             break;
     }
 }
 
-float empty_target_angle = 0.0;
-float empty_target_velocity = 0.0;
-
 CANInterface can1(&CAND1, can1_callback);
-GimbalFeedbackModule feedbackModule (200,  // 200ms interval
-                                     &empty_target_angle,
-                                     &empty_target_velocity,
-                                     &GimbalInterface::yaw.target_current,
-                                     &empty_target_angle,
-                                     &empty_target_velocity,
-                                     &GimbalInterface::pitch.target_current);
-
 
 /**
- * @brief set enabled state of yaw and pitch motor
+ * @brief echo acutal angular velocity and target current of each motor
  * @param chp
  * @param argc
  * @param argv
  */
-static void cmd_gimbal_enable(BaseSequentialStream *chp, int argc, char *argv[]) {
-    (void)argv;
-    if (argc != 2 || (*argv[0] != '0' && *argv[0] != '1') || (*argv[1] != '0' && *argv[1] != '1')) {
-        shellUsage(chp, "g_enable yaw(0/1) pitch(0/1)");
-        return;
-    }
-    GimbalInterface::yaw.enabled = *argv[0] - '0';
-    GimbalInterface::pitch.enabled = *argv[1] - '0';
-
-    chprintf(chp, "Gimbal yaw enabled = %d" SHELL_NEWLINE_STR, GimbalInterface::yaw.enabled);
-    chprintf(chp, "Gimbal pitch enabled = %d" SHELL_NEWLINE_STR, GimbalInterface::pitch.enabled);
-}
-
-/**
- * @brief set front_angle_raw with current actual angle
- * @param chp
- * @param argc
- * @param argv
- */
-static void cmd_gimbal_fix_front_angle(BaseSequentialStream *chp, int argc, char *argv[]) {
-    (void)argv;
+static void cmd_chassis_echo(BaseSequentialStream *chp, int argc, char *argv[]) {
+    (void) argv;
     if (argc != 0) {
-        shellUsage(chp, "g_fix");
+        shellUsage(chp, "c_echo");
         return;
     }
-    GimbalInterface::yaw.reset_front_angle();
-    GimbalInterface::pitch.reset_front_angle();
 
-    chprintf(chp, "Gimbal actual angle clear!" SHELL_NEWLINE_STR);
+    chprintf(chp, "actual_angular_velocity: FR = %.2f, FL = %.2f, BL = %.2f, BR = %.2f" SHELL_NEWLINE_STR,
+             ChassisInterface::motor[CHASSIS_FR].actual_angular_velocity,
+             ChassisInterface::motor[CHASSIS_FL].actual_angular_velocity,
+             ChassisInterface::motor[CHASSIS_BL].actual_angular_velocity,
+             ChassisInterface::motor[CHASSIS_BR].actual_angular_velocity);
+    chprintf(chp, "target_current: FR = %d, FL = %d, BL = %d, BR = %d" SHELL_NEWLINE_STR,
+             ChassisInterface::motor[CHASSIS_FR].target_current,
+             ChassisInterface::motor[CHASSIS_FL].target_current,
+             ChassisInterface::motor[CHASSIS_BL].target_current,
+             ChassisInterface::motor[CHASSIS_BR].target_current);
 }
 
-
-
 /**
- * @brief set target currents of yaw and pitch
+ * @brief set and send target current of each motor
  * @param chp
  * @param argc
  * @param argv
  */
-static void cmd_gimbal_set_target_currents(BaseSequentialStream *chp, int argc, char *argv[]) {
-    (void)argv;
-    if (argc != 2) {
-        shellUsage(chp, "g_set yaw_current pitch_current");
+static void cmd_chassis_set_target_currents(BaseSequentialStream *chp, int argc, char *argv[]) {
+    (void) argv;
+    if (argc != 4) {
+        shellUsage(chp, "c_set_current FR FL BL BR");
         return;
     }
 
-    GimbalInterface::yaw.target_current = Shell::atoi(argv[0]);
-    GimbalInterface::pitch.target_current = Shell::atoi(argv[1]);
-    chprintf(chp, "Gimbal yaw target_current = %d" SHELL_NEWLINE_STR, GimbalInterface::yaw.target_current);
-    chprintf(chp, "Gimbal pitch target_current = %d" SHELL_NEWLINE_STR, GimbalInterface::pitch.target_current);
+    ChassisInterface::motor[CHASSIS_FR].target_current = Shell::atoi(argv[0]);
+    ChassisInterface::motor[CHASSIS_FL].target_current = Shell::atoi(argv[1]);
+    ChassisInterface::motor[CHASSIS_BL].target_current = Shell::atoi(argv[2]);
+    ChassisInterface::motor[CHASSIS_BR].target_current = Shell::atoi(argv[3]);
+    chprintf(chp, "target_current: FR = %d, FL = %d, BL = %d, BR = %d" SHELL_NEWLINE_STR,
+             ChassisInterface::motor[CHASSIS_FR].target_current,
+             ChassisInterface::motor[CHASSIS_FL].target_current,
+             ChassisInterface::motor[CHASSIS_BL].target_current,
+             ChassisInterface::motor[CHASSIS_BR].target_current);
 
-    GimbalInterface::send_gimbal_currents();
-    chprintf(chp, "Gimbal target_current sent" SHELL_NEWLINE_STR);
+    ChassisInterface::send_chassis_currents();
+    chprintf(chp, "Chassis target_current sent" SHELL_NEWLINE_STR);
 }
 
-// Shell commands to pause and resume the echos.
-ShellCommand remoteShellCommands[] = {
-        {"g_enable", cmd_gimbal_enable},
-        {"g_fix", cmd_gimbal_fix_front_angle},
-        {"g_set", cmd_gimbal_set_target_currents},
-        {nullptr, nullptr}
+// Shell commands to control the chassis
+ShellCommand chassisInterfaceCommands[] = {
+        {"c_echo", cmd_chassis_echo},
+        {"c_set_current",    cmd_chassis_set_target_currents},
+        {nullptr,    nullptr}
 };
+
 
 int main(void) {
     halInit();
@@ -115,15 +97,13 @@ int main(void) {
 
     // Start ChibiOS shell at high priority,
     // so even if a thread stucks, we still have access to shell.
-
     Shell::start(HIGHPRIO);
-    Shell::addCommands(remoteShellCommands);
+    Shell::addCommands(chassisInterfaceCommands);
 
-    feedbackModule.start_thread(NORMALPRIO);
 
     can1.start_can();
     can1.start_thread(HIGHPRIO - 1);
-    GimbalInterface::set_can_interface(&can1);
+    ChassisInterface::set_can_interface(&can1);
 
     // See chconf.h for what this #define means.
 #if CH_CFG_NO_IDLE_THREAD
