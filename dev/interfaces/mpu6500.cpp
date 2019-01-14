@@ -1,7 +1,8 @@
 #include "mpu6500.h"
 #include <cmath>
 
-#define GRAV 9.80665
+#define PI 3.14159265358979323846f
+#define GRAV 9.80665f
 #define MPU6500_RX_BUF_SIZE 0x0E
 #define MPU6500_TX_BUF_SIZE 0x05
 
@@ -15,7 +16,7 @@ void IMUController::IMUInit() {
 
 void IMUController::getData() {
     uint32_t current_time =  chVTGetSystemTimeX();
-    this->dt = ST2US(current_time - this->prev_t)/1000000.0f;
+    this->dt = TIME_I2S(current_time - this->prev_t);
     this->prev_t = current_time;
     // get dt
 
@@ -24,16 +25,16 @@ void IMUController::getData() {
     switch(this->_gyro_config)
     {
         case MPU6500_GYRO_SCALE_250:
-            _gyro_psc = (1.0f / 131.0f) * M_PI/180.0f;
+            _gyro_psc = (1.0f / 131.0f) * PI/180.0f;
             break;
         case MPU6500_GYRO_SCALE_500:
-            _gyro_psc = (1.0f /  65.5f) * M_PI/180.0f;
+            _gyro_psc = (1.0f /  65.5f) * PI/180.0f;
             break;
         case MPU6500_GYRO_SCALE_1000:
-            _gyro_psc = (1.0f /  32.8f) * M_PI/180.0f;
+            _gyro_psc = (1.0f /  32.8f) * PI/180.0f;
             break;
         case MPU6500_GYRO_SCALE_2000:
-            _gyro_psc = (1.0f /  16.4f) * M_PI/180.0f;
+            _gyro_psc = (1.0f /  16.4f) * PI/180.0f;
             break;
     }
 

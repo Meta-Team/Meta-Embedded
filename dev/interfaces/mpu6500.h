@@ -1,6 +1,9 @@
 #ifndef META_MPU6500_H_
 #define META_MPU6500_H_
 
+#include "ch.hpp"
+#include "hal.h"
+
 typedef struct {
     float wx;
     float wy;
