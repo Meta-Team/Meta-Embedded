@@ -28,6 +28,20 @@ class IMUController {
 public:
 
     /**
+     * MPU6500_CONFIG, [2:0] bits
+     */
+    typedef enum{
+        MPU6500_DLPF_250HZ  =  0,
+        MPU6500_DLPF_184HZ  =  1,
+        MPU6500_DLPF_92HZ   =  2,
+        MPU6500_DLPF_41HZ   =  3,
+        MPU6500_DLPF_20HZ   =  4,
+        MPU6500_DLPF_10HZ   =  5,
+        MPU6500_DLPF_5HZ    =  6,
+        MPU6500_DLPF_3600HZ =  7
+    } dlpf_config_t;
+
+    /**
      * Scale config for gyro
      * MPU6500_GYRO_CONFIG, [4:3] bits, shift when set SPI
      */
@@ -49,29 +63,19 @@ public:
         MPU6500_ACCEL_SCALE_16G = 3
     } accel_scale_t;
 
+
     /**
-     * MPU6500_CONFIG, [0:2] bits
+     * MPU6500_ACCEL_CONFIG_2, [2:0] bits
      */
     typedef enum{
-        DLPF_250HZ  =  0,
-        DLPF_184HZ  =  1,
-        DLPF_92HZ   =  2,
-        DLPF_41HZ   =  3,
-        DLPF_20HZ   =  4,
-        DLPF_10HZ   =  5,
-        DLPF_5HZ    =  6,
-        DLPF_3600HZ =  7
-    } mpu6500_dlpf_config_t;
-
-    typedef enum{
-        ADLPF_460HZ =  0,
-        ADLPF_184HZ =  1,
-        ADLPF_92HZ  =  2,
-        ADLPF_41HZ  =  3,
-        ADLPF_20HZ  =  4,
-        ADLPF_10HZ  =  5,
-        ADLPF_5HZ   =  6
-    } mpu6500_acc_dlpf_config_t;
+        MPU6500_ADLPF_460HZ =  0,
+        MPU6500_ADLPF_184HZ =  1,
+        MPU6500_ADLPF_92HZ  =  2,
+        MPU6500_ADLPF_41HZ  =  3,
+        MPU6500_ADLPF_20HZ  =  4,
+        MPU6500_ADLPF_10HZ  =  5,
+        MPU6500_ADLPF_5HZ   =  6
+    } acc_dlpf_config_t;
 
     /**
     * @brief read data from mpu6000 and convert to angel_speed_t type
@@ -81,16 +85,47 @@ public:
     */
     void getData();
 
-    IMUController(gyro_scale_t input_gyro_config, accel_scale_t input_accel_config) {
+    IMUController() {
 /*        imu_q = {1, 0 ,0 ,0};*/
-        _gyro_config = input_gyro_config;
-        _accel_config = input_accel_config;
         dt = 0;
         prev_t = 0;
-        IMUInit();
+
+        switch (mpu6500_gyro_scale) {
+            case MPU6500_GYRO_SCALE_250:
+                _gyro_psc = (1.0f / 131.0f) * kPI / 180.0f;
+                break;
+            case MPU6500_GYRO_SCALE_500:
+                _gyro_psc = (1.0f / 65.5f) * kPI / 180.0f;
+                break;
+            case MPU6500_GYRO_SCALE_1000:
+                _gyro_psc = (1.0f / 32.8f) * kPI / 180.0f;
+                break;
+            case MPU6500_GYRO_SCALE_2000:
+                _gyro_psc = (1.0f / 16.4f) * kPI / 180.0f;
+                break;
+            default:
+                return;
+        }
+
+        switch (mpu6500_accel_scale) {
+            case MPU6500_ACCEL_SCALE_2G:
+                _accel_psc = (kGRAV / 16384.0f);
+                break;
+            case MPU6500_ACCEL_SCALE_4G:
+                _accel_psc = (kGRAV / 8192.0f);
+                break;
+            case MPU6500_ACCEL_SCALE_8G:
+                _accel_psc = (kGRAV / 4096.0f);
+                break;
+            case MPU6500_ACCEL_SCALE_16G:
+                _accel_psc = (kGRAV / 2048.0f);
+                break;
+            default:
+                return;
+        }
     }
 
-    static void start(gyro_scale_t gyro_config, accel_scale_t accel_config);
+    static bool start(gyro_scale_t gyro_config, accel_scale_t accel_config);
 
 private:
 
@@ -108,6 +143,9 @@ private:
     angel_speed_t gyro_data;  // final data of gyro
     accelerate_t accel_data;  // final data of acceleration
 
+    float _gyro_psc;  // get the cofficient converting the raw data to degree
+    float _accel_psc;  //??
+
     /**
     * @brief Initialize the IMU parameter
     * @param none
@@ -115,8 +153,17 @@ private:
     */
     void IMUInit();
 
+
+    static constexpr float kPI = 3.14159265358979323846f;
+    static constexpr float kGRAV = 9.80665f;
+
+    static void mpu6500_write_reg(uint8_t reg_addr, uint8_t value);
+
+    // TODO: test whether this bandwidth is suitable
+    static constexpr dlpf_config_t mpu6500_dlpf_config = MPU6500_DLPF_41HZ;
     static constexpr gyro_scale_t mpu6500_gyro_scale = MPU6500_GYRO_SCALE_1000;
     static constexpr accel_scale_t mpu6500_accel_scale = MPU6500_ACCEL_SCALE_8G;
+    static constexpr acc_dlpf_config_t mpu6500_acc_dlpf_config = MPU6500_ADLPF_20HZ;
 };
 
 /** MPU6500 Register Maps **/
