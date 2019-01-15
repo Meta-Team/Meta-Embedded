@@ -4,167 +4,6 @@
 #include "ch.hpp"
 #include "hal.h"
 
-typedef struct {
-    float wx;
-    float wy;
-    float wz;
-} angel_speed_t;
-
-typedef struct {
-    float ax;
-    float ay;
-    float az;
-} accelerate_t;
-
-/*typedef struct {
-    float q0;
-    float q1;
-    float q2;
-    float q3;
-} quaternion_t;*/
-
-class IMUController {
-
-public:
-
-    /**
-     * MPU6500_CONFIG, [2:0] bits
-     */
-    typedef enum{
-        MPU6500_DLPF_250HZ  =  0,
-        MPU6500_DLPF_184HZ  =  1,
-        MPU6500_DLPF_92HZ   =  2,
-        MPU6500_DLPF_41HZ   =  3,
-        MPU6500_DLPF_20HZ   =  4,
-        MPU6500_DLPF_10HZ   =  5,
-        MPU6500_DLPF_5HZ    =  6,
-        MPU6500_DLPF_3600HZ =  7
-    } dlpf_config_t;
-
-    /**
-     * Scale config for gyro
-     * MPU6500_GYRO_CONFIG, [4:3] bits, shift when set SPI
-     */
-    typedef enum {
-        MPU6500_GYRO_SCALE_250 = 0,  // range of 250 with sensitivity factor 131
-        MPU6500_GYRO_SCALE_500 = 1, // range of 500 with sensitivity factor 65.5
-        MPU6500_GYRO_SCALE_1000 = 2, // √ range of 1000 with sensitivity factor 32.8
-        MPU6500_GYRO_SCALE_2000 = 3 // range of 1000 with sensitivity factor 16.4
-    } gyro_scale_t;
-
-    /**
-     * Scale config for acceleration
-     * MPU6500_ACCEL_CONFIG, [4:3] bits, shift when set SPI
-     */
-    typedef enum {
-        MPU6500_ACCEL_SCALE_2G = 0,
-        MPU6500_ACCEL_SCALE_4G = 1,
-        MPU6500_ACCEL_SCALE_8G = 2, // √
-        MPU6500_ACCEL_SCALE_16G = 3
-    } accel_scale_t;
-
-
-    /**
-     * MPU6500_ACCEL_CONFIG_2, [2:0] bits
-     */
-    typedef enum{
-        MPU6500_ADLPF_460HZ =  0,
-        MPU6500_ADLPF_184HZ =  1,
-        MPU6500_ADLPF_92HZ  =  2,
-        MPU6500_ADLPF_41HZ  =  3,
-        MPU6500_ADLPF_20HZ  =  4,
-        MPU6500_ADLPF_10HZ  =  5,
-        MPU6500_ADLPF_5HZ   =  6
-    } acc_dlpf_config_t;
-
-    /**
-    * @brief read data from mpu6000 and convert to angel_speed_t type
-    * @param none
-    * @return an angel_speed_t type
-    * @note this function is temporary for gyro. Later we should add acceleration to it.
-    */
-    void getData();
-
-    IMUController() {
-/*        imu_q = {1, 0 ,0 ,0};*/
-        dt = 0;
-        prev_t = 0;
-
-        switch (mpu6500_gyro_scale) {
-            case MPU6500_GYRO_SCALE_250:
-                _gyro_psc = (1.0f / 131.0f) * kPI / 180.0f;
-                break;
-            case MPU6500_GYRO_SCALE_500:
-                _gyro_psc = (1.0f / 65.5f) * kPI / 180.0f;
-                break;
-            case MPU6500_GYRO_SCALE_1000:
-                _gyro_psc = (1.0f / 32.8f) * kPI / 180.0f;
-                break;
-            case MPU6500_GYRO_SCALE_2000:
-                _gyro_psc = (1.0f / 16.4f) * kPI / 180.0f;
-                break;
-            default:
-                return;
-        }
-
-        switch (mpu6500_accel_scale) {
-            case MPU6500_ACCEL_SCALE_2G:
-                _accel_psc = (kGRAV / 16384.0f);
-                break;
-            case MPU6500_ACCEL_SCALE_4G:
-                _accel_psc = (kGRAV / 8192.0f);
-                break;
-            case MPU6500_ACCEL_SCALE_8G:
-                _accel_psc = (kGRAV / 4096.0f);
-                break;
-            case MPU6500_ACCEL_SCALE_16G:
-                _accel_psc = (kGRAV / 2048.0f);
-                break;
-            default:
-                return;
-        }
-    }
-
-    static bool start(gyro_scale_t gyro_config, accel_scale_t accel_config);
-
-private:
-
-    static SPIDriver *spi_driver; // TODO: set spi
-
-    float dt;
-    float prev_t;
-
-
-    float _gyro_bias;  // for gyro bias
-    float _accel_bias[3][3];  // a matrix for accel bias (need the support of matrix)
-
-/*    quaternion_t imu_q;*/
-
-    angel_speed_t gyro_data;  // final data of gyro
-    accelerate_t accel_data;  // final data of acceleration
-
-    float _gyro_psc;  // get the cofficient converting the raw data to degree
-    float _accel_psc;  //??
-
-    /**
-    * @brief Initialize the IMU parameter
-    * @param none
-    * @return none
-    */
-    void IMUInit();
-
-
-    static constexpr float kPI = 3.14159265358979323846f;
-    static constexpr float kGRAV = 9.80665f;
-
-    static void mpu6500_write_reg(uint8_t reg_addr, uint8_t value);
-
-    // TODO: test whether this bandwidth is suitable
-    static constexpr dlpf_config_t mpu6500_dlpf_config = MPU6500_DLPF_41HZ;
-    static constexpr gyro_scale_t mpu6500_gyro_scale = MPU6500_GYRO_SCALE_1000;
-    static constexpr accel_scale_t mpu6500_accel_scale = MPU6500_ACCEL_SCALE_8G;
-    static constexpr acc_dlpf_config_t mpu6500_acc_dlpf_config = MPU6500_ADLPF_20HZ;
-};
 
 /** MPU6500 Register Maps **/
 #define MPU6500_SELF_TEST_XG        (0x00)
@@ -272,5 +111,135 @@ private:
 #define MPU6500_RESET               (0x80) // bit 7
 #define MPU6500_AUTO_SELECT_CLK     (0x01)
 
+
+typedef float matrix3[3][3];
+
+
+class Vector3D {
+public:
+
+    float x;
+    float y;
+    float z;
+    Vector3D():x(0),y(0),z(0) {};
+    Vector3D(float a, float b, float c):x(a),y(b),z(c) {};
+
+    /**
+    * @brief rotate the vector with the bias matrix
+    * @param vector3D and bias matrix
+    * @return a vector
+    */
+    friend const Vector3D operator*(Vector3D a, matrix3 b) {
+        Vector3D converted;
+        converted.x = b[0][0] * a.x + b[0][1] * a.y + b[0][2] * a.z;
+        converted.y = b[1][0] * a.x + b[1][1] * a.y + b[1][2] * a.z;
+        converted.z = b[2][0] * a.x + b[2][1] * a.y + b[2][2] * a.z;
+        return converted;
+    }
+};
+
+/*
+ * class for MPU6500 data
+ * input: the basic config parameter of MPU6500 (mpu65600_config_t)
+ * output: angel speed (angel_speed, deg/s), accelerate components (a_component, g), temperature (℃)
+ */
+class MPU6500Controller {
+
+public:
+
+
+    /**
+     * MPU6500_ACCEL_CONFIG_2, [2:0] bits
+     */
+    typedef enum{
+        MPU6500_ADLPF_460HZ =  0,
+        MPU6500_ADLPF_184HZ =  1,
+        MPU6500_ADLPF_92HZ  =  2,
+        MPU6500_ADLPF_41HZ  =  3,
+        MPU6500_ADLPF_20HZ  =  4,
+        MPU6500_ADLPF_10HZ  =  5,
+        MPU6500_ADLPF_5HZ   =  6
+    } acc_dlpf_config_t;
+
+
+    /**
+     * MPU6500_CONFIG, [2:0] bits
+     */
+    typedef enum{
+        MPU6500_DLPF_250HZ  =  0,
+        MPU6500_DLPF_184HZ  =  1,
+        MPU6500_DLPF_92HZ   =  2,
+        MPU6500_DLPF_41HZ   =  3,
+        MPU6500_DLPF_20HZ   =  4,
+        MPU6500_DLPF_10HZ   =  5,
+        MPU6500_DLPF_5HZ    =  6,
+        MPU6500_DLPF_3600HZ =  7
+    } dlpf_config_t;
+
+    /**
+     * Scale config for gyro
+     * MPU6500_GYRO_CONFIG, [4:3] bits, shift when set SPI
+     */
+    typedef enum {
+        MPU6500_GYRO_SCALE_250 = 0,  // range of 250 with sensitivity factor 131
+        MPU6500_GYRO_SCALE_500 = 1, // range of 500 with sensitivity factor 65.5
+        MPU6500_GYRO_SCALE_1000 = 2, // √ range of 1000 with sensitivity factor 32.8
+        MPU6500_GYRO_SCALE_2000 = 3 // range of 1000 with sensitivity factor 16.4
+    } gyro_scale_t;
+
+    /**
+     * Scale config for acceleration
+     * MPU6500_ACCEL_CONFIG, [4:3] bits, shift when set SPI
+     */
+    typedef enum {
+        MPU6500_ACCEL_SCALE_2G = 0,
+        MPU6500_ACCEL_SCALE_4G = 1,
+        MPU6500_ACCEL_SCALE_8G = 2, // √
+        MPU6500_ACCEL_SCALE_16G = 3
+    } accel_scale_t;
+
+    /*
+     * type for mpu6500 basic config
+     */
+    typedef struct {
+        gyro_scale_t _gyro_scale;
+        accel_scale_t _accel_scale;
+        dlpf_config_t _dlpf_config;
+        acc_dlpf_config_t _acc_dlpf_config;
+    } mpu6500_config_t;
+
+    static Vector3D angel_speed;  // final data of gyro
+    static Vector3D a_component;  // final data of acceleration
+    static float temperature;
+
+    /**
+     * @brief read data from mpu6000 and convert to angel_speed_t type
+     * @param none
+     * @return an angel_speed_t type
+     * @note this function is temporary for gyro. Later we should add acceleration to it.
+     */
+    static void getData();
+
+    static bool start();
+
+private:
+
+    static SPIDriver *spi_driver; // TODO: set spi
+
+    static float dt;
+    static float prev_t;
+
+    static float _gyro_psc;  // get the coefficient converting the raw data to degree
+    static float _accel_psc;  // get the coefficient converting the raw data to g
+
+    static float _gyro_bias;  // for gyro bias
+    static matrix3 _accel_bias;  // a matrix for accelerate bias
+
+    static void mpu6500_write_reg(uint8_t reg_addr, uint8_t value);
+
+    // TODO: test whether this bandwidth is suitable
+    static constexpr mpu6500_config_t config = {MPU6500_GYRO_SCALE_1000, MPU6500_ACCEL_SCALE_8G,
+                                                MPU6500_DLPF_41HZ, MPU6500_ADLPF_20HZ};
+};
 
 #endif
