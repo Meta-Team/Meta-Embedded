@@ -112,6 +112,10 @@
 #define MPU6500_AUTO_SELECT_CLK     (0x01)
 
 
+#define MPU6500_SPI_READ             0x80
+#define MPU6500_I2C_MSTR_READ        0x80
+
+
 typedef float matrix3[3][3];
 
 
@@ -141,12 +145,40 @@ public:
 /*
  * class for MPU6500 data
  * input: the basic config parameter of MPU6500 (mpu65600_config_t)
- * output: angel speed (angel_speed, deg/s), accelerate components (a_component, g), temperature (℃)
+ * output: angel speed (angle_speed, deg/s), accelerate components (a_component, g), temperature (℃)
  */
 class MPU6500Controller {
 
 public:
 
+    static Vector3D angle_speed;  // final data of gyro
+    static Vector3D a_component;  // final data of acceleration
+    static float temperature;
+
+    /**
+     * @brief read data from mpu6000 and convert to angel_speed_t type
+     * @param none
+     * @return an angel_speed_t type
+     * @note this function is temporary for gyro. Later we should add acceleration to it.
+     */
+    static void getData();
+
+    static bool start(SPIDriver *spi);
+
+private:
+
+    static SPIDriver *spi_driver;
+
+    static float dt;
+    static float prev_t;
+
+    static float _gyro_psc;  // get the coefficient converting the raw data to degree
+    static float _accel_psc;  // get the coefficient converting the raw data to g
+
+    static float _gyro_bias;  // for gyro bias
+    static matrix3 _accel_bias;  // a matrix for accelerate bias
+
+    static void mpu6500_write_reg(uint8_t reg_addr, uint8_t value);
 
     /**
      * MPU6500_ACCEL_CONFIG_2, [2:0] bits
@@ -207,35 +239,6 @@ public:
         dlpf_config_t _dlpf_config;
         acc_dlpf_config_t _acc_dlpf_config;
     } mpu6500_config_t;
-
-    static Vector3D angel_speed;  // final data of gyro
-    static Vector3D a_component;  // final data of acceleration
-    static float temperature;
-
-    /**
-     * @brief read data from mpu6000 and convert to angel_speed_t type
-     * @param none
-     * @return an angel_speed_t type
-     * @note this function is temporary for gyro. Later we should add acceleration to it.
-     */
-    static void getData();
-
-    static bool start();
-
-private:
-
-    static SPIDriver *spi_driver; // TODO: set spi
-
-    static float dt;
-    static float prev_t;
-
-    static float _gyro_psc;  // get the coefficient converting the raw data to degree
-    static float _accel_psc;  // get the coefficient converting the raw data to g
-
-    static float _gyro_bias;  // for gyro bias
-    static matrix3 _accel_bias;  // a matrix for accelerate bias
-
-    static void mpu6500_write_reg(uint8_t reg_addr, uint8_t value);
 
     // TODO: test whether this bandwidth is suitable
     static constexpr mpu6500_config_t config = {MPU6500_GYRO_SCALE_1000, MPU6500_ACCEL_SCALE_8G,
