@@ -117,12 +117,12 @@ bool MPU6500Controller::start(SPIDriver *spi) {
 
     for (int i =0; i < 5; i++) {
         getData();
-        temp_g_bias_x -= angle_speed.x * _gyro_psc;
-        temp_g_bias_y -= angle_speed.y * _gyro_psc;
-        temp_g_bias_z -= angle_speed.z * _gyro_psc;
-        temp_a_bias_x += a_component.x * _accel_psc;
-        temp_a_bias_y += a_component.y * _accel_psc;
-        temp_a_bias_z += a_component.z * _accel_psc;
+        temp_g_bias_x -= angle_speed.x;
+        temp_g_bias_y -= angle_speed.y;
+        temp_g_bias_z -= angle_speed.z;
+        temp_a_bias_x += a_component.x;
+        temp_a_bias_y += a_component.y;
+        temp_a_bias_z += a_component.z;
         chThdSleepMilliseconds(10);
     }
 
