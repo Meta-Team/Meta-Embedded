@@ -32,9 +32,7 @@ set(DEVCPPSRC
         dev/interfaces/remote_interpreter.cpp
         dev/interfaces/remote_interpreter_unit_test.cpp
         dev/interfaces/gimbal_interface_unit_test.cpp
-        dev/interfaces/gimbal_interface.cpp dev/interfaces/gimbal_interface.h dev/interfaces/can_interface.cpp dev/interfaces/can_interface.h dev/debug/gimbal_feedback_module.cpp dev/debug/gimbal_feedback_module.h dev/module/pid_controller.cpp dev/module/pid_controller.h dev/control/gimbal_controller.cpp dev/control/gimbal_controller.h dev/control/gimbal_controller_unit_test.cpp dev/interfaces/shoot_interface.cpp dev/interfaces/shoot_interface.h
-        dev/interfaces/shoot_interface.cpp
-        dev/interfaces/shoot_interface.h)
+        dev/interfaces/gimbal_interface.cpp dev/interfaces/gimbal_interface.h dev/interfaces/can_interface.cpp dev/interfaces/can_interface.h dev/debug/gimbal_feedback_module.cpp dev/debug/gimbal_feedback_module.h dev/module/pid_controller.cpp dev/module/pid_controller.h dev/control/gimbal_controller.cpp dev/control/gimbal_controller.h dev/control/gimbal_controller_unit_test.cpp dev/interfaces/shoot_interface.cpp dev/interfaces/shoot_interface.h dev/interfaces/elevator_interface.cpp dev/interfaces/elevator_interface.h)
 
 # Our include directories
 include_directories(dev
