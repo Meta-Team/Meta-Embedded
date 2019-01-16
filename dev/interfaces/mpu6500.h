@@ -155,7 +155,7 @@ public:
 /*
  * class for MPU6500 data
  * input: the basic config parameter of MPU6500 (mpu65600_config_t)
- * output: angel speed (angle_speed, deg/s), accelerate components (a_component, g), temperature (℃)
+ * output: angel speed (angle_speed, rad/s), accelerate components (a_component, g), temperature (℃)
  */
 class MPU6500Controller {
 
