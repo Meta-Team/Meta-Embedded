@@ -71,6 +71,17 @@ DEV_GIMBAL_INC = interfaces \
 				 module \
 				 control
 
+# ===========================================================================
+# MPU6500 MODULES
+#
+#	Include MP6500 interface and unit test.
+#
+# ===========================================================================
+
+DEV_MPU6500_CSRC =
+DEV_MPU6500_CPPSRC = interfaces/mpu6500.cpp \
+                     interfaces/mpu6500_unit_test.cpp
+DEV_MPU6500_INC = interfaces
 
 # ===========================================================================
 # RULES
