@@ -20,7 +20,7 @@ float MPU6500Controller::prev_t;
 float MPU6500Controller::_gyro_psc;  // get the coefficient converting the raw data to degree
 float MPU6500Controller::_accel_psc;  // get the coefficient converting the raw data to g
 
-float MPU6500Controller::_gyro_bias;  // for gyro bias
+Vector3D MPU6500Controller::_gyro_bias;  // for gyro bias
 matrix3 MPU6500Controller::_accel_bias;  // a matrix for accelerate bias
 
 uint8_t mpu6500_RXData[MPU6500_RX_BUF_SIZE];
@@ -67,7 +67,6 @@ bool MPU6500Controller::start(SPIDriver *spi) {
     }
 
     dt = 0;
-    _gyro_bias = 0;
     temperature = 0;
     _accel_bias[0][0] = 1.0f; _accel_bias[0][1] = 0.0f; _accel_bias[0][2] = 0.0f;
     _accel_bias[1][0] = 0.0f; _accel_bias[1][1] = 1.0f; _accel_bias[1][2] = 0.0f;
@@ -112,6 +111,30 @@ bool MPU6500Controller::start(SPIDriver *spi) {
             break;
     }
 
+    for (int i =0; i < 5; i++) {
+        getData();
+        _gyro_bias.x -= angle_speed.x * _gyro_psc;
+        _gyro_bias.y -= angle_speed.y * _gyro_psc;
+        _gyro_bias.z -= angle_speed.z * _gyro_psc;
+        _accel_bias[2][0] += a_component.x * _accel_psc;
+        _accel_bias[2][1] += a_component.y * _accel_psc;
+        _accel_bias[2][2] += a_component.z * _accel_psc;
+    }
+
+    _gyro_bias.x /= 5;
+    _gyro_bias.y /= 5;
+    _gyro_bias.z /= 5;
+    _accel_bias[2][0] /= 5;
+    _accel_bias[2][1] /= 5;
+    _accel_bias[2][2] /= 5;
+    _accel_bias[0][0] = _accel_bias[2][1] - _accel_bias[2][2];
+    _accel_bias[0][1] = _accel_bias[2][2] - _accel_bias[2][0];
+    _accel_bias[0][0] = _accel_bias[2][0] - _accel_bias[2][1];
+    Vector3D temp_vect = Vector3D(_accel_bias[0]).crossMultiply(Vector3D(_accel_bias[2]));
+    _accel_bias[1][0] = temp_vect.x;
+    _accel_bias[1][1] = temp_vect.y;
+    _accel_bias[1][2] = temp_vect.z;
+
     return true;
 }
 
@@ -139,9 +162,9 @@ void MPU6500Controller::getData() {
 
     temperature = (((float)temper - TEMP_OFFSET) / 333.87f) + 21.0f;
 
-    angle_speed.x = (gyro_x + _gyro_psc * _gyro_bias) / dt;
-    angle_speed.y = (gyro_y + _gyro_psc * _gyro_bias) / dt;
-    angle_speed.z = (gyro_z + _gyro_psc * _gyro_bias) / dt;
+    angle_speed.x = (gyro_x + _gyro_psc * _gyro_bias.x) / dt;
+    angle_speed.y = (gyro_y + _gyro_psc * _gyro_bias.y) / dt;
+    angle_speed.z = (gyro_z + _gyro_psc * _gyro_bias.z) / dt;
 
     a_component = Vector3D(accel_x, accel_y, accel_z) * _accel_bias;
 }

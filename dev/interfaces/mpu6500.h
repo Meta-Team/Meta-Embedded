@@ -127,6 +127,7 @@ public:
     float z;
     Vector3D():x(0),y(0),z(0) {};
     Vector3D(float a, float b, float c):x(a),y(b),z(c) {};
+    Vector3D(float a[3]):x(a[0]), y(a[1]), z(a[2]) {};
 
     /**
     * @brief rotate the vector with the bias matrix
@@ -139,6 +140,14 @@ public:
         converted.y = b[1][0] * a.x + b[1][1] * a.y + b[1][2] * a.z;
         converted.z = b[2][0] * a.x + b[2][1] * a.y + b[2][2] * a.z;
         return converted;
+    }
+
+    const Vector3D crossMultiply(Vector3D b) {
+        Vector3D ans;
+        ans.x = y * b.z - z * b.y;
+        ans.y = z * b.x - x * b.z;
+        ans.z = x * b.y - y * b.x;
+        return ans;
     }
 };
 
@@ -155,6 +164,8 @@ public:
     static Vector3D a_component;  // final data of acceleration
     static float temperature;
 
+    static float dt;
+
     /**
      * @brief read data from mpu6000 and convert to angel_speed_t type
      * @param none
@@ -169,13 +180,12 @@ private:
 
     static SPIDriver *spi_driver;
 
-    static float dt;
     static float prev_t;
 
     static float _gyro_psc;  // get the coefficient converting the raw data to degree
     static float _accel_psc;  // get the coefficient converting the raw data to g
 
-    static float _gyro_bias;  // for gyro bias
+    static Vector3D _gyro_bias;  // for gyro bias
     static matrix3 _accel_bias;  // a matrix for accelerate bias
 
     static void mpu6500_write_reg(uint8_t reg_addr, uint8_t value);
