@@ -66,7 +66,8 @@ DEV_GIMBAL_CPPSRC = interfaces/can_interface.cpp \
                     module/pid_controller.cpp \
                     control/gimbal_controller.cpp \
 					debug/gimbal_feedback_module.cpp \
-                    control/gimbal_controller_unit_test.cpp
+                    control/gimbal_controller_unit_test.cpp \
+                    dev/interfaces/mpu6500.cpp
 DEV_GIMBAL_INC = interfaces \
 				 module \
 				 control

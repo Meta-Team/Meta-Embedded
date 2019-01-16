@@ -139,9 +139,10 @@ void MPU6500Controller::getData() {
 
     temperature = (((float)temper - TEMP_OFFSET) / 333.87f) + 21.0f;
 
+    // FIXME: only for temporary use
     angle_speed.x = (gyro_x + _gyro_psc * _gyro_bias) / dt;
-    angle_speed.y = (gyro_y + _gyro_psc * _gyro_bias) / dt;
-    angle_speed.z = (gyro_z + _gyro_psc * _gyro_bias) / dt;
+    angle_speed.y = (gyro_y + _gyro_psc * _gyro_bias) / dt + 0.03f;
+    angle_speed.z = (gyro_z + _gyro_psc * _gyro_bias) / dt - 0.07f;
 
     a_component = Vector3D(accel_x, accel_y, accel_z) * _accel_bias;
 }
