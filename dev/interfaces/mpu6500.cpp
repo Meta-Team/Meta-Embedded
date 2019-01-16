@@ -64,6 +64,7 @@ bool MPU6500Controller::start(SPIDriver *spi) {
 
     for (int i = 0; i < 5; i++) {
         mpu6500_write_reg(init_reg[i][0], init_reg[i][1]);
+        chThdSleepMilliseconds(10);
     }
 
     dt = 0;
@@ -119,11 +120,13 @@ bool MPU6500Controller::start(SPIDriver *spi) {
         _accel_bias[2][0] += a_component.x * _accel_psc;
         _accel_bias[2][1] += a_component.y * _accel_psc;
         _accel_bias[2][2] += a_component.z * _accel_psc;
+        chThdSleepMilliseconds(10);
     }
 
     _gyro_bias.x /= 5;
     _gyro_bias.y /= 5;
     _gyro_bias.z /= 5;
+
     _accel_bias[2][0] /= 5;
     _accel_bias[2][1] /= 5;
     _accel_bias[2][2] /= 5;
