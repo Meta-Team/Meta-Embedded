@@ -149,6 +149,7 @@ public:
         ans.z = x * b.y - y * b.x;
         return ans;
     }
+
 };
 
 /*

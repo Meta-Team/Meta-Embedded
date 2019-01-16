@@ -2,6 +2,7 @@
 
 #include "led.h"
 #include "serial_shell.h"
+#include "math.h"
 
 #define PI 3.14159265358979323846f
 #define GRAV 9.80665f
@@ -130,6 +131,11 @@ bool MPU6500Controller::start(SPIDriver *spi) {
     _accel_bias[0][0] = _accel_bias[2][1] - _accel_bias[2][2];
     _accel_bias[0][1] = _accel_bias[2][2] - _accel_bias[2][0];
     _accel_bias[0][0] = _accel_bias[2][0] - _accel_bias[2][1];
+    float length = sqrt(_accel_bias[0][0] * _accel_bias[0][0] + _accel_bias[0][1] * _accel_bias[0][1]
+                        + _accel_bias[0][2] * _accel_bias[0][2]);
+    _accel_bias[0][0] /= length;
+    _accel_bias[0][1] /= length;
+    _accel_bias[0][2] /= length;
     Vector3D temp_vect = Vector3D(_accel_bias[0]).crossMultiply(Vector3D(_accel_bias[2]));
     _accel_bias[1][0] = temp_vect.x;
     _accel_bias[1][1] = temp_vect.y;
