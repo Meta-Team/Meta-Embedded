@@ -117,9 +117,9 @@ bool MPU6500Controller::start(SPIDriver *spi) {
 
     for (int i =0; i < 5; i++) {
         getData();
-        temp_g_bias_x -= angle_speed.x * dt;
-        temp_g_bias_y -= angle_speed.y * dt;
-        temp_g_bias_z -= angle_speed.z * dt;
+        temp_g_bias_x -= angle_speed.x;
+        temp_g_bias_y -= angle_speed.y;
+        temp_g_bias_z -= angle_speed.z;
         temp_a_bias_x += a_component.x;
         temp_a_bias_y += a_component.y;
         temp_a_bias_z += a_component.z;
@@ -150,8 +150,8 @@ bool MPU6500Controller::start(SPIDriver *spi) {
 }
 
 void MPU6500Controller::getData() {
-    uint32_t current_time =  chVTGetSystemTimeX();
-    dt = TIME_I2US(current_time - prev_t) / 1000000.0f;
+    uint32_t current_time =  chibios_rt::System::getTime();
+    dt = TIME_I2MS(current_time - prev_t) / 1000.0f;
     prev_t = current_time;
 
     // Acquire data
@@ -159,6 +159,7 @@ void MPU6500Controller::getData() {
     spiAcquireBus(spi_driver);
     spiSelect(spi_driver);
     spiSend(spi_driver, 1, &tx_data);
+    chThdSleepMilliseconds(1);
     spiReceive(spi_driver, MPU6500_RX_BUF_SIZE, mpu6500_RXData);
     spiUnselect(spi_driver);
     spiReleaseBus(spi_driver);
@@ -173,9 +174,9 @@ void MPU6500Controller::getData() {
 
     temperature = (((float)temper - TEMP_OFFSET) / 333.87f) + 21.0f;
 
-    angle_speed.x = (gyro_x + _gyro_bias.x) / dt;
-    angle_speed.y = (gyro_y + _gyro_bias.y) / dt;
-    angle_speed.z = (gyro_z + _gyro_bias.z) / dt;
+    angle_speed.x = (gyro_x + _gyro_bias.x);
+    angle_speed.y = (gyro_y + _gyro_bias.y);
+    angle_speed.z = (gyro_z + _gyro_bias.z);
 
     a_component = Vector3D(accel_x, accel_y, accel_z) * _accel_bias;
 }
