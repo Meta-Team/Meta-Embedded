@@ -49,7 +49,7 @@ float pitch_target_angle = 0.0;
 float pitch_target_velocity = 0.0;
 
 CANInterface can1(&CAND1, can1_callback);
-GimbalFeedbackModule feedbackModule(150,  // 150ms interval
+GimbalFeedbackModule feedbackModule(50,  // 50ms interval
                                     &yaw_target_angle,
                                     &yaw_target_velocity,
                                     &GimbalInterface::yaw.target_current,
