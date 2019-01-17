@@ -17,6 +17,7 @@ add_custom_target(MAIN COMMAND ${MAKE_EXECUTABLE} -j -C ${Meta_Infantry_SOURCE_D
 add_custom_target(UT_REMOTE_INTERPRETER COMMAND ${MAKE_EXECUTABLE} -j -C ${Meta_Infantry_SOURCE_DIR}/dev DEV_MODULE=REMOTE_INTERPRETER)
 add_custom_target(UT_GIMBAL_INTERFACE COMMAND ${MAKE_EXECUTABLE} -j -C ${Meta_Infantry_SOURCE_DIR}/dev DEV_MODULE=GIMBAL_INTERFACE)
 add_custom_target(UT_GIMBAL COMMAND ${MAKE_EXECUTABLE} -j -C ${Meta_Infantry_SOURCE_DIR}/dev DEV_MODULE=GIMBAL)
+add_custom_target(UT_JUDGE_SYSTEM COMMAND ${MAKE_EXECUTABLE} -j -C ${Meta_Infantry_SOURCE_DIR}/dev DEV_MODULE=JUDGE_SYSTEM)
 
 # make clean
 add_custom_target(MAKE_CLEAN COMMAND ${MAKE_EXECUTABLE} clean -C ${Meta_Infantry_SOURCE_DIR}/dev)
@@ -32,7 +33,7 @@ set(DEVCPPSRC
         dev/interfaces/remote_interpreter.cpp
         dev/interfaces/remote_interpreter_unit_test.cpp
         dev/interfaces/gimbal_interface_unit_test.cpp
-        dev/interfaces/gimbal_interface.cpp dev/interfaces/gimbal_interface.h dev/interfaces/can_interface.cpp dev/interfaces/can_interface.h dev/debug/gimbal_feedback_module.cpp dev/debug/gimbal_feedback_module.h dev/module/pid_controller.cpp dev/module/pid_controller.h dev/control/gimbal_controller.cpp dev/control/gimbal_controller.h dev/control/gimbal_controller_unit_test.cpp)
+        dev/interfaces/gimbal_interface.cpp dev/interfaces/gimbal_interface.h dev/interfaces/can_interface.cpp dev/interfaces/can_interface.h dev/debug/gimbal_feedback_module.cpp dev/debug/gimbal_feedback_module.h dev/module/pid_controller.cpp dev/module/pid_controller.h dev/module/CRC16.cpp dev/module/CRC16.h dev/control/gimbal_controller.cpp dev/control/gimbal_controller.h dev/control/gimbal_controller_unit_test.cpp dev/judge-system/judge_system_parser.h dev/judge-system/judge_system_parser.cpp dev/module/CRC8.h dev/module/CRC8.cpp)
 
 # Our include directories
 include_directories(dev

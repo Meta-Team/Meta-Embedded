@@ -71,6 +71,19 @@ DEV_GIMBAL_INC = interfaces \
 				 module \
 				 control
 
+# ===========================================================================
+# JUDGE_SYSTEM MODULES
+#
+#	Include judge system parser
+#
+# ===========================================================================
+
+DEV_JUDGE_SYSTEM_CSRC =
+DEV_JUDGE_SYSTEM_CPPSRC = judge-system/judge_system_parser.cpp \
+                          module/CRC16.cpp
+
+DEV_JUDGE_SYSTEM_INC = judge-system \
+                        module
 
 # ===========================================================================
 # RULES
