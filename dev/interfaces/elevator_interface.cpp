@@ -33,7 +33,7 @@ void ElevatorInterface::set_position(int32_t front_wheel_position, int32_t rear_
     target_position[1] = rear_wheel_position;
 }
 
-bool ElevatorInterface::get_feedback(CANTxFrame *rxmsg) {
+bool ElevatorInterface::get_feedback(CANRxFrame *rxmsg) {
     int id;
     switch (rxmsg->SID){
         case FRONT_LEFT:

@@ -67,7 +67,7 @@ public:
      * @brief Get the feedback (real position, real velocity, real current) of each motor from the driver
      * @return true if success, false otherwise
      */
-    bool get_feedback(CANTxFrame *rxmsg);
+    bool get_feedback(CANRxFrame *rxmsg);
 
 
     /**
