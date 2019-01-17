@@ -2,14 +2,20 @@
 // Created by Administrator on 2019/1/15 0015.
 //
 
-#include <cmath>
-#include <cstring>
-#include "judge_system_parser.h"
+#include "judge_system.h"
 #include "CRC16.h"
 #include "CRC8.h"
-#include "chprintf.h"
+#include "serial_shell.h"
 
-static ByteFloatUnion byteFloatUnion;       //union for float char transfer
+#define JUDGE_SYSTEM_RX_BUF_SIZE 100
+
+// TODO: Make sure the program works without initial value here
+JudgeSystem::judge_system_frame_type_t JudgeSystem::rx_waiting_type = JudgeSystem::FRAME_HEADER;
+
+uint8_t JudgeSystem::rx_buf[JUDGE_SYSTEM_RX_BUF_SIZE];
+
+
+static ByteFloatUnion_t byteFloatUnion;       //union for float char transfer
 
 static unsigned char pack_buf[100];     //store data in a pack
 
@@ -19,15 +25,31 @@ static int remain_data_length;  //remain data length in a pack
 
 static unsigned char* pack_buf_ptr; //pointer to pack buf
 
-enum judge_system_feedback_tyep_t{
-    //feedback types
-    GAME_INFO = 0x01,   //real time game info
-    REAL_BLOOD_CHANGE = 0x02,   //real time blood change info
-    SHOOT_DATA_CHANGE = 0x03,   //real time shooting data
-    CLIENT_DATA_CHANGE = 0x05   //client defined data
-};
 
-int judge_system_parser::read_buf_info(BaseSequentialStream *chp, const unsigned char *buf, int length) {
+
+void JudgeSystem::uart_rx_callback(UARTDriver *uartp) {
+    (void) uartp;
+
+    chSysLock();
+
+    if (rx_waiting_type == FRAME_HEADER) {
+
+    }
+
+    chSysUnlock();
+
+    uartStartReceive(uartp, REMOTE_DATA_BUF_SIZE, rx_buf);
+}
+
+JudgeSystem::judge_system_frame_type_t JudgeSystem::parse_header(const uint8_t* buf) {
+
+
+}
+bool JudgeSystem::parse_info(JudgeSystem::judge_system_frame_type_t info_type, const uint8_t* buf) {
+
+}
+
+int JudgeSystem::read_buf_info(BaseSequentialStream *chp, const unsigned char *buf, int length) {
     /**
      * @brief:  read buf information, store all information into class judge_system_parser, return 1 if succeed, 0 if fail
      * @param:  chp:
@@ -51,7 +73,7 @@ int judge_system_parser::read_buf_info(BaseSequentialStream *chp, const unsigned
     if (end_id == -1 || begin_id == -1) return 0;	//no new send found, information not change
 
     //read frame header info
-    chprintf(chp, "Parsing Info...\n");
+    Shell::printf("Parsing Info..." SHELL_NEWLINE_STR);
     const unsigned char* ptr = &buf[begin_id];
     const unsigned char** byte = &ptr;
     frameHeader._sof = (uint16_t) my_byte_to_int(byte, 1);
@@ -63,12 +85,12 @@ int judge_system_parser::read_buf_info(BaseSequentialStream *chp, const unsigned
     if (!debug) {
         //check sending errors in frame header
         if (!Verify_CRC8_Check_Sum((uint8_t *) &buf[begin_id], 5)) {
-            chprintf(chp, "Error occurred during sending frame header...\n");
+            Shell::printf("Error occurred during sending frame header..." SHELL_NEWLINE_STR);
             return 0;
         }
         //check sending errors in data field
         if (!Verify_CRC16_Check_Sum((uint8_t *) &buf[begin_id], 9 + frameHeader._data_length)) {
-            chprintf(chp, "Error occurred during sending data...\n");
+            Shell::printf("Error occurred during sending data..." SHELL_NEWLINE_STR);
             return 0;
         }
     }
@@ -104,15 +126,15 @@ int judge_system_parser::read_buf_info(BaseSequentialStream *chp, const unsigned
     }
     //check to debug
     if (cmdID == GAME_INFO && pack_buf_ptr - &pack_buf[0] != 31) {
-        chprintf(chp, "Error: GAME_INFO required 31 bytes, get %d bytes!\n", pack_buf_ptr - &pack_buf[0]);
+        Shell::printf("Error: GAME_INFO required 31 bytes, get %d bytes!" SHELL_NEWLINE_STR, pack_buf_ptr - &pack_buf[0]);
         return 0;
     }
     if (cmdID == REAL_BLOOD_CHANGE && pack_buf_ptr - &pack_buf[0] != 3) {
-        chprintf(chp, "Error: REAL_BLOOD_CHANGE required 3 bytes, get %d bytes!\n", pack_buf_ptr - &pack_buf[0]);
+        Shell::printf("Error: REAL_BLOOD_CHANGE required 3 bytes, get %d bytes!" SHELL_NEWLINE_STR, pack_buf_ptr - &pack_buf[0]);
         return 0;
     }
     if (cmdID == SHOOT_DATA_CHANGE && pack_buf_ptr - &pack_buf[0] != 16) {
-        chprintf(chp, "Error: SHOOT_DATA_CHANGE required 16 bytes, get %d bytes!\n", pack_buf_ptr - &pack_buf[0]);
+        Shell::printf("Error: SHOOT_DATA_CHANGE required 16 bytes, get %d bytes!" SHELL_NEWLINE_STR, pack_buf_ptr - &pack_buf[0]);
         return 0;
     }
     ptr = &pack_buf[0];
@@ -120,7 +142,7 @@ int judge_system_parser::read_buf_info(BaseSequentialStream *chp, const unsigned
     //reading data...
     switch (cmdID) {
         case GAME_INFO:
-            chprintf(chp, "\tReading Game Info...\n");
+            Shell::printf("\tReading Game Info..." SHELL_NEWLINE_STR);
             gameInfo._remainTime = (uint32_t) my_byte_to_int(byte, 4);
             gameInfo._remainLifeValue = (uint16_t) my_byte_to_int(byte, 2);
             gameInfo._realChassisOutV = my_byte_to_float(byte);
@@ -133,9 +155,9 @@ int judge_system_parser::read_buf_info(BaseSequentialStream *chp, const unsigned
             gameInfo._remainPower = my_byte_to_int(byte, 4);
             break;
         case REAL_BLOOD_CHANGE:
-            chprintf(chp, "\tReading Blood Change Info...\n");
+            Shell::printf("\tReading Blood Change Info..." SHELL_NEWLINE_STR);
             if (frameHeader._data_length != 3) {
-                chprintf(chp, "Error: required 3 bytes, get %d bytes!\n",frameHeader._data_length);
+                Shell::printf("Error: required 3 bytes, get %d bytes!" SHELL_NEWLINE_STR,frameHeader._data_length);
                 return 0;
             }
             realBloodChangedData._weakId = ((uint8_t)my_byte_to_int(byte, 1)>>4);
@@ -143,9 +165,9 @@ int judge_system_parser::read_buf_info(BaseSequentialStream *chp, const unsigned
             realBloodChangedData._value = (uint16_t) my_byte_to_int(byte, 2);
             break;
         case SHOOT_DATA_CHANGE:
-            chprintf(chp, "\tReading Shooting data...\n");
+            Shell::printf("\tReading Shooting data..." SHELL_NEWLINE_STR);
             if (frameHeader._data_length != 16) {
-                chprintf(chp, "Error: required 16 bytes, get %d bytes!\n",frameHeader._data_length);
+                Shell::printf("Error: required 16 bytes, get %d bytes!" SHELL_NEWLINE_STR,frameHeader._data_length);
                 return 0;
             }
             realShootData._realBulletShootSpeed = my_byte_to_float(byte);
@@ -154,13 +176,13 @@ int judge_system_parser::read_buf_info(BaseSequentialStream *chp, const unsigned
             realShootData._realGolfShootFreq = my_byte_to_float(byte);
             break;
         default:
-            chprintf(chp, "Error: Invalid cmdID: %d\n",cmdID);
+            Shell::printf("Error: Invalid cmdID: %d" SHELL_NEWLINE_STR,cmdID);
             return 0;   //ID read error!
     }
     return 1;
 }
 
-char* judge_system_parser::send_client_info_parser(float data1, float data2, float data3) {
+char* JudgeSystem::send_client_info_parser(float data1, float data2, float data3) {
     /**
      * @brief   construct char array to send back to the server
      * @param   data{1,2,3}: data to sent back to the sever

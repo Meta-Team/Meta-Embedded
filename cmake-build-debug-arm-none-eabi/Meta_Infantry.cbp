@@ -291,10 +291,10 @@
 		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/dev/interfaces/remote_interpreter_unit_test.cpp">
 			<Option target="useless_cmake_target"/>
 		</Unit>
-		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/dev/judge-system/judge_system_parser.cpp">
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/dev/judge-system/JudgeSystem.cpp">
 			<Option target="useless_cmake_target"/>
 		</Unit>
-		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/dev/judge-system/judge_system_parser.h">
+		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/dev/judge-system/JudgeSystem.h">
 			<Option target="useless_cmake_target"/>
 		</Unit>
 		<Unit filename="C:/Users/Administrator/Documents/GitHub/Meta-Infantry/dev/main.cpp">
