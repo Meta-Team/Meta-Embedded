@@ -2,8 +2,8 @@
 
 #include "led.h"
 #include "serial_shell.h"
+#include "math.h"
 
-#define PI 3.14159265358979323846f
 #define GRAV 9.80665f
 #define MPU6500_RX_BUF_SIZE 0x0E
 #define TEMP_OFFSET 0.0f
@@ -20,7 +20,7 @@ float MPU6500Controller::prev_t;
 float MPU6500Controller::_gyro_psc;  // get the coefficient converting the raw data to degree
 float MPU6500Controller::_accel_psc;  // get the coefficient converting the raw data to g
 
-float MPU6500Controller::_gyro_bias;  // for gyro bias
+Vector3D MPU6500Controller::_gyro_bias;  // for gyro bias
 matrix3 MPU6500Controller::_accel_bias;  // a matrix for accelerate bias
 
 uint8_t mpu6500_RXData[MPU6500_RX_BUF_SIZE];
@@ -64,10 +64,10 @@ bool MPU6500Controller::start(SPIDriver *spi) {
 
     for (int i = 0; i < 5; i++) {
         mpu6500_write_reg(init_reg[i][0], init_reg[i][1]);
+        chThdSleepMilliseconds(10);
     }
 
     dt = 0;
-    _gyro_bias = 0;
     temperature = 0;
     _accel_bias[0][0] = 1.0f; _accel_bias[0][1] = 0.0f; _accel_bias[0][2] = 0.0f;
     _accel_bias[1][0] = 0.0f; _accel_bias[1][1] = 1.0f; _accel_bias[1][2] = 0.0f;
@@ -77,16 +77,16 @@ bool MPU6500Controller::start(SPIDriver *spi) {
     switch(config._gyro_scale)
     {
         case MPU6500_GYRO_SCALE_250:
-            _gyro_psc = (1.0f / 131.0f) * PI/180.0f;
+            _gyro_psc = (1.0f / 131.0f);
             break;
         case MPU6500_GYRO_SCALE_500:
-            _gyro_psc = (1.0f /  65.5f) * PI/180.0f;
+            _gyro_psc = (1.0f /  65.5f);
             break;
         case MPU6500_GYRO_SCALE_1000:
-            _gyro_psc = (1.0f /  32.8f) * PI/180.0f;
+            _gyro_psc = (1.0f /  32.8f);
             break;
         case MPU6500_GYRO_SCALE_2000:
-            _gyro_psc = (1.0f /  16.4f) * PI/180.0f;
+            _gyro_psc = (1.0f /  16.4f);
             break;
         default:
             _gyro_psc = 0.0f;
@@ -96,28 +96,62 @@ bool MPU6500Controller::start(SPIDriver *spi) {
     switch(config._accel_scale)
     {
         case MPU6500_ACCEL_SCALE_2G:
-            _accel_psc = (GRAV / 16384.0f);
+            _accel_psc = (1 / 16384.0f);
             break;
         case MPU6500_ACCEL_SCALE_4G:
-            _accel_psc = (GRAV /  8192.0f);
+            _accel_psc = (1 /  8192.0f);
             break;
         case MPU6500_ACCEL_SCALE_8G:
-            _accel_psc = (GRAV /  4096.0f);
+            _accel_psc = (1 /  4096.0f);
             break;
         case MPU6500_ACCEL_SCALE_16G:
-            _accel_psc = (GRAV /  2048.0f);
+            _accel_psc = (1 /  2048.0f);
             break;
         default:
             _accel_psc = 0.0f;
             break;
     }
 
+    float temp_g_bias_x = 0, temp_g_bias_y = 0, temp_g_bias_z = 0;
+    float temp_a_bias_x = 0, temp_a_bias_y = 0, temp_a_bias_z = 0;
+
+    for (int i =0; i < 5; i++) {
+        getData();
+        temp_g_bias_x -= angle_speed.x;
+        temp_g_bias_y -= angle_speed.y;
+        temp_g_bias_z -= angle_speed.z;
+        temp_a_bias_x += a_component.x;
+        temp_a_bias_y += a_component.y;
+        temp_a_bias_z += a_component.z;
+        chThdSleepMilliseconds(10);
+    }
+
+    _gyro_bias.x = temp_g_bias_x / 5;
+    _gyro_bias.y = temp_g_bias_y / 5;
+    _gyro_bias.z = temp_g_bias_z / 5;
+
+    _accel_bias[2][0] = temp_a_bias_x / 5;
+    _accel_bias[2][1] = temp_a_bias_y / 5;
+    _accel_bias[2][2] = temp_a_bias_z / 5;
+    _accel_bias[0][0] = _accel_bias[2][1] - _accel_bias[2][2];
+    _accel_bias[0][1] = _accel_bias[2][2] - _accel_bias[2][0];
+    _accel_bias[0][0] = _accel_bias[2][0] - _accel_bias[2][1];
+    float length = sqrt(_accel_bias[0][0] * _accel_bias[0][0] + _accel_bias[0][1] * _accel_bias[0][1]
+                        + _accel_bias[0][2] * _accel_bias[0][2]);
+    _accel_bias[0][0] /= length;
+    _accel_bias[0][1] /= length;
+    _accel_bias[0][2] /= length;
+    Vector3D temp_vect = Vector3D(_accel_bias[0]).crossMultiply(Vector3D(_accel_bias[2]));
+    _accel_bias[1][0] = temp_vect.x;
+    _accel_bias[1][1] = temp_vect.y;
+    _accel_bias[1][2] = temp_vect.z;
+
     return true;
 }
 
 void MPU6500Controller::getData() {
-    uint32_t current_time =  chVTGetSystemTimeX();
-    dt = TIME_I2US(current_time - prev_t) / 1000000.0f;
+    uint32_t current_time =  chibios_rt::System::getTime();
+    dt = TIME_I2MS(current_time - prev_t) / 1000.0f;
     prev_t = current_time;
 
     // Acquire data
@@ -125,6 +159,7 @@ void MPU6500Controller::getData() {
     spiAcquireBus(spi_driver);
     spiSelect(spi_driver);
     spiSend(spi_driver, 1, &tx_data);
+    chThdSleepMilliseconds(1);
     spiReceive(spi_driver, MPU6500_RX_BUF_SIZE, mpu6500_RXData);
     spiUnselect(spi_driver);
     spiReleaseBus(spi_driver);
@@ -139,10 +174,9 @@ void MPU6500Controller::getData() {
 
     temperature = (((float)temper - TEMP_OFFSET) / 333.87f) + 21.0f;
 
-    // FIXME: only for temporary use
-    angle_speed.x = (gyro_x + _gyro_psc * _gyro_bias) / dt;
-    angle_speed.y = (gyro_y + _gyro_psc * _gyro_bias) / dt + 0.03f;
-    angle_speed.z = (gyro_z + _gyro_psc * _gyro_bias) / dt - 0.07f;
+    angle_speed.x = (gyro_x + _gyro_bias.x);
+    angle_speed.y = (gyro_y + _gyro_bias.y);
+    angle_speed.z = (gyro_z + _gyro_bias.z);
 
     a_component = Vector3D(accel_x, accel_y, accel_z) * _accel_bias;
 }

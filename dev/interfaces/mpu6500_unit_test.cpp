@@ -16,6 +16,7 @@ class MPU6500Thread : public BaseStaticThread<256> {
 protected:
     void main() final {
         setName("mpu6500");
+        MPU6500Controller::start(&SPID5);
         while (!shouldTerminate()) {
             MPU6500Controller::getData();
             Shell::printf("w = (%.4f, %.4f, %.4f), temp = %.4f" SHELL_NEWLINE_STR,
@@ -37,8 +38,6 @@ int main(void) {
     LED::green_off();
     LED::red_off();
 
-
-    MPU6500Controller::start(&SPID5);
 
     mpu6500Thread.start(NORMALPRIO);
 

@@ -45,6 +45,7 @@ set(DEVCPPSRC
         dev/control/gimbal_controller.h
         dev/control/gimbal_controller_unit_test.cpp
         dev/interfaces/mpu6500.cpp
+        dev/interfaces/attitude_calc.cpp
         dev/interfaces/mpu6500.h dev/interfaces/mpu6500_unit_test.cpp)
 
 # Our include directories
