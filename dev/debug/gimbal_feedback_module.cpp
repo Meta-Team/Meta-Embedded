@@ -9,7 +9,7 @@ void GimbalFeedbackModule::main() {
     setName("gimbal_fb");
 
     while (!shouldTerminate()) {
-        chSysLock();
+        chSysLockFromISR();
         if (enable_yaw_feedback) {
             float yaw_target_angle = (ptr_yaw_target_angle ? *ptr_yaw_target_angle : 0);
             float yaw_target_velocity = (ptr_yaw_target_velocity ? *ptr_yaw_target_velocity : 0);
@@ -34,7 +34,7 @@ void GimbalFeedbackModule::main() {
 //        Shell::printf("pitch round = %d" SHELL_NEWLINE_STR,
 //                      GimbalInterface::pitch.round_count);
         }
-        chSysUnlock();
+        chSysUnlockFromISR();
         sleep(TIME_MS2I(feedback_interval));
     }
 

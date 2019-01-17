@@ -31,7 +31,7 @@ static void can1_callback(CANRxFrame *rxmsg) {
 }
 
 // Calculation interval for gimbal thread
-int const gimbal_thread_interval = 50; // ms
+int const gimbal_thread_interval = 10; // ms
 int const maximum_current = 4000; // mA
 
 float const yaw_min_angle = -170; // degree
@@ -53,7 +53,7 @@ float pitch_target_velocity = 0.0;
 #define PITCH_AXIS_FOR_MPU6500 ??
 
 CANInterface can1(&CAND1, can1_callback);
-GimbalFeedbackModule feedbackModule(50,  // 50ms interval
+GimbalFeedbackModule feedbackModule(25,  // 25ms interval
                                     &yaw_target_angle,
                                     &yaw_target_velocity,
                                     &GimbalInterface::yaw.target_current,
@@ -79,7 +79,7 @@ static void cmd_gimbal_enable(BaseSequentialStream *chp, int argc, char *argv[])
 
 //    chprintf(chp, "Gimbal yaw enabled = %d" SHELL_NEWLINE_STR, GimbalInterface::yaw.enabled);
 //    chprintf(chp, "Gimbal pitch enabled = %d" SHELL_NEWLINE_STR, GimbalInterface::pitch.enabled);
-    chprintf(chp, "Enabled set." SHELL_NEWLINE_STR);
+//    chprintf(chp, "Enabled set." SHELL_NEWLINE_STR);
 }
 
 /**
@@ -99,7 +99,7 @@ static void cmd_gimbal_enable_feedback(BaseSequentialStream *chp, int argc, char
 
 //    chprintf(chp, "Gimbal yaw feedback = %d" SHELL_NEWLINE_STR, feedbackModule.enable_yaw_feedback);
 //    chprintf(chp, "Gimbal pitch feedback = %d" SHELL_NEWLINE_STR, feedbackModule.enable_pitch_feedback);
-    chprintf(chp, "Feedback set." SHELL_NEWLINE_STR);
+//    chprintf(chp, "Feedback set." SHELL_NEWLINE_STR);
 }
 
 
@@ -118,7 +118,7 @@ static void cmd_gimbal_fix_front_angle(BaseSequentialStream *chp, int argc, char
     GimbalInterface::yaw.reset_front_angle();
     GimbalInterface::pitch.reset_front_angle();
 
-    chprintf(chp, "!f" SHELL_NEWLINE_STR);
+//    chprintf(chp, "!f" SHELL_NEWLINE_STR);
 }
 
 /**
@@ -144,7 +144,7 @@ static void cmd_gimbal_set_target_velocities(BaseSequentialStream *chp, int argc
 //    chprintf(chp, "Gimbal pitch target_velocity = %f" SHELL_NEWLINE_STR, pitch_target_velocity);
 
     enable_angle_to_v_pid = false;
-    chprintf(chp, "Target velocity set. pos_to_v_pid disabled." SHELL_NEWLINE_STR);
+//    chprintf(chp, "Target velocity set. pos_to_v_pid disabled." SHELL_NEWLINE_STR);
 }
 
 /**
@@ -170,7 +170,7 @@ static void cmd_gimbal_set_target_angle(BaseSequentialStream *chp, int argc, cha
 //    chprintf(chp, "Gimbal pitch target_angle = %f" SHELL_NEWLINE_STR, pitch_target_angle);
 
     enable_angle_to_v_pid = true;
-    chprintf(chp, "Target angle set. pos_to_v_pid enabled." SHELL_NEWLINE_STR);
+//    chprintf(chp, "Target angle set. pos_to_v_pid enabled." SHELL_NEWLINE_STR);
 }
 
 /**
