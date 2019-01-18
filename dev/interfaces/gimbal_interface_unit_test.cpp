@@ -49,15 +49,17 @@ GimbalFeedbackModule feedbackModule (200,  // 200ms interval
  */
 static void cmd_gimbal_enable(BaseSequentialStream *chp, int argc, char *argv[]) {
     (void)argv;
-    if (argc != 2 || (*argv[0] != '0' && *argv[0] != '1') || (*argv[1] != '0' && *argv[1] != '1')) {
-        shellUsage(chp, "g_enable yaw(0/1) pitch(0/1)");
+    if (argc != 3 || (*argv[0] != '0' && *argv[0] != '1') || (*argv[1] != '0' && *argv[1] != '1') || (*argv[2] != '0' && *argv[2] != '1')) {
+        shellUsage(chp, "g_enable yaw(0/1) pitch(0/1) bullet_loader(0/1)");
         return;
     }
     GimbalInterface::yaw.enabled = *argv[0] - '0';
     GimbalInterface::pitch.enabled = *argv[1] - '0';
+    GimbalInterface::bullet_loader.enabled = *argv[2] - '0';
 
     chprintf(chp, "Gimbal yaw enabled = %d" SHELL_NEWLINE_STR, GimbalInterface::yaw.enabled);
     chprintf(chp, "Gimbal pitch enabled = %d" SHELL_NEWLINE_STR, GimbalInterface::pitch.enabled);
+    chprintf(chp, "Gimbal bullet_loader enabled = %d" SHELL_NEWLINE_STR, GimbalInterface::bullet_loader.enabled);
 }
 
 /**
@@ -74,6 +76,7 @@ static void cmd_gimbal_fix_front_angle(BaseSequentialStream *chp, int argc, char
     }
     GimbalInterface::yaw.reset_front_angle();
     GimbalInterface::pitch.reset_front_angle();
+    GimbalInterface::bullet_loader.reset_front_angle();
 
     chprintf(chp, "Gimbal actual angle clear!" SHELL_NEWLINE_STR);
 }
@@ -88,15 +91,43 @@ static void cmd_gimbal_fix_front_angle(BaseSequentialStream *chp, int argc, char
  */
 static void cmd_gimbal_set_target_currents(BaseSequentialStream *chp, int argc, char *argv[]) {
     (void)argv;
-    if (argc != 2) {
-        shellUsage(chp, "g_set yaw_current pitch_current");
+    if (argc != 3) {
+        shellUsage(chp, "g_set yaw_current pitch_current bullet_loader_current");
         return;
     }
 
     GimbalInterface::yaw.target_current = Shell::atoi(argv[0]);
     GimbalInterface::pitch.target_current = Shell::atoi(argv[1]);
+    GimbalInterface::bullet_loader.target_current = Shell::atoi(argv[2]);
     chprintf(chp, "Gimbal yaw target_current = %d" SHELL_NEWLINE_STR, GimbalInterface::yaw.target_current);
     chprintf(chp, "Gimbal pitch target_current = %d" SHELL_NEWLINE_STR, GimbalInterface::pitch.target_current);
+    chprintf(chp, "Gimbal bullet loader target_current = %d" SHELL_NEWLINE_STR, GimbalInterface::bullet_loader.target_current);
+
+    GimbalInterface::send_gimbal_currents();
+    chprintf(chp, "Gimbal target_current sent" SHELL_NEWLINE_STR);
+}
+
+/**
+ * @brief set target current of bullet loader
+ * @param chp
+ * @param argc
+ * @param argv
+ */
+static void cmd_gimbal_set_friction_wheels(BaseSequentialStream *chp, int argc, char *argv[]) {
+    (void)argv;
+    if (argc != 1) {
+        shellUsage(chp, "g_set_fw duty_cycle(0 - 1)");
+        return;
+    }
+
+    float duty_cycle = Shell::atoi(argv[0]);
+    if (duty_cycle < 0.0f || duty_cycle > 1.0f) {
+        shellUsage(chp, "g_set_fw duty_cycle(0 - 1)");
+        return;
+    }
+
+    GimbalInterface::friction_wheels.duty_cycle = duty_cycle;
+    chprintf(chp, "Gimbal friction_wheels duty_cycle = %f" SHELL_NEWLINE_STR, GimbalInterface::friction_wheels.duty_cycle);
 
     GimbalInterface::send_gimbal_currents();
     chprintf(chp, "Gimbal target_current sent" SHELL_NEWLINE_STR);
@@ -107,6 +138,7 @@ ShellCommand remoteShellCommands[] = {
         {"g_enable", cmd_gimbal_enable},
         {"g_fix", cmd_gimbal_fix_front_angle},
         {"g_set", cmd_gimbal_set_target_currents},
+        {"g_set_fw", cmd_gimbal_set_friction_wheels},
         {nullptr, nullptr}
 };
 
@@ -124,7 +156,7 @@ int main(void) {
 
     can1.start_can();
     can1.start_thread(HIGHPRIO - 1);
-    GimbalInterface::set_can_interface(&can1);
+    GimbalInterface::start(&can1);
 
     // See chconf.h for what this #define means.
 #if CH_CFG_NO_IDLE_THREAD

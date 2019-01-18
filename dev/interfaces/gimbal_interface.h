@@ -19,16 +19,26 @@
 
 #if GIMBAL_INTERFACE_ENABLE_CLIP
 #define GIMBAL_INTERFACE_MAX_CURRENT 5000
+#define GIMBAL_INTERFACE_BULLET_LOADER_MAX_CURRENT 3000
 #endif
 
-
+/**
+ * @name GimbalInterface
+ * @brief interface to process feedback from gimbal and send control signals to gimbal, including Yaw, Pitch, Bullet
+ *        Loader (using CAN) and friction wheels (by PWM).
+ * @pre Hardware is set properly (CAN id of Yaw = 5 and Pitch = 6, CAN id of bullet loader (C610) = 7, friction wheels
+ *      left = PI5, right = PI6.
+ * @pre PWM pin is set properly in board.h (I5 - alt 3, I6 - alt 3)
+ * @pre start(CANInterface *). The interface should be properly initialized.
+ */
 class GimbalInterface {
 
 public:
 
     typedef enum {
         YAW_ID = 0,
-        PIT_ID = 1
+        PIT_ID = 1,
+        BULLET_LOADER_ID = 2
     } motor_id_t;
 
     /** Motor Interface **/
@@ -37,22 +47,22 @@ public:
     public:
 
         motor_id_t id;
-        bool enabled;  // if not enabled, 0 current will be sent in send_gimbal_currents
+        bool enabled = false;  // if not enabled, 0 current will be sent in send_gimbal_currents
 
         // +: clockwise, -: counter-clockwise
-        int target_current;
+        int target_current = 0;
 
         /**
          * Normalized Angle and Rounds
          *  Using the front angle_raw as reference.
          *  Range: -180.0 (clockwise) to 180.0 (counter-clockwise)
          */
-        float actual_angle; // the actual angle of the gimbal, compared with the front
-        int round_count;  // the rounds that the gimbal turns
+        float actual_angle = 0.0f; // the actual angle of the gimbal, compared with the front
+        int round_count = 0;  // the rounds that the gimbal turns
 
-        float angular_velocity;  // instant angular velocity [degree/s], positive when counter-clockwise, negative otherwise
+        float angular_velocity = 0.0f;  // instant angular velocity [degree/s], positive when counter-clockwise, negative otherwise
 
-        int actual_current;  // feedback current
+        int actual_current = 0;  // feedback current
 
         // Set current angle as the front angle
         void reset_front_angle() {
@@ -66,22 +76,36 @@ public:
         }
 
         // For velocity sampling and gimbal feedback module
-        time_msecs_t sample_time;  // last sample time, for velocity calculation
+        time_msecs_t sample_time = 0;  // last sample time, for velocity calculation
 
     private:
 
-        uint16_t last_angle_raw;  // the raw angle of the newest feedback, in [0, 8191]
+        uint16_t last_angle_raw = 0;  // the raw angle of the newest feedback, in [0, 8191]
 
         // For velocity sampling
-        int sample_count;
-        int sample_movement_sum;
+        int sample_count = 0;
+        int sample_movement_sum = 0;
 
         friend GimbalInterface;
 
     } motor_t;
 
+
     static motor_t yaw;
     static motor_t pitch;
+
+    static motor_t bullet_loader;
+
+    typedef struct {
+
+        bool enabled = false;
+
+        float duty_cycle = 0.0f;
+
+    } friction_wheels_t;
+
+    static friction_wheels_t friction_wheels;
+
 
     /**
      * @brief send target_current of each motor
@@ -94,44 +118,39 @@ public:
      * @param rxmsg
      * @return whether the rx frame is from gimbal motors
      */
-    static bool process_motor_feedback (CANRxFrame *rxmsg);
+    static bool process_motor_feedback(CANRxFrame *rxmsg);
+
 
     /**
      * Default constructor
      */
     GimbalInterface() {
         yaw.id = YAW_ID;
-        yaw.enabled = false;
-        yaw.sample_time = 0;
-        yaw.sample_count = 0;
-        yaw.sample_movement_sum = 0;
-        yaw.actual_angle = 0;
-        yaw.last_angle_raw = 0;
-
         pitch.id = PIT_ID;
-        pitch.enabled = false;
-        pitch.sample_time = 0;
-        pitch.sample_count = 0;
-        pitch.sample_movement_sum = 0;
-        pitch.actual_angle = 0.0;
-        pitch.last_angle_raw = 0;
+        bullet_loader.id = BULLET_LOADER_ID;
     }
 
     /**
-     * @brief set the CAN interface
+     * @brief set the CAN interface and start PWM driver
      * @param can_interface
      */
-    static void set_can_interface (CANInterface* can_interface) {
-        can = can_interface;
-    }
+    static void start(CANInterface *can_interface);
 
 
 private:
 
-    static CANInterface* can;
+    static CANInterface *can;
 
     // Count of feedback for one sample of angular velocity
     static constexpr int velocity_sample_interval = 50;
+
+    static constexpr PWMDriver *friction_wheel_pwm_driver = &PWMD8;
+
+    // TODO: determine the install order of left and right wheels
+    enum friction_wheel_channel_t {
+        FW_LEFT = 0,  // The left friction wheel, PI5, channel 0
+        FW_RIGHT = 1  // The right friction wheel, PI6, channel 1
+    };
 
 };
 
