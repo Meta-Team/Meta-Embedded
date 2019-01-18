@@ -377,7 +377,7 @@ int main(void) {
 
     can1.start_can();
     can1.start_thread(HIGHPRIO - 1);
-    GimbalInterface::set_can_interface(&can1);
+    GimbalInterface::start(&can1);
 
     gimbalThread.start(HIGHPRIO - 2);
 

@@ -33,7 +33,7 @@ static const SPIConfig SPI5_cfg =
                 GPIOF_SPI5_NSS,
                 SPI_CR1_BR_2 | SPI_CR1_BR_1 | SPI_CR1_MSTR |
                 SPI_CR1_CPHA | SPI_CR1_CPOL, //Set CPHA and CPOL to be 1
-                NULL
+                0
         };
 
 void MPU6500Controller::mpu6500_write_reg(uint8_t reg_addr, uint8_t value) {
