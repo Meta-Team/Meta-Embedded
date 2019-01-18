@@ -17,7 +17,7 @@ using namespace chibios_rt;
  * @brief callback function for CAN1
  * @param rxmsg
  */
-static void can1_callback (CANRxFrame *rxmsg) {
+static void can1_callback(CANRxFrame *rxmsg) {
     switch (rxmsg->SID) {
         case 0x205:
         case 0x206:
@@ -32,13 +32,13 @@ float empty_target_angle = 0.0;
 float empty_target_velocity = 0.0;
 
 CANInterface can1(&CAND1, can1_callback);
-GimbalFeedbackModule feedbackModule (200,  // 200ms interval
-        &empty_target_angle,
-        &empty_target_velocity,
-        &GimbalInterface::yaw.target_current,
-        &empty_target_angle,
-        &empty_target_velocity,
-        &GimbalInterface::pitch.target_current);
+GimbalFeedbackModule feedbackModule(200,  // 200ms interval
+                                    &empty_target_angle,
+                                    &empty_target_velocity,
+                                    &GimbalInterface::yaw.target_current,
+                                    &empty_target_angle,
+                                    &empty_target_velocity,
+                                    &GimbalInterface::pitch.target_current);
 
 
 /**
@@ -48,18 +48,21 @@ GimbalFeedbackModule feedbackModule (200,  // 200ms interval
  * @param argv
  */
 static void cmd_gimbal_enable(BaseSequentialStream *chp, int argc, char *argv[]) {
-    (void)argv;
-    if (argc != 3 || (*argv[0] != '0' && *argv[0] != '1') || (*argv[1] != '0' && *argv[1] != '1') || (*argv[2] != '0' && *argv[2] != '1')) {
-        shellUsage(chp, "g_enable yaw(0/1) pitch(0/1) bullet_loader(0/1)");
+    (void) argv;
+    if (argc != 4 || (*argv[0] != '0' && *argv[0] != '1') || (*argv[1] != '0' && *argv[1] != '1')
+        || (*argv[2] != '0' && *argv[2] != '1') || (*argv[3] != '0' && *argv[3] != '1')) {
+        shellUsage(chp, "g_enable yaw(0/1) pitch(0/1) bullet_loader(0/1) friction(0/1)");
         return;
     }
     GimbalInterface::yaw.enabled = *argv[0] - '0';
     GimbalInterface::pitch.enabled = *argv[1] - '0';
     GimbalInterface::bullet_loader.enabled = *argv[2] - '0';
+    GimbalInterface::friction_wheels.enabled = *argv[3] - '0';
 
     chprintf(chp, "Gimbal yaw enabled = %d" SHELL_NEWLINE_STR, GimbalInterface::yaw.enabled);
     chprintf(chp, "Gimbal pitch enabled = %d" SHELL_NEWLINE_STR, GimbalInterface::pitch.enabled);
     chprintf(chp, "Gimbal bullet_loader enabled = %d" SHELL_NEWLINE_STR, GimbalInterface::bullet_loader.enabled);
+    chprintf(chp, "Gimbal friction enabled = %d" SHELL_NEWLINE_STR, GimbalInterface::friction_wheels.enabled);
 }
 
 /**
@@ -69,7 +72,7 @@ static void cmd_gimbal_enable(BaseSequentialStream *chp, int argc, char *argv[])
  * @param argv
  */
 static void cmd_gimbal_fix_front_angle(BaseSequentialStream *chp, int argc, char *argv[]) {
-    (void)argv;
+    (void) argv;
     if (argc != 0) {
         shellUsage(chp, "g_fix");
         return;
@@ -82,7 +85,6 @@ static void cmd_gimbal_fix_front_angle(BaseSequentialStream *chp, int argc, char
 }
 
 
-
 /**
  * @brief set target currents of yaw and pitch
  * @param chp
@@ -90,7 +92,7 @@ static void cmd_gimbal_fix_front_angle(BaseSequentialStream *chp, int argc, char
  * @param argv
  */
 static void cmd_gimbal_set_target_currents(BaseSequentialStream *chp, int argc, char *argv[]) {
-    (void)argv;
+    (void) argv;
     if (argc != 3) {
         shellUsage(chp, "g_set yaw_current pitch_current bullet_loader_current");
         return;
@@ -101,10 +103,8 @@ static void cmd_gimbal_set_target_currents(BaseSequentialStream *chp, int argc, 
     GimbalInterface::bullet_loader.target_current = Shell::atoi(argv[2]);
     chprintf(chp, "Gimbal yaw target_current = %d" SHELL_NEWLINE_STR, GimbalInterface::yaw.target_current);
     chprintf(chp, "Gimbal pitch target_current = %d" SHELL_NEWLINE_STR, GimbalInterface::pitch.target_current);
-    chprintf(chp, "Gimbal bullet loader target_current = %d" SHELL_NEWLINE_STR, GimbalInterface::bullet_loader.target_current);
-
-    GimbalInterface::send_gimbal_currents();
-    chprintf(chp, "Gimbal target_current sent" SHELL_NEWLINE_STR);
+    chprintf(chp, "Gimbal bullet loader target_current = %d" SHELL_NEWLINE_STR,
+             GimbalInterface::bullet_loader.target_current);
 }
 
 /**
@@ -114,20 +114,21 @@ static void cmd_gimbal_set_target_currents(BaseSequentialStream *chp, int argc, 
  * @param argv
  */
 static void cmd_gimbal_set_friction_wheels(BaseSequentialStream *chp, int argc, char *argv[]) {
-    (void)argv;
+    (void) argv;
     if (argc != 1) {
         shellUsage(chp, "g_set_fw duty_cycle(0 - 1)");
         return;
     }
 
-    float duty_cycle = Shell::atoi(argv[0]);
+    float duty_cycle = Shell::atof(argv[0]);
     if (duty_cycle < 0.0f || duty_cycle > 1.0f) {
         shellUsage(chp, "g_set_fw duty_cycle(0 - 1)");
         return;
     }
 
     GimbalInterface::friction_wheels.duty_cycle = duty_cycle;
-    chprintf(chp, "Gimbal friction_wheels duty_cycle = %f" SHELL_NEWLINE_STR, GimbalInterface::friction_wheels.duty_cycle);
+    chprintf(chp, "Gimbal friction_wheels duty_cycle = %f" SHELL_NEWLINE_STR,
+             GimbalInterface::friction_wheels.duty_cycle);
 
     GimbalInterface::send_gimbal_currents();
     chprintf(chp, "Gimbal target_current sent" SHELL_NEWLINE_STR);
@@ -136,11 +137,22 @@ static void cmd_gimbal_set_friction_wheels(BaseSequentialStream *chp, int argc, 
 // Shell commands to pause and resume the echos.
 ShellCommand remoteShellCommands[] = {
         {"g_enable", cmd_gimbal_enable},
-        {"g_fix", cmd_gimbal_fix_front_angle},
-        {"g_set", cmd_gimbal_set_target_currents},
+        {"g_fix",    cmd_gimbal_fix_front_angle},
+        {"g_set",    cmd_gimbal_set_target_currents},
         {"g_set_fw", cmd_gimbal_set_friction_wheels},
-        {nullptr, nullptr}
+        {nullptr,    nullptr}
 };
+
+class GimbalThread : public BaseStaticThread <256> {
+protected:
+    void main() final {
+        setName("gimbal");
+        while (!shouldTerminate()) {
+            GimbalInterface::send_gimbal_currents();
+            sleep(TIME_MS2I(100));
+        }
+    }
+} gimbalThread;
 
 int main(void) {
     halInit();
@@ -153,6 +165,7 @@ int main(void) {
     Shell::addCommands(remoteShellCommands);
 
     feedbackModule.start_thread(NORMALPRIO);
+    gimbalThread.start(NORMALPRIO + 1);
 
     can1.start_can();
     can1.start_thread(HIGHPRIO - 1);
@@ -165,9 +178,9 @@ int main(void) {
     while (true) {}
 #else
     // When main() quits, the main thread will somehow
-        // enter an infinite loop, so we set the priority to lowest
-        // before quitting, to let other threads run normally
-        BaseThread::setPriority(1);
+    // enter an infinite loop, so we set the priority to lowest
+    // before quitting, to let other threads run normally
+    BaseThread::setPriority(1);
 #endif
     return 0;
 }
