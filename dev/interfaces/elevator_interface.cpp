@@ -4,6 +4,11 @@
 
 #include "elevator_interface.h"
 
+int32_t ElevatorInterface::target_position[2];
+CANTxFrame ElevatorInterface::txFrames[4];
+ElevatorInterface::elevator_wheel_t ElevatorInterface::elevator_wheels[4];
+CANInterface* ElevatorInterface::can = nullptr;
+
 bool ElevatorInterface::send_message() {
     for(int i = 0; i < 2; i++) {
         txFrames[i * 2].data8[4] = txFrames[i * 2 + 1].data8[4] = (unsigned char) ((target_position[i] >> 24) &
@@ -13,9 +18,11 @@ bool ElevatorInterface::send_message() {
         txFrames[i * 2].data8[6] = txFrames[i * 2 + 1].data8[6] = (unsigned char) ((target_position[i] >> 8) &
                                                                                    0Xff);
         txFrames[i * 2].data8[7] = txFrames[i * 2 + 1].data8[7] = (unsigned char) (target_position[i] & 0Xff);
+
         can->send_msg(&txFrames[i * 2]);
         can->send_msg(&txFrames[i * 2 + 1]);
     }
+    return true;
 }
 
 void ElevatorInterface::set_position(int32_t front_wheel_position, int32_t rear_wheel_position) {
@@ -41,9 +48,9 @@ bool ElevatorInterface::get_feedback(CANRxFrame *rxmsg) {
         default:
             return false;
     }
-    elevator_wheels[index].real_current = (rxmsg.data8[0]<<8)|rxmsg.data8[1];
-    elevator_wheels[index].real_velocity = (rxmsg.data8[2]<<8)|rxmsg.data8[3];
-    elevator_wheels[index].real_position = (rxmsg.data8[4]<<24)|(rxmsg.data8[5]<<16)|(rxmsg.data8[6]<<8)|rxmsg.data8[7];
+    elevator_wheels[index].real_current = (rxmsg->data8[0]<<8)|rxmsg->data8[1];
+    elevator_wheels[index].real_velocity = (rxmsg->data8[2]<<8)|rxmsg->data8[3];
+    elevator_wheels[index].real_position = (rxmsg->data8[4]<<24)|(rxmsg->data8[5]<<16)|(rxmsg->data8[6]<<8)|rxmsg->data8[7];
     return true;
 }
 
@@ -76,7 +83,7 @@ void ElevatorInterface::start(CANInterface* can_interface) {
     txFrames[3].SID = COMMAND_1_REAR_RIGHT;
 
     for(int wheel_index = 0; wheel_index < 4; wheel_index++){
-        txFrames[wheel_index].data8[0] = 0x05;
+        txFrames[wheel_index].data8[0] = 0x04;
         can->send_msg(&txFrames[wheel_index]);
     }
 

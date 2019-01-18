@@ -16,43 +16,41 @@ public:
      * @brief the SID of the four CANTxFrames for the four wheels
      */
     typedef enum {
-        RX_FRONT_LEFT = 0x30B,  // The front-left wheel
-        RX_FRONT_RIGHT = 0x31B,  // The front-right wheel
-        RX_REAR_LEFT = 0x32B,  // The left-rear wheel
-        RX_REAR_RIGHT = 0x33B  // The right-rear wheel
+        RX_FRONT_LEFT = 0x31B,  // The front-left wheel
+        RX_FRONT_RIGHT = 0x32B,  // The front-right wheel
+        RX_REAR_LEFT = 0x33B,  // The left-rear wheel
+        RX_REAR_RIGHT = 0x34B  // The right-rear wheel
     } elevator_wheel_rx_id_t;
 
     /**
      * @brief the SID for command 5 (set position command) of the four CANRxFrames for the four wheels
      */
     typedef enum {
-        COMMAND_5_FRONT_LEFT = 0x305,  // The front-left wheel
-        COMMAND_5_FRONT_RIGHT = 0x315,  // The front-right wheel
-        COMMAND_5_REAR_LEFT = 0x325,  // The left-rear wheel
-        COMMAND_5_REAR_RIGHT = 0x335  // The right-rear wheel
+        COMMAND_5_FRONT_LEFT = 0x315,  // The front-left wheel
+        COMMAND_5_FRONT_RIGHT = 0x325,  // The front-right wheel
+        COMMAND_5_REAR_LEFT = 0x335,  // The left-rear wheel
+        COMMAND_5_REAR_RIGHT = 0x345  // The right-rear wheel
     } elevator_wheel_tx_command_5_id_t;
 
     /**
      * @brief the SID for command 0 (reset command) of the four CANRxFrames for the four wheels
      */
     typedef enum {
-        COMMAND_0_FRONT_LEFT = 0x300,  // The front-left wheel
-        COMMAND_0_FRONT_RIGHT = 0x310,  // The front-right wheel
-        COMMAND_0_REAR_LEFT = 0x320,  // The left-rear wheel
-        COMMAND_0_REAR_RIGHT = 0x330  // The right-rear wheel
+        COMMAND_0_FRONT_LEFT = 0x310,  // The front-left wheel
+        COMMAND_0_FRONT_RIGHT = 0x320,  // The front-right wheel
+        COMMAND_0_REAR_LEFT = 0x330,  // The left-rear wheel
+        COMMAND_0_REAR_RIGHT = 0x340  // The right-rear wheel
     } elevator_wheel_tx_command_0_id_t;
 
     /**
      * @brief the SID for command 1 (choose mode command) of the four CANRxFrames for the four wheels
      */
     typedef enum {
-        COMMAND_1_FRONT_LEFT = 0x301,  // The front-left wheel
-        COMMAND_1_FRONT_RIGHT = 0x311,  // The front-right wheel
-        COMMAND_1_REAR_LEFT = 0x321,  // The left-rear wheel
-        COMMAND_1_REAR_RIGHT = 0x331  // The right-rear wheel
+        COMMAND_1_FRONT_LEFT = 0x311,  // The front-left wheel
+        COMMAND_1_FRONT_RIGHT = 0x321,  // The front-right wheel
+        COMMAND_1_REAR_LEFT = 0x331,  // The left-rear wheel
+        COMMAND_1_REAR_RIGHT = 0x341  // The right-rear wheel
     } elevator_wheel_tx_command_1_id_t;
-
-    static bool enabled;  // if not enabled, 0 current will be sent in send_elevator_currents
 
     /**
      * @brief contains the target position of both the front wheels and the rear wheels
@@ -87,7 +85,7 @@ public:
 
     } elevator_wheel_t;
 
-    static constexpr uint16_t PWM = 5000;  // the pwm of the current
+    static constexpr uint16_t PWM = 2500;  // the pwm of the current
 
     /**
      * @brief contains the real information of the four wheels
@@ -107,7 +105,7 @@ public:
      * @brief send message of each motor
      * @return true if success, false otherwise
      */
-    bool send_message();
+    static bool send_message();
 
     /**
      * @brief set the CAN interface
