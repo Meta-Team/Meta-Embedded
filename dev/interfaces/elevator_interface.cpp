@@ -8,6 +8,7 @@ int32_t ElevatorInterface::target_position[2];
 CANTxFrame ElevatorInterface::txFrames[4];
 ElevatorInterface::elevator_wheel_t ElevatorInterface::elevator_wheels[4];
 CANInterface* ElevatorInterface::can = nullptr;
+uint8_t ElevatorInterface::feedback_time;
 
 bool ElevatorInterface::send_message() {
     for(int i = 0; i < 2; i++) {
