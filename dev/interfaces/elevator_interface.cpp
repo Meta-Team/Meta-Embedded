@@ -88,7 +88,21 @@ void ElevatorInterface::start(CANInterface* can_interface) {
     }
 
     // Waiting for the work to be done
-    chThdSleepMilliseconds(100);
+    chThdSleepMilliseconds(500);
+
+    // Choose the feedback mode for the four wheels
+    txFrames[0].SID = COMMAND_A_FRONT_LEFT;
+    txFrames[1].SID = COMMAND_A_FRONT_RIGHT;
+    txFrames[2].SID = COMMAND_A_REAR_LEFT;
+    txFrames[3].SID = COMMAND_A_REAR_RIGHT;
+
+    feedback_time = 100;
+
+    for(int wheel_index = 0; wheel_index < 4; wheel_index++){
+        txFrames[wheel_index].data8[0] = feedback_time;
+        txFrames[wheel_index].data8[1] = 0x00;
+        can->send_msg(&txFrames[wheel_index]);
+    }
 
     // Set the PWM for the four wheels
     txFrames[0].SID = COMMAND_5_FRONT_LEFT;

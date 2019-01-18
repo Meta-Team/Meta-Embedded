@@ -53,6 +53,18 @@ public:
     } elevator_wheel_tx_command_1_id_t;
 
     /**
+     * @brief the SID for command A (choose feedback mode command) of the four CANRxFrames for the four wheels
+     */
+    typedef enum {
+        COMMAND_A_FRONT_LEFT = 0x31A,  // The front-left wheel
+        COMMAND_A_FRONT_RIGHT = 0x32A,  // The front-right wheel
+        COMMAND_A_REAR_LEFT = 0x33A,  // The left-rear wheel
+        COMMAND_A_REAR_RIGHT = 0x34A  // The right-rear wheel
+    } elevator_wheel_tx_command_A_id_t;
+
+    static uint8_t feedback_time;
+
+    /**
      * @brief contains the target position of both the front wheels and the rear wheels
      * target_position[0] contains the target position of the front wheels
      * target_position[1] contains the target position of the rear wheels
