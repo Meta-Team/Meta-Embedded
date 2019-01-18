@@ -83,6 +83,25 @@ static void cmd_gimbal_enable(BaseSequentialStream *chp, int argc, char *argv[])
 }
 
 /**
+ * @brief set enabled state of friction wheels
+ * @param chp
+ * @param argc
+ * @param argv
+ */
+static void cmd_gimbal_enable_fw(BaseSequentialStream *chp, int argc, char *argv[]) {
+    (void) argv;
+    if (argc != 1 || (*argv[0] != '0' && *argv[0] != '1')) {
+        shellUsage(chp, "g_enable_fw 0/1");
+        return;
+    }
+    GimbalInterface::friction_wheels.duty_cycle = 0.2;
+    GimbalInterface::friction_wheels.enabled = *argv[0] - '0';
+
+//    chprintf(chp, "Gimbal friction_wheels enabled = %d" SHELL_NEWLINE_STR, GimbalInterface::friction_wheels.enabled);
+
+}
+
+/**
  * @brief set feedback enable states
  * @param chp
  * @param argc
@@ -255,6 +274,7 @@ ShellCommand gimbalCotrollerCommands[] = {
         {"g_set_angle",   cmd_gimbal_set_target_angle},
         {"g_set_params",  cmd_gimbal_set_parameters},
         {"g_echo_params", cmd_gimbal_echo_parameters},
+        {"g_enable_fw",   cmd_gimbal_enable_fw},
         {nullptr,         nullptr}
 };
 
@@ -304,7 +324,7 @@ protected:
 
                 // Perform velocity check
                 if (MPU6500Controller::angle_speed.z > yaw_max_speed ||
-                        MPU6500Controller::angle_speed.z < -yaw_max_speed) {
+                    MPU6500Controller::angle_speed.z < -yaw_max_speed) {
                     Shell::printf("!dyv" SHELL_NEWLINE_STR);
                     GimbalInterface::yaw.enabled = false;
                     GimbalInterface::send_gimbal_currents();
@@ -355,6 +375,7 @@ class MPU6500Thread : public BaseStaticThread<256> {
 protected:
     void main() final {
         setName("mpu6500");
+        MPU6500Controller::start(&SPID5);
         while (!shouldTerminate()) {
             MPU6500Controller::getData();
             sleep(TIME_MS2I(100));
@@ -370,7 +391,6 @@ int main(void) {
     Shell::start(HIGHPRIO);
     Shell::addCommands(gimbalCotrollerCommands);
 
-    MPU6500Controller::start(&SPID5);
     mpu6500Thread.start(HIGHPRIO - 3);
 
     feedbackModule.start_thread(NORMALPRIO);
