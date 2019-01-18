@@ -9,8 +9,30 @@
 
 GimbalInterface::motor_t GimbalInterface::yaw;
 GimbalInterface::motor_t GimbalInterface::pitch;
+GimbalInterface::motor_t GimbalInterface::bullet_loader;
+GimbalInterface::friction_wheels_t GimbalInterface::friction_wheels;
 
-CANInterface* GimbalInterface::can = nullptr;
+CANInterface *GimbalInterface::can = nullptr;
+
+// FIXME: can't pass class static variable to HAL written in C. Find a better way to arrange these configs
+static PWMConfig friction_wheels_pwmcfg = {
+        50000,
+        1000,
+        nullptr,
+        {
+                {PWM_OUTPUT_ACTIVE_HIGH, nullptr},
+                {PWM_OUTPUT_ACTIVE_HIGH, nullptr},
+                {PWM_OUTPUT_DISABLED, nullptr},
+                {PWM_OUTPUT_DISABLED, nullptr}
+        },
+        0,
+        0
+};
+
+void GimbalInterface::start(CANInterface *can_interface) {
+    can = can_interface;
+    pwmStart(friction_wheel_pwm_driver, &friction_wheels_pwmcfg);
+}
 
 bool GimbalInterface::send_gimbal_currents() {
 
@@ -24,6 +46,7 @@ bool GimbalInterface::send_gimbal_currents() {
     txmsg.RTR = CAN_RTR_DATA;
     txmsg.DLC = 0x08;
 
+    // Fill the current of Yaw
     if (yaw.enabled) {
 #if GIMBAL_INTERFACE_ENABLE_CLIP
         ABS_LIMIT(yaw.target_current, GIMBAL_INTERFACE_MAX_CURRENT);
@@ -36,7 +59,7 @@ bool GimbalInterface::send_gimbal_currents() {
         txmsg.data8[0] = txmsg.data8[1] = 0;
     }
 
-
+    // Fill the current of Pitch
     if (pitch.enabled) {
 #if GIMBAL_INTERFACE_ENABLE_CLIP
         ABS_LIMIT(pitch.target_current, GIMBAL_INTERFACE_MAX_CURRENT);
@@ -49,9 +72,35 @@ bool GimbalInterface::send_gimbal_currents() {
         txmsg.data8[2] = txmsg.data8[3] = 0;
     }
 
-    txmsg.data8[4] =  txmsg.data8[5] = txmsg.data8[6] = txmsg.data8[7] = 0;
+    // Fill the current of bullet loader
+    // TODO: test the positive direction of bullet loader motor
+    if (bullet_loader.enabled) {
+#if GIMBAL_INTERFACE_ENABLE_CLIP
+        ABS_LIMIT(bullet_loader.target_current, GIMBAL_INTERFACE_BULLET_LOADER_MAX_CURRENT);
+#endif
+        txmsg.data8[4] = (uint8_t) (-bullet_loader.target_current >> 8); //upper byte
+        txmsg.data8[5] = (uint8_t) -bullet_loader.target_current; // lower byte
+    } else {
+        txmsg.data8[4] = txmsg.data8[5] = 0;
+    }
+
+
+    txmsg.data8[6] = txmsg.data8[7] = 0;
 
     can->send_msg(&txmsg);
+
+    if (friction_wheels.enabled) {
+        pwmEnableChannel(friction_wheel_pwm_driver, FW_LEFT,
+                         PWM_PERCENTAGE_TO_WIDTH(friction_wheel_pwm_driver, friction_wheels.duty_cycle * 500 + 500));
+        pwmEnableChannel(friction_wheel_pwm_driver, FW_RIGHT,
+                         PWM_PERCENTAGE_TO_WIDTH(friction_wheel_pwm_driver, friction_wheels.duty_cycle * 500 + 500));
+    } else {
+        pwmEnableChannel(friction_wheel_pwm_driver, FW_LEFT,
+                         PWM_PERCENTAGE_TO_WIDTH(friction_wheel_pwm_driver, 0 * 500 + 500));
+        pwmEnableChannel(friction_wheel_pwm_driver, FW_RIGHT,
+                         PWM_PERCENTAGE_TO_WIDTH(friction_wheel_pwm_driver, 0 * 500 + 500));
+    }
+
     return true;
 }
 
@@ -62,9 +111,10 @@ bool GimbalInterface::process_motor_feedback(CANRxFrame *rxmsg) {
  * add the angle movement with the relative angle, get the new relative angle, modify the relative angle and the base round value
  * divide the angle movement by the time break to get the angular velocity
  * */
-    motor_t* motor;
+    motor_t *motor;
     if (rxmsg->SID == 0x205) motor = &yaw;
     else if (rxmsg->SID == 0x206) motor = &pitch;
+    else if (rxmsg->SID == 0x207) motor = &bullet_loader;
     else
         return false;
 
@@ -72,7 +122,7 @@ bool GimbalInterface::process_motor_feedback(CANRxFrame *rxmsg) {
     uint16_t new_actual_angle_raw = (rxmsg->data8[0] << 8 | rxmsg->data8[1]);
 
     // check whether this new raw angle is valid
-    if (new_actual_angle_raw > 8191){
+    if (new_actual_angle_raw > 8191) {
         return false;
     }
 
@@ -85,14 +135,14 @@ bool GimbalInterface::process_motor_feedback(CANRxFrame *rxmsg) {
     motor->last_angle_raw = new_actual_angle_raw;
 
     // make sure that the angle movement is in [-4096,4096] ([-180,180] in degree)
-    if (angle_movement < -4096){
+    if (angle_movement < -4096) {
         angle_movement += 8192;
-    }else if (angle_movement > 4096){
+    } else if (angle_movement > 4096) {
         angle_movement -= 8192;
-    } else if(angle_movement == 4096 || angle_movement == -4096){
-        if (motor->angular_velocity > 0){
+    } else if (angle_movement == 4096 || angle_movement == -4096) {
+        if (motor->angular_velocity > 0) {
             angle_movement = 4096;
-        }else{
+        } else {
             angle_movement = -4096;
         }
     }
@@ -118,15 +168,15 @@ bool GimbalInterface::process_motor_feedback(CANRxFrame *rxmsg) {
     if (motor->sample_count >= velocity_sample_interval) {
         // calculate the angular velocity
         time_msecs_t new_sample_time = TIME_I2MS(chibios_rt::System::getTime());
-        motor->angular_velocity = motor->sample_movement_sum * 360.0f * 1000.0f/ 8192.0f / (float) (new_sample_time - motor->sample_time);
-//        motor->angular_velocity = motor->sample_movement_sum * 360.0f / 8192.0f / (float) velocity_sample_interval / 0.001f;
+        motor->angular_velocity = motor->sample_movement_sum * 360.0f * 1000.0f / 8192.0f /
+                                  (float) (new_sample_time - motor->sample_time);
         motor->sample_time = new_sample_time;
 
         motor->sample_movement_sum = 0;
         motor->sample_count = 0;
     }
 
-    motor->actual_current = (int16_t)(rxmsg->data8[2] << 8 | rxmsg->data8[3]);
+    motor->actual_current = (int16_t) (rxmsg->data8[2] << 8 | rxmsg->data8[3]);
 
     return true;
 }

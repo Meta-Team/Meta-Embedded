@@ -85,6 +85,19 @@ DEV_MPU6500_CPPSRC = interfaces/mpu6500.cpp \
 DEV_MPU6500_INC = interfaces
 
 # ===========================================================================
+# ELEVATOR_INTERFACE MODULES
+#
+#	Include CANInterface, ElevatorInterface, and the unit test modules.
+#
+# ===========================================================================
+
+DEV_ELEVATOR_INTERFACE_CSRC =
+DEV_ELEVATOR_INTERFACE_CPPSRC = interfaces/can_interface.cpp \
+                                interfaces/elevator_interface.cpp \
+                                interfaces/elevator_interface_unit_test.cpp
+DEV_ELEVATOR_INTERFACE_INC = interfaces
+
+# ===========================================================================
 # RULES
 #
 # 	Add common components and files specifized by parameter DEV_MODULE to
