@@ -153,10 +153,10 @@
 #define GPIOF_PIN3                  3U
 #define GPIOF_PIN4                  4U
 #define GPIOF_PIN5                  5U
-#define GPIOF_PIN6                  6U
-#define GPIOF_PIN7                  7U
-#define GPIOF_PIN8                  8U
-#define GPIOF_PIN9                  9U
+#define GPIOF_SPI5_NSS              6U
+#define GPIOF_SPI5_SCK              7U
+#define GPIOF_SPI5_MISO             8U
+#define GPIOF_SPI5_MOSI             9U
 #define GPIOF_PIN10                 10U
 #define GPIOF_PIN11                 11U
 #define GPIOF_PIN12                 12U
@@ -884,7 +884,7 @@
  * PF3  - PIN3                      (input floating).
  * PF4  - PIN4                      (input floating).
  * PF5  - PIN5                      (input floating).
- * PF6  - PIN6                      (input floating).
+ * PF6  - SPI5_NSS                      (input floating).
  * PF7  - PIN7                      (input floating).
  * PF8  - PIN8                      (input floating).
  * PF9  - PIN9                      (input floating).
@@ -901,10 +901,10 @@
                                      PIN_MODE_INPUT(GPIOF_PIN3) |           \
                                      PIN_MODE_INPUT(GPIOF_PIN4) |           \
                                      PIN_MODE_INPUT(GPIOF_PIN5) |           \
-                                     PIN_MODE_INPUT(GPIOF_PIN6) |           \
-                                     PIN_MODE_INPUT(GPIOF_PIN7) |           \
-                                     PIN_MODE_INPUT(GPIOF_PIN8) |           \
-                                     PIN_MODE_INPUT(GPIOF_PIN9) |           \
+                                     PIN_MODE_OUTPUT(GPIOF_SPI5_NSS) |           \
+                                     PIN_MODE_ALTERNATE(GPIOF_SPI5_SCK) |           \
+                                     PIN_MODE_ALTERNATE(GPIOF_SPI5_MISO) |           \
+                                     PIN_MODE_ALTERNATE(GPIOF_SPI5_MOSI) |           \
                                      PIN_MODE_INPUT(GPIOF_PIN10) |          \
                                      PIN_MODE_INPUT(GPIOF_PIN11) |          \
                                      PIN_MODE_INPUT(GPIOF_PIN12) |          \
@@ -917,10 +917,10 @@
                                      PIN_OTYPE_PUSHPULL(GPIOF_PIN3) |       \
                                      PIN_OTYPE_PUSHPULL(GPIOF_PIN4) |       \
                                      PIN_OTYPE_PUSHPULL(GPIOF_PIN5) |       \
-                                     PIN_OTYPE_PUSHPULL(GPIOF_PIN6) |       \
-                                     PIN_OTYPE_PUSHPULL(GPIOF_PIN7) |       \
-                                     PIN_OTYPE_PUSHPULL(GPIOF_PIN8) |       \
-                                     PIN_OTYPE_PUSHPULL(GPIOF_PIN9) |       \
+                                     PIN_OTYPE_PUSHPULL(GPIOF_SPI5_NSS) |       \
+                                     PIN_OTYPE_PUSHPULL(GPIOF_SPI5_SCK) |       \
+                                     PIN_OTYPE_PUSHPULL(GPIOF_SPI5_MISO) |       \
+                                     PIN_OTYPE_PUSHPULL(GPIOF_SPI5_MOSI) |       \
                                      PIN_OTYPE_PUSHPULL(GPIOF_PIN10) |      \
                                      PIN_OTYPE_PUSHPULL(GPIOF_PIN11) |      \
                                      PIN_OTYPE_PUSHPULL(GPIOF_PIN12) |      \
@@ -933,10 +933,10 @@
                                      PIN_OSPEED_HIGH(GPIOF_PIN3) |          \
                                      PIN_OSPEED_HIGH(GPIOF_PIN4) |          \
                                      PIN_OSPEED_HIGH(GPIOF_PIN5) |          \
-                                     PIN_OSPEED_HIGH(GPIOF_PIN6) |          \
-                                     PIN_OSPEED_HIGH(GPIOF_PIN7) |          \
-                                     PIN_OSPEED_HIGH(GPIOF_PIN8) |          \
-                                     PIN_OSPEED_HIGH(GPIOF_PIN9) |          \
+                                     PIN_OSPEED_HIGH(GPIOF_SPI5_NSS) |          \
+                                     PIN_OSPEED_HIGH(GPIOF_SPI5_SCK) |          \
+                                     PIN_OSPEED_HIGH(GPIOF_SPI5_MISO) |          \
+                                     PIN_OSPEED_HIGH(GPIOF_SPI5_MOSI) |          \
                                      PIN_OSPEED_HIGH(GPIOF_PIN10) |         \
                                      PIN_OSPEED_HIGH(GPIOF_PIN11) |         \
                                      PIN_OSPEED_HIGH(GPIOF_PIN12) |         \
@@ -949,26 +949,28 @@
                                      PIN_PUPDR_FLOATING(GPIOF_PIN3) |       \
                                      PIN_PUPDR_FLOATING(GPIOF_PIN4) |       \
                                      PIN_PUPDR_FLOATING(GPIOF_PIN5) |       \
-                                     PIN_PUPDR_FLOATING(GPIOF_PIN6) |       \
-                                     PIN_PUPDR_FLOATING(GPIOF_PIN7) |       \
-                                     PIN_PUPDR_FLOATING(GPIOF_PIN8) |       \
-                                     PIN_PUPDR_FLOATING(GPIOF_PIN9) |       \
+                                     PIN_PUPDR_PULLUP(GPIOF_SPI5_NSS) |       \
+                                     PIN_PUPDR_PULLUP(GPIOF_SPI5_SCK) |       \
+                                     PIN_PUPDR_PULLDOWN(GPIOF_SPI5_MISO) |       \
+                                     PIN_PUPDR_PULLDOWN(GPIOF_SPI5_MOSI) |       \
                                      PIN_PUPDR_FLOATING(GPIOF_PIN10) |      \
                                      PIN_PUPDR_FLOATING(GPIOF_PIN11) |      \
                                      PIN_PUPDR_FLOATING(GPIOF_PIN12) |      \
                                      PIN_PUPDR_FLOATING(GPIOF_PIN13) |      \
                                      PIN_PUPDR_FLOATING(GPIOF_LED_GREEN) |  \
                                      PIN_PUPDR_FLOATING(GPIOF_PIN15))
+                                     // TODO: determine the output mode of LEDs
+                                     // TODO: understand the mode of SPI5 pins
 #define VAL_GPIOF_ODR               (PIN_ODR_HIGH(GPIOF_PIN0) |             \
                                      PIN_ODR_HIGH(GPIOF_PIN1) |             \
                                      PIN_ODR_HIGH(GPIOF_PIN2) |             \
                                      PIN_ODR_HIGH(GPIOF_PIN3) |             \
                                      PIN_ODR_HIGH(GPIOF_PIN4) |             \
                                      PIN_ODR_HIGH(GPIOF_PIN5) |             \
-                                     PIN_ODR_HIGH(GPIOF_PIN6) |             \
-                                     PIN_ODR_HIGH(GPIOF_PIN7) |             \
-                                     PIN_ODR_HIGH(GPIOF_PIN8) |             \
-                                     PIN_ODR_HIGH(GPIOF_PIN9) |             \
+                                     PIN_ODR_HIGH(GPIOF_SPI5_NSS) |             \
+                                     PIN_ODR_HIGH(GPIOF_SPI5_SCK) |             \
+                                     PIN_ODR_HIGH(GPIOF_SPI5_MISO) |             \
+                                     PIN_ODR_HIGH(GPIOF_SPI5_MOSI) |             \
                                      PIN_ODR_HIGH(GPIOF_PIN10) |            \
                                      PIN_ODR_HIGH(GPIOF_PIN11) |            \
                                      PIN_ODR_HIGH(GPIOF_PIN12) |            \
@@ -981,10 +983,10 @@
                                      PIN_AFIO_AF(GPIOF_PIN3, 0U) |          \
                                      PIN_AFIO_AF(GPIOF_PIN4, 0U) |          \
                                      PIN_AFIO_AF(GPIOF_PIN5, 0U) |          \
-                                     PIN_AFIO_AF(GPIOF_PIN6, 0U) |          \
-                                     PIN_AFIO_AF(GPIOF_PIN7, 0U))
-#define VAL_GPIOF_AFRH              (PIN_AFIO_AF(GPIOF_PIN8, 0U) |          \
-                                     PIN_AFIO_AF(GPIOF_PIN9, 0U) |          \
+                                     PIN_AFIO_AF(GPIOF_SPI5_NSS, 5U) |          \
+                                     PIN_AFIO_AF(GPIOF_SPI5_SCK, 5U))
+#define VAL_GPIOF_AFRH              (PIN_AFIO_AF(GPIOF_SPI5_MISO, 5U) |          \
+                                     PIN_AFIO_AF(GPIOF_SPI5_MOSI, 5U) |          \
                                      PIN_AFIO_AF(GPIOF_PIN10, 0U) |         \
                                      PIN_AFIO_AF(GPIOF_PIN11, 0U) |         \
                                      PIN_AFIO_AF(GPIOF_PIN12, 0U) |         \
@@ -1234,8 +1236,8 @@
  * PI2  - PIN2                      (input floating).
  * PI3  - PIN3                      (input floating).
  * PI4  - PIN4                      (input floating).
- * PI5  - PIN5                      (input floating).
- * PI6  - PIN6                      (input floating).
+ * PI5  - PIN5                      (alternate 3, PWMD8 channel 0).
+ * PI6  - PIN6                      (alternate 3, PWMD8 channel 1).
  * PI7  - PIN7                      (input floating).
  * PI8  - PIN8                      (input floating).
  * PI9  - PIN9                      (input floating).
@@ -1251,8 +1253,8 @@
                                      PIN_MODE_INPUT(GPIOI_PIN2) |           \
                                      PIN_MODE_INPUT(GPIOI_PIN3) |           \
                                      PIN_MODE_INPUT(GPIOI_PIN4) |           \
-                                     PIN_MODE_INPUT(GPIOI_PIN5) |           \
-                                     PIN_MODE_INPUT(GPIOI_PIN6) |           \
+                                     PIN_MODE_ALTERNATE(GPIOI_PIN5) |           \
+                                     PIN_MODE_ALTERNATE(GPIOI_PIN6) |           \
                                      PIN_MODE_INPUT(GPIOI_PIN7) |           \
                                      PIN_MODE_INPUT(GPIOI_PIN8) |           \
                                      PIN_MODE_INPUT(GPIOI_PIN9) |           \
@@ -1331,8 +1333,8 @@
                                      PIN_AFIO_AF(GPIOI_PIN2, 0U) |          \
                                      PIN_AFIO_AF(GPIOI_PIN3, 0U) |          \
                                      PIN_AFIO_AF(GPIOI_PIN4, 0U) |          \
-                                     PIN_AFIO_AF(GPIOI_PIN5, 0U) |          \
-                                     PIN_AFIO_AF(GPIOI_PIN6, 0U) |          \
+                                     PIN_AFIO_AF(GPIOI_PIN5, 3U) |          \
+                                     PIN_AFIO_AF(GPIOI_PIN6, 3U) |          \
                                      PIN_AFIO_AF(GPIOI_PIN7, 0U))
 #define VAL_GPIOI_AFRH              (PIN_AFIO_AF(GPIOI_PIN8, 0U) |          \
                                      PIN_AFIO_AF(GPIOI_PIN9, 0U) |          \

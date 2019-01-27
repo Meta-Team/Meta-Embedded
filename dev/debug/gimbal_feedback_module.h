@@ -9,6 +9,7 @@
 #include "hal.h"
 #include "serial_shell.h"
 #include "gimbal_interface.h"
+#include "mpu6500.h"
 
 /**
  * This class holds a thread to send gimbal data through shell
