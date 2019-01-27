@@ -16,16 +16,6 @@ DEV_COMMON_INC = . \
 		         debug
 
 # ===========================================================================
-# MAIN MODULES
-# ===========================================================================
-
-DEV_MAIN_CSRC =
-DEV_MAIN_CPPSRC = interfaces/remote_interpreter.cpp \
-			      main.cpp
-DEV_MAIN_INC = interfaces
-
-
-# ===========================================================================
 # REMOTE_INTERPRETER MODULES
 #
 #	Include remote_interpreter sources and the unit test modules.
@@ -70,6 +60,15 @@ DEV_GIMBAL_CPPSRC = interfaces/can_interface.cpp \
 DEV_GIMBAL_INC = interfaces \
 				 module \
 				 control
+
+
+# ===========================================================================
+# INFANTRY ONE CONTROL PROGRAM
+# ===========================================================================
+
+DEV_INFANTRY_ONE_CSRC =
+DEV_INFANTRY_ONE_CPPSRC = main/main_infantry_one.cpp
+DEV_INFANTRY_ONE_INC = main
 
 
 # ===========================================================================
