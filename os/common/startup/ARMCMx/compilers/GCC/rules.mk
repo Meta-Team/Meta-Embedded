@@ -259,6 +259,12 @@ ifeq ($(USE_VERBOSE_COMPILE),yes)
 	$(LD) $(OBJS) $(LDFLAGS) $(LIBS) -o $@
 else
 	@echo Linking $@
+	@echo ASFLAGS $(ASFLAGS)
+	@echo ASXFLAGS $(ASXFLAGS)
+	@echo CFLAGS $(CFLAGS)
+	@echo CPPFLAGS $(CPPFLAGS)
+	@echo LDFLAGS $(LDFLAGS)
+	@echo $(LD) $(OBJS) $(LDFLAGS) $(LIBS) -o $@
 	@$(LD) $(OBJS) $(LDFLAGS) $(LIBS) -o $@
 endif
 

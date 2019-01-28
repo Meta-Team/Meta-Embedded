@@ -70,7 +70,7 @@ set(ALLCSRC ${ALLCSRC}
         ${CHIBIOS}/os/hal/ports/STM32/LLD/DMAv2/stm32_dma.c
         ${CHIBIOS}/os/hal/ports/STM32/LLD/EXTIv1/hal_ext_lld.c
         ${CHIBIOS}/os/hal/ports/STM32/LLD/GPIOv2/hal_pal_lld.c
-        ${CHIBIOS}/os/hal/lib/fallback/I2C/hal_i2c_lld.c
+#        ${CHIBIOS}/os/hal/lib/fallback/I2C/hal_i2c_lld.c
         ${CHIBIOS}/os/hal/ports/STM32/LLD/I2Cv1/hal_i2c_lld.c
         ${CHIBIOS}/os/hal/ports/STM32/LLD/MACv1/hal_mac_lld.c
         ${CHIBIOS}/os/hal/ports/STM32/LLD/OTGv1/hal_usb_lld.c
@@ -106,6 +106,14 @@ include_directories(${CHIBIOS}/os/hal/ports/STM32/LLD/ADCv2
         ${CHIBIOS}/os/hal/ports/STM32/LLD/USARTv1
         ${CHIBIOS}/os/hal/ports/STM32/LLD/xWDGv1)
 
+# $(CHIBIOS)/os/hal/ports/STM32/LLD/TIMv1/driver.mk
+set(ALLCSRC ${ALLCSRC}
+        ${CHIBIOS}/os/hal/ports/STM32/LLD/TIMv1/hal_st_lld.c
+        ${CHIBIOS}/os/hal/ports/STM32/LLD/TIMv1/hal_gpt_lld.c
+        ${CHIBIOS}/os/hal/ports/STM32/LLD/TIMv1/hal_icu_lld.c
+        ${CHIBIOS}/os/hal/ports/STM32/LLD/TIMv1/hal_pwm_lld.c)
+
+include_directories(${CHIBIOS}/os/hal/ports/STM32/LLD/TIMv1)
 
 # $(CHIBIOS)/dev/board/board.mk
 set(ALLCSRC ${ALLCSRC}
