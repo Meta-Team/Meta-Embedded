@@ -88,7 +88,7 @@ DEV_ELEVATOR_INTERFACE_CPPSRC = interfaces/can_interface.cpp \
 DEV_ELEVATOR_INTERFACE_INC = interfaces
 
 # ===========================================================================
-# INFANTRY ONE CONTROL PROGRAM
+# MAIN CONTROL PROGRAM
 # ===========================================================================
 
 DEV_INFANTRY_ONE_CSRC =

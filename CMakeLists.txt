@@ -47,7 +47,9 @@ set(DEVCPPSRC
         dev/control/gimbal_controller_unit_test.cpp
         dev/interfaces/mpu6500.cpp
         dev/interfaces/attitude_calc.cpp
-        dev/interfaces/mpu6500.h dev/interfaces/mpu6500_unit_test.cpp)
+        dev/interfaces/mpu6500.h dev/interfaces/mpu6500_unit_test.cpp
+        dev/main.cpp
+        dev/vehicle_configs/vehicle_infantry_one.h)
 
 # Our include directories
 include_directories(dev
@@ -55,7 +57,8 @@ include_directories(dev
         dev/debug
         dev/interfaces
         dev/module
-        dev/control)
+        dev/control
+        dev/vehicle_configs)
 
 
 # This target is used to make CLion IDE work properly
