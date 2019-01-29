@@ -124,7 +124,9 @@ include_directories(dev
         dev/debug
         dev/remote_interpreter)
 
-add_executable(${PROJECT_NAME}.elf ${CHIBIOS_XASM_SRC} ${CHIBIOS_C_SRC} ${CHIBIOS_CPP_SRC} ${COMMON_CPP_SRC}
+add_library(ChibiOS_OBJ OBJECT ${CHIBIOS_XASM_SRC} ${CHIBIOS_C_SRC} ${CHIBIOS_CPP_SRC})
+
+add_executable(${PROJECT_NAME}.elf $<TARGET_OBJECTS:ChibiOS_OBJ> ${COMMON_CPP_SRC}
         dev/main.cpp)
 
 # Run size utility after build
