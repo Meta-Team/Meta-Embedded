@@ -1,19 +1,19 @@
-#[[
-    This file is used to allow CLion work properly with the files of ChibiOS.
-]]
+# This file set sources of ChibiOS to ${CHIBIOS_XASM_SRC} ${CHIBIOS_C_SRC}, ${CHIBIOS_CPP_SRC}, and add correspoing
+#   directory to include_directories. Extract from Makefiles and .mk files from ChibiOS.
 
+# By liuzikai 2018-01-29
 
-set(CHIBIOS .)
+set(CHIBIOS .) # this file is included in the CMakeLists.txt in the upper directory.
 
 # $(CHIBIOS)/os/license/license.mk
 include_directories(${CHIBIOS}/os/license)
 
 
 # $(CHIBIOS)/os/common/startup/ARMCMx/compilers/GCC/mk/startup_stm32f4xx.mk
-set(ALLCSRC ${ALLCSRC}
+set(CHIBIOS_C_SRC ${CHIBIOS_C_SRC}
         ${CHIBIOS}/os/common/startup/ARMCMx/compilers/GCC/crt1.c)
 
-set(ALLXASMSRC ${ALLXASMSRC}
+set(CHIBIOS_XASM_SRC ${CHIBIOS_XASM_SRC}
         ${CHIBIOS}/os/common/startup/ARMCMx/compilers/GCC/crt0_v7m.S
         ${CHIBIOS}/os/common/startup/ARMCMx/compilers/GCC/vectors.S)
 
@@ -25,7 +25,7 @@ include_directories(${CHIBIOS}/os/common/portability/GCC
 
 
 # $(CHIBIOS)/os/hal/hal.mk
-set(ALLCSRC ${ALLCSRC}
+set(CHIBIOS_C_SRC ${CHIBIOS_C_SRC}
         ${CHIBIOS}/os/hal/src/hal.c
         ${CHIBIOS}/os/hal/src/hal_buffers.c
         ${CHIBIOS}/os/hal/src/hal_queues.c
@@ -58,19 +58,19 @@ include_directories(${CHIBIOS}/os/hal/include)
 
 
 # $(CHIBIOS)/os/hal/ports/STM32/STM32F4xx/platform.mk
-set(ALLCSRC ${ALLCSRC}
+set(CHIBIOS_C_SRC ${CHIBIOS_C_SRC}
         ${CHIBIOS}/os/hal/ports/common/ARMCMx/nvic.c
         ${CHIBIOS}/os/hal/ports/STM32/STM32F4xx/stm32_isr.c
         ${CHIBIOS}/os/hal/ports/STM32/STM32F4xx/hal_lld.c)
 
-set(ALLCSRC ${ALLCSRC}
+set(CHIBIOS_C_SRC ${CHIBIOS_C_SRC}
         ${CHIBIOS}/os/hal/ports/STM32/LLD/ADCv2/hal_adc_lld.c
         ${CHIBIOS}/os/hal/ports/STM32/LLD/CANv1/hal_can_lld.c
         ${CHIBIOS}/os/hal/ports/STM32/LLD/DACv1/hal_dac_lld.c
         ${CHIBIOS}/os/hal/ports/STM32/LLD/DMAv2/stm32_dma.c
         ${CHIBIOS}/os/hal/ports/STM32/LLD/EXTIv1/hal_ext_lld.c
         ${CHIBIOS}/os/hal/ports/STM32/LLD/GPIOv2/hal_pal_lld.c
-        ${CHIBIOS}/os/hal/lib/fallback/I2C/hal_i2c_lld.c
+#        ${CHIBIOS}/os/hal/lib/fallback/I2C/hal_i2c_lld.c
         ${CHIBIOS}/os/hal/ports/STM32/LLD/I2Cv1/hal_i2c_lld.c
         ${CHIBIOS}/os/hal/ports/STM32/LLD/MACv1/hal_mac_lld.c
         ${CHIBIOS}/os/hal/ports/STM32/LLD/OTGv1/hal_usb_lld.c
@@ -106,23 +106,31 @@ include_directories(${CHIBIOS}/os/hal/ports/STM32/LLD/ADCv2
         ${CHIBIOS}/os/hal/ports/STM32/LLD/USARTv1
         ${CHIBIOS}/os/hal/ports/STM32/LLD/xWDGv1)
 
+# $(CHIBIOS)/os/hal/ports/STM32/LLD/TIMv1/driver.mk
+set(CHIBIOS_C_SRC ${CHIBIOS_C_SRC}
+        ${CHIBIOS}/os/hal/ports/STM32/LLD/TIMv1/hal_st_lld.c
+        ${CHIBIOS}/os/hal/ports/STM32/LLD/TIMv1/hal_gpt_lld.c
+        ${CHIBIOS}/os/hal/ports/STM32/LLD/TIMv1/hal_icu_lld.c
+        ${CHIBIOS}/os/hal/ports/STM32/LLD/TIMv1/hal_pwm_lld.c)
+
+include_directories(${CHIBIOS}/os/hal/ports/STM32/LLD/TIMv1)
 
 # $(CHIBIOS)/dev/board/board.mk
-set(ALLCSRC ${ALLCSRC}
+set(CHIBIOS_C_SRC ${CHIBIOS_C_SRC}
         ${CHIBIOS}/dev/board/board.c)
 
 include_directories(${CHIBIOS}/dev/board)
 
 
 # $(CHIBIOS)/os/hal/osal/rt/osal.mk
-set(ALLCSRC ${ALLCSRC}
+set(CHIBIOS_C_SRC ${CHIBIOS_C_SRC}
         ${CHIBIOS}/os/hal/osal/rt/osal.c)
 
 include_directories(${CHIBIOS}/os/hal/osal/rt)
 
 
 # $(CHIBIOS)/os/rt/rt.mk
-set(ALLCSRC ${ALLCSRC}
+set(CHIBIOS_C_SRC ${CHIBIOS_C_SRC}
         ${CHIBIOS}/os/rt/src/chsys.c
         ${CHIBIOS}/os/rt/src/chdebug.c
         ${CHIBIOS}/os/rt/src/chtrace.c
@@ -149,11 +157,11 @@ include_directories(${CHIBIOS}/os/rt/include
 
 
 # $(CHIBIOS)/os/common/ports/ARMCMx/compilers/GCC/mk/port_v7m.mk
-set(ALLCSRC ${ALLCSRC}
+set(CHIBIOS_C_SRC ${CHIBIOS_C_SRC}
         ${CHIBIOS}/os/common/ports/ARMCMx/chcore.c
         ${CHIBIOS}/os/common/ports/ARMCMx/chcore_v7m.c)
 
-set(ALLXASMSRC ${ALLXASMSRC}
+set(CHIBIOS_XASM_SRC ${CHIBIOS_XASM_SRC}
         ${CHIBIOS}/os/common/ports/ARMCMx/compilers/GCC/chcoreasm_v7m.S)
 
 include_directories(${CHIBIOS}/os/common/ports/ARMCMx
@@ -161,7 +169,7 @@ include_directories(${CHIBIOS}/os/common/ports/ARMCMx
 
 
 # $(CHIBIOS)/os/various/cpp_wrappers/chcpp.mk
-set(ALLCSRC ${ALLCSRC}
+set(CHIBIOS_CPP_SRC ${CHIBIOS_CPP_SRC}
         ${CHIBIOS}/os/various/cpp_wrappers/ch.cpp
         ${CHIBIOS}/os/various/cpp_wrappers/syscalls_cpp.cpp)
 
@@ -169,7 +177,7 @@ include_directories(${CHIBIOS}/os/various/cpp_wrappers)
 
 
 # $(CHIBIOS)/os/hal/lib/streams/streams.mk
-set(ALLCSRC ${ALLCSRC}
+set(CHIBIOS_C_SRC ${CHIBIOS_C_SRC}
         ${CHIBIOS}/os/hal/lib/streams/chprintf.c
         ${CHIBIOS}/os/hal/lib/streams/memstreams.c
         ${CHIBIOS}/os/hal/lib/streams/nullstreams.c)
@@ -178,7 +186,7 @@ include_directories(${CHIBIOS}/os/hal/lib/streams)
 
 
 # $(CHIBIOS)/os/various/shell/shell.mk
-set(ALLCSRC ${ALLCSRC}
+set(CHIBIOS_C_SRC ${CHIBIOS_C_SRC}
         ${CHIBIOS}/os/various/shell/shell.c
         ${CHIBIOS}/os/various/shell/shell_cmd.c)
 
