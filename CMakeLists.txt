@@ -137,7 +137,7 @@ add_executable(${PROJECT_NAME}.elf $<TARGET_OBJECTS:ChibiOS_OBJ> ${COMMON_CPP_SR
 #	Include remote_interpreter sources and the unit test modules.
 #
 # ===========================================================================
-add_executable(ut_remote_interpreter.elf ${CHIBIOS_XASM_SRC} ${CHIBIOS_C_SRC} ${CHIBIOS_CPP_SRC} ${COMMON_CPP_SRC}
+add_executable(ut_remote_interpreter.elf $<TARGET_OBJECTS:ChibiOS_OBJ> ${COMMON_CPP_SRC}
     dev/interfaces/remote_interpreter.cpp
     dev/interfaces/remote_interpreter_unit_test.cpp)
 
@@ -148,7 +148,7 @@ add_executable(ut_remote_interpreter.elf ${CHIBIOS_XASM_SRC} ${CHIBIOS_C_SRC} ${
 #   test modules.
 #
 # ===========================================================================
-add_executable(ut_gimbal_interface.elf ${CHIBIOS_XASM_SRC} ${CHIBIOS_C_SRC} ${CHIBIOS_CPP_SRC} ${COMMON_CPP_SRC}
+add_executable(ut_gimbal_interface.elf $<TARGET_OBJECTS:ChibiOS_OBJ> ${COMMON_CPP_SRC}
         dev/interfaces/can_interface.cpp
         dev/interfaces/gimbal_interface.cpp
         dev/interfaces/gimbal_interface_unit_test.cpp
@@ -162,7 +162,7 @@ add_executable(ut_gimbal_interface.elf ${CHIBIOS_XASM_SRC} ${CHIBIOS_C_SRC} ${CH
 #
 # ===========================================================================
 
-add_executable(ut_gimbal.elf ${CHIBIOS_XASM_SRC} ${CHIBIOS_C_SRC} ${CHIBIOS_CPP_SRC} ${COMMON_CPP_SRC}
+add_executable(ut_gimbal.elf $<TARGET_OBJECTS:ChibiOS_OBJ> ${COMMON_CPP_SRC}
         dev/interfaces/can_interface.cpp
         dev/interfaces/gimbal_interface.cpp
         dev/module/pid_controller.cpp
@@ -179,7 +179,7 @@ add_executable(ut_gimbal.elf ${CHIBIOS_XASM_SRC} ${CHIBIOS_C_SRC} ${CHIBIOS_CPP_
 #
 # ===========================================================================
 
-add_executable(ut_mpu6500.elf ${CHIBIOS_XASM_SRC} ${CHIBIOS_C_SRC} ${CHIBIOS_CPP_SRC} ${COMMON_CPP_SRC}
+add_executable(ut_mpu6500.elf $<TARGET_OBJECTS:ChibiOS_OBJ> ${COMMON_CPP_SRC}
         dev/interfaces/mpu6500.cpp
         dev/interfaces/mpu6500_unit_test.cpp)
 
@@ -190,7 +190,7 @@ add_executable(ut_mpu6500.elf ${CHIBIOS_XASM_SRC} ${CHIBIOS_C_SRC} ${CHIBIOS_CPP
 #	Include CANInterface, ElevatorInterface, and the unit test modules.
 #
 # ===========================================================================
-add_executable(ut_elevator.elf ${CHIBIOS_XASM_SRC} ${CHIBIOS_C_SRC} ${CHIBIOS_CPP_SRC} ${COMMON_CPP_SRC}
+add_executable(ut_elevator.elf $<TARGET_OBJECTS:ChibiOS_OBJ> ${COMMON_CPP_SRC}
         dev/interfaces/can_interface.cpp
         dev/interfaces/elevator_interface.cpp
         dev/interfaces/elevator_interface_unit_test.cpp)
