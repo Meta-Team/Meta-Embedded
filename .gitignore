@@ -32,19 +32,10 @@
 *.app
 
 dev/.build
+build/
 cmake-build-*/
 .idea/
 .metadata/
-
-CMakeCache.txt
-CMakeFiles
-CMakeScripts
-Testing
-Makefile
-cmake_install.cmake
-install_manifest.txt
-compile_commands.json
-CTestTestfile.cmake
 
 .DS_Store
 openocd.log

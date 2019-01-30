@@ -2,9 +2,19 @@
 // Created by liuzikai on 2019-01-27.
 //
 
-// Header for vehicle
-// TODO: change to macro selection
+// Header for vehicle. VEHICLE is set for each target in CMakeLists.txt.
+
+#define INFANTRY_ONE 1
+#define HERO 2
+#define ENGINEER 3
+#define INFANTRY_TWO 4
+#define INFANTRY_THREE 5
+
+#if VEHICLE == INFANTRY_ONE
 #include "vehicle_infantry_one.h"
+#elif VEHICLE == ENGINEER
+#include "vehicle_engineer.h"
+#endif
 
 // Basic headers
 #include "ch.hpp"

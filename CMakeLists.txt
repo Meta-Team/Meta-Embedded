@@ -22,7 +22,7 @@ set(TOOLCHAIN_PREFIX arm-none-eabi-)
 #set(CMAKE_ASM_COMPILER ${CMAKE_C_COMPLIER}       )
 #set(CMAKE_CXX_COMPILER ${TOOLCHAIN_PREFIX}g++    )
 #set(CMAKE_OBJCOPY      ${TOOLCHAIN_PREFIX}objcopy)
-set(CMAKE_SIZE_UTILITY  ${TOOLCHAIN_PREFIX}size   )
+set(CMAKE_SIZE_UTILITY ${TOOLCHAIN_PREFIX}size)
 #set(CMAKE_EXE_LINKER_FLAGS "--specs=nosys.specs")
 
 
@@ -36,7 +36,6 @@ set(CMAKE_SIZE_UTILITY  ${TOOLCHAIN_PREFIX}size   )
 #    set(MAKE_EXECUTABLE mingw32-make)
 #endif()
 #add_custom_target(Main_Make COMMAND ${MAKE_EXECUTABLE} -j -C ${Meta_Infantry_SOURCE_DIR}/dev UNIT_TEST=NONE)
-
 
 
 # ---------- Flags Configurations ----------
@@ -106,8 +105,6 @@ set(CMAKE_EXE_LINKER_FLAGS "-nostartfiles -L${STARTUP_LD_DICT} -Wl,--no-warn-mis
 set(CMAKE_VERBOSE_MAKEFILE OFF)
 
 
-
-
 # ---------- Files and Targets Configurations ----------
 
 include(os/ch.cmake)  # add files and directories from ChibiOS
@@ -124,45 +121,35 @@ include_directories(dev
         dev/debug
         dev/interfaces
         dev/module
-        dev/control)
+        dev/control
+        dev/vehicle_configs)
 
+# Reuse ChibiOS object files
 add_library(ChibiOS_OBJ OBJECT ${CHIBIOS_XASM_SRC} ${CHIBIOS_C_SRC} ${CHIBIOS_CPP_SRC})
 
-add_executable(${PROJECT_NAME}.elf $<TARGET_OBJECTS:ChibiOS_OBJ> ${COMMON_CPP_SRC}
+# Main program
+add_executable(Infantry_One $<TARGET_OBJECTS:ChibiOS_OBJ> ${COMMON_CPP_SRC}
         dev/main.cpp)
+target_compile_definitions(Infantry_One PRIVATE VEHICLE=INFANTRY_ONE)
 
-# ===========================================================================
-# REMOTE_INTERPRETER MODULES
-#
-#	Include remote_interpreter sources and the unit test modules.
-#
-# ===========================================================================
-add_executable(ut_remote_interpreter.elf $<TARGET_OBJECTS:ChibiOS_OBJ> ${COMMON_CPP_SRC}
-    dev/interfaces/remote_interpreter.cpp
-    dev/interfaces/remote_interpreter_unit_test.cpp)
+add_executable(Engineer $<TARGET_OBJECTS:ChibiOS_OBJ> ${COMMON_CPP_SRC}
+        dev/main.cpp)
+target_compile_definitions(Engineer PRIVATE VEHICLE=ENGINEER)
 
-# ===========================================================================
-# GIMBAL_INTERFACE MODULES
-#
-#	Include CANInterface, GimbalInterface, GimbalFeedbackModule and the unit
-#   test modules.
-#
-# ===========================================================================
-add_executable(ut_gimbal_interface.elf $<TARGET_OBJECTS:ChibiOS_OBJ> ${COMMON_CPP_SRC}
+# Remote Interpreter: include remote_interpreter sources and the unit test modules.
+add_executable(ut_remote_interpreter $<TARGET_OBJECTS:ChibiOS_OBJ> ${COMMON_CPP_SRC}
+        dev/interfaces/remote_interpreter.cpp
+        dev/interfaces/remote_interpreter_unit_test.cpp)
+
+# Gimbal Interface: include CANInterface, GimbalInterface, GimbalFeedbackModule and the unit test modules.
+add_executable(ut_gimbal_interface $<TARGET_OBJECTS:ChibiOS_OBJ> ${COMMON_CPP_SRC}
         dev/interfaces/can_interface.cpp
         dev/interfaces/gimbal_interface.cpp
         dev/interfaces/gimbal_interface_unit_test.cpp
         dev/debug/gimbal_feedback_module.cpp)
 
-# ===========================================================================
-# GIMBAL MODULES
-#
-#	Include CANInterface, GimbalInterface, GimbalController,
-# 	GimbalFeedbackModule and the unit test and adjustment modules.
-#
-# ===========================================================================
-
-add_executable(ut_gimbal.elf $<TARGET_OBJECTS:ChibiOS_OBJ> ${COMMON_CPP_SRC}
+# Gimbal: include CANInterface, GimbalInterface, GimbalController, GimbalFeedbackModule and test & adjustment modules.
+add_executable(ut_gimbal $<TARGET_OBJECTS:ChibiOS_OBJ> ${COMMON_CPP_SRC}
         dev/interfaces/can_interface.cpp
         dev/interfaces/gimbal_interface.cpp
         dev/module/pid_controller.cpp
@@ -172,32 +159,36 @@ add_executable(ut_gimbal.elf $<TARGET_OBJECTS:ChibiOS_OBJ> ${COMMON_CPP_SRC}
         dev/interfaces/mpu6500.cpp)
 
 
-# ===========================================================================
-# MPU6500 MODULES
-#
-#	Include MP6500 interface and unit test.
-#
-# ===========================================================================
-
-add_executable(ut_mpu6500.elf $<TARGET_OBJECTS:ChibiOS_OBJ> ${COMMON_CPP_SRC}
+# MPU6500: include MP6500 interface and unit test.
+add_executable(ut_mpu6500 $<TARGET_OBJECTS:ChibiOS_OBJ> ${COMMON_CPP_SRC}
         dev/interfaces/mpu6500.cpp
         dev/interfaces/mpu6500_unit_test.cpp)
 
 
-# ===========================================================================
-# ELEVATOR_INTERFACE MODULES
-#
-#	Include CANInterface, ElevatorInterface, and the unit test modules.
-#
-# ===========================================================================
-add_executable(ut_elevator.elf $<TARGET_OBJECTS:ChibiOS_OBJ> ${COMMON_CPP_SRC}
+# Elevator Interface: include CANInterface, ElevatorInterface, and the unit test modules.
+add_executable(ut_elevator $<TARGET_OBJECTS:ChibiOS_OBJ> ${COMMON_CPP_SRC}
         dev/interfaces/can_interface.cpp
         dev/interfaces/elevator_interface.cpp
         dev/interfaces/elevator_interface_unit_test.cpp)
 
 
-# Run size utility after build
-add_custom_command(TARGET ${PROJECT_NAME}.elf POST_BUILD
-        COMMAND echo "\n"
-        COMMAND ${CMAKE_SIZE_UTILITY} ${PROJECT_NAME}.elf
-        COMMAND echo "\n")
+# For all executable targets, change output name and location, and run size utility after build
+set(ELF_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/build)
+set(ELF_OUTPUT_NAME meta.elf)
+
+message("[Notice] All executables are built to ${ELF_OUTPUT_PATH}/${ELF_OUTPUT_NAME}")
+
+get_directory_property(TARGER_LIST BUILDSYSTEM_TARGETS)
+foreach (target ${TARGER_LIST})
+    if (NOT ${target} STREQUAL "ChibiOS_OBJ")
+        add_custom_command(TARGET ${target} POST_BUILD
+                COMMAND echo
+                COMMAND ${CMAKE_SIZE_UTILITY} ${ELF_OUTPUT_PATH}/${ELF_OUTPUT_NAME}
+                COMMAND echo)
+        set_target_properties(${target} PROPERTIES
+                RUNTIME_OUTPUT_DIRECTORY ${ELF_OUTPUT_PATH}
+                OUTPUT_NAME ${ELF_OUTPUT_NAME})
+    endif ()
+endforeach (target)
+
+
