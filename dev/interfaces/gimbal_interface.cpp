@@ -7,6 +7,7 @@
 #include "gimbal_interface.h"
 #include "common_macro.h"
 
+
 GimbalInterface::motor_t GimbalInterface::yaw;
 GimbalInterface::motor_t GimbalInterface::pitch;
 GimbalInterface::motor_t GimbalInterface::bullet_loader;
@@ -89,11 +90,12 @@ bool GimbalInterface::send_gimbal_currents() {
 
     can->send_msg(&txmsg);
 
+    // Fill the PWM of friction wheels
     if (friction_wheels.enabled) {
         pwmEnableChannel(friction_wheel_pwm_driver, FW_LEFT,
-                         PWM_PERCENTAGE_TO_WIDTH(friction_wheel_pwm_driver, friction_wheels.duty_cycle * 500 + 500));
+                         PWM_PERCENTAGE_TO_WIDTH(friction_wheel_pwm_driver, friction_wheels.send_duty_cycle * 500 + 500));
         pwmEnableChannel(friction_wheel_pwm_driver, FW_RIGHT,
-                         PWM_PERCENTAGE_TO_WIDTH(friction_wheel_pwm_driver, friction_wheels.duty_cycle * 500 + 500));
+                         PWM_PERCENTAGE_TO_WIDTH(friction_wheel_pwm_driver, friction_wheels.send_duty_cycle * 500 + 500));
     } else {
         pwmEnableChannel(friction_wheel_pwm_driver, FW_LEFT,
                          PWM_PERCENTAGE_TO_WIDTH(friction_wheel_pwm_driver, 0 * 500 + 500));

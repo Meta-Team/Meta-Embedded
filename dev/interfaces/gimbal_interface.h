@@ -10,6 +10,7 @@
 #include "ch.hpp"
 #include "hal.h"
 #include "can_interface.h"
+#include "pid_controller.h"
 
 /**
  * Enable clip at the moment of sending current.
@@ -20,6 +21,9 @@
 #if GIMBAL_INTERFACE_ENABLE_CLIP
 #define GIMBAL_INTERFACE_MAX_CURRENT 5000
 #define GIMBAL_INTERFACE_BULLET_LOADER_MAX_CURRENT 3000
+#define FRICTION_WHEEL_KP 1.0  // This is temporarily unused until the final parameter is confirmed
+#define FRICTION_WHEEL_KI 1.0  // This is temporarily unused until the final parameter is confirmed
+#define FRICTION_WHEEL_KD 1.0  // This is temporarily unused until the final parameter is confirmed
 #endif
 
 /**
@@ -96,15 +100,36 @@ public:
 
     static motor_t bullet_loader;
 
+    /***
+     * @brief friction wheels part, controlling the two friction wheels that shoot the bullets
+     */
     typedef struct {
 
         bool enabled = false;
 
-        float duty_cycle = 0.0f;
+        float target_duty_cycle = 0.0f;
+
+        float send_duty_cycle = 0.0f;
 
     } friction_wheels_t;
 
     static friction_wheels_t friction_wheels;
+
+    static PIDController friction_wheels_PIDController;
+
+    /***
+     * @brief set the PID parameters of the friction wheels
+     * @param _kp
+     * @param _ki
+     * @param _kd
+     * @param _i_limit
+     * @param _out_limit
+     */
+    static void set_friction_wheels_PID_parameter(float _kp, float _ki, float _kd, float _i_limit, float _out_limit){
+        friction_wheels_PIDController.change_parameters(_kp, _ki, _kd, _i_limit, _out_limit);
+    }
+
+    static float modify_friction_wheels_pwm()
 
 
     /**
@@ -128,6 +153,7 @@ public:
         yaw.id = YAW_ID;
         pitch.id = PIT_ID;
         bullet_loader.id = BULLET_LOADER_ID;
+
     }
 
     /**

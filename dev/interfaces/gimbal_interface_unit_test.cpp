@@ -126,9 +126,9 @@ static void cmd_gimbal_set_friction_wheels(BaseSequentialStream *chp, int argc, 
         return;
     }
 
-    GimbalInterface::friction_wheels.duty_cycle = duty_cycle;
+    GimbalInterface::friction_wheels.target_duty_cycle = duty_cycle;
     chprintf(chp, "Gimbal friction_wheels duty_cycle = %f" SHELL_NEWLINE_STR,
-             GimbalInterface::friction_wheels.duty_cycle);
+             GimbalInterface::friction_wheels.target_duty_cycle);
 
     GimbalInterface::send_gimbal_currents();
     chprintf(chp, "Gimbal target_current sent" SHELL_NEWLINE_STR);
