@@ -7,37 +7,21 @@
 
 #include "led.h"
 #include "serial_shell.h"
-#include "remote_interpreter.h"
+#include "referee_interface.h"
 
 using namespace chibios_rt;
 
-// Print the remote info
-static void cmd_remote_print(BaseSequentialStream *chp, int argc, char *argv[]) {
-    (void)argv;
-    if (argc > 0) {
-        shellUsage(chp, "p");
-        return;
-    }
-    chprintf(chp, "ch0 ch1 ch2 ch3 s1 s2 mouse_x mouse_y mouse_z L R" SHELL_NEWLINE_STR);
-    chprintf(chp, "%3d %3d %3d %3d %2d %2d %7d %7d %7d %1d %1d" SHELL_NEWLINE_STR,
-           (int) (Remote::rc.ch0 * 100), (int) (Remote::rc.ch1 * 100),
-           (int) (Remote::rc.ch2 * 100), (int) (Remote::rc.ch3 * 100),
-           Remote::rc.s1, Remote::rc.s2,
-           Remote::mouse.x, Remote::mouse.y, Remote::mouse.z,
-           Remote::mouse.press_left, Remote::mouse.press_right);
-    chprintf(chp, SHELL_NEWLINE_STR);
-    chprintf(chp, "W S A D SHIFT CTRL Q E R F G Z X C V B" SHELL_NEWLINE_STR);
-    chprintf(chp, "%d %d %d %d %5d %4d %d %d %d %d %d %d %d %d %d %d" SHELL_NEWLINE_STR,
-           Remote::key.w, Remote::key.s, Remote::key.a, Remote::key.d, Remote::key.shift, Remote::key.ctrl,
-           Remote::key.q, Remote::key.e, Remote::key.r, Remote::key.f, Remote::key.g, Remote::key.z,
-           Remote::key.x, Remote::key.c, Remote::key.v, Remote::key.b);
-    chprintf(chp, SHELL_NEWLINE_STR SHELL_NEWLINE_STR);
-}
+class RefereeEchoThread : public BaseStaticThread <512> {
+private:
+    void main() final {
+        setName("referee_echo");
+        RefereeSystem::start();
+        while(!shouldTerminate()) {
 
-ShellCommand remoteShellCommands[] = {
-        {"p", cmd_remote_print},
-        {nullptr, nullptr}
-};
+            sleep(TIME_MS2I(500));
+        }
+    }
+} refereeEchoThread;
 
 int main() {
     halInit();
@@ -46,9 +30,7 @@ int main() {
     // Start ChibiOS shell at high priority, so even if a thread stucks, we still have access to shell.
     Shell::start(HIGHPRIO);
 
-    Remote::start_receive();
-
-    Shell::addCommands(remoteShellCommands);
+    refereeEchoThread.start(NORMALPRIO);
 
     // See chconf.h for what this #define means.
 #if CH_CFG_NO_IDLE_THREAD

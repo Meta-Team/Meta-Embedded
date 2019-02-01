@@ -33,7 +33,7 @@ set(DEVCPPSRC
         dev/interfaces/remote_interpreter.cpp
         dev/interfaces/remote_interpreter_unit_test.cpp
         dev/interfaces/gimbal_interface_unit_test.cpp
-        dev/interfaces/gimbal_interface.cpp dev/interfaces/gimbal_interface.h dev/interfaces/can_interface.cpp dev/interfaces/can_interface.h dev/debug/gimbal_feedback_module.cpp dev/debug/gimbal_feedback_module.h dev/module/pid_controller.cpp dev/module/pid_controller.h dev/module/CRC16.cpp dev/module/CRC16.h dev/control/gimbal_controller.cpp dev/control/gimbal_controller.h dev/control/gimbal_controller_unit_test.cpp dev/judge-system/referee_interface.h dev/judge-system/referee_interface.cpp dev/module/CRC8.h dev/module/CRC8.cpp dev/judge-system/referee_interface_unit_test.cpp)
+        dev/interfaces/gimbal_interface.cpp dev/interfaces/gimbal_interface.h dev/interfaces/can_interface.cpp dev/interfaces/can_interface.h dev/debug/gimbal_feedback_module.cpp dev/debug/gimbal_feedback_module.h dev/module/pid_controller.cpp dev/module/pid_controller.h dev/module/CRC16.cpp dev/module/CRC16.h dev/control/gimbal_controller.cpp dev/control/gimbal_controller.h dev/control/gimbal_controller_unit_test.cpp dev/interfaces/referee_interface.h dev/interfaces/referee_interface.cpp dev/module/CRC8.h dev/module/CRC8.cpp dev/interfaces/referee_interface_unit_test.cpp)
 
 # Our include directories
 include_directories(dev

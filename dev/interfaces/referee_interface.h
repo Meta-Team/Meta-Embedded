@@ -10,8 +10,8 @@
 
 
 class RefereeSystem {
-public:
 
+public:
 
     typedef __PACKED_STRUCT {
         uint8_t flag;
@@ -76,7 +76,7 @@ public:
 
     static void sendClientData(ClientData_t data);
 
-    static void uartStart();
+    static void start();
 
     static void uartRxCallback(UARTDriver *uartp);
 
@@ -119,11 +119,15 @@ private:
     
     static UartWaitingType_t uartWaitingType;
 
-    static uint8_t rx_buf[];
+    static constexpr size_t rx_buf_size = 100;
+    static uint8_t rx_buf[rx_buf_size];
 
     friend void uartStart(UARTDriver *uartp, const UARTConfig *config);
     friend void uartStartReceive(UARTDriver *uartp, size_t n, void *rxbuf);
 
+    // See cpp file for configs
+    static constexpr UARTDriver* uartDriver = &UARTD3;
+    static const UARTConfig uartConfig;
 };
 
 

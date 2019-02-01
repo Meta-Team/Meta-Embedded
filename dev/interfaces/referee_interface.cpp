@@ -16,11 +16,20 @@ RefereeSystem::GameInfo_t RefereeSystem::gameInfo;
 RefereeSystem::RealBloodChangedData_t RefereeSystem::realBloodChangedData;
 RefereeSystem::RealShootData_t RefereeSystem::realShootData;
 
-#define Referee_SYSTEM_RX_BUF_SIZE 100
+RefereeSystem::UartWaitingType_t RefereeSystem::uartWaitingType;
+uint8_t RefereeSystem::rx_buf[RefereeSystem::rx_buf_size];
 
-RefereeSystem::UartWaitingType_t RefereeSystem::uartWaitingType = RefereeSystem::FRAME_STARTING_BYTE;
-uint8_t RefereeSystem::rx_buf[Referee_SYSTEM_RX_BUF_SIZE];
-
+const UARTConfig RefereeSystem::uartConfig = {
+        nullptr,
+        nullptr,
+        RefereeSystem::uartRxCallback, // callback function when the buffer is filled
+        nullptr,
+        nullptr,
+        115200, // speed
+        0,
+        0,
+        0,
+};
 
 void RefereeSystem::uartRxCallback(UARTDriver *uartp) {
     (void) uartp;
@@ -92,4 +101,19 @@ void RefereeSystem::uartRxCallback(UARTDriver *uartp) {
             uartStartReceive(uartp, frameHeader.data_length + 2, rx_buf); // receive data and CRC16 tailing
             break;
     }
+}
+
+void RefereeSystem::start() {
+    // GPIOs have been set in board.h
+    
+    // Start uart driver
+    uartStart(uartDriver, &uartConfig);
+    
+    // Wait for starting byte
+    uartWaitingType = FRAME_STARTING_BYTE;
+    uartStartReceive(uartDriver, 1, &frameHeader.sof);
+}
+
+void RefereeSystem::sendClientData(RefereeSystem::ClientData_t data) {
+    uartStartSend(uartDriver, sizeof(data), &data);
 }
