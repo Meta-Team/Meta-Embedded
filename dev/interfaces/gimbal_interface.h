@@ -21,9 +21,6 @@
 #if GIMBAL_INTERFACE_ENABLE_CLIP
 #define GIMBAL_INTERFACE_MAX_CURRENT 5000
 #define GIMBAL_INTERFACE_BULLET_LOADER_MAX_CURRENT 3000
-#define FRICTION_WHEEL_KP 1.0  // This is temporarily unused until the final parameter is confirmed
-#define FRICTION_WHEEL_KI 1.0  // This is temporarily unused until the final parameter is confirmed
-#define FRICTION_WHEEL_KD 1.0  // This is temporarily unused until the final parameter is confirmed
 #endif
 
 /**
@@ -39,13 +36,18 @@ class GimbalInterface {
 
 public:
 
+    int remained_bullet;
+
     typedef enum {
         YAW_ID = 0,
         PIT_ID = 1,
         BULLET_LOADER_ID = 2
     } motor_id_t;
 
-    /** Motor Interface **/
+    /**
+     * Motor Interface
+     * which is used for yaw, pitch and bullet loader motors
+     */
     typedef struct {
 
     public:
@@ -54,7 +56,8 @@ public:
         bool enabled = false;  // if not enabled, 0 current will be sent in send_gimbal_currents
 
         // +: clockwise, -: counter-clockwise
-        int target_current = 0;
+        int target_current = 0;  // the current that we want the motor to have
+        int sent_current = 0;  // the required current we send in order to reach stability around the target current
 
         /**
          * Normalized Angle and Rounds
@@ -62,25 +65,26 @@ public:
          *  Range: -180.0 (clockwise) to 180.0 (counter-clockwise)
          */
         float actual_angle = 0.0f; // the actual angle of the gimbal, compared with the front
-        int round_count = 0;  // the rounds that the gimbal turns
-
         float angular_velocity = 0.0f;  // instant angular velocity [degree/s], positive when counter-clockwise, negative otherwise
-
         int actual_current = 0;  // feedback current
+        int round_count = 0;  // the rounds that the gimbal turns
 
         // Set current angle as the front angle
         void reset_front_angle() {
-            actual_angle = 0;
-            round_count = 0;
+            motor_t::actual_angle = 0;
+            motor_t::round_count = 0;
         }
 
         // Get total angle from the original front angle
         float get_accumulate_angle() {
-            return actual_angle + round_count * 360.0f;
+            return motor_t::actual_angle + motor_t::round_count * 360.0f;
         }
 
         // For velocity sampling and gimbal feedback module
         time_msecs_t sample_time = 0;  // last sample time, for velocity calculation
+
+        // PID control for the motor
+        PIDController motor_PIDController;
 
     private:
 
@@ -94,43 +98,29 @@ public:
 
     } motor_t;
 
-
     static motor_t yaw;
     static motor_t pitch;
-
     static motor_t bullet_loader;
 
-    /***
-     * @brief friction wheels part, controlling the two friction wheels that shoot the bullets
+    /**
+     * Friction Wheels Interface
+     * control the two friction wheels that shoot the bullets
      */
     typedef struct {
 
         bool enabled = false;
 
-        float target_duty_cycle = 0.0f;
-
-        float send_duty_cycle = 0.0f;
+        float duty_cycle = 0.0f;
 
     } friction_wheels_t;
 
     static friction_wheels_t friction_wheels;
 
-    static PIDController friction_wheels_PIDController;
-
-    /***
-     * @brief set the PID parameters of the friction wheels
-     * @param _kp
-     * @param _ki
-     * @param _kd
-     * @param _i_limit
-     * @param _out_limit
+    /**
+     * @brief set the CAN interface, start PWM driver and set the PID
+     * @param can_interface
      */
-    static void set_friction_wheels_PID_parameter(float _kp, float _ki, float _kd, float _i_limit, float _out_limit){
-        friction_wheels_PIDController.change_parameters(_kp, _ki, _kd, _i_limit, _out_limit);
-    }
-
-    static float modify_friction_wheels_pwm()
-
+    static void start(CANInterface *can_interface);
 
     /**
      * @brief send target_current of each motor
@@ -146,6 +136,28 @@ public:
     static bool process_motor_feedback(CANRxFrame *rxmsg);
 
 
+    /**PID Functions**/
+
+    /**
+     * @brief set the motor PID parameters
+     * @param motor
+     * @param _kp
+     * @param _ki
+     * @param _kd
+     * @param _i_limit
+     * @param _out_limit
+     */
+    static void set_motor_PID(motor_t* motor, float _kp, float _ki, float _kd, float _i_limit, float _out_limit);
+
+    /**
+     * @brief calculate the needed output
+     * @param motor
+     * @param now
+     * @param target
+     * @return
+     */
+    static int calc_motor_current(motor_t* motor, float now, float target);
+
     /**
      * Default constructor
      */
@@ -155,13 +167,6 @@ public:
         bullet_loader.id = BULLET_LOADER_ID;
 
     }
-
-    /**
-     * @brief set the CAN interface and start PWM driver
-     * @param can_interface
-     */
-    static void start(CANInterface *can_interface);
-
 
 private:
 

@@ -33,6 +33,7 @@ static PWMConfig friction_wheels_pwmcfg = {
 void GimbalInterface::start(CANInterface *can_interface) {
     can = can_interface;
     pwmStart(friction_wheel_pwm_driver, &friction_wheels_pwmcfg);
+    set_motor_PID(&bullet_loader, 0.0, 0.0, 0.0, 0.0, 0.0);  // initialize the pid parameters for the bullet loader
 }
 
 bool GimbalInterface::send_gimbal_currents() {
@@ -76,15 +77,15 @@ bool GimbalInterface::send_gimbal_currents() {
     // Fill the current of bullet loader
     // TODO: test the positive direction of bullet loader motor
     if (bullet_loader.enabled) {
+        bullet_loader.sent_current = calc_motor_current(&bullet_loader, bullet_loader.actual_current, bullet_loader.target_current);
 #if GIMBAL_INTERFACE_ENABLE_CLIP
-        ABS_LIMIT(bullet_loader.target_current, GIMBAL_INTERFACE_BULLET_LOADER_MAX_CURRENT);
+        ABS_LIMIT(bullet_loader.sent_current, GIMBAL_INTERFACE_BULLET_LOADER_MAX_CURRENT);
 #endif
-        txmsg.data8[4] = (uint8_t) (-bullet_loader.target_current >> 8); //upper byte
-        txmsg.data8[5] = (uint8_t) -bullet_loader.target_current; // lower byte
+        txmsg.data8[4] = (uint8_t) (-bullet_loader.sent_current >> 8); //upper byte
+        txmsg.data8[5] = (uint8_t) -bullet_loader.sent_current; // lower byte
     } else {
         txmsg.data8[4] = txmsg.data8[5] = 0;
     }
-
 
     txmsg.data8[6] = txmsg.data8[7] = 0;
 
@@ -93,9 +94,9 @@ bool GimbalInterface::send_gimbal_currents() {
     // Fill the PWM of friction wheels
     if (friction_wheels.enabled) {
         pwmEnableChannel(friction_wheel_pwm_driver, FW_LEFT,
-                         PWM_PERCENTAGE_TO_WIDTH(friction_wheel_pwm_driver, friction_wheels.send_duty_cycle * 500 + 500));
+                         PWM_PERCENTAGE_TO_WIDTH(friction_wheel_pwm_driver, friction_wheels.duty_cycle * 500 + 500));
         pwmEnableChannel(friction_wheel_pwm_driver, FW_RIGHT,
-                         PWM_PERCENTAGE_TO_WIDTH(friction_wheel_pwm_driver, friction_wheels.send_duty_cycle * 500 + 500));
+                         PWM_PERCENTAGE_TO_WIDTH(friction_wheel_pwm_driver, friction_wheels.duty_cycle * 500 + 500));
     } else {
         pwmEnableChannel(friction_wheel_pwm_driver, FW_LEFT,
                          PWM_PERCENTAGE_TO_WIDTH(friction_wheel_pwm_driver, 0 * 500 + 500));
@@ -181,4 +182,13 @@ bool GimbalInterface::process_motor_feedback(CANRxFrame *rxmsg) {
     motor->actual_current = (int16_t) (rxmsg->data8[2] << 8 | rxmsg->data8[3]);
 
     return true;
+}
+
+void GimbalInterface::set_motor_PID(GimbalInterface::motor_t *motor, float _kp, float _ki, float _kd, float _i_limit,
+                                    float _out_limit) {
+    motor->motor_PIDController.change_parameters(_kp, _ki, _kd, _i_limit, _out_limit);
+}
+
+int GimbalInterface::calc_motor_current(GimbalInterface::motor_t *motor, float now, float target) {
+    return  motor->sent_current + (int)motor->motor_PIDController.calc(now, target);
 }

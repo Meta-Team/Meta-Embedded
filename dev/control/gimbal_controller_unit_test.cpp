@@ -94,7 +94,7 @@ static void cmd_gimbal_enable_fw(BaseSequentialStream *chp, int argc, char *argv
         shellUsage(chp, "g_enable_fw 0/1");
         return;
     }
-    GimbalInterface::friction_wheels.target_duty_cycle = 0.2;
+    GimbalInterface::friction_wheels.duty_cycle = 0.2;
     GimbalInterface::friction_wheels.enabled = *argv[0] - '0';
 
 //    chprintf(chp, "Gimbal friction_wheels enabled = %d" SHELL_NEWLINE_STR, GimbalInterface::friction_wheels.enabled);
