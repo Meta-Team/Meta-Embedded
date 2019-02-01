@@ -8,36 +8,9 @@
 
 #include "led.h"
 #include "serial_shell.h"
-#include "judge_system.h"
+#include "referee_interface.h"
 
 using namespace chibios_rt;
-
-void uart_received_callback(UARTDriver *uartp) {
-    (void) uartp;
-
-    chSysLock();
-
-    rc.ch0 = (((rx_buf[0] | rx_buf[1] << 8) & 0x07FF) - 1024.0f) / 660.0f;
-    rc.ch1 = (((rx_buf[1] >> 3 | rx_buf[2] << 5) & 0x07FF) - 1024.0f) / 660.0f;
-    rc.ch2 = (((rx_buf[2] >> 6 | rx_buf[3] << 2 | rx_buf[4] << 10) & 0x07FF) - 1024.0f) / 660.0f;
-    rc.ch3 = (((rx_buf[4] >> 1 | rx_buf[5] << 7) & 0x07FF) - 1024.0f) / 660.0f;
-
-    rc.s1 = (rc_status_t) ((rx_buf[5] >> 6) & 0x0003);
-    rc.s2 = (rc_status_t) ((rx_buf[5] >> 4) & 0x0003);
-
-    mouse.x = (int16_t) (rx_buf[6] | rx_buf[7] << 8);
-    mouse.y = (int16_t) (rx_buf[8] | rx_buf[9] << 8);
-    mouse.z = (int16_t) (rx_buf[10] | rx_buf[11] << 8);
-
-    mouse.press_left = (bool) rx_buf[12];
-    mouse.press_right = (bool) rx_buf[13];
-
-    key._key_code = static_cast<uint16_t>(rx_buf[14] | rx_buf[15] << 8);
-
-    chSysUnlock();
-
-    uartStartReceive(uartp, REMOTE_DATA_BUF_SIZE, rx_buf);
-}
 
 static constexpr UARTConfig remoteUartConfig = {
         nullptr,

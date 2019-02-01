@@ -105,5 +105,7 @@ public:
     };
 };
 
+#define SHELL_PRINTF(...) Shell::printf(__VA_ARGS__);
+//#define SHELL_PRINTF(...)
 
 #endif
