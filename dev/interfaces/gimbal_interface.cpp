@@ -8,6 +8,7 @@
 #include "common_macro.h"
 
 
+
 GimbalInterface::motor_t GimbalInterface::yaw;
 GimbalInterface::motor_t GimbalInterface::pitch;
 GimbalInterface::motor_t GimbalInterface::bullet_loader;
