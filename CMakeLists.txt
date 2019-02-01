@@ -18,7 +18,6 @@ add_custom_target(UT_REMOTE_INTERPRETER COMMAND ${MAKE_EXECUTABLE} -j -C ${Meta_
 add_custom_target(UT_GIMBAL_INTERFACE COMMAND ${MAKE_EXECUTABLE} -j -C ${Meta_Infantry_SOURCE_DIR}/dev DEV_MODULE=GIMBAL_INTERFACE)
 add_custom_target(UT_GIMBAL COMMAND ${MAKE_EXECUTABLE} -j -C ${Meta_Infantry_SOURCE_DIR}/dev DEV_MODULE=GIMBAL)
 add_custom_target(UT_MPU6500 COMMAND ${MAKE_EXECUTABLE} -j -C ${Meta_Infantry_SOURCE_DIR}/dev DEV_MODULE=MPU6500)
-add_custom_target(UT_ELEVATOR_INTERFACE COMMAND ${MAKE_EXECUTABLE} -j -C ${Meta_Infantry_SOURCE_DIR}/dev DEV_MODULE=ELEVATOR_INTERFACE)
 
 # make clean
 add_custom_target(MAKE_CLEAN COMMAND ${MAKE_EXECUTABLE} clean -C ${Meta_Infantry_SOURCE_DIR}/dev)
