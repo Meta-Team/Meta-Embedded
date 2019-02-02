@@ -2,13 +2,27 @@
 // Created by Administrator on 2019/1/15 0015.
 //
 
-#ifndef META_INFANTRY_JUDGE_SYSTEM_PARSER_H
-#define META_INFANTRY_JUDGE_SYSTEM_PARSER_H
+#ifndef META_INFANTRY_REFEREE_INTERFACE_H
+#define META_INFANTRY_REFEREE_INTERFACE_H
 
 #include "ch.hpp"
 #include "hal.h"
 
-
+/**
+ * @brief the interface for referee system
+ * @pre hardware is properly connected and GPIOs are properly configured in board.h
+ * @pre call start() to start UART port and start receive
+ * @note the status machine of receiving:
+ *       1. Receive byte one by one. If valid SOF 0xA5 is received, go to 2.
+ *       2. Receive the remaining header. If header is valid (CRC8), go to 3. Otherwise, go back to 1.
+ *       3. Receive cmdID. Check whether the id is valid and data length is correct. But even if there is error, still
+ *          go to status 4, as data length given in header is validated, which is more credible than is unvalidated
+ *          cmdID.
+ *       4. Receive frameHeader.data_length bytes. Go to status 5.
+ *       5. Validate data with CRC16. If it's valid, copy data to corresponding structure, or do nothing if failed.
+ *          Go to status 1.
+ * @attention Designed for 2017 referee system
+ */
 class RefereeSystem {
 
 public:
@@ -19,7 +33,7 @@ public:
         float y;
         float z;
         float compass;
-    } LocData_t;
+    } LocData_t;  // location data
 
     typedef __PACKED_STRUCT {
         uint32_t remainTime;  // remain time since last 3 minutes [s]
@@ -59,8 +73,8 @@ public:
     typedef __PACKED_STRUCT {
         float realBulletShootSpeed;  // [m/s]
         float realBulletShootFreq;  // [number per second]
-        float _realGolfShootSpeed;  // [m/s]
-        float _realGolfShootFreq;  // [number per second]
+        float realGolfShootSpeed;  // [m/s]
+        float realGolfShootFreq;  // [number per second]
     } RealShootData_t;
 
     typedef __PACKED_STRUCT {
@@ -69,16 +83,23 @@ public:
         float data3;
     } ClientData_t;
 
-
+    /* Data from referee system */
     static GameInfo_t gameInfo;
     static RealBloodChangedData_t realBloodChangedData;
     static RealShootData_t realShootData;
 
+    /**
+     * @brief send custom data (three float)
+     * @param data
+     */
     static void sendClientData(ClientData_t data);
 
+    /**
+     * @brief start UART and receive status machine
+     */
     static void start();
 
-    static void uartRxCallback(UARTDriver *uartp);
+    static void uartRxCallback(UARTDriver *uartp);  // only for internal use
 
 
 private:
@@ -91,10 +112,10 @@ private:
     } FrameHeader_t;
 
     enum UartWaitingType_t {
-        FRAME_STARTING_BYTE,
-        FRAME_REMAINING_HEADER,
-        FRAME_CMD_ID,
-        FRAME_DATA_AND_TAILING
+        FRAME_STARTING_BYTE,  // receive bytes one by one, waiting for 0xA5
+        FRAME_REMAINING_HEADER,  // receive remaining header after SOF
+        FRAME_CMD_ID,  // receive 2-byte cmdID
+        FRAME_DATA_AND_TAILING  // receive data section and 2-byte CRC16 tailing
     };
 
     enum CmdID_t {
@@ -104,15 +125,7 @@ private:
         CMD_CLIENT_DATA_CHANGE = 0x05,   // client defined data
     };
 
-    static constexpr size_t data_length[] = {
-            0, // 0x00
-            31, // 0x01, real time game info
-            3, // 0x02, real time blood change info
-            16, // 0x03, real time shooting data
-            0, // 0x04
-            12 // 0x05, client defined data
-
-    };
+    static const size_t data_length[];  // a const array of length of data section using cmdID as index
 
     static FrameHeader_t frameHeader;
     static uint16_t cmdID;  // CmdID_t
@@ -131,4 +144,4 @@ private:
 };
 
 
-#endif //META_INFANTRY_JUDGE_SYSTEM_PARSER_H
+#endif //META_INFANTRY_REFEREE_INTERFACE_H

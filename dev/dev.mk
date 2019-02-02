@@ -72,18 +72,20 @@ DEV_GIMBAL_INC = interfaces \
 				 control
 
 # ===========================================================================
-# JUDGE_SYSTEM MODULES
+# REFEREE_SYSTEM MODULES
 #
 #	Include judge system parser
 #
 # ===========================================================================
 
-DEV_JUDGE_SYSTEM_CSRC =
-DEV_JUDGE_SYSTEM_CPPSRC = judge-system/judge_system_parser.cpp \
-                          module/CRC16.cpp
+DEV_REFEREE_SYSTEM_CSRC =
+DEV_REFEREE_SYSTEM_CPPSRC = interfaces/referee_interface.cpp \
+						    interfaces/referee_interface_unit_test.cpp \
+						    module/CRC8.cpp \
+                            module/CRC16.cpp
 
-DEV_JUDGE_SYSTEM_INC = judge-system \
-                        module
+DEV_REFEREE_SYSTEM_INC = interfaces \
+                         module
 
 # ===========================================================================
 # RULES

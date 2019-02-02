@@ -12,45 +12,40 @@
 
 using namespace chibios_rt;
 
-static constexpr UARTConfig remoteUartConfig = {
-        nullptr,
-        nullptr,
-        uart_received_callback, // callback function when the buffer is filled
-        nullptr,
-        nullptr,
-        921600, // speed
-        USART_CR1_PCE,
-        0,
-        0,
-};
+class RefereeEchoThread : public BaseStaticThread <512> {
+private:
+    void main() final {
+        setName("referee_echo");
+        RefereeSystem::start();
+        while(!shouldTerminate()) {
 
-// Print the remote info
-static void cmd_remote_print(BaseSequentialStream *chp, int argc, char *argv[]) {
-    (void)argv;
-    if (argc > 0) {
-        shellUsage(chp, "p");
-        return;
+            Shell::printf("Remain Time = %u" SHELL_NEWLINE_STR, (unsigned int) RefereeSystem::gameInfo.remainTime);
+            Shell::printf("Remain Life = %u" SHELL_NEWLINE_STR, (unsigned int) RefereeSystem::gameInfo.remainLifeValue);
+            Shell::printf("Chassis Out V = %f" SHELL_NEWLINE_STR, RefereeSystem::gameInfo.realChassisOutV);
+            Shell::printf("Chassis Out A = %f" SHELL_NEWLINE_STR, RefereeSystem::gameInfo.realChassisOutA);
+            Shell::printf("Loc flag = %u" SHELL_NEWLINE_STR, (unsigned int) RefereeSystem::gameInfo.locData.flag);
+            Shell::printf("Loc x = %f" SHELL_NEWLINE_STR, RefereeSystem::gameInfo.locData.x);
+            Shell::printf("Loc y = %f" SHELL_NEWLINE_STR, RefereeSystem::gameInfo.locData.y);
+            Shell::printf("Loc z = %f" SHELL_NEWLINE_STR, RefereeSystem::gameInfo.locData.z);
+            Shell::printf("Loc compass = %f" SHELL_NEWLINE_STR, RefereeSystem::gameInfo.locData.compass);
+            Shell::printf("Remain Power = %f" SHELL_NEWLINE_STR, RefereeSystem::gameInfo.remainPower);
+            Shell::printf(SHELL_NEWLINE_STR);
+
+            Shell::printf("Blood Change Armor ID = %u" SHELL_NEWLINE_STR, (unsigned int) RefereeSystem::realBloodChangedData.hitArmorID);
+            Shell::printf("Blood Change Way = %u" SHELL_NEWLINE_STR, (unsigned int) RefereeSystem::realBloodChangedData.way);
+            Shell::printf("Blood Change Value = %u" SHELL_NEWLINE_STR, (unsigned int) RefereeSystem::realBloodChangedData.value);
+            Shell::printf(SHELL_NEWLINE_STR);
+
+            Shell::printf("Shoot Bullet Speed = %f" SHELL_NEWLINE_STR, RefereeSystem::realShootData.realBulletShootSpeed);
+            Shell::printf("Shoot Bullet Freq = %f" SHELL_NEWLINE_STR, RefereeSystem::realShootData.realBulletShootFreq);
+            Shell::printf("Shoot Golf Speed = %f" SHELL_NEWLINE_STR, RefereeSystem::realShootData.realGolfShootSpeed);
+            Shell::printf("Shoot Golf Freq = %f" SHELL_NEWLINE_STR, RefereeSystem::realShootData.realGolfShootFreq);
+            Shell::printf(SHELL_NEWLINE_STR);
+
+            sleep(TIME_MS2I(2000));
+        }
     }
-    chprintf(chp, "ch0 ch1 ch2 ch3 s1 s2 mouse_x mouse_y mouse_z L R" SHELL_NEWLINE_STR);
-    chprintf(chp, "%3d %3d %3d %3d %2d %2d %7d %7d %7d %1d %1d" SHELL_NEWLINE_STR,
-             (int) (Remote::rc.ch0 * 100), (int) (Remote::rc.ch1 * 100),
-             (int) (Remote::rc.ch2 * 100), (int) (Remote::rc.ch3 * 100),
-             Remote::rc.s1, Remote::rc.s2,
-             Remote::mouse.x, Remote::mouse.y, Remote::mouse.z,
-             Remote::mouse.press_left, Remote::mouse.press_right);
-    chprintf(chp, SHELL_NEWLINE_STR);
-    chprintf(chp, "W S A D SHIFT CTRL Q E R F G Z X C V B" SHELL_NEWLINE_STR);
-    chprintf(chp, "%d %d %d %d %5d %4d %d %d %d %d %d %d %d %d %d %d" SHELL_NEWLINE_STR,
-             Remote::key.w, Remote::key.s, Remote::key.a, Remote::key.d, Remote::key.shift, Remote::key.ctrl,
-             Remote::key.q, Remote::key.e, Remote::key.r, Remote::key.f, Remote::key.g, Remote::key.z,
-             Remote::key.x, Remote::key.c, Remote::key.v, Remote::key.b);
-    chprintf(chp, SHELL_NEWLINE_STR SHELL_NEWLINE_STR);
-}
-
-ShellCommand remoteShellCommands[] = {
-        {"p", cmd_remote_print},
-        {nullptr, nullptr}
-};
+} refereeEchoThread;
 
 int main() {
     halInit();
@@ -59,9 +54,7 @@ int main() {
     // Start ChibiOS shell at high priority, so even if a thread stucks, we still have access to shell.
     Shell::start(HIGHPRIO);
 
-    Remote::start_receive();
-
-    Shell::addCommands(remoteShellCommands);
+    refereeEchoThread.start(NORMALPRIO);
 
     // See chconf.h for what this #define means.
 #if CH_CFG_NO_IDLE_THREAD

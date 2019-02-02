@@ -16,6 +16,16 @@ RefereeSystem::GameInfo_t RefereeSystem::gameInfo;
 RefereeSystem::RealBloodChangedData_t RefereeSystem::realBloodChangedData;
 RefereeSystem::RealShootData_t RefereeSystem::realShootData;
 
+const size_t RefereeSystem::data_length[] = {
+        0, // 0x00
+        31, // 0x01, real time game info
+        3, // 0x02, real time blood change info
+        16, // 0x03, real time shooting data
+        0, // 0x04
+        12 // 0x05, client defined data
+
+};
+
 RefereeSystem::UartWaitingType_t RefereeSystem::uartWaitingType;
 uint8_t RefereeSystem::rx_buf[RefereeSystem::rx_buf_size];
 
@@ -31,10 +41,11 @@ const UARTConfig RefereeSystem::uartConfig = {
         0,
 };
 
+// See comments before class definition to see the status machine
 void RefereeSystem::uartRxCallback(UARTDriver *uartp) {
     (void) uartp;
 
-    // Handle received data
+    // Handle received data and transfer status properly
     switch (uartWaitingType) {
         case FRAME_STARTING_BYTE:
             if (frameHeader.sof == 0xA5) {
@@ -105,10 +116,10 @@ void RefereeSystem::uartRxCallback(UARTDriver *uartp) {
 
 void RefereeSystem::start() {
     // GPIOs have been set in board.h
-    
+
     // Start uart driver
     uartStart(uartDriver, &uartConfig);
-    
+
     // Wait for starting byte
     uartWaitingType = FRAME_STARTING_BYTE;
     uartStartReceive(uartDriver, 1, &frameHeader.sof);

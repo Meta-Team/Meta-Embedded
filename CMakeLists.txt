@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 3.10)
 project(Meta_Infantry)
 
 
-IF (CMAKE_SYSTEM_NAME MATCHES "Darwin")
+IF (CMAKE_HOST_SYSTEM_NAME MATCHES "Darwin")
     MESSAGE("Use make to compile.")
     set(MAKE_EXECUTABLE make)
 ELSE()
@@ -17,7 +17,7 @@ add_custom_target(MAIN COMMAND ${MAKE_EXECUTABLE} -j -C ${Meta_Infantry_SOURCE_D
 add_custom_target(UT_REMOTE_INTERPRETER COMMAND ${MAKE_EXECUTABLE} -j -C ${Meta_Infantry_SOURCE_DIR}/dev DEV_MODULE=REMOTE_INTERPRETER)
 add_custom_target(UT_GIMBAL_INTERFACE COMMAND ${MAKE_EXECUTABLE} -j -C ${Meta_Infantry_SOURCE_DIR}/dev DEV_MODULE=GIMBAL_INTERFACE)
 add_custom_target(UT_GIMBAL COMMAND ${MAKE_EXECUTABLE} -j -C ${Meta_Infantry_SOURCE_DIR}/dev DEV_MODULE=GIMBAL)
-add_custom_target(UT_JUDGE_SYSTEM COMMAND ${MAKE_EXECUTABLE} -j -C ${Meta_Infantry_SOURCE_DIR}/dev DEV_MODULE=JUDGE_SYSTEM)
+add_custom_target(UT_REFEREE_SYSTEM COMMAND ${MAKE_EXECUTABLE} -j -C ${Meta_Infantry_SOURCE_DIR}/dev DEV_MODULE=REFEREE_SYSTEM)
 
 # make clean
 add_custom_target(MAKE_CLEAN COMMAND ${MAKE_EXECUTABLE} clean -C ${Meta_Infantry_SOURCE_DIR}/dev)
