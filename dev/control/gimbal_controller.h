@@ -7,6 +7,7 @@
 
 #define GIMBAL_CONTROLLER_ENABLE_MIDDLE_VALUES 1
 
+#include <vector>
 #include "pid_controller.h"
 
 /**
@@ -18,9 +19,37 @@ public:
 
     typedef enum {
         YAW_ID = 0,
-        PIT_ID = 1
+        PIT_ID = 1,
+        BULLET_LOADER =2
     } motor_id_t;
 
+    class FrictionWheelController{
+    public:
+
+        typedef enum {
+            MODE_1 = 0,
+            MODE_2 = 1,
+            MODE_3 = 2
+        }mode_index_t;
+
+        PIDController v_to_dc_pid;
+
+        /**
+         * @brief calculate the duty cycle from the velocity
+         * @param measured_velocity
+         * @param modeIndex
+         * @return
+         */
+        float inline v_to_dc(float measured_velocity, mode_index_t modeIndex) {
+            return v_to_dc_pid.calc(measured_velocity, friction_wheel_speed_modes[modeIndex]);
+        }
+
+    private:
+
+        std::vector<float> friction_wheel_speed_modes {10.0, 20.0, 30.0};
+    };
+
+    static FrictionWheelController frictionWheelController;
     /**
      * Controller for each motor
      */
@@ -68,6 +97,7 @@ public:
 
     static MotorController yaw;
     static MotorController pitch;
+    static MotorController bullet_loader;
 
 };
 
