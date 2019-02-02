@@ -1,6 +1,6 @@
 //
 // Created by liuzikai on 2018-12-29.
-// Zhu Kerui wrote code about processing gimbal feedback.
+// Zhu Kerui wrote code about processing gimbal feedback and the bullet control.
 // Feng Chuhao wrote code about sending gimbal currents.
 //
 
@@ -10,7 +10,6 @@
 #include "ch.hpp"
 #include "hal.h"
 #include "can_interface.h"
-#include "pid_controller.h"
 
 /**
  * Enable clip at the moment of sending current.
@@ -36,7 +35,19 @@ class GimbalInterface {
 
 public:
 
-    int remained_bullet;
+    int get_remained_bullet(){
+        return remained_bullet;
+    }
+
+    int add_bullet(int new_bullet_num){
+        remained_bullet += new_bullet_num;
+        return remained_bullet;
+    }
+
+    int shoot_one_bullet(int shoot_num){
+        remained_bullet -= shoot_num;
+        return remained_bullet;
+    }
 
     typedef enum {
         YAW_ID = 0,
@@ -82,9 +93,6 @@ public:
 
         // For velocity sampling and gimbal feedback module
         time_msecs_t sample_time = 0;  // last sample time, for velocity calculation
-
-        // PID control for the motor
-        PIDController motor_PIDController;
 
     private:
 
@@ -165,12 +173,28 @@ public:
         yaw.id = YAW_ID;
         pitch.id = PIT_ID;
         bullet_loader.id = BULLET_LOADER_ID;
-
+        remained_bullet = 0;
+        loading_bullet = false;
+        supply_bullet = 0;
+        one_bullet_step = 40.0f;
+        trigger_duty_cycle = 0.4;  // the value is undefined
     }
 
 private:
 
     static CANInterface *can;
+
+    int remained_bullet;
+
+    bool loading_bullet;
+
+    int supply_bullet;
+
+    void update_bullet();
+
+    float one_bullet_step;
+
+    float trigger_duty_cycle;  // the bullet loader only works when the friction wheel duty cycle is over the trigger
 
     // Count of feedback for one sample of angular velocity
     static constexpr int velocity_sample_interval = 50;

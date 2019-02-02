@@ -13,8 +13,16 @@ GimbalInterface::motor_t GimbalInterface::yaw;
 GimbalInterface::motor_t GimbalInterface::pitch;
 GimbalInterface::motor_t GimbalInterface::bullet_loader;
 GimbalInterface::friction_wheels_t GimbalInterface::friction_wheels;
-
 CANInterface *GimbalInterface::can = nullptr;
+
+void GimbalInterface::update_bullet() {
+    if(loading_bullet){
+        loading_bullet = false;
+        remained_bullet += supply_bullet;
+        bullet_loader.reset_front_angle();
+    }
+    remained_bullet -= (int)(bullet_loader.get_accumulate_angle()/one_bullet_step);
+}
 
 // FIXME: can't pass class static variable to HAL written in C. Find a better way to arrange these configs
 static PWMConfig friction_wheels_pwmcfg = {
