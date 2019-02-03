@@ -116,19 +116,21 @@ public:
         int round_count = 0;  // the rounds that the gimbal turns
 
         // Set current angle as the front angle
-        void reset_front_angle() {
-            bullet_loader_t::actual_angle = 0;
-            bullet_loader_t::round_count = 0;
-        }
+        void reset_front_angle();
 
         // Get total angle from the original front angle
         float get_accumulate_angle() {
             return bullet_loader_t::actual_angle + bullet_loader_t::round_count * 360.0f;
         }
 
+        // Get the target angle if one shoot is required
+        float get_one_shoot_target_angle();
+
     private:
 
         uint16_t last_angle_raw = 0;  // the raw angle of the newest feedback, in [0, 8191]
+
+        float target_angle;
 
         friend GimbalInterface;
 
@@ -148,6 +150,10 @@ public:
     } friction_wheels_t;
 
     static friction_wheels_t friction_wheels;
+
+    /**
+     * Class Static Functions
+     */
 
     /**
      * @brief set the CAN interface, start PWM driver and set the PID

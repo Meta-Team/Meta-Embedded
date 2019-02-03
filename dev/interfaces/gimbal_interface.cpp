@@ -7,7 +7,19 @@
 #include "gimbal_interface.h"
 #include "common_macro.h"
 
+void GimbalInterface::bullet_loader_t::reset_front_angle() {
+    bullet_loader_t::actual_angle = 0;
+    bullet_loader_t::round_count = 0;
+    bullet_loader_t::target_angle = 0;
+}
 
+float GimbalInterface::bullet_loader_t::get_one_shoot_target_angle() {
+    bullet_loader_t::target_angle += one_bullet_step;
+    if(bullet_loader_t::target_angle>=360.0f){
+        bullet_loader_t::target_angle -= 360.0f;
+    }
+    return bullet_loader_t::target_angle;
+}
 
 GimbalInterface::motor_t GimbalInterface::yaw;
 GimbalInterface::motor_t GimbalInterface::pitch;
@@ -181,14 +193,14 @@ bool GimbalInterface::process_motor_feedback(CANRxFrame *rxmsg) {
             motor->actual_angle = motor->actual_angle + angle_movement * 360.0f / 8192;
 
             // modify the actual angle and update the round count when appropriate
-            if (motor->actual_angle > 180.0f) {
-                //if the actual_angle is greater than 360, then we can know that it has already turn a round in ***wise direction
-                motor->actual_angle -= 360.0f;//set the angle to be within [0,360]
+            if (motor->actual_angle >= 180.0f) {
+                //if the actual_angle is greater than 180, then we can know that it has already turn a round in counterclockwise direction
+                motor->actual_angle -= 360.0f;//set the angle to be within [-180,180)
                 motor->round_count++;//round count increases 1
             }
             if (motor->actual_angle < -180.0f) {
-                // if the actual_angle is smaller than 0, then we can know that it has already turn a round in ***wise direction
-                motor->actual_angle += 360.0f;//set the angle to be within [0,360]
+                // if the actual_angle is smaller than -180, then we can know that it has already turn a round in clockwise direction
+                motor->actual_angle += 360.0f;//set the angle to be within [-180,180)
                 motor->round_count--;//round count decreases 1
             }
 
@@ -222,19 +234,19 @@ bool GimbalInterface::process_motor_feedback(CANRxFrame *rxmsg) {
             bulletLoader->actual_angle = bulletLoader->actual_angle + angle_movement * 360.0f / 8192;
 
             // modify the actual angle and update the round count when appropriate
-            if (bulletLoader->actual_angle > 180.0f) {
+            if (bulletLoader->actual_angle >= 360.0f) {
                 //if the actual_angle is greater than 360, then we can know that it has already turn a round in ***wise direction
-                bulletLoader->actual_angle -= 360.0f;//set the angle to be within [0,360]
+                bulletLoader->actual_angle -= 360.0f;//set the angle to be within [0,360)
                 bulletLoader->round_count++;//round count increases 1
             }
-            if (bulletLoader->actual_angle < -180.0f) {
+            if (bulletLoader->actual_angle < 0.0f) {
                 // if the actual_angle is smaller than 0, then we can know that it has already turn a round in ***wise direction
-                bulletLoader->actual_angle += 360.0f;//set the angle to be within [0,360]
+                bulletLoader->actual_angle += 360.0f;//set the angle to be within [0,360)
                 bulletLoader->round_count--;//round count decreases 1
             }
 
             // Get the angular velocity
-            bulletLoader->angular_velocity = ((int16_t)(rxmsg->data8[2] << 8 | rxmsg->data8[3]))*6.0f;
+            bulletLoader->angular_velocity = ((int16_t)(rxmsg->data8[2] << 8 | rxmsg->data8[3]))*6.0f;  // 6.0f accounts for 360 degrees per round per 60 seconds
             break;
 
         default:
