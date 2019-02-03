@@ -25,11 +25,11 @@ protected:
 public:
 
     typedef enum {
-        INACTIVE,
-        MACHINE_HAND_CLAMP,
-        ROTATE,
-        RELEASE,
-        RESTORE
+        INACTIVE,   //initial state, ready for holding a box
+        MACHINE_HAND_CLAMP, //clamp the machine hand
+        ROTATE, //rotate the hand
+        RELEASE,    //release all bullets
+        RESTORE     //return to inactive state
     } activity_mode;
 
     uint16_t delay1;

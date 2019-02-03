@@ -10,6 +10,14 @@ static CANTxFrame txmsg;
 FetchBulletThread::FetchBulletThread(ioportid_t ioportid, ioportmask_t ioportmask,
         uint16_t delay_1, uint16_t delay_2, uint16_t delay_3, CANInterface *can_interface)
         : BaseStaticThread<128>() {
+    /**
+     * @brief   construct a FetchBullrtThread object
+     * @param   ioportid,ioportmask: the GPIO portid connected to  electrically operated valve
+     * @param   delay_1: the delay time for the machine hand to hold the box tightly
+     * @param   delay_2: the delay time for the machine hand to rotate from inactive position to the position ready to release bullets
+     * @param   delay_3: the delay time it takes for bullets to be fell from the box
+     * @param   can_interface: the can interface pointer
+     */
     _ioportid = ioportid;
     _ioportmask = ioportmask;
     delay1 = delay_1;
@@ -20,6 +28,9 @@ FetchBulletThread::FetchBulletThread(ioportid_t ioportid, ioportmask_t ioportmas
 }
 
 void FetchBulletThread::fetch_once() {
+    /**
+     * @brief   make a complete fetch
+     */
     if (mode == INACTIVE) {
         mode = MACHINE_HAND_CLAMP;
     }
@@ -41,6 +52,7 @@ void FetchBulletThread::main(void) {
     txmsg.data16[1] = txmsg.data16[2] = txmsg.data16[3] = (uint16_t) 0U;
     while(!shouldTerminate()) {
         if (mode == INACTIVE) {
+            //hold machine hand to ready for holding the box
             txmsg.data16[0] = (uint16_t) (inactive_current);
             can->send_msg(&txmsg);
             sleep(TIME_MS2I(5));
@@ -62,7 +74,7 @@ void FetchBulletThread::main(void) {
             //release bullet
             txmsg.data16[0] = (uint16_t) (release_current);
             can->send_msg(&txmsg);
-            sleep(TIME_MS2I(delay3));
+            sleep(TIME_MS2I(delay3));   //wait for release
             mode = RESTORE;
             continue;
         } else if (mode == RESTORE) {
@@ -72,7 +84,7 @@ void FetchBulletThread::main(void) {
             sleep(TIME_MS2I(delay2));
             txmsg.data16[0] = (uint16_t) inactive_current;
             can->send_msg(&txmsg);
-            palWritePad(_ioportid, _ioportmask, PAL_LOW);
+            palWritePad(_ioportid, _ioportmask, PAL_LOW);   //release the box
             mode = INACTIVE;
             continue;
         }
