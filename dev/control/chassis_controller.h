@@ -9,22 +9,9 @@
 #include "pid_controller.h"
 #include "chassis_common.h"
 
-/********** Chassis Structure Parameters **********/
-float const CHASSIS_WHEEL_RATIO = 478.0f / 2.0f; //mm
-\
-
-float const chassis_thread_interval = 50; // ms
-
-float const maximum_current = 4000; // mA
-
-/**
- * parameters below should be based on experiment value
- * for each motor, XX_XX_current_ratio = angular velocity change / current change
- */
-float const front_left_current_ratio = 0.0f;  // TODO: Please change this value
-float const front_right_current_ratio = 0.0f;   // TODO: Please change this value
-float const back_left_current_ratio = 0.0f;     // TODO: Please change this value
-float const back_right_current_ratio = 0.0f;    // TODO: Please change this value
+#define CHASSIS_WHEEL_BASE 420.0f // distance between front axle and the back axle, mm
+#define CHASSIS_WHEEL_TREAD 370.0f // distance between left and right wheels, mm
+#define CHASSIS_WHEEL_CIRCUMFERENCE 478.0f // mm
 
 /**
  *
@@ -34,15 +21,11 @@ class ChassisController {
 
 private:
 
-    static float constexpr chassis_wheel_base = 420.0f; // distance between front axle and the back axle, mm
-    static float constexpr chassis_wheel_tread = 370.0f; // distance between left and right wheels, mm
-    static float constexpr chassis_wheel_circumference = 478.0f; // mm
-
     // Angular velocity (degree/s) to velocity (mm/s, based on mechanism structure)
-    static float constexpr w_to_v_ratio = (chassis_wheel_base + chassis_wheel_tread) / 2.0f / 360.0f * 3.14159f;
+    static float constexpr w_to_v_ratio = (CHASSIS_WHEEL_BASE + CHASSIS_WHEEL_TREAD) / 2.0f / 360.0f * 3.14159f;
 
     // Wheel speed (mm/s) to wheel angular velocity (degree/s)
-    static float constexpr v_to_wheel_angular_velocity = (360.0f / chassis_wheel_circumference);
+    static float constexpr v_to_wheel_angular_velocity = (360.0f / CHASSIS_WHEEL_CIRCUMFERENCE);
 
 public:
 
