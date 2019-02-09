@@ -11,4 +11,5 @@
 #         this script should be run manually before arm-embi-gdb and terminated manually after debugging
 # ----------------------------------------------------------------
 
+cd /Users/liuzikai/Documents/RoboMaster/Meta-Infantry
 openocd -f RM_Board_2017.cfg
