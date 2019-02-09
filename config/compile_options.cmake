@@ -47,8 +47,18 @@ set(THUMB_FLAGS "-mthumb -DTHUMB -DTHUMB_PRESENT -mno-thumb-interwork -DTHUMB_NO
 # Omitted flags from Makefiles: -MD -MP -MF .build/dep/(filename).d (For .d files generation)
 
 # Startup LD directory and LD file
-set(STARTUP_LD_DICT ${PROJECT_SOURCE_DIR}/os/common/startup/ARMCMx/compilers/GCC/ld)
-set(STARTUP_LD_FILE ${STARTUP_LD_DICT}/STM32F429xI.ld)
+
+if (${BOARD_NAME} STREQUAL rm_board_2017)
+    set(STARTUP_LD_DICT ${PROJECT_SOURCE_DIR}/os/common/startup/ARMCMx/compilers/GCC/ld)
+    set(STARTUP_LD_FILE ${STARTUP_LD_DICT}/STM32F429xI.ld)
+    add_definitions(-DRM_BOARD_2017)
+elseif (${BOARD_NAME} STREQUAL rm_board_2018_a)
+    set(STARTUP_LD_DICT ${PROJECT_SOURCE_DIR}/os/common/startup/ARMCMx/compilers/GCC/ld)
+    set(STARTUP_LD_FILE ${STARTUP_LD_DICT}/STM32F429xI.ld)
+    add_definitions(-DRM_BOARD_2018_A)
+else ()
+    message(FATAL_ERROR "[ERROR] Dev board \"${BOARD_NAME}\" is not configuared." )
+endif ()
 
 
 # SET FLAGS TO CMAKE

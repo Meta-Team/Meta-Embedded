@@ -11,25 +11,38 @@
 
 using namespace chibios_rt;
 
+#if defined(RM_BOARD_2017)
+ButtonMonitorThread buttonK0(GPIOD, 10);
+#elif defined(RM_BOARD_2018_A)
+ButtonMonitorThread buttonK0(GPIOB, 2);
+#endif
+
 /**
  * Blinks two LEDs, a demonstration of how to write a thread in C++.
  */
 class BlinkLEDThread : public chibios_rt::BaseStaticThread<256> {
+public:
+    void set_button_monitor(ButtonMonitorThread* bmt) {
+        button = bmt;
+    }
 private:
+
+    ButtonMonitorThread* button = nullptr;
+
     void main() final {
         setName("blink");
         while (!shouldTerminate()) {
             sleep(TIME_MS2I(100));
-            if (buttonK0.pressed) {
+            if (button->pressed) {
                 LED::red_on();
-                sleep(TIME_MS2I((1 + buttonK0.counter % 3) * 100));
+                sleep(TIME_MS2I((1 + button->counter % 3) * 100));
                 LED::red_off();
-                sleep(TIME_MS2I((1 + buttonK0.counter % 3) * 100));
+                sleep(TIME_MS2I((1 + button->counter % 3) * 100));
             } else {
                 LED::green_on();
-                sleep(TIME_MS2I((1 + buttonK0.counter % 3) * 100));
+                sleep(TIME_MS2I((1 + button->counter % 3) * 100));
                 LED::green_off();
-                sleep(TIME_MS2I((1 + buttonK0.counter % 3) * 100));
+                sleep(TIME_MS2I((1 + button->counter % 3) * 100));
             }
         }
     }
@@ -43,6 +56,7 @@ int main(void) {
     buttonK0.start(NORMALPRIO);
 
     // Start LED blink thread.
+    blinkLEDThread.set_button_monitor(&buttonK0);
     blinkLEDThread.start(NORMALPRIO - 1);
 
     // Start ChibiOS shell at high priority, so even if a thread stucks, we still have access to shell.

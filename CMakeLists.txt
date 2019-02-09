@@ -9,7 +9,7 @@ set(CMAKE_CXX_STANDARD 11)
 project(Meta_Infantry ASM C CXX) # NOTICE: project() must be in CMakeList.txt, rather than any cmake file. It must be
                                  # after toolchain configs and before flag configs for CMake to test compiler.
 
-include(config/flags.cmake)  # include compile flags
+include(config/compile_options.cmake)  # include compile flags
 
 set(CMAKE_VERBOSE_MAKEFILE OFF)  # Enable this if you want to see verbose log
 
@@ -38,7 +38,7 @@ include_directories(dev/board/${BOARD_NAME})  # include board configs
 # Reuse ChibiOS object files (without linking) to avoid repeat compile
 add_library(ChibiOS_OBJ OBJECT ${CHIBIOS_XASM_SRC} ${CHIBIOS_C_SRC} ${CHIBIOS_CPP_SRC} dev/board/${BOARD_NAME}/board.c)
 
-# NOTICE: if you want to adapt this project to a new board, be sure to check startup file congif in flags.cmake
+# NOTICE: if you want to adapt this project to a new board, be sure to check startup file congif in compile_options.cmake
 
 # ---------- Files and Targets Configurations ----------
 
@@ -55,7 +55,7 @@ target_include_directories(Engineer PRIVATE dev/board/rm_board_2017)
 target_compile_definitions(Engineer PRIVATE VEHICLE=ENGINEER)
 
 # Blink
-add_executable(ut_blink $<TARGET_OBJECTS:ChibiOS_OBJ> ${COMMON_CPP_SRC} ${RM_BOARD_2018_A_SRC}
+add_executable(ut_blink $<TARGET_OBJECTS:ChibiOS_OBJ> ${COMMON_CPP_SRC}
         dev/module/button_monitor.cpp
         dev/debug/main_blink.cpp)
 target_include_directories(ut_blink PRIVATE dev/board/rm_board_2018_a)
