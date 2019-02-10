@@ -6,14 +6,19 @@ This is the repository of infantry. It's based on RM dev board 2017.
 
 ### RM 2017 开发板
 
-- [x] 用户自定义 LED x2
+- [x] LED GPIO
 - [ ] 用户自定义按键
+- [ ] 蜂鸣器
 
 ### RM 2018 A型 开发板
 
-- [x] 用户自定义 LED x2
+- [x] LED GPIO
 - [ ] 用户自定义按键
+- [x] 蜂鸣器
 
+## Changes to ChibiOS
+
+- [x] TIM12 PWM
 
 ## Repo Structure
 

@@ -90,6 +90,14 @@ PWMDriver PWMD8;
 PWMDriver PWMD9;
 #endif
 
+/**
+ * @brief   PWMD12 driver identifier.
+ * @note    The driver PWMD12 allocates the timer TIM12 when enabled.
+ */
+#if STM32_PWM_USE_TIM12 || defined(__DOXYGEN__)
+PWMDriver PWMD12;
+#endif
+
 /*===========================================================================*/
 /* Driver local variables and types.                                         */
 /*===========================================================================*/
@@ -478,6 +486,21 @@ void pwm_lld_start(PWMDriver *pwmp) {
     }
 #endif
 
+#if STM32_PWM_USE_TIM12
+    if (&PWMD12 == pwmp) {
+      rccEnableTIM12(FALSE);
+      rccResetTIM12();
+#if !defined(STM32_TIM12_SUPPRESS_ISR)
+      nvicEnableVector(STM32_TIM12_NUMBER, STM32_PWM_TIM12_IRQ_PRIORITY);
+#endif
+#if defined(STM32_TIM12CLK)
+      pwmp->clock = STM32_TIM12CLK;
+#else
+      pwmp->clock = STM32_TIMCLK2;
+#endif
+    }
+#endif
+
     /* All channels configured in PWM1 mode with preload enabled and will
        stay that way until the driver is stopped.*/
     pwmp->tim->CCMR1 = STM32_TIM_CCMR1_OC1M(6) | STM32_TIM_CCMR1_OC1PE |
@@ -696,6 +719,15 @@ void pwm_lld_stop(PWMDriver *pwmp) {
       nvicDisableVector(STM32_TIM9_NUMBER);
 #endif
       rccDisableTIM9();
+    }
+#endif
+
+#if STM32_PWM_USE_TIM12
+    if (&PWMD12 == pwmp) {
+#if !defined(STM32_TIM12_SUPPRESS_ISR)
+      nvicDisableVector(STM32_TIM12_NUMBER);
+#endif
+      rccDisableTIM12();
     }
 #endif
   }

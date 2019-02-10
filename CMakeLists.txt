@@ -22,7 +22,8 @@ set(COMMON_CPP_SRC  # common cpp sources
         dev/common/port_to_string.cpp
         dev/debug/serial_shell.cpp
         dev/debug/shell_debug_commands.cpp
-        dev/interfaces/led.cpp)
+        dev/interfaces/led.cpp
+        dev/interfaces/buzzer.cpp)
 
 include_directories(  # common include directories
         dev
