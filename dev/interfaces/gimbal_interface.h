@@ -116,7 +116,10 @@ public:
         int round_count = 0;  // the rounds that the gimbal turns
 
         // Set current angle as the front angle
-        void reset_front_angle();
+        void reset_front_angle(){
+            bullet_loader_t::actual_angle = 0;
+            bullet_loader_t::round_count = 0;
+        }
 
         // Get total angle from the original front angle
         float get_accumulate_angle() {

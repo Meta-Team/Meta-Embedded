@@ -261,12 +261,20 @@ int GimbalInterface::get_remained_bullet() {
 }
 
 int GimbalInterface::update_bullet_count(int new_bullet_added) {
-    remained_bullet -= (int)(bullet_loader.get_accumulate_angle()/one_bullet_step);
-    remained_bullet += new_bullet_added;
-    if(remained_bullet<=0){
-        remained_bullet = 0;
+    if (new_bullet_added <= 0){
+        // If it's not greater than 0, then it means we are now under the shooting mode
+        float angle_turned = bullet_loader.get_accumulate_angle();  // get the angle that the bullet loader turns
+        int bullet_shot = (int)(angle_turned/one_bullet_step);  // calculate the number of the shot bullets
+        remained_bullet -= bullet_shot;  // update the number of remained bullets
+        bullet_loader.actual_angle = angle_turned - (bullet_shot * one_bullet_step);  // reset the actual angle so that it's smaller than one bullet step
+        bullet_loader.round_count = 0;  // the round count is cleared out
+    } else{
+        // If it's greater than 0, then it means we are now under the reloading mode
+        remained_bullet += new_bullet_added;  // add the bullets
     }
-    bullet_loader.reset_front_angle();
+    if(remained_bullet<0){
+        remained_bullet = 0;  // if the number of remained bullets is negative, then regard it as 0
+    }
     return remained_bullet;
 }
 

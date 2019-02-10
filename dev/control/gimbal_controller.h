@@ -59,36 +59,15 @@ public:
     public:
         motor_id_t motor_id;   // motor id
 
-        PIDController angle_to_v_pid;
-        PIDController v_to_i_pid;
-
-        /**
-         * @brief perform calculation with angle_to_v_pid
-         * @param measured_angle
-         * @param target_angle
-         * @return target velocity
-         */
-        float inline angle_to_v(float measured_angle, float target_angle) {
-            return angle_to_v_pid.calc(measured_angle, target_angle);
-        }
-
-        /**
-         * @brief perform calculation with v_to_i_pid
-         * @param measured_velocity
-         * @param target_velocity
-         * @return target current
-         */
-        float inline v_to_i(float measured_velocity, float target_velocity) {
-            return v_to_i_pid.calc(measured_velocity, target_velocity);
-        }
-
         float (*get_current)(float measured_angle, float measured_velocity, float target_angle);
 
         explicit MotorController(motor_id_t id) : motor_id(id){
             switch (motor_id){
                 case YAW_ID:
+                    get_current = get_yaw_current;
+                    break;
                 case PIT_ID:
-                    get_current = get_gimbal_motor_current;
+                    get_current = get_pitch_current;
                     break;
                 case BULLET_LOADER_ID:
                     get_current = get_bullet_loader_current;
@@ -99,13 +78,37 @@ public:
         }
     };
 
+    static MotorController yaw;
+    static MotorController pitch;
+    static MotorController bullet_loader;
+
+    static bool start();
+
+    static bool change_angle_to_v_pid(motor_id_t id, float _kp, float _ki, float _kd, float _i_limit, float _out_limit);
+
+    static bool change_v_to_i_pid(motor_id_t id, float _kp, float _ki, float _kd, float _i_limit, float _out_limit);
+
+private:
+
+    static PIDController yaw_angle_to_v_pid;
+
+    static PIDController yaw_v_to_i_pid;
+
+    static PIDController pitch_angle_to_v_pid;
+
+    static PIDController pitch_v_to_i_pid;
+
+    static PIDController bullet_loader_angle_to_v_pid;
+
+    static PIDController bullet_loader_v_to_i_pid;
+
     /**
-         * @brief get the current to be sent
-         * @param measured_angle
-         * @param measured_velocity
-         * @param target_angle
-         * @return the current to be sent
-         */
+     * @brief get the current to be sent
+     * @param measured_angle
+     * @param measured_velocity
+     * @param target_angle
+     * @return the current to be sent
+     */
     static float get_bullet_loader_current(float measured_angle, float measured_velocity, float target_angle);
 
     /**
@@ -115,11 +118,16 @@ public:
          * @param target_angle
          * @return the current to be sent
          */
-    static float get_gimbal_motor_current(float measured_angle, float measured_velocity, float target_angle);
+    static float get_yaw_current(float measured_angle, float measured_velocity, float target_angle);
 
-    static MotorController yaw;
-    static MotorController pitch;
-    static MotorController bullet_loader;
+    /**
+     * @brief get the current to be sent
+     * @param measured_angle
+     * @param measured_velocity
+     * @param target_angle
+     * @return the current to be sent
+     */
+    static float get_pitch_current(float measured_angle, float measured_velocity, float target_angle);
 
 };
 
