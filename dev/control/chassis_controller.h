@@ -35,6 +35,7 @@ public:
 
         PIDController pid;
 
+        float target_velocity;
         float target_current;
 
     } motor_t;

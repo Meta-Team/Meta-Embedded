@@ -50,6 +50,22 @@ DEV_CHASSIS_INTERFACE_CPPSRC = interfaces/can_interface.cpp \
 DEV_CHASSIS_INTERFACE_INC =  interfaces
 
 # ===========================================================================
+# CHASSIS MODULES
+#
+#	Include chassis interface, chassis controller and the unit test modules.
+#
+# ===========================================================================
+DEV_CHASSIS_CSRC =
+DEV_CHASSIS_CPPSRC = interfaces/can_interface.cpp \
+							   interfaces/chassis_interface.cpp \
+							   module/pid_controller.cpp \
+							   control/chassis_controller.cpp \
+                               interfaces/chassis_controller_unit_test.cpp
+DEV_CHASSIS_INC =  interfaces \
+					         control \
+					         module
+
+# ===========================================================================
 # GIMBAL_INTERFACE MODULES
 #
 #	Include CANInterface, GimbalInterface, GimbalFeedbackModule and the unit

@@ -84,7 +84,7 @@ static void cmd_chassis_set_target_currents(BaseSequentialStream *chp, int argc,
 }
 
 // Shell commands to control the chassis
-ShellCommand chassisInterfaceCommands[] = {
+ShellCommand chassisCommands[] = {
         {"c_echo", cmd_chassis_echo},
         {"c_set_current",    cmd_chassis_set_target_currents},
         {nullptr,    nullptr}
@@ -111,7 +111,7 @@ int main(void) {
     // Start ChibiOS shell at high priority,
     // so even if a thread stucks, we still have access to shell.
     Shell::start(HIGHPRIO);
-    Shell::addCommands(chassisInterfaceCommands);
+    Shell::addCommands(chassisCommands);
 
 
     can1.start_can();

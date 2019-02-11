@@ -19,16 +19,16 @@ void ChassisController::calc(float *measured_angular_velocity, float target_vx, 
     // BL, +vx, -vy, +w, since the motor is installed in the opposite direction
     // BR, +vx, +vy, +w
 
+    motor[CHASSIS_FR].target_velocity = (-target_vx + target_vy + target_w * w_to_v_ratio) * v_to_wheel_angular_velocity;
     motor[CHASSIS_FR].target_current = motor[CHASSIS_FR].pid.calc(measured_angular_velocity[CHASSIS_FR],
-                                                                  (-target_vx + target_vy + target_w * w_to_v_ratio) *
-                                                                  v_to_wheel_angular_velocity);
+                                                                  motor[CHASSIS_FR].target_velocity);
+    motor[CHASSIS_FL].target_velocity = (-target_vx - target_vy + target_w * w_to_v_ratio) * v_to_wheel_angular_velocity;
     motor[CHASSIS_FL].target_current = motor[CHASSIS_FL].pid.calc(measured_angular_velocity[CHASSIS_FL],
-                                                                  (-target_vx - target_vy + target_w * w_to_v_ratio) *
-                                                                  v_to_wheel_angular_velocity);
+                                                                  motor[CHASSIS_FL].target_velocity);
+    motor[CHASSIS_BL].target_velocity = (+target_vx - target_vy + target_w * w_to_v_ratio) * v_to_wheel_angular_velocity;
     motor[CHASSIS_BL].target_current = motor[CHASSIS_BL].pid.calc(measured_angular_velocity[CHASSIS_BL],
-                                                                  (+target_vx - target_vy + target_w * w_to_v_ratio) *
-                                                                  v_to_wheel_angular_velocity);
+                                                                  motor[CHASSIS_BL].target_velocity);
+    motor[CHASSIS_BR].target_velocity = (+target_vx + target_vy + target_w * w_to_v_ratio) * v_to_wheel_angular_velocity;
     motor[CHASSIS_BR].target_current = motor[CHASSIS_BR].pid.calc(measured_angular_velocity[CHASSIS_BR],
-                                                                  (+target_vx + target_vy + target_w * w_to_v_ratio) *
-                                                                  v_to_wheel_angular_velocity);
+                                                                  motor[CHASSIS_BR].target_velocity);
 }
