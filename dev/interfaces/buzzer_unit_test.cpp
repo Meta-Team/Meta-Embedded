@@ -12,29 +12,35 @@
 using namespace chibios_rt;
 
 
-static void cmd_play_startup(BaseSequentialStream *chp, int argc, char *argv[]) {
+static void cmd_play(BaseSequentialStream *chp, int argc, char *argv[]) {
     (void) argv;
-    if (argc != 0) {
-        shellUsage(chp, "buzzer_startup");
+    if (argc != 1) {
+        shellUsage(chp, "buzzer 0-3");
         return;
     }
 
-    Buzzer::play_sound(Buzzer::sound_startup, 250, NORMALPRIO);
-}
-
-static void cmd_play_little_star(BaseSequentialStream *chp, int argc, char *argv[]) {
-    (void) argv;
-    if (argc != 0) {
-        shellUsage(chp, "buzzer_little_star");
-        return;
+    switch (Shell::atoi(argv[0]))
+    {
+        case 0:
+            Buzzer::play_sound(Buzzer::sound_startup, 250, NORMALPRIO);
+            break;
+        case 1:
+            Buzzer::play_sound(Buzzer::sound_startup_intel, 250, NORMALPRIO);
+            break;
+        case 2:
+            Buzzer::play_sound(Buzzer::sound_little_star, 150, NORMALPRIO);
+            break;
+        case 3:
+            Buzzer::play_sound(Buzzer::sound_orange, 200, NORMALPRIO);
+            break;
+        default:
+            shellUsage(chp, "buzzer 0-3");
     }
 
-    Buzzer::play_sound(Buzzer::sound_little_star, 150, NORMALPRIO);
 }
 
 ShellCommand buzzerShellCommands[] = {
-        {"buzzer_startup", cmd_play_startup},
-        {"buzzer_little_star",    cmd_play_little_star},
+        {"buzzer", cmd_play},
         {nullptr,    nullptr}
 };
 
