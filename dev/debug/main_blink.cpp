@@ -11,9 +11,9 @@
 
 using namespace chibios_rt;
 
-#if defined(RM_BOARD_2017)
+#if defined(BOARD_RM_2017)
 ButtonMonitorThread buttonK0(GPIOD, 10);
-#elif defined(RM_BOARD_2018_A)
+#elif defined(BOARD_RM_2018_A)
 ButtonMonitorThread buttonK0(GPIOB, 2);
 #endif
 

@@ -44,34 +44,34 @@ add_library(ChibiOS_OBJ OBJECT ${CHIBIOS_XASM_SRC} ${CHIBIOS_C_SRC} ${CHIBIOS_CP
 # ---------- Files and Targets Configurations ----------
 
 # Main Program -- Infantry #1
-add_executable(Infantry_One $<TARGET_OBJECTS:ChibiOS_OBJ> ${COMMON_CPP_SRC}
+add_executable(INFANTRY_ONE
         dev/main.cpp)
-target_compile_definitions(Infantry_One PRIVATE VEHICLE=INFANTRY_ONE)
+target_compile_definitions(INFANTRY_ONE PRIVATE VEHICLE=INFANTRY_ONE)
 
 # Main Program -- Engineer
-add_executable(Engineer $<TARGET_OBJECTS:ChibiOS_OBJ> ${COMMON_CPP_SRC}
+add_executable(ENGINEER
         dev/main.cpp)
-target_compile_definitions(Engineer PRIVATE VEHICLE=ENGINEER)
+target_compile_definitions(ENGINEER PRIVATE VEHICLE=ENGINEER)
 
 # Blink
-add_executable(ut_blink $<TARGET_OBJECTS:ChibiOS_OBJ> ${COMMON_CPP_SRC}
+add_executable(ut_blink 
         dev/module/button_monitor.cpp
         dev/debug/main_blink.cpp)
 
 # Remote Interpreter: include remote_interpreter sources and the unit test modules.
-add_executable(ut_remote_interpreter $<TARGET_OBJECTS:ChibiOS_OBJ> ${COMMON_CPP_SRC}
+add_executable(ut_remote_interpreter 
         dev/interfaces/remote_interpreter.cpp
         dev/interfaces/remote_interpreter_unit_test.cpp)
 
 # Gimbal Interface: include CANInterface, GimbalInterface, GimbalFeedbackModule and the unit test modules.
-add_executable(ut_gimbal_interface $<TARGET_OBJECTS:ChibiOS_OBJ> ${COMMON_CPP_SRC}
+add_executable(ut_gimbal_interface 
         dev/interfaces/can_interface.cpp
         dev/interfaces/gimbal_interface.cpp
         dev/interfaces/gimbal_interface_unit_test.cpp
         dev/debug/gimbal_feedback_module.cpp)
 
 # Gimbal: include CANInterface, GimbalInterface, GimbalController, GimbalFeedbackModule and test & adjustment modules.
-add_executable(ut_gimbal $<TARGET_OBJECTS:ChibiOS_OBJ> ${COMMON_CPP_SRC}
+add_executable(ut_gimbal 
         dev/interfaces/can_interface.cpp
         dev/interfaces/gimbal_interface.cpp
         dev/module/pid_controller.cpp
@@ -82,18 +82,18 @@ add_executable(ut_gimbal $<TARGET_OBJECTS:ChibiOS_OBJ> ${COMMON_CPP_SRC}
 
 
 # MPU6500: include MP6500 interface and unit test.
-add_executable(ut_mpu6500 $<TARGET_OBJECTS:ChibiOS_OBJ> ${COMMON_CPP_SRC}
+add_executable(ut_mpu6500 
         dev/interfaces/mpu6500.cpp
         dev/interfaces/mpu6500_unit_test.cpp)
 
 # Elevator Interface: include CANInterface, ElevatorInterface, and the unit test modules.
-add_executable(ut_elevator $<TARGET_OBJECTS:ChibiOS_OBJ> ${COMMON_CPP_SRC}
+add_executable(ut_elevator 
         dev/interfaces/can_interface.cpp
         dev/interfaces/elevator_interface.cpp
         dev/interfaces/elevator_interface_unit_test.cpp)
 
 # Buzzer: inlcude Buzzer interface and unit test.
-add_executable(ut_buzzer $<TARGET_OBJECTS:ChibiOS_OBJ> ${COMMON_CPP_SRC}
+add_executable(ut_buzzer 
         dev/interfaces/buzzer.cpp
         dev/interfaces/buzzer_unit_test.cpp)
 
@@ -108,6 +108,7 @@ message("[Notice] All executables are built to ${ELF_OUTPUT_PATH}/${ELF_OUTPUT_N
 get_directory_property(TARGER_LIST BUILDSYSTEM_TARGETS)
 foreach (target ${TARGER_LIST})
     if (NOT ${target} STREQUAL "ChibiOS_OBJ")  # OBJECT library doesn't have PRE_BUILD or POST_BUILD
+        target_sources(${target} PRIVATE $<TARGET_OBJECTS:ChibiOS_OBJ> ${COMMON_CPP_SRC})
         add_custom_command(TARGET ${target} PRE_BUILD
                 COMMENT "Build for ${BOARD_NAME}")  # echo board type
         add_custom_command(TARGET ${target} POST_BUILD

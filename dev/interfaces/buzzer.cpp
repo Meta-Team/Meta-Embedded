@@ -44,7 +44,7 @@ void Buzzer::BuzzerThread::main(void) {
                 1000000, // Default note: 1Hz
                 nullptr,
                 {
-                        {PWM_OUTPUT_ACTIVE_HIGH, nullptr},
+                        {PWM_OUTPUT_ACTIVE_HIGH, nullptr},  // it's all CH1 for current support boards
                         {PWM_OUTPUT_DISABLED, nullptr},
                         {PWM_OUTPUT_DISABLED, nullptr},
                         {PWM_OUTPUT_DISABLED, nullptr}
@@ -52,18 +52,16 @@ void Buzzer::BuzzerThread::main(void) {
                 0,
                 0
         };
-        pwmStart(&PWMD12, &pwm_config);
+        pwmStart(&BUZZER_PWM_DRIVER, &pwm_config);
 
         while (sound_seq->note != -1) {
 
-            if (sound_seq->note > 0) {  // is a valid note
-//                Shell::printf("Note %d" SHELL_NEWLINE_STR, sound_seq->note);
+            if (sound_seq->note > 0) {  // a valid note
                 // See note above for this formula
-                pwmChangePeriod(buzzer_pwm_driver, 1000000 / (unsigned long) sound_seq->note);
-                // TODO: find a better method to support multiple board
-                pwmEnableChannel(buzzer_pwm_driver, 0, PWM_PERCENTAGE_TO_WIDTH(buzzer_pwm_driver, 5000)); // 50%
-            } else {  // is a silent note
-                pwmDisableChannel(buzzer_pwm_driver, 0);
+                pwmChangePeriod(&BUZZER_PWM_DRIVER, 1000000 / (unsigned long) sound_seq->note);
+                pwmEnableChannel(&BUZZER_PWM_DRIVER, 0, PWM_PERCENTAGE_TO_WIDTH(&BUZZER_PWM_DRIVER, 5000)); // 50%
+            } else {  // a silent note
+                pwmDisableChannel(&BUZZER_PWM_DRIVER, 0);
             }
 
             sleep(TIME_MS2I(sound_seq->duration));
@@ -71,6 +69,6 @@ void Buzzer::BuzzerThread::main(void) {
             sound_seq++; // move to next note
         }
 
-        pwmStop(buzzer_pwm_driver);
+        pwmStop(&BUZZER_PWM_DRIVER);
     }
 }

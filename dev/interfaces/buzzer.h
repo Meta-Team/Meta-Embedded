@@ -10,7 +10,19 @@
 #include "ch.hpp"
 #include "hal.h"
 
-// RM_BOARD_2018_A: PH6 TIM12
+// NOTICE: buzzer pin is all CH1 for current support boards. Otherwise, buzzer.cpp needs revision.
+
+#if defined(BOARD_RM_2018_A)
+// RM_BOARD_2018_A: PH6 TIM12 CH1
+#define BUZZER_PWM_DRIVER PWMD12
+#elif defined(BOARD_RM_2017)
+// RM_BOARD_2017: PB4 TIM3 CH1
+#define BUZZER_PWM_DRIVER PWMD3
+#else
+#error "Buzzer interface has not been defined for selected board"
+#endif
+
+
 class Buzzer {
 
 public:
@@ -69,8 +81,6 @@ public:
     static void play_sound(const note_with_time_t sound[], tprio_t prio);
 
 private:
-
-    static constexpr PWMDriver *buzzer_pwm_driver = &PWMD12;
 
     /**
      * @brief the buzzer thread to play sound
