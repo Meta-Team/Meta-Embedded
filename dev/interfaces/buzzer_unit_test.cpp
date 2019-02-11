@@ -22,16 +22,16 @@ static void cmd_play(BaseSequentialStream *chp, int argc, char *argv[]) {
     switch (Shell::atoi(argv[0]))
     {
         case 0:
-            Buzzer::play_sound(Buzzer::sound_startup, 250, NORMALPRIO);
+            Buzzer::play_sound(Buzzer::sound_startup, NORMALPRIO);
             break;
         case 1:
-            Buzzer::play_sound(Buzzer::sound_startup_intel, 250, NORMALPRIO);
+            Buzzer::play_sound(Buzzer::sound_startup_intel, NORMALPRIO);
             break;
         case 2:
-            Buzzer::play_sound(Buzzer::sound_little_star, 150, NORMALPRIO);
+            Buzzer::play_sound(Buzzer::sound_little_star, NORMALPRIO);
             break;
         case 3:
-            Buzzer::play_sound(Buzzer::sound_orange, 200, NORMALPRIO);
+            Buzzer::play_sound(Buzzer::sound_orange, NORMALPRIO);
             break;
         default:
             shellUsage(chp, "buzzer 0-3");
