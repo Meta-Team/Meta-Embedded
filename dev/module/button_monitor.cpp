@@ -17,11 +17,7 @@ void ButtonMonitorThread::main() {
     setName(name);
     // Monitor the button
     while(!shouldTerminate()) {
-#if defined(BOARD_RM_2017) // press to be low
-        while(palReadPad(_ioportid, _ioportmask) == PAL_HIGH) {
-#elif defined(BOARD_RM_2018_A) // press to be high
-        while(palReadPad(_ioportid, _ioportmask) == PAL_LOW) {
-#endif
+        while(palReadPad(_ioportid, _ioportmask) == BUTTON_PRESS_PAL_STATUS) {
             // Wait for the button to be pressed
             sleep(TIME_MS2I(5));
         }
@@ -29,11 +25,7 @@ void ButtonMonitorThread::main() {
         toggle = !toggle;
         counter++;
         //if(_function) _function();
-#if defined(BOARD_RM_2017) // press to be low
-        while(palReadPad(_ioportid, _ioportmask)  == PAL_LOW) {
-#elif defined(BOARD_RM_2018_A) // press to be high
-        while(palReadPad(_ioportid, _ioportmask) == PAL_HIGH) {
-#endif
+        while(palReadPad(_ioportid, _ioportmask) != BUTTON_PRESS_PAL_STATUS) {
             // Wait for the button to be released
             sleep(TIME_MS2I(5));
         }

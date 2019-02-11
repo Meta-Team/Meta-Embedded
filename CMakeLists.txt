@@ -1,24 +1,39 @@
-# This file is configuration for CMake build system.
-# liuzikai 2018-01-29
+# Created by liuzikai 2018-01-29
+
+# =========== General Part ===========
 
 cmake_minimum_required(VERSION 3.10)
 
 include(config/toolchain.cmake)  # include cross compile configurations
 
 set(CMAKE_CXX_STANDARD 11)
+
+# Check dev board defintion 
+# NOTICE: ${BOARD_NAME} needs to be specific externally
+# NOTICE: if you want to adapt this project to a new board, be sure to also set startup file in compile_options.cmake
+if ((${BOARD_NAME} STREQUAL rm_board_2017) OR (${BOARD_NAME} STREQUAL rm_board_2018_a))
+    message("[Notice] Current profile is configurated for dev board \"${BOARD_NAME}\"." )
+else ()
+    message(FATAL_ERROR "[ERROR] Dev board \"${BOARD_NAME}\" is not configuared." )
+endif ()
+
 project(Meta_Infantry ASM C CXX) # NOTICE: project() must be in CMakeList.txt, rather than any cmake file. It must be
                                  # after toolchain configs and before flag configs for CMake to test compiler.
 
-include(config/compile_options.cmake)  # include compile flags
+include(config/compile_options.cmake)  # include compile flags and startup file option
+
+
+# =========== Options ===========
 
 set(CMAKE_VERBOSE_MAKEFILE OFF)  # Enable this if you want to see verbose log
 
 
-# ---------- Common Files and Targets Configurations ----------
+
+# =========== Common Files and Targets Configurations ===========
 
 include(os/ch.cmake)  # add files and directories from ChibiOS
 
-set(COMMON_CPP_SRC  # common cpp sources
+set(COMMON_CPP_SRC  # common cpp sources, which are included to every tartget at post configuration below
         dev/common/port_to_string.cpp
         dev/debug/serial_shell.cpp
         dev/debug/shell_debug_commands.cpp
@@ -37,11 +52,11 @@ include_directories(  # common include directories
 include_directories(dev/board/${BOARD_NAME})  # include board configs
 
 # Reuse ChibiOS object files (without linking) to avoid repeat compile
+# They are included to every tartget at post configuration below
 add_library(ChibiOS_OBJ OBJECT ${CHIBIOS_XASM_SRC} ${CHIBIOS_C_SRC} ${CHIBIOS_CPP_SRC} dev/board/${BOARD_NAME}/board.c)
 
-# NOTICE: if you want to adapt this project to a new board, be sure to check startup file congif in compile_options.cmake
 
-# ---------- Files and Targets Configurations ----------
+# =========== Files and Targets Configurations ===========
 
 # Main Program -- Infantry #1
 add_executable(INFANTRY_ONE
@@ -98,7 +113,7 @@ add_executable(ut_buzzer
         dev/interfaces/buzzer_unit_test.cpp)
 
 
-# ---------- Post Configurations for all targets ----------
+# =========== Post Configurations for all targets ===========
 
 # Make all targets compile to this filename to allow upload script to work properly
 set(ELF_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/build)
@@ -108,13 +123,20 @@ message("[Notice] All executables are built to ${ELF_OUTPUT_PATH}/${ELF_OUTPUT_N
 get_directory_property(TARGER_LIST BUILDSYSTEM_TARGETS)
 foreach (target ${TARGER_LIST})
     if (NOT ${target} STREQUAL "ChibiOS_OBJ")  # OBJECT library doesn't have PRE_BUILD or POST_BUILD
+        # Add ChibiOS files and commom sources
         target_sources(${target} PRIVATE $<TARGET_OBJECTS:ChibiOS_OBJ> ${COMMON_CPP_SRC})
+
+        # Echo target dev board before link
         add_custom_command(TARGET ${target} PRE_BUILD
-                COMMENT "Build for ${BOARD_NAME}")  # echo board type
+                COMMENT "Build for ${BOARD_NAME}")
+
+        # Run size utility after link to show the size of elf file
         add_custom_command(TARGET ${target} POST_BUILD
                 COMMAND echo
                 COMMAND ${CMAKE_SIZE_UTILITY} ${ELF_OUTPUT_PATH}/${ELF_OUTPUT_NAME}
                 COMMAND echo)  # execute size utility to show size of executable file
+
+        # Set unique output file
         set_target_properties(${target} PROPERTIES
                 RUNTIME_OUTPUT_DIRECTORY ${ELF_OUTPUT_PATH}
                 OUTPUT_NAME ${ELF_OUTPUT_NAME})  #
