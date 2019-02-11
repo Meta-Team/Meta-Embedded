@@ -1,5 +1,7 @@
 //
 // Created by liuzikai on 2019-02-09.
+// Thanks a lot to Illini RoboMaster @ UIUC, for note frequency table, sound_startup and sound_little_star in their
+// open source project iRM_Embedded_2017.
 //
 
 #ifndef META_INFANTRY_BUZZER_H
@@ -43,20 +45,42 @@ public:
 
     } note_t;
 
+    /**
+     * @brief structure that represent a note lasting for some time
+     *
+     * @note a sound for buzzer is an array of note_with_time_t, ending with {Finish(-1), *}. To play the sound, use
+     *       play_sound(). There are some preset sounds at the bottom of this class definition.
+     *
+     * @note to make your own sound, you need an array of frequency. You can either write it yourself, or use some tools
+     *       to help you. One solution: find a simple MIDI file (if it has multiple tracks, usually it doesn't
+     *       sound good if you play only one track.) Then use tools introduced in config/buzzer_sound_array_generator.py
+     *       to generate the frequency array.
+     */
     struct note_with_time_t {
-        int note;
-        unsigned int duration;
+        int note;  // frequency
+        unsigned int duration;  // [ms]
     };
 
+    /**
+     * @brief play a sound
+     * @param sound  an array of note_with_time_t, ending with {Finish(-1), *}
+     * @param prio   priority of the buzzer thread
+     */
     static void play_sound(const note_with_time_t sound[], tprio_t prio);
 
 private:
 
     static constexpr PWMDriver *buzzer_pwm_driver = &PWMD12;
 
+    /**
+     * @brief the buzzer thread to play sound
+     */
     class BuzzerThread : public chibios_rt::BaseStaticThread<512> {
     public:
 
+        /*
+         * Pointer to note_with_time_t array. It's passed into this class at play_sound()
+         */
         note_with_time_t const *sound_seq;
 
         BuzzerThread() : sound_seq(nullptr) {};
