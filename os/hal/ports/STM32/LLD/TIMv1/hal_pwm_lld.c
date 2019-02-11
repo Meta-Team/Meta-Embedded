@@ -303,6 +303,27 @@ OSAL_IRQ_HANDLER(STM32_TIM9_HANDLER) {
 #endif /* !defined(STM32_TIM9_SUPPRESS_ISR) */
 #endif /* STM32_PWM_USE_TIM9 */
 
+#if STM32_PWM_USE_TIM12 || defined(__DOXYGEN__)
+#if !defined(STM32_TIM12_SUPPRESS_ISR)
+#if !defined(STM32_TIM12_HANDLER)
+#error "STM32_TIM12_HANDLER not defined"
+#endif
+/**
+ * @brief   TIM12 interrupt handler.
+ *
+ * @isr
+ */
+OSAL_IRQ_HANDLER(STM32_TIM12_HANDLER) {
+
+    OSAL_IRQ_PROLOGUE();
+
+    pwm_lld_serve_interrupt(&PWMD12);
+
+    OSAL_IRQ_EPILOGUE();
+}
+#endif /* !defined(STM32_TIM12_SUPPRESS_ISR) */
+#endif /* STM32_PWM_USE_TIM12 */
+
 /*===========================================================================*/
 /* Driver exported functions.                                                */
 /*===========================================================================*/
@@ -361,6 +382,13 @@ void pwm_lld_init(void) {
   pwmObjectInit(&PWMD9);
   PWMD9.channels = STM32_TIM9_CHANNELS;
   PWMD9.tim = STM32_TIM9;
+#endif
+
+#if STM32_PWM_USE_TIM12
+    /* Driver initialization.*/
+    pwmObjectInit(&PWMD12);
+    PWMD12.channels = STM32_TIM12_CHANNELS;
+    PWMD12.tim = STM32_TIM12;
 #endif
 }
 

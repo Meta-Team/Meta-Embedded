@@ -38,21 +38,39 @@ public:
         La6H = 1760,     // 1760.00Hz   568us
         Si7H = 1976,     // 1975.53Hz   506us
 
-        Slient  = 0,
+        Silent  = 0,
         Finish  = -1,
 
     } note_t;
 
-    static void play_sound(note_t sound[], int interval_ms, tprio_t prio);
+    static void play_sound(const note_t sound[], int interval_ms, tprio_t prio);
+
+    static constexpr note_t sound_startup[] = {
+            So5L, Si7L, Re2M, Do1M, Mi3M, So5M, Silent, Finish
+    };
+
+    static constexpr note_t sound_startup_intel[] = {
+            Fa4H, Fa4H, Silent, So5M, Do1H, So5M, Re2H, Re2H, Re2H, Finish
+    };
+
+    static constexpr note_t sound_little_star[] = {
+            Do1M, Silent, Do1M, Silent, So5M, Silent, So5M, Silent, La6M, Silent, La6M, Silent, So5M, Silent, Silent,
+            Fa4M, Silent, Fa4M, Silent, Mi3M, Silent, Mi3M, Silent, Re2M, Silent, Re2M, Silent, Do1M, Silent, Silent,
+            So5M, Silent, So5M, Silent, Fa4M, Silent, Fa4M, Silent, Mi3M, Silent, Mi3M, Silent, Re2M, Silent, Silent,
+            So5M, Silent, So5M, Silent, Fa4M, Silent, Fa4M, Silent, Mi3M, Silent, Mi3M, Silent, Re2M, Silent, Silent,
+            Do1M, Silent, Do1M, Silent, So5M, Silent, So5M, Silent, La6M, Silent, La6M, Silent, So5M, Silent, Silent,
+            Fa4M, Silent, Fa4M, Silent, Mi3M, Silent, Mi3M, Silent, Re2M, Silent, Re2M, Silent, Do1M, Silent, Silent,
+            Finish
+    };
 
 private:
 
     static constexpr PWMDriver* buzzer_pwm_driver = &PWMD12;
 
-    class BuzzerThread : public chibios_rt::BaseStaticThread <256> {
+    class BuzzerThread : public chibios_rt::BaseStaticThread <512> {
     public:
 
-        int* sound_seq;
+        note_t const* sound_seq;
         int interval;
 
         BuzzerThread() : sound_seq(nullptr) {};

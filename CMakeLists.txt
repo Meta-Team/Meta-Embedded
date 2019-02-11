@@ -46,26 +46,22 @@ add_library(ChibiOS_OBJ OBJECT ${CHIBIOS_XASM_SRC} ${CHIBIOS_C_SRC} ${CHIBIOS_CP
 # Main Program -- Infantry #1
 add_executable(Infantry_One $<TARGET_OBJECTS:ChibiOS_OBJ> ${COMMON_CPP_SRC}
         dev/main.cpp)
-target_include_directories(Infantry_One PRIVATE dev/board/rm_board_2017)
 target_compile_definitions(Infantry_One PRIVATE VEHICLE=INFANTRY_ONE)
 
 # Main Program -- Engineer
 add_executable(Engineer $<TARGET_OBJECTS:ChibiOS_OBJ> ${COMMON_CPP_SRC}
         dev/main.cpp)
-target_include_directories(Engineer PRIVATE dev/board/rm_board_2017)
 target_compile_definitions(Engineer PRIVATE VEHICLE=ENGINEER)
 
 # Blink
 add_executable(ut_blink $<TARGET_OBJECTS:ChibiOS_OBJ> ${COMMON_CPP_SRC}
         dev/module/button_monitor.cpp
         dev/debug/main_blink.cpp)
-target_include_directories(ut_blink PRIVATE dev/board/rm_board_2018_a)
 
 # Remote Interpreter: include remote_interpreter sources and the unit test modules.
 add_executable(ut_remote_interpreter $<TARGET_OBJECTS:ChibiOS_OBJ> ${COMMON_CPP_SRC}
         dev/interfaces/remote_interpreter.cpp
         dev/interfaces/remote_interpreter_unit_test.cpp)
-target_include_directories(ut_remote_interpreter PRIVATE dev/board/rm_board_2017)
 
 # Gimbal Interface: include CANInterface, GimbalInterface, GimbalFeedbackModule and the unit test modules.
 add_executable(ut_gimbal_interface $<TARGET_OBJECTS:ChibiOS_OBJ> ${COMMON_CPP_SRC}
@@ -73,7 +69,6 @@ add_executable(ut_gimbal_interface $<TARGET_OBJECTS:ChibiOS_OBJ> ${COMMON_CPP_SR
         dev/interfaces/gimbal_interface.cpp
         dev/interfaces/gimbal_interface_unit_test.cpp
         dev/debug/gimbal_feedback_module.cpp)
-target_include_directories(ut_gimbal_interface PRIVATE dev/board/rm_board_2017)
 
 # Gimbal: include CANInterface, GimbalInterface, GimbalController, GimbalFeedbackModule and test & adjustment modules.
 add_executable(ut_gimbal $<TARGET_OBJECTS:ChibiOS_OBJ> ${COMMON_CPP_SRC}
@@ -84,21 +79,23 @@ add_executable(ut_gimbal $<TARGET_OBJECTS:ChibiOS_OBJ> ${COMMON_CPP_SRC}
         dev/debug/gimbal_feedback_module.cpp
         dev/control/gimbal_controller_unit_test.cpp
         dev/interfaces/mpu6500.cpp)
-target_include_directories(ut_gimbal PRIVATE dev/board/rm_board_2017)
 
 
 # MPU6500: include MP6500 interface and unit test.
 add_executable(ut_mpu6500 $<TARGET_OBJECTS:ChibiOS_OBJ> ${COMMON_CPP_SRC}
         dev/interfaces/mpu6500.cpp
         dev/interfaces/mpu6500_unit_test.cpp)
-target_include_directories(ut_mpu6500 PRIVATE dev/board/rm_board_2017)
 
 # Elevator Interface: include CANInterface, ElevatorInterface, and the unit test modules.
 add_executable(ut_elevator $<TARGET_OBJECTS:ChibiOS_OBJ> ${COMMON_CPP_SRC}
         dev/interfaces/can_interface.cpp
         dev/interfaces/elevator_interface.cpp
         dev/interfaces/elevator_interface_unit_test.cpp)
-target_include_directories(ut_elevator PRIVATE dev/board/rm_board_2017)
+
+# Buzzer: inlcude Buzzer interface and unit test.
+add_executable(ut_buzzer $<TARGET_OBJECTS:ChibiOS_OBJ> ${COMMON_CPP_SRC}
+        dev/interfaces/buzzer.cpp
+        dev/interfaces/buzzer_unit_test.cpp)
 
 
 # ---------- Post Configurations for all targets ----------
