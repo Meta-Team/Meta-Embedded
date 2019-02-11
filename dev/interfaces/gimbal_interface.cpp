@@ -7,18 +7,9 @@
 #include "gimbal_interface.h"
 #include "common_macro.h"
 
-void GimbalInterface::bullet_loader_t::reset_front_angle() {
-    bullet_loader_t::actual_angle = 0;
-    bullet_loader_t::round_count = 0;
-    bullet_loader_t::target_angle = 0;
-}
-
-float GimbalInterface::bullet_loader_t::get_one_shoot_target_angle() {
-    bullet_loader_t::target_angle += one_bullet_step;
-    if(bullet_loader_t::target_angle>=360.0f){
-        bullet_loader_t::target_angle -= 360.0f;
-    }
-    return bullet_loader_t::target_angle;
+float GimbalInterface::bullet_loader_t::set_shoot_target_angle(int bullet_num) {
+    target_angle += one_bullet_step * bullet_num;
+    return target_angle;
 }
 
 GimbalInterface::motor_t GimbalInterface::yaw;

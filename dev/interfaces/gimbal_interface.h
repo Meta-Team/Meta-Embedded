@@ -95,7 +95,7 @@ public:
     static motor_t yaw;
     static motor_t pitch;
 
-    typedef struct {
+    typedef struct bullet_loader_t{
 
     public:
 
@@ -104,6 +104,7 @@ public:
         bool enabled = false;  // if not enabled, 0 current will be sent in send_gimbal_currents
 
         // +: clockwise, -: counter-clockwise
+        float target_angle;
         int target_current = 0;  // the current that we want the motor to have
 
         /**
@@ -127,17 +128,15 @@ public:
         }
 
         // Get the target angle if one shoot is required
-        float get_one_shoot_target_angle();
+        float set_shoot_target_angle(int bullet_num);
 
     private:
 
         uint16_t last_angle_raw = 0;  // the raw angle of the newest feedback, in [0, 8191]
 
-        float target_angle;
-
         friend GimbalInterface;
 
-    } bullet_loader_t;
+    }bullet_loader_t;
 
     static bullet_loader_t bullet_loader;
     /**

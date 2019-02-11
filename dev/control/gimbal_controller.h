@@ -23,30 +23,16 @@ public:
         BULLET_LOADER_ID =2
     } motor_id_t;
 
+    typedef enum {
+        MODE_1 = 0,
+        MODE_2 = 1,
+        MODE_3 = 2
+    }shoot_mode_t;
+
+    static std::vector<float> shoot_trigger_duty_cycle;  // the vector contains the duty cycles for different shoot modes
+
     class FrictionWheelController{
-    public:
 
-        typedef enum {
-            MODE_1 = 0,
-            MODE_2 = 1,
-            MODE_3 = 2
-        }mode_index_t;
-
-        PIDController v_to_dc_pid;
-
-        /**
-         * @brief calculate the duty cycle from the velocity
-         * @param measured_velocity
-         * @param modeIndex
-         * @return
-         */
-        float inline v_to_dc(float measured_velocity, mode_index_t modeIndex) {
-            return v_to_dc_pid.calc(measured_velocity, friction_wheel_speed_modes[modeIndex]);
-        }
-
-    private:
-
-        std::vector<float> friction_wheel_speed_modes {10.0, 20.0, 30.0};
     };
 
     static FrictionWheelController frictionWheelController;
@@ -59,75 +45,52 @@ public:
     public:
         motor_id_t motor_id;   // motor id
 
-        float (*get_current)(float measured_angle, float measured_velocity, float target_angle);
+        PIDController angle_to_v_pid;
+        PIDController v_to_i_pid;
 
-        explicit MotorController(motor_id_t id) : motor_id(id){
-            switch (motor_id){
-                case YAW_ID:
-                    get_current = get_yaw_current;
-                    break;
-                case PIT_ID:
-                    get_current = get_pitch_current;
-                    break;
-                case BULLET_LOADER_ID:
-                    get_current = get_bullet_loader_current;
-                    break;
-                default:
-                    get_current = nullptr;
-            }
+        /**
+         * @brief perform calculation with angle_to_v_pid
+         * @param measured_angle
+         * @param target_angle
+         * @return target velocity
+         */
+        float inline angle_to_v(float measured_angle, float target_angle) {
+            return angle_to_v_pid.calc(measured_angle, target_angle);
         }
+
+        /**
+         * @brief perform calculation with v_to_i_pid
+         * @param measured_velocity
+         * @param target_velocity
+         * @return target current
+         */
+        float inline v_to_i(float measured_velocity, float target_velocity) {
+            return v_to_i_pid.calc(measured_velocity, target_velocity);
+        }
+
+        explicit MotorController(motor_id_t id) : motor_id(id){}
     };
 
     static MotorController yaw;
     static MotorController pitch;
-    static MotorController bullet_loader;
 
-    static bool start();
+    class BulletLoaderController{
 
-    static bool change_angle_to_v_pid(motor_id_t id, float _kp, float _ki, float _kd, float _i_limit, float _out_limit);
+    public:
 
-    static bool change_v_to_i_pid(motor_id_t id, float _kp, float _ki, float _kd, float _i_limit, float _out_limit);
+        motor_id_t motor_id;
 
-private:
+        int get_current(float measured_angle, float measured_velocity, float target_angle);
 
-    static PIDController yaw_angle_to_v_pid;
+        PIDController angle_to_v_pid;
+        PIDController v_to_i_pid;
 
-    static PIDController yaw_v_to_i_pid;
+        explicit BulletLoaderController(motor_id_t id) : motor_id(id){}
 
-    static PIDController pitch_angle_to_v_pid;
+        bool shooting_accomplished = true;
+    };
+    static BulletLoaderController bullet_loader;
 
-    static PIDController pitch_v_to_i_pid;
-
-    static PIDController bullet_loader_angle_to_v_pid;
-
-    static PIDController bullet_loader_v_to_i_pid;
-
-    /**
-     * @brief get the current to be sent
-     * @param measured_angle
-     * @param measured_velocity
-     * @param target_angle
-     * @return the current to be sent
-     */
-    static float get_bullet_loader_current(float measured_angle, float measured_velocity, float target_angle);
-
-    /**
-         * @brief get the current to be sent
-         * @param measured_angle
-         * @param measured_velocity
-         * @param target_angle
-         * @return the current to be sent
-         */
-    static float get_yaw_current(float measured_angle, float measured_velocity, float target_angle);
-
-    /**
-     * @brief get the current to be sent
-     * @param measured_angle
-     * @param measured_velocity
-     * @param target_angle
-     * @return the current to be sent
-     */
-    static float get_pitch_current(float measured_angle, float measured_velocity, float target_angle);
 
 };
 
