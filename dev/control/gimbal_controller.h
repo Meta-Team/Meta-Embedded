@@ -7,7 +7,6 @@
 
 #define GIMBAL_CONTROLLER_ENABLE_MIDDLE_VALUES 1
 
-#include <vector>
 #include "pid_controller.h"
 
 /**
@@ -29,8 +28,6 @@ public:
         MODE_3 = 2
     }shoot_mode_t;
 
-    static std::vector<float> shoot_trigger_duty_cycle;  // the vector contains the duty cycles for different shoot modes
-
     class FrictionWheelController{
 
     };
@@ -44,6 +41,12 @@ public:
 
     public:
         motor_id_t motor_id;   // motor id
+
+        float angular_velocity = 0.0f;
+
+        float actual_angle = 0.0f;
+
+        float target_angle = 0.0f;
 
         PIDController angle_to_v_pid;
         PIDController v_to_i_pid;
@@ -73,25 +76,42 @@ public:
 
     static MotorController yaw;
     static MotorController pitch;
+    static MotorController bullet_loader;
 
-    class BulletLoaderController{
+    static void start();
 
-    public:
+    static bool update_motor_data(motor_id_t motor_id, float actual_angle, float angular_velocity);
 
-        motor_id_t motor_id;
+    static void shoot_bullet(shoot_mode_t shoot_mode, int bullet_num);
 
-        int get_current(float measured_angle, float measured_velocity, float target_angle);
+    static float get_fw_pid(shoot_mode_t shoot_mode);
 
-        PIDController angle_to_v_pid;
-        PIDController v_to_i_pid;
+    static int get_bullet_loader_target_current();
 
-        explicit BulletLoaderController(motor_id_t id) : motor_id(id){}
+    /**
+     * @brief Called when shooting or reloading happens
+     * @param new_bullet_added
+     * @return
+     */
+    static int update_bullet_count(int new_bullet_added = 0);
 
-        bool shooting_accomplished = true;
-    };
-    static BulletLoaderController bullet_loader;
+    /**
+     * @brief get the number of the remained bullets
+     * @return
+     */
+    static int get_remained_bullet();
 
+private:
 
+    static float one_bullet_step;
+
+    static int remained_bullet;
+
+    static float actual_duty_cycle;  // THIS IS A PSEUDO PARAMETER, IT SHOULD BE REPLACED WITH FEEDBACK FROM FRICTION WHEEL IF NECESSARY
+
+    static float trigger_duty_cycle;  // Bullet loader only works when the friction wheel duty cycle is over the trigger
+
+    static float shoot_trigger_duty_cycle[3];  // the array contains the duty cycles for different shoot modes
 };
 
 

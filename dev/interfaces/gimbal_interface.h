@@ -104,7 +104,6 @@ public:
         bool enabled = false;  // if not enabled, 0 current will be sent in send_gimbal_currents
 
         // +: clockwise, -: counter-clockwise
-        float target_angle;
         int target_current = 0;  // the current that we want the motor to have
 
         /**
@@ -126,9 +125,6 @@ public:
         float get_accumulate_angle() {
             return bullet_loader_t::actual_angle + bullet_loader_t::round_count * 360.0f;
         }
-
-        // Get the target angle if one shoot is required
-        float set_shoot_target_angle(int bullet_num);
 
     private:
 
@@ -176,43 +172,9 @@ public:
      */
     static bool process_motor_feedback(CANRxFrame *rxmsg);
 
-    /**
-     * @brief get the number of the remained bullets
-     * @return the number of remained bullets
-     */
-    static int get_remained_bullet();
-
-    /**
-     * @brief Called when shooting or reloading happens
-     * @param new_bullet_added set positive int after reloading, leave it empty after shooting
-     * @return the updated bullet number
-     */
-    static int update_bullet_count(int new_bullet_added = 0);
-
-    /**
-     * @brief update the trigger duty cycle when a shooting mode is chosen
-     * @param new_duty_cycle
-     * @return the updated trigger duty cycle
-     */
-    static float set_trigger_duty_cycle(float new_duty_cycle);
-
-    /**
-     * check whether the speed of the friction wheels fulfills the present shooting mode
-     * @return true if the speed reaches the requirement, false otherwise
-     */
-    static bool check_shooting_enabled();
-
 private:
 
     static CANInterface *can;
-
-    static float one_bullet_step;
-
-    static int remained_bullet;
-
-    static bool shooting_enabled;
-
-    static float trigger_duty_cycle;  // Bullet loader only works when the friction wheel duty cycle is over the trigger
 
     // Count of feedback for one sample of angular velocity
     static constexpr int velocity_sample_interval = 50;

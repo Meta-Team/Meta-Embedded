@@ -23,6 +23,7 @@ static void can1_callback(CANRxFrame *rxmsg) {
     switch (rxmsg->SID) {
         case 0x205:
         case 0x206:
+        case 0x207:
             GimbalInterface::process_motor_feedback(rxmsg);
             break;
         default:
@@ -415,21 +416,3 @@ int main(void) {
 }
 
 // Now, the shoot instruction is received
-static void shoot_bullet(GimbalController::shoot_mode_t shoot_mode, int bullet_num){
-    float shoot_duty_cycle = GimbalController::shoot_trigger_duty_cycle[shoot_mode];
-    GimbalInterface::set_trigger_duty_cycle(shoot_duty_cycle);
-    GimbalInterface::friction_wheels.duty_cycle = shoot_duty_cycle;
-    GimbalInterface::bullet_loader.set_shoot_target_angle(bullet_num);
-    GimbalController::bullet_loader.shooting_accomplished = false;
-    while(GimbalInterface::check_shooting_enabled() && !(GimbalController::bullet_loader.shooting_accomplished)){
-
-        // If the speed of the friction wheels satisfies the requirement, then we can start to load bullets
-
-        GimbalInterface::bullet_loader.target_current = GimbalController::bullet_loader.get_current(
-                GimbalInterface::bullet_loader.actual_angle,
-                GimbalInterface::bullet_loader.angular_velocity,
-                GimbalInterface::bullet_loader.target_angle);
-        GimbalInterface::send_gimbal_currents();
-        // delay for the next feedback
-    }
-}
