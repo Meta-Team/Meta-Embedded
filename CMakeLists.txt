@@ -114,7 +114,15 @@ set(COMMON_CPP_SRC
         dev/common/port_to_string.cpp
         dev/debug/serial_shell.cpp
         dev/debug/shell_debug_commands.cpp
+<<<<<<< HEAD
         dev/debug/led.cpp)
+=======
+        dev/main.cpp
+        dev/debug/led.cpp
+        dev/interfaces/remote_interpreter.cpp
+        dev/interfaces/remote_interpreter_unit_test.cpp
+        dev/interfaces/can_interface.cpp dev/interfaces/can_interface.h dev/module/pid_controller.cpp dev/module/pid_controller.h dev/interfaces/elevator_interface.cpp dev/interfaces/elevator_interface.h dev/interfaces/elevator_interface_unit_test.cpp)
+>>>>>>> 3344c14fc9917598efd4ffaac2a09ba7ef9c8e7f
 
 include_directories(dev
         dev/board
