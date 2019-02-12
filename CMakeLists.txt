@@ -1,131 +1,49 @@
-# This file is configuration for CMake build system.
+# Created by liuzikai 2018-01-29
 
-# By liuzikai 2018-01-29
+# =========== General Part ===========
 
 cmake_minimum_required(VERSION 3.10)
 
+include(config/toolchain.cmake)  # include cross compile configurations
+
 set(CMAKE_CXX_STANDARD 11)
 
-# CMake system configs. These configs affects the way to pass flags.
-set(CMAKE_SYSTEM_NAME Generic)
-set(CMAKE_SYSTEM_VERSION 1)
-set(CMAKE_SYSTEM_PROCESSOR arm)
+# Check dev board defintion 
+# NOTICE: ${BOARD_NAME} needs to be specific externally
+# NOTICE: if you want to adapt this project to a new board, be sure to also set startup file in compile_options.cmake
+if (NOT DEFINED BOARD_NAME)
+    message(FATAL_ERROR "[ERROR] No specific dev board. Do you forget to add -DBOARD_NAMD=\"***\" to CMake options?")
+elseif ((${BOARD_NAME} STREQUAL rm_board_2017) OR (${BOARD_NAME} STREQUAL rm_board_2018_a))
+    message("[Notice] Current profile is configurated for dev board \"${BOARD_NAME}\"." )
+else ()
+    message(FATAL_ERROR "[ERROR] Dev board \"${BOARD_NAME}\" is not configuared." )
+endif ()
 
-project(Meta_Infantry ASM C CXX)
+project(Meta_Infantry ASM C CXX) # NOTICE: project() must be in CMakeList.txt, rather than any cmake file. It must be
+                                 # after toolchain configs and before flag configs for CMake to test compiler.
 
-# ---------- Toolchain Configurations ----------
-
-# The following lines set the toolchain. No we use CLion Preference to config toolchain, so they have no use.
-
-set(TOOLCHAIN_PREFIX arm-none-eabi-)
-#set(CMAKE_C_COMPILER   ${TOOLCHAIN_PREFIX}gcc    )
-#set(CMAKE_ASM_COMPILER ${CMAKE_C_COMPLIER}       )
-#set(CMAKE_CXX_COMPILER ${TOOLCHAIN_PREFIX}g++    )
-#set(CMAKE_OBJCOPY      ${TOOLCHAIN_PREFIX}objcopy)
-set(CMAKE_SIZE_UTILITY ${TOOLCHAIN_PREFIX}size)
-#set(CMAKE_EXE_LINKER_FLAGS "--specs=nosys.specs")
+include(config/compile_options.cmake)  # include compile flags and startup file option
 
 
-# The following lines create target to let CMake call Make directly. Now they are deprecated.
+# =========== Options ===========
 
-#if (CMAKE_HOST_SYSTEM_NAME MATCHES "Darwin")
-#    message("CMAKE_HOST_SYSTEM_NAME = ${CMAKE_HOST_SYSTEM_NAME}, use `make` to compile")
-#    set(MAKE_EXECUTABLE make)
-#else()
-#    message("CMAKE_HOST_SYSTEM_NAME = ${CMAKE_HOST_SYSTEM_NAME}, use `mingw32-make` to compile")
-#    set(MAKE_EXECUTABLE mingw32-make)
-#endif()
-#add_custom_target(Main_Make COMMAND ${MAKE_EXECUTABLE} -j -C ${Meta_Infantry_SOURCE_DIR}/dev UNIT_TEST=NONE)
+set(CMAKE_VERBOSE_MAKEFILE OFF)  # Enable this if you want to see verbose log
 
 
-# ---------- Flags Configurations ----------
 
-# Compiler optimization flags, for ASM, C and CPP
-#   -O and -g flag is auto set by CMake depending on debug mode (-g for Debug, -O3 -DNDEBUG for Release)
-set(OPT_FLAGS "-fomit-frame-pointer -falign-functions=16")
-
-# USE_LINK_GC: Enable this if you want the linker to remove unused code and data
-set(OPT_FLAGS "${OPT_FLAGS} -ffunction-sections -fdata-sections -fno-common")
-
-# USE_LTO: Enable this if you want link time optimizations (LTO)
-set(OPT_FLAGS "${OPT_FLAGS} -flto")
-
-# USE_FPU_OPT
-set(OPT_FLAGS "${OPT_FLAGS} -mfloat-abi=hard -mfpu=fpv4-sp-d16")
-
-# Linker optimization flags
-set(LD_OPT_FLAGS ",--gc-sections,--defsym=__process_stack_size__=0x400,--defsym=__main_stack_size__=0x400")
-
-# Flags for C sources only
-set(C_OPT_FLAGS "")
-
-# Flags for CPP sources only
-set(CPP_OPT_FLAGS "-std=gnu++11 -fno-exceptions -fno-rtti")
-
-# Warning flags for C sources only
-set(C_WARN_FLAGS "-Wall -Wextra -Wundef -Wstrict-prototypes")
-
-# Warning flags for CPP sources only
-set(CPP_WARN_FLAGS "-Wall -Wextra -Wundef")
-
-# Defintions for C and CPP sources
-set(DEFS "-DCORTEX_USE_FPU=TRUE -DSHELL_CONFIG_FILE")
-
-# Defintions for ASM sources
-set(ASM_DEFS "-DCORTEX_USE_FPU=TRUE")
-
-# MCU config flags
-set(MCU_FLAGS "-mcpu=cortex-m4")
-
-# Flags for objdump
-#set(ODFLAGS "-x --syms")
-
-# Flags for thumb compile mode.
-set(THUMB_FLAGS "-mthumb -DTHUMB -DTHUMB_PRESENT -mno-thumb-interwork -DTHUMB_NO_INTERWORKING")
-# Some defintions are not needed for ARM or linker, but it doesn't matter so they are all included :)
-# Omitted flags from Makefiles: -MD -MP -MF .build/dep/(filename).d (For .d files generation)
-
-# Startup LD directory and LD file
-set(STARTUP_LD_DICT ${PROJECT_SOURCE_DIR}/os/common/startup/ARMCMx/compilers/GCC/ld)
-set(STARTUP_LD_FILE ${STARTUP_LD_DICT}/STM32F429xI.ld)
-
-
-# SET FLAGS TO CMAKE
-
-set(CMAKE_ASM_FLAGS "-x assembler-with-cpp ${MCU_FLAGS} ${OPT_FLAGS} ${ASM_DEFS} ${THUMB_FLAGS}" CACHE INTERNAL "asm compiler flags" FORCE)
-set(CMAKE_C_FLAGS "${MCU_FLAGS} ${OPT_FLAGS} ${C_OPT_FLAGS} ${C_WARN_FLAGS} ${DEFS} ${THUMB_FLAGS}" CACHE INTERNAL "c compiler flags" FORCE)
-set(CMAKE_CXX_FLAGS "${MCU_FLAGS} ${OPT_FLAGS} ${CPP_OPT_FLAGS} ${CPP_WARN_FLAGS} ${DEFS} ${THUMB_FLAGS}" CACHE INTERNAL "cxx compiler flags" FORCE)
-set(CMAKE_EXE_LINKER_FLAGS "-nostartfiles -L${STARTUP_LD_DICT} -Wl,--no-warn-mismatch,--library-path=${STARTUP_LD_DICT},--script=${STARTUP_LD_FILE}${LD_OPT_FLAGS}" CACHE INTERNAL "linker flags" FORCE)
-# CMake will pass CXX_FLAGS to linker since it's a CXX linker, so some flags are excluded to avoid duplicate
-# Omitted flags from Makefiles:
-#   -Wl,-Map=${PROJECT_SOURCE_DIR}/build/ch.map (for .map files generation)
-#   -Wl,--cref (output Cross Reference Table)
-
-
-# Enable this if you want to see verbose log
-set(CMAKE_VERBOSE_MAKEFILE OFF)
-
-
-# ---------- Files and Targets Configurations ----------
+# =========== Common Files and Targets Configurations ===========
 
 include(os/ch.cmake)  # add files and directories from ChibiOS
 
-set(COMMON_CPP_SRC
+set(COMMON_CPP_SRC  # common cpp sources, which are included to every tartget at post configuration below
         dev/common/port_to_string.cpp
         dev/debug/serial_shell.cpp
         dev/debug/shell_debug_commands.cpp
-<<<<<<< HEAD
-        dev/debug/led.cpp)
-=======
-        dev/main.cpp
-        dev/debug/led.cpp
-        dev/interfaces/remote_interpreter.cpp
-        dev/interfaces/remote_interpreter_unit_test.cpp
-        dev/interfaces/can_interface.cpp dev/interfaces/can_interface.h dev/module/pid_controller.cpp dev/module/pid_controller.h dev/interfaces/elevator_interface.cpp dev/interfaces/elevator_interface.h dev/interfaces/elevator_interface_unit_test.cpp)
->>>>>>> 3344c14fc9917598efd4ffaac2a09ba7ef9c8e7f
+        dev/interfaces/led.cpp
+        dev/interfaces/buzzer.cpp)
 
-include_directories(dev
-        dev/board
+include_directories(  # common include directories
+        dev
         dev/common
         dev/debug
         dev/interfaces
@@ -133,32 +51,44 @@ include_directories(dev
         dev/control
         dev/vehicle_configs)
 
-# Reuse ChibiOS object files
-add_library(ChibiOS_OBJ OBJECT ${CHIBIOS_XASM_SRC} ${CHIBIOS_C_SRC} ${CHIBIOS_CPP_SRC} dev/debug/control_fetch_bullet/fetch_bullet.h dev/debug/control_fetch_bullet/fetch_bullet.cpp)
+include_directories(dev/board/${BOARD_NAME})  # include board configs
 
-# Main program
-add_executable(Infantry_One $<TARGET_OBJECTS:ChibiOS_OBJ> ${COMMON_CPP_SRC}
-        dev/main.cpp)
-target_compile_definitions(Infantry_One PRIVATE VEHICLE=INFANTRY_ONE)
+# Reuse ChibiOS object files (without linking) to avoid repeat compile
+# They are included to every tartget at post configuration below
+add_library(ChibiOS_OBJ OBJECT ${CHIBIOS_XASM_SRC} ${CHIBIOS_C_SRC} ${CHIBIOS_CPP_SRC} dev/board/${BOARD_NAME}/board.c)
 
-add_executable(Engineer $<TARGET_OBJECTS:ChibiOS_OBJ> ${COMMON_CPP_SRC}
+
+# =========== Files and Targets Configurations ===========
+
+# Main Program -- Infantry #1
+add_executable(INFANTRY_ONE
         dev/main.cpp)
-target_compile_definitions(Engineer PRIVATE VEHICLE=ENGINEER)
+target_compile_definitions(INFANTRY_ONE PRIVATE VEHICLE=INFANTRY_ONE)
+
+# Main Program -- Engineer
+add_executable(ENGINEER
+        dev/main.cpp)
+target_compile_definitions(ENGINEER PRIVATE VEHICLE=ENGINEER)
+
+# Blink
+add_executable(ut_blink 
+        dev/module/button_monitor.cpp
+        dev/debug/main_blink.cpp)
 
 # Remote Interpreter: include remote_interpreter sources and the unit test modules.
-add_executable(ut_remote_interpreter $<TARGET_OBJECTS:ChibiOS_OBJ> ${COMMON_CPP_SRC}
+add_executable(ut_remote_interpreter 
         dev/interfaces/remote_interpreter.cpp
         dev/interfaces/remote_interpreter_unit_test.cpp)
 
 # Gimbal Interface: include CANInterface, GimbalInterface, GimbalFeedbackModule and the unit test modules.
-add_executable(ut_gimbal_interface $<TARGET_OBJECTS:ChibiOS_OBJ> ${COMMON_CPP_SRC}
+add_executable(ut_gimbal_interface 
         dev/interfaces/can_interface.cpp
         dev/interfaces/gimbal_interface.cpp
         dev/interfaces/gimbal_interface_unit_test.cpp
         dev/debug/gimbal_feedback_module.cpp)
 
 # Gimbal: include CANInterface, GimbalInterface, GimbalController, GimbalFeedbackModule and test & adjustment modules.
-add_executable(ut_gimbal $<TARGET_OBJECTS:ChibiOS_OBJ> ${COMMON_CPP_SRC}
+add_executable(ut_gimbal 
         dev/interfaces/can_interface.cpp
         dev/interfaces/gimbal_interface.cpp
         dev/module/pid_controller.cpp
@@ -169,34 +99,49 @@ add_executable(ut_gimbal $<TARGET_OBJECTS:ChibiOS_OBJ> ${COMMON_CPP_SRC}
 
 
 # MPU6500: include MP6500 interface and unit test.
-add_executable(ut_mpu6500 $<TARGET_OBJECTS:ChibiOS_OBJ> ${COMMON_CPP_SRC}
+add_executable(ut_mpu6500 
         dev/interfaces/mpu6500.cpp
         dev/interfaces/mpu6500_unit_test.cpp)
 
-
 # Elevator Interface: include CANInterface, ElevatorInterface, and the unit test modules.
-add_executable(ut_elevator $<TARGET_OBJECTS:ChibiOS_OBJ> ${COMMON_CPP_SRC}
+add_executable(ut_elevator 
         dev/interfaces/can_interface.cpp
         dev/interfaces/elevator_interface.cpp
         dev/interfaces/elevator_interface_unit_test.cpp)
 
+# Buzzer: inlcude Buzzer interface and unit test.
+add_executable(ut_buzzer 
+        dev/interfaces/buzzer.cpp
+        dev/interfaces/buzzer_unit_test.cpp)
 
-# For all executable targets, change output name and location, and run size utility after build
+
+# =========== Post Configurations for all targets ===========
+
+# Make all targets compile to this filename to allow upload script to work properly
 set(ELF_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/build)
 set(ELF_OUTPUT_NAME meta.elf)
-
 message("[Notice] All executables are built to ${ELF_OUTPUT_PATH}/${ELF_OUTPUT_NAME}")
 
 get_directory_property(TARGER_LIST BUILDSYSTEM_TARGETS)
 foreach (target ${TARGER_LIST})
-    if (NOT ${target} STREQUAL "ChibiOS_OBJ")
+    if (NOT ${target} STREQUAL "ChibiOS_OBJ")  # OBJECT library doesn't have PRE_BUILD or POST_BUILD
+        # Add ChibiOS files and commom sources
+        target_sources(${target} PRIVATE $<TARGET_OBJECTS:ChibiOS_OBJ> ${COMMON_CPP_SRC})
+
+        # Echo target dev board before link
+        add_custom_command(TARGET ${target} PRE_BUILD
+                COMMENT "Build for ${BOARD_NAME}")
+
+        # Run size utility after link to show the size of elf file
         add_custom_command(TARGET ${target} POST_BUILD
                 COMMAND echo
                 COMMAND ${CMAKE_SIZE_UTILITY} ${ELF_OUTPUT_PATH}/${ELF_OUTPUT_NAME}
-                COMMAND echo)
+                COMMAND echo)  # execute size utility to show size of executable file
+
+        # Set unique output file
         set_target_properties(${target} PROPERTIES
                 RUNTIME_OUTPUT_DIRECTORY ${ELF_OUTPUT_PATH}
-                OUTPUT_NAME ${ELF_OUTPUT_NAME})
+                OUTPUT_NAME ${ELF_OUTPUT_NAME})  #
     endif ()
 endforeach (target)
 
