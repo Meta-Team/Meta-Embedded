@@ -115,9 +115,9 @@ set(CHIBIOS_C_SRC ${CHIBIOS_C_SRC}
 
 include_directories(${CHIBIOS}/os/hal/ports/STM32/LLD/TIMv1)
 
-# $(CHIBIOS)/dev/board/board.mk
-set(CHIBIOS_C_SRC ${CHIBIOS_C_SRC}
-        ${CHIBIOS}/dev/board/board.c)
+## $(CHIBIOS)/dev/board/board.mk
+#set(CHIBIOS_C_SRC ${CHIBIOS_C_SRC}
+#        ${CHIBIOS}/dev/board/board.c)
 
 include_directories(${CHIBIOS}/dev/board)
 

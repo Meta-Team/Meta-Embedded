@@ -9,7 +9,7 @@
 if [[ $1 != "--no-exit" ]]; then
     exit_cmd="exit"
 else
-    exit_cmd="halt"
+    exit_cmd=""
     echo "[Notice] OpenOCD will flash, reset and halt the program, and keep running as server after writing program."
 fi
 set -x

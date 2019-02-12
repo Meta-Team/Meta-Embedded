@@ -2,6 +2,24 @@
 
 This is the repository of infantry. It's based on RM dev board 2017.
 
+## 开发板适配（board.h)
+
+### RM 2017 开发板
+
+- [x] LED GPIO
+- [ ] 用户自定义按键
+- [ ] 蜂鸣器
+
+### RM 2018 A型 开发板
+
+- [x] LED GPIO
+- [ ] 用户自定义按键
+- [x] 蜂鸣器
+
+## Changes to ChibiOS
+
+- [x] TIM12 PWM
+
 ## Repo Structure
 
 * config: configurations for CMake and OpenOCD. <br>
@@ -13,6 +31,17 @@ This is the repository of infantry. It's based on RM dev board 2017.
 * doc: Documents.
     * resource: images and other resources for doc.
 * os: sources from ChibiOS. No need to read them.
+
+## Targets
+### ut_blink
+闪灯程序。按下用户自定义按键会改变闪灯状态。
+- [x] RM Board 2017
+- [x] RM Board 2018 A
+
+### ut_buzzer
+蜂鸣器单元测试程序。使用 Shell 指令 'buzzer ?' 播放声音。
+- [x] RM Board 2017
+- [x] RM Board 2018 A
 
 ## Toolchain Setup
 
