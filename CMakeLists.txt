@@ -11,7 +11,9 @@ set(CMAKE_CXX_STANDARD 11)
 # Check dev board defintion 
 # NOTICE: ${BOARD_NAME} needs to be specific externally
 # NOTICE: if you want to adapt this project to a new board, be sure to also set startup file in compile_options.cmake
-if ((${BOARD_NAME} STREQUAL rm_board_2017) OR (${BOARD_NAME} STREQUAL rm_board_2018_a))
+if (NOT DEFINED BOARD_NAME)
+    message(FATAL_ERROR "[ERROR] No specific dev board. Do you forget to add -DBOARD_NAMD=\"***\" to CMake options?")
+elseif ((${BOARD_NAME} STREQUAL rm_board_2017) OR (${BOARD_NAME} STREQUAL rm_board_2018_a))
     message("[Notice] Current profile is configurated for dev board \"${BOARD_NAME}\"." )
 else ()
     message(FATAL_ERROR "[ERROR] Dev board \"${BOARD_NAME}\" is not configuared." )
