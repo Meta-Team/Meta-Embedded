@@ -12,15 +12,19 @@ set(CMAKE_CXX_STANDARD 11)
 # NOTICE: ${BOARD_NAME} needs to be specific externally
 # NOTICE: if you want to adapt this project to a new board, be sure to also set startup file in compile_options.cmake
 if (NOT DEFINED BOARD_NAME)
-    message(FATAL_ERROR "[ERROR] No specific dev board. Do you forget to add -DBOARD_NAMD=\"***\" to CMake options?")
-elseif ((${BOARD_NAME} STREQUAL rm_board_2017) OR (${BOARD_NAME} STREQUAL rm_board_2018_a))
-    message("[Notice] Current profile is configurated for dev board \"${BOARD_NAME}\"." )
-else ()
-    message(FATAL_ERROR "[ERROR] Dev board \"${BOARD_NAME}\" is not configuared." )
+    set(BOARD_NAME rm_board_2017)
+    #    message(FATAL_ERROR "[ERROR] No specific dev board. Do you forget to add -DBOARD_NAMD=\"***\" to CMake options?")
 endif ()
 
-project(Meta_Infantry ASM C CXX) # NOTICE: project() must be in CMakeList.txt, rather than any cmake file. It must be
-                                 # after toolchain configs and before flag configs for CMake to test compiler.
+if ((${BOARD_NAME} STREQUAL rm_board_2017) OR (${BOARD_NAME} STREQUAL rm_board_2018_a))
+    message("[Notice] Current profile is configurated for dev board \"${BOARD_NAME}\".")
+else ()
+    message(FATAL_ERROR "[ERROR] Dev board \"${BOARD_NAME}\" is not configuared.")
+endif ()
+
+project(Meta_Infantry ASM C CXX)
+# NOTICE: project() must be in CMakeList.txt, rather than any cmake file. It must be after toolchain configs and before
+#         flag configs for CMake to test compiler.
 
 include(config/compile_options.cmake)  # include compile flags and startup file option
 
@@ -28,7 +32,6 @@ include(config/compile_options.cmake)  # include compile flags and startup file 
 # =========== Options ===========
 
 set(CMAKE_VERBOSE_MAKEFILE OFF)  # Enable this if you want to see verbose log
-
 
 
 # =========== Common Files and Targets Configurations ===========
@@ -71,24 +74,24 @@ add_executable(ENGINEER
 target_compile_definitions(ENGINEER PRIVATE VEHICLE=ENGINEER)
 
 # Blink
-add_executable(ut_blink 
+add_executable(ut_blink
         dev/module/button_monitor.cpp
         dev/debug/main_blink.cpp)
 
 # Remote Interpreter: include remote_interpreter sources and the unit test modules.
-add_executable(ut_remote_interpreter 
+add_executable(ut_remote_interpreter
         dev/interfaces/remote_interpreter.cpp
         dev/interfaces/remote_interpreter_unit_test.cpp)
 
 # Gimbal Interface: include CANInterface, GimbalInterface, GimbalFeedbackModule and the unit test modules.
-add_executable(ut_gimbal_interface 
+add_executable(ut_gimbal_interface
         dev/interfaces/can_interface.cpp
         dev/interfaces/gimbal_interface.cpp
         dev/interfaces/gimbal_interface_unit_test.cpp
         dev/debug/gimbal_feedback_module.cpp)
 
 # Gimbal: include CANInterface, GimbalInterface, GimbalController, GimbalFeedbackModule and test & adjustment modules.
-add_executable(ut_gimbal 
+add_executable(ut_gimbal
         dev/interfaces/can_interface.cpp
         dev/interfaces/gimbal_interface.cpp
         dev/module/pid_controller.cpp
@@ -99,18 +102,18 @@ add_executable(ut_gimbal
 
 
 # MPU6500: include MP6500 interface and unit test.
-add_executable(ut_mpu6500 
+add_executable(ut_mpu6500
         dev/interfaces/mpu6500.cpp
         dev/interfaces/mpu6500_unit_test.cpp)
 
 # Elevator Interface: include CANInterface, ElevatorInterface, and the unit test modules.
-add_executable(ut_elevator 
+add_executable(ut_elevator
         dev/interfaces/can_interface.cpp
         dev/interfaces/elevator_interface.cpp
         dev/interfaces/elevator_interface_unit_test.cpp)
 
 # Buzzer: inlcude Buzzer interface and unit test.
-add_executable(ut_buzzer 
+add_executable(ut_buzzer
         dev/interfaces/buzzer.cpp
         dev/interfaces/buzzer_unit_test.cpp)
 
