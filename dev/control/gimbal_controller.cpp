@@ -11,8 +11,7 @@ GimbalController::FrictionWheelController GimbalController::frictionWheelControl
 float GimbalController::shoot_trigger_duty_cycle[3] = {0.1, 0.2, 0.3};  // the numbers are temporary
 float GimbalController::one_bullet_step;
 int GimbalController::remained_bullet;
-float GimbalController::actual_duty_cycle;
-float GimbalController::trigger_duty_cycle;
+bool GimbalController::shooting;
 
 
 /**
@@ -22,7 +21,7 @@ float GimbalController::trigger_duty_cycle;
 void GimbalController::start() {
     one_bullet_step = 40.0f;
     remained_bullet = 0;
-    trigger_duty_cycle = 1.0;  // the value is undefined
+    shooting = false;
 }
 
 bool
@@ -46,33 +45,28 @@ GimbalController::update_motor_data(GimbalController::motor_id_t motor_id, float
 }
 
 void GimbalController::shoot_bullet(GimbalController::shoot_mode_t shoot_mode, int bullet_num) {
-    trigger_duty_cycle = shoot_trigger_duty_cycle[shoot_mode];
+    frictionWheelController.trigger_duty_cycle = frictionWheelController.actual_duty_cycle = shoot_trigger_duty_cycle[shoot_mode];
     bullet_loader.target_angle += one_bullet_step * bullet_num;
+    shooting = true;
 }
 
-float GimbalController::get_fw_pid(GimbalController::shoot_mode_t shoot_mode) {
-    return shoot_trigger_duty_cycle[shoot_mode];
+float GimbalController::get_fw_pid() {
+    return frictionWheelController.trigger_duty_cycle;
 }
 
 int GimbalController::get_bullet_loader_target_current(){
 
     int target_current;
-    if((actual_duty_cycle>=trigger_duty_cycle) && (bullet_loader.actual_angle<bullet_loader.target_angle)){
+    float target_velocity;
+    if(bullet_loader.actual_angle<bullet_loader.target_angle
+    && (frictionWheelController.actual_duty_cycle>=frictionWheelController.trigger_duty_cycle)){
+        // If the target angle is not reached and the speed of the friction wheels satisfies the requirement, we calculate the target velocity
+        target_velocity = GimbalController::bullet_loader.angle_to_v(bullet_loader.actual_angle, bullet_loader.target_angle);
+    } else
+        // If the target angle is reached or the friction wheels don't satisfy the requirement, then the bullet loader should be stopped
+        target_velocity = 0;
 
-        // If the speed of the friction wheels satisfies the requirement, then we can load bullets
-        float target_velocity = GimbalController::bullet_loader.angle_to_v(bullet_loader.actual_angle, bullet_loader.target_angle);
-        target_current = (int)(GimbalController::bullet_loader.v_to_i(
-                bullet_loader.angular_velocity,
-                target_velocity));
-    } else{
-
-        // If one of these circumstances fails, stop the bullet loader right now
-        target_current = (int)(GimbalController::bullet_loader.v_to_i(
-                bullet_loader.angular_velocity,
-                0));
-
-        GimbalController::update_bullet_count();
-    }
+    target_current = (int)(GimbalController::bullet_loader.v_to_i(bullet_loader.angular_velocity, target_velocity));
     return target_current;
 }
 

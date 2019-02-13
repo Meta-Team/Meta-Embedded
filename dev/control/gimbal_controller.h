@@ -16,6 +16,8 @@ class GimbalController {
 
 public:
 
+    static bool shooting;
+
     typedef enum {
         YAW_ID = 0,
         PIT_ID = 1,
@@ -30,6 +32,11 @@ public:
 
     class FrictionWheelController{
 
+        float actual_duty_cycle = 0.0;  // THIS IS A PSEUDO PARAMETER, IT SHOULD BE REPLACED WITH FEEDBACK FROM FRICTION WHEEL IF NECESSARY
+
+        float trigger_duty_cycle = 0.2;  // Bullet loader only works when the friction wheel duty cycle is over the trigger
+
+        friend GimbalController;
     };
 
     static FrictionWheelController frictionWheelController;
@@ -78,14 +85,37 @@ public:
     static MotorController pitch;
     static MotorController bullet_loader;
 
+    /**
+     * @brief some initializations
+     */
     static void start();
 
+    /**
+     * @brief get the data from the interface and update the data in controller
+     * @param motor_id
+     * @param actual_angle
+     * @param angular_velocity
+     * @return
+     */
     static bool update_motor_data(motor_id_t motor_id, float actual_angle, float angular_velocity);
 
+    /**
+     * @brief be prepared for a shooting assignment when receiving a shooting command
+     * @param shoot_mode
+     * @param bullet_num
+     */
     static void shoot_bullet(shoot_mode_t shoot_mode, int bullet_num);
 
-    static float get_fw_pid(shoot_mode_t shoot_mode);
+    /**
+     * @brief return the target duty cycle for the friction wheels
+     * @return
+     */
+    static float get_fw_pid();
 
+    /**
+     * @brief use pid to calculate the target current for the bullet loader
+     * @return
+     */
     static int get_bullet_loader_target_current();
 
     /**
@@ -106,10 +136,6 @@ private:
     static float one_bullet_step;
 
     static int remained_bullet;
-
-    static float actual_duty_cycle;  // THIS IS A PSEUDO PARAMETER, IT SHOULD BE REPLACED WITH FEEDBACK FROM FRICTION WHEEL IF NECESSARY
-
-    static float trigger_duty_cycle;  // Bullet loader only works when the friction wheel duty cycle is over the trigger
 
     static float shoot_trigger_duty_cycle[3];  // the array contains the duty cycles for different shoot modes
 };

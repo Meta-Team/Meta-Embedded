@@ -416,3 +416,25 @@ int main(void) {
 }
 
 // Now, the shoot instruction is received
+
+void shoot_process(){
+    //GimbalInterface::process_motor_feedback();
+
+    GimbalController::update_motor_data(
+            GimbalController::BULLET_LOADER_ID,
+            GimbalInterface::bullet_loader.actual_angle,
+            GimbalInterface::bullet_loader.angular_velocity);
+
+    GimbalInterface::friction_wheels.duty_cycle = GimbalController::get_fw_pid();
+    GimbalInterface::bullet_loader.target_current = GimbalController::get_bullet_loader_target_current();
+    if(GimbalController::shooting && (GimbalController::bullet_loader.actual_angle>=GimbalController::bullet_loader.target_angle)){
+        // If program comes here, it means we have just arrive the target angle
+        GimbalController::shooting = false;  // Set the shooting mode to negative
+        GimbalController::update_bullet_count();  // Count the remained bullets and reset the target angle and actual angle in controller
+        GimbalInterface::bullet_loader.reset_front_angle();  // Clear off the actual angle in the interface
+    }
+    GimbalInterface::send_gimbal_currents();
+    GimbalController::get_remained_bullet();
+
+    GimbalController::shoot_bullet(GimbalController::MODE_1, 3);
+}
