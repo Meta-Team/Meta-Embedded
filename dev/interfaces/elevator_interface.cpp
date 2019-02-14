@@ -220,7 +220,7 @@ void ElevatorInterface::start(CANInterface* can_interface) {
                 txFrames[wheel_index].data8[1] = (unsigned char) (PWM & 0Xff);
             }
             else { // When nothing goes wrong. Let the elevator goes down.
-                int dd = wheel_index / 2; // Replace the i.
+                int dd = wheel_index / 2; // Replace the original i.
 
                 set_position(-40000,-40000); // Goes down crazily.
 
