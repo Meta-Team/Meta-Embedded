@@ -55,6 +55,8 @@ public:
 
         float target_angle = 0.0f;
 
+        float target_velocity = 0.0f;
+
         PIDController angle_to_v_pid;
         PIDController v_to_i_pid;
 
@@ -84,6 +86,14 @@ public:
     static MotorController yaw;
     static MotorController pitch;
     static MotorController bullet_loader;
+
+    static void start_shooting();
+
+    static int get_current_temp();
+
+    static void stop_shooting();
+
+    static int load_bullet(int bullet_num);
 
     /**
      * @brief some initializations
@@ -119,13 +129,6 @@ public:
     static int get_bullet_loader_target_current();
 
     /**
-     * @brief Called when shooting or reloading happens
-     * @param new_bullet_added
-     * @return
-     */
-    static int update_bullet_count(int new_bullet_added = 0);
-
-    /**
      * @brief get the number of the remained bullets
      * @return
      */
@@ -138,6 +141,15 @@ private:
     static int remained_bullet;
 
     static float shoot_trigger_duty_cycle[3];  // the array contains the duty cycles for different shoot modes
+
+    static float bullet_loader_velocity;
+
+    /**
+     * @brief Called when shooting or reloading happens
+     * @param new_bullet_added
+     * @return
+     */
+    static int update_bullet_count(int new_bullet_added = 0);
 };
 
 

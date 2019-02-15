@@ -12,6 +12,7 @@ float GimbalController::shoot_trigger_duty_cycle[3] = {0.1, 0.2, 0.3};  // the n
 float GimbalController::one_bullet_step;
 int GimbalController::remained_bullet;
 bool GimbalController::shooting;
+float GimbalController::bullet_loader_velocity;
 
 
 /**
@@ -22,6 +23,7 @@ void GimbalController::start() {
     one_bullet_step = 40.0f;
     remained_bullet = 0;
     shooting = false;
+    bullet_loader_velocity = 0.0;
 }
 
 bool
@@ -88,6 +90,23 @@ int GimbalController::update_bullet_count(int new_bullet_added) {
 
 int GimbalController::get_remained_bullet() {
     return remained_bullet;
+}
+
+void GimbalController::start_shooting() {
+    bullet_loader.target_velocity = bullet_loader_velocity;
+}
+
+int GimbalController::get_current_temp() {
+    return (int)bullet_loader.v_to_i(bullet_loader.angular_velocity, bullet_loader.target_velocity);
+}
+
+void GimbalController::stop_shooting() {
+    bullet_loader.target_velocity = 0;
+    GimbalController::update_bullet_count();
+}
+
+int GimbalController::load_bullet(int bullet_num) {
+    return GimbalController::update_bullet_count(bullet_num);
 }
 
 /**
