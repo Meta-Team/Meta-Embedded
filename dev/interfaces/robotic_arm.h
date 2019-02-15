@@ -15,6 +15,38 @@ static uint16_t rotate_current = 30;  //TODO change it
 static uint16_t release_current = 30;  //TODO change it
 static uint16_t inactive_current = 30;  //TODO: change it
 
+class RoboticArm {
+
+public:
+
+    static void process_rotation_motor_feedback(CANRxFrame *rxFrame);
+
+    static void set_initial_angle_as_current();
+
+    enum motor_status_t {
+        MOTOR_READY,
+        MOTOR_ROTATED
+    };
+
+    static motor_status_t get_motor_status();
+
+    static bool motor_act(motor_status_t target_status);
+
+
+    enum clamp_status_t {
+        CLAMP_RELAX,
+        CLAMP_CLAMPED
+    };
+
+    static clamp_status_t get_clamp_status();
+
+    static void clamp_action(clamp_status_t target_status);
+
+private:
+    static clamp_status_t _clamp_status; // local storage
+
+};
+
 class FetchBulletThread : public chibios_rt::BaseStaticThread<128> {
 private:
     ioportid_t _ioportid;

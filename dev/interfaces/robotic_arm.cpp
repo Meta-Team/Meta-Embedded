@@ -3,7 +3,9 @@
 //
 #include "robotic_arm.h"
 #include "common_macro.h"
-using namespace chibios_rt;
+
+
+
 
 static CANTxFrame txmsg;
 
