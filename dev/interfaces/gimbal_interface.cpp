@@ -34,6 +34,16 @@ void GimbalInterface::start(CANInterface *can_interface) {
     pitch.id = PIT_ID;
     bullet_loader.id = BULLET_LOADER_ID;
     pwmStart(friction_wheel_pwm_driver, &friction_wheels_pwmcfg);
+    
+    pwmEnableChannel(friction_wheel_pwm_driver, FW_LEFT,
+                     PWM_PERCENTAGE_TO_WIDTH(friction_wheel_pwm_driver, 1 * 500 + 500));
+    pwmEnableChannel(friction_wheel_pwm_driver, FW_RIGHT,
+                     PWM_PERCENTAGE_TO_WIDTH(friction_wheel_pwm_driver, 1 * 500 + 500));
+    chThdSleep(TIME_MS2I(500));
+    pwmEnableChannel(friction_wheel_pwm_driver, FW_LEFT,
+                     PWM_PERCENTAGE_TO_WIDTH(friction_wheel_pwm_driver, 0 * 500 + 500));
+    pwmEnableChannel(friction_wheel_pwm_driver, FW_RIGHT,
+                     PWM_PERCENTAGE_TO_WIDTH(friction_wheel_pwm_driver, 0 * 500 + 500));
 }
 
 bool GimbalInterface::send_gimbal_currents() {

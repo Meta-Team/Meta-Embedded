@@ -17,7 +17,7 @@ void GimbalFeedbackModule::main() {
             Shell::printf("!gy,%u,%.2f,%.2f,%.2f,%.2f,%d,%d" SHELL_NEWLINE_STR,
                           TIME_I2MS(chibios_rt::System::getTime()),
                           GimbalInterface::yaw.actual_angle, yaw_target_angle,
-                          MPU6500Controller::angle_speed.z, yaw_target_velocity,
+                          GimbalInterface::yaw.angular_velocity, yaw_target_velocity,
                           GimbalInterface::yaw.actual_current, yaw_target_current);
 //        Shell::printf("yaw round = %d" SHELL_NEWLINE_STR,
 //                      GimbalInterface::yaw.round_count);
@@ -29,7 +29,7 @@ void GimbalFeedbackModule::main() {
             Shell::printf("!gp,%u,%.2f,%.2f,%.2f,%.2f,%d,%d" SHELL_NEWLINE_STR,
                           TIME_I2MS(chibios_rt::System::getTime()),
                           GimbalInterface::pitch.actual_angle, pitch_target_angle,
-                          MPU6500Controller::angle_speed.y, pitch_target_velocity,
+                          GimbalInterface::pitch.angular_velocity, pitch_target_velocity,
                           GimbalInterface::pitch.actual_current, pitch_target_current);
 //        Shell::printf("pitch round = %d" SHELL_NEWLINE_STR,
 //                      GimbalInterface::pitch.round_count);
