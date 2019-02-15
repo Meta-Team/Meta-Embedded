@@ -117,6 +117,19 @@ add_executable(ut_buzzer
         dev/interfaces/buzzer.cpp
         dev/interfaces/buzzer_unit_test.cpp)
 
+# Chassis Interface: include chassis interface sources and the unit test modules.
+add_executable(ut_chassis_interface
+        dev/interfaces/can_interface.cpp
+        dev/interfaces/chassis_interface.cpp
+        dev/interfaces/chassis_interface_unit_test.cpp)
+
+# Chassis: include chassis interface, chassis controller and the unit test modules.
+add_executable(ut_chassis
+        dev/interfaces/can_interface.cpp
+        dev/interfaces/chassis_interface.cpp
+        dev/module/pid_controller.cpp
+        dev/control/chassis_controller.cpp
+        dev/control/chassis_controller_unit_test.cpp)
 
 # =========== Post Configurations for all targets ===========
 

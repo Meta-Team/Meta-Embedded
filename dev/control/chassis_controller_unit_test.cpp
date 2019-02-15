@@ -116,7 +116,7 @@ ShellCommand chassisCommands[] = {
         {nullptr,        nullptr}
 };
 
-class ChassisFeedbackThread : public BaseStaticThread<512> {
+class ChassisFeedbackThread : public BaseStaticThread<1024> {
 private:
     void main() final {
         setName("chassis");
@@ -190,7 +190,7 @@ int main(void) {
     Shell::addCommands(chassisCommands);
 
 
-//    can1.start_can();
+    can1.start_can();
     can1.start_thread(HIGHPRIO - 1);
     ChassisInterface::set_can_interface(&can1);
 
