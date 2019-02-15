@@ -117,6 +117,10 @@ add_executable(ut_buzzer
         dev/interfaces/buzzer.cpp
         dev/interfaces/buzzer_unit_test.cpp)
 
+# Robotic Arm
+add_executable(ut_robotic_arm
+        dev/interfaces/robotic_arm.cpp)
+
 
 # =========== Post Configurations for all targets ===========
 
