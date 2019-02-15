@@ -13,24 +13,17 @@ uint8_t ElevatorInterface::feedback_time;
 
 bool ElevatorInterface::send_message() {
 
-    uint16_t ButtonsStatus[4][2];// Use it to detect if the elevators are on the bottom.
-
-    ButtonsStatus[0][0]=palSetPad(GPIOF,GPIOF_PINUP);
-    ButtonsStatus[0][1]=palSetPad(GPIOF,GPIOF_PINDOWN); // The FRONT_LEFT_BUTTONS.
-    ButtonsStatus[1][0]=palSetPad(GPIOF,GPIOF_PINUP);
-    ButtonsStatus[1][1]=palSetPad(GPIOF,GPIOF_PINDOWN); // The FRONT_RIGHT_BUTTONS.
-    ButtonsStatus[2][0]=palSetPad(GPIOF,GPIOF_PINUP);
-    ButtonsStatus[2][1]=palSetPad(GPIOF,GPIOF_PINDOWN); // The REAR_LEFT_BUTTONS.
-    ButtonsStatus[3][0]=palSetPad(GPIOF,GPIOF_PINUP);
-    ButtonsStatus[3][1]=palSetPad(GPIOF,GPIOF_PINDOWN); // The REAR_RIGHT_BUTTONS.
+    uint16_t ButtonsStatus[4];// Use it to detect if the elevators are on the bottom.
+    
+    ButtonsStatus[0]=palSetPad(GPIOF,GPIOF_PINDOWN); // The FRONT_LEFT_BUTTONS.
+    ButtonsStatus[1]=palSetPad(GPIOF,GPIOF_PINDOWN); // The FRONT_RIGHT_BUTTONS.
+    ButtonsStatus[2]=palSetPad(GPIOF,GPIOF_PINDOWN); // The REAR_LEFT_BUTTONS.
+    ButtonsStatus[3]=palSetPad(GPIOF,GPIOF_PINDOWN); // The REAR_RIGHT_BUTTONS.
 
     for(uint32_t wheel_index = 0; wheel_index < 4; wheel_index++){
-        for(int upordown = 0; upordown < 2; upordown++){ // Up 0; down 1.
-            if( (ButtonsStatus[wheel_index][upordown]==0) && ((target_position-elevator_wheels[wheel_index].real_position) * (upordown * 2 - 1) < 0 )) { // When reaches to the edge, but still tries going out of the edge.
-                if (upordown == 1){ // When wheel touches the bottom.
-                    elevator_wheels[wheel_index].real_position = 0;
-                }
-
+            if( (ButtonsStatus[wheel_index]==0) && (target_position-elevator_wheels[wheel_index].real_position) < 0 ) { // When reaches to the edge, but still tries going out of the edge.
+                elevator_wheels[wheel_index].real_position = 0;
+                
                 // Reset the wheel respectively.
 
                 txFrames[wheel_index].SID = 0x310 + 0x10 * wheel_index;
@@ -77,7 +70,6 @@ bool ElevatorInterface::send_message() {
 
                 can->send_msg(&txFrames[wheel_index]);
             }
-        }
     }
 
     return true;
