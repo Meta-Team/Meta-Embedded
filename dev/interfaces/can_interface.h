@@ -10,6 +10,22 @@
 #include "led.h"
 #include "serial_shell.h"
 
+#if defined(BOARD_RM_2018_A)
+// RM_BOARD_2018_A:
+//  CAN1_RX - PD0, CAN1_TX - PD1
+#define BUZZER_PWM_DRIVER PWMD12
+#elif defined(BOARD_RM_2017)
+// RM_BOARD_2017:
+//  CAN1_RX - PD0, CAN1_TX - PD1
+#define BUZZER_PWM_DRIVER PWMD3
+#else
+#error "Buzzer interface has not been defined for selected board"
+#endif
+
+/**
+ * @brief CAN driver to receive message and send message
+ * @pre CAN pins are configurated properly in board.h
+ */
 class CANInterface : public chibios_rt::BaseStaticThread <256> {
 public:
 
