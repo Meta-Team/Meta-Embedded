@@ -644,8 +644,8 @@
 /*
  * GPIOD setup:
  *
- * PD0  - PIN0                      (input pullup).
- * PD1  - PIN1                      (input pullup).
+ * PD0  - CAN1_RX                   (alternate 9).
+ * PD1  - CAN1_TX                   (alternate 9).
  * PD2  - PIN2                      (input pullup).
  * PD3  - PIN3                      (input pullup).
  * PD4  - RESET                     (output pushpull maximum).
