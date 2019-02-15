@@ -90,6 +90,14 @@ PWMDriver PWMD8;
 PWMDriver PWMD9;
 #endif
 
+/**
+ * @brief   PWMD12 driver identifier.
+ * @note    The driver PWMD12 allocates the timer TIM12 when enabled.
+ */
+#if STM32_PWM_USE_TIM12 || defined(__DOXYGEN__)
+PWMDriver PWMD12;
+#endif
+
 /*===========================================================================*/
 /* Driver local variables and types.                                         */
 /*===========================================================================*/
@@ -295,6 +303,27 @@ OSAL_IRQ_HANDLER(STM32_TIM9_HANDLER) {
 #endif /* !defined(STM32_TIM9_SUPPRESS_ISR) */
 #endif /* STM32_PWM_USE_TIM9 */
 
+#if STM32_PWM_USE_TIM12 || defined(__DOXYGEN__)
+#if !defined(STM32_TIM12_SUPPRESS_ISR)
+#if !defined(STM32_TIM12_HANDLER)
+#error "STM32_TIM12_HANDLER not defined"
+#endif
+/**
+ * @brief   TIM12 interrupt handler.
+ *
+ * @isr
+ */
+OSAL_IRQ_HANDLER(STM32_TIM12_HANDLER) {
+
+    OSAL_IRQ_PROLOGUE();
+
+    pwm_lld_serve_interrupt(&PWMD12);
+
+    OSAL_IRQ_EPILOGUE();
+}
+#endif /* !defined(STM32_TIM12_SUPPRESS_ISR) */
+#endif /* STM32_PWM_USE_TIM12 */
+
 /*===========================================================================*/
 /* Driver exported functions.                                                */
 /*===========================================================================*/
@@ -353,6 +382,13 @@ void pwm_lld_init(void) {
   pwmObjectInit(&PWMD9);
   PWMD9.channels = STM32_TIM9_CHANNELS;
   PWMD9.tim = STM32_TIM9;
+#endif
+
+#if STM32_PWM_USE_TIM12
+    /* Driver initialization.*/
+    pwmObjectInit(&PWMD12);
+    PWMD12.channels = STM32_TIM12_CHANNELS;
+    PWMD12.tim = STM32_TIM12;
 #endif
 }
 
@@ -472,6 +508,21 @@ void pwm_lld_start(PWMDriver *pwmp) {
 #endif
 #if defined(STM32_TIM9CLK)
       pwmp->clock = STM32_TIM9CLK;
+#else
+      pwmp->clock = STM32_TIMCLK2;
+#endif
+    }
+#endif
+
+#if STM32_PWM_USE_TIM12
+    if (&PWMD12 == pwmp) {
+      rccEnableTIM12(FALSE);
+      rccResetTIM12();
+#if !defined(STM32_TIM12_SUPPRESS_ISR)
+      nvicEnableVector(STM32_TIM12_NUMBER, STM32_PWM_TIM12_IRQ_PRIORITY);
+#endif
+#if defined(STM32_TIM12CLK)
+      pwmp->clock = STM32_TIM12CLK;
 #else
       pwmp->clock = STM32_TIMCLK2;
 #endif
@@ -696,6 +747,15 @@ void pwm_lld_stop(PWMDriver *pwmp) {
       nvicDisableVector(STM32_TIM9_NUMBER);
 #endif
       rccDisableTIM9();
+    }
+#endif
+
+#if STM32_PWM_USE_TIM12
+    if (&PWMD12 == pwmp) {
+#if !defined(STM32_TIM12_SUPPRESS_ISR)
+      nvicDisableVector(STM32_TIM12_NUMBER);
+#endif
+      rccDisableTIM12();
     }
 #endif
   }

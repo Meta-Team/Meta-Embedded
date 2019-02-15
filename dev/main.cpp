@@ -1,24 +1,38 @@
-/*
-    ChibiOS - Copyright (C) 2006..2018 Giovanni Di Sirio
+//
+// Created by liuzikai on 2019-01-27.
+//
 
-    Licensed under the Apache License, Version 2.0 (the "License");
-    you may not use this file except in compliance with the License.
-    You may obtain a copy of the License at
+// Header for vehicle. VEHICLE is set for each target in CMakeLists.txt.
 
-        http://www.apache.org/licenses/LICENSE-2.0
+#define INFANTRY_ONE 1
+#define HERO 2
+#define ENGINEER 3
+#define INFANTRY_TWO 4
+#define INFANTRY_THREE 5
 
-    Unless required by applicable law or agreed to in writing, software
-    distributed under the License is distributed on an "AS IS" BASIS,
-    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-    See the License for the specific language governing permissions and
-    limitations under the License.
-*/
+#if VEHICLE == INFANTRY_ONE
+#include "vehicle_infantry_one.h"
+#elif VEHICLE == ENGINEER
+#include "vehicle_engineer.h"
+#endif
 
+// Basic headers
 #include "ch.hpp"
 #include "hal.h"
 
+// Debug headers
 #include "led.h"
 #include "serial_shell.h"
+
+// Modules and basic communication channels
+#include "can_interface.h"
+
+// Interfaces
+#include "gimbal_interface.h"
+#include "mpu6500.h"
+
+// Controllers
+#include "gimbal_controller.h"
 
 using namespace chibios_rt;
 
@@ -32,15 +46,15 @@ int main(void) {
     Shell::start(HIGHPRIO);
 
     // See chconf.h for what this #define means.
-    #if CH_CFG_NO_IDLE_THREAD
-        // ChibiOS idle thread has been disabled,
-        // main() should implement infinite loop
-        while(true) {}
-    #else
-        // When main() quits, the main thread will somehow
+#if CH_CFG_NO_IDLE_THREAD
+    // ChibiOS idle thread has been disabled,
+    // vehicle_configs() should implement infinite loop
+    while(true) {}
+#else
+    // When vehicle_configs() quits, the vehicle_configs thread will somehow
         // enter an infinite loop, so we set the priority to lowest
         // before quitting, to let other threads run normally
         BaseThread::setPriority(1);
-    #endif
+#endif
     return 0;
 }

@@ -23,15 +23,15 @@ public:
     }
 
     static void red_off() {
-        palSetPad(GPIOF, GPIOF_LED_GREEN);
+        palSetPad(GPIOE, GPIOE_LED_RED);
     }
 
     static void red_on() {
-        palClearPad(GPIOF, GPIOF_LED_GREEN);
+        palClearPad(GPIOE, GPIOE_LED_RED);
     }
 
     static void red_toggle() {
-        palTogglePad(GPIOF, GPIOF_LED_GREEN);
+        palTogglePad(GPIOE, GPIOE_LED_RED);
     }
 };
 
