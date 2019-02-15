@@ -106,12 +106,6 @@ add_executable(ut_mpu6500
         dev/interfaces/mpu6500.cpp
         dev/interfaces/mpu6500_unit_test.cpp)
 
-# Elevator Interface: include CANInterface, ElevatorInterface, and the unit test modules.
-add_executable(ut_elevator
-        dev/interfaces/can_interface.cpp
-        dev/interfaces/elevator_interface.cpp
-        dev/interfaces/elevator_interface_unit_test.cpp)
-
 # Buzzer: inlcude Buzzer interface and unit test.
 add_executable(ut_buzzer
         dev/interfaces/buzzer.cpp
