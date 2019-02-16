@@ -10,7 +10,6 @@
 #include "can_interface.h"
 #include "gimbal_interface.h"
 #include "gimbal_controller.h"
-#include "gimbal_feedback_module.h"
 #include "mpu6500.h"
 
 using namespace chibios_rt;
@@ -33,6 +32,8 @@ static void can1_callback(CANRxFrame *rxmsg) {
 
 // Calculation interval for gimbal thread
 int const gimbal_thread_interval = 10; // ms
+int const gimbal_feedback_interval = 25; // ms
+
 int const maximum_current = 4000; // mA
 
 float const yaw_min_angle = -170; // degree
@@ -50,17 +51,59 @@ float yaw_target_velocity = 0.0;
 float pitch_target_angle = 0.0;
 float pitch_target_velocity = 0.0;
 
-#define YAW_AXIS_FOR_MPU6500 ??
-#define PITCH_AXIS_FOR_MPU6500 ??
+#define GIMBAL_YAW_ACTUAL_VELOCITY (MPU6500Controller::angle_speed.z)
+#define GIMBAL_PITCH_ACTUAL_VELOCITY (MPU6500Controller::angle_speed.y)
 
 CANInterface can1(&CAND1, can1_callback);
-GimbalFeedbackModule feedbackModule(25,  // 25ms interval
-                                    &yaw_target_angle,
-                                    &yaw_target_velocity,
-                                    &GimbalInterface::yaw.target_current,
-                                    &pitch_target_angle,
-                                    &pitch_target_velocity,
-                                    &GimbalInterface::pitch.target_current);
+
+
+class GimbalFeedbackThread : public chibios_rt::BaseStaticThread<512> {
+
+public:
+
+    GimbalFeedbackThread() {
+        enable_yaw_feedback = false;
+        enable_pitch_feedback = false;
+    }
+
+    bool enable_yaw_feedback;
+    bool enable_pitch_feedback;
+
+private:
+
+    void main() final {
+
+        setName("gimbal_fb");
+
+        while (!shouldTerminate()) {
+
+            if (enable_yaw_feedback) {
+                Shell::printf("!gy,%u,%.2f,%.2f,%.2f,%.2f,%d,%d" SHELL_NEWLINE_STR,
+                              TIME_I2MS(chibios_rt::System::getTime()),
+                              GimbalInterface::yaw.actual_angle, yaw_target_angle,
+                              GIMBAL_YAW_ACTUAL_VELOCITY, yaw_target_velocity,
+                              GimbalInterface::yaw.actual_current, GimbalInterface::yaw.target_current);
+//        Shell::printf("yaw round = %d" SHELL_NEWLINE_STR,
+//                      GimbalInterface::yaw.round_count);
+            }
+
+            if (enable_pitch_feedback) {
+                Shell::printf("!gp,%u,%.2f,%.2f,%.2f,%.2f,%d,%d" SHELL_NEWLINE_STR,
+                              TIME_I2MS(chibios_rt::System::getTime()),
+                              GimbalInterface::pitch.actual_angle, pitch_target_angle,
+                              GIMBAL_PITCH_ACTUAL_VELOCITY, pitch_target_velocity,
+                              GimbalInterface::pitch.actual_current, GimbalInterface::pitch.target_current);
+//        Shell::printf("pitch round = %d" SHELL_NEWLINE_STR,
+//                      GimbalInterface::pitch.round_count);
+            }
+
+            sleep(TIME_MS2I(gimbal_feedback_interval));
+        }
+
+    }
+
+} gimbalFeedbackThread;
+
 
 
 /**
@@ -114,8 +157,8 @@ static void cmd_gimbal_enable_feedback(BaseSequentialStream *chp, int argc, char
         shellUsage(chp, "g_enable_fb yaw(0/1) pitch(0/1)");
         return;
     }
-    feedbackModule.enable_yaw_feedback = *argv[0] - '0';
-    feedbackModule.enable_pitch_feedback = *argv[1] - '0';
+    gimbalFeedbackThread.enable_yaw_feedback = *argv[0] - '0';
+    gimbalFeedbackThread.enable_pitch_feedback = *argv[1] - '0';
 
 //    chprintf(chp, "Gimbal yaw feedback = %d" SHELL_NEWLINE_STR, feedbackModule.enable_yaw_feedback);
 //    chprintf(chp, "Gimbal pitch feedback = %d" SHELL_NEWLINE_STR, feedbackModule.enable_pitch_feedback);
@@ -324,15 +367,15 @@ protected:
                 }
 
                 // Perform velocity check
-                if (MPU6500Controller::angle_speed.z > yaw_max_speed ||
-                    MPU6500Controller::angle_speed.z < -yaw_max_speed) {
+                if (GIMBAL_YAW_ACTUAL_VELOCITY > yaw_max_speed ||
+                    GIMBAL_YAW_ACTUAL_VELOCITY < -yaw_max_speed) {
                     Shell::printf("!dyv" SHELL_NEWLINE_STR);
                     GimbalInterface::yaw.enabled = false;
                     GimbalInterface::send_gimbal_currents();
                     continue; // make sure there is no chSysLock() before
                 }
-                if (MPU6500Controller::angle_speed.y > pitch_max_speed ||
-                    MPU6500Controller::angle_speed.y < -pitch_max_speed) {
+                if (GIMBAL_PITCH_ACTUAL_VELOCITY > pitch_max_speed ||
+                    GIMBAL_PITCH_ACTUAL_VELOCITY < -pitch_max_speed) {
                     Shell::printf("!dpv" SHELL_NEWLINE_STR);
                     GimbalInterface::pitch.enabled = false;
                     GimbalInterface::send_gimbal_currents();
@@ -341,9 +384,9 @@ protected:
 
                 // Calculate target current
                 GimbalInterface::yaw.target_current = (int) GimbalController::yaw.v_to_i(
-                        MPU6500Controller::angle_speed.z, yaw_target_velocity);
+                        GIMBAL_YAW_ACTUAL_VELOCITY, yaw_target_velocity);
                 GimbalInterface::pitch.target_current = (int) GimbalController::pitch.v_to_i(
-                        MPU6500Controller::angle_speed.y, pitch_target_velocity);
+                        GIMBAL_PITCH_ACTUAL_VELOCITY, pitch_target_velocity);
 
                 // Perform current check
                 if (GimbalInterface::yaw.target_current > maximum_current ||
@@ -394,7 +437,7 @@ int main(void) {
 
     mpu6500Thread.start(HIGHPRIO - 3);
 
-    feedbackModule.start_thread(NORMALPRIO);
+    gimbalFeedbackThread.start(NORMALPRIO);
 
     can1.start_can();
     can1.start_thread(HIGHPRIO - 1);
