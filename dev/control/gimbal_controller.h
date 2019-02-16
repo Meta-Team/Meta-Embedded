@@ -16,8 +16,6 @@ class GimbalController {
 
 public:
 
-    static bool shooting;
-
     typedef enum {
         YAW_ID = 0,
         PIT_ID = 1,
@@ -49,14 +47,6 @@ public:
     public:
         motor_id_t motor_id;   // motor id
 
-        float angular_velocity = 0.0f;
-
-        float actual_angle = 0.0f;
-
-        float target_angle = 0.0f;
-
-        float target_velocity = 0.0f;
-
         PIDController angle_to_v_pid;
         PIDController v_to_i_pid;
 
@@ -87,46 +77,13 @@ public:
     static MotorController pitch;
     static MotorController bullet_loader;
 
-    static void start_shooting();
-
-    static int get_current_temp();
-
-    static void stop_shooting();
-
-    static int load_bullet(int bullet_num);
-
-    /**
-     * @brief some initializations
-     */
-    static void start();
-
-    /**
-     * @brief get the data from the interface and update the data in controller
-     * @param motor_id
-     * @param actual_angle
-     * @param angular_velocity
-     * @return
-     */
-    static bool update_motor_data(motor_id_t motor_id, float actual_angle, float angular_velocity);
-
-    /**
-     * @brief be prepared for a shooting assignment when receiving a shooting command
-     * @param shoot_mode
-     * @param bullet_num
-     */
-    static void shoot_bullet(shoot_mode_t shoot_mode, int bullet_num);
+    static void update_bullet(int bullet_changed = 0);
 
     /**
      * @brief return the target duty cycle for the friction wheels
      * @return
      */
     static float get_fw_pid();
-
-    /**
-     * @brief use pid to calculate the target current for the bullet loader
-     * @return
-     */
-    static int get_bullet_loader_target_current();
 
     /**
      * @brief get the number of the remained bullets
@@ -136,20 +93,10 @@ public:
 
 private:
 
-    static float one_bullet_step;
-
     static int remained_bullet;
 
     static float shoot_trigger_duty_cycle[3];  // the array contains the duty cycles for different shoot modes
 
-    static float bullet_loader_velocity;
-
-    /**
-     * @brief Called when shooting or reloading happens
-     * @param new_bullet_added
-     * @return
-     */
-    static int update_bullet_count(int new_bullet_added = 0);
 };
 
 

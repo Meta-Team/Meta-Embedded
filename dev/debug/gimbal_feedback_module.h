@@ -44,7 +44,10 @@ public:
                          int *p_yaw_target_current,
                          float *p_pitch_target_angle,
                          float *p_pitch_target_velocity,
-                         int *p_pitch_target_current) {
+                         int *p_pitch_target_current,
+                         float *p_bullet_loader_target_angle,
+                         float *p_bullet_loader_target_velocity,
+                         int *p_bullet_loader_target_current) {
         feedback_interval = interval;
         ptr_yaw_target_angle = p_yaw_target_angle;
         ptr_yaw_target_velocity = p_yaw_target_velocity;
@@ -52,15 +55,20 @@ public:
         ptr_pitch_target_angle = p_pitch_target_angle;
         ptr_pitch_target_velocity = p_pitch_target_velocity;
         ptr_pitch_target_current = p_pitch_target_current;
+        ptr_bullet_loader_target_angle = p_bullet_loader_target_angle;
+        ptr_bullet_loader_target_velocity = p_bullet_loader_target_velocity;
+        ptr_bullet_loader_target_current = p_bullet_loader_target_current;
 
         enable_yaw_feedback = false;
         enable_pitch_feedback = false;
+        enable_bullet_loader_feedback = false;
     }
 
     int feedback_interval; // ms
 
     bool enable_yaw_feedback;
     bool enable_pitch_feedback;
+    bool enable_bullet_loader_feedback;
 
 private:
 
@@ -74,6 +82,9 @@ private:
     float *ptr_pitch_target_velocity;
     int *ptr_pitch_target_current;
 
+    float *ptr_bullet_loader_target_angle;
+    float *ptr_bullet_loader_target_velocity;
+    int *ptr_bullet_loader_target_current;
 };
 
 

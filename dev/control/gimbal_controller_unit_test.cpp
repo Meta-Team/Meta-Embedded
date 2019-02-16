@@ -39,6 +39,7 @@ float const yaw_min_angle = -170; // degree
 float const yaw_max_angle = 170; // degree
 float const pitch_min_angle = -60; // degree
 float const pitch_max_angle = 60; // degree
+float const one_bullet_step = 40.0; // degree
 
 float const yaw_max_speed = 600; // absolute maximum, degree/s
 float const pitch_max_speed = 300; // absolute maximum, degree/s
@@ -49,9 +50,37 @@ float yaw_target_angle = 0.0;
 float yaw_target_velocity = 0.0;
 float pitch_target_angle = 0.0;
 float pitch_target_velocity = 0.0;
+float bullet_loader_target_angle = 0.0;
+float bullet_loader_target_velocity = 0.0;
+
+bool continuous_shooting = false;
+bool shooting = false;
 
 #define YAW_AXIS_FOR_MPU6500 ??
 #define PITCH_AXIS_FOR_MPU6500 ??
+
+static void shoot_continuous_bullet(){
+    continuous_shooting = true;
+    shooting = true;
+}
+
+static void shoot_incontinuous_bullet(int bullet_num){
+    bullet_loader_target_angle += one_bullet_step * bullet_num;
+    continuous_shooting = false;
+    shooting = true;
+}
+
+static void stop_shooting(){
+    shooting = false;
+    int bullet_shot = (int)(GimbalInterface::bullet_loader.actual_angle/one_bullet_step);  // calculate the number of the shot bullets
+    GimbalController::update_bullet(-bullet_shot);  // update the number of remained bullets
+    bullet_loader_target_angle -= (bullet_shot * one_bullet_step);
+    GimbalInterface::bullet_loader.actual_angle -= (bullet_shot * one_bullet_step);
+}
+
+static void set_shooting_mode(GimbalController::shoot_mode_t shoot_mode){
+
+}
 
 CANInterface can1(&CAND1, can1_callback);
 GimbalFeedbackModule feedbackModule(25,  // 25ms interval
@@ -60,7 +89,10 @@ GimbalFeedbackModule feedbackModule(25,  // 25ms interval
                                     &GimbalInterface::yaw.target_current,
                                     &pitch_target_angle,
                                     &pitch_target_velocity,
-                                    &GimbalInterface::pitch.target_current);
+                                    &GimbalInterface::pitch.target_current,
+                                    &bullet_loader_target_angle,
+                                    &bullet_loader_target_velocity,
+                                    &GimbalInterface::bullet_loader.target_current);
 
 
 /**
@@ -71,12 +103,13 @@ GimbalFeedbackModule feedbackModule(25,  // 25ms interval
  */
 static void cmd_gimbal_enable(BaseSequentialStream *chp, int argc, char *argv[]) {
     (void) argv;
-    if (argc != 2 || (*argv[0] != '0' && *argv[0] != '1') || (*argv[1] != '0' && *argv[1] != '1')) {
-        shellUsage(chp, "g_enable yaw(0/1) pitch(0/1)");
+    if (argc != 3 || (*argv[0] != '0' && *argv[0] != '1') || (*argv[1] != '0' && *argv[1] != '1') || (*argv[2] != '0' && *argv[2] != '1')) {
+        shellUsage(chp, "g_enable yaw(0/1) pitch(0/1) bullet_loader(0/1)");
         return;
     }
     GimbalInterface::yaw.enabled = *argv[0] - '0';
     GimbalInterface::pitch.enabled = *argv[1] - '0';
+    GimbalInterface::bullet_loader.enabled = *argv[2] - '0';
 
 //    chprintf(chp, "Gimbal yaw enabled = %d" SHELL_NEWLINE_STR, GimbalInterface::yaw.enabled);
 //    chprintf(chp, "Gimbal pitch enabled = %d" SHELL_NEWLINE_STR, GimbalInterface::pitch.enabled);
@@ -110,12 +143,13 @@ static void cmd_gimbal_enable_fw(BaseSequentialStream *chp, int argc, char *argv
  */
 static void cmd_gimbal_enable_feedback(BaseSequentialStream *chp, int argc, char *argv[]) {
     (void) argv;
-    if (argc != 2 || (*argv[0] != '0' && *argv[0] != '1') || (*argv[1] != '0' && *argv[1] != '1')) {
-        shellUsage(chp, "g_enable_fb yaw(0/1) pitch(0/1)");
+    if (argc != 3 || (*argv[0] != '0' && *argv[0] != '1') || (*argv[1] != '0' && *argv[1] != '1') || (*argv[2] != '0' && *argv[2] != '1')) {
+        shellUsage(chp, "g_enable_fb yaw(0/1) pitch(0/1) bullet_loader(0/1)");
         return;
     }
     feedbackModule.enable_yaw_feedback = *argv[0] - '0';
     feedbackModule.enable_pitch_feedback = *argv[1] - '0';
+    feedbackModule.enable_bullet_loader_feedback = *argv[2] - '0';
 
 //    chprintf(chp, "Gimbal yaw feedback = %d" SHELL_NEWLINE_STR, feedbackModule.enable_yaw_feedback);
 //    chprintf(chp, "Gimbal pitch feedback = %d" SHELL_NEWLINE_STR, feedbackModule.enable_pitch_feedback);
@@ -137,6 +171,7 @@ static void cmd_gimbal_fix_front_angle(BaseSequentialStream *chp, int argc, char
     }
     GimbalInterface::yaw.reset_front_angle();
     GimbalInterface::pitch.reset_front_angle();
+    GimbalInterface::bullet_loader.reset_front_angle();
 
 //    chprintf(chp, "!f" SHELL_NEWLINE_STR);
 }
@@ -149,17 +184,20 @@ static void cmd_gimbal_fix_front_angle(BaseSequentialStream *chp, int argc, char
  */
 static void cmd_gimbal_set_target_velocities(BaseSequentialStream *chp, int argc, char *argv[]) {
     (void) argv;
-    if (argc != 2) {
-        shellUsage(chp, "g_set_v yaw_velocity pitch_velocity");
+    if (argc != 3) {
+        shellUsage(chp, "g_set_v yaw_velocity pitch_velocity bullet_loader_velocity");
         return;
     }
 
     yaw_target_velocity = Shell::atof(argv[0]);
     pitch_target_velocity = Shell::atof(argv[1]);
+    bullet_loader_target_velocity = Shell::atof(argv[2]);
     GimbalController::yaw.v_to_i_pid.clear_i_out();
     GimbalController::yaw.angle_to_v_pid.clear_i_out();
     GimbalController::pitch.v_to_i_pid.clear_i_out();
     GimbalController::pitch.angle_to_v_pid.clear_i_out();
+    GimbalController::bullet_loader.v_to_i_pid.clear_i_out();
+    GimbalController::bullet_loader.angle_to_v_pid.clear_i_out();
 //    chprintf(chp, "Gimbal yaw target_velocity = %f" SHELL_NEWLINE_STR, yaw_target_velocity);
 //    chprintf(chp, "Gimbal pitch target_velocity = %f" SHELL_NEWLINE_STR, pitch_target_velocity);
 
@@ -175,17 +213,20 @@ static void cmd_gimbal_set_target_velocities(BaseSequentialStream *chp, int argc
  */
 static void cmd_gimbal_set_target_angle(BaseSequentialStream *chp, int argc, char *argv[]) {
     (void) argv;
-    if (argc != 2) {
-        shellUsage(chp, "g_set_angle yaw_angle pitch_angle");
+    if (argc != 3) {
+        shellUsage(chp, "g_set_angle yaw_angle pitch_angle bullet_loader_angle");
         return;
     }
 
     yaw_target_angle = Shell::atof(argv[0]);
     pitch_target_angle = Shell::atof(argv[1]);
+    bullet_loader_target_angle = Shell::atof(argv[2]);
     GimbalController::yaw.v_to_i_pid.clear_i_out();
     GimbalController::yaw.angle_to_v_pid.clear_i_out();
     GimbalController::pitch.v_to_i_pid.clear_i_out();
     GimbalController::pitch.angle_to_v_pid.clear_i_out();
+    GimbalController::bullet_loader.v_to_i_pid.clear_i_out();
+    GimbalController::bullet_loader.angle_to_v_pid.clear_i_out();
 //    chprintf(chp, "Gimbal yaw target_angle = %f" SHELL_NEWLINE_STR, yaw_target_angle);
 //    chprintf(chp, "Gimbal pitch target_angle = %f" SHELL_NEWLINE_STR, pitch_target_angle);
 
@@ -202,7 +243,7 @@ static void cmd_gimbal_set_target_angle(BaseSequentialStream *chp, int argc, cha
 static void cmd_gimbal_set_parameters(BaseSequentialStream *chp, int argc, char *argv[]) {
     (void) argv;
     if (argc != 7) {
-        shellUsage(chp, "g_set_params yaw(0)/pitch(1) angle_to_v(0)/v_to_i(0) ki kp kd i_limit out_limit");
+        shellUsage(chp, "g_set_params yaw(0)/pitch(1)/bullet_loader(2) angle_to_v(0)/v_to_i(0) ki kp kd i_limit out_limit");
         chprintf(chp, "!pe" SHELL_NEWLINE_STR);  // echo parameters error
         return;
     }
@@ -212,6 +253,8 @@ static void cmd_gimbal_set_parameters(BaseSequentialStream *chp, int argc, char 
     else if (*argv[0] == '0' && *argv[1] == '1') pidController = &GimbalController::yaw.v_to_i_pid;
     else if (*argv[0] == '1' && *argv[1] == '0') pidController = &GimbalController::pitch.angle_to_v_pid;
     else if (*argv[0] == '1' && *argv[1] == '1') pidController = &GimbalController::pitch.v_to_i_pid;
+    else if (*argv[0] == '2' && *argv[1] == '0') pidController = &GimbalController::bullet_loader.angle_to_v_pid;
+    else if (*argv[0] == '2' && *argv[1] == '1') pidController = &GimbalController::bullet_loader.v_to_i_pid;
     else {
         chprintf(chp, "!pe" SHELL_NEWLINE_STR);  // echo parameters error
         return;
@@ -226,6 +269,8 @@ static void cmd_gimbal_set_parameters(BaseSequentialStream *chp, int argc, char 
     GimbalController::yaw.angle_to_v_pid.clear_i_out();
     GimbalController::pitch.v_to_i_pid.clear_i_out();
     GimbalController::pitch.angle_to_v_pid.clear_i_out();
+    GimbalController::bullet_loader.v_to_i_pid.clear_i_out();
+    GimbalController::bullet_loader.angle_to_v_pid.clear_i_out();
     chprintf(chp, "!ps" SHELL_NEWLINE_STR); // echo parameters set
 }
 
@@ -264,8 +309,40 @@ static void cmd_gimbal_echo_parameters(BaseSequentialStream *chp, int argc, char
     _cmd_gimbal_echo_parameters(chp, &GimbalController::pitch.angle_to_v_pid);
     chprintf(chp, "pitch v_to_i:     ");
     _cmd_gimbal_echo_parameters(chp, &GimbalController::pitch.v_to_i_pid);
+    chprintf(chp, "bullet_loader angle_to_v: ");
+    _cmd_gimbal_echo_parameters(chp, &GimbalController::bullet_loader.angle_to_v_pid);
+    chprintf(chp, "bullet_loader v_to_i:     ");
+    _cmd_gimbal_echo_parameters(chp, &GimbalController::bullet_loader.v_to_i_pid);
 }
 
+static void cmd_gimbal_continuous_shooting(BaseSequentialStream *chp, int argc, char *argv[]){
+    (void) argv;
+    if(argc != 0){
+        shellUsage(chp, "g_continuous_shooting");
+        return;
+    }
+    shoot_continuous_bullet();
+}
+
+static void cmd_gimbal_incontinuous_shooting(BaseSequentialStream *chp, int argc, char *argv[]){
+    (void) argv;
+    if (argc != 1){
+        shellUsage(chp, "g_incontinuous_shooting bullet_number");
+        return;
+    }
+    int bullet_num = Shell::atoi(argv[0]);
+    if(bullet_num>0) shoot_incontinuous_bullet(bullet_num);
+}
+
+static void cmd_gimbal_stop_shooting(BaseSequentialStream *chp, int argc, char *argv[]){
+    (void) argv;
+    if(argc != 0){
+        shellUsage(chp, "g_stop_shooting");
+        return;
+    }
+    stop_shooting();
+    chprintf(chp, "remained bullets: %d" SHELL_NEWLINE_STR, GimbalController::get_remained_bullet());
+}
 // Command lists for gimbal controller test and adjustments
 ShellCommand gimbalCotrollerCommands[] = {
         {"g_enable",      cmd_gimbal_enable},
@@ -276,6 +353,9 @@ ShellCommand gimbalCotrollerCommands[] = {
         {"g_set_params",  cmd_gimbal_set_parameters},
         {"g_echo_params", cmd_gimbal_echo_parameters},
         {"g_enable_fw",   cmd_gimbal_enable_fw},
+        {"g_continuous_shooting",   cmd_gimbal_continuous_shooting},
+        {"g_incontinuous_shooting", cmd_gimbal_incontinuous_shooting},
+        {"g_stop_shooting", cmd_gimbal_stop_shooting},
         {nullptr,         nullptr}
 };
 
@@ -288,7 +368,7 @@ protected:
         setName("gimbal");
         while (!shouldTerminate()) {
 
-            if (GimbalInterface::yaw.enabled || GimbalInterface::pitch.enabled) {
+            if (GimbalInterface::yaw.enabled || GimbalInterface::pitch.enabled || GimbalInterface::bullet_loader.enabled) {
 
                 // Perform angle check
                 if (GimbalInterface::yaw.actual_angle > yaw_max_angle) {
@@ -345,6 +425,18 @@ protected:
                 GimbalInterface::pitch.target_current = (int) GimbalController::pitch.v_to_i(
                         MPU6500Controller::angle_speed.y, pitch_target_velocity);
 
+                if (shooting && (continuous_shooting || (GimbalInterface::bullet_loader.actual_angle < bullet_loader_target_angle))){
+                    GimbalInterface::bullet_loader.target_current = (int) GimbalController::bullet_loader.v_to_i(
+                            GimbalInterface::bullet_loader.angular_velocity,bullet_loader_target_velocity);
+                } else {
+                    GimbalInterface::bullet_loader.target_current = (int) GimbalController::bullet_loader.v_to_i(
+                            GimbalInterface::bullet_loader.angular_velocity, 0);
+                    if(shooting){
+                        stop_shooting();
+                    }
+                }
+
+
                 // Perform current check
                 if (GimbalInterface::yaw.target_current > maximum_current ||
                     GimbalInterface::yaw.target_current < -maximum_current) {
@@ -357,6 +449,13 @@ protected:
                     GimbalInterface::pitch.target_current < -maximum_current) {
                     Shell::printf("!dpc" SHELL_NEWLINE_STR);
                     GimbalInterface::pitch.enabled = false;
+                    GimbalInterface::send_gimbal_currents();
+                    continue; // make sure there is no chSysLock() before
+                }
+                if (GimbalInterface::bullet_loader.target_current > maximum_current ||
+                    GimbalInterface::bullet_loader.target_current < -maximum_current) {
+                    Shell::printf("!dpc" SHELL_NEWLINE_STR);
+                    GimbalInterface::bullet_loader.enabled = false;
                     GimbalInterface::send_gimbal_currents();
                     continue; // make sure there is no chSysLock() before
                 }
@@ -413,28 +512,4 @@ int main(void) {
     BaseThread::setPriority(1);
 #endif
     return 0;
-}
-
-// Now, the shoot instruction is received
-
-void shoot_process(){
-    //GimbalInterface::process_motor_feedback();
-
-    GimbalController::update_motor_data(
-            GimbalController::BULLET_LOADER_ID,
-            GimbalInterface::bullet_loader.actual_angle,
-            GimbalInterface::bullet_loader.angular_velocity);
-
-    GimbalInterface::friction_wheels.duty_cycle = GimbalController::get_fw_pid();
-    GimbalInterface::bullet_loader.target_current = GimbalController::get_bullet_loader_target_current();
-    if(GimbalController::shooting && (GimbalController::bullet_loader.actual_angle>=GimbalController::bullet_loader.target_angle)){
-        // If program comes here, it means we have just arrive the target angle
-        GimbalController::shooting = false;  // Set the shooting mode to negative
-        GimbalController::update_bullet_count();  // Count the remained bullets and reset the target angle and actual angle in controller
-        GimbalInterface::bullet_loader.reset_front_angle();  // Clear off the actual angle in the interface
-    }
-    GimbalInterface::send_gimbal_currents();
-    GimbalController::get_remained_bullet();
-
-    GimbalController::shoot_bullet(GimbalController::MODE_1, 3);
 }

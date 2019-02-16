@@ -34,6 +34,16 @@ void GimbalFeedbackModule::main() {
 //        Shell::printf("pitch round = %d" SHELL_NEWLINE_STR,
 //                      GimbalInterface::pitch.round_count);
         }
+        if (enable_bullet_loader_feedback) {
+            float bullet_loader_target_angle = (ptr_bullet_loader_target_angle ? *ptr_bullet_loader_target_angle: 0);
+            float bullet_loader_target_velocity = (ptr_bullet_loader_target_velocity ? *ptr_bullet_loader_target_velocity : 0);
+            int bullet_loader_target_current = (ptr_bullet_loader_target_current ? *ptr_bullet_loader_target_current : 0);
+            // Bullet loader has no current feedback
+            Shell::printf("!gp,%u,%.2f,%.2f,%.2f,%.2f,%d" SHELL_NEWLINE_STR,
+                          TIME_I2MS(chibios_rt::System::getTime()),
+                          GimbalInterface::bullet_loader.actual_angle, bullet_loader_target_angle,
+                          GimbalInterface::bullet_loader.angular_velocity, bullet_loader_target_velocity, bullet_loader_target_current);
+        }
         chSysUnlockFromISR();
         sleep(TIME_MS2I(feedback_interval));
     }
