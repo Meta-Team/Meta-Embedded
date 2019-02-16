@@ -51,8 +51,8 @@ float yaw_target_velocity = 0.0;
 float pitch_target_angle = 0.0;
 float pitch_target_velocity = 0.0;
 
-#define GIMBAL_YAW_ACTUAL_VELOCITY (MPU6500Controller::angle_speed.z)
-#define GIMBAL_PITCH_ACTUAL_VELOCITY (MPU6500Controller::angle_speed.y)
+#define GIMBAL_YAW_ACTUAL_VELOCITY (-MPU6500Controller::angle_speed.x)
+#define GIMBAL_PITCH_ACTUAL_VELOCITY (-MPU6500Controller::angle_speed.y)
 
 CANInterface can1(&CAND1, can1_callback);
 
