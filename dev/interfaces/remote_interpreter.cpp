@@ -37,7 +37,7 @@ char Remote::rx_buf[Remote::rx_buf_size];
 void Remote::uart_received_callback(UARTDriver *uartp) {
     (void) uartp;
 
-    chSysLock();
+//    chSysLock();
 
     rc.ch0 = (((rx_buf[0] | rx_buf[1] << 8) & 0x07FF) - 1024.0f) / 660.0f;
     rc.ch1 = (((rx_buf[1] >> 3 | rx_buf[2] << 5) & 0x07FF) - 1024.0f) / 660.0f;
@@ -56,7 +56,7 @@ void Remote::uart_received_callback(UARTDriver *uartp) {
 
     key._key_code = static_cast<uint16_t>(rx_buf[14] | rx_buf[15] << 8);
 
-    chSysUnlock();
+//    chSysUnlock();
 
     uartStartReceive(uartp, REMOTE_DATA_BUF_SIZE, rx_buf);
 }
