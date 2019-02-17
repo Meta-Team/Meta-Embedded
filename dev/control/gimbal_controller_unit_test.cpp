@@ -79,11 +79,7 @@ static void stop_shooting(){
     bullet_loader_target_angle -= (bullet_shot * one_bullet_step);
     GimbalInterface::bullet_loader.actual_angle -= (bullet_shot * one_bullet_step);
 }
-/*
-static void set_shooting_mode(GimbalController::shoot_mode_t shoot_mode){
 
-}
-*/
 CANInterface can1(&CAND1, can1_callback);
 GimbalFeedbackModule feedbackModule(25,  // 25ms interval
                                     &yaw_target_angle,
