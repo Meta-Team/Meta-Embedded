@@ -16,12 +16,28 @@
 #include "ch.hpp"
 #include "hal.h"
 
+#if defined(BOARD_RM_2018_A)
+// PB7 USART1_RX (alternate 7)
+#define REMOTE_UART_PAD GPIOB
+#define REMOTE_UART_PIN 7U
+#define REMOTE_UART_ALTERNATE 7U
+#define REMOTE_UART_DRIVER UARTD1
+#elif defined(BOARD_RM_2017)
+// PB7 USART1_RX (alternate 7)
+#define REMOTE_UART_PAD GPIOB
+#define REMOTE_UART_PIN 7U
+#define REMOTE_UART_ALTERNATE 7U
+#define REMOTE_UART_DRIVER UARTD1
+#else
+#error "Remote interpreter has not been defined for selected board"
+#endif
 
 #define REMOTE_DATA_BUF_SIZE 18
 
 /**
  * @name Remote
  * @brief This class holds interpreted remote data.
+ * @pre DBUS pin is configured properly in board.h
  */
 class Remote {
 

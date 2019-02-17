@@ -66,9 +66,6 @@ void Remote::uart_received_callback(UARTDriver *uartp) {
  * @return the pointer of remote interpreter.
  */
 void Remote::start_receive() {
-//    palSetPadMode(GPIOA, 2, PAL_MODE_ALTERNATE(7));
-//    palSetPadMode(GPIOA, 3, PAL_MODE_ALTERNATE(7));
-    palSetPadMode(GPIOB, 7, PAL_MODE_ALTERNATE(7));
-    uartStart(&UARTD1, &remoteUartConfig);
-    uartStartReceive(&UARTD1, rx_buf_size, rx_buf);
+    uartStart(&REMOTE_UART_DRIVER, &remoteUartConfig);
+    uartStartReceive(&REMOTE_UART_DRIVER, rx_buf_size, rx_buf);
 }

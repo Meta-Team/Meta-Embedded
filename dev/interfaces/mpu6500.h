@@ -4,6 +4,14 @@
 #include "ch.hpp"
 #include "hal.h"
 
+#if defined(BOARD_RM_2017)
+// SPI5
+#define MPU6500_SPI_DRIVER SPID5
+#define MPU6500_SPI_CS_PAD GPIOF
+#define MPU6500_SPI_CS_PIN GPIOF_SPI5_NSS
+#else
+#error "MPU6500 interface has not been defined for selected board"
+#endif
 
 /** MPU6500 Register Maps **/
 #define MPU6500_SELF_TEST_XG        (0x00)
@@ -175,7 +183,7 @@ public:
      */
     static void getData();
 
-    static bool start(SPIDriver *spi);
+    static bool start();
 
 private:
 

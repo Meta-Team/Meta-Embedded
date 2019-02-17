@@ -65,6 +65,12 @@ add_library(ChibiOS_OBJ OBJECT ${CHIBIOS_XASM_SRC} ${CHIBIOS_C_SRC} ${CHIBIOS_CP
 
 # Main Program -- Infantry #1
 add_executable(INFANTRY_ONE
+        dev/module/pid_controller.cpp
+        dev/interfaces/can_interface.cpp
+        dev/interfaces/mpu6500.cpp
+        dev/interfaces/gimbal_interface.cpp
+        dev/interfaces/remote_interpreter.cpp
+        dev/control/gimbal_controller.cpp
         dev/main.cpp)
 target_compile_definitions(INFANTRY_ONE PRIVATE VEHICLE=INFANTRY_ONE)
 

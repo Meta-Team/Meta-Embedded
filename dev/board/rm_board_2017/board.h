@@ -83,10 +83,10 @@
 #define GPIOB_PIN1                  1U
 #define GPIOB_PIN2                  2U
 #define GPIOB_SWO                   3U
-#define GPIOB_BUZZER                  4U
+#define GPIOB_BUZZER                4U
 #define GPIOB_PIN5                  5U
 #define GPIOB_SCL                   6U
-#define GPIOB_PIN7                  7U
+#define GPIOB_USART1_RX                  7U
 #define GPIOB_PIN8                  8U
 #define GPIOB_SDA                   9U
 #define GPIOB_CLK_IN                10U
@@ -417,7 +417,7 @@
  * PB4  - BUZZER                    (alternate 2).
  * PB5  - PIN5                      (input pullup).
  * PB6  - SCL                       (alternate 4).
- * PB7  - PIN7                      (input pullup).
+ * PB7  - USART1_RX                 (alternate 7).
  * PB8  - PIN8                      (input pullup).
  * PB9  - SDA                       (alternate 4).
  * PB10 - CLK_IN                    (input pullup).
@@ -434,7 +434,7 @@
                                      PIN_MODE_ALTERNATE(GPIOB_BUZZER) |           \
                                      PIN_MODE_INPUT(GPIOB_PIN5) |           \
                                      PIN_MODE_ALTERNATE(GPIOB_SCL) |        \
-                                     PIN_MODE_INPUT(GPIOB_PIN7) |           \
+                                     PIN_MODE_ALTERNATE(GPIOB_USART1_RX) |           \
                                      PIN_MODE_INPUT(GPIOB_PIN8) |           \
                                      PIN_MODE_ALTERNATE(GPIOB_SDA) |        \
                                      PIN_MODE_INPUT(GPIOB_CLK_IN) |         \
@@ -450,7 +450,7 @@
                                      PIN_OTYPE_PUSHPULL(GPIOB_BUZZER) |       \
                                      PIN_OTYPE_PUSHPULL(GPIOB_PIN5) |       \
                                      PIN_OTYPE_OPENDRAIN(GPIOB_SCL) |       \
-                                     PIN_OTYPE_PUSHPULL(GPIOB_PIN7) |       \
+                                     PIN_OTYPE_PUSHPULL(GPIOB_USART1_RX) |       \
                                      PIN_OTYPE_PUSHPULL(GPIOB_PIN8) |       \
                                      PIN_OTYPE_OPENDRAIN(GPIOB_SDA) |       \
                                      PIN_OTYPE_PUSHPULL(GPIOB_CLK_IN) |     \
@@ -466,7 +466,7 @@
                                      PIN_OSPEED_HIGH(GPIOB_BUZZER) |          \
                                      PIN_OSPEED_HIGH(GPIOB_PIN5) |          \
                                      PIN_OSPEED_HIGH(GPIOB_SCL) |           \
-                                     PIN_OSPEED_HIGH(GPIOB_PIN7) |          \
+                                     PIN_OSPEED_HIGH(GPIOB_USART1_RX) |          \
                                      PIN_OSPEED_HIGH(GPIOB_PIN8) |          \
                                      PIN_OSPEED_HIGH(GPIOB_SDA) |           \
                                      PIN_OSPEED_HIGH(GPIOB_CLK_IN) |        \
@@ -482,7 +482,7 @@
                                      PIN_PUPDR_PULLUP(GPIOB_BUZZER) |         \
                                      PIN_PUPDR_PULLUP(GPIOB_PIN5) |         \
                                      PIN_PUPDR_FLOATING(GPIOB_SCL) |        \
-                                     PIN_PUPDR_PULLUP(GPIOB_PIN7) |         \
+                                     PIN_PUPDR_PULLUP(GPIOB_USART1_RX) |         \
                                      PIN_PUPDR_PULLUP(GPIOB_PIN8) |         \
                                      PIN_PUPDR_FLOATING(GPIOB_SDA) |        \
                                      PIN_PUPDR_PULLUP(GPIOB_CLK_IN) |       \
@@ -498,7 +498,7 @@
                                      PIN_ODR_HIGH(GPIOB_BUZZER) |             \
                                      PIN_ODR_HIGH(GPIOB_PIN5) |             \
                                      PIN_ODR_HIGH(GPIOB_SCL) |              \
-                                     PIN_ODR_HIGH(GPIOB_PIN7) |             \
+                                     PIN_ODR_HIGH(GPIOB_USART1_RX) |             \
                                      PIN_ODR_HIGH(GPIOB_PIN8) |             \
                                      PIN_ODR_HIGH(GPIOB_SDA) |              \
                                      PIN_ODR_HIGH(GPIOB_CLK_IN) |           \
@@ -514,7 +514,7 @@
                                      PIN_AFIO_AF(GPIOB_BUZZER, 2U) |          \
                                      PIN_AFIO_AF(GPIOB_PIN5, 0U) |          \
                                      PIN_AFIO_AF(GPIOB_SCL, 4U) |           \
-                                     PIN_AFIO_AF(GPIOB_PIN7, 0U))
+                                     PIN_AFIO_AF(GPIOB_USART1_RX, 7U))
 #define VAL_GPIOB_AFRH              (PIN_AFIO_AF(GPIOB_PIN8, 0U) |          \
                                      PIN_AFIO_AF(GPIOB_SDA, 4U) |           \
                                      PIN_AFIO_AF(GPIOB_CLK_IN, 0U) |        \

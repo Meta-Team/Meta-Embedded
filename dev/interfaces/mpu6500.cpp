@@ -32,8 +32,8 @@ static const SPIConfig SPI5_cfg =
         {
                 false,
                 nullptr,
-                GPIOF,
-                GPIOF_SPI5_NSS,
+                MPU6500_SPI_CS_PAD,
+                MPU6500_SPI_CS_PIN,
                 SPI_CR1_BR_2 | SPI_CR1_BR_1 | SPI_CR1_MSTR |
                 SPI_CR1_CPHA | SPI_CR1_CPOL, //Set CPHA and CPOL to be 1
                 0
@@ -41,18 +41,16 @@ static const SPIConfig SPI5_cfg =
 
 void MPU6500Controller::mpu6500_write_reg(uint8_t reg_addr, uint8_t value) {
     uint8_t tx_data[2] = {reg_addr, value};
-    spiAcquireBus(spi_driver);
-    spiSelect(spi_driver);LED::red_on();
-    spiSend(spi_driver, 2, tx_data);
-    spiUnselect(spi_driver);
-    spiReleaseBus(spi_driver);
+    spiAcquireBus(&MPU6500_SPI_DRIVER);
+    spiSelect(&MPU6500_SPI_DRIVER);LED::red_on();
+    spiSend(&MPU6500_SPI_DRIVER, 2, tx_data);
+    spiUnselect(&MPU6500_SPI_DRIVER);
+    spiReleaseBus(&MPU6500_SPI_DRIVER);
 }
 
-bool MPU6500Controller::start(SPIDriver *spi) {
+bool MPU6500Controller::start() {
 
-    spi_driver = spi;
-
-    spiStart(spi_driver, &SPI5_cfg);
+    spiStart(&MPU6500_SPI_DRIVER, &SPI5_cfg);
     mpu6500_write_reg(MPU6500_PWR_MGMT_1, MPU6500_RESET);
     chThdSleepMilliseconds(100);  // wait for MPU6500 to reset, see data sheet
 
@@ -159,13 +157,13 @@ void MPU6500Controller::getData() {
 
     // Acquire data
     uint8_t tx_data = MPU6500_ACCEL_XOUT_H | MPU6500_SPI_READ;
-    spiAcquireBus(spi_driver);
-    spiSelect(spi_driver);
-    spiSend(spi_driver, 1, &tx_data);
+    spiAcquireBus(&MPU6500_SPI_DRIVER);
+    spiSelect(&MPU6500_SPI_DRIVER);
+    spiSend(&MPU6500_SPI_DRIVER, 1, &tx_data);
     chThdSleepMilliseconds(1);
-    spiReceive(spi_driver, MPU6500_RX_BUF_SIZE, mpu6500_RXData);
-    spiUnselect(spi_driver);
-    spiReleaseBus(spi_driver);
+    spiReceive(&MPU6500_SPI_DRIVER, MPU6500_RX_BUF_SIZE, mpu6500_RXData);
+    spiUnselect(&MPU6500_SPI_DRIVER);
+    spiReleaseBus(&MPU6500_SPI_DRIVER);
 
     float accel_x = _accel_psc * (int16_t)((mpu6500_RXData[ 0]<<8) | mpu6500_RXData[ 1]); // Accel X
     float accel_y = _accel_psc * (int16_t)((mpu6500_RXData[ 2]<<8) | mpu6500_RXData[ 3]); // Accel Y
