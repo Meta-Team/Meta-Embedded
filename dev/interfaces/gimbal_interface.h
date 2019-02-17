@@ -95,7 +95,7 @@ public:
     static motor_t yaw;
     static motor_t pitch;
 
-    typedef struct {
+    typedef struct bullet_loader_t{
 
     public:
 
@@ -116,25 +116,23 @@ public:
         int round_count = 0;  // the rounds that the gimbal turns
 
         // Set current angle as the front angle
-        void reset_front_angle();
+        void reset_front_angle(){
+            bullet_loader_t::actual_angle = 0;
+            bullet_loader_t::round_count = 0;
+        }
 
         // Get total angle from the original front angle
         float get_accumulate_angle() {
             return bullet_loader_t::actual_angle + bullet_loader_t::round_count * 360.0f;
         }
 
-        // Get the target angle if one shoot is required
-        float get_one_shoot_target_angle();
-
     private:
 
         uint16_t last_angle_raw = 0;  // the raw angle of the newest feedback, in [0, 8191]
 
-        float target_angle;
-
         friend GimbalInterface;
 
-    } bullet_loader_t;
+    }bullet_loader_t;
 
     static bullet_loader_t bullet_loader;
     /**
@@ -174,43 +172,9 @@ public:
      */
     static bool process_motor_feedback(CANRxFrame *rxmsg);
 
-    /**
-     * @brief get the number of the remained bullets
-     * @return the number of remained bullets
-     */
-    static int get_remained_bullet();
-
-    /**
-     * @brief Called when shooting or reloading happens
-     * @param new_bullet_added set positive int after reloading, leave it empty after shooting
-     * @return the updated bullet number
-     */
-    static int update_bullet_count(int new_bullet_added = 0);
-
-    /**
-     * @brief update the trigger duty cycle when a shooting mode is chosen
-     * @param new_duty_cycle
-     * @return the updated trigger duty cycle
-     */
-    static float set_trigger_duty_cycle(float new_duty_cycle);
-
-    /**
-     * check whether the speed of the friction wheels fulfills the present shooting mode
-     * @return true if the speed reaches the requirement, false otherwise
-     */
-    static bool check_shooting_enabled();
-
 private:
 
     static CANInterface *can;
-
-    static float one_bullet_step;
-
-    static int remained_bullet;
-
-    static bool shooting_enabled;
-
-    static float trigger_duty_cycle;  // Bullet loader only works when the friction wheel duty cycle is over the trigger
 
     // Count of feedback for one sample of angular velocity
     static constexpr int velocity_sample_interval = 50;

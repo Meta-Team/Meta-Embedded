@@ -7,28 +7,10 @@
 #include "gimbal_interface.h"
 #include "common_macro.h"
 
-void GimbalInterface::bullet_loader_t::reset_front_angle() {
-    bullet_loader_t::actual_angle = 0;
-    bullet_loader_t::round_count = 0;
-    bullet_loader_t::target_angle = 0;
-}
-
-float GimbalInterface::bullet_loader_t::get_one_shoot_target_angle() {
-    bullet_loader_t::target_angle += one_bullet_step;
-    if(bullet_loader_t::target_angle>=360.0f){
-        bullet_loader_t::target_angle -= 360.0f;
-    }
-    return bullet_loader_t::target_angle;
-}
-
 GimbalInterface::motor_t GimbalInterface::yaw;
 GimbalInterface::motor_t GimbalInterface::pitch;
 GimbalInterface::bullet_loader_t GimbalInterface::bullet_loader;
 GimbalInterface::friction_wheels_t GimbalInterface::friction_wheels;
-float GimbalInterface::one_bullet_step;
-int GimbalInterface::remained_bullet;
-bool GimbalInterface::shooting_enabled;
-float GimbalInterface::trigger_duty_cycle;
 CANInterface *GimbalInterface::can = nullptr;
 
 // FIXME: can't pass class static variable to HAL written in C. Find a better way to arrange these configs
@@ -51,10 +33,6 @@ void GimbalInterface::start(CANInterface *can_interface) {
     yaw.id = YAW_ID;
     pitch.id = PIT_ID;
     bullet_loader.id = BULLET_LOADER_ID;
-    one_bullet_step = 40.0f;
-    remained_bullet = 0;
-    shooting_enabled = false;
-    trigger_duty_cycle = 1.0;  // the value is undefined
     pwmStart(friction_wheel_pwm_driver, &friction_wheels_pwmcfg);
 }
 
@@ -98,9 +76,6 @@ bool GimbalInterface::send_gimbal_currents() {
 
     // Fill the current of bullet loader
     // TODO: test the positive direction of bullet loader motor
-
-    // Check whether it is capable
-    bullet_loader.enabled = (friction_wheels.enabled && friction_wheels.duty_cycle >= trigger_duty_cycle);
 
     if (bullet_loader.enabled) {
 #if GIMBAL_INTERFACE_ENABLE_CLIP
@@ -254,28 +229,4 @@ bool GimbalInterface::process_motor_feedback(CANRxFrame *rxmsg) {
     }
 
     return true;
-}
-
-int GimbalInterface::get_remained_bullet() {
-    return remained_bullet;
-}
-
-int GimbalInterface::update_bullet_count(int new_bullet_added) {
-    remained_bullet -= (int)(bullet_loader.get_accumulate_angle()/one_bullet_step);
-    remained_bullet += new_bullet_added;
-    if(remained_bullet<=0){
-        remained_bullet = 0;
-    }
-    bullet_loader.reset_front_angle();
-    return remained_bullet;
-}
-
-float GimbalInterface::set_trigger_duty_cycle(float new_duty_cycle) {
-    trigger_duty_cycle = new_duty_cycle;
-    return trigger_duty_cycle;
-}
-
-bool GimbalInterface::check_shooting_enabled() {
-    shooting_enabled = (friction_wheels.duty_cycle >= trigger_duty_cycle);
-    return shooting_enabled;
 }

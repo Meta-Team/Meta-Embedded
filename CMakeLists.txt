@@ -83,20 +83,18 @@ add_executable(ut_remote_interpreter
         dev/interfaces/remote_interpreter.cpp
         dev/interfaces/remote_interpreter_unit_test.cpp)
 
-# Gimbal Interface: include CANInterface, GimbalInterface, GimbalFeedbackModule and the unit test modules.
+# Gimbal Interface: include CANInterface, GimbalInterface, GimbalFeedbackThread and the unit test modules.
 add_executable(ut_gimbal_interface
         dev/interfaces/can_interface.cpp
         dev/interfaces/gimbal_interface.cpp
-        dev/interfaces/gimbal_interface_unit_test.cpp
-        dev/debug/gimbal_feedback_module.cpp)
+        dev/interfaces/gimbal_interface_unit_test.cpp)
 
-# Gimbal: include CANInterface, GimbalInterface, GimbalController, GimbalFeedbackModule and test & adjustment modules.
+# Gimbal: include CANInterface, GimbalInterface, GimbalController, GimbalFeedbackThread and test & adjustment modules.
 add_executable(ut_gimbal
         dev/interfaces/can_interface.cpp
         dev/interfaces/gimbal_interface.cpp
         dev/module/pid_controller.cpp
         dev/control/gimbal_controller.cpp
-        dev/debug/gimbal_feedback_module.cpp
         dev/control/gimbal_controller_unit_test.cpp
         dev/interfaces/mpu6500.cpp)
 
@@ -105,12 +103,6 @@ add_executable(ut_gimbal
 add_executable(ut_mpu6500
         dev/interfaces/mpu6500.cpp
         dev/interfaces/mpu6500_unit_test.cpp)
-
-# Elevator Interface: include CANInterface, ElevatorInterface, and the unit test modules.
-add_executable(ut_elevator
-        dev/interfaces/can_interface.cpp
-        dev/interfaces/elevator_interface.cpp
-        dev/interfaces/elevator_interface_unit_test.cpp)
 
 # Buzzer: inlcude Buzzer interface and unit test.
 add_executable(ut_buzzer

@@ -7,7 +7,6 @@
 
 #define GIMBAL_CONTROLLER_ENABLE_MIDDLE_VALUES 1
 
-#include <vector>
 #include "pid_controller.h"
 
 /**
@@ -17,36 +16,27 @@ class GimbalController {
 
 public:
 
+    static bool shooting;
+
     typedef enum {
         YAW_ID = 0,
         PIT_ID = 1,
         BULLET_LOADER_ID =2
     } motor_id_t;
 
+    typedef enum {
+        MODE_1 = 0,
+        MODE_2 = 1,
+        MODE_3 = 2
+    }shoot_mode_t;
+
     class FrictionWheelController{
-    public:
 
-        typedef enum {
-            MODE_1 = 0,
-            MODE_2 = 1,
-            MODE_3 = 2
-        }mode_index_t;
+        float actual_duty_cycle = 0.0;  // THIS IS A PSEUDO PARAMETER, IT SHOULD BE REPLACED WITH FEEDBACK FROM FRICTION WHEEL IF NECESSARY
 
-        PIDController v_to_dc_pid;
+        float trigger_duty_cycle = 0.2;  // Bullet loader only works when the friction wheel duty cycle is over the trigger
 
-        /**
-         * @brief calculate the duty cycle from the velocity
-         * @param measured_velocity
-         * @param modeIndex
-         * @return
-         */
-        float inline v_to_dc(float measured_velocity, mode_index_t modeIndex) {
-            return v_to_dc_pid.calc(measured_velocity, friction_wheel_speed_modes[modeIndex]);
-        }
-
-    private:
-
-        std::vector<float> friction_wheel_speed_modes {10.0, 20.0, 30.0};
+        friend GimbalController;
     };
 
     static FrictionWheelController frictionWheelController;
@@ -58,6 +48,12 @@ public:
 
     public:
         motor_id_t motor_id;   // motor id
+
+        float angular_velocity = 0.0f;
+
+        float actual_angle = 0.0f;
+
+        float target_angle = 0.0f;
 
         PIDController angle_to_v_pid;
         PIDController v_to_i_pid;
@@ -82,45 +78,66 @@ public:
             return v_to_i_pid.calc(measured_velocity, target_velocity);
         }
 
-        float (*get_current)(float measured_angle, float measured_velocity, float target_angle);
-
-        explicit MotorController(motor_id_t id) : motor_id(id){
-            switch (motor_id){
-                case YAW_ID:
-                case PIT_ID:
-                    get_current = get_gimbal_motor_current;
-                    break;
-                case BULLET_LOADER_ID:
-                    get_current = get_bullet_loader_current;
-                    break;
-                default:
-                    get_current = nullptr;
-            }
-        }
+        explicit MotorController(motor_id_t id) : motor_id(id){}
     };
-
-    /**
-         * @brief get the current to be sent
-         * @param measured_angle
-         * @param measured_velocity
-         * @param target_angle
-         * @return the current to be sent
-         */
-    static float get_bullet_loader_current(float measured_angle, float measured_velocity, float target_angle);
-
-    /**
-         * @brief get the current to be sent
-         * @param measured_angle
-         * @param measured_velocity
-         * @param target_angle
-         * @return the current to be sent
-         */
-    static float get_gimbal_motor_current(float measured_angle, float measured_velocity, float target_angle);
 
     static MotorController yaw;
     static MotorController pitch;
     static MotorController bullet_loader;
 
+    /**
+     * @brief some initializations
+     */
+    static void start();
+
+    /**
+     * @brief get the data from the interface and update the data in controller
+     * @param motor_id
+     * @param actual_angle
+     * @param angular_velocity
+     * @return
+     */
+    static bool update_motor_data(motor_id_t motor_id, float actual_angle, float angular_velocity);
+
+    /**
+     * @brief be prepared for a shooting assignment when receiving a shooting command
+     * @param shoot_mode
+     * @param bullet_num
+     */
+    static void shoot_bullet(shoot_mode_t shoot_mode, int bullet_num);
+
+    /**
+     * @brief return the target duty cycle for the friction wheels
+     * @return
+     */
+    static float get_fw_pid();
+
+    /**
+     * @brief use pid to calculate the target current for the bullet loader
+     * @return
+     */
+    static int get_bullet_loader_target_current();
+
+    /**
+     * @brief Called when shooting or reloading happens
+     * @param new_bullet_added
+     * @return
+     */
+    static int update_bullet_count(int new_bullet_added = 0);
+
+    /**
+     * @brief get the number of the remained bullets
+     * @return
+     */
+    static int get_remained_bullet();
+
+private:
+
+    static float one_bullet_step;
+
+    static int remained_bullet;
+
+    static float shoot_trigger_duty_cycle[3];  // the array contains the duty cycles for different shoot modes
 };
 
 
