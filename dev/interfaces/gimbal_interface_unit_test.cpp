@@ -38,7 +38,10 @@ GimbalFeedbackModule feedbackModule(200,  // 200ms interval
                                     &GimbalInterface::yaw.target_current,
                                     &empty_target_angle,
                                     &empty_target_velocity,
-                                    &GimbalInterface::pitch.target_current);
+                                    &GimbalInterface::pitch.target_current,
+                                    &empty_target_angle,
+                                    &empty_target_velocity,
+                                    &GimbalInterface::bullet_loader.target_current);
 
 
 /**
