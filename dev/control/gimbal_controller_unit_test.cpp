@@ -53,6 +53,8 @@ float pitch_target_velocity = 0.0;
 float bullet_loader_target_angle = 0.0;
 float bullet_loader_target_velocity = 0.0;
 
+int shooting_speed_mode = GimbalController::STOP;
+
 bool continuous_shooting = false;
 bool shooting = false;
 
@@ -128,7 +130,8 @@ static void cmd_gimbal_enable_fw(BaseSequentialStream *chp, int argc, char *argv
         shellUsage(chp, "g_enable_fw 0/1");
         return;
     }
-    GimbalInterface::friction_wheels.duty_cycle = 0.2;
+    shooting_speed_mode = GimbalController::MIDDLE;
+    GimbalInterface::friction_wheels.duty_cycle = GimbalController::shoot_duty_cycles[shooting_speed_mode];
     GimbalInterface::friction_wheels.enabled = *argv[0] - '0';
 
 //    chprintf(chp, "Gimbal friction_wheels enabled = %d" SHELL_NEWLINE_STR, GimbalInterface::friction_wheels.enabled);
@@ -343,6 +346,20 @@ static void cmd_gimbal_stop_shooting(BaseSequentialStream *chp, int argc, char *
     stop_shooting();
     chprintf(chp, "remained bullets: %d" SHELL_NEWLINE_STR, GimbalController::get_remained_bullet());
 }
+
+static void cmd_gimbal_set_shooting_speed(BaseSequentialStream *chp, int argc, char *argv[]){
+    if (argc != 1){
+        shellUsage(chp, "g_set_shooting_speed stop(0)/slow(1)/middle(2)/fast(3)");
+        return;
+    }
+    shooting_speed_mode = Shell::atoi(argv[0]);
+    if (shooting_speed_mode >= 0 && shooting_speed_mode <= 3){
+        GimbalInterface::friction_wheels.duty_cycle = GimbalController::shoot_duty_cycles[shooting_speed_mode];
+    } else{
+        shellUsage(chp, "g_set_shooting_speed stop(0)/slow(1)/middle(2)/fast(3)");
+        return;
+    }
+}
 // Command lists for gimbal controller test and adjustments
 ShellCommand gimbalCotrollerCommands[] = {
         {"g_enable",      cmd_gimbal_enable},
@@ -356,6 +373,7 @@ ShellCommand gimbalCotrollerCommands[] = {
         {"g_continuous_shooting",   cmd_gimbal_continuous_shooting},
         {"g_incontinuous_shooting", cmd_gimbal_incontinuous_shooting},
         {"g_stop_shooting", cmd_gimbal_stop_shooting},
+        {"g_set_shooting_speed",    cmd_gimbal_set_shooting_speed},
         {nullptr,         nullptr}
 };
 

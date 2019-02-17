@@ -23,21 +23,13 @@ public:
     } motor_id_t;
 
     typedef enum {
-        MODE_1 = 0,
-        MODE_2 = 1,
-        MODE_3 = 2
+        STOP = 0,
+        SLOW = 1,
+        MIDDLE = 2,
+        FAST = 3
     }shoot_mode_t;
 
-    class FrictionWheelController{
-
-        float actual_duty_cycle = 0.0;  // THIS IS A PSEUDO PARAMETER, IT SHOULD BE REPLACED WITH FEEDBACK FROM FRICTION WHEEL IF NECESSARY
-
-        float trigger_duty_cycle = 0.2;  // Bullet loader only works when the friction wheel duty cycle is over the trigger
-
-        friend GimbalController;
-    };
-
-    static FrictionWheelController frictionWheelController;
+    static float shoot_duty_cycles[4];  // the array contains the duty cycles for different shoot modes
 
     /**
      * Controller for each motor
@@ -80,12 +72,6 @@ public:
     static void update_bullet(int bullet_changed = 0);
 
     /**
-     * @brief return the target duty cycle for the friction wheels
-     * @return
-     */
-    static float get_fw_pid();
-
-    /**
      * @brief get the number of the remained bullets
      * @return
      */
@@ -94,8 +80,6 @@ public:
 private:
 
     static int remained_bullet;
-
-    static float shoot_trigger_duty_cycle[3];  // the array contains the duty cycles for different shoot modes
 
 };
 

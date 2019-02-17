@@ -7,18 +7,13 @@
 GimbalController::MotorController GimbalController::yaw(GimbalController::YAW_ID);
 GimbalController::MotorController GimbalController::pitch(GimbalController::PIT_ID);
 GimbalController::MotorController GimbalController::bullet_loader(GimbalController::BULLET_LOADER_ID);
-GimbalController::FrictionWheelController GimbalController::frictionWheelController;
-float GimbalController::shoot_trigger_duty_cycle[3] = {0.1, 0.2, 0.3};  // the numbers are temporary
+float GimbalController::shoot_duty_cycles[4] = {0.0, 0.1, 0.2, 0.3};  // the numbers are temporary
 int GimbalController::remained_bullet = 0;
 
 
 /**
  * Public Functions
  */
-
-float GimbalController::get_fw_pid() {
-    return frictionWheelController.trigger_duty_cycle;
-}
 
 /*
 int GimbalController::get_bullet_loader_target_current(){
