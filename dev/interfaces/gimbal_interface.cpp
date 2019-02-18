@@ -91,8 +91,8 @@ bool GimbalInterface::send_gimbal_currents() {
 #if GIMBAL_INTERFACE_ENABLE_CLIP
         ABS_LIMIT(bullet_loader.target_current, GIMBAL_INTERFACE_BULLET_LOADER_MAX_CURRENT);
 #endif
-        txmsg.data8[4] = (uint8_t) (-bullet_loader.target_current >> 8); //upper byte
-        txmsg.data8[5] = (uint8_t) -bullet_loader.target_current; // lower byte
+        txmsg.data8[4] = (uint8_t) (bullet_loader.target_current >> 8); //upper byte
+        txmsg.data8[5] = (uint8_t) bullet_loader.target_current; // lower byte
     } else {
         txmsg.data8[4] = txmsg.data8[5] = 0;
     }
@@ -232,8 +232,8 @@ bool GimbalInterface::process_motor_feedback(CANRxFrame *rxmsg) {
             }
 
             // Get the angular velocity
-            bulletLoader->angular_velocity = ((int16_t) (rxmsg->data8[2] << 8 | rxmsg->data8[3]))*6.0f;  // 6.0f accounts for 360 degrees per round per 60 seconds
-//            Shell::printf("%f" SHELL_NEWLINE_STR, bulletLoader->angular_velocity);
+            bulletLoader->angular_velocity = ((int16_t) (rxmsg->data8[2] << 8 | rxmsg->data8[3])) / 6.0f;  // / 36 *6.0f accounts for 360 degrees per round per 60 seconds
+
             break;
 //        default:
 //            return false;
