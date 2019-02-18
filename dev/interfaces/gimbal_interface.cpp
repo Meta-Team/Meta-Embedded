@@ -156,7 +156,6 @@ bool GimbalInterface::process_motor_feedback(CANRxFrame *rxmsg) {
     switch (rxmsg->SID){
         case 0x205:
         case 0x206:
-        {
             // If it is Yaw or Pitch
 
             // update the last_angle_raw
@@ -206,10 +205,9 @@ bool GimbalInterface::process_motor_feedback(CANRxFrame *rxmsg) {
             }
             motor->actual_current = (int16_t) (rxmsg->data8[2] << 8 | rxmsg->data8[3]);
             break;
-        }
 
         case 0x207:
-        {
+
             // If it is the bullet_loader
 
             // update the last_angle_raw
@@ -234,14 +232,11 @@ bool GimbalInterface::process_motor_feedback(CANRxFrame *rxmsg) {
             }
 
             // Get the angular velocity
-            int16_t high_eight = rxmsg->data8[2];
-            int16_t low_eight = rxmsg->data8[3];
-            bulletLoader->angular_velocity = ((high_eight << 8) | low_eight)*6.0f;  // 6.0f accounts for 360 degrees per round per 60 seconds
+            bulletLoader->angular_velocity = ((int16_t) (rxmsg->data8[2] << 8 | rxmsg->data8[3]))*6.0f;  // 6.0f accounts for 360 degrees per round per 60 seconds
+//            Shell::printf("%f" SHELL_NEWLINE_STR, bulletLoader->angular_velocity);
             break;
-        }
-
-        default:
-            return false;
+//        default:
+//            return false;
     }
 
     return true;

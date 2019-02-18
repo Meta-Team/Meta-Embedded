@@ -356,6 +356,16 @@ static void cmd_gimbal_set_shooting_speed(BaseSequentialStream *chp, int argc, c
         return;
     }
 }
+
+static void cmd_gimbal_check(BaseSequentialStream *chp, int argc, char *argv[]){
+    (void)argv;
+    if(argc != 0){
+        return;
+    }
+    chprintf(chp, "bullet_loader_velocity: %f" SHELL_NEWLINE_STR, GimbalInterface::bullet_loader.angular_velocity);
+    chprintf(chp, "bullet_loader_target_velocity: %f" SHELL_NEWLINE_STR, bullet_loader_target_velocity);
+    chprintf(chp, "bullet_loader_target_current: %d" SHELL_NEWLINE_STR, GimbalInterface::bullet_loader.target_current);
+}
 // Command lists for gimbal controller test and adjustments
 ShellCommand gimbalCotrollerCommands[] = {
         {"g_enable",      cmd_gimbal_enable},
@@ -370,6 +380,7 @@ ShellCommand gimbalCotrollerCommands[] = {
         {"g_incontinuous_shooting", cmd_gimbal_incontinuous_shooting},
         {"g_stop_shooting", cmd_gimbal_stop_shooting},
         {"g_set_shooting_speed",    cmd_gimbal_set_shooting_speed},
+        {"g_check", cmd_gimbal_check},
         {nullptr,         nullptr}
 };
 
@@ -502,6 +513,8 @@ protected:
 int main(void) {
     halInit();
     System::init();
+    LED::red_off();
+    LED::green_off();
 
     Shell::start(HIGHPRIO);
     Shell::addCommands(gimbalCotrollerCommands);
