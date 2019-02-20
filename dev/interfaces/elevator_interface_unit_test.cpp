@@ -34,11 +34,11 @@ CANInterface can1(&CAND1, can1_callback);
 static void cmd_elevator_set_target_position(BaseSequentialStream *chp, int argc, char *argv[]) {
     (void) argv;
     if (argc != 2) {
-        shellUsage(chp, "e_set front_pos back_pos");
+        shellUsage(chp, "e_set front_pos[cm] back_pos[cm]");
         return;
     }
-    ElevatorInterface::set_target_position(Shell::atoi(argv[0]), Shell::atoi(argv[1]));
-    chprintf(chp, "Target pos = %d, %d" SHELL_NEWLINE_STR, Shell::atoi(argv[0]), Shell::atoi(argv[1]));
+    ElevatorInterface::set_target_position(Shell::atof(argv[0]), Shell::atof(argv[1]));
+    chprintf(chp, "Target pos = %f, %f" SHELL_NEWLINE_STR, Shell::atof(argv[0]), Shell::atof(argv[1]));
 }
 
 // Shell commands to control the chassis
@@ -55,20 +55,17 @@ protected:
         while (!shouldTerminate()) {
             ElevatorInterface::send_target_position();
 
-            Shell::printf("FL: POS = %d, V = %d" SHELL_NEWLINE_STR,
+            Shell::printf("FL: POS = %d, V = %d, FR: POS = %d, V = %d, RL: POS = %d, V = %d, RR: POS = %d, V = %d" SHELL_NEWLINE_STR,
                           (int) ElevatorInterface::elevator_wheels[ElevatorInterface::FRONT_LEFT].real_position,
-                          (int) ElevatorInterface::elevator_wheels[ElevatorInterface::FRONT_LEFT].real_velocity);
-            Shell::printf("FR: POS = %d, V = %d" SHELL_NEWLINE_STR,
+                          (int) ElevatorInterface::elevator_wheels[ElevatorInterface::FRONT_LEFT].real_velocity,
                           (int) ElevatorInterface::elevator_wheels[ElevatorInterface::FRONT_RIGHT].real_position,
-                          (int) ElevatorInterface::elevator_wheels[ElevatorInterface::FRONT_RIGHT].real_velocity);
-            Shell::printf("RL: POS = %d, V = %d" SHELL_NEWLINE_STR,
+                          (int) ElevatorInterface::elevator_wheels[ElevatorInterface::FRONT_RIGHT].real_velocity,
                           (int) ElevatorInterface::elevator_wheels[ElevatorInterface::REAR_LEFT].real_position,
-                          (int) ElevatorInterface::elevator_wheels[ElevatorInterface::REAR_LEFT].real_velocity);
-            Shell::printf("RR: POS = %d, V = %d" SHELL_NEWLINE_STR,
+                          (int) ElevatorInterface::elevator_wheels[ElevatorInterface::REAR_LEFT].real_velocity,
                           (int) ElevatorInterface::elevator_wheels[ElevatorInterface::REAR_RIGHT].real_position,
                           (int) ElevatorInterface::elevator_wheels[ElevatorInterface::REAR_RIGHT].real_velocity);
 
-            sleep(TIME_MS2I(100));
+            sleep(TIME_MS2I(2000));
         }
     }
 } elevatorThread;

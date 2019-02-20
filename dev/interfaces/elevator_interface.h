@@ -23,10 +23,10 @@ public:
 
     /**
      * @brief set the target position for both the front wheels and the rear wheels
-     * @param front_wheel_position      the target position of the front wheels
-     * @param rear_wheel_position       the target position of the rear wheels
+     * @param front_wheel_position_cm      the target position of the front wheels, + for upward
+     * @param rear_wheel_position_cm       the target position of the rear wheels, + for upward
      */
-    static void set_target_position(int32_t front_wheel_position, int32_t rear_wheel_position);
+    static void set_target_position(float front_wheel_position_cm, float rear_wheel_position_cm);
 
 
     /** Motor Interface **/
@@ -70,7 +70,7 @@ private:
      * target_position[0] contains the target position of the front wheels
      * target_position[1] contains the target position of the rear wheels
      */
-    static int32_t target_position[2];
+    static int32_t target_position[2]; // [pc]
 
 
     enum wheel_can_id_t {

@@ -34,9 +34,9 @@ bool ElevatorInterface::send_target_position() {
     return true;
 }
 
-void ElevatorInterface::set_target_position(int32_t front_wheel_position, int32_t rear_wheel_position) {
-    target_position[0] = front_wheel_position;
-    target_position[1] = rear_wheel_position;
+void ElevatorInterface::set_target_position(float front_wheel_position_cm, float rear_wheel_position_cm) {
+    target_position[0] = (int32_t) (front_wheel_position_cm * 40000);
+    target_position[1] = (int32_t) (rear_wheel_position_cm * 40000);
 }
 
 bool ElevatorInterface::process_feedback(CANRxFrame *rxmsg) {
