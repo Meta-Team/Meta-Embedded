@@ -9,8 +9,8 @@
 #include "pid_controller.h"
 #include "chassis_common.h"
 
-#define CHASSIS_WHEEL_BASE 420.0f // distance between front axle and the back axle, mm
-#define CHASSIS_WHEEL_TREAD 370.0f // distance between left and right wheels, mm
+#define CHASSIS_WHEEL_BASE 545.0f // distance between front axle and the back axle, mm
+#define CHASSIS_WHEEL_TREAD 588.0f // distance between left and right wheels, mm
 #define CHASSIS_WHEEL_CIRCUMFERENCE 478.0f // mm
 
 /**

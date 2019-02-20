@@ -22,6 +22,7 @@ static void can1_callback(CANRxFrame *rxmsg) {
         case 0x202:
         case 0x203:
         case 0x204:
+            LED::green_toggle();
             ChassisInterface::process_chassis_feedback(rxmsg);
             break;
         default:
@@ -107,6 +108,7 @@ protected:
 int main(void) {
     halInit();
     System::init();
+    LED::green_off();
 
     // Start ChibiOS shell at high priority,
     // so even if a thread stucks, we still have access to shell.
