@@ -5,227 +5,96 @@
 #include "elevator_interface.h"
 
 int32_t ElevatorInterface::target_position[2];
-CANTxFrame ElevatorInterface::txFrames[4];
 ElevatorInterface::elevator_wheel_t ElevatorInterface::elevator_wheels[4];
-CANInterface* ElevatorInterface::can = nullptr;
-uint8_t ElevatorInterface::feedback_time;
+CANInterface *ElevatorInterface::can = nullptr;
 
 
-bool ElevatorInterface::send_message() {
+bool ElevatorInterface::send_target_position() {
 
-    uint16_t ButtonsStatus[4];// Use it to detect if the elevators are on the bottom.
-    
-    ButtonsStatus[0]=palSetPad(GPIOF,GPIOF_PINDOWN); // The FRONT_LEFT_BUTTONS.
-    ButtonsStatus[1]=palSetPad(GPIOF,GPIOF_PINDOWN); // The FRONT_RIGHT_BUTTONS.
-    ButtonsStatus[2]=palSetPad(GPIOF,GPIOF_PINDOWN); // The REAR_LEFT_BUTTONS.
-    ButtonsStatus[3]=palSetPad(GPIOF,GPIOF_PINDOWN); // The REAR_RIGHT_BUTTONS.
+    for (int wheel_index = 0; wheel_index < WHEEL_COUNT; wheel_index++) {
+        CANTxFrame txFrame;
 
-    for(uint32_t wheel_index = 0; wheel_index < 4; wheel_index++){
-            if( (ButtonsStatus[wheel_index]==0) && (target_position-elevator_wheels[wheel_index].real_position) < 0 ) { // When reaches to the edge, but still tries going out of the edge.
-                elevator_wheels[wheel_index].real_position = 0;
-                
-                // Reset the wheel respectively.
+        // Set the PWM for the wheel.
+        txFrame.IDE = CAN_IDE_STD;
+        txFrame.RTR = CAN_RTR_DATA;
+        txFrame.DLC = 0x08;
+        txFrame.SID = 0x315 + 0x10 * (uint32_t) wheel_index;
+        txFrame.data8[0] = (uint8_t) ((driver_pwm >> 8) & 0xFF);
+        txFrame.data8[1] = (uint8_t) (driver_pwm & 0xFF);
+        txFrame.data8[2] = txFrame.data8[3] = 0x55;
+        txFrame.data8[4] = (uint8_t) ((target_position[wheel_index / 2] >> 24) & 0xFF);
+        txFrame.data8[5] = (uint8_t) ((target_position[wheel_index / 2] >> 16) & 0xFF);
+        txFrame.data8[6] = (uint8_t) ((target_position[wheel_index / 2] >> 8) & 0xFF);
+        txFrame.data8[7] = (uint8_t) (target_position[wheel_index / 2] & 0xFF);
 
-                txFrames[wheel_index].SID = 0x310 + 0x10 * wheel_index;
-                txFrames[wheel_index].IDE = CAN_IDE_STD;
-                txFrames[wheel_index].RTR = CAN_RTR_DATA;
-                txFrames[wheel_index].DLC = 0x08;
-                for(int data_index = 0; data_index < 8; data_index++ ){
-                    txFrames[wheel_index].data8[data_index] = 0x55;
-                }
-                can->send_msg(&txFrames[wheel_index]);
+        can->send_msg(&txFrame);
 
-                chThdSleepMilliseconds(600); // Wait for the work to be done.
-
-                // Choose the Control mode for the wheel.
-                txFrames[wheel_index].SID = 0x311 + 0x10 * wheel_index;
-                txFrames[wheel_index].data8[0] = 0x04;
-                can->send_msg(&txFrames[wheel_index]);
-
-                chThdSleepMilliseconds(500); // Wait for the work to be done.
-
-                // Choose the FeedBack mode for the wheel.
-                txFrames[wheel_index].SID = 0x31A + 0x10 * wheel_index;
-
-                feedback_time = 100;
-                txFrames[wheel_index].data8[0] = feedback_time;
-                txFrames[wheel_index].data8[1] = 0x00;
-                can->send_msg(&txFrames[wheel_index]);
-
-                // Set the PWM for the wheel.
-                txFrames[wheel_index].SID = 0x315 + 0x10 * wheel_index;
-                txFrames[wheel_index].data8[0] = (unsigned char) ((PWM >> 8) & 0Xff);
-                txFrames[wheel_index].data8[1] = (unsigned char) (PWM & 0Xff);
-            }
-            else{ // When nothing goes wrong.
-                int dd = wheel_index/2; // Replace the i.
-
-                txFrames[wheel_index].data8[4] = (unsigned char) ((target_position[dd] >> 24) &
-                                                                    0Xff);
-                txFrames[wheel_index].data8[5] = (unsigned char) ((target_position[dd] >> 16) &
-                                                                    0Xff);
-                txFrames[wheel_index].data8[6] = (unsigned char) ((target_position[dd] >> 8 ) &
-                                                                    0Xff);
-                txFrames[wheel_index].data8[7] = (unsigned char) (target_position[dd] & 0Xff);
-
-                can->send_msg(&txFrames[wheel_index]);
-            }
     }
 
     return true;
 }
 
-void ElevatorInterface::set_position(int32_t front_wheel_position, int32_t rear_wheel_position) {
+void ElevatorInterface::set_target_position(int32_t front_wheel_position, int32_t rear_wheel_position) {
     target_position[0] = front_wheel_position;
     target_position[1] = rear_wheel_position;
 }
 
-bool ElevatorInterface::get_feedback(CANRxFrame *rxmsg) {
-    int index;
-    switch (rxmsg->SID){
-        case RX_FRONT_LEFT:
-            index = 0;
-            break;
-        case RX_FRONT_RIGHT:
-            index = 1;
-            break;
-        case RX_REAR_LEFT:
-            index = 2;
-            break;
-        case RX_REAR_RIGHT:
-            index = 3;
-            break;
-        default:
-            return false;
-    }
-    elevator_wheels[index].real_current = (rxmsg->data8[0]<<8)|rxmsg->data8[1];
-    elevator_wheels[index].real_velocity = (rxmsg->data8[2]<<8)|rxmsg->data8[3];
-    elevator_wheels[index].real_position = (rxmsg->data8[4]<<24)|(rxmsg->data8[5]<<16)|(rxmsg->data8[6]<<8)|rxmsg->data8[7];
+bool ElevatorInterface::process_feedback(CANRxFrame *rxmsg) {
+    if (((rxmsg->SID >> 8) & 0xF) != can_group_id) return false;
+    if ((rxmsg->SID & 0xF) != 0xB) return false;
+
+    unsigned int index = ((rxmsg->SID >> 4) & 0xF) - 1; // wheel_id = can_id - 1
+
+    if (index > WHEEL_COUNT) return false;
+
+    elevator_wheels[index].real_current = (rxmsg->data8[0] << 8) | rxmsg->data8[1];
+    elevator_wheels[index].real_velocity = (rxmsg->data8[2] << 8) | rxmsg->data8[3];
+    elevator_wheels[index].real_position =
+            (rxmsg->data8[4] << 24) | (rxmsg->data8[5] << 16) | (rxmsg->data8[6] << 8) | rxmsg->data8[7];
+
     return true;
 }
 
-void ElevatorInterface::start(CANInterface* can_interface) {
+void ElevatorInterface::init(CANInterface *can_interface) {
 
     can = can_interface;
-    // First enter the current mode, let wheels goes to the bottom (Stop respectively), when all reach to the bottom, restart the for wheels and enter the position mode.
-    // Reset the four wheels
-    txFrames[0].SID = COMMAND_0_FRONT_LEFT;
-    txFrames[1].SID = COMMAND_0_FRONT_RIGHT;
-    txFrames[2].SID = COMMAND_0_REAR_LEFT;
-    txFrames[3].SID = COMMAND_0_REAR_RIGHT;
 
-    for(int wheel_index = 0; wheel_index < 4; wheel_index++){
-        txFrames[wheel_index].IDE = CAN_IDE_STD;
-        txFrames[wheel_index].RTR = CAN_RTR_DATA;
-        txFrames[wheel_index].DLC = 0x08;
-        for(int data_index = 0; data_index < 8; data_index++){
-            txFrames[wheel_index].data8[data_index] = 0x55;
-        }
-        can->send_msg(&txFrames[wheel_index]);
-    }
-    // Waiting for the work to be done
-    chThdSleepMilliseconds(600);
+    CANTxFrame txFrame;
 
-    // Choose the control mode for the four wheels
-    txFrames[0].SID = COMMAND_1_FRONT_LEFT;
-    txFrames[1].SID = COMMAND_1_FRONT_RIGHT;
-    txFrames[2].SID = COMMAND_1_REAR_LEFT;
-    txFrames[3].SID = COMMAND_1_REAR_RIGHT;
-
-    for(int wheel_index = 0; wheel_index < 4; wheel_index++){
-        txFrames[wheel_index].data8[0] = 0x04;
-        can->send_msg(&txFrames[wheel_index]);
+    // Pre-fill info of txFrame
+    txFrame.IDE = CAN_IDE_STD;
+    txFrame.RTR = CAN_RTR_DATA;
+    txFrame.DLC = 0x08;
+    for (int data_index = 0; data_index < 8; data_index++) {
+        txFrame.data8[data_index] = 0x55;
     }
 
-    // Waiting for the work to be done
-    chThdSleepMilliseconds(500);
+    /* Step 1: Reset. Function ID = 0 */
+    txFrame.SID = (can_group_id << 8 | 0x00); // Use id 0 for broadcast
+    can->send_msg(&txFrame);
+    chThdSleepMilliseconds(600); // waiting for the work to be done
 
-    // Choose the feedback mode for the four wheels
-    txFrames[0].SID = COMMAND_A_FRONT_LEFT;
-    txFrames[1].SID = COMMAND_A_FRONT_RIGHT;
-    txFrames[2].SID = COMMAND_A_REAR_LEFT;
-    txFrames[3].SID = COMMAND_A_REAR_RIGHT;
+    /* Step 2: Set the control mode to position mode (0x04). Function ID = 1 */
+    txFrame.SID = (can_group_id << 8 | 0x01); // Use id 0 for broadcast
+    txFrame.data8[0] = 0x04;
+    // Other data8 are still 0x55
+    can->send_msg(&txFrame);
+    chThdSleepMilliseconds(500); // waiting for the work to be done
 
-    feedback_time = 100;
+    /* Step 3: Choose the feedback mode for. Function ID = A */
+    txFrame.SID = (can_group_id << 8 | 0x0A); // Use id 0 for broadcast
+    txFrame.data8[0] = feedback_interval; // turn on feedback of instant current, velocity and position
+    txFrame.data8[1] = 0x00;              // turn off feedback of voltages of motor driving pins and PWM
+    // Other data8 are still 0x55
+    can->send_msg(&txFrame);
 
-    for(int wheel_index = 0; wheel_index < 4; wheel_index++){
-        txFrames[wheel_index].data8[0] = feedback_time;
-        txFrames[wheel_index].data8[1] = 0x00;
-        can->send_msg(&txFrames[wheel_index]);
+
+    /* Step 4: Set the PWM for the four wheels. Function ID = 5 */
+    txFrame.SID = (can_group_id << 8 | 0x05); // Use id 0 for broadcast
+    for (int wheel_index = 0; wheel_index < 4; wheel_index++) {
+        txFrame.data8[0] = (uint8_t) ((driver_pwm >> 8) & 0xFF);
+        txFrame.data8[1] = (uint8_t) (driver_pwm & 0xFF);
     }
-
-    // Set the PWM for the four wheels
-    txFrames[0].SID = COMMAND_5_FRONT_LEFT;
-    txFrames[1].SID = COMMAND_5_FRONT_RIGHT;
-    txFrames[2].SID = COMMAND_5_REAR_LEFT;
-    txFrames[3].SID = COMMAND_5_REAR_RIGHT;
-    for(int wheel_index = 0; wheel_index < 4; wheel_index++){
-        txFrames[wheel_index].data8[0] = (unsigned char) ((PWM >> 8) & 0Xff);
-        txFrames[wheel_index].data8[1] = (unsigned char) (PWM & 0Xff);
-    }
-
-    // Restart four wheels respectively. Use while to let the procedure repeat again and again.
-    // Only when for wheels all touch to the bottom, the while loop over.
-
-    uint16_t ButtonsStatus[4][2];// Use it to detect if the elevators are on the bottom.
-
-    ButtonsStatus[0]=palSetPad(GPIOF,GPIOF_PINDOWN); // The FRONT_LEFT_BUTTONS.
-    ButtonsStatus[1]=palSetPad(GPIOF,GPIOF_PINDOWN); // The FRONT_RIGHT_BUTTONS.
-    ButtonsStatus[2]=palSetPad(GPIOF,GPIOF_PINDOWN); // The REAR_LEFT_BUTTONS.
-    ButtonsStatus[3]=palSetPad(GPIOF,GPIOF_PINDOWN); // The REAR_RIGHT_BUTTONS.
-    while (ButtonsStatus[0]+ButtonsStatus[1]+ButtonsStatus[2]+ButtonsStatus[3] != 0) {
-        for (uint32_t wheel_index = 0; wheel_index < 4; wheel_index++) {
-            if ((ButtonsStatus[wheel_index]== 0){ // When reaches to the bottom.
-                elevator_wheels[wheel_index].real_position = 0;
-
-                // Reset the wheel respectively.
-
-                txFrames[wheel_index].SID = 0x310 + 0x10 * wheel_index;
-                txFrames[wheel_index].IDE = CAN_IDE_STD;
-                txFrames[wheel_index].RTR = CAN_RTR_DATA;
-                txFrames[wheel_index].DLC = 0x08;
-                for (int data_index = 0; data_index < 8; data_index++) {
-                    txFrames[wheel_index].data8[data_index] = 0x55;
-                }
-                can->send_msg(&txFrames[wheel_index]);
-
-                chThdSleepMilliseconds(600); // Wait for the work to be done.
-
-                // Choose the Control mode for the wheel.
-                txFrames[wheel_index].SID = 0x311 + 0x10 * wheel_index;
-                txFrames[wheel_index].data8[0] = 0x04;
-                can->send_msg(&txFrames[wheel_index]);
-
-                chThdSleepMilliseconds(500); // Wait for the work to be done.
-
-                // Choose the FeedBack mode for the wheel.
-                txFrames[wheel_index].SID = 0x31A + 0x10 * wheel_index;
-
-                feedback_time = 100;
-                txFrames[wheel_index].data8[0] = feedback_time;
-                txFrames[wheel_index].data8[1] = 0x00;
-                can->send_msg(&txFrames[wheel_index]);
-
-                // Set the PWM for the wheel.
-                txFrames[wheel_index].SID = 0x315 + 0x10 * wheel_index;
-                txFrames[wheel_index].data8[0] = (unsigned char) ((PWM >> 8) & 0Xff);
-                txFrames[wheel_index].data8[1] = (unsigned char) (PWM & 0Xff);
-            }
-            else { // When nothing goes wrong. Let the elevator goes down.
-                int dd = wheel_index / 2; // Replace the original i.
-
-                set_position(-40000,-40000); // Goes down crazily.
-
-                txFrames[wheel_index].data8[4] = (unsigned char) ((target_position[dd] >> 24) &
-                                                                      0Xff);
-                txFrames[wheel_index].data8[5] = (unsigned char) ((target_position[dd] >> 16) &
-                                                                      0Xff);
-                txFrames[wheel_index].data8[6] = (unsigned char) ((target_position[dd] >> 8) &
-                                                                      0Xff);
-                txFrames[wheel_index].data8[7] = (unsigned char) (target_position[dd] & 0Xff);
-
-                can->send_msg(&txFrames[wheel_index]);
-            }
-        }
-    }
+    // Other data8 are still 0x55
+    can->send_msg(&txFrame);
 }

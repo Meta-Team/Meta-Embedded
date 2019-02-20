@@ -19,11 +19,12 @@ using namespace chibios_rt;
 static void can1_callback(CANRxFrame *rxmsg) {
     switch (rxmsg->SID) {
         case 0x31B:
-            ElevatorInterface::get_feedback(rxmsg);
-            LED::green_on();
+        case 0x32B:
+        case 0x33B:
+        case 0x34B:
+            ElevatorInterface::process_feedback(rxmsg);
             break;
         default:
-            LED::green_on();
             break;
     }
 }
@@ -36,35 +37,37 @@ static void cmd_elevator_set_target_position(BaseSequentialStream *chp, int argc
         shellUsage(chp, "e_set front_pos back_pos");
         return;
     }
-
-    ElevatorInterface::set_position(Shell::atoi(argv[0]), Shell::atoi(argv[1]));
-    chprintf(chp, "Target pos = %d, %d" SHELL_NEWLINE_STR, ElevatorInterface::target_position[0], ElevatorInterface::target_position[1]);
-}
-
-static void cmd_elevator_echo_target_position(BaseSequentialStream *chp, int argc, char *argv[]) {
-    (void) argv;
-    if (argc != 0) {
-        shellUsage(chp, "e_echo");
-        return;
-    }
-
-    chprintf(chp, "0x31B Pos = %d" SHELL_NEWLINE_STR, ElevatorInterface::elevator_wheels[0].real_position);
+    ElevatorInterface::set_target_position(Shell::atoi(argv[0]), Shell::atoi(argv[1]));
+    chprintf(chp, "Target pos = %d, %d" SHELL_NEWLINE_STR, Shell::atoi(argv[0]), Shell::atoi(argv[1]));
 }
 
 // Shell commands to control the chassis
 ShellCommand elevatorInterfaceCommands[] = {
         {"e_set", cmd_elevator_set_target_position},
-        {"e_echo", cmd_elevator_echo_target_position},
-        {nullptr,    nullptr}
+        {nullptr, nullptr}
 };
 
-class ElevatorThread : public BaseStaticThread <256> {
+class ElevatorThread : public BaseStaticThread<256> {
 protected:
     void main() final {
         setName("elevator");
-        ElevatorInterface::start(&can1);
+        ElevatorInterface::init(&can1);
         while (!shouldTerminate()) {
-            ElevatorInterface::send_message();
+            ElevatorInterface::send_target_position();
+
+            Shell::printf("FL: POS = %d, V = %d" SHELL_NEWLINE_STR,
+                          (int) ElevatorInterface::elevator_wheels[ElevatorInterface::FRONT_LEFT].real_position,
+                          (int) ElevatorInterface::elevator_wheels[ElevatorInterface::FRONT_LEFT].real_velocity);
+            Shell::printf("FR: POS = %d, V = %d" SHELL_NEWLINE_STR,
+                          (int) ElevatorInterface::elevator_wheels[ElevatorInterface::FRONT_RIGHT].real_position,
+                          (int) ElevatorInterface::elevator_wheels[ElevatorInterface::FRONT_RIGHT].real_velocity);
+            Shell::printf("RL: POS = %d, V = %d" SHELL_NEWLINE_STR,
+                          (int) ElevatorInterface::elevator_wheels[ElevatorInterface::REAR_LEFT].real_position,
+                          (int) ElevatorInterface::elevator_wheels[ElevatorInterface::REAR_LEFT].real_velocity);
+            Shell::printf("RR: POS = %d, V = %d" SHELL_NEWLINE_STR,
+                          (int) ElevatorInterface::elevator_wheels[ElevatorInterface::REAR_RIGHT].real_position,
+                          (int) ElevatorInterface::elevator_wheels[ElevatorInterface::REAR_RIGHT].real_velocity);
+
             sleep(TIME_MS2I(100));
         }
     }
@@ -93,9 +96,9 @@ int main(void) {
     while (true) {}
 #else
     // When main() quits, the main thread will somehow
-        // enter an infinite loop, so we set the priority to lowest
-        // before quitting, to let other threads run normally
-        BaseThread::setPriority(1);
+    // enter an infinite loop, so we set the priority to lowest
+    // before quitting, to let other threads run normally
+    BaseThread::setPriority(1);
 #endif
     return 0;
 }
