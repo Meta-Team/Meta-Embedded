@@ -14,22 +14,6 @@
 
 using namespace chibios_rt;
 
-/**
- * @brief callback function for CAN1
- * @param rxmsg
- */
-static void can1_callback(CANRxFrame *rxmsg) {
-    switch (rxmsg->SID) {
-        case 0x205:
-        case 0x206:
-        case 0x207:
-            GimbalInterface::process_motor_feedback(rxmsg);
-            break;
-        default:
-            break;
-    }
-}
-
 // Calculation interval for gimbal thread
 int const gimbal_thread_interval = 10; // ms
 int const gimbal_feedback_interval = 25; // ms
@@ -54,7 +38,7 @@ float pitch_target_velocity = 0.0;
 #define GIMBAL_YAW_ACTUAL_VELOCITY (-MPU6500Controller::angle_speed.x)
 #define GIMBAL_PITCH_ACTUAL_VELOCITY (-MPU6500Controller::angle_speed.y)
 
-CANInterface can1(&CAND1, can1_callback);
+CANInterface can1(&CAND1);
 
 
 class GimbalFeedbackThread : public chibios_rt::BaseStaticThread<512> {
@@ -419,7 +403,7 @@ class MPU6500Thread : public BaseStaticThread<256> {
 protected:
     void main() final {
         setName("mpu6500");
-        MPU6500Controller::start(&SPID5);
+        MPU6500Controller::start();
         while (!shouldTerminate()) {
             MPU6500Controller::getData();
             sleep(TIME_MS2I(100));
@@ -439,9 +423,9 @@ int main(void) {
 
     gimbalFeedbackThread.start(NORMALPRIO);
 
-    can1.start_can();
-    can1.start_thread(HIGHPRIO - 1);
-    GimbalInterface::start(&can1);
+    can1.start(HIGHPRIO - 1);
+
+    GimbalInterface::init(&can1);
 
     gimbalThread.start(HIGHPRIO - 2);
 

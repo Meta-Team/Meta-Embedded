@@ -157,7 +157,7 @@ public:
      * @brief set the CAN interface, start PWM driver and set the PID
      * @param can_interface
      */
-    static void start(CANInterface *can_interface);
+    static void init(CANInterface *can_interface);
 
     /**
      * @brief send target_current of each motor
@@ -168,9 +168,8 @@ public:
     /**
      * @brief process CAN rx frame
      * @param rxmsg
-     * @return whether the rx frame is from gimbal motors
      */
-    static bool process_motor_feedback(CANRxFrame *rxmsg);
+    static void process_motor_feedback(CANRxFrame const*rxmsg);
 
 private:
 

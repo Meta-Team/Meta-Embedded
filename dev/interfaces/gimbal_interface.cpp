@@ -28,8 +28,10 @@ static PWMConfig friction_wheels_pwmcfg = {
         0
 };
 
-void GimbalInterface::start(CANInterface *can_interface) {
+void GimbalInterface::init(CANInterface *can_interface) {
     can = can_interface;
+    can->register_callback(0x205, 0x207, process_motor_feedback);
+
     yaw.id = YAW_ID;
     pitch.id = PIT_ID;
     bullet_loader.id = BULLET_LOADER_ID;
@@ -107,7 +109,7 @@ bool GimbalInterface::send_gimbal_currents() {
     return true;
 }
 
-bool GimbalInterface::process_motor_feedback(CANRxFrame *rxmsg) {
+void GimbalInterface::process_motor_feedback(CANRxFrame const *rxmsg) {
 /*
  * function logic description
  * first, get the absolute angle value from the motor, compared with the last absolute angle value, get the angle movement
@@ -128,14 +130,14 @@ bool GimbalInterface::process_motor_feedback(CANRxFrame *rxmsg) {
         bulletLoader = &bullet_loader;
         last_angle_raw = bulletLoader->last_angle_raw;
     } else
-        return false;
+        return;
 
     // get the present absolute angle value by combining the data into a temporary variable
     uint16_t new_actual_angle_raw = (rxmsg->data8[0] << 8 | rxmsg->data8[1]);
 
     // check whether this new raw angle is valid
     if (new_actual_angle_raw > 8191) {
-        return false;
+        return;
     }
 
     // calculate the angle movement in raw data
@@ -225,8 +227,6 @@ bool GimbalInterface::process_motor_feedback(CANRxFrame *rxmsg) {
             break;
 
         default:
-            return false;
+            break;
     }
-
-    return true;
 }
