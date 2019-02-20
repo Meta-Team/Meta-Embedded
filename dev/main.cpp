@@ -53,23 +53,7 @@
 
 /** Declarations **/
 
-static void can1_callback(CANRxFrame *rxmsg);
-
-CANInterface can1(&CAND1, can1_callback);
-
-/** Feedback Allocator **/
-
-static void can1_callback(CANRxFrame *rxmsg) {
-    switch (rxmsg->SID) {
-        case 0x205:
-        case 0x206:
-        case 0x207:
-            GimbalInterface::process_motor_feedback(rxmsg);
-            break;
-        default:
-            break;
-    }
-}
+CANInterface can1(&CAND1);
 
 /** Threads **/
 
@@ -84,7 +68,7 @@ class MPU6500Thread : public chibios_rt::BaseStaticThread<512> {
         MPU6500Controller::start();
         while (!shouldTerminate()) {
             MPU6500Controller::getData();
-            sleep(TIME_MS2I(update_interval));`
+            sleep(TIME_MS2I(update_interval));
         }
     }
 } mpu6500Thread;
@@ -127,7 +111,7 @@ class GimbalThread : public chibios_rt::BaseStaticThread<1024> {
                 LED::green_toggle();
                 // Calculate target velocity
                 float yaw_target_velocity = GimbalController::yaw.angle_to_v(GimbalInterface::yaw.actual_angle,
-                                                                             -Remote::rc.ch0 * 40);
+                                                                             -R                                                                                     ;
                 float pitch_target_velocity = GimbalController::pitch.angle_to_v(GimbalInterface::pitch.actual_angle,
                                                                                  -Remote::rc.ch1 * 10);
                 // Calculate target current
@@ -157,14 +141,13 @@ int main(void) {
     // Start ChibiOS shell at high priority, so even if a thread stucks, we still have access to shell.
     Shell::start(HIGHPRIO);
 
-    can1.start_can();
-    can1.start_thread(HIGHPRIO - 1);
+    can1.start(HIGHPRIO - 1);
 
     mpu6500Thread.start(HIGHPRIO - 2);
 
     Remote::start_receive();
 
-    GimbalInterface::start(&can1);
+    GimbalInterface::init(&can1);
 
     chThdSleepMilliseconds(2000);
     GimbalInterface::yaw.reset_front_angle();
