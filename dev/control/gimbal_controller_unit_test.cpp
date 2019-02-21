@@ -349,16 +349,11 @@ static void cmd_gimbal_stop_shooting(BaseSequentialStream *chp, int argc, char *
 
 static void cmd_gimbal_set_shooting_speed(BaseSequentialStream *chp, int argc, char *argv[]) {
     if (argc != 1) {
-        shellUsage(chp, "g_set_shooting_speed stop(0)/slow(1)/middle(2)/fast(3)");
+        shellUsage(chp, "g_set_shooting_speed duty_cycle");
         return;
     }
-    shooting_speed_mode = Shell::atoi(argv[0]);
-    if (shooting_speed_mode >= 0 && shooting_speed_mode <= 3) {
-        GimbalInterface::friction_wheels.duty_cycle = GimbalController::shoot_duty_cycles[shooting_speed_mode];
-    } else {
-        shellUsage(chp, "g_set_shooting_speed stop(0)/slow(1)/middle(2)/fast(3)");
-        return;
-    }
+
+    GimbalInterface::friction_wheels.duty_cycle = Shell::atof(argv[0]);
 }
 
 static void cmd_gimbal_check(BaseSequentialStream *chp, int argc, char *argv[]) {
