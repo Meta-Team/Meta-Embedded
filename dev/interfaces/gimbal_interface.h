@@ -1,6 +1,6 @@
 //
 // Created by liuzikai on 2018-12-29.
-// Zhu Kerui wrote code about processing gimbal feedback.
+// Zhu Kerui wrote code about processing gimbal feedback and the bullet control.
 // Feng Chuhao wrote code about sending gimbal currents.
 //
 
@@ -41,16 +41,20 @@ public:
         BULLET_LOADER_ID = 2
     } motor_id_t;
 
-    /** Motor Interface **/
+    /**
+     * Motor Interface
+     * which is used for yaw, pitch and bullet loader motors
+     */
     typedef struct {
 
     public:
 
         motor_id_t id;
+
         bool enabled = false;  // if not enabled, 0 current will be sent in send_gimbal_currents
 
         // +: clockwise, -: counter-clockwise
-        int target_current = 0;
+        int target_current = 0;  // the current that we want the motor to have
 
         /**
          * Normalized Angle and Rounds
@@ -58,21 +62,19 @@ public:
          *  Range: -180.0 (clockwise) to 180.0 (counter-clockwise)
          */
         float actual_angle = 0.0f; // the actual angle of the gimbal, compared with the front
-        int round_count = 0;  // the rounds that the gimbal turns
-
         float angular_velocity = 0.0f;  // instant angular velocity [degree/s], positive when counter-clockwise, negative otherwise
-
         int actual_current = 0;  // feedback current
+        int round_count = 0;  // the rounds that the gimbal turns
 
         // Set current angle as the front angle
         void reset_front_angle() {
-            actual_angle = 0;
-            round_count = 0;
+            motor_t::actual_angle = 0;
+            motor_t::round_count = 0;
         }
 
         // Get total angle from the original front angle
         float get_accumulate_angle() {
-            return actual_angle + round_count * 360.0f;
+            return motor_t::actual_angle + motor_t::round_count * 360.0f;
         }
 
         // For velocity sampling and gimbal feedback module
@@ -90,12 +92,55 @@ public:
 
     } motor_t;
 
-
     static motor_t yaw;
     static motor_t pitch;
 
-    static motor_t bullet_loader;
+    typedef struct {
 
+    public:
+
+        motor_id_t id;
+
+        bool enabled = false;  // if not enabled, 0 current will be sent in send_gimbal_currents
+
+        // +: clockwise, -: counter-clockwise
+        int target_current = 0;  // the current that we want the motor to have
+
+        /**
+         * Normalized Angle and Rounds
+         *  Using the front angle_raw as reference.
+         *  Range: -180.0 (clockwise) to 180.0 (counter-clockwise)
+         */
+        float actual_angle = 0.0f; // the actual angle of the gimbal, compared with the front
+        float angular_velocity = 0.0f;  // instant angular velocity [degree/s], positive when counter-clockwise, negative otherwise
+        int round_count = 0;  // the rounds that the gimbal turns
+
+        // Set current angle as the front angle
+        void reset_front_angle();
+
+        // Get total angle from the original front angle
+        float get_accumulate_angle() {
+            return bullet_loader_t::actual_angle + bullet_loader_t::round_count * 360.0f;
+        }
+
+        // Get the target angle if one shoot is required
+        float get_one_shoot_target_angle();
+
+    private:
+
+        uint16_t last_angle_raw = 0;  // the raw angle of the newest feedback, in [0, 8191]
+
+        float target_angle;
+
+        friend GimbalInterface;
+
+    } bullet_loader_t;
+
+    static bullet_loader_t bullet_loader;
+    /**
+     * Friction Wheels Interface
+     * control the two friction wheels that shoot the bullets
+     */
     typedef struct {
 
         bool enabled = false;
@@ -106,6 +151,15 @@ public:
 
     static friction_wheels_t friction_wheels;
 
+    /**
+     * Class Static Functions
+     */
+
+    /**
+     * @brief set the CAN interface, start PWM driver and set the PID
+     * @param can_interface
+     */
+    static void start(CANInterface *can_interface);
 
     /**
      * @brief send target_current of each motor
@@ -120,26 +174,43 @@ public:
      */
     static bool process_motor_feedback(CANRxFrame *rxmsg);
 
+    /**
+     * @brief get the number of the remained bullets
+     * @return the number of remained bullets
+     */
+    static int get_remained_bullet();
 
     /**
-     * Default constructor
+     * @brief Called when shooting or reloading happens
+     * @param new_bullet_added set positive int after reloading, leave it empty after shooting
+     * @return the updated bullet number
      */
-    GimbalInterface() {
-        yaw.id = YAW_ID;
-        pitch.id = PIT_ID;
-        bullet_loader.id = BULLET_LOADER_ID;
-    }
+    static int update_bullet_count(int new_bullet_added = 0);
 
     /**
-     * @brief set the CAN interface and start PWM driver
-     * @param can_interface
+     * @brief update the trigger duty cycle when a shooting mode is chosen
+     * @param new_duty_cycle
+     * @return the updated trigger duty cycle
      */
-    static void start(CANInterface *can_interface);
+    static float set_trigger_duty_cycle(float new_duty_cycle);
 
+    /**
+     * check whether the speed of the friction wheels fulfills the present shooting mode
+     * @return true if the speed reaches the requirement, false otherwise
+     */
+    static bool check_shooting_enabled();
 
 private:
 
     static CANInterface *can;
+
+    static float one_bullet_step;
+
+    static int remained_bullet;
+
+    static bool shooting_enabled;
+
+    static float trigger_duty_cycle;  // Bullet loader only works when the friction wheel duty cycle is over the trigger
 
     // Count of feedback for one sample of angular velocity
     static constexpr int velocity_sample_interval = 50;

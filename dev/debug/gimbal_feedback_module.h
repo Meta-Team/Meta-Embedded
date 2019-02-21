@@ -9,6 +9,7 @@
 #include "hal.h"
 #include "serial_shell.h"
 #include "gimbal_interface.h"
+#include "mpu6500.h"
 
 /**
  * This class holds a thread to send gimbal data through shell
@@ -51,9 +52,15 @@ public:
         ptr_pitch_target_angle = p_pitch_target_angle;
         ptr_pitch_target_velocity = p_pitch_target_velocity;
         ptr_pitch_target_current = p_pitch_target_current;
+
+        enable_yaw_feedback = false;
+        enable_pitch_feedback = false;
     }
 
-    int feedback_interval;
+    int feedback_interval; // ms
+
+    bool enable_yaw_feedback;
+    bool enable_pitch_feedback;
 
 private:
 
