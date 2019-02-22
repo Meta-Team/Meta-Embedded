@@ -40,14 +40,15 @@
 
 /**
  * Mode Table:
- * ------------------------------
+ * ------------------------------------------------------------
  * Left  Right  Mode
- * ------------------------------
- *  UP    *    Safe
- *  MID   UP   Remote - Gimbal
+ * ------------------------------------------------------------
+ *  UP    *     Safe
+ *  MID   UP    Remote - Gimbal
+ *  MID   DOWN  Remote - Gimbal + Shooting
  *
- *  -Others-   Safe
- * ------------------------------
+ *  -Others-    Safe
+ * ------------------------------------------------------------
  */
 
 
@@ -82,6 +83,7 @@ class MPU6500Thread : public chibios_rt::BaseStaticThread<512> {
  */
 class GimbalThread : public chibios_rt::BaseStaticThread<1024> {
     static constexpr unsigned int gimbal_thread_interval = 10; // [ms]
+    static constexpr float gimbal_remote_mode_friction_wheel_duty_cycle = 0.4;
 
     void main() final {
         setName("gimbal");
@@ -94,20 +96,33 @@ class GimbalThread : public chibios_rt::BaseStaticThread<1024> {
         GimbalInterface::yaw.enabled = GimbalInterface::pitch.enabled = true;
 
         while (!shouldTerminate()) {
-            if (Remote::rc.s1 == Remote::REMOTE_RC_S_MIDDLE && Remote::rc.s2 == Remote::REMOTE_RC_S_UP) {
 
-                // Calculate target velocity
+            /*** Yaw and Pitch Motors ***/
+            if (Remote::rc.s1 == Remote::REMOTE_RC_S_MIDDLE &&
+                (Remote::rc.s2 == Remote::REMOTE_RC_S_UP || Remote::rc.s2 == Remote::REMOTE_RC_S_DOWN)) {
+
+                // Target angle -> target velocity
                 float yaw_target_velocity = GimbalController::yaw.angle_to_v(GimbalInterface::yaw.actual_angle,
                                                                              -Remote::rc.ch0 * 40);
                 float pitch_target_velocity = GimbalController::pitch.angle_to_v(GimbalInterface::pitch.actual_angle,
                                                                                  -Remote::rc.ch1 * 10);
-                // Calculate target current
+                // Target velocity -> target current
                 GimbalInterface::yaw.target_current = (int) GimbalController::yaw.v_to_i(
                         GIMBAL_YAW_ACTUAL_VELOCITY, yaw_target_velocity);
                 GimbalInterface::pitch.target_current = (int) GimbalController::pitch.v_to_i(
                         GIMBAL_PITCH_ACTUAL_VELOCITY, pitch_target_velocity);
+
             } else {
                 GimbalInterface::yaw.target_current = GimbalInterface::pitch.target_current = 0;
+            }
+
+            /*** Friction Wheels and Bullet Loader ***/
+            if (Remote::rc.s1 == Remote::REMOTE_RC_S_MIDDLE && Remote::rc.s2 == Remote::REMOTE_RC_S_DOWN) {
+                GimbalInterface::friction_wheels.duty_cycle = gimbal_remote_mode_friction_wheel_duty_cycle;
+
+            } else {
+                GimbalInterface::friction_wheels.duty_cycle = 0;
+                GimbalInterface::bullet_loader.target_current = 0;
             }
 
             GimbalInterface::send_gimbal_currents();

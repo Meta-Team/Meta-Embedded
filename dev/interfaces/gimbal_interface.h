@@ -45,7 +45,7 @@ public:
      * Motor Interface
      * which is used for yaw, pitch and bullet loader motors
      */
-    typedef struct {
+    class MotorInterface {
 
     public:
 
@@ -66,88 +66,45 @@ public:
         int actual_current = 0;  // feedback current
         int round_count = 0;  // the rounds that the gimbal turns
 
-        // Set current angle as the front angle
-        void reset_front_angle() {
-            motor_t::actual_angle = 0;
-            motor_t::round_count = 0;
-        }
+        /**
+         * @brief set current actual angle as the front angle
+         */
+        void reset_front_angle();
 
-        // Get total angle from the original front angle
-        float get_accumulate_angle() {
-            return motor_t::actual_angle + motor_t::round_count * 360.0f;
-        }
-
-        // For velocity sampling and gimbal feedback module
-        time_msecs_t sample_time = 0;  // last sample time, for velocity calculation
-
+        /**
+         * @brief get total angle from the original front angle
+         * @return the accumulate angle since last reset_front_angle
+         */
+        float get_accumulate_angle();
+        
     private:
 
         uint16_t last_angle_raw = 0;  // the raw angle of the newest feedback, in [0, 8191]
 
         // For velocity sampling
+        time_msecs_t sample_time = 0;  // last sample time, for velocity calculation
         int sample_count = 0;
         int sample_movement_sum = 0;
 
         friend GimbalInterface;
 
-    } motor_t;
+    } ;
 
-    static motor_t yaw;
-    static motor_t pitch;
+    static MotorInterface yaw;
+    static MotorInterface pitch;
 
-    typedef struct bullet_loader_t{
-
-    public:
-
-        motor_id_t id;
-
-        bool enabled = false;  // if not enabled, 0 current will be sent in send_gimbal_currents
-
-        // +: clockwise, -: counter-clockwise
-        int target_current = 0;  // the current that we want the motor to have
-
-        /**
-         * Normalized Angle and Rounds
-         *  Using the front angle_raw as reference.
-         *  Range: -180.0 (clockwise) to 180.0 (counter-clockwise)
-         */
-        float actual_angle = 0.0f; // the actual angle of the gimbal, compared with the front
-        float angular_velocity = 0.0f;  // instant angular velocity [degree/s], positive when counter-clockwise, negative otherwise
-        int round_count = 0;  // the rounds that the gimbal turns
-
-        // Set current angle as the front angle
-        void reset_front_angle(){
-            bullet_loader_t::actual_angle = 0;
-            bullet_loader_t::round_count = 0;
-        }
-
-        // Get total angle from the original front angle
-        float get_accumulate_angle() {
-            return bullet_loader_t::actual_angle + bullet_loader_t::round_count * 360.0f;
-        }
-
-    private:
-
-        uint16_t last_angle_raw = 0;  // the raw angle of the newest feedback, in [0, 8191]
-
-        friend GimbalInterface;
-
-    }bullet_loader_t;
-
-    static bullet_loader_t bullet_loader;
+    static MotorInterface bullet_loader;
     /**
      * Friction Wheels Interface
      * control the two friction wheels that shoot the bullets
      */
-    typedef struct {
-
+    class FrictionWheelsInterface {
+    public:
         bool enabled = false;
-
         float duty_cycle = 0.0f;
+    };
 
-    } friction_wheels_t;
-
-    static friction_wheels_t friction_wheels;
+    static FrictionWheelsInterface friction_wheels;
 
     /**
      * Class Static Functions
