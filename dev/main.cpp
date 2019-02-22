@@ -34,15 +34,18 @@
 
 // Modules and basic communication channels
 #include "can_interface.h"
+#include "chassis_common.h"
 
 // Interfaces
 #include "buzzer.h"
 #include "mpu6500.h"
 #include "remote_interpreter.h"
 #include "gimbal_interface.h"
+#include "chassis_interface.h"
 
 // Controllers
 #include "gimbal_controller.h"
+#include "chassis_controller.h"
 
 /**
  * Mode Table:
@@ -50,9 +53,9 @@
  * Left  Right  Mode
  * ------------------------------------------------------------
  *  UP    *     Safe
- *  MID   UP    Remote - Gimbal
- *  MID   DOWN  Remote - Gimbal + Shooting
- *
+ *  MID   UP    Remote - Gimbal (right) + Chassis XY (left)
+ *  MID   MID   Remote - Gimbal (right) + Shooting (left)
+ *  MID   DOWN  Remote - Chassis XY (right) + Chassis W (left)
  *  -Others-    Safe
  * ------------------------------------------------------------
  */
@@ -81,13 +84,14 @@ class MPU6500Thread : public chibios_rt::BaseStaticThread<512> {
 } mpu6500Thread;
 
 /**
- * @brief thread to control gimbal
+ * @brief thread to control gimbal, including shooting mechanism
  * @pre RemoteInterpreter start receive
  * @pre initialize GimbalInterface with CAN driver
  * @pre start the thread of updating MPU6500
  * @pre reset front angle properly
  */
 class GimbalThread : public chibios_rt::BaseStaticThread<1024> {
+
     static constexpr unsigned int gimbal_thread_interval = 10; // [ms]
     static constexpr float gimbal_remote_mode_friction_wheel_duty_cycle = 1.0;
 
@@ -162,6 +166,52 @@ class GimbalThread : public chibios_rt::BaseStaticThread<1024> {
     }
 } gimbalThread;
 
+// TODO: add comments
+class ChassisThread : public chibios_rt::BaseStaticThread<1024> {
+    static constexpr unsigned int chassis_thread_interval = 20;
+
+    void main() final {
+
+        setName("chassis");
+
+        ChassisController::change_pid_params(CHASSIS_PID_V2I_PARAMS);
+
+        while (!shouldTerminate()) {
+
+            if (Remote::rc.s1 == Remote::REMOTE_RC_S_MIDDLE &&
+                (Remote::rc.s2 == Remote::REMOTE_RC_S_UP || Remote::rc.s2 == Remote::REMOTE_RC_S_DOWN)) {
+
+                float target_vx = -Remote::rc.ch2 * 1000.0f;
+                float target_vy = -Remote::rc.ch3 * 1000.0f;
+                float target_w;
+                if (Remote::rc.s2 == Remote::REMOTE_RC_S_DOWN) {
+                    target_w = Remote::rc.ch0 * 180.0f;
+                } else {
+                    target_w = 0;
+                }
+
+                // Pack the actual velocity into an array
+                float measured_velocity[4];
+                for (int i = 0; i < CHASSIS_MOTOR_COUNT; i++) {
+                    measured_velocity[i] = ChassisInterface::motor[i].actual_angular_velocity;
+                }
+
+                // Perform calculation
+                ChassisController::calc(measured_velocity, target_vx, target_vy, target_w);
+
+                // Pass the target current to interface
+                for (int i = 0; i < CHASSIS_MOTOR_COUNT; i++) {
+                    ChassisInterface::motor[i].target_current = (int) ChassisController::motor[i].target_current;
+                }
+            }
+
+            ChassisInterface::send_chassis_currents();
+            sleep(TIME_MS2I(chassis_thread_interval));
+
+        }
+    }
+} chassisThread;
+
 int main(void) {
 
     // Basic initialization
@@ -180,6 +230,7 @@ int main(void) {
     Remote::start_receive();
 
     GimbalInterface::init(&can1);
+    ChassisInterface::init(&can1);
 
     while (palReadPad(GPIOD, 10) != STARTUP_BUTTON_PRESS_PAL_STATUS) {
         // Wait for the button to be pressed
@@ -192,8 +243,9 @@ int main(void) {
     GimbalInterface::pitch.reset_front_angle();
 
     gimbalThread.start(NORMALPRIO);
+    chassisThread.start(NORMALPRIO - 1);
 
-    Buzzer::play_sound(Buzzer::sound_startup_intel, NORMALPRIO - 1);
+    Buzzer::play_sound(Buzzer::sound_startup_intel, LOWPRIO);
 
 #if CH_CFG_NO_IDLE_THREAD  // See chconf.h for what this #define means.
     // ChibiOS idle thread has been disabled, main() should implement infinite loop

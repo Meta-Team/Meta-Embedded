@@ -69,8 +69,11 @@ add_executable(INFANTRY_ONE
         dev/interfaces/can_interface.cpp
         dev/interfaces/mpu6500.cpp
         dev/interfaces/gimbal_interface.cpp
+        dev/interfaces/chassis_interface.cpp
         dev/interfaces/remote_interpreter.cpp
         dev/control/gimbal_controller.cpp
+        dev/control/chassis_controller.cpp
+
         dev/main.cpp)
 target_compile_definitions(INFANTRY_ONE PRIVATE VEHICLE=INFANTRY_ONE)
 
@@ -128,7 +131,7 @@ add_executable(ut_buzzer
 add_executable(ut_chassis_interface
         dev/interfaces/can_interface.cpp
         dev/interfaces/chassis_interface.cpp
-        dev/interfaces/chassis_interface_unit_test.cpp)
+        dev/debug/unit_tests/chassis_interface_unit_test.cpp)
 
 # Chassis: include chassis interface, chassis controller and the unit test modules.
 add_executable(ut_chassis
@@ -136,7 +139,7 @@ add_executable(ut_chassis
         dev/interfaces/chassis_interface.cpp
         dev/module/pid_controller.cpp
         dev/control/chassis_controller.cpp
-        dev/control/chassis_controller_unit_test.cpp)
+        dev/debug/unit_tests/chassis_controller_unit_test.cpp)
 
 # =========== Post Configurations for all targets ===========
 

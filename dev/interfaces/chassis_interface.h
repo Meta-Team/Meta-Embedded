@@ -26,6 +26,7 @@
 /**
  * Interface for chassis control
  * NOTICE: set CAN id of each motor the same as chassis_motor_id_t!
+ * TODO: complete the comments
  */
 class ChassisInterface {
 
@@ -63,15 +64,21 @@ public:
      * @brief set CAN interface for receiving and sending
      * @param can_interface
      */
-    static void set_can_interface (CANInterface* can_interface) {
-        can = can_interface;
-    }
+    static void init(CANInterface* can_interface);
 
-    static void process_chassis_feedback(CANRxFrame *rxmsg);
+
 
 private:
 
     static CANInterface* can;
+
+    static void process_chassis_feedback(CANRxFrame const*rxmsg);
+
+    friend CANInterface;
+
+private:
+
+    /** Configurations **/
 
     // TODO: confirm the decelerate ratio of the motor
     static float constexpr chassis_motor_decelerate_ratio = 19.0f;
