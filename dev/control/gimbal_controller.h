@@ -19,7 +19,7 @@ public:
     typedef enum {
         YAW_ID = 0,
         PIT_ID = 1,
-        BULLET_LOADER_ID =2
+        BULLET_LOADER_ID = 2
     } motor_id_t;
 
     typedef enum {
@@ -27,14 +27,14 @@ public:
         SLOW = 1,
         MIDDLE = 2,
         FAST = 3
-    }shoot_mode_t;
+    } shoot_mode_t;
 
     static float shoot_duty_cycles[4];  // the array contains the duty cycles for different shoot modes
 
     /**
      * Controller for each motor
      */
-    class MotorController{
+    class MotorController {
 
     public:
         motor_id_t motor_id;   // motor id
@@ -48,9 +48,7 @@ public:
          * @param target_angle
          * @return target velocity
          */
-        float inline angle_to_v(float measured_angle, float target_angle) {
-            return angle_to_v_pid.calc(measured_angle, target_angle);
-        }
+        float angle_to_v(float measured_angle, float target_angle);
 
         /**
          * @brief perform calculation with v_to_i_pid
@@ -58,24 +56,56 @@ public:
          * @param target_velocity
          * @return target current
          */
-        float inline v_to_i(float measured_velocity, float target_velocity) {
-            return v_to_i_pid.calc(measured_velocity, target_velocity);
-        }
+        float v_to_i(float measured_velocity, float target_velocity);
 
-        explicit MotorController(motor_id_t id) : motor_id(id){}
+        explicit MotorController(motor_id_t id) : motor_id(id) {}
+    };
+
+    class BulletLoaderController {
+    public:
+
+        motor_id_t motor_id;   // motor id
+
+        PIDController v_to_i_pid;
+
+        explicit BulletLoaderController(motor_id_t id) : motor_id(id) {}
+
+        void start_continuous_shooting();
+
+        void start_incontinuous_shooting(int bullet_num);
+
+        void stop_shooting();
+
+        float get_target_current(float measured_velocity, float target_velocity);
+
+        void update_accumulation_angle(float accumulate_angle);
+
+        void update_bullet(int bullet_changed = 0);
+
+        /**
+         * @brief get the number of the remained bullets
+         * @return
+         */
+        int get_remained_bullet();
+
+    private:
+
+        float last_accumulate_angle = 0;
+
+        bool continuous_shooting = false;
+        bool shooting = false;
+        float shoot_target_angle = 0; // in incontinuous mode, bullet loader stop if shoot_target_angle has been achieved
+        float shoot_accumulate_angle = 0; // angle that is achieved during a single shoot
+
+    private:
+
+        /** Configurations **/
+        float const one_bullet_step = 40.0; // degree
     };
 
     static MotorController yaw;
     static MotorController pitch;
-    static MotorController bullet_loader;
-
-    static void update_bullet(int bullet_changed = 0);
-
-    /**
-     * @brief get the number of the remained bullets
-     * @return
-     */
-    static int get_remained_bullet();
+    static BulletLoaderController bullet_loader;
 
 private:
 

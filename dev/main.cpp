@@ -95,6 +95,9 @@ class GimbalThread : public chibios_rt::BaseStaticThread<1024> {
 
         GimbalInterface::yaw.enabled = GimbalInterface::pitch.enabled = true;
 
+        GimbalController::bullet_loader.v_to_i_pid.change_parameters(GIMBAL_PID_BULLET_LOADER_V2I_PARAMS);
+        GimbalInterface::bullet_loader.enabled = GimbalInterface::friction_wheels.enabled = true;
+
         while (!shouldTerminate()) {
 
             /*** Yaw and Pitch Motors ***/
@@ -119,7 +122,8 @@ class GimbalThread : public chibios_rt::BaseStaticThread<1024> {
             /*** Friction Wheels and Bullet Loader ***/
             if (Remote::rc.s1 == Remote::REMOTE_RC_S_MIDDLE && Remote::rc.s2 == Remote::REMOTE_RC_S_DOWN) {
                 GimbalInterface::friction_wheels.duty_cycle = gimbal_remote_mode_friction_wheel_duty_cycle;
-
+                GimbalInterface::bullet_loader.target_current = (int) GimbalController::bullet_loader.get_target_current(
+                        GimbalInterface::bullet_loader.angular_velocity, Remote::rc.ch3 * 180);
             } else {
                 GimbalInterface::friction_wheels.duty_cycle = 0;
                 GimbalInterface::bullet_loader.target_current = 0;
