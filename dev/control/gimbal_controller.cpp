@@ -3,6 +3,7 @@
 //
 
 #include "gimbal_controller.h"
+#include "serial_shell.h"
 
 GimbalController::MotorController GimbalController::yaw(GimbalController::YAW_ID);
 GimbalController::MotorController GimbalController::pitch(GimbalController::PIT_ID);
@@ -71,6 +72,10 @@ float GimbalController::BulletLoaderController::get_target_current(float measure
     } else {
         return v_to_i_pid.calc(measured_velocity, 0);
     }
+}
+
+bool GimbalController::BulletLoaderController::get_shooting_status() {
+    return shooting;
 }
 
 /**

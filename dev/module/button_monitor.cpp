@@ -17,7 +17,7 @@ void ButtonMonitorThread::main() {
     setName(name);
     // Monitor the button
     while(!shouldTerminate()) {
-        while(palReadPad(_ioportid, _ioportmask) == BUTTON_PRESS_PAL_STATUS) {
+        while(palReadPad(_ioportid, _ioportmask) != BUTTON_PRESS_PAL_STATUS) {
             // Wait for the button to be pressed
             sleep(TIME_MS2I(5));
         }
@@ -25,7 +25,7 @@ void ButtonMonitorThread::main() {
         toggle = !toggle;
         counter++;
         //if(_function) _function();
-        while(palReadPad(_ioportid, _ioportmask) != BUTTON_PRESS_PAL_STATUS) {
+        while(palReadPad(_ioportid, _ioportmask) == BUTTON_PRESS_PAL_STATUS) {
             // Wait for the button to be released
             sleep(TIME_MS2I(5));
         }

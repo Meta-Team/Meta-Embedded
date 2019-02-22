@@ -214,10 +214,10 @@ void GimbalInterface::process_motor_feedback(CANRxFrame const *rxmsg) {
             bullet_loader.last_angle_raw = new_actual_angle_raw;
 
             // make sure that the angle movement is positive
-            if (angle_movement < 0) angle_movement = angle_movement + 8192;
+            if (angle_movement < -2000) angle_movement = angle_movement + 8192;
 
-            // the key idea is to add the change of angle to actual angle.
-            bullet_loader.actual_angle = bullet_loader.actual_angle + angle_movement * 360.0f / 8192;
+            // the key idea is to add the change of angle to actual angle / 36 (deceleration ratio)
+            bullet_loader.actual_angle = bullet_loader.actual_angle + angle_movement * 10.0f / 8192;
 
             // modify the actual angle and update the round count when appropriate
             if (bullet_loader.actual_angle >= 360.0f) {

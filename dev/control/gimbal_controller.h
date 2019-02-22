@@ -88,6 +88,8 @@ public:
          */
         int get_remained_bullet();
 
+        bool get_shooting_status();
+
     private:
 
         float last_accumulate_angle = 0;

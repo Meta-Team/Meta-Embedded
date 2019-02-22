@@ -18,6 +18,12 @@
 #include "vehicle_engineer.h"
 #endif
 
+//#if defined(BOARD_RM_2017) // press to be low
+#define STARTUP_BUTTON_PRESS_PAL_STATUS PAL_LOW
+//#elif defined(BOARD_RM_2018_A) // press to be high
+//#define STARTUP_BUTTON_PRESS_PAL_STATUS PAL_HIGH
+//#endif
+
 // Basic headers
 #include "ch.hpp"
 #include "hal.h"
@@ -83,7 +89,7 @@ class MPU6500Thread : public chibios_rt::BaseStaticThread<512> {
  */
 class GimbalThread : public chibios_rt::BaseStaticThread<1024> {
     static constexpr unsigned int gimbal_thread_interval = 10; // [ms]
-    static constexpr float gimbal_remote_mode_friction_wheel_duty_cycle = 0.4;
+    static constexpr float gimbal_remote_mode_friction_wheel_duty_cycle = 1.0;
 
     void main() final {
         setName("gimbal");
@@ -98,17 +104,19 @@ class GimbalThread : public chibios_rt::BaseStaticThread<1024> {
         GimbalController::bullet_loader.v_to_i_pid.change_parameters(GIMBAL_PID_BULLET_LOADER_V2I_PARAMS);
         GimbalInterface::bullet_loader.enabled = GimbalInterface::friction_wheels.enabled = true;
 
+        bool has_start_incontinuous_mode = false;
+
         while (!shouldTerminate()) {
 
             /*** Yaw and Pitch Motors ***/
             if (Remote::rc.s1 == Remote::REMOTE_RC_S_MIDDLE &&
-                (Remote::rc.s2 == Remote::REMOTE_RC_S_UP || Remote::rc.s2 == Remote::REMOTE_RC_S_DOWN)) {
+                (Remote::rc.s2 == Remote::REMOTE_RC_S_UP || Remote::rc.s2 == Remote::REMOTE_RC_S_MIDDLE)) {
 
                 // Target angle -> target velocity
                 float yaw_target_velocity = GimbalController::yaw.angle_to_v(GimbalInterface::yaw.actual_angle,
-                                                                             -Remote::rc.ch0 * 40);
+                                                                             -Remote::rc.ch0 * 60);
                 float pitch_target_velocity = GimbalController::pitch.angle_to_v(GimbalInterface::pitch.actual_angle,
-                                                                                 -Remote::rc.ch1 * 10);
+                                                                                 -Remote::rc.ch1 * 20);
                 // Target velocity -> target current
                 GimbalInterface::yaw.target_current = (int) GimbalController::yaw.v_to_i(
                         GIMBAL_YAW_ACTUAL_VELOCITY, yaw_target_velocity);
@@ -120,10 +128,28 @@ class GimbalThread : public chibios_rt::BaseStaticThread<1024> {
             }
 
             /*** Friction Wheels and Bullet Loader ***/
-            if (Remote::rc.s1 == Remote::REMOTE_RC_S_MIDDLE && Remote::rc.s2 == Remote::REMOTE_RC_S_DOWN) {
+            if (Remote::rc.s1 == Remote::REMOTE_RC_S_MIDDLE && Remote::rc.s2 == Remote::REMOTE_RC_S_MIDDLE) {
                 GimbalInterface::friction_wheels.duty_cycle = gimbal_remote_mode_friction_wheel_duty_cycle;
-                GimbalInterface::bullet_loader.target_current = (int) GimbalController::bullet_loader.get_target_current(
-                        GimbalInterface::bullet_loader.angular_velocity, Remote::rc.ch3 * 180);
+                GimbalController::bullet_loader.update_accumulation_angle(GimbalInterface::bullet_loader.get_accumulate_angle());
+                if (Remote::rc.ch3 < 0.1) {
+                    if (!GimbalController::bullet_loader.get_shooting_status()) {
+                        GimbalController::bullet_loader.start_continuous_shooting();
+                    }
+                    GimbalInterface::bullet_loader.target_current = (int) GimbalController::bullet_loader.get_target_current(
+                            GimbalInterface::bullet_loader.angular_velocity, -Remote::rc.ch3 * 360);
+                } else if (Remote::rc.ch3 > 0.2) {
+                    if (!GimbalController::bullet_loader.get_shooting_status() && !has_start_incontinuous_mode) {
+                        GimbalController::bullet_loader.start_incontinuous_shooting(10);
+                        has_start_incontinuous_mode = true;
+                    }
+                    GimbalInterface::bullet_loader.target_current = (int) GimbalController::bullet_loader.get_target_current(
+                            GimbalInterface::bullet_loader.angular_velocity, 270);
+                } else {
+                    if (GimbalController::bullet_loader.get_shooting_status()) {
+                        GimbalController::bullet_loader.stop_shooting();
+                        has_start_incontinuous_mode = false;
+                    }
+                }
             } else {
                 GimbalInterface::friction_wheels.duty_cycle = 0;
                 GimbalInterface::bullet_loader.target_current = 0;
@@ -155,7 +181,13 @@ int main(void) {
 
     GimbalInterface::init(&can1);
 
-    chThdSleepMilliseconds(2000);
+    while (palReadPad(GPIOD, 10) != STARTUP_BUTTON_PRESS_PAL_STATUS) {
+        // Wait for the button to be pressed
+        LED::green_toggle();
+        chThdSleepMilliseconds(300);
+    }
+    LED::green_on();
+
     GimbalInterface::yaw.reset_front_angle();
     GimbalInterface::pitch.reset_front_angle();
 
