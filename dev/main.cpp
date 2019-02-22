@@ -85,33 +85,20 @@ class GimbalThread : public chibios_rt::BaseStaticThread<1024> {
 
     void main() final {
         setName("gimbal");
-        GimbalController::yaw.v_to_i_pid.change_parameters(GIMBAL_PID_YAW_V2I_KP,
-                                                           GIMBAL_PID_YAW_V2I_KI,
-                                                           GIMBAL_PID_YAW_V2I_KD,
-                                                           GIMBAL_PID_YAW_V2I_I_LIMIT,
-                                                           GIMBAL_PID_YAW_V2I_OUT_LIMIT);
-        GimbalController::yaw.angle_to_v_pid.change_parameters(GIMBAL_PID_YAW_A2V_KP,
-                                                               GIMBAL_PID_YAW_A2V_KI,
-                                                               GIMBAL_PID_YAW_A2V_KD,
-                                                               GIMBAL_PID_YAW_A2V_I_LIMIT,
-                                                               GIMBAL_PID_YAW_A2V_OUT_LIMIT);
-        GimbalController::pitch.v_to_i_pid.change_parameters(GIMBAL_PID_PITCH_V2I_KP,
-                                                             GIMBAL_PID_PITCH_V2I_KI,
-                                                             GIMBAL_PID_PITCH_V2I_KD,
-                                                             GIMBAL_PID_PITCH_V2I_I_LIMIT,
-                                                             GIMBAL_PID_PITCH_V2I_OUT_LIMIT);
-        GimbalController::pitch.angle_to_v_pid.change_parameters(GIMBAL_PID_PITCH_A2V_KP,
-                                                                 GIMBAL_PID_PITCH_A2V_KI,
-                                                                 GIMBAL_PID_PITCH_A2V_KD,
-                                                                 GIMBAL_PID_PITCH_A2V_I_LIMIT,
-                                                                 GIMBAL_PID_PITCH_A2V_OUT_LIMIT);
+
+        GimbalController::yaw.v_to_i_pid.change_parameters(GIMBAL_PID_YAW_V2I_PARAMS);
+        GimbalController::yaw.angle_to_v_pid.change_parameters(GIMBAL_PID_YAW_A2V_PARAMS);
+        GimbalController::pitch.v_to_i_pid.change_parameters(GIMBAL_PID_PITCH_V2I_PARAMS);
+        GimbalController::pitch.angle_to_v_pid.change_parameters(GIMBAL_PID_PITCH_A2V_PARAMS);
+
         GimbalInterface::yaw.enabled = GimbalInterface::pitch.enabled = true;
+
         while (!shouldTerminate()) {
             if (Remote::rc.s1 == Remote::REMOTE_RC_S_MIDDLE && Remote::rc.s2 == Remote::REMOTE_RC_S_UP) {
-                LED::green_toggle();
+
                 // Calculate target velocity
                 float yaw_target_velocity = GimbalController::yaw.angle_to_v(GimbalInterface::yaw.actual_angle,
-                                                                             -R                                                                                     ;
+                                                                             -Remote::rc.ch0 * 40);
                 float pitch_target_velocity = GimbalController::pitch.angle_to_v(GimbalInterface::pitch.actual_angle,
                                                                                  -Remote::rc.ch1 * 10);
                 // Calculate target current

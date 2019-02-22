@@ -64,7 +64,7 @@ endif ()
 set(CMAKE_ASM_FLAGS "-x assembler-with-cpp ${MCU_FLAGS} ${OPT_FLAGS} ${ASM_DEFS} ${THUMB_FLAGS}" CACHE INTERNAL "asm compiler flags" FORCE)
 set(CMAKE_C_FLAGS "${MCU_FLAGS} ${OPT_FLAGS} ${C_OPT_FLAGS} ${C_WARN_FLAGS} ${DEFS} ${THUMB_FLAGS}" CACHE INTERNAL "c compiler flags" FORCE)
 set(CMAKE_CXX_FLAGS "${MCU_FLAGS} ${OPT_FLAGS} ${CPP_OPT_FLAGS} ${CPP_WARN_FLAGS} ${DEFS} ${THUMB_FLAGS}" CACHE INTERNAL "cxx compiler flags" FORCE)
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -nostartfiles -L${STARTUP_LD_DICT} -Wl,--no-warn-mismatch,--library-path=${STARTUP_LD_DICT},--script=${STARTUP_LD_FILE}${LD_OPT_FLAGS}" CACHE INTERNAL "linker flags" FORCE)
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -nostartfiles -L\"${STARTUP_LD_DICT}\" -Wl,--no-warn-mismatch,--library-path=\"${STARTUP_LD_DICT}\",--script=\"${STARTUP_LD_FILE}\"${LD_OPT_FLAGS}" CACHE INTERNAL "linker flags" FORCE)
 # CMake will pass CXX_FLAGS to linker since it's a CXX linker, so some flags are excluded to avoid duplicate
 # Omitted flags from Makefiles:
 #   -Wl,-Map=${PROJECT_SOURCE_DIR}/build/ch.map (for .map files generation)

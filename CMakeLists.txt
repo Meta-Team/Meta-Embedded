@@ -95,7 +95,7 @@ add_executable(ut_gimbal_interface
         dev/interfaces/gimbal_interface.cpp
         dev/debug/unit_tests/gimbal_interface_unit_test.cpp)
 
-# Gimbal: include CANInterface, GimbalInterface, GimbalController, GimbalFeedbackThread and test & adjustment modules.
+# Gimbal: include CANInterface, GimbalInterface, GimbalController, GimbalFeedbackThread and testmodules.
 add_executable(ut_gimbal
         dev/interfaces/can_interface.cpp
         dev/interfaces/gimbal_interface.cpp
@@ -103,6 +103,15 @@ add_executable(ut_gimbal
         dev/control/gimbal_controller.cpp
         dev/debug/unit_tests/gimbal_controller_unit_test.cpp
         dev/interfaces/mpu6500.cpp)
+
+# Gimbal: include CANInterface, GimbalInterface, GimbalController, GimbalFeedbackThread and adjustment modules.
+add_executable(pa_gimbal
+        dev/interfaces/can_interface.cpp
+        dev/interfaces/gimbal_interface.cpp
+        dev/module/pid_controller.cpp
+        dev/control/gimbal_controller.cpp
+        dev/interfaces/mpu6500.cpp
+        dev/debug/unit_tests/gimbal_pid_adjustment_program.cpp)
 
 
 # MPU6500: include MP6500 interface and unit test.

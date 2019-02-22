@@ -36,6 +36,16 @@ void GimbalInterface::init(CANInterface *can_interface) {
     pitch.id = PIT_ID;
     bullet_loader.id = BULLET_LOADER_ID;
     pwmStart(friction_wheel_pwm_driver, &friction_wheels_pwmcfg);
+
+    pwmEnableChannel(friction_wheel_pwm_driver, FW_LEFT,
+                     PWM_PERCENTAGE_TO_WIDTH(friction_wheel_pwm_driver, 1 * 500 + 500));
+    pwmEnableChannel(friction_wheel_pwm_driver, FW_RIGHT,
+                     PWM_PERCENTAGE_TO_WIDTH(friction_wheel_pwm_driver, 1 * 500 + 500));
+    chThdSleep(TIME_MS2I(500));
+    pwmEnableChannel(friction_wheel_pwm_driver, FW_LEFT,
+                     PWM_PERCENTAGE_TO_WIDTH(friction_wheel_pwm_driver, 0 * 500 + 500));
+    pwmEnableChannel(friction_wheel_pwm_driver, FW_RIGHT,
+                     PWM_PERCENTAGE_TO_WIDTH(friction_wheel_pwm_driver, 0 * 500 + 500));
 }
 
 bool GimbalInterface::send_gimbal_currents() {
@@ -83,8 +93,8 @@ bool GimbalInterface::send_gimbal_currents() {
 #if GIMBAL_INTERFACE_ENABLE_CLIP
         ABS_LIMIT(bullet_loader.target_current, GIMBAL_INTERFACE_BULLET_LOADER_MAX_CURRENT);
 #endif
-        txmsg.data8[4] = (uint8_t) (-bullet_loader.target_current >> 8); //upper byte
-        txmsg.data8[5] = (uint8_t) -bullet_loader.target_current; // lower byte
+        txmsg.data8[4] = (uint8_t) (bullet_loader.target_current >> 8); //upper byte
+        txmsg.data8[5] = (uint8_t) bullet_loader.target_current; // lower byte
     } else {
         txmsg.data8[4] = txmsg.data8[5] = 0;
     }
@@ -199,6 +209,7 @@ void GimbalInterface::process_motor_feedback(CANRxFrame const *rxmsg) {
             break;
 
         case 0x207:
+
             // If it is the bullet_loader
 
             // update the last_angle_raw
@@ -223,7 +234,8 @@ void GimbalInterface::process_motor_feedback(CANRxFrame const *rxmsg) {
             }
 
             // Get the angular velocity
-            bulletLoader->angular_velocity = ((int16_t)(rxmsg->data8[2] << 8 | rxmsg->data8[3]))*6.0f;  // 6.0f accounts for 360 degrees per round per 60 seconds
+            bulletLoader->angular_velocity = ((int16_t) (rxmsg->data8[2] << 8 | rxmsg->data8[3])) / 6.0f;  // / 36 *6.0f accounts for 360 degrees per round per 60 seconds
+
             break;
 
         default:
