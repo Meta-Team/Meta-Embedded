@@ -82,18 +82,18 @@ target_compile_definitions(ENGINEER PRIVATE VEHICLE=ENGINEER)
 # Blink
 add_executable(ut_blink
         dev/module/button_monitor.cpp
-        dev/debug/main_blink.cpp)
+        dev/debug/unit_tests/main_blink.cpp)
 
 # Remote Interpreter: include remote_interpreter sources and the unit test modules.
 add_executable(ut_remote_interpreter
         dev/interfaces/remote_interpreter.cpp
-        dev/interfaces/remote_interpreter_unit_test.cpp)
+        dev/debug/unit_tests/remote_interpreter_unit_test.cpp)
 
 # Gimbal Interface: include CANInterface, GimbalInterface, GimbalFeedbackThread and the unit test modules.
 add_executable(ut_gimbal_interface
         dev/interfaces/can_interface.cpp
         dev/interfaces/gimbal_interface.cpp
-        dev/interfaces/gimbal_interface_unit_test.cpp)
+        dev/debug/unit_tests/gimbal_interface_unit_test.cpp)
 
 # Gimbal: include CANInterface, GimbalInterface, GimbalController, GimbalFeedbackThread and test & adjustment modules.
 add_executable(ut_gimbal
@@ -101,19 +101,19 @@ add_executable(ut_gimbal
         dev/interfaces/gimbal_interface.cpp
         dev/module/pid_controller.cpp
         dev/control/gimbal_controller.cpp
-        dev/control/gimbal_controller_unit_test.cpp
+        dev/debug/unit_tests/gimbal_controller_unit_test.cpp
         dev/interfaces/mpu6500.cpp)
 
 
 # MPU6500: include MP6500 interface and unit test.
 add_executable(ut_mpu6500
         dev/interfaces/mpu6500.cpp
-        dev/interfaces/mpu6500_unit_test.cpp)
+        dev/debug/unit_tests//mpu6500_unit_test.cpp)
 
 # Buzzer: inlcude Buzzer interface and unit test.
 add_executable(ut_buzzer
         dev/interfaces/buzzer.cpp
-        dev/interfaces/buzzer_unit_test.cpp)
+        dev/debug/unit_tests/buzzer_unit_test.cpp)
 
 
 # =========== Post Configurations for all targets ===========
