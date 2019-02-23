@@ -7,28 +7,10 @@
 #include "gimbal_interface.h"
 #include "common_macro.h"
 
-void GimbalInterface::bullet_loader_t::reset_front_angle() {
-    bullet_loader_t::actual_angle = 0;
-    bullet_loader_t::round_count = 0;
-    bullet_loader_t::target_angle = 0;
-}
-
-float GimbalInterface::bullet_loader_t::get_one_shoot_target_angle() {
-    bullet_loader_t::target_angle += one_bullet_step;
-    if(bullet_loader_t::target_angle>=360.0f){
-        bullet_loader_t::target_angle -= 360.0f;
-    }
-    return bullet_loader_t::target_angle;
-}
-
-GimbalInterface::motor_t GimbalInterface::yaw;
-GimbalInterface::motor_t GimbalInterface::pitch;
-GimbalInterface::bullet_loader_t GimbalInterface::bullet_loader;
-GimbalInterface::friction_wheels_t GimbalInterface::friction_wheels;
-float GimbalInterface::one_bullet_step;
-int GimbalInterface::remained_bullet;
-bool GimbalInterface::shooting_enabled;
-float GimbalInterface::trigger_duty_cycle;
+GimbalInterface::MotorInterface GimbalInterface::yaw;
+GimbalInterface::MotorInterface GimbalInterface::pitch;
+GimbalInterface::MotorInterface GimbalInterface::bullet_loader;
+GimbalInterface::FrictionWheelsInterface GimbalInterface::friction_wheels;
 CANInterface *GimbalInterface::can = nullptr;
 
 // FIXME: can't pass class static variable to HAL written in C. Find a better way to arrange these configs
@@ -46,16 +28,27 @@ static PWMConfig friction_wheels_pwmcfg = {
         0
 };
 
-void GimbalInterface::start(CANInterface *can_interface) {
+void GimbalInterface::init(CANInterface *can_interface) {
+
     can = can_interface;
+    can->register_callback(0x205, 0x207, process_motor_feedback);
+
     yaw.id = YAW_ID;
     pitch.id = PIT_ID;
     bullet_loader.id = BULLET_LOADER_ID;
-    one_bullet_step = 40.0f;
-    remained_bullet = 0;
-    shooting_enabled = false;
-    trigger_duty_cycle = 1.0;  // the value is undefined
+
     pwmStart(friction_wheel_pwm_driver, &friction_wheels_pwmcfg);
+
+    // Perform the initialization work of friction wheel driver (100% and then 0%)
+    pwmEnableChannel(friction_wheel_pwm_driver, FW_LEFT,
+                     PWM_PERCENTAGE_TO_WIDTH(friction_wheel_pwm_driver, 1 * 500 + 500));
+    pwmEnableChannel(friction_wheel_pwm_driver, FW_RIGHT,
+                     PWM_PERCENTAGE_TO_WIDTH(friction_wheel_pwm_driver, 1 * 500 + 500));
+    chThdSleep(TIME_MS2I(500));
+    pwmEnableChannel(friction_wheel_pwm_driver, FW_LEFT,
+                     PWM_PERCENTAGE_TO_WIDTH(friction_wheel_pwm_driver, 0 * 500 + 500));
+    pwmEnableChannel(friction_wheel_pwm_driver, FW_RIGHT,
+                     PWM_PERCENTAGE_TO_WIDTH(friction_wheel_pwm_driver, 0 * 500 + 500));
 }
 
 bool GimbalInterface::send_gimbal_currents() {
@@ -97,17 +90,13 @@ bool GimbalInterface::send_gimbal_currents() {
     }
 
     // Fill the current of bullet loader
-    // TODO: test the positive direction of bullet loader motor
-
-    // Check whether it is capable
-    bullet_loader.enabled = (friction_wheels.enabled && friction_wheels.duty_cycle >= trigger_duty_cycle);
 
     if (bullet_loader.enabled) {
 #if GIMBAL_INTERFACE_ENABLE_CLIP
         ABS_LIMIT(bullet_loader.target_current, GIMBAL_INTERFACE_BULLET_LOADER_MAX_CURRENT);
 #endif
-        txmsg.data8[4] = (uint8_t) (-bullet_loader.target_current >> 8); //upper byte
-        txmsg.data8[5] = (uint8_t) -bullet_loader.target_current; // lower byte
+        txmsg.data8[4] = (uint8_t) (bullet_loader.target_current >> 8); //upper byte
+        txmsg.data8[5] = (uint8_t) bullet_loader.target_current; // lower byte
     } else {
         txmsg.data8[4] = txmsg.data8[5] = 0;
     }
@@ -116,7 +105,7 @@ bool GimbalInterface::send_gimbal_currents() {
 
     can->send_msg(&txmsg);
 
-    // Fill the PWM of friction wheels
+    // Set the PWM of friction wheels
     if (friction_wheels.enabled) {
         pwmEnableChannel(friction_wheel_pwm_driver, FW_LEFT,
                          PWM_PERCENTAGE_TO_WIDTH(friction_wheel_pwm_driver, friction_wheels.duty_cycle * 500 + 500));
@@ -132,46 +121,44 @@ bool GimbalInterface::send_gimbal_currents() {
     return true;
 }
 
-bool GimbalInterface::process_motor_feedback(CANRxFrame *rxmsg) {
+void GimbalInterface::process_motor_feedback(CANRxFrame const *rxmsg) {
 /*
  * function logic description
  * first, get the absolute angle value from the motor, compared with the last absolute angle value, get the angle movement
  * add the angle movement with the relative angle, get the new relative angle, modify the relative angle and the base round value
  * divide the angle movement by the time break to get the angular velocity
  * */
-    motor_t *motor = nullptr;
-    bullet_loader_t *bulletLoader = nullptr;
+    MotorInterface *motor = nullptr;
+
     uint16_t last_angle_raw;
 
-    if (rxmsg->SID == 0x205){
+    if (rxmsg->SID == 0x205) {
         motor = &yaw;
         last_angle_raw = motor->last_angle_raw;
-    } else if (rxmsg->SID == 0x206){
+    } else if (rxmsg->SID == 0x206) {
         motor = &pitch;
         last_angle_raw = motor->last_angle_raw;
-    } else if (rxmsg->SID == 0x207){
-        bulletLoader = &bullet_loader;
-        last_angle_raw = bulletLoader->last_angle_raw;
+    } else if (rxmsg->SID == 0x207) {
+        last_angle_raw = bullet_loader.last_angle_raw;
     } else
-        return false;
+        return;
 
-    // get the present absolute angle value by combining the data into a temporary variable
+    // Get the present absolute angle value by combining the data into a temporary variable
     uint16_t new_actual_angle_raw = (rxmsg->data8[0] << 8 | rxmsg->data8[1]);
 
-    // check whether this new raw angle is valid
+    // Check whether this new raw angle is valid
     if (new_actual_angle_raw > 8191) {
-        return false;
+        return;
     }
 
-    // calculate the angle movement in raw data
+    // Calculate the angle movement in raw data
     // and we assume that the absolute value of the angle movement is smaller than 180 degrees(4096 of raw data)
     // currently motor->last_angle_raw holds the actual angle of last time
     int angle_movement = (int) new_actual_angle_raw - (int) last_angle_raw;
 
-    switch (rxmsg->SID){
+    switch (rxmsg->SID) {
         case 0x205:
-        case 0x206:
-            // If it is Yaw or Pitch
+        case 0x206: // If it is Yaw or Pitch
 
             // update the last_angle_raw
             motor->last_angle_raw = new_actual_angle_raw;
@@ -221,61 +208,45 @@ bool GimbalInterface::process_motor_feedback(CANRxFrame *rxmsg) {
             motor->actual_current = (int16_t) (rxmsg->data8[2] << 8 | rxmsg->data8[3]);
             break;
 
-        case 0x207:
-            // If it is the bullet_loader
+        case 0x207: // If it is the bullet_loader
 
             // update the last_angle_raw
-            bulletLoader->last_angle_raw = new_actual_angle_raw;
+            bullet_loader.last_angle_raw = new_actual_angle_raw;
 
             // make sure that the angle movement is positive
-            if(angle_movement<0) angle_movement = angle_movement + 8192;
+            if (angle_movement < -2000) angle_movement = angle_movement + 8192;
 
-            // the key idea is to add the change of angle to actual angle.
-            bulletLoader->actual_angle = bulletLoader->actual_angle + angle_movement * 360.0f / 8192;
+            // the key idea is to add the change of angle to actual angle / 36 (deceleration ratio)
+            bullet_loader.actual_angle = bullet_loader.actual_angle + angle_movement * 10.0f / 8192;
 
             // modify the actual angle and update the round count when appropriate
-            if (bulletLoader->actual_angle >= 360.0f) {
+            if (bullet_loader.actual_angle >= 360.0f) {
                 //if the actual_angle is greater than 360, then we can know that it has already turn a round in ***wise direction
-                bulletLoader->actual_angle -= 360.0f;//set the angle to be within [0,360)
-                bulletLoader->round_count++;//round count increases 1
+                bullet_loader.actual_angle -= 360.0f;//set the angle to be within [0,360)
+                bullet_loader.round_count++;//round count increases 1
             }
-            if (bulletLoader->actual_angle < 0.0f) {
+            if (bullet_loader.actual_angle < 0.0f) {
                 // if the actual_angle is smaller than 0, then we can know that it has already turn a round in ***wise direction
-                bulletLoader->actual_angle += 360.0f;//set the angle to be within [0,360)
-                bulletLoader->round_count--;//round count decreases 1
+                bullet_loader.actual_angle += 360.0f;//set the angle to be within [0,360)
+                bullet_loader.round_count--;//round count decreases 1
             }
 
-            // Get the angular velocity
-            bulletLoader->angular_velocity = ((int16_t)(rxmsg->data8[2] << 8 | rxmsg->data8[3]))*6.0f;  // 6.0f accounts for 360 degrees per round per 60 seconds
+            // Get the angular velocity: feedback / 36 (deceleration ratio) * 6.0f (360 degrees per round per 60 seconds)
+            bullet_loader.angular_velocity = ((int16_t) (rxmsg->data8[2] << 8 | rxmsg->data8[3])) /
+                                             6.0f;
+
             break;
 
         default:
-            return false;
+            break;
     }
-
-    return true;
 }
 
-int GimbalInterface::get_remained_bullet() {
-    return remained_bullet;
+void GimbalInterface::MotorInterface::reset_front_angle() {
+    actual_angle = 0;
+    round_count = 0;
 }
 
-int GimbalInterface::update_bullet_count(int new_bullet_added) {
-    remained_bullet -= (int)(bullet_loader.get_accumulate_angle()/one_bullet_step);
-    remained_bullet += new_bullet_added;
-    if(remained_bullet<=0){
-        remained_bullet = 0;
-    }
-    bullet_loader.reset_front_angle();
-    return remained_bullet;
-}
-
-float GimbalInterface::set_trigger_duty_cycle(float new_duty_cycle) {
-    trigger_duty_cycle = new_duty_cycle;
-    return trigger_duty_cycle;
-}
-
-bool GimbalInterface::check_shooting_enabled() {
-    shooting_enabled = (friction_wheels.duty_cycle >= trigger_duty_cycle);
-    return shooting_enabled;
+float GimbalInterface::MotorInterface::get_accumulate_angle() {
+    return actual_angle + round_count * 360.0f;
 }

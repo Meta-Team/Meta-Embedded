@@ -4,7 +4,14 @@
 #include "ch.hpp"
 #include "hal.h"
 
-// Class for control LEDs
+// NOTICE: on both board, LED shares same pads and differ only in pins. So definition in board.h is enough
+#if defined(BOARD_RM_2018_A)
+// RM_BOARD_2018_A: Green - PF14, Red - PE11
+#elif defined(BOARD_RM_2017)
+// RM_BOARD_2017: Green - PF14, Red - PE7
+#else
+#error "LED has not been defined for selected board"
+#endif
 
 class LED {
 
@@ -40,7 +47,5 @@ extern "C" {
 // LED_RED_ON and LED_GREEN_OFF when halt.
 void set_led_when_halt(void);
 }
-
-void init_led();
 
 #endif

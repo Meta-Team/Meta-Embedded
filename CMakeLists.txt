@@ -65,6 +65,15 @@ add_library(ChibiOS_OBJ OBJECT ${CHIBIOS_XASM_SRC} ${CHIBIOS_C_SRC} ${CHIBIOS_CP
 
 # Main Program -- Infantry #1
 add_executable(INFANTRY_ONE
+        dev/module/pid_controller.cpp
+        dev/interfaces/can_interface.cpp
+        dev/interfaces/mpu6500.cpp
+        dev/interfaces/gimbal_interface.cpp
+        dev/interfaces/chassis_interface.cpp
+        dev/interfaces/remote_interpreter.cpp
+        dev/control/gimbal_controller.cpp
+        dev/control/chassis_controller.cpp
+
         dev/main.cpp)
 target_compile_definitions(INFANTRY_ONE PRIVATE VEHICLE=INFANTRY_ONE)
 
@@ -76,47 +85,61 @@ target_compile_definitions(ENGINEER PRIVATE VEHICLE=ENGINEER)
 # Blink
 add_executable(ut_blink
         dev/module/button_monitor.cpp
-        dev/debug/main_blink.cpp)
+        dev/debug/unit_tests/main_blink.cpp)
 
 # Remote Interpreter: include remote_interpreter sources and the unit test modules.
 add_executable(ut_remote_interpreter
         dev/interfaces/remote_interpreter.cpp
-        dev/interfaces/remote_interpreter_unit_test.cpp)
+        dev/debug/unit_tests/remote_interpreter_unit_test.cpp)
 
-# Gimbal Interface: include CANInterface, GimbalInterface, GimbalFeedbackModule and the unit test modules.
+# Gimbal Interface: include CANInterface, GimbalInterface, GimbalFeedbackThread and the unit test modules.
 add_executable(ut_gimbal_interface
         dev/interfaces/can_interface.cpp
         dev/interfaces/gimbal_interface.cpp
-        dev/interfaces/gimbal_interface_unit_test.cpp
-        dev/debug/gimbal_feedback_module.cpp)
+        dev/debug/unit_tests/gimbal_interface_unit_test.cpp)
 
-# Gimbal: include CANInterface, GimbalInterface, GimbalController, GimbalFeedbackModule and test & adjustment modules.
+# Gimbal: include CANInterface, GimbalInterface, GimbalController, GimbalFeedbackThread and testmodules.
 add_executable(ut_gimbal
         dev/interfaces/can_interface.cpp
         dev/interfaces/gimbal_interface.cpp
         dev/module/pid_controller.cpp
         dev/control/gimbal_controller.cpp
-        dev/debug/gimbal_feedback_module.cpp
-        dev/control/gimbal_controller_unit_test.cpp
+        dev/debug/unit_tests/gimbal_controller_unit_test.cpp
         dev/interfaces/mpu6500.cpp)
+
+# Gimbal: include CANInterface, GimbalInterface, GimbalController, GimbalFeedbackThread and adjustment modules.
+add_executable(pa_gimbal
+        dev/interfaces/can_interface.cpp
+        dev/interfaces/gimbal_interface.cpp
+        dev/module/pid_controller.cpp
+        dev/control/gimbal_controller.cpp
+        dev/interfaces/mpu6500.cpp
+        dev/debug/unit_tests/gimbal_pid_adjustment_program.cpp)
 
 
 # MPU6500: include MP6500 interface and unit test.
 add_executable(ut_mpu6500
         dev/interfaces/mpu6500.cpp
-        dev/interfaces/mpu6500_unit_test.cpp)
-
-# Elevator Interface: include CANInterface, ElevatorInterface, and the unit test modules.
-add_executable(ut_elevator
-        dev/interfaces/can_interface.cpp
-        dev/interfaces/elevator_interface.cpp
-        dev/interfaces/elevator_interface_unit_test.cpp)
+        dev/debug/unit_tests//mpu6500_unit_test.cpp)
 
 # Buzzer: inlcude Buzzer interface and unit test.
 add_executable(ut_buzzer
         dev/interfaces/buzzer.cpp
-        dev/interfaces/buzzer_unit_test.cpp)
+        dev/debug/unit_tests/buzzer_unit_test.cpp)
 
+# Chassis Interface: include chassis interface sources and the unit test modules.
+add_executable(ut_chassis_interface
+        dev/interfaces/can_interface.cpp
+        dev/interfaces/chassis_interface.cpp
+        dev/debug/unit_tests/chassis_interface_unit_test.cpp)
+
+# Chassis: include chassis interface, chassis controller and the unit test modules.
+add_executable(ut_chassis
+        dev/interfaces/can_interface.cpp
+        dev/interfaces/chassis_interface.cpp
+        dev/module/pid_controller.cpp
+        dev/control/chassis_controller.cpp
+        dev/debug/unit_tests/chassis_controller_unit_test.cpp)
 # Robotic Arm
 add_executable(ut_robotic_arm
         dev/interfaces/robotic_arm.cpp dev/interfaces/robotic_arm_unit_test.cpp)

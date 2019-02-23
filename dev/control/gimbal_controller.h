@@ -7,7 +7,6 @@
 
 #define GIMBAL_CONTROLLER_ENABLE_MIDDLE_VALUES 1
 
-#include <vector>
 #include "pid_controller.h"
 
 /**
@@ -20,41 +19,22 @@ public:
     typedef enum {
         YAW_ID = 0,
         PIT_ID = 1,
-        BULLET_LOADER_ID =2
+        BULLET_LOADER_ID = 2
     } motor_id_t;
 
-    class FrictionWheelController{
-    public:
+    typedef enum {
+        STOP = 0,
+        SLOW = 1,
+        MIDDLE = 2,
+        FAST = 3
+    } shoot_mode_t;
 
-        typedef enum {
-            MODE_1 = 0,
-            MODE_2 = 1,
-            MODE_3 = 2
-        }mode_index_t;
-
-        PIDController v_to_dc_pid;
-
-        /**
-         * @brief calculate the duty cycle from the velocity
-         * @param measured_velocity
-         * @param modeIndex
-         * @return
-         */
-        float inline v_to_dc(float measured_velocity, mode_index_t modeIndex) {
-            return v_to_dc_pid.calc(measured_velocity, friction_wheel_speed_modes[modeIndex]);
-        }
-
-    private:
-
-        std::vector<float> friction_wheel_speed_modes {10.0, 20.0, 30.0};
-    };
-
-    static FrictionWheelController frictionWheelController;
+    static float shoot_duty_cycles[4];  // the array contains the duty cycles for different shoot modes
 
     /**
      * Controller for each motor
      */
-    class MotorController{
+    class MotorController {
 
     public:
         motor_id_t motor_id;   // motor id
@@ -68,9 +48,7 @@ public:
          * @param target_angle
          * @return target velocity
          */
-        float inline angle_to_v(float measured_angle, float target_angle) {
-            return angle_to_v_pid.calc(measured_angle, target_angle);
-        }
+        float angle_to_v(float measured_angle, float target_angle);
 
         /**
          * @brief perform calculation with v_to_i_pid
@@ -78,48 +56,62 @@ public:
          * @param target_velocity
          * @return target current
          */
-        float inline v_to_i(float measured_velocity, float target_velocity) {
-            return v_to_i_pid.calc(measured_velocity, target_velocity);
-        }
+        float v_to_i(float measured_velocity, float target_velocity);
 
-        float (*get_current)(float measured_angle, float measured_velocity, float target_angle);
-
-        explicit MotorController(motor_id_t id) : motor_id(id){
-            switch (motor_id){
-                case YAW_ID:
-                case PIT_ID:
-                    get_current = get_gimbal_motor_current;
-                    break;
-                case BULLET_LOADER_ID:
-                    get_current = get_bullet_loader_current;
-                    break;
-                default:
-                    get_current = nullptr;
-            }
-        }
+        explicit MotorController(motor_id_t id) : motor_id(id) {}
     };
 
-    /**
-         * @brief get the current to be sent
-         * @param measured_angle
-         * @param measured_velocity
-         * @param target_angle
-         * @return the current to be sent
-         */
-    static float get_bullet_loader_current(float measured_angle, float measured_velocity, float target_angle);
+    class BulletLoaderController {
+    public:
 
-    /**
-         * @brief get the current to be sent
-         * @param measured_angle
-         * @param measured_velocity
-         * @param target_angle
-         * @return the current to be sent
+        motor_id_t motor_id;   // motor id
+
+        PIDController v_to_i_pid;
+
+        explicit BulletLoaderController(motor_id_t id) : motor_id(id) {}
+
+        void start_continuous_shooting();
+
+        void start_incontinuous_shooting(int bullet_num);
+
+        void stop_shooting();
+
+        float get_target_current(float measured_velocity, float target_velocity);
+
+        void update_accumulation_angle(float accumulate_angle);
+
+        void update_bullet(int bullet_changed = 0);
+
+        /**
+         * @brief get the number of the remained bullets
+         * @return
          */
-    static float get_gimbal_motor_current(float measured_angle, float measured_velocity, float target_angle);
+        int get_remained_bullet();
+
+        bool get_shooting_status();
+
+    private:
+
+        float last_accumulate_angle = 0;
+
+        bool continuous_shooting = false;
+        bool shooting = false;
+        float shoot_target_angle = 0; // in incontinuous mode, bullet loader stop if shoot_target_angle has been achieved
+        float shoot_accumulate_angle = 0; // angle that is achieved during a single shoot
+
+    private:
+
+        /** Configurations **/
+        float const one_bullet_step = 40.0; // degree
+    };
 
     static MotorController yaw;
     static MotorController pitch;
-    static MotorController bullet_loader;
+    static BulletLoaderController bullet_loader;
+
+private:
+
+    static int remained_bullet;
 
 };
 
