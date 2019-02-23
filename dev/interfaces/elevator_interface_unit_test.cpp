@@ -38,6 +38,7 @@ static void cmd_elevator_set_target_position(BaseSequentialStream *chp, int argc
         return;
     }
     ElevatorInterface::set_target_position(Shell::atof(argv[0]), Shell::atof(argv[1]));
+    ElevatorInterface::send_target_position();
     chprintf(chp, "Target pos = %f, %f" SHELL_NEWLINE_STR, Shell::atof(argv[0]), Shell::atof(argv[1]));
 }
 
@@ -53,17 +54,21 @@ protected:
         setName("elevator");
         ElevatorInterface::init(&can1);
         while (!shouldTerminate()) {
-            ElevatorInterface::send_target_position();
 
-            Shell::printf("FL: POS = %d, V = %d, FR: POS = %d, V = %d, RL: POS = %d, V = %d, RR: POS = %d, V = %d" SHELL_NEWLINE_STR,
-                          (int) ElevatorInterface::elevator_wheels[ElevatorInterface::FRONT_LEFT].real_position,
-                          (int) ElevatorInterface::elevator_wheels[ElevatorInterface::FRONT_LEFT].real_velocity,
-                          (int) ElevatorInterface::elevator_wheels[ElevatorInterface::FRONT_RIGHT].real_position,
-                          (int) ElevatorInterface::elevator_wheels[ElevatorInterface::FRONT_RIGHT].real_velocity,
-                          (int) ElevatorInterface::elevator_wheels[ElevatorInterface::REAR_LEFT].real_position,
-                          (int) ElevatorInterface::elevator_wheels[ElevatorInterface::REAR_LEFT].real_velocity,
-                          (int) ElevatorInterface::elevator_wheels[ElevatorInterface::REAR_RIGHT].real_position,
-                          (int) ElevatorInterface::elevator_wheels[ElevatorInterface::REAR_RIGHT].real_velocity);
+            Shell::printf(
+                    "FL[%d]: POS = %d, V = %d, FR[%d]: POS = %d, V = %d, RL[%d]: POS = %d, V = %d, RR[%d]: POS = %d, V = %d" SHELL_NEWLINE_STR,
+                    ElevatorInterface::elevator_wheels[ElevatorInterface::FRONT_LEFT].get_action_status(),
+                    (int) ElevatorInterface::elevator_wheels[ElevatorInterface::FRONT_LEFT].real_position,
+                    (int) ElevatorInterface::elevator_wheels[ElevatorInterface::FRONT_LEFT].real_velocity,
+                    ElevatorInterface::elevator_wheels[ElevatorInterface::FRONT_RIGHT].get_action_status(),
+                    (int) ElevatorInterface::elevator_wheels[ElevatorInterface::FRONT_RIGHT].real_position,
+                    (int) ElevatorInterface::elevator_wheels[ElevatorInterface::FRONT_RIGHT].real_velocity,
+                    ElevatorInterface::elevator_wheels[ElevatorInterface::REAR_LEFT].get_action_status(),
+                    (int) ElevatorInterface::elevator_wheels[ElevatorInterface::REAR_LEFT].real_position,
+                    (int) ElevatorInterface::elevator_wheels[ElevatorInterface::REAR_LEFT].real_velocity,
+                    ElevatorInterface::elevator_wheels[ElevatorInterface::REAR_RIGHT].get_action_status(),
+                    (int) ElevatorInterface::elevator_wheels[ElevatorInterface::REAR_RIGHT].real_position,
+                    (int) ElevatorInterface::elevator_wheels[ElevatorInterface::REAR_RIGHT].real_velocity);
 
             sleep(TIME_MS2I(2000));
         }

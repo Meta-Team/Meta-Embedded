@@ -24,10 +24,11 @@ public:
     
     /**
      * @brief set the target position for both the front wheels and the rear wheels
-     * @param front_wheel_position_cm      the target position of the front wheels, + for upward
-     * @param rear_wheel_position_cm       the target position of the rear wheels, + for upward
+     * @param front_wheel_position_cm      the target position of the front wheels, - for downward
+     * @param rear_wheel_position_cm       the target position of the rear wheels, - for downward
+     * @note we grant that the startup position is the lowest point, so this function DISALLOW positive position
      */
-    static void set_target_position(float front_wheel_position_cm, float rear_wheel_position_cm);
+    static bool set_target_position(float front_wheel_position_cm, float rear_wheel_position_cm);
 
 
     /** Unit Interface **/
@@ -37,6 +38,7 @@ public:
         int16_t real_current;  // the real current in the motor
         int16_t real_velocity;  // the real velocity of the motor
 
+        bool get_action_status();
         bool get_safety_button_status();
 
         UnitInterface(): UnitInterface(0xFF) {};
@@ -44,6 +46,9 @@ public:
 
     private:
         unsigned int safety_button_pin;
+        bool is_actioning;
+
+        friend ElevatorInterface;
     };
 
     /**
@@ -91,9 +96,14 @@ private:
 
     static CANInterface* can;
 
+private:
+
+    /** Configurations **/
+
     static constexpr unsigned int can_group_id  = 3;
     static constexpr uint8_t feedback_interval = 100;
     static constexpr uint16_t driver_pwm = 2500;  // the pwm of the current
+    static constexpr int stable_range = 400; // the range that is regarded as target has been reached. [qc], 0.1 cm
 
 };
 

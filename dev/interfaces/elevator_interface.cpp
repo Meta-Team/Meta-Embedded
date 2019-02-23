@@ -3,9 +3,11 @@
 //
 
 #include "elevator_interface.h"
+#include "common_macro.h"
 
-int32_t ElevatorInterface::target_position[2];
-ElevatorInterface::UnitInterface ElevatorInterface::elevator_wheels[4] = {GPIOE_PIN6, GPIOE_PIN12, GPIOE_PIN5, GPIOE_PIN4};
+int32_t ElevatorInterface::target_position[2] = {0, 0};
+ElevatorInterface::UnitInterface ElevatorInterface::elevator_wheels[4] = {GPIOE_PIN6, GPIOE_PIN12, GPIOE_PIN5,
+                                                                          GPIOE_PIN4};
 CANInterface *ElevatorInterface::can = nullptr;
 
 
@@ -34,9 +36,11 @@ bool ElevatorInterface::send_target_position() {
     return true;
 }
 
-void ElevatorInterface::set_target_position(float front_wheel_position_cm, float rear_wheel_position_cm) {
+bool ElevatorInterface::set_target_position(float front_wheel_position_cm, float rear_wheel_position_cm) {
+    if (front_wheel_position_cm > 0 || rear_wheel_position_cm > 0) return false;
     target_position[0] = (int32_t) (front_wheel_position_cm * 40000);
     target_position[1] = (int32_t) (rear_wheel_position_cm * 40000);
+    return true;
 }
 
 bool ElevatorInterface::process_feedback(CANRxFrame *rxmsg) {
@@ -51,6 +55,9 @@ bool ElevatorInterface::process_feedback(CANRxFrame *rxmsg) {
     elevator_wheels[index].real_velocity = (rxmsg->data8[2] << 8) | rxmsg->data8[3];
     elevator_wheels[index].real_position =
             (rxmsg->data8[4] << 24) | (rxmsg->data8[5] << 16) | (rxmsg->data8[6] << 8) | rxmsg->data8[7];
+
+    elevator_wheels[index].is_actioning = !ABS_IN_RANGE(
+            elevator_wheels[index].real_position - target_position[index / 2], stable_range);
 
     return true;
 }
@@ -101,4 +108,8 @@ void ElevatorInterface::init(CANInterface *can_interface) {
 
 bool ElevatorInterface::UnitInterface::get_safety_button_status() {
     return (palReadPad(ELEVATOR_INTERFACE_SAFETY_BUTTON_PAD, safety_button_pin) == PAL_HIGH);
+}
+
+bool ElevatorInterface::UnitInterface::get_action_status() {
+    return is_actioning;
 }
