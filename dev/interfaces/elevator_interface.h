@@ -9,6 +9,8 @@
 #include "hal.h"
 #include "can_interface.h"
 
+#define ELEVATOR_INTERFACE_SAFETY_BUTTON_PAD GPIOE
+
 class ElevatorInterface {
 public:
 
@@ -19,8 +21,7 @@ public:
         REAR_RIGHT,
         WHEEL_COUNT // = 4
     };
-
-
+    
     /**
      * @brief set the target position for both the front wheels and the rear wheels
      * @param front_wheel_position_cm      the target position of the front wheels, + for upward
@@ -29,20 +30,28 @@ public:
     static void set_target_position(float front_wheel_position_cm, float rear_wheel_position_cm);
 
 
-    /** Motor Interface **/
-    typedef struct {
+    /** Unit Interface **/
+    class UnitInterface {
+    public:
         int32_t real_position; // the real position of the motor
         int16_t real_current;  // the real current in the motor
         int16_t real_velocity;  // the real velocity of the motor
 
-    } elevator_wheel_t;
+        bool get_safety_button_status();
+
+        UnitInterface(): UnitInterface(0xFF) {};
+        UnitInterface(unsigned int safety_button_pin_id) : safety_button_pin(safety_button_pin_id) {};
+
+    private:
+        unsigned int safety_button_pin;
+    };
 
     /**
      * @brief contains the real information of the four wheels
      * elevator_wheels[0] and elevator_wheels[1] are for the front_left and front_right wheels accordingly
      * elevator_wheels[2] and elevator_wheels[3] are for the left_rear and right_rear wheels accordingly
      */
-    static elevator_wheel_t elevator_wheels[4];
+    static UnitInterface elevator_wheels[4];
 
     /**
      * @brief Get the feedback (real position, real velocity, real current) of each motor from the driver

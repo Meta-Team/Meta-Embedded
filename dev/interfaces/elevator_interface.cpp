@@ -5,7 +5,7 @@
 #include "elevator_interface.h"
 
 int32_t ElevatorInterface::target_position[2];
-ElevatorInterface::elevator_wheel_t ElevatorInterface::elevator_wheels[4];
+ElevatorInterface::UnitInterface ElevatorInterface::elevator_wheels[4] = {GPIOE_PIN6, GPIOE_PIN12, GPIOE_PIN5, GPIOE_PIN4};
 CANInterface *ElevatorInterface::can = nullptr;
 
 
@@ -97,4 +97,8 @@ void ElevatorInterface::init(CANInterface *can_interface) {
     }
     // Other data8 are still 0x55
     can->send_msg(&txFrame);
+}
+
+bool ElevatorInterface::UnitInterface::get_safety_button_status() {
+    return (palReadPad(ELEVATOR_INTERFACE_SAFETY_BUTTON_PAD, safety_button_pin) == PAL_HIGH);
 }
