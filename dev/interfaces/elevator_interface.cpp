@@ -101,6 +101,7 @@ void ElevatorInterface::init(CANInterface *can_interface) {
     for (int wheel_index = 0; wheel_index < 4; wheel_index++) {
         txFrame.data8[0] = (uint8_t) ((driver_pwm >> 8) & 0xFF);
         txFrame.data8[1] = (uint8_t) (driver_pwm & 0xFF);
+        txFrame.data8[4] = txFrame.data8[5] = txFrame.data8[6] = txFrame.data8[7] = 0;
     }
     // Other data8 are still 0x55
     can->send_msg(&txFrame);
