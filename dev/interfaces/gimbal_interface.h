@@ -29,7 +29,8 @@
  * @pre Hardware is set properly (CAN id of Yaw = 5 and Pitch = 6, CAN id of bullet loader (C610) = 7, friction wheels
  *      left = PI5, right = PI6.
  * @pre PWM pin is set properly in board.h (I5 - alt 3, I6 - alt 3)
- * @pre start(CANInterface *). The interface should be properly initialized.
+ * @usage 1. init(CANInterface *). The interface should be properly initialized.
+ *        2. control the data flow based on actual implementation
  */
 class GimbalInterface {
 

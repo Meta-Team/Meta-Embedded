@@ -4,6 +4,10 @@
 
 // Header for vehicle. VEHICLE is set for each target in CMakeLists.txt.
 
+// Basic headers (including board defintions)
+#include "ch.hpp"
+#include "hal.h"
+
 #define INFANTRY_ONE 1
 #define HERO 2
 #define ENGINEER 3
@@ -11,22 +15,23 @@
 #define INFANTRY_THREE 5
 
 #if VEHICLE == INFANTRY_ONE
-
+#ifndef BOARD_RM_2017
+#error "Infantry #1 is only developed for RM board 2017."
+#endif
 #include "vehicle_infantry_one.h"
-
 #elif VEHICLE == ENGINEER
 #include "vehicle_engineer.h"
 #endif
 
-//#if defined(BOARD_RM_2017) // press to be low
+#if defined(BOARD_RM_2017)
+#define STARTUP_BUTTON_PAD GPIOD
+#define STARTUP_BUTTON_PIN_ID GPIOD_USER_BUTTON
 #define STARTUP_BUTTON_PRESS_PAL_STATUS PAL_LOW
-//#elif defined(BOARD_RM_2018_A) // press to be high
-//#define STARTUP_BUTTON_PRESS_PAL_STATUS PAL_HIGH
-//#endif
-
-// Basic headers
-#include "ch.hpp"
-#include "hal.h"
+#elif defined(BOARD_RM_2018_A)
+#define STARTUP_BUTTON_PAD GPIOB
+#define STARTUP_BUTTON_PIN_ID GPIOB_USER_BUTTON
+#define STARTUP_BUTTON_PRESS_PAL_STATUS PAL_LOW
+#endif
 
 // Debug headers
 #include "led.h"
@@ -68,22 +73,7 @@ CANInterface can1(&CAND1);
 /** Threads **/
 
 /**
- * @brief thread to update MPU6500 data
- */
-class MPU6500Thread : public chibios_rt::BaseStaticThread<512> {
-    static constexpr unsigned int update_interval = 25; // [ms]
-
-    void main() final {
-        setName("mpu6500");
-        MPU6500Controller::start();
-        while (!shouldTerminate()) {
-            MPU6500Controller::getData();
-            sleep(TIME_MS2I(update_interval));
-        }
-    }
-} mpu6500Thread;
-
-/**
+ * @name GimbalThread
  * @brief thread to control gimbal, including shooting mechanism
  * @pre RemoteInterpreter start receive
  * @pre initialize GimbalInterface with CAN driver
@@ -166,7 +156,12 @@ class GimbalThread : public chibios_rt::BaseStaticThread<1024> {
     }
 } gimbalThread;
 
-// TODO: add comments
+/**
+ * @name ChassisThread
+ * @brief thread to control chassis
+ * @pre RemoteInterpreter start receive
+ * @pre initialize ChassisInterface with CAN driver
+ */
 class ChassisThread : public chibios_rt::BaseStaticThread<1024> {
     static constexpr unsigned int chassis_thread_interval = 20;
 
@@ -212,40 +207,56 @@ class ChassisThread : public chibios_rt::BaseStaticThread<1024> {
     }
 } chassisThread;
 
+
 int main(void) {
 
-    // Basic initialization
+    /*** --------------------------- Period 1. Basic Setup --------------------------- ***/
+
+    /** Basic Initializations **/
     halInit();
     chibios_rt::System::init();
     LED::green_off();
     LED::red_off();
 
-    // Start ChibiOS shell at high priority, so even if a thread stucks, we still have access to shell.
+    /** Debug Setup **/
     Shell::start(HIGHPRIO);
 
+    /** Basic IO Setup **/
     can1.start(HIGHPRIO - 1);
-
-    mpu6500Thread.start(HIGHPRIO - 2);
-
+    MPU6500Controller::start(HIGHPRIO - 2);
     Remote::start_receive();
 
     GimbalInterface::init(&can1);
     ChassisInterface::init(&can1);
 
-    while (palReadPad(GPIOD, 10) != STARTUP_BUTTON_PRESS_PAL_STATUS) {
+
+    /*** ------------ Period 2. Calibration and Start Logic Control Thread ----------- ***/
+
+    while (palReadPad(STARTUP_BUTTON_PAD, STARTUP_BUTTON_PIN_ID) != STARTUP_BUTTON_PRESS_PAL_STATUS) {
         // Wait for the button to be pressed
         LED::green_toggle();
         chThdSleepMilliseconds(300);
     }
+
+    /** User has pressed the button **/
+
     LED::green_on();
 
+    /** Gimbal Calibration **/
     GimbalInterface::yaw.reset_front_angle();
     GimbalInterface::pitch.reset_front_angle();
 
+    /** Start Logic Control Thread **/
     gimbalThread.start(NORMALPRIO);
     chassisThread.start(NORMALPRIO - 1);
 
+    /** Play the Startup Sound **/
     Buzzer::play_sound(Buzzer::sound_startup_intel, LOWPRIO);
+
+
+    /*** ------------------------ Period 3. End of main thread ----------------------- ***/
+
+    // Entering empty loop with low priority
 
 #if CH_CFG_NO_IDLE_THREAD  // See chconf.h for what this #define means.
     // ChibiOS idle thread has been disabled, main() should implement infinite loop

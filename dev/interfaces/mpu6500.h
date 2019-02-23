@@ -126,7 +126,6 @@
 
 typedef float matrix3[3][3];
 
-
 class Vector3D {
 public:
 
@@ -183,11 +182,9 @@ public:
      */
     static void getData();
 
-    static bool start();
+    static bool start(tprio_t prio);
 
 private:
-
-    static SPIDriver *spi_driver;
 
     static float prev_t;
 
@@ -259,9 +256,28 @@ private:
         acc_dlpf_config_t _acc_dlpf_config;
     } mpu6500_config_t;
 
-    // TODO: test whether this bandwidth is suitable
+
+    class MPU6500UpdateThread : public chibios_rt::BaseStaticThread<512> {
+        void main() final {
+            setName("mpu6500");
+            while (!shouldTerminate()) {
+                MPU6500Controller::getData();
+                sleep(TIME_MS2I(mpu6500_thread_update_interval));
+            }
+        }
+    };
+
+    static MPU6500UpdateThread updateThread;
+
+
+private:
+
+    /** Configurations **/
+
     static constexpr mpu6500_config_t config = {MPU6500_GYRO_SCALE_1000, MPU6500_ACCEL_SCALE_8G,
                                                 MPU6500_DLPF_41HZ, MPU6500_ADLPF_20HZ};
+
+    static constexpr unsigned int mpu6500_thread_update_interval = 25; // [ms]
 };
 
 #endif

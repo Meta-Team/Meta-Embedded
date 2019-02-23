@@ -11,7 +11,7 @@
 #define MPU6500_BIAS_SAMPLE_COUNT 10
 #define MPU6500_BIAS_SAMPLE_INTERVAL 10 // [ms]
 
-SPIDriver* MPU6500Controller::spi_driver;
+MPU6500Controller::MPU6500UpdateThread MPU6500Controller::updateThread;
 
 Vector3D MPU6500Controller::angle_speed;  // final data of gyro
 Vector3D MPU6500Controller::a_component;  // final data of acceleration
@@ -48,7 +48,7 @@ void MPU6500Controller::mpu6500_write_reg(uint8_t reg_addr, uint8_t value) {
     spiReleaseBus(&MPU6500_SPI_DRIVER);
 }
 
-bool MPU6500Controller::start() {
+bool MPU6500Controller::start(tprio_t prio) {
 
     spiStart(&MPU6500_SPI_DRIVER, &SPI5_cfg);
     mpu6500_write_reg(MPU6500_PWR_MGMT_1, MPU6500_RESET);
@@ -146,6 +146,9 @@ bool MPU6500Controller::start() {
     _accel_bias[1][0] = temp_vect.x;
     _accel_bias[1][1] = temp_vect.y;
     _accel_bias[1][2] = temp_vect.z;
+
+    // Start the update thread
+    updateThread.start(prio);
 
     return true;
 }

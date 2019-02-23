@@ -24,9 +24,11 @@
 #endif
 
 /**
- * Interface for chassis control
- * NOTICE: set CAN id of each motor the same as chassis_motor_id_t!
- * TODO: complete the comments
+ * @name ChassisInterface
+ * @brief interface to process chassis motor feedback and send target current.
+ * @pre hardware is properly set. CAN id of each motor should be the same as chassis_motor_id_t.
+ * @usage 1. init(CANInterface *). The interface should be properly initialized.
+ *        2. control the data flow based on actual implementation
  */
 class ChassisInterface {
 
@@ -80,8 +82,7 @@ private:
 
     /** Configurations **/
 
-    // TODO: confirm the decelerate ratio of the motor
-    static float constexpr chassis_motor_decelerate_ratio = 19.0f;
+    static float constexpr chassis_motor_decelerate_ratio = 19.2f; // 3591/187 on the data sheet
 
 };
 
