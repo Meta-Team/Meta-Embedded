@@ -30,6 +30,8 @@ set(DEVCPPSRC
         dev/debug/shell_debug_commands.cpp
         dev/main.cpp
         dev/debug/led.cpp
+        dev/interfaces/ist8310.cpp
+        dev/interfaces/ist8310.h
         dev/interfaces/remote_interpreter.cpp
         dev/interfaces/remote_interpreter_unit_test.cpp
         dev/interfaces/gimbal_interface_unit_test.cpp
@@ -46,7 +48,8 @@ set(DEVCPPSRC
         dev/control/gimbal_controller_unit_test.cpp
         dev/interfaces/mpu6500.cpp
         dev/interfaces/attitude_calc.cpp
-        dev/interfaces/mpu6500.h dev/interfaces/mpu6500_unit_test.cpp)
+        dev/interfaces/mpu6500.h
+        dev/interfaces/mpu6500_unit_test.cpp)
 
 # Our include directories
 include_directories(dev

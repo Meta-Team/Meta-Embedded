@@ -25,6 +25,7 @@
 #define MPU6500_ACCEL_CONFIG_2      (0x1D)
 #define MPU6500_LP_ACCEL_ODR        (0x1E)
 #define MPU6500_MOT_THR             (0x1F)
+#define MPU6500_USER_I2C_MST        (0x20)
 #define MPU6500_FIFO_EN             (0x23)
 #define MPU6500_I2C_MST_CTRL        (0x24)
 #define MPU6500_I2C_SLV0_ADDR       (0x25)
