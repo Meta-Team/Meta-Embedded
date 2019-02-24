@@ -13,6 +13,7 @@
 #define ROBOTIC_ARM_THREAD_WORKING_AREA_SIZE 512
 
 class RoboticArmThread : public chibios_rt::BaseStaticThread<ROBOTIC_ARM_THREAD_WORKING_AREA_SIZE> {
+public:
     enum status_t {
         STOP,
         ACTIONING
@@ -33,15 +34,15 @@ private:
 private:
 
     /** Configurations **/
-    static constexpr int rotation_motor_action_interval = 20; // [ms]
+    static constexpr int motor_action_interval = 20; // [ms]
 
     // TODO: fill these parameters
     
-    static constexpr uint16_t rotation_motor_inside_angle_raw = 0;
-    static constexpr uint16_t rotation_motor_outside_angle_raw = 0;
+    static constexpr float motor_inside_target_angle = 0;
+    static constexpr float motor_outside_target_angle = 0;
 
-    static constexpr uint16_t rotation_motor_outward_trigger_angle_raw = 0;
-    static constexpr uint16_t rotation_motor_inward_trigger_angle_raw = 0;
+    static constexpr float motor_outward_boundary_angle = 0;
+    static constexpr float motor_inward_boundary_angle = 0;
 };
 
 

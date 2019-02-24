@@ -142,7 +142,7 @@ add_executable(ut_chassis
         dev/debug/unit_tests/chassis_controller_unit_test.cpp)
 # Robotic Arm
 add_executable(ut_robotic_arm
-        dev/interfaces/robotic_arm.cpp dev/interfaces/robotic_arm_unit_test.cpp dev/control/robotic_arm_thread.cpp dev/control/robotic_arm_thread.h)
+        dev/interfaces/robotic_arm.cpp dev/interfaces/robotic_arm_unit_test.cpp dev/control/robotic_arm_thread.cpp dev/control/robotic_arm_thread.h dev/debug/unit_tests/engineer_robotic_arm_unit_test.cpp)
 
 
 # =========== Post Configurations for all targets ===========

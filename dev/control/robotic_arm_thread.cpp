@@ -10,7 +10,7 @@ RoboticArmThread::status_t RoboticArmThread::get_status() {
 
 bool RoboticArmThread::start_actions(tprio_t prio) {
     if (status != STOP) return false;
-    if (!ABS_IN_RANGE(RoboticArm::get_motor_actual_angle() - rotation_motor_inside_angle_raw, 100))
+    if (!ABS_IN_RANGE(RoboticArm::get_motor_actual_angle() - motor_inside_target_angle, 100))
         return false;
     status = ACTIONING;
     chibios_rt::BaseStaticThread<ROBOTIC_ARM_THREAD_WORKING_AREA_SIZE>::start(prio);
@@ -25,31 +25,47 @@ void RoboticArmThread::emergency_stop() {
 void RoboticArmThread::main() {
     setName("robotic_arm");
 
-    if (!ABS_IN_RANGE(RoboticArm::get_motor_actual_angle() - rotation_motor_inside_angle_raw, 100)) {
+    if (!ABS_IN_RANGE(RoboticArm::get_motor_actual_angle() - motor_inside_target_angle, 100)) {
         exit(1);
     }
 
+    // Step 1. Rotate to motor_outward_boundary_angle
+    RoboticArm::set_motor_target_current(2000);
     // TODO: determine the compare sign here
-    while (RoboticArm::get_motor_actual_angle() < rotation_motor_outward_trigger_angle_raw) {
-
-        // Pack the actual velocity into an array
-        float measured_velocity[4];
-        for (int i = 0; i < CHASSIS_MOTOR_COUNT; i++) {
-            measured_velocity[i] = ChassisInterface::motor[i].actual_angular_velocity;
-        }
-
-        // Perform calculation
-        ChassisController::calc(measured_velocity, 0, 100, 0);
-
-        // Pass the target current to interface
-        for (int i = 0; i < CHASSIS_MOTOR_COUNT; i++) {
-            ChassisInterface::motor[i].target_current = (int) ChassisController::motor[i].target_current;
-        }
-
-        ChassisInterface::send_chassis_currents();
-
-        sleep(TIME_MS2I(chassis_action_interval));
+    while (RoboticArm::get_motor_actual_angle() < motor_outward_boundary_angle) {
+        RoboticArm::send_motor_target_current();
+        sleep(TIME_MS2I(motor_action_interval));
     }
+
+    // Step 2. Wait for motor to reach motor_outward_boundary_angle
+    RoboticArm::set_motor_target_current(0);
+    // TODO: determine the compare sign here
+    while (RoboticArm::get_motor_actual_angle() < motor_outside_target_angle) {
+        RoboticArm::send_motor_target_current();
+        sleep(TIME_MS2I(motor_action_interval));
+    }
+
+    // Step 3. Clamp
+    RoboticArm::clamp_action(RoboticArm::CLAMP_CLAMPED);
+    sleep(TIME_MS2I(2000));
+
+    // Step 4. Rotate to motor_inward_boundary_angle
+    RoboticArm::set_motor_target_current(-2000);
+    // TODO: determine the compare sign here
+    while (RoboticArm::get_motor_actual_angle() > motor_inward_boundary_angle) {
+        RoboticArm::send_motor_target_current();
+        sleep(TIME_MS2I(motor_action_interval));
+    }
+
+    // Step 5. Wait for motor to reach motor_inside_target_angle
+    RoboticArm::set_motor_target_current(0);
+    // TODO: determine the compare sign here
+    while (RoboticArm::get_motor_actual_angle() < motor_inside_target_angle) {
+        RoboticArm::send_motor_target_current();
+        sleep(TIME_MS2I(motor_action_interval));
+    }
+
+    // TODO: add action to throw box away
 
     // Complete
     status = STOP;

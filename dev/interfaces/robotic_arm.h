@@ -26,6 +26,8 @@ public:
 
     static float get_motor_actual_angle();
 
+    static void reset_front_angle();
+
     enum clamp_status_t {
         CLAMP_RELAX = PAL_LOW,
         CLAMP_CLAMPED = PAL_HIGH
@@ -44,7 +46,10 @@ public:
 private:
 
     static clamp_status_t _clamp_status; // local storage
-    static float motor_actual_angle;
+
+    static float motor_accumulate_angle;
+    static uint16_t motor_last_actual_angle_raw;
+
     static int motor_target_current;
 
     static void process_motor_feedback(CANRxFrame const *rxmsg);
@@ -53,34 +58,11 @@ private:
 
     friend CANInterface;
 
-};
-
-class FetchBulletThread : public chibios_rt::BaseStaticThread<128> {
 private:
-    ioportid_t _ioportid;
-    ioportmask_t _ioportmask;
 
-protected:
-    void main(void) override;
-public:
+    /** Configurations **/
+    static float constexpr motor_decelerate_ratio = 19.2f; // 3591/187 on the data sheet
 
-    typedef enum {
-        INACTIVE,   //initial state, ready for holding a box
-        MACHINE_HAND_CLAMP, //clamp the machine hand
-        ROTATE, //rotate the hand
-        RELEASE,    //release all bullets
-        RESTORE     //return to inactive state
-    } activity_mode;
-
-    uint16_t delay1;
-    uint16_t delay2;
-    uint16_t delay3;
-    CANInterface* can;
-    uint16_t mode;
-    FetchBulletThread(ioportid_t ioportid, ioportmask_t ioportmask, uint16_t delay_1,
-            uint16_t delay_2, uint16_t delay_3, CANInterface *can_interface);
-    void fetch_once();
 };
-
 
 #endif //META_INFANTRY_FETCH_BULLET_H
