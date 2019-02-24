@@ -17,6 +17,19 @@
 CANInterface can1(&CAND1);
 RoboticArmThread roboticArmThread;
 
+static void cmd_robotic_clamp_action(BaseSequentialStream *chp, int argc, char *argv[]) {
+    (void) argv;
+    if (argc != 1) {
+        shellUsage(chp, "clamp 0(relax)/1(clamped)");
+        return;
+    }
+    if (Shell::atoi(argv[0]) == 0) {
+        RoboticArm::clamp_action(RoboticArm::CLAMP_RELAX);
+    } else {
+        RoboticArm::clamp_action(RoboticArm::CLAMP_CLAMPED);
+    }
+}
+
 static void cmd_robotic_arm_action(BaseSequentialStream *chp, int argc, char *argv[]) {
     (void) argv;
     if (argc != 0) {
@@ -37,27 +50,40 @@ static void cmd_robotic_arm_emergency_stop(BaseSequentialStream *chp, int argc, 
     chprintf(chp, "EMERGENCY STOP" SHELL_NEWLINE_STR);
 }
 
-// Shell commands to control the chassis
-ShellCommand elevatorInterfaceCommands[] = {
+ShellCommand roboticArmCommands[] = {
+        {"clamp", cmd_robotic_clamp_action},
         {"engi_fetch", cmd_robotic_arm_action},
         {"s", cmd_robotic_arm_emergency_stop},
         {nullptr, nullptr}
 };
+
+class FeedbackThread : public chibios_rt::BaseStaticThread<512> {
+    void main() final {
+        setName("robotic_arm_fb");
+        while(!shouldTerminate()) {
+            Shell::printf("rotation motor pos = %f" SHELL_NEWLINE_STR, RoboticArm::get_motor_actual_angle());
+            sleep(TIME_MS2I(2000));
+        }
+    }
+} feedbackThread;
 
 int main(void) {
     halInit();
     chibios_rt::System::init();
 
     Shell::start(HIGHPRIO);
-    Shell::addCommands(elevatorInterfaceCommands);
+    Shell::addCommands(roboticArmCommands);
 
     LED::red_off();
     LED::green_off();
 
     can1.start(HIGHPRIO - 1);
+    RoboticArm::init(&can1);
 
     chThdSleepMilliseconds(1000);
     RoboticArm::reset_front_angle();
+
+//    feedbackThread.start(NORMALPRIO);
 
     Buzzer::play_sound(Buzzer::sound_startup, LOWPRIO);
 

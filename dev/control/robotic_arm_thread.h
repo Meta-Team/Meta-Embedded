@@ -34,15 +34,24 @@ private:
 private:
 
     /** Configurations **/
+
     static constexpr int motor_action_interval = 20; // [ms]
 
-    // TODO: fill these parameters
-    
-    static constexpr float motor_inside_target_angle = 0;
-    static constexpr float motor_outside_target_angle = 0;
+    // Outward movement results in negative angle
 
-    static constexpr float motor_outward_boundary_angle = 0;
-    static constexpr float motor_inward_boundary_angle = 0;
+    // Measured data: startup = 0, middle upward = -66, outside = -160
+
+    // If actual angle is GREATER than motor_inside_target_angle, we think that the robotic arm is completely inside
+    static constexpr float motor_inside_target_angle = -3; // [degree]
+
+    // If actual angle is SMALLER than motor_outside_target_angle, we think that the robotic arm is completely outside
+    static constexpr float motor_outside_target_angle = -157;
+
+    // If actual angle is GREATER than motor_outward_boundary_angle, no current will supply to the rotation motor
+    static constexpr float motor_inward_boundary_angle = -67;
+
+    // If actual angle is SMALLER than motor_outward_boundary_angle, no current will supply to the rotation motor
+    static constexpr float motor_outward_boundary_angle = -65;
 };
 
 

@@ -140,9 +140,13 @@ add_executable(ut_chassis
         dev/module/pid_controller.cpp
         dev/control/chassis_controller.cpp
         dev/debug/unit_tests/chassis_controller_unit_test.cpp)
+
 # Robotic Arm
 add_executable(ut_robotic_arm
-        dev/interfaces/robotic_arm.cpp dev/interfaces/robotic_arm_unit_test.cpp dev/control/robotic_arm_thread.cpp dev/control/robotic_arm_thread.h dev/debug/unit_tests/engineer_robotic_arm_unit_test.cpp)
+        dev/interfaces/can_interface.cpp
+        dev/interfaces/robotic_arm.cpp
+        dev/control/robotic_arm_thread.cpp
+        dev/debug/unit_tests/engineer_robotic_arm_unit_test.cpp)
 
 
 # =========== Post Configurations for all targets ===========

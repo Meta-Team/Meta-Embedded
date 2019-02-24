@@ -6,7 +6,8 @@
 
 RoboticArm::clamp_status_t RoboticArm::_clamp_status = RoboticArm::CLAMP_RELAX;
 float RoboticArm::motor_accumulate_angle;
-static int motor_target_current;
+uint16_t RoboticArm::motor_last_actual_angle_raw;
+int RoboticArm::motor_target_current;
 CANInterface *RoboticArm::can = nullptr;
 
 float RoboticArm::get_motor_actual_angle() {
@@ -25,6 +26,9 @@ void RoboticArm::clamp_action(RoboticArm::clamp_status_t target_status) {
 void RoboticArm::init(CANInterface *can_interface) {
     can = can_interface;
     can->register_callback(0x205, 0x205, process_motor_feedback);
+
+    palSetPadMode(GPIOH, GPIOH_ROBOTIC_ARM_CLAMP, PAL_MODE_OUTPUT_PUSHPULL);
+
 }
 
 void RoboticArm::process_motor_feedback(CANRxFrame const *rxmsg) {
@@ -34,7 +38,9 @@ void RoboticArm::process_motor_feedback(CANRxFrame const *rxmsg) {
 
     int angle_movement = (int) new_actual_angle_raw - (int) motor_last_actual_angle_raw;
 
-    // TODO: figure out whether this actually work.
+    motor_last_actual_angle_raw = new_actual_angle_raw;
+
+    // If angle_movement is too extreme between two samples, we grant that it's caused by moving over the 0(8192) point.
     if (angle_movement < -4096) {
         angle_movement += 8192;
     } else if (angle_movement > 4096) {

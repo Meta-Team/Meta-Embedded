@@ -163,17 +163,11 @@ void GimbalInterface::process_motor_feedback(CANRxFrame const *rxmsg) {
             // update the last_angle_raw
             motor->last_angle_raw = new_actual_angle_raw;
 
-            // make sure that the angle movement is in [-4096,4096] ([-180,180] in degree)
+            // If angle_movement is too extreme between two samples, we grant that it's caused by moving over the 0(8192) point.
             if (angle_movement < -4096) {
                 angle_movement += 8192;
             } else if (angle_movement > 4096) {
                 angle_movement -= 8192;
-            } else if (angle_movement == 4096 || angle_movement == -4096) {
-                if (motor->angular_velocity > 0) {
-                    angle_movement = 4096;
-                } else {
-                    angle_movement = -4096;
-                }
             }
 
             // the key idea is to add the change of angle to actual angle.

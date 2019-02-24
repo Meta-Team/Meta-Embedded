@@ -11,10 +11,6 @@
 #include "can_interface.h"
 #include "port_to_string.h"
 
-static uint16_t rotate_current = 30;  //TODO change it
-static uint16_t release_current = 30;  //TODO change it
-static uint16_t inactive_current = 30;  //TODO: change it
-
 // TODO: make sure that there is no CAN conflicts
 /**
  * @pre rotation motor CAN ID = 5
@@ -61,7 +57,8 @@ private:
 private:
 
     /** Configurations **/
-    static float constexpr motor_decelerate_ratio = 19.2f; // 3591/187 on the data sheet
+    static constexpr float  motor_decelerate_ratio = 19.2f; // 3591/187 on the data sheet
+    static constexpr uint32_t max_possible_angle_movement_per_time = 4096; // raw angle value
 
 };
 

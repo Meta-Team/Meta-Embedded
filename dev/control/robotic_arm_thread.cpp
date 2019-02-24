@@ -19,10 +19,11 @@ bool RoboticArmThread::start_actions(tprio_t prio) {
 
 void RoboticArmThread::emergency_stop() {
     status = STOP;
-    exit(0xFF);
+    exit(0xFF); // FIXME: this won't work since it terminate the call thread
 }
 
 void RoboticArmThread::main() {
+
     setName("robotic_arm");
 
     if (!ABS_IN_RANGE(RoboticArm::get_motor_actual_angle() - motor_inside_target_angle, 100)) {
@@ -30,16 +31,16 @@ void RoboticArmThread::main() {
     }
 
     // Step 1. Rotate to motor_outward_boundary_angle
-    RoboticArm::set_motor_target_current(2000);
-    // TODO: determine the compare sign here
+
+    RoboticArm::set_motor_target_current(1000);
     while (RoboticArm::get_motor_actual_angle() < motor_outward_boundary_angle) {
         RoboticArm::send_motor_target_current();
         sleep(TIME_MS2I(motor_action_interval));
     }
 
     // Step 2. Wait for motor to reach motor_outward_boundary_angle
+
     RoboticArm::set_motor_target_current(0);
-    // TODO: determine the compare sign here
     while (RoboticArm::get_motor_actual_angle() < motor_outside_target_angle) {
         RoboticArm::send_motor_target_current();
         sleep(TIME_MS2I(motor_action_interval));
@@ -51,7 +52,6 @@ void RoboticArmThread::main() {
 
     // Step 4. Rotate to motor_inward_boundary_angle
     RoboticArm::set_motor_target_current(-2000);
-    // TODO: determine the compare sign here
     while (RoboticArm::get_motor_actual_angle() > motor_inward_boundary_angle) {
         RoboticArm::send_motor_target_current();
         sleep(TIME_MS2I(motor_action_interval));
@@ -59,8 +59,7 @@ void RoboticArmThread::main() {
 
     // Step 5. Wait for motor to reach motor_inside_target_angle
     RoboticArm::set_motor_target_current(0);
-    // TODO: determine the compare sign here
-    while (RoboticArm::get_motor_actual_angle() < motor_inside_target_angle) {
+    while (RoboticArm::get_motor_actual_angle() > motor_inside_target_angle) {
         RoboticArm::send_motor_target_current();
         sleep(TIME_MS2I(motor_action_interval));
     }
