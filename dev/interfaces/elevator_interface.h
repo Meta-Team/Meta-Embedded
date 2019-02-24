@@ -11,6 +11,11 @@
 
 #define ELEVATOR_INTERFACE_SAFETY_BUTTON_PAD GPIOE
 
+#if defined(BOARD_RM_2018_A)
+#else
+#error "ElevatorInterface is only developed for RM board 2018 A."
+#endif
+
 /**
  * @name ElevatorInterface
  * @brief an interface to control elevator motor height and handle feedback
@@ -53,6 +58,12 @@ public:
         int16_t real_current;  // the real current in the motor
         int16_t real_velocity;  // the real velocity of the motor
 
+        /**
+         * @brief return whether the elevator unit is in action
+         * @return
+         * @note if the abs distance between real_position and target_position is greater than stable_range (configured
+         *       below, the unit is considered to be in action
+         */
         bool is_in_action();
 
         bool get_safety_button_status();
@@ -63,7 +74,7 @@ public:
 
     private:
         unsigned int safety_button_pin;
-        bool is_actioning;
+        bool is_actioning_;
 
         friend ElevatorInterface;
     };

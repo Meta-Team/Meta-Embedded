@@ -38,7 +38,7 @@ bool ElevatorInterface::apply_front_position(float front_wheel_position_cm) {
     target_position[0] = (int32_t) (front_wheel_position_cm * 40000);
     send_target_position(FRONT_LEFT);
     send_target_position(FRONT_RIGHT);
-    elevator_wheels[0].is_actioning = elevator_wheels[1].is_actioning = true;
+    elevator_wheels[0].is_actioning_ = elevator_wheels[1].is_actioning_ = true;
     return true;
 }
 
@@ -47,7 +47,7 @@ bool ElevatorInterface::apply_rear_position(float rear_wheel_position_cm) {
     target_position[1] = (int32_t) (rear_wheel_position_cm * 40000);
     send_target_position(REAR_LEFT);
     send_target_position(REAR_RIGHT);
-    elevator_wheels[2].is_actioning = elevator_wheels[3].is_actioning = true;
+    elevator_wheels[2].is_actioning_ = elevator_wheels[3].is_actioning_ = true;
     return true;
 }
 
@@ -64,7 +64,7 @@ void ElevatorInterface::process_feedback(CANRxFrame const*rxmsg) {
     elevator_wheels[index].real_position =
             (rxmsg->data8[4] << 24) | (rxmsg->data8[5] << 16) | (rxmsg->data8[6] << 8) | rxmsg->data8[7];
 
-    elevator_wheels[index].is_actioning = !ABS_IN_RANGE(
+    elevator_wheels[index].is_actioning_ = !ABS_IN_RANGE(
             elevator_wheels[index].real_position - target_position[index / 2], stable_range);
 }
 
@@ -119,5 +119,5 @@ bool ElevatorInterface::UnitInterface::get_safety_button_status() {
 }
 
 bool ElevatorInterface::UnitInterface::is_in_action() {
-    return is_actioning;
+    return is_actioning_;
 }
