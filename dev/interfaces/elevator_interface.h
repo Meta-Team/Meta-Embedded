@@ -46,7 +46,7 @@ public:
         int16_t real_current;  // the real current in the motor
         int16_t real_velocity;  // the real velocity of the motor
 
-        bool get_action_status();
+        bool is_in_action();
 
         bool get_safety_button_status();
 

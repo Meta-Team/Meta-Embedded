@@ -38,6 +38,7 @@ bool ElevatorInterface::apply_front_position(float front_wheel_position_cm) {
     target_position[0] = (int32_t) (front_wheel_position_cm * 40000);
     send_target_position(FRONT_LEFT);
     send_target_position(FRONT_RIGHT);
+    elevator_wheels[0].is_actioning = elevator_wheels[1].is_actioning = true;
     return true;
 }
 
@@ -46,6 +47,7 @@ bool ElevatorInterface::apply_rear_position(float rear_wheel_position_cm) {
     target_position[1] = (int32_t) (rear_wheel_position_cm * 40000);
     send_target_position(REAR_LEFT);
     send_target_position(REAR_RIGHT);
+    elevator_wheels[2].is_actioning = elevator_wheels[3].is_actioning = true;
     return true;
 }
 
@@ -116,6 +118,6 @@ bool ElevatorInterface::UnitInterface::get_safety_button_status() {
     return (palReadPad(ELEVATOR_INTERFACE_SAFETY_BUTTON_PAD, safety_button_pin) == PAL_HIGH);
 }
 
-bool ElevatorInterface::UnitInterface::get_action_status() {
+bool ElevatorInterface::UnitInterface::is_in_action() {
     return is_actioning;
 }

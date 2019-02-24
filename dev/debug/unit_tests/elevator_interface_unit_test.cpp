@@ -40,16 +40,16 @@ protected:
 
             Shell::printf(
                     "FL[%d]: POS = %d, V = %d, FR[%d]: POS = %d, V = %d, RL[%d]: POS = %d, V = %d, RR[%d]: POS = %d, V = %d" SHELL_NEWLINE_STR,
-                    ElevatorInterface::elevator_wheels[ElevatorInterface::FRONT_LEFT].get_action_status(),
+                    ElevatorInterface::elevator_wheels[ElevatorInterface::FRONT_LEFT].is_in_action(),
                     (int) ElevatorInterface::elevator_wheels[ElevatorInterface::FRONT_LEFT].real_position,
                     (int) ElevatorInterface::elevator_wheels[ElevatorInterface::FRONT_LEFT].real_velocity,
-                    ElevatorInterface::elevator_wheels[ElevatorInterface::FRONT_RIGHT].get_action_status(),
+                    ElevatorInterface::elevator_wheels[ElevatorInterface::FRONT_RIGHT].is_in_action(),
                     (int) ElevatorInterface::elevator_wheels[ElevatorInterface::FRONT_RIGHT].real_position,
                     (int) ElevatorInterface::elevator_wheels[ElevatorInterface::FRONT_RIGHT].real_velocity,
-                    ElevatorInterface::elevator_wheels[ElevatorInterface::REAR_LEFT].get_action_status(),
+                    ElevatorInterface::elevator_wheels[ElevatorInterface::REAR_LEFT].is_in_action(),
                     (int) ElevatorInterface::elevator_wheels[ElevatorInterface::REAR_LEFT].real_position,
                     (int) ElevatorInterface::elevator_wheels[ElevatorInterface::REAR_LEFT].real_velocity,
-                    ElevatorInterface::elevator_wheels[ElevatorInterface::REAR_RIGHT].get_action_status(),
+                    ElevatorInterface::elevator_wheels[ElevatorInterface::REAR_RIGHT].is_in_action(),
                     (int) ElevatorInterface::elevator_wheels[ElevatorInterface::REAR_RIGHT].real_position,
                     (int) ElevatorInterface::elevator_wheels[ElevatorInterface::REAR_RIGHT].real_velocity);
 
