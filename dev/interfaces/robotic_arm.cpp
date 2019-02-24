@@ -5,11 +5,12 @@
 #include "common_macro.h"
 
 RoboticArm::clamp_status_t RoboticArm::_clamp_status = RoboticArm::CLAMP_RELAX;
-uint16_t RoboticArm::rotation_motor_angle_raw;
+float RoboticArm::motor_actual_angle;
+static int motor_target_current;
 CANInterface *RoboticArm::can = nullptr;
 
-uint16_t RoboticArm::get_rotation_motor_angle_raw() {
-    return rotation_motor_angle_raw;
+float RoboticArm::get_motor_actual_angle() {
+    return motor_actual_angle;
 }
 
 RoboticArm::clamp_status_t RoboticArm::get_clamp_status() {
@@ -23,19 +24,19 @@ void RoboticArm::clamp_action(RoboticArm::clamp_status_t target_status) {
 
 void RoboticArm::init(CANInterface *can_interface) {
     can = can_interface;
-    can->register_callback(0x205, 0x205, process_rotation_motor_feedback);
+    can->register_callback(0x205, 0x205, process_motor_feedback);
 }
 
-void RoboticArm::process_rotation_motor_feedback(CANRxFrame const *rxmsg) {
+void RoboticArm::process_motor_feedback(CANRxFrame const *rxmsg) {
     if (rxmsg->SID != 0x205) return;
     rotation_motor_angle_raw = (uint16_t) (rxmsg->data8[0] << 8 | rxmsg->data8[1]);
 }
 
-void RoboticArm::set_rotation_motor_target_current(int target_current) {
-    rotation_motor_target_current = target_current;
+void RoboticArm::set_motor_target_current(int target_current) {
+    motor_target_current = target_current;
 }
 
-bool RoboticArm::send_rotation_motor_target_current() {
+bool RoboticArm::send_motor_target_current() {
 
     if (!can) return false;
 

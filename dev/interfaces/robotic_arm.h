@@ -24,7 +24,7 @@ class RoboticArm {
 
 public:
 
-    static uint16_t get_rotation_motor_angle_raw();
+    static float get_motor_actual_angle();
 
     enum clamp_status_t {
         CLAMP_RELAX = PAL_LOW,
@@ -35,19 +35,19 @@ public:
 
     static void clamp_action(clamp_status_t target_status);
 
-    static void set_rotation_motor_target_current(int target_current);
+    static void set_motor_target_current(int target_current);
 
-    static bool send_rotation_motor_target_current();
+    static bool send_motor_target_current();
 
     static void init(CANInterface *can_interface);
 
 private:
 
     static clamp_status_t _clamp_status; // local storage
-    static uint16_t rotation_motor_angle_raw;
-    static int rotation_motor_target_current;
+    static float motor_actual_angle;
+    static int motor_target_current;
 
-    static void process_rotation_motor_feedback(CANRxFrame const*rxmsg);
+    static void process_motor_feedback(CANRxFrame const *rxmsg);
 
     static CANInterface *can;
 
