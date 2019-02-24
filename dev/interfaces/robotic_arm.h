@@ -11,17 +11,29 @@
 #include "can_interface.h"
 #include "port_to_string.h"
 
-// TODO: make sure that there is no CAN conflicts
+#if defined(BOARD_RM_2018_A)
+#else
+#error "RoboticArm interface is only developed for RM board 2018 A."
+#endif
+
 /**
- * @pre rotation motor CAN ID = 5
- * @pre clamp connect to PH2
+ * @name RoboticArm
+ * @brief interface to handle clamp and rotation motor of robotic arm
+ * @pre hardware is properly configured. Rotation motor CAN ID = 5. Clamp is connected to PH2
  */
 class RoboticArm {
 
 public:
 
+    /**
+     * @brief get rotation motor actual angle
+     * @return accumulate angle in [degree]. Outward is negative
+     */
     static float get_motor_actual_angle();
 
+    /**
+     * @brief set current angle as front angle
+     */
     static void reset_front_angle();
 
     enum clamp_status_t {
@@ -29,14 +41,36 @@ public:
         CLAMP_CLAMPED = PAL_HIGH
     };
 
+    /**
+     * @brief get status of clamp
+     * @return
+     */
     static clamp_status_t get_clamp_status();
 
+    /**
+     * @brief perform action on clamp
+     * @param target_status
+     */
     static void clamp_action(clamp_status_t target_status);
 
+    /**
+     * @brief set rotation motor target current and store in this interface
+     * @param target_current
+     */
     static void set_motor_target_current(int target_current);
 
+    /**
+     * @brief send rotation motor target current
+     * @return
+     * @note the reason to separate set and send function is that C620 can only holds the targets for a
+     *       while, so it's needed to send repreatly in a thread
+     */
     static bool send_motor_target_current();
 
+    /**
+     * @brief initialize this interface with properly started CANInterface
+     * @param can_interface pointer to properly started CANInterface
+     */
     static void init(CANInterface *can_interface);
 
 private:
@@ -57,8 +91,8 @@ private:
 private:
 
     /** Configurations **/
+
     static constexpr float  motor_decelerate_ratio = 19.2f; // 3591/187 on the data sheet
-    static constexpr uint32_t max_possible_angle_movement_per_time = 4096; // raw angle value
 
 };
 
