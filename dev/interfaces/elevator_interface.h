@@ -11,6 +11,13 @@
 
 #define ELEVATOR_INTERFACE_SAFETY_BUTTON_PAD GPIOE
 
+/**
+ * @name ElevatorInterface
+ * @brief an interface to control elevator motor height and handle feedback
+ * @pre hardware is properly configured. CAN IDs of RMDS should be the same as wheel_can_id_t below.
+ * @usage 1. init() with properly intialized CANInterface
+ *        2. apply_front/read_position(), and read feedback from elevator_wheels[]
+ */
 class ElevatorInterface {
 public:
 

@@ -19,6 +19,8 @@ ElevatorThread elevatorThread;
 #define STARTUP_BUTTON_PAD GPIOB
 #define STARTUP_BUTTON_PIN_ID GPIOB_USER_BUTTON
 #define STARTUP_BUTTON_PRESS_PAL_STATUS PAL_HIGH
+#else
+#error "Elevator thread is only developed for RM board 2018 A."
 #endif
 
 static void cmd_elevator_up(BaseSequentialStream *chp, int argc, char *argv[]) {
@@ -64,13 +66,12 @@ class ChassisThread : public chibios_rt::BaseStaticThread<512> {
             }
 
             // Perform calculation
-            ChassisController::calc(measured_velocity, 0, elevatorThread.chassis_target_vx, 0);
+            ChassisController::calc(measured_velocity, 0, elevatorThread.get_chassis_target_vy(), 0);
 
             // Pass the target current to interface
             for (int i = 0; i < CHASSIS_MOTOR_COUNT; i++) {
                 ChassisInterface::motor[i].target_current = (int) ChassisController::motor[i].target_current;
             }
-
 
             ChassisInterface::send_chassis_currents();
 
