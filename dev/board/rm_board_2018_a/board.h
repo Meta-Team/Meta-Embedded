@@ -183,7 +183,7 @@
 
 #define GPIOH_OSC_IN                0U
 #define GPIOH_OSC_OUT               1U
-#define GPIOH_PIN2                  2U
+#define GPIOH_ROBOTIC_ARM_CLAMP                  2U
 #define GPIOH_PIN3                  3U
 #define GPIOH_PIN4                  4U
 #define GPIOH_PIN5                  5U
@@ -1115,7 +1115,7 @@
  *
  * PH0  - OSC_IN                    (input floating).
  * PH1  - OSC_OUT                   (input floating).
- * PH2  - PIN2                      (input floating).
+ * PH2  - ROBOTIC_ARM_CLAMP                      (output pushpull maximum).
  * PH3  - PIN3                      (input floating).
  * PH4  - PIN4                      (input floating).
  * PH5  - PIN5                      (input floating).
@@ -1132,7 +1132,7 @@
  */
 #define VAL_GPIOH_MODER             (PIN_MODE_INPUT(GPIOH_OSC_IN) |         \
                                      PIN_MODE_INPUT(GPIOH_OSC_OUT) |        \
-                                     PIN_MODE_INPUT(GPIOH_PIN2) |           \
+                                     PIN_MODE_OUTPUT(GPIOH_ROBOTIC_ARM_CLAMP) |           \
                                      PIN_MODE_INPUT(GPIOH_PIN3) |           \
                                      PIN_MODE_INPUT(GPIOH_PIN4) |           \
                                      PIN_MODE_INPUT(GPIOH_PIN5) |           \
@@ -1148,7 +1148,7 @@
                                      PIN_MODE_INPUT(GPIOH_PIN15))
 #define VAL_GPIOH_OTYPER            (PIN_OTYPE_PUSHPULL(GPIOH_OSC_IN) |     \
                                      PIN_OTYPE_PUSHPULL(GPIOH_OSC_OUT) |    \
-                                     PIN_OTYPE_PUSHPULL(GPIOH_PIN2) |       \
+                                     PIN_OTYPE_PUSHPULL(GPIOH_ROBOTIC_ARM_CLAMP) |       \
                                      PIN_OTYPE_PUSHPULL(GPIOH_PIN3) |       \
                                      PIN_OTYPE_PUSHPULL(GPIOH_PIN4) |       \
                                      PIN_OTYPE_PUSHPULL(GPIOH_PIN5) |       \
@@ -1164,7 +1164,7 @@
                                      PIN_OTYPE_PUSHPULL(GPIOH_PIN15))
 #define VAL_GPIOH_OSPEEDR           (PIN_OSPEED_HIGH(GPIOH_OSC_IN) |        \
                                      PIN_OSPEED_HIGH(GPIOH_OSC_OUT) |       \
-                                     PIN_OSPEED_HIGH(GPIOH_PIN2) |          \
+                                     PIN_OSPEED_HIGH(GPIOH_ROBOTIC_ARM_CLAMP) |          \
                                      PIN_OSPEED_HIGH(GPIOH_PIN3) |          \
                                      PIN_OSPEED_HIGH(GPIOH_PIN4) |          \
                                      PIN_OSPEED_HIGH(GPIOH_PIN5) |          \
@@ -1180,7 +1180,7 @@
                                      PIN_OSPEED_HIGH(GPIOH_PIN15))
 #define VAL_GPIOH_PUPDR             (PIN_PUPDR_FLOATING(GPIOH_OSC_IN) |     \
                                      PIN_PUPDR_FLOATING(GPIOH_OSC_OUT) |    \
-                                     PIN_PUPDR_FLOATING(GPIOH_PIN2) |       \
+                                     PIN_PUPDR_FLOATING(GPIOH_ROBOTIC_ARM_CLAMP) |       \
                                      PIN_PUPDR_FLOATING(GPIOH_PIN3) |       \
                                      PIN_PUPDR_FLOATING(GPIOH_PIN4) |       \
                                      PIN_PUPDR_FLOATING(GPIOH_PIN5) |       \
@@ -1196,7 +1196,7 @@
                                      PIN_PUPDR_FLOATING(GPIOH_PIN15))
 #define VAL_GPIOH_ODR               (PIN_ODR_HIGH(GPIOH_OSC_IN) |           \
                                      PIN_ODR_HIGH(GPIOH_OSC_OUT) |          \
-                                     PIN_ODR_HIGH(GPIOH_PIN2) |             \
+                                     PIN_ODR_HIGH(GPIOH_ROBOTIC_ARM_CLAMP) |             \
                                      PIN_ODR_HIGH(GPIOH_PIN3) |             \
                                      PIN_ODR_HIGH(GPIOH_PIN4) |             \
                                      PIN_ODR_HIGH(GPIOH_PIN5) |             \
@@ -1212,7 +1212,7 @@
                                      PIN_ODR_HIGH(GPIOH_PIN15))
 #define VAL_GPIOH_AFRL              (PIN_AFIO_AF(GPIOH_OSC_IN, 0U) |        \
                                      PIN_AFIO_AF(GPIOH_OSC_OUT, 0U) |       \
-                                     PIN_AFIO_AF(GPIOH_PIN2, 0U) |          \
+                                     PIN_AFIO_AF(GPIOH_ROBOTIC_ARM_CLAMP, 0U) |          \
                                      PIN_AFIO_AF(GPIOH_PIN3, 0U) |          \
                                      PIN_AFIO_AF(GPIOH_PIN4, 0U) |          \
                                      PIN_AFIO_AF(GPIOH_PIN5, 0U) |          \

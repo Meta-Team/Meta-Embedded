@@ -4,13 +4,60 @@
 #include "robotic_arm.h"
 #include "common_macro.h"
 
+RoboticArm::clamp_status_t RoboticArm::_clamp_status = RoboticArm::CLAMP_RELAX;
+uint16_t RoboticArm::rotation_motor_angle_raw;
+CANInterface *RoboticArm::can = nullptr;
 
+uint16_t RoboticArm::get_rotation_motor_angle_raw() {
+    return rotation_motor_angle_raw;
+}
 
+RoboticArm::clamp_status_t RoboticArm::get_clamp_status() {
+    return _clamp_status;
+}
 
-static CANTxFrame txmsg;
+void RoboticArm::clamp_action(RoboticArm::clamp_status_t target_status) {
+    _clamp_status = target_status;
+    palWritePad(GPIOH, GPIOH_ROBOTIC_ARM_CLAMP, _clamp_status);
+}
+
+void RoboticArm::init(CANInterface *can_interface) {
+    can = can_interface;
+    can->register_callback(0x205, 0x205, process_rotation_motor_feedback);
+}
+
+void RoboticArm::process_rotation_motor_feedback(CANRxFrame const *rxmsg) {
+    if (rxmsg->SID != 0x205) return;
+    rotation_motor_angle_raw = (uint16_t) (rxmsg->data8[0] << 8 | rxmsg->data8[1]);
+}
+
+void RoboticArm::set_rotation_motor_target_current(int target_current) {
+    rotation_motor_target_current = target_current;
+}
+
+bool RoboticArm::send_rotation_motor_target_current() {
+
+    if (!can) return false;
+
+    CANTxFrame txmsg;
+
+    // Fill the header
+    txmsg.IDE = CAN_IDE_STD;
+    txmsg.SID = 0x1FF;
+    txmsg.RTR = CAN_RTR_DATA;
+    txmsg.DLC = 0x08;
+
+    txmsg.data8[0] = (uint8_t) (rotation_motor_target_current >> 8);
+    txmsg.data8[1] = (uint8_t) rotation_motor_target_current;
+    txmsg.data8[2] = txmsg.data8[3] = txmsg.data8[4] = txmsg.data8[5] = txmsg.data8[6] = txmsg.data8[7] = 0;
+
+    can->send_msg(&txmsg);
+    return true;
+
+}
 
 FetchBulletThread::FetchBulletThread(ioportid_t ioportid, ioportmask_t ioportmask,
-        uint16_t delay_1, uint16_t delay_2, uint16_t delay_3, CANInterface *can_interface)
+                                     uint16_t delay_1, uint16_t delay_2, uint16_t delay_3, CANInterface *can_interface)
         : BaseStaticThread<128>() {
     /**
      * @brief   construct a FetchBullrtThread object
@@ -52,20 +99,20 @@ void FetchBulletThread::main(void) {
     txmsg.DLC = 0x08;   //TODO: There may be a bug, I don't understand can interface very well
     txmsg.data16[0] = (uint16_t) (rotate_current);
     txmsg.data16[1] = txmsg.data16[2] = txmsg.data16[3] = (uint16_t) 0U;
-    while(!shouldTerminate()) {
+    while (!shouldTerminate()) {
         if (mode == INACTIVE) {
             //hold machine hand to ready for holding the box
             txmsg.data16[0] = (uint16_t) (inactive_current);
             can->send_msg(&txmsg);
             sleep(TIME_MS2I(5));
             continue;
-        }else if (mode == MACHINE_HAND_CLAMP) {
+        } else if (mode == MACHINE_HAND_CLAMP) {
             //clamp once, delay delay1 time unit
             palWritePad(_ioportid, _ioportmask, PAL_HIGH);
             sleep(TIME_MS2I(delay1));
             mode = ROTATE;
             continue;
-        }else if (mode == ROTATE){
+        } else if (mode == ROTATE) {
             //rotate the machine hand
             txmsg.data16[0] = (uint16_t) (rotate_current);
             can->send_msg(&txmsg);

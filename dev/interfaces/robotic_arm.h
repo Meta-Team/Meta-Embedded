@@ -15,35 +15,43 @@ static uint16_t rotate_current = 30;  //TODO change it
 static uint16_t release_current = 30;  //TODO change it
 static uint16_t inactive_current = 30;  //TODO: change it
 
+// TODO: make sure that there is no CAN conflicts
+/**
+ * @pre rotation motor CAN ID = 5
+ * @pre clamp connect to PH2
+ */
 class RoboticArm {
 
 public:
 
-    static void process_rotation_motor_feedback(CANRxFrame *rxFrame);
-
-    static void set_initial_angle_as_current();
-
-    enum motor_status_t {
-        MOTOR_READY,
-        MOTOR_ROTATED
-    };
-
-    static motor_status_t get_motor_status();
-
-    static bool motor_act(motor_status_t target_status);
-
+    static uint16_t get_rotation_motor_angle_raw();
 
     enum clamp_status_t {
-        CLAMP_RELAX,
-        CLAMP_CLAMPED
+        CLAMP_RELAX = PAL_LOW,
+        CLAMP_CLAMPED = PAL_HIGH
     };
 
     static clamp_status_t get_clamp_status();
 
     static void clamp_action(clamp_status_t target_status);
 
+    static void set_rotation_motor_target_current(int target_current);
+
+    static bool send_rotation_motor_target_current();
+
+    static void init(CANInterface *can_interface);
+
 private:
+
     static clamp_status_t _clamp_status; // local storage
+    static uint16_t rotation_motor_angle_raw;
+    static int rotation_motor_target_current;
+
+    static void process_rotation_motor_feedback(CANRxFrame const*rxmsg);
+
+    static CANInterface *can;
+
+    friend CANInterface;
 
 };
 
