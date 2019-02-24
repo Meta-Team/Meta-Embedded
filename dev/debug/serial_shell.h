@@ -87,8 +87,8 @@ public:
      * @note NO ERROR CHECK
      */
     static inline float atof(const char* s){
-        int rez = 0;
-        float fact = 1;
+        float rez = 0.0f;
+        float fact = 1.0f;
         if (*s == '-'){
             s++;
             fact = -1;
@@ -98,10 +98,14 @@ public:
                 point_seen = 1;
                 continue;
             };
-            if (point_seen) fact /= 10.0f;
-            rez = rez * 10 + (*s - '0');
+            if (point_seen) {
+                fact /= 10.0f;
+                rez = rez + (float) (*s - '0') * fact;
+            } else {
+                rez = rez * 10.0f + (float) (*s - '0');
+            }
         };
-        return (float) rez * fact;
+        return rez;
     };
 };
 

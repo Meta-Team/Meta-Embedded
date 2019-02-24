@@ -6,9 +6,9 @@
 #include "port_to_string.h"
 
 #if defined(BOARD_RM_2017) // press to be low
-#define BUTTON_PRESS_PAL_STATUS PAL_HIGH
+#define BUTTON_PRESS_PAL_STATUS PAL_LOW
 #elif defined(BOARD_RM_2018_A) // press to be high
-#define BUTTON_PRESS_PAL_STATUS PAL_LOW 
+#define BUTTON_PRESS_PAL_STATUS PAL_HIGH 
 #endif
 
 class ButtonMonitorThread : public chibios_rt::BaseStaticThread<128> {

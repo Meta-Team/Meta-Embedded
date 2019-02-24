@@ -76,29 +76,36 @@ target_compile_definitions(ENGINEER PRIVATE VEHICLE=ENGINEER)
 # Blink
 add_executable(ut_blink
         dev/module/button_monitor.cpp
-        dev/debug/main_blink.cpp)
+        dev/debug/unit_tests/main_blink.cpp)
 
 # Remote Interpreter: include remote_interpreter sources and the unit test modules.
 add_executable(ut_remote_interpreter
         dev/interfaces/remote_interpreter.cpp
-        dev/interfaces/remote_interpreter_unit_test.cpp)
+        dev/debug/unit_tests/remote_interpreter_unit_test.cpp)
 
 # MPU6500: include MP6500 interface and unit test.
 add_executable(ut_mpu6500
         dev/interfaces/mpu6500.cpp
-        dev/interfaces/mpu6500_unit_test.cpp)
-
-# Elevator Interface: include CANInterface, ElevatorInterface, and the unit test modules.
-add_executable(ut_elevator
-        dev/interfaces/can_interface.cpp
-        dev/interfaces/elevator_interface.cpp
-        dev/interfaces/elevator_interface_unit_test.cpp)
+        dev/debug/unit_tests//mpu6500_unit_test.cpp)
 
 # Buzzer: inlcude Buzzer interface and unit test.
 add_executable(ut_buzzer
         dev/interfaces/buzzer.cpp
-        dev/interfaces/buzzer_unit_test.cpp)
+        dev/debug/unit_tests/buzzer_unit_test.cpp)
 
+# Chassis Interface: include chassis interface sources and the unit test modules.
+add_executable(ut_chassis_interface
+        dev/interfaces/can_interface.cpp
+        dev/interfaces/chassis_interface.cpp
+        dev/debug/unit_tests/chassis_interface_unit_test.cpp)
+
+# Chassis: include chassis interface, chassis controller and the unit test modules.
+add_executable(ut_chassis
+        dev/interfaces/can_interface.cpp
+        dev/interfaces/chassis_interface.cpp
+        dev/module/pid_controller.cpp
+        dev/control/chassis_controller.cpp
+        dev/debug/unit_tests/chassis_controller_unit_test.cpp)
 
 # =========== Post Configurations for all targets ===========
 

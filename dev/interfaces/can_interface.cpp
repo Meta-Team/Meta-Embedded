@@ -4,8 +4,16 @@
 
 #include "can_interface.h"
 
-void CANInterface::start_can() {
+chibios_rt::ThreadReference CANInterface::start(tprio_t prio) {
     canStart(can_driver, &can_cfg);
+    return chibios_rt::BaseStaticThread <256>::start(prio);
+}
+
+bool CANInterface::register_callback(uint32_t sid_lower_bound, uint32_t sid_upper_bound,
+                                     CANInterface::can_callback_func callback_func) {
+    if (callback_list_count >= maximum_registration_count) return false;
+    callback_list[callback_list_count++] = {sid_lower_bound, sid_upper_bound, callback_func};
+    return true;
 }
 
 void CANInterface::main() {
@@ -26,18 +34,23 @@ void CANInterface::main() {
 
         // Wait until a event occurs, or timeout
         if (waitAnyEventTimeout(ALL_EVENTS, TIME_MS2I(100)) == 0) {
-            // TODO: maybe here is the way to detect lost of signal
+            // TODO: maybe here is the place to detect lost of signal
             continue;
         }
 
         // Process every received message
         while (canReceive(can_driver, CAN_ANY_MAILBOX, &rxmsg, TIME_IMMEDIATE) == MSG_OK) {
             chSysLock();
-            rx_callback (&rxmsg);
+            for (int i = 0; i < callback_list_count; i++) {
+                if (rxmsg.SID >= callback_list[i].sid_lower_bound && rxmsg.SID <= callback_list[i].sid_upper_bound) {
+                    callback_list[i].callback_func(&rxmsg);
+                }
+            }
             chSysUnlock();
         }
 
     }
+
     chEvtUnregister(&(can_driver->rxfull_event), &el);
 }
 
