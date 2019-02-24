@@ -9,37 +9,56 @@
 #include "serial_shell.h"
 #include "can_interface.h"
 #include "gimbal_interface.h"
-#include "gimbal_feedback_module.h"
 
 using namespace chibios_rt;
 
-/**
- * @brief callback function for CAN1
- * @param rxmsg
- */
-static void can1_callback(CANRxFrame *rxmsg) {
-    switch (rxmsg->SID) {
-        case 0x205:
-        case 0x206:
-            GimbalInterface::process_motor_feedback(rxmsg);
-            break;
-        default:
-            break;
+CANInterface can1(&CAND1);
+int const gimbal_feedback_interval = 25; // ms
+
+class GimbalFeedbackThread : public chibios_rt::BaseStaticThread<512> {
+
+public:
+
+    GimbalFeedbackThread() {
+        enable_yaw_feedback = false;
+        enable_pitch_feedback = false;
     }
-}
 
-float empty_target_angle = 0.0;
-float empty_target_velocity = 0.0;
+    bool enable_yaw_feedback;
+    bool enable_pitch_feedback;
 
-CANInterface can1(&CAND1, can1_callback);
-GimbalFeedbackModule feedbackModule(200,  // 200ms interval
-                                    &empty_target_angle,
-                                    &empty_target_velocity,
-                                    &GimbalInterface::yaw.target_current,
-                                    &empty_target_angle,
-                                    &empty_target_velocity,
-                                    &GimbalInterface::pitch.target_current);
+private:
 
+    void main() final {
+        setName("gimbal_fb");
+        while (!shouldTerminate()) {
+
+            if (enable_yaw_feedback) {
+                Shell::printf("!gy,%u,%.2f,%.2f,%.2f,%.2f,%d,%d" SHELL_NEWLINE_STR,
+                              TIME_I2MS(chibios_rt::System::getTime()),
+                              GimbalInterface::yaw.actual_angle, 0.0f,
+                              GimbalInterface::yaw.angular_velocity, 0.0f,
+                              GimbalInterface::yaw.actual_current, GimbalInterface::yaw.target_current);
+//        Shell::printf("yaw round = %d" SHELL_NEWLINE_STR,
+//                      GimbalInterface::yaw.round_count);
+            }
+
+            if (enable_pitch_feedback) {
+                Shell::printf("!gp,%u,%.2f,%.2f,%.2f,%.2f,%d,%d" SHELL_NEWLINE_STR,
+                              TIME_I2MS(chibios_rt::System::getTime()),
+                              GimbalInterface::pitch.actual_angle, 0.0f,
+                              GimbalInterface::pitch.angular_velocity, 0.0f,
+                              GimbalInterface::pitch.actual_current, GimbalInterface::pitch.target_current);
+//        Shell::printf("pitch round = %d" SHELL_NEWLINE_STR,
+//                      GimbalInterface::pitch.round_count);
+            }
+
+            sleep(TIME_MS2I(gimbal_feedback_interval));
+        }
+
+    }
+
+} gimbalFeedbackThread;
 
 /**
  * @brief set enabled state of yaw and pitch motor
@@ -164,12 +183,10 @@ int main(void) {
     Shell::start(HIGHPRIO);
     Shell::addCommands(remoteShellCommands);
 
-    feedbackModule.start_thread(NORMALPRIO);
     gimbalThread.start(NORMALPRIO + 1);
 
-    can1.start_can();
-    can1.start_thread(HIGHPRIO - 1);
-    GimbalInterface::start(&can1);
+    can1.start(HIGHPRIO - 1);
+    GimbalInterface::init(&can1);
 
     // See chconf.h for what this #define means.
 #if CH_CFG_NO_IDLE_THREAD

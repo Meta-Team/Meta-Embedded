@@ -1,5 +1,6 @@
 //
 // Created by liuzikai on 2018/7/16.
+// NOTICE: this file is needed to avoid multiple definitions of set_led_when_halt()
 //
 
 #include "led.h"

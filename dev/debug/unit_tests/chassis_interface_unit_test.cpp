@@ -12,25 +12,7 @@
 
 using namespace chibios_rt;
 
-/**
- * @brief callback function for CAN1
- * @param rxmsg
- */
-static void can1_callback(CANRxFrame *rxmsg) {
-    switch (rxmsg->SID) {
-        case 0x201:
-        case 0x202:
-        case 0x203:
-        case 0x204:
-            LED::green_toggle();
-            ChassisInterface::process_chassis_feedback(rxmsg);
-            break;
-        default:
-            break;
-    }
-}
-
-CANInterface can1(&CAND1, can1_callback);
+CANInterface can1(&CAND1);
 
 /**
  * @brief echo acutal angular velocity and target current of each motor
@@ -115,10 +97,8 @@ int main(void) {
     Shell::start(HIGHPRIO);
     Shell::addCommands(chassisCommands);
 
-
-    can1.start_can();
-    can1.start_thread(HIGHPRIO - 1);
-    ChassisInterface::set_can_interface(&can1);
+    can1.start(HIGHPRIO - 1);
+    ChassisInterface::init(&can1);
 
     chassisThread.start(NORMALPRIO);
 
