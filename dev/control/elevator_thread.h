@@ -10,6 +10,7 @@
 
 #include "elevator_interface.h"
 
+#include "chassis_common.h"
 #include "chassis_interface.h"
 #include "chassis_controller.h"
 
@@ -30,6 +31,8 @@ public:
     bool start_down_actions(tprio_t prio);
 
     void emergency_stop();
+
+    float chassis_target_vx = 0;
 
 private:
 

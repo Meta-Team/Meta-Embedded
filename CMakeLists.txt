@@ -117,7 +117,11 @@ add_executable(ut_elevator_interface
 add_executable(ut_elevator
         dev/interfaces/can_interface.cpp
         dev/interfaces/elevator_interface.cpp
-        dev/debug/unit_tests/elevator_interface_unit_test.cpp dev/control/elevator_thread.cpp dev/control/elevator_thread.h)
+        dev/interfaces/chassis_interface.cpp
+        dev/control/chassis_controller.cpp
+        dev/module/pid_controller.cpp
+        dev/debug/unit_tests/engineer_chassis_elevator_unit_test.cpp
+        dev/control/elevator_thread.cpp)
 
 # =========== Post Configurations for all targets ===========
 

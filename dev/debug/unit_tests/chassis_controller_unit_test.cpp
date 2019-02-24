@@ -10,6 +10,7 @@
 #include "can_interface.h"
 #include "chassis_interface.h"
 #include "chassis_controller.h"
+#include "elevator_interface.h"
 
 using namespace chibios_rt;
 
@@ -174,6 +175,7 @@ int main(void) {
 
     can1.start(HIGHPRIO - 1);
     ChassisInterface::init(&can1);
+    ElevatorInterface::init(&can1);
 
     chassisFeedbackThread.start(NORMALPRIO - 1);
     chassisThread.start(NORMALPRIO);

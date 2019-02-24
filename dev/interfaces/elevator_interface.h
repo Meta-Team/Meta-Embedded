@@ -112,7 +112,7 @@ private:
     static constexpr unsigned int can_group_id = 3;
     static constexpr uint8_t feedback_interval = 100;
     static constexpr uint16_t driver_pwm = 2500;  // the pwm of the current
-    static constexpr int stable_range = 400; // the range that is regarded as target has been reached. [qc], 0.1 cm
+    static constexpr int stable_range = 1000; // the range that is regarded as target has been reached. [qc], 0.4 cm
 
 };
 
