@@ -422,18 +422,6 @@ protected:
     }
 } gimbalThread;
 
-class MPU6500Thread : public BaseStaticThread<256> {
-protected:
-    void main() final {
-        setName("mpu6500");
-        MPU6500Controller::start();
-        while (!shouldTerminate()) {
-            MPU6500Controller::getData();
-            sleep(TIME_MS2I(100));
-        }
-    }
-} mpu6500Thread;
-
 
 int main(void) {
     halInit();
@@ -444,7 +432,7 @@ int main(void) {
     Shell::start(HIGHPRIO);
     Shell::addCommands(gimbalCotrollerCommands);
 
-    mpu6500Thread.start(HIGHPRIO - 3);
+    MPU6500Controller::start(HIGHPRIO - 3);
 
     gimbalFeedbackThread.start(NORMALPRIO);
 
