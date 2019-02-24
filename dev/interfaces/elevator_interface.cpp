@@ -11,45 +11,51 @@ ElevatorInterface::UnitInterface ElevatorInterface::elevator_wheels[4] = {GPIOE_
 CANInterface *ElevatorInterface::can = nullptr;
 
 
-bool ElevatorInterface::send_target_position() {
+bool ElevatorInterface::send_target_position(int wheel_index) {
 
-    for (int wheel_index = 0; wheel_index < WHEEL_COUNT; wheel_index++) {
-        CANTxFrame txFrame;
+    CANTxFrame txFrame;
 
-        // Set the PWM for the wheel.
-        txFrame.IDE = CAN_IDE_STD;
-        txFrame.RTR = CAN_RTR_DATA;
-        txFrame.DLC = 0x08;
-        txFrame.SID = 0x315 + 0x10 * (uint32_t) wheel_index;
-        txFrame.data8[0] = (uint8_t) ((driver_pwm >> 8) & 0xFF);
-        txFrame.data8[1] = (uint8_t) (driver_pwm & 0xFF);
-        txFrame.data8[2] = txFrame.data8[3] = 0x55;
-        txFrame.data8[4] = (uint8_t) ((target_position[wheel_index / 2] >> 24) & 0xFF);
-        txFrame.data8[5] = (uint8_t) ((target_position[wheel_index / 2] >> 16) & 0xFF);
-        txFrame.data8[6] = (uint8_t) ((target_position[wheel_index / 2] >> 8) & 0xFF);
-        txFrame.data8[7] = (uint8_t) (target_position[wheel_index / 2] & 0xFF);
+    // Set the PWM for the wheel.
+    txFrame.IDE = CAN_IDE_STD;
+    txFrame.RTR = CAN_RTR_DATA;
+    txFrame.DLC = 0x08;
+    txFrame.SID = 0x315 + 0x10 * (uint32_t) wheel_index;
+    txFrame.data8[0] = (uint8_t) ((driver_pwm >> 8) & 0xFF);
+    txFrame.data8[1] = (uint8_t) (driver_pwm & 0xFF);
+    txFrame.data8[2] = txFrame.data8[3] = 0x55;
+    txFrame.data8[4] = (uint8_t) ((target_position[wheel_index / 2] >> 24) & 0xFF);
+    txFrame.data8[5] = (uint8_t) ((target_position[wheel_index / 2] >> 16) & 0xFF);
+    txFrame.data8[6] = (uint8_t) ((target_position[wheel_index / 2] >> 8) & 0xFF);
+    txFrame.data8[7] = (uint8_t) (target_position[wheel_index / 2] & 0xFF);
 
-        can->send_msg(&txFrame);
-
-    }
+    can->send_msg(&txFrame);
 
     return true;
 }
 
-bool ElevatorInterface::set_target_position(float front_wheel_position_cm, float rear_wheel_position_cm) {
-    if (front_wheel_position_cm > 0 || rear_wheel_position_cm > 0) return false;
+bool ElevatorInterface::apply_front_position(float front_wheel_position_cm) {
+    if (front_wheel_position_cm > 0) return false;
     target_position[0] = (int32_t) (front_wheel_position_cm * 40000);
-    target_position[1] = (int32_t) (rear_wheel_position_cm * 40000);
+    send_target_position(FRONT_LEFT);
+    send_target_position(FRONT_RIGHT);
     return true;
 }
 
-bool ElevatorInterface::process_feedback(CANRxFrame *rxmsg) {
-    if (((rxmsg->SID >> 8) & 0xF) != can_group_id) return false;
-    if ((rxmsg->SID & 0xF) != 0xB) return false;
+bool ElevatorInterface::apply_rear_position(float rear_wheel_position_cm) {
+    if (rear_wheel_position_cm > 0) return false;
+    target_position[1] = (int32_t) (rear_wheel_position_cm * 40000);
+    send_target_position(REAR_LEFT);
+    send_target_position(REAR_RIGHT);
+    return true;
+}
+
+void ElevatorInterface::process_feedback(CANRxFrame const*rxmsg) {
+    if (((rxmsg->SID >> 8) & 0xF) != can_group_id) return;
+    if ((rxmsg->SID & 0xF) != 0xB) return;
 
     unsigned int index = ((rxmsg->SID >> 4) & 0xF) - 1; // wheel_id = can_id - 1
 
-    if (index > WHEEL_COUNT) return false;
+    if (index > WHEEL_COUNT) return;
 
     elevator_wheels[index].real_current = (rxmsg->data8[0] << 8) | rxmsg->data8[1];
     elevator_wheels[index].real_velocity = (rxmsg->data8[2] << 8) | rxmsg->data8[3];
@@ -58,13 +64,12 @@ bool ElevatorInterface::process_feedback(CANRxFrame *rxmsg) {
 
     elevator_wheels[index].is_actioning = !ABS_IN_RANGE(
             elevator_wheels[index].real_position - target_position[index / 2], stable_range);
-
-    return true;
 }
 
 void ElevatorInterface::init(CANInterface *can_interface) {
 
     can = can_interface;
+    can->register_callback(0x31B, 0x34B, process_feedback);
 
     CANTxFrame txFrame;
 
@@ -96,7 +101,7 @@ void ElevatorInterface::init(CANInterface *can_interface) {
     can->send_msg(&txFrame);
 
 
-    /* Step 4: Set the PWM for the four wheels. Function ID = 5 */
+    /* Step 4: Set the PWM and target position = 0 for the four wheels. Function ID = 5 */
     txFrame.SID = (can_group_id << 8 | 0x05); // Use id 0 for broadcast
     for (int wheel_index = 0; wheel_index < 4; wheel_index++) {
         txFrame.data8[0] = (uint8_t) ((driver_pwm >> 8) & 0xFF);

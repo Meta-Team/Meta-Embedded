@@ -12,24 +12,7 @@
 
 using namespace chibios_rt;
 
-/**
- * @brief callback function for CAN1
- * @param rxmsg
- */
-static void can1_callback(CANRxFrame *rxmsg) {
-    switch (rxmsg->SID) {
-        case 0x31B:
-        case 0x32B:
-        case 0x33B:
-        case 0x34B:
-            ElevatorInterface::process_feedback(rxmsg);
-            break;
-        default:
-            break;
-    }
-}
-
-CANInterface can1(&CAND1, can1_callback);
+CANInterface can1(&CAND1);
 
 static void cmd_elevator_set_target_position(BaseSequentialStream *chp, int argc, char *argv[]) {
     (void) argv;
@@ -37,8 +20,8 @@ static void cmd_elevator_set_target_position(BaseSequentialStream *chp, int argc
         shellUsage(chp, "e_set front_pos[cm] back_pos[cm]");
         return;
     }
-    ElevatorInterface::set_target_position(Shell::atof(argv[0]), Shell::atof(argv[1]));
-    ElevatorInterface::send_target_position();
+    ElevatorInterface::apply_rear_position(Shell::atof(argv[0]));
+    ElevatorInterface::apply_front_position(Shell::atof(argv[1]));
     chprintf(chp, "Target pos = %f, %f" SHELL_NEWLINE_STR, Shell::atof(argv[0]), Shell::atof(argv[1]));
 }
 
@@ -87,8 +70,7 @@ int main(void) {
 
     LED::green_off();
 
-    can1.start_can();
-    can1.start_thread(HIGHPRIO - 1);
+    can1.start(HIGHPRIO - 1);
 
     elevatorThread.start(NORMALPRIO);
     // See chconf.h for what this #define means.

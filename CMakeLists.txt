@@ -76,7 +76,7 @@ target_compile_definitions(ENGINEER PRIVATE VEHICLE=ENGINEER)
 # Blink
 add_executable(ut_blink
         dev/module/button_monitor.cpp
-        dev/debug/unit_tests/main_blink.cpp)
+        dev/debug/unit_tests/main_blink.cpp dev/debug/unit_tests/engineer_chassis_elevator_unit_test.cpp)
 
 # Remote Interpreter: include remote_interpreter sources and the unit test modules.
 add_executable(ut_remote_interpreter
@@ -106,6 +106,18 @@ add_executable(ut_chassis
         dev/module/pid_controller.cpp
         dev/control/chassis_controller.cpp
         dev/debug/unit_tests/chassis_controller_unit_test.cpp)
+
+# Elevator Interface: include CANInterface, ElevatorInterface, and the unit test modules.
+add_executable(ut_elevator_interface
+        dev/interfaces/can_interface.cpp
+        dev/interfaces/elevator_interface.cpp
+        dev/debug/unit_tests/elevator_interface_unit_test.cpp)
+
+# Elevator: include CANInterface, ElevatorInterface, ElevatorController, and the unit test modules.
+add_executable(ut_elevator
+        dev/interfaces/can_interface.cpp
+        dev/interfaces/elevator_interface.cpp
+        dev/debug/unit_tests/elevator_interface_unit_test.cpp dev/control/elevator_controller.cpp dev/control/elevator_controller.h)
 
 # =========== Post Configurations for all targets ===========
 

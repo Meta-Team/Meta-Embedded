@@ -21,14 +21,22 @@ public:
         REAR_RIGHT,
         WHEEL_COUNT // = 4
     };
-    
+
     /**
-     * @brief set the target position for both the front wheels and the rear wheels
-     * @param front_wheel_position_cm      the target position of the front wheels, - for downward
-     * @param rear_wheel_position_cm       the target position of the rear wheels, - for downward
+     * @brief set the target position for the front wheels
+     * @param front_wheel_position_cm the target position of the front wheels, - for downward
+     * @return whether the position is valid 
      * @note we grant that the startup position is the lowest point, so this function DISALLOW positive position
      */
-    static bool set_target_position(float front_wheel_position_cm, float rear_wheel_position_cm);
+    static bool apply_front_position(float front_wheel_position_cm);
+
+    /**
+     * @brief set the target position for the rear wheels
+     * @param rear_wheel_position_cm the target position of the rear wheels, - for downward
+     * @return whether the position is valid 
+     * @note we grant that the startup position is the lowest point, so this function DISALLOW positive position
+     */
+    static bool apply_rear_position(float rear_wheel_position_cm);
 
 
     /** Unit Interface **/
@@ -39,9 +47,11 @@ public:
         int16_t real_velocity;  // the real velocity of the motor
 
         bool get_action_status();
+
         bool get_safety_button_status();
 
-        UnitInterface(): UnitInterface(0xFF) {};
+        UnitInterface() : UnitInterface(0xFF) {};
+
         UnitInterface(unsigned int safety_button_pin_id) : safety_button_pin(safety_button_pin_id) {};
 
     private:
@@ -59,23 +69,10 @@ public:
     static UnitInterface elevator_wheels[4];
 
     /**
-     * @brief Get the feedback (real position, real velocity, real current) of each motor from the driver
-     * @return true if success, false otherwise
-     */
-    static bool process_feedback(CANRxFrame *rxmsg);
-
-
-    /**
-     * @brief send message of each motor
-     * @return true if success, false otherwise
-     */
-    static bool send_target_position();
-
-    /**
      * @brief set the CAN interface
      * @param can_interface
      */
-    static void init(CANInterface* can_interface);
+    static void init(CANInterface *can_interface);
 
 private:
 
@@ -94,13 +91,25 @@ private:
         REAR_RIGHT_CAN_ID = 4
     };
 
-    static CANInterface* can;
+    /**
+     * @brief send message of each motor
+     * @return true if success, false otherwise
+     */
+    static bool send_target_position(int wheel_index);
+
+    /**
+     * @brief Get the feedback (real position, real velocity, real current) of each motor from the driver
+     * @return true if success, false otherwise
+     */
+    static void process_feedback(CANRxFrame const*rxmsg);
+
+    static CANInterface *can;
 
 private:
 
     /** Configurations **/
 
-    static constexpr unsigned int can_group_id  = 3;
+    static constexpr unsigned int can_group_id = 3;
     static constexpr uint8_t feedback_interval = 100;
     static constexpr uint16_t driver_pwm = 2500;  // the pwm of the current
     static constexpr int stable_range = 400; // the range that is regarded as target has been reached. [qc], 0.1 cm
