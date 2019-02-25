@@ -167,8 +167,8 @@ add_executable(ut_elevator
 
 # Robotic Arm
 add_executable(ut_robotic_arm
-        dev/interfaces/can_interface.cpp
-        dev/interfaces/robotic_arm.cpp
+        dev/interface/can_interface.cpp
+        dev/interface/robotic_arm.cpp
         dev/control/robotic_arm_thread.cpp
         dev/debug/unit_tests/engineer_robotic_arm_unit_test.cpp)
 

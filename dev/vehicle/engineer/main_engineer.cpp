@@ -35,10 +35,12 @@
 #include "remote_interpreter.h"
 #include "chassis_interface.h"
 #include "elevator_interface.h"
+#include "robotic_arm.h"
 
 // Controllers
 #include "chassis_calculator.h"
 #include "elevator_thread.h"
+#include "robotic_arm_thread.h"
 
 /**
  * Mode Table:
@@ -59,6 +61,7 @@ CANInterface can1(&CAND1);
 /** Threads **/
 
 ElevatorThread elevatorThread;
+RoboticArmThread roboticArmThread;
 
 /**
  * @name ChassisThread
@@ -149,11 +152,37 @@ class ActionTriggerThread : public chibios_rt::BaseStaticThread<512> {
                     has_started_buzzer = false;
                     has_started_elevator = false;
                 }
+            }
+
+            if (Remote::rc.s1 == Remote::REMOTE_RC_S_MIDDLE && Remote::rc.s2 == Remote::REMOTE_RC_S_MIDDLE) {
+
+                ElevatorInterface::apply_front_position(-20);
+                ElevatorInterface::apply_rear_position(-20);
+
+                if (Remote::rc.ch1 > 0.8) {
+                    if (start_time_pushing_ch1 == 0) {
+                        start_time_pushing_ch1 = chVTGetSystemTime();
+                    } else {
+                        if (TIME_MS2I(chVTGetSystemTime() - start_time_pushing_ch1) > 1500 && !has_started_buzzer) {
+                            Buzzer::play_sound(Buzzer::sound_alert, LOWPRIO);
+                            has_started_buzzer = true;
+                        }
+
+                        if (TIME_MS2I(chVTGetSystemTime() - start_time_pushing_ch1) > 4000 && !has_started_elevator) {
+                            roboticArmThread.start_actions(NORMALPRIO + 1);
+                            has_started_elevator = true;
+                        }
+                    }
+                } else {
+                    start_time_pushing_ch1 = 0;
+                    has_started_buzzer = false;
+                    has_started_elevator = false;
+                }
             } else {
-                start_time_pushing_ch1 = 0;
-                has_started_buzzer = false;
-                has_started_elevator = false;
-            } else if (Remote::rc.s1 == Remote::REMOTE_RC_S_MIDDLE && Remote::rc.s2 == Remote::REMOTE_RC_S_DOWN) {
+                ElevatorInterface::apply_front_position(0);
+                ElevatorInterface::apply_rear_position(0);
+            }
+
             sleep(TIME_MS2I(action_trigger_thread_interval));
         }
     }
@@ -178,6 +207,7 @@ int main(void) {
 
     ChassisInterface::init(&can1);
     ElevatorInterface::init(&can1);
+    RoboticArm::init(&can1);
 
     /*** ------------ Period 2. Calibration and Start Logic Control Thread ----------- ***/
 
@@ -190,6 +220,8 @@ int main(void) {
     /** User has pressed the button **/
 
     LED::green_on();
+
+    RoboticArm::reset_front_angle();
 
     actionTriggerThread.start(HIGHPRIO - 2);
 
