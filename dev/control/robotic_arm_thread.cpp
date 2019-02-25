@@ -66,7 +66,7 @@ void RoboticArmThread::main() {
     sleep(TIME_MS2I(2000));
 
     // Step 4. Rotate to motor_inward_boundary_angle
-    RoboticArm::set_motor_target_current(4500);
+    RoboticArm::set_motor_target_current(10000);
     while (RoboticArm::get_motor_actual_angle() < -67) {
         RoboticArm::send_motor_target_current();
         sleep(TIME_MS2I(motor_action_interval));
@@ -78,24 +78,26 @@ void RoboticArmThread::main() {
         sleep(TIME_MS2I(motor_action_interval));
     }
 
-    // Step 5. Wait for motor to reach motor_inside_target_angle
-    RoboticArm::set_motor_target_current(-1200);
-    while (RoboticArm::get_motor_actual_angle() < -5) {
+//    // Step 5. Wait for motor to reach motor_inside_target_angle
+//    RoboticArm::set_motor_target_current(-1200);
+//    while (RoboticArm::get_motor_actual_angle() < -5) {
+//        RoboticArm::send_motor_target_current();
+//        sleep(TIME_MS2I(motor_action_interval));
+//    }
+
+    // Step
+    RoboticArm::set_motor_target_current(0);
+    RoboticArm::send_motor_target_current();
+    sleep(TIME_MS2I(2000));
+
+    // Step
+    RoboticArm::set_motor_target_current(-8000);
+    while (RoboticArm::get_motor_actual_angle() > -65) {
         RoboticArm::send_motor_target_current();
         sleep(TIME_MS2I(motor_action_interval));
     }
 
-//    // Step
-//    RoboticArm::set_motor_target_current(0);
-//    RoboticArm::send_motor_target_current();
-//    sleep(TIME_MS2I(2000));
-//
-//    // Step
-//    RoboticArm::set_motor_target_current(-3000);
-//    while (RoboticArm::get_motor_actual_angle() > -65) {
-//        RoboticArm::send_motor_target_current();
-//        sleep(TIME_MS2I(motor_action_interval));
-//    }
+    RoboticArm::clamp_action(RoboticArm::CLAMP_RELAX);
 
     // Complete
 
