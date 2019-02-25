@@ -14,6 +14,14 @@
 
 #include "buzzer.h"
 
+#if defined(BOARD_RM_2018_A)
+#define STARTUP_BUTTON_PAD GPIOB
+#define STARTUP_BUTTON_PIN_ID GPIOB_USER_BUTTON
+#define STARTUP_BUTTON_PRESS_PAL_STATUS PAL_HIGH
+#else
+#error "Robitic Arm Unit Test is only developed for RM board 2018 A."
+#endif
+
 CANInterface can1(&CAND1);
 RoboticArmThread roboticArmThread;
 
@@ -36,8 +44,8 @@ static void cmd_robotic_arm_action(BaseSequentialStream *chp, int argc, char *ar
         shellUsage(chp, "engi_fetch");
         return;
     }
-    roboticArmThread.start_actions(NORMALPRIO);
-    chprintf(chp, "Start up action." SHELL_NEWLINE_STR);
+    int ret = roboticArmThread.start_actions(NORMALPRIO);
+    chprintf(chp, "Start up action = %d" SHELL_NEWLINE_STR, ret);
 }
 
 static void cmd_robotic_arm_emergency_stop(BaseSequentialStream *chp, int argc, char *argv[]) {
@@ -80,10 +88,18 @@ int main(void) {
     can1.start(HIGHPRIO - 1);
     RoboticArm::init(&can1);
 
-    chThdSleepMilliseconds(1000);
+    chThdSleepMilliseconds(2000);
     RoboticArm::reset_front_angle();
 
+    while (palReadPad(STARTUP_BUTTON_PAD, STARTUP_BUTTON_PIN_ID) != STARTUP_BUTTON_PRESS_PAL_STATUS) {
+        // Wait for the button to be pressed
+        LED::green_toggle();
+        chThdSleepMilliseconds(300);
+    }
+
 //    feedbackThread.start(NORMALPRIO);
+
+    roboticArmThread.start_actions(NORMALPRIO);
 
     Buzzer::play_sound(Buzzer::sound_startup, LOWPRIO);
 

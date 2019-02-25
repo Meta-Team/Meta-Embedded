@@ -53,7 +53,7 @@ private:
 
     void main() final;
 
-    chibios_rt::ThreadReference start(tprio_t prio) final {return nullptr;}; // delete this function
+    chibios_rt::ThreadReference start(tprio_t) final {return nullptr;}; // delete this function
 
 private:
 
@@ -76,6 +76,9 @@ private:
 
     // If actual angle is SMALLER than motor_outward_boundary_angle, no current will supply to the rotation motor
     static constexpr float motor_outward_boundary_angle = -65;
+
+    // If actual angle is SMALLER than motor_outward_boundary_angle, no current will supply to the rotation motor
+    static constexpr float motor_outward_cushion_angle = -95;
 };
 
 

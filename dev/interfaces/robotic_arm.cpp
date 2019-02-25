@@ -20,14 +20,17 @@ RoboticArm::clamp_status_t RoboticArm::get_clamp_status() {
 
 void RoboticArm::clamp_action(RoboticArm::clamp_status_t target_status) {
     _clamp_status = target_status;
-    palWritePad(GPIOH, GPIOH_ROBOTIC_ARM_CLAMP, _clamp_status);
+    palWritePad(GPIOH, GPIOH_POWER1_CTRL, _clamp_status);
 }
 
 void RoboticArm::init(CANInterface *can_interface) {
     can = can_interface;
     can->register_callback(0x205, 0x205, process_motor_feedback);
 
-    palSetPadMode(GPIOH, GPIOH_ROBOTIC_ARM_CLAMP, PAL_MODE_OUTPUT_PUSHPULL);
+    palSetPad(GPIOH, GPIOH_POWER3_CTRL);
+
+    palSetPadMode(GPIOH, GPIOH_POWER1_CTRL, PAL_MODE_OUTPUT_PUSHPULL);
+    palClearPad(GPIOH, GPIOH_POWER1_CTRL);
 
 }
 
@@ -75,6 +78,7 @@ bool RoboticArm::send_motor_target_current() {
     txmsg.data8[2] = txmsg.data8[3] = txmsg.data8[4] = txmsg.data8[5] = txmsg.data8[6] = txmsg.data8[7] = 0;
 
     can->send_msg(&txmsg);
+
     return true;
 
 }
