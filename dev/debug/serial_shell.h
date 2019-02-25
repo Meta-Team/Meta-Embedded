@@ -100,9 +100,10 @@ public:
     static inline float atof(const char* s){
         float rez = 0.0f;
         float fact = 1.0f;
+        float sign = 1.0f;
         if (*s == '-'){
             s++;
-            fact = -1;
+            sign = -1.0f;
         }
         for (int point_seen = 0; *s; s++){
             if (*s == '.'){
@@ -116,7 +117,7 @@ public:
                 rez = rez * 10.0f + (float) (*s - '0');
             }
         };
-        return rez;
+        return rez * sign;
     };
 };
 

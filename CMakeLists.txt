@@ -84,8 +84,10 @@ add_executable(ENGINEER
         dev/interface/chassis_interface.cpp
         dev/interface/remote_interpreter.cpp
         dev/interface/elevator_interface.cpp
+        dev/interface/robotic_arm.cpp
         dev/control/chassis_calculator.cpp
         dev/control/elevator_thread.cpp
+        dev/control/robotic_arm_thread.cpp
         dev/vehicle/engineer/main_engineer.cpp)
 target_include_directories(ENGINEER PRIVATE dev/vehicle/engineer)
 target_compile_definitions(ENGINEER PRIVATE ENGINEER)

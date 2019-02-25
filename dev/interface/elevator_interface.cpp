@@ -34,7 +34,7 @@ bool ElevatorInterface::send_target_position(int wheel_index) {
 }
 
 bool ElevatorInterface::apply_front_position(float front_wheel_position_cm) {
-    if (front_wheel_position_cm > 0) return false;
+//    if (front_wheel_position_cm > 0) return false;
     target_position[0] = (int32_t) (front_wheel_position_cm * 40000);
     send_target_position(FRONT_LEFT);
     send_target_position(FRONT_RIGHT);
@@ -43,7 +43,7 @@ bool ElevatorInterface::apply_front_position(float front_wheel_position_cm) {
 }
 
 bool ElevatorInterface::apply_rear_position(float rear_wheel_position_cm) {
-    if (rear_wheel_position_cm > 0) return false;
+//    if (rear_wheel_position_cm > 0) return false;
     target_position[1] = (int32_t) (rear_wheel_position_cm * 40000);
     send_target_position(REAR_LEFT);
     send_target_position(REAR_RIGHT);
