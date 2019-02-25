@@ -12,7 +12,7 @@
 
 #include "chassis_common.h"
 #include "chassis_interface.h"
-#include "chassis_controller.h"
+#include "chassis_calculator.h"
 
 #define ELEVATOR_THREAD_WORKING_AREA_SIZE 512
 
@@ -47,7 +47,7 @@ private:
 
     void main() final;
 
-    chibios_rt::ThreadReference start(tprio_t prio) final {return nullptr;}; // delete this function
+    chibios_rt::ThreadReference start(tprio_t) final {return nullptr;}; // delete this function
 
 private:
 

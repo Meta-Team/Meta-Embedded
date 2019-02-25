@@ -2,35 +2,22 @@
 // Created by liuzikai on 2019-01-27.
 //
 
-// Header for vehicle. VEHICLE is set for each target in CMakeLists.txt.
-
-// Basic headers (including board defintions)
+// Basic headers (including board definitions, so they should be at the very beginning)
 #include "ch.hpp"
 #include "hal.h"
 
-#define INFANTRY_ONE 1
-#define HERO 2
-#define ENGINEER 3
-#define INFANTRY_TWO 4
-#define INFANTRY_THREE 5
-
-#if defined(INFANTRY_ONE)
-#ifndef BOARD_RM_2017
-#error "Infantry #1 is only developed for RM board 2017."
-#endif
-#include "vehicle/infantry/vehicle_infantry_one.h"
-#elif defined(ENGINEER)
-#include "vehicle_engineer.h"
+#if defined(INFANTRY_ONE) // defined in CMakeLists.txt.
+#include "vehicle_infantry_one.h"
+#else
+#error "main_infantry.cpp should only be used for Infantry #1."
 #endif
 
-#if defined(BOARD_RM_2017)
+#if defined(BOARD_RM_2017) // defined in board.h (included in hal.h)
 #define STARTUP_BUTTON_PAD GPIOD
 #define STARTUP_BUTTON_PIN_ID GPIOD_USER_BUTTON
 #define STARTUP_BUTTON_PRESS_PAL_STATUS PAL_LOW
-#elif defined(BOARD_RM_2018_A)
-#define STARTUP_BUTTON_PAD GPIOB
-#define STARTUP_BUTTON_PIN_ID GPIOB_USER_BUTTON
-#define STARTUP_BUTTON_PRESS_PAL_STATUS PAL_LOW
+#else
+#error "Infantry #1 is only developed for RM board 2017."
 #endif
 
 // Debug headers

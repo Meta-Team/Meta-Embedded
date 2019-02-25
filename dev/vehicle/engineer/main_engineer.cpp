@@ -4,33 +4,22 @@
 
 // Header for vehicle. VEHICLE is set for each target in CMakeLists.txt.
 
-// Basic headers (including board defintions)
+// Basic headers (including board definitions, so they should be at the very beginning)
 #include "ch.hpp"
 #include "hal.h"
 
-#define INFANTRY_ONE 1
-#define HERO 2
-#define ENGINEER 3
-#define INFANTRY_TWO 4
-#define INFANTRY_THREE 5
-
-#if defined(INFANTRY_ONE)
-#ifndef BOARD_RM_2017
-#error "Infantry #1 is only developed for RM board 2017."
-#endif
-#include "vehicle/infantry/vehicle_infantry_one.h"
-#elif defined(ENGINEER)
+#if defined(ENGINEER) // defined in CMakeLists.txt.
 #include "vehicle_engineer.h"
+#else
+#error "main_engineer.cpp should only be used for Infantry #1."
 #endif
 
-#if defined(BOARD_RM_2017)
-#define STARTUP_BUTTON_PAD GPIOD
-#define STARTUP_BUTTON_PIN_ID GPIOD_USER_BUTTON
-#define STARTUP_BUTTON_PRESS_PAL_STATUS PAL_LOW
-#elif defined(BOARD_RM_2018_A)
+#if defined(BOARD_RM_2018_A) // defined in board.h (included in hal.h)
 #define STARTUP_BUTTON_PAD GPIOB
 #define STARTUP_BUTTON_PIN_ID GPIOB_USER_BUTTON
-#define STARTUP_BUTTON_PRESS_PAL_STATUS PAL_LOW
+#define STARTUP_BUTTON_PRESS_PAL_STATUS PAL_HIGH
+#else
+#error "Engineer is only developed for RM board 2018 A."
 #endif
 
 // Debug headers
@@ -43,14 +32,13 @@
 
 // Interfaces
 #include "buzzer.h"
-#include "mpu6500.h"
 #include "remote_interpreter.h"
-#include "gimbal_interface.h"
 #include "chassis_interface.h"
+#include "elevator_interface.h"
 
 // Controllers
-#include "gimbal_calculator.h"
 #include "chassis_calculator.h"
+#include "elevator_thread.h"
 
 /**
  * Mode Table:
@@ -58,9 +46,7 @@
  * Left  Right  Mode
  * ------------------------------------------------------------
  *  UP    *     Safe
- *  MID   UP    Remote - Gimbal (right) + Chassis XY (left)
- *  MID   MID   Remote - Gimbal (right) + Shooting (left)
- *  MID   DOWN  Remote - Chassis XY (right) + Chassis W (left)
+ *  MID  DOWN   Remote - Chassis + Elevator
  *  -Others-    Safe
  * ------------------------------------------------------------
  */
@@ -72,89 +58,7 @@ CANInterface can1(&CAND1);
 
 /** Threads **/
 
-/**
- * @name GimbalThread
- * @brief thread to control gimbal, including shooting mechanism
- * @pre RemoteInterpreter start receive
- * @pre initialize GimbalInterface with CAN driver
- * @pre start the thread of updating MPU6500
- * @pre reset front angle properly
- */
-class GimbalThread : public chibios_rt::BaseStaticThread<1024> {
-
-    static constexpr unsigned int gimbal_thread_interval = 10; // [ms]
-    static constexpr float gimbal_remote_mode_friction_wheel_duty_cycle = 1.0;
-
-    void main() final {
-        setName("gimbal");
-
-        GimbalController::yaw.v_to_i_pid.change_parameters(GIMBAL_PID_YAW_V2I_PARAMS);
-        GimbalController::yaw.angle_to_v_pid.change_parameters(GIMBAL_PID_YAW_A2V_PARAMS);
-        GimbalController::pitch.v_to_i_pid.change_parameters(GIMBAL_PID_PITCH_V2I_PARAMS);
-        GimbalController::pitch.angle_to_v_pid.change_parameters(GIMBAL_PID_PITCH_A2V_PARAMS);
-
-        GimbalInterface::yaw.enabled = GimbalInterface::pitch.enabled = true;
-
-        GimbalController::bullet_loader.v_to_i_pid.change_parameters(GIMBAL_PID_BULLET_LOADER_V2I_PARAMS);
-        GimbalInterface::bullet_loader.enabled = GimbalInterface::friction_wheels.enabled = true;
-
-        bool has_start_incontinuous_mode = false;
-
-        while (!shouldTerminate()) {
-
-            /*** Yaw and Pitch Motors ***/
-            if (Remote::rc.s1 == Remote::REMOTE_RC_S_MIDDLE &&
-                (Remote::rc.s2 == Remote::REMOTE_RC_S_UP || Remote::rc.s2 == Remote::REMOTE_RC_S_MIDDLE)) {
-
-                // Target angle -> target velocity
-                float yaw_target_velocity = GimbalController::yaw.angle_to_v(GimbalInterface::yaw.actual_angle,
-                                                                             -Remote::rc.ch0 * 60);
-                float pitch_target_velocity = GimbalController::pitch.angle_to_v(GimbalInterface::pitch.actual_angle,
-                                                                                 -Remote::rc.ch1 * 20);
-                // Target velocity -> target current
-                GimbalInterface::yaw.target_current = (int) GimbalController::yaw.v_to_i(
-                        GIMBAL_YAW_ACTUAL_VELOCITY, yaw_target_velocity);
-                GimbalInterface::pitch.target_current = (int) GimbalController::pitch.v_to_i(
-                        GIMBAL_PITCH_ACTUAL_VELOCITY, pitch_target_velocity);
-
-            } else {
-                GimbalInterface::yaw.target_current = GimbalInterface::pitch.target_current = 0;
-            }
-
-            /*** Friction Wheels and Bullet Loader ***/
-            if (Remote::rc.s1 == Remote::REMOTE_RC_S_MIDDLE && Remote::rc.s2 == Remote::REMOTE_RC_S_MIDDLE) {
-                GimbalInterface::friction_wheels.duty_cycle = gimbal_remote_mode_friction_wheel_duty_cycle;
-                GimbalController::bullet_loader.update_accumulation_angle(GimbalInterface::bullet_loader.get_accumulate_angle());
-                if (Remote::rc.ch3 < 0.1) {
-                    if (!GimbalController::bullet_loader.get_shooting_status()) {
-                        GimbalController::bullet_loader.start_continuous_shooting();
-                    }
-                    GimbalInterface::bullet_loader.target_current = (int) GimbalController::bullet_loader.get_target_current(
-                            GimbalInterface::bullet_loader.angular_velocity, -Remote::rc.ch3 * 360);
-                } else if (Remote::rc.ch3 > 0.2) {
-                    if (!GimbalController::bullet_loader.get_shooting_status() && !has_start_incontinuous_mode) {
-                        GimbalController::bullet_loader.start_incontinuous_shooting(10);
-                        has_start_incontinuous_mode = true;
-                    }
-                    GimbalInterface::bullet_loader.target_current = (int) GimbalController::bullet_loader.get_target_current(
-                            GimbalInterface::bullet_loader.angular_velocity, 270);
-                } else {
-                    if (GimbalController::bullet_loader.get_shooting_status()) {
-                        GimbalController::bullet_loader.stop_shooting();
-                        has_start_incontinuous_mode = false;
-                    }
-                }
-            } else {
-                GimbalInterface::friction_wheels.duty_cycle = 0;
-                GimbalInterface::bullet_loader.target_current = 0;
-            }
-
-            GimbalInterface::send_gimbal_currents();
-
-            sleep(TIME_MS2I(gimbal_thread_interval));
-        }
-    }
-} gimbalThread;
+ElevatorThread elevatorThread;
 
 /**
  * @name ChassisThread
@@ -173,17 +77,25 @@ class ChassisThread : public chibios_rt::BaseStaticThread<1024> {
 
         while (!shouldTerminate()) {
 
-            if (Remote::rc.s1 == Remote::REMOTE_RC_S_MIDDLE &&
-                (Remote::rc.s2 == Remote::REMOTE_RC_S_UP || Remote::rc.s2 == Remote::REMOTE_RC_S_DOWN)) {
+            if (Remote::rc.s1 == Remote::REMOTE_RC_S_MIDDLE && Remote::rc.s2 == Remote::REMOTE_RC_S_DOWN) {
 
-                float target_vx = -Remote::rc.ch2 * 1000.0f;
-                float target_vy = -Remote::rc.ch3 * 1000.0f;
+                float target_vx;
+                float target_vy;
                 float target_w;
-                if (Remote::rc.s2 == Remote::REMOTE_RC_S_DOWN) {
-                    target_w = Remote::rc.ch0 * 180.0f;
+
+                if (elevatorThread.get_status() != elevatorThread.STOP) {
+                    target_vx = -Remote::rc.ch2 * 1000.0f;
+                    target_vy = -Remote::rc.ch3 * 1000.0f;
+                    if (Remote::rc.s2 == Remote::REMOTE_RC_S_DOWN) {
+                        target_w = Remote::rc.ch0 * 180.0f;
+                    } else {
+                        target_w = 0;
+                    }
                 } else {
-                    target_w = 0;
+                    target_vx = target_w = 0;
+                    target_vy = elevatorThread.get_chassis_target_vy();
                 }
+
 
                 // Pack the actual velocity into an array
                 float measured_velocity[4];
@@ -207,6 +119,45 @@ class ChassisThread : public chibios_rt::BaseStaticThread<1024> {
     }
 } chassisThread;
 
+class ActionTriggerThread : public chibios_rt::BaseStaticThread<512> {
+    static constexpr int action_trigger_thread_interval = 20; // [ms]
+
+    systime_t start_time_pushing_ch1 = 0;
+    bool has_started_buzzer = false;
+    bool has_started_elevator = false;
+
+    void main() final {
+        setName("action_trigger");
+        while (!shouldTerminate()) {
+            if (Remote::rc.s1 == Remote::REMOTE_RC_S_MIDDLE && Remote::rc.s2 == Remote::REMOTE_RC_S_DOWN) {
+                if (Remote::rc.ch1 > 0.8) {
+                    if (start_time_pushing_ch1 == 0) {
+                        start_time_pushing_ch1 = chVTGetSystemTime();
+                    } else {
+                        if (TIME_MS2I(chVTGetSystemTime() - start_time_pushing_ch1) > 2000 && !has_started_buzzer) {
+                            Buzzer::play_sound(Buzzer::sound_alert, LOWPRIO);
+                            has_started_buzzer = true;
+                        }
+
+                        if (TIME_MS2I(chVTGetSystemTime() - start_time_pushing_ch1) > 4000 && !has_started_elevator) {
+                            elevatorThread.start_up_actions(NORMALPRIO + 1);
+                            has_started_elevator = true;
+                        }
+                    }
+                } else {
+                    start_time_pushing_ch1 = 0;
+                    has_started_buzzer = false;
+                    has_started_elevator = false;
+                }
+            } else {
+                start_time_pushing_ch1 = 0;
+                has_started_buzzer = false;
+                has_started_elevator = false;
+            }
+            sleep(TIME_MS2I(action_trigger_thread_interval));
+        }
+    }
+} actionTriggerThread;
 
 int main(void) {
 
@@ -223,12 +174,10 @@ int main(void) {
 
     /** Basic IO Setup **/
     can1.start(HIGHPRIO - 1);
-    MPU6500Controller::start(HIGHPRIO - 2);
     Remote::start_receive();
 
-    GimbalInterface::init(&can1);
     ChassisInterface::init(&can1);
-
+    ElevatorInterface::init(&can1);
 
     /*** ------------ Period 2. Calibration and Start Logic Control Thread ----------- ***/
 
@@ -242,13 +191,10 @@ int main(void) {
 
     LED::green_on();
 
-    /** Gimbal Calibration **/
-    GimbalInterface::yaw.reset_front_angle();
-    GimbalInterface::pitch.reset_front_angle();
+    actionTriggerThread.start(HIGHPRIO - 2);
 
     /** Start Logic Control Thread **/
-    gimbalThread.start(NORMALPRIO);
-    chassisThread.start(NORMALPRIO - 1);
+    chassisThread.start(NORMALPRIO);
 
     /** Play the Startup Sound **/
     Buzzer::play_sound(Buzzer::sound_startup_intel, LOWPRIO);

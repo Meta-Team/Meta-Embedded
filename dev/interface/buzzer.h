@@ -104,6 +104,10 @@ private:
 
 public:
 
+    static constexpr note_with_time_t sound_alert[] = {
+            {Do1M, 300}, {Silent, 100}, {Do1M, 300}, {Silent, 100}, {Do1M, 300}, {Silent, 100}, {Finish, 0}
+    };
+
     static constexpr note_with_time_t sound_startup[] = {
             {So5L, 250}, {Si7L, 250}, {Re2M, 250}, {Do1M, 250}, {Mi3M, 250}, {So5M, 250}, {Silent, 250}, {Finish, 250}
     };
