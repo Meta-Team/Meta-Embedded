@@ -42,7 +42,8 @@ void ElevatorThread::main() {
         /** Step 1. Lower all wheels **/
         ElevatorInterface::apply_front_position(-stage_height_);
         ElevatorInterface::apply_rear_position(-stage_height_);
-        while (ElevatorInterface::elevator_wheels[0].is_in_action() ||
+        // FIXME: FIGURE OUT WHY WHEEL 0 STOP FEEDBACK
+        while (/*ElevatorInterface::elevator_wheels[0].is_in_action() ||*/
                ElevatorInterface::elevator_wheels[1].is_in_action() ||
                ElevatorInterface::elevator_wheels[2].is_in_action() ||
                ElevatorInterface::elevator_wheels[3].is_in_action()) {
@@ -62,7 +63,8 @@ void ElevatorThread::main() {
 
         /** Step 3. Lift the front wheels **/
         ElevatorInterface::apply_front_position(0);
-        while (ElevatorInterface::elevator_wheels[0].is_in_action() ||
+        // FIXME: FIGURE OUT WHY WHEEL 0 STOP FEEDBACK
+        while (/*ElevatorInterface::elevator_wheels[0].is_in_action() ||*/
                ElevatorInterface::elevator_wheels[1].is_in_action()) {
             ElevatorInterface::apply_front_position(0);
             sleep(TIME_MS2I(elevator_check_interval_));
