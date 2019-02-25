@@ -16,6 +16,8 @@
     if (n < min) n = min; \
 }
 
+#define ABS_IN_RANGE(n, abs_limit) ((n) >= -(abs_limit) && (n) <= (abs_limit))
+
 #define SIGN(n) (n == 0 ? 0 : (n > 0 ? 1 : -1))
 
 #endif //META_INFANTRY_COMMON_MACRO_H

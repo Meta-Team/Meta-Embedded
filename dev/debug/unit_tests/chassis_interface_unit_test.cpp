@@ -90,12 +90,13 @@ protected:
 int main(void) {
     halInit();
     System::init();
+    LED::green_off();
 
     // Start ChibiOS shell at high priority,
     // so even if a thread stucks, we still have access to shell.
     Shell::start(HIGHPRIO);
     Shell::addCommands(chassisCommands);
-    
+
     can1.start(HIGHPRIO - 1);
     ChassisInterface::init(&can1);
 
