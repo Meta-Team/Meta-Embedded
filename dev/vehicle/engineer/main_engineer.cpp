@@ -134,7 +134,7 @@ class ActionTriggerThread : public chibios_rt::BaseStaticThread<512> {
                     if (start_time_pushing_ch1 == 0) {
                         start_time_pushing_ch1 = chVTGetSystemTime();
                     } else {
-                        if (TIME_MS2I(chVTGetSystemTime() - start_time_pushing_ch1) > 2000 && !has_started_buzzer) {
+                        if (TIME_MS2I(chVTGetSystemTime() - start_time_pushing_ch1) > 1500 && !has_started_buzzer) {
                             Buzzer::play_sound(Buzzer::sound_alert, LOWPRIO);
                             has_started_buzzer = true;
                         }
@@ -153,7 +153,7 @@ class ActionTriggerThread : public chibios_rt::BaseStaticThread<512> {
                 start_time_pushing_ch1 = 0;
                 has_started_buzzer = false;
                 has_started_elevator = false;
-            }
+            } else if (Remote::rc.s1 == Remote::REMOTE_RC_S_MIDDLE && Remote::rc.s2 == Remote::REMOTE_RC_S_DOWN) {
             sleep(TIME_MS2I(action_trigger_thread_interval));
         }
     }

@@ -165,6 +165,14 @@ add_executable(ut_elevator
         dev/debug/unit_tests/engineer_chassis_elevator_unit_test.cpp
         dev/control/elevator_thread.cpp)
 
+# Robotic Arm
+add_executable(ut_robotic_arm
+        dev/interfaces/can_interface.cpp
+        dev/interfaces/robotic_arm.cpp
+        dev/control/robotic_arm_thread.cpp
+        dev/debug/unit_tests/engineer_robotic_arm_unit_test.cpp)
+
+
 # =========== Post Configurations for all targets ===========
 
 # Make all targets compile to this filename to allow upload script to work properly

@@ -36,9 +36,6 @@ bool Shell::start(tprio_t prio) {
 #endif
     };
 
-    // Set the GPIO pins
-    palSetPadMode(GPIOG, 14, PAL_MODE_ALTERNATE(8));
-    palSetPadMode(GPIOG, 9, PAL_MODE_ALTERNATE(8));
     sdStart(&SD6, &shellSerialConfig);
     // Call init provided by shell
     shellInit();
