@@ -8,9 +8,20 @@
 
 #include "shell_debug_commands.h"
 
+#if defined(BOARD_RM_2018_A)
+// RM_BOARD_2018_A: USART6_TX - PG14, USART6_RX - PG9
+#elif defined(BOARD_RM_2017)
+// RM_BOARD_2017: USART6_TX - PG14, USART6_RX - PG9
+#else
+#error "Buzzer interface has not been defined for selected board"
+#endif
+
 /**
- * A serial shell interface.
- * Using SD6 (UART6) as serial port.
+ * @name Shell
+ * @brief a serial shell interface using SD6 (UART6) as serial port.
+ * @pre pins are configured properly in board.h, and driver are configured properly in halconf.h
+ * @usage 1. start() with given thread priority
+ *        2. use functions inside the interface
  */
 class Shell {
 
