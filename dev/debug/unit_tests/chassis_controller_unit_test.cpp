@@ -9,7 +9,7 @@
 #include "serial_shell.h"
 #include "can_interface.h"
 #include "chassis_interface.h"
-#include "chassis_controller.h"
+#include "chassis_calculator.h"
 
 using namespace chibios_rt;
 

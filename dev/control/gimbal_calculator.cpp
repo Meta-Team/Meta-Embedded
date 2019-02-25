@@ -2,7 +2,7 @@
 // Created by liuzikai on 2019-01-05.
 //
 
-#include "gimbal_controller.h"
+#include "gimbal_calculator.h"
 #include "serial_shell.h"
 
 GimbalController::MotorController GimbalController::yaw(GimbalController::YAW_ID);

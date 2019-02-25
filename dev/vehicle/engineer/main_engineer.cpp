@@ -14,12 +14,12 @@
 #define INFANTRY_TWO 4
 #define INFANTRY_THREE 5
 
-#if VEHICLE == INFANTRY_ONE
+#if defined(INFANTRY_ONE)
 #ifndef BOARD_RM_2017
 #error "Infantry #1 is only developed for RM board 2017."
 #endif
-#include "vehicle_infantry_one.h"
-#elif VEHICLE == ENGINEER
+#include "vehicle/infantry/vehicle_infantry_one.h"
+#elif defined(ENGINEER)
 #include "vehicle_engineer.h"
 #endif
 
@@ -49,8 +49,8 @@
 #include "chassis_interface.h"
 
 // Controllers
-#include "gimbal_controller.h"
-#include "chassis_controller.h"
+#include "gimbal_calculator.h"
+#include "chassis_calculator.h"
 
 /**
  * Mode Table:
@@ -262,7 +262,7 @@ int main(void) {
     // ChibiOS idle thread has been disabled, main() should implement infinite loop
     while (true) {}
 #else
-    // When vehicle_configs() quits, the vehicle_configs thread will somehow enter an infinite loop, so we set the
+    // When vehicle() quits, the vehicle thread will somehow enter an infinite loop, so we set the
     // priority to lowest before quitting, to let other threads run normally
     chibios_rt::BaseThread::setPriority(1);
 #endif

@@ -42,17 +42,17 @@ set(COMMON_CPP_SRC  # common cpp sources, which are included to every tartget at
         dev/common/port_to_string.cpp
         dev/debug/serial_shell.cpp
         dev/debug/shell_debug_commands.cpp
-        dev/interfaces/led.cpp
-        dev/interfaces/buzzer.cpp)
+        dev/interface/led.cpp
+        dev/interface/buzzer.cpp)
 
 include_directories(  # common include directories
         dev
         dev/common
         dev/debug
-        dev/interfaces
+        dev/interface
         dev/module
         dev/control
-        dev/vehicle_configs)
+        dev/vehicle)
 
 include_directories(dev/board/${BOARD_NAME})  # include board configs
 
@@ -66,13 +66,13 @@ add_library(ChibiOS_OBJ OBJECT ${CHIBIOS_XASM_SRC} ${CHIBIOS_C_SRC} ${CHIBIOS_CP
 # Main Program -- Infantry #1
 add_executable(INFANTRY_ONE
         dev/module/pid_controller.cpp
-        dev/interfaces/can_interface.cpp
-        dev/interfaces/mpu6500.cpp
-        dev/interfaces/gimbal_interface.cpp
-        dev/interfaces/chassis_interface.cpp
-        dev/interfaces/remote_interpreter.cpp
-        dev/control/gimbal_controller.cpp
-        dev/control/chassis_controller.cpp
+        dev/interface/can_interface.cpp
+        dev/interface/mpu6500.cpp
+        dev/interface/gimbal_interface.cpp
+        dev/interface/chassis_interface.cpp
+        dev/interface/remote_interpreter.cpp
+        dev/control/gimbal_calculator.cpp
+        dev/control/chassis_calculator.cpp
 
         dev/main.cpp)
 target_compile_definitions(INFANTRY_ONE PRIVATE VEHICLE=INFANTRY_ONE)
@@ -89,56 +89,56 @@ add_executable(ut_blink
 
 # Remote Interpreter: include remote_interpreter sources and the unit test modules.
 add_executable(ut_remote_interpreter
-        dev/interfaces/remote_interpreter.cpp
+        dev/interface/remote_interpreter.cpp
         dev/debug/unit_tests/remote_interpreter_unit_test.cpp)
 
 # Gimbal Interface: include CANInterface, GimbalInterface, GimbalFeedbackThread and the unit test modules.
 add_executable(ut_gimbal_interface
-        dev/interfaces/can_interface.cpp
-        dev/interfaces/gimbal_interface.cpp
+        dev/interface/can_interface.cpp
+        dev/interface/gimbal_interface.cpp
         dev/debug/unit_tests/gimbal_interface_unit_test.cpp)
 
 # Gimbal: include CANInterface, GimbalInterface, GimbalController, GimbalFeedbackThread and testmodules.
 add_executable(ut_gimbal
-        dev/interfaces/can_interface.cpp
-        dev/interfaces/gimbal_interface.cpp
+        dev/interface/can_interface.cpp
+        dev/interface/gimbal_interface.cpp
         dev/module/pid_controller.cpp
-        dev/control/gimbal_controller.cpp
+        dev/control/gimbal_calculator.cpp
         dev/debug/unit_tests/gimbal_controller_unit_test.cpp
-        dev/interfaces/mpu6500.cpp)
+        dev/interface/mpu6500.cpp)
 
 # Gimbal: include CANInterface, GimbalInterface, GimbalController, GimbalFeedbackThread and adjustment modules.
 add_executable(pa_gimbal
-        dev/interfaces/can_interface.cpp
-        dev/interfaces/gimbal_interface.cpp
+        dev/interface/can_interface.cpp
+        dev/interface/gimbal_interface.cpp
         dev/module/pid_controller.cpp
-        dev/control/gimbal_controller.cpp
-        dev/interfaces/mpu6500.cpp
+        dev/control/gimbal_calculator.cpp
+        dev/interface/mpu6500.cpp
         dev/debug/unit_tests/gimbal_pid_adjustment_program.cpp)
 
 
 # MPU6500: include MP6500 interface and unit test.
 add_executable(ut_mpu6500
-        dev/interfaces/mpu6500.cpp
+        dev/interface/mpu6500.cpp
         dev/debug/unit_tests//mpu6500_unit_test.cpp)
 
 # Buzzer: inlcude Buzzer interface and unit test.
 add_executable(ut_buzzer
-        dev/interfaces/buzzer.cpp
+        dev/interface/buzzer.cpp
         dev/debug/unit_tests/buzzer_unit_test.cpp)
 
 # Chassis Interface: include chassis interface sources and the unit test modules.
 add_executable(ut_chassis_interface
-        dev/interfaces/can_interface.cpp
-        dev/interfaces/chassis_interface.cpp
+        dev/interface/can_interface.cpp
+        dev/interface/chassis_interface.cpp
         dev/debug/unit_tests/chassis_interface_unit_test.cpp)
 
 # Chassis: include chassis interface, chassis controller and the unit test modules.
 add_executable(ut_chassis
-        dev/interfaces/can_interface.cpp
-        dev/interfaces/chassis_interface.cpp
+        dev/interface/can_interface.cpp
+        dev/interface/chassis_interface.cpp
         dev/module/pid_controller.cpp
-        dev/control/chassis_controller.cpp
+        dev/control/chassis_calculator.cpp
         dev/debug/unit_tests/chassis_controller_unit_test.cpp)
 
 # =========== Post Configurations for all targets ===========
