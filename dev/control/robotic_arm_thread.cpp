@@ -59,13 +59,14 @@ void RoboticArmThread::main() {
 
     RoboticArm::set_motor_target_current(0);
     RoboticArm::send_motor_target_current();
+    sleep(TIME_MS2I(2000));
 
     // Step 3. Clamp
     RoboticArm::clamp_action(RoboticArm::CLAMP_CLAMPED);
     sleep(TIME_MS2I(2000));
 
     // Step 4. Rotate to motor_inward_boundary_angle
-    RoboticArm::set_motor_target_current(4000);
+    RoboticArm::set_motor_target_current(4500);
     while (RoboticArm::get_motor_actual_angle() < -67) {
         RoboticArm::send_motor_target_current();
         sleep(TIME_MS2I(motor_action_interval));
