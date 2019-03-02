@@ -4,9 +4,39 @@
 
 #include "can_interface.h"
 
+#if (CAN_INTERFACE_ENABLE_ERROR_FEEDBACK_THREAD == TRUE)
+
+void CANInterface::ErrorFeedbackThread::main() {
+    setName("can_err_fb");
+
+    event_listener_t el;
+    chEvtRegister(&(can_driver->error_event), &el, 0);
+
+    while (!shouldTerminate()) {
+
+        if (waitAnyEventTimeout(ALL_EVENTS, TIME_MS2I(10000)) == 0) {
+            Shell::printf("--- End of error in CAN in last 10 s ---" SHELL_NEWLINE_STR);
+            continue;
+        }
+
+        eventflags_t flags = chEvtGetAndClearFlags(&el);
+        Shell::printf("CAN error: %u" SHELL_NEWLINE_STR, (unsigned int) flags);
+
+    }
+
+    chEvtUnregister(&(can_driver->rxfull_event), &el);
+}
+
+#endif
+
+
 chibios_rt::ThreadReference CANInterface::start(tprio_t prio) {
     canStart(can_driver, &can_cfg);
-    return chibios_rt::BaseStaticThread <256>::start(prio);
+#if (CAN_INTERFACE_ENABLE_ERROR_FEEDBACK_THREAD == TRUE)
+    errorFeedbackThread.can_driver = can_driver;
+    errorFeedbackThread.start(LOWPRIO);
+#endif
+    return chibios_rt::BaseStaticThread <CAN_INTERFACE_THREAD_WORK_AREA_SIZE>::start(prio);
 }
 
 bool CANInterface::register_callback(uint32_t sid_lower_bound, uint32_t sid_upper_bound,
@@ -40,13 +70,13 @@ void CANInterface::main() {
 
         // Process every received message
         while (canReceive(can_driver, CAN_ANY_MAILBOX, &rxmsg, TIME_IMMEDIATE) == MSG_OK) {
-            chSysLock();
+//            chSysLock();
             for (int i = 0; i < callback_list_count; i++) {
                 if (rxmsg.SID >= callback_list[i].sid_lower_bound && rxmsg.SID <= callback_list[i].sid_upper_bound) {
                     callback_list[i].callback_func(&rxmsg);
                 }
             }
-            chSysUnlock();
+//            chSysUnlock();
         }
 
     }
@@ -61,3 +91,4 @@ bool CANInterface::send_msg(const CANTxFrame *txmsg) {
     }
     return true;
 }
+

@@ -22,6 +22,9 @@
 #error "Buzzer interface has not been defined for selected board"
 #endif
 
+#define CAN_INTERFACE_ENABLE_ERROR_FEEDBACK_THREAD TRUE
+#define CAN_INTERFACE_THREAD_WORK_AREA_SIZE 512
+
 /**
  * @brief CAN driver to receive message and send message
  * @pre CAN pins are configurated properly in board.h
@@ -29,14 +32,14 @@
  *        2. call start() to start the CAN driver and receive thread
  *        3. register callback functions
  */
-class CANInterface : public chibios_rt::BaseStaticThread <256> {
+class CANInterface : public chibios_rt::BaseStaticThread<CAN_INTERFACE_THREAD_WORK_AREA_SIZE> {
 public:
 
     /**
      * @brief initialize a can interface
      * @param driver pointer to can driver
      */
-    CANInterface(CANDriver* driver) : can_driver(driver), callback_list_count(0) {}
+    CANInterface(CANDriver *driver) : can_driver(driver), callback_list_count(0) {}
 
     /**
      * @brief start the CAN driver and the receive thread
@@ -46,7 +49,7 @@ public:
     chibios_rt::ThreadReference start(tprio_t prio);
 
 
-    typedef void (*can_callback_func) (CANRxFrame const *rxmsg); // type of callback function
+    typedef void (*can_callback_func)(CANRxFrame const *rxmsg); // type of callback function
 
     /**
      * @brief register a callback
@@ -65,22 +68,36 @@ public:
     bool send_msg(const CANTxFrame *txmsg);
 
 private:
+#if (CAN_INTERFACE_ENABLE_ERROR_FEEDBACK_THREAD == TRUE)
+
+    class ErrorFeedbackThread : public chibios_rt::BaseStaticThread<512> {
+    public:
+        CANDriver *can_driver;
+    private:
+        void main() final;
+    };
+
+    ErrorFeedbackThread errorFeedbackThread;
+
+#endif
+
+private:
 
     /** Configurations **/
 
     CANConfig can_cfg = {
             CAN_MCR_ABOM | CAN_MCR_AWUM | CAN_MCR_TXFP,
-            CAN_BTR_SJW(0) | CAN_BTR_TS2(3) |
-            CAN_BTR_TS1(8) | CAN_BTR_BRP(2)
+            CAN_BTR_SJW(0) | CAN_BTR_TS2(1) |
+            CAN_BTR_TS1(10) | CAN_BTR_BRP(6)
     };
     static constexpr int transmit_timeout_ms = 10;
     static constexpr int maximum_registration_count = 10;
 
 private:
 
-    CANDriver* can_driver;
+    CANDriver *can_driver;
 
-    struct callback_registeration_t {
+    struct callback_resignation_t {
         uint32_t sid_lower_bound;
         uint32_t sid_upper_bound;
         can_callback_func callback_func;
