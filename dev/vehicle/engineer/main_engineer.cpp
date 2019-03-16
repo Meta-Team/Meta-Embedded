@@ -82,9 +82,7 @@ class ChassisThread : public chibios_rt::BaseStaticThread<1024> {
 
             if (Remote::rc.s1 == Remote::REMOTE_RC_S_MIDDLE && Remote::rc.s2 == Remote::REMOTE_RC_S_DOWN) {
 
-                float target_vx;
-                float target_vy;
-                float target_w;
+                float target_vx, target_vy, target_w;
 
                 if (elevatorThread.get_status() == elevatorThread.STOP) {
                     target_vx = -Remote::rc.ch2 * 1000.0f;

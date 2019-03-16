@@ -1,1 +1,0 @@
-# This file is deprecated, since the build system has been moved to CMake

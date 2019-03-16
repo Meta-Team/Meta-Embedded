@@ -65,7 +65,7 @@ add_library(ChibiOS_OBJ OBJECT ${CHIBIOS_XASM_SRC} ${CHIBIOS_C_SRC} ${CHIBIOS_CP
 # Main Program -- Infantry #1
 add_executable(INFANTRY_ONE
         dev/module/pid_controller.cpp
-        dev/interface/can_interface.cpp
+        dev/module/can_interface.cpp
         dev/interface/mpu6500.cpp
         dev/interface/gimbal_interface.cpp
         dev/interface/chassis_interface.cpp
@@ -80,14 +80,14 @@ target_compile_definitions(INFANTRY_ONE PRIVATE INFANTRY_ONE)
 add_executable(ENGINEER
         dev/module/pid_controller.cpp
         dev/interface/buzzer.cpp
-        dev/interface/can_interface.cpp
+        dev/module/can_interface.cpp
         dev/interface/chassis_interface.cpp
         dev/interface/remote_interpreter.cpp
         dev/interface/elevator_interface.cpp
         dev/interface/robotic_arm.cpp
         dev/control/chassis_calculator.cpp
-        dev/control/elevator_thread.cpp
-        dev/control/robotic_arm_thread.cpp
+        dev/vehicle/engineer/elevator_thread.cpp
+        dev/vehicle/engineer/robotic_arm_thread.cpp
         dev/vehicle/engineer/main_engineer.cpp)
 target_include_directories(ENGINEER PRIVATE dev/vehicle/engineer)
 target_compile_definitions(ENGINEER PRIVATE ENGINEER)
@@ -104,13 +104,13 @@ add_executable(ut_remote_interpreter
 
 # Gimbal Interface: include CANInterface, GimbalInterface, GimbalFeedbackThread and the unit test modules.
 add_executable(ut_gimbal_interface
-        dev/interface/can_interface.cpp
+        dev/module/can_interface.cpp
         dev/interface/gimbal_interface.cpp
         dev/debug/unit_tests/gimbal_interface_unit_test.cpp)
 
 # Gimbal: include CANInterface, GimbalInterface, GimbalController, GimbalFeedbackThread and testmodules.
 add_executable(ut_gimbal
-        dev/interface/can_interface.cpp
+        dev/module/can_interface.cpp
         dev/interface/gimbal_interface.cpp
         dev/module/pid_controller.cpp
         dev/control/gimbal_calculator.cpp
@@ -119,7 +119,7 @@ add_executable(ut_gimbal
 
 # Gimbal: include CANInterface, GimbalInterface, GimbalController, GimbalFeedbackThread and adjustment modules.
 add_executable(pa_gimbal
-        dev/interface/can_interface.cpp
+        dev/module/can_interface.cpp
         dev/interface/gimbal_interface.cpp
         dev/module/pid_controller.cpp
         dev/control/gimbal_calculator.cpp
@@ -139,13 +139,13 @@ add_executable(ut_buzzer
 
 # Chassis Interface: include chassis interface sources and the unit test modules.
 add_executable(ut_chassis_interface
-        dev/interface/can_interface.cpp
+        dev/module/can_interface.cpp
         dev/interface/chassis_interface.cpp
         dev/debug/unit_tests/chassis_interface_unit_test.cpp)
 
 # Chassis: include chassis interface, chassis controller and the unit test modules.
 add_executable(ut_chassis
-        dev/interface/can_interface.cpp
+        dev/module/can_interface.cpp
         dev/interface/chassis_interface.cpp
         dev/module/pid_controller.cpp
         dev/control/chassis_calculator.cpp
@@ -153,25 +153,25 @@ add_executable(ut_chassis
 
 # Elevator Interface: include CANInterface, ElevatorInterface, and the unit test modules.
 add_executable(ut_elevator_interface
-        dev/interface/can_interface.cpp
+        dev/module/can_interface.cpp
         dev/interface/elevator_interface.cpp
         dev/debug/unit_tests/elevator_interface_unit_test.cpp)
 
 # Elevator: include CANInterface, ElevatorInterface, ElevatorController, and the unit test modules.
 add_executable(ut_elevator
-        dev/interface/can_interface.cpp
+        dev/module/can_interface.cpp
         dev/interface/elevator_interface.cpp
         dev/interface/chassis_interface.cpp
         dev/control/chassis_calculator.cpp
         dev/module/pid_controller.cpp
         dev/debug/unit_tests/engineer_chassis_elevator_unit_test.cpp
-        dev/control/elevator_thread.cpp)
+        dev/vehicle/engineer/elevator_thread.cpp)
 
 # Robotic Arm
 add_executable(ut_robotic_arm
-        dev/interface/can_interface.cpp
+        dev/module/can_interface.cpp
         dev/interface/robotic_arm.cpp
-        dev/control/robotic_arm_thread.cpp
+        dev/vehicle/engineer/robotic_arm_thread.cpp
         dev/debug/unit_tests/engineer_robotic_arm_unit_test.cpp)
 
 

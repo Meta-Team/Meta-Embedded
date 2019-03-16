@@ -44,17 +44,17 @@ public:
 
         /**
          * @brief perform calculation with angle_to_v_pid
-         * @param measured_angle
-         * @param target_angle
-         * @return target velocity
+         * @param measured_angle [degree]
+         * @param target_angle [degree]
+         * @return target velocity [degree/s]
          */
         float angle_to_v(float measured_angle, float target_angle);
 
         /**
          * @brief perform calculation with v_to_i_pid
-         * @param measured_velocity
-         * @param target_velocity
-         * @return target current
+         * @param measured_velocity [degree/s]
+         * @param target_velocity [degree/s]
+         * @return target current [mA]
          */
         float v_to_i(float measured_velocity, float target_velocity);
 
