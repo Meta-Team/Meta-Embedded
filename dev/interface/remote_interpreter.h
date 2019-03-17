@@ -59,9 +59,9 @@ public:
     } rc_t;
 
     typedef struct {
-        int x; // speed at x axis. Normalized: -1.0(fastest leftward) - 1.0(fastest rightward)
-        int y; // speed at y axis. Normalized: -1.0(fastest upward) - 1.0(fastest downward)
-        int z; // speed at z axis (unknown). Normalized: -1.0 - 1.0
+        float x; // speed at x axis. Normalized: -1.0(fastest leftward) - 1.0(fastest rightward)
+        float y; // speed at y axis. Normalized: -1.0(fastest upward) - 1.0(fastest downward)
+        float z; // speed at z axis (unknown). Normalized: -1.0 - 1.0
         bool press_left;
         bool press_right;
     } mouse_t;

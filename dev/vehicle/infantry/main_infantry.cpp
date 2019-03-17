@@ -82,14 +82,16 @@ class GimbalThread : public chibios_rt::BaseStaticThread<1024> {
 
     static constexpr float REMOTE_FRICTION_WHEEL_DUTY_CYCLE = 1.0;
 
-    static constexpr float PC_YAW_SPEED_RATIO = 120; // rotation speed when mouse moves at the fastest limit [degree/s]
+    static constexpr float PC_YAW_SPEED_RATIO = 54000; // rotation speed when mouse moves at the fastest limit [degree/s]
     static constexpr float PC_YAW_ANGLE_LIMITATION = 60; // maximum range (both CW and CCW) [degree]
 
-    static constexpr float PC_PITCH_SPEED_RATIO = 30; // rotation speed when mouse moves at the fastest limit [degree/s]
-    static constexpr float PC_PITCH_ANGLE_LIMITATION = 20; // maximum range (both up and down) [degree]
+    static constexpr float PC_PITCH_SPEED_RATIO = 12000; // rotation speed when mouse moves at the fastest limit [degree/s]
+    static constexpr float PC_PITCH_ANGLE_LIMITATION = 15; // maximum range (both up and down) [degree]
 
-    float PC_YAW_CURRENT_TARGET_ANGLE = 0;
-    float PC_PITCH_CURRENT_TARGET_ANGLE = 0;
+    float pc_yaw_current_target_angle = 0;
+    float pc_pitch_current_target_angle = 0;
+
+    bool pc_right_pressed = false;
 
     static constexpr float PC_FRICTION_WHEEL_DUTY_CYCLE = 1.0;
 
@@ -126,25 +128,25 @@ class GimbalThread : public chibios_rt::BaseStaticThread<1024> {
 
             } else if (Remote::rc.s1 == Remote::REMOTE_RC_S_DOWN) { // PC control mode
 
-                // If mouse right button is pressed, reset target angle
-                if (Remote::mouse.press_right) {
-                    PC_YAW_CURRENT_TARGET_ANGLE = PC_PITCH_CURRENT_TARGET_ANGLE = 0;
+                // If V is pressed, reset target angle
+                if (Remote::key.v) {
+                    pc_yaw_current_target_angle = pc_pitch_current_target_angle = 0;
                 } else {
-                    PC_YAW_CURRENT_TARGET_ANGLE +=
-                            Remote::mouse.x * (PC_YAW_SPEED_RATIO * (1000.0f / GIMBAL_THREAD_INTERVAL));
-                    PC_PITCH_CURRENT_TARGET_ANGLE +=
-                            Remote::mouse.y * (PC_PITCH_SPEED_RATIO * (1000.0f / GIMBAL_THREAD_INTERVAL));
+                    pc_yaw_current_target_angle +=
+                            -Remote::mouse.x * (PC_YAW_SPEED_RATIO * (GIMBAL_THREAD_INTERVAL / 1000.0f));
+                    pc_pitch_current_target_angle +=
+                            Remote::mouse.y * (PC_PITCH_SPEED_RATIO * (GIMBAL_THREAD_INTERVAL / 1000.0f));
                 }
 
-                ABS_LIMIT(PC_YAW_CURRENT_TARGET_ANGLE, PC_YAW_ANGLE_LIMITATION);
-                ABS_LIMIT(PC_PITCH_CURRENT_TARGET_ANGLE, PC_PITCH_ANGLE_LIMITATION);
+                ABS_LIMIT(pc_yaw_current_target_angle, PC_YAW_ANGLE_LIMITATION);
+                ABS_LIMIT(pc_pitch_current_target_angle, PC_PITCH_ANGLE_LIMITATION);
 
                 // TODO: find a better way to handle the following duplicate code
                 // PID #1: target angle -> target velocity
                 float yaw_target_velocity = GimbalController::yaw.angle_to_v(GimbalInterface::yaw.actual_angle,
-                                                                             -Remote::rc.ch0 * 60);
+                                                                             pc_yaw_current_target_angle);
                 float pitch_target_velocity = GimbalController::pitch.angle_to_v(GimbalInterface::pitch.actual_angle,
-                                                                                 -Remote::rc.ch1 * 20);
+                                                                                 pc_pitch_current_target_angle);
                 // PID #2: target velocity -> target current
                 GimbalInterface::yaw.target_current = (int) GimbalController::yaw.v_to_i(
                         GIMBAL_YAW_ACTUAL_VELOCITY, yaw_target_velocity);
@@ -156,10 +158,10 @@ class GimbalThread : public chibios_rt::BaseStaticThread<1024> {
             }
 
             /*** Friction Wheels and Bullet Loader ***/
+            GimbalController::bullet_loader.update_accumulation_angle(
+                    GimbalInterface::bullet_loader.get_accumulate_angle());
             if (Remote::rc.s1 == Remote::REMOTE_RC_S_MIDDLE && Remote::rc.s2 == Remote::REMOTE_RC_S_MIDDLE) {
                 GimbalInterface::friction_wheels.duty_cycle = REMOTE_FRICTION_WHEEL_DUTY_CYCLE;
-                GimbalController::bullet_loader.update_accumulation_angle(
-                        GimbalInterface::bullet_loader.get_accumulate_angle());
                 if (Remote::rc.ch3 < 0.1) {
                     if (!GimbalController::bullet_loader.get_shooting_status()) {
                         GimbalController::bullet_loader.start_continuous_shooting();
@@ -173,13 +175,38 @@ class GimbalThread : public chibios_rt::BaseStaticThread<1024> {
                 }
             } else if (Remote::rc.s1 == Remote::REMOTE_RC_S_DOWN) { // PC control mode
 
-                // If mouse left button is pressed, start incontinuous shooting for 6 bullets
+                // If mouse left button is pressed, start continuous shooting
                 if (Remote::mouse.press_left) {
-                    GimbalInterface::friction_wheels.duty_cycle = PC_FRICTION_WHEEL_DUTY_CYCLE;
-                    if (!GimbalController::bullet_loader.get_shooting_status()) {
-                        GimbalController::bullet_loader.start_incontinuous_shooting(6);
+                    // TODO: enable friction in emergency
+                    if (!GimbalController::bullet_loader.get_shooting_status() && GimbalInterface::friction_wheels.duty_cycle > 0) {
+                        GimbalController::bullet_loader.start_continuous_shooting();
+                    }
+
+                } else {
+
+                    if (GimbalController::bullet_loader.get_shooting_status()) {
+                        GimbalController::bullet_loader.stop_shooting();
                     }
                 }
+
+                if (Remote::mouse.press_right) {
+                    if (!pc_right_pressed) {
+                        if (GimbalInterface::friction_wheels.duty_cycle == 0) {
+                            GimbalInterface::friction_wheels.duty_cycle = PC_FRICTION_WHEEL_DUTY_CYCLE;
+                        } else {
+                            GimbalInterface::friction_wheels.duty_cycle = 0;
+                        }
+                        pc_right_pressed = true;
+                    }
+                } else {
+                    if (pc_right_pressed) {
+                        pc_right_pressed = false;
+                    }
+                }
+
+                GimbalInterface::bullet_loader.target_current = (int) GimbalController::bullet_loader.get_target_current(
+                        GimbalInterface::bullet_loader.angular_velocity, 270);
+
             } else {
                 GimbalInterface::friction_wheels.duty_cycle = 0;
                 GimbalInterface::bullet_loader.target_current = 0;
@@ -202,12 +229,12 @@ class ChassisThread : public chibios_rt::BaseStaticThread<1024> {
 
     static constexpr unsigned int chassis_thread_interval = 20;
 
-    static constexpr float PC_W_VY = 1000.0f;
-    static constexpr float PC_S_VY = -1000.0f;
-    static constexpr float PC_D_VX = 1000.0f;
-    static constexpr float PC_A_VX = -1000.0f;
-    static constexpr float PC_Q_W = -180.0f;
-    static constexpr float PC_E_W = 180.0f;
+    static constexpr float PC_W_VY = -600.0f;
+    static constexpr float PC_S_VY = 600.0f;
+    static constexpr float PC_E_VX = -600.0f;
+    static constexpr float PC_Q_VX = 600.0f;
+    static constexpr float PC_A_W = -150.0f;
+    static constexpr float PC_D_W = 150.0f;
 
     static constexpr float PC_CTRL_RATIO = 0.5f;
 
@@ -253,12 +280,12 @@ class ChassisThread : public chibios_rt::BaseStaticThread<1024> {
                 else if (Remote::key.s) target_vy = PC_S_VY;
                 else target_vy = 0;
 
-                if (Remote::key.a) target_vx = PC_A_VX;
-                else if (Remote::key.d) target_vx = PC_D_VX;
+                if (Remote::key.q) target_vx = PC_Q_VX;
+                else if (Remote::key.e) target_vx = PC_E_VX;
                 else target_vx = 0;
 
-                if (Remote::key.q) target_w = PC_Q_W;
-                else if (Remote::key.e) target_w = PC_E_W;
+                if (Remote::key.a) target_w = PC_A_W;
+                else if (Remote::key.d) target_w = PC_D_W;
                 else target_w = 0;
 
                 if (Remote::key.ctrl) {
@@ -333,6 +360,9 @@ int main(void) {
     /** Gimbal Calibration **/
     GimbalInterface::yaw.reset_front_angle();
     GimbalInterface::pitch.reset_front_angle();
+
+    palSetPadMode(GPIOG, GPIOG_PIN13, PAL_MODE_OUTPUT_PUSHPULL);
+    palSetPad(GPIOG, GPIOG_PIN13);
 
     /** Start Logic Control Thread **/
     gimbalThread.start(NORMALPRIO);
