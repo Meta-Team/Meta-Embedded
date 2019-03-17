@@ -87,8 +87,8 @@ private:
 
     CANConfig can_cfg = {
             CAN_MCR_ABOM | CAN_MCR_AWUM | CAN_MCR_TXFP,
-            CAN_BTR_SJW(0) | CAN_BTR_TS2(1) |
-            CAN_BTR_TS1(10) | CAN_BTR_BRP(6)
+            CAN_BTR_SJW(0) | CAN_BTR_TS2(3) |
+            CAN_BTR_TS1(8) | CAN_BTR_BRP(2)
     };
     static constexpr int transmit_timeout_ms = 10;
     static constexpr int maximum_registration_count = 10;

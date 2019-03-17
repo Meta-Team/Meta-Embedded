@@ -17,7 +17,7 @@ CANInterface can1(&CAND1);
 static void cmd_elevator_set_target_position(BaseSequentialStream *chp, int argc, char *argv[]) {
     (void) argv;
     if (argc != 2) {
-        shellUsage(chp, "e_set front_pos[cm] back_pos[cm]");
+        shellUsage(chp, "e_set front_pos[cm] back_pos[cm] positive for VEHICLE to DOWN");
         return;
     }
     ElevatorInterface::apply_rear_position(Shell::atof(argv[0]));
