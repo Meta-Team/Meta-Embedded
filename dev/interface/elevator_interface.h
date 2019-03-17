@@ -27,8 +27,8 @@ class ElevatorInterface {
 public:
 
     enum wheel_t {
-        FRONT_LEFT,
         FRONT_RIGHT,
+        FRONT_LEFT,
         REAR_LEFT,
         REAR_RIGHT,
         WHEEL_COUNT // = 4
@@ -103,8 +103,8 @@ private:
 
 
     enum wheel_can_id_t {
-        FRONT_LEFT_CAN_ID = 1,
-        FRONT_RIGHT_CAN_ID = 2,
+        FRONT_RIGHT_CAN_ID = 1,
+        FRONT_LEFT_CAN_ID = 2,
         REAR_LEFT_CAN_ID = 3,
         REAR_RIGHT_CAN_ID = 4
     };

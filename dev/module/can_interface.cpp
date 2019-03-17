@@ -71,6 +71,8 @@ void CANInterface::main() {
         // Process every received message
         while (canReceive(can_driver, CAN_ANY_MAILBOX, &rxmsg, TIME_IMMEDIATE) == MSG_OK) {
 //            chSysLock();
+            // FIXME: get rid of this debug code
+            if (rxmsg.SID > 0x205) Shell::printf("R 0x%x" SHELL_NEWLINE_STR, (unsigned int) rxmsg.SID);
             for (int i = 0; i < callback_list_count; i++) {
                 if (rxmsg.SID >= callback_list[i].sid_lower_bound && rxmsg.SID <= callback_list[i].sid_upper_bound) {
                     callback_list[i].callback_func(&rxmsg);
@@ -87,6 +89,8 @@ void CANInterface::main() {
 bool CANInterface::send_msg(const CANTxFrame *txmsg) {
     if(canTransmit(can_driver, CAN_ANY_MAILBOX, txmsg, TIME_MS2I(transmit_timeout_ms)) != MSG_OK) {
         // TODO: show debug info for failure
+        // FIXME: get rid of this debug code
+        Shell::printf("T 0x%x" SHELL_NEWLINE_STR, (unsigned int) txmsg->SID);
         return false;
     }
     return true;

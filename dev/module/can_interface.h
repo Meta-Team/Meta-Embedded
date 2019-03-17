@@ -91,7 +91,7 @@ private:
             CAN_BTR_TS1(8) | CAN_BTR_BRP(2)
     };
     static constexpr int transmit_timeout_ms = 10;
-    static constexpr int maximum_registration_count = 10;
+    static constexpr int maximum_registration_count = 20;
 
 private:
 

@@ -55,7 +55,7 @@ void ElevatorInterface::process_feedback(CANRxFrame const*rxmsg) {
     if (((rxmsg->SID >> 8) & 0xF) != can_group_id) return;
     if ((rxmsg->SID & 0xF) != 0xB) return;
 
-    unsigned int index = ((rxmsg->SID >> 4) & 0xF) - 1; // wheel_id = can_id - 1
+    unsigned index = ((rxmsg->SID >> 4) & 0xF) - 1; // wheel_id = can_id - 1
 
     if (index > WHEEL_COUNT) return;
 
@@ -103,14 +103,19 @@ void ElevatorInterface::init(CANInterface *can_interface) {
     can->send_msg(&txFrame);
 
 
+//    txFrame.data8[1] = 0x00;              // turn off feedback of voltages of motor driving pins and PWM
+//    // Other data8 are still 0x55
+//    for (int wheel_index = 0; wheel_index < 4; wheel_index++) {
+//        txFrame.SID = (can_group_id << 8 | (wheel_index + 1) << 4 | 0xA); // index + 1 = CAN ID
+//        txFrame.data8[0] = (uint8_t)(feedback_interval - wheel_index);
+//        can->send_msg(&txFrame);
+//    }
+
     /* Step 4: Set the PWM and target position = 0 for the four wheels. Function ID = 5 */
     txFrame.SID = (can_group_id << 8 | 0x05); // Use id 0 for broadcast
-    for (int wheel_index = 0; wheel_index < 4; wheel_index++) {
-        txFrame.data8[0] = (uint8_t) ((driver_pwm >> 8) & 0xFF);
-        txFrame.data8[1] = (uint8_t) (driver_pwm & 0xFF);
-        txFrame.data8[4] = txFrame.data8[5] = txFrame.data8[6] = txFrame.data8[7] = 0;
-    }
-    // Other data8 are still 0x55
+    txFrame.data8[0] = (uint8_t) ((driver_pwm >> 8) & 0xFF);
+    txFrame.data8[1] = (uint8_t) (driver_pwm & 0xFF);
+    txFrame.data8[4] = txFrame.data8[5] = txFrame.data8[6] = txFrame.data8[7] = 0;
     can->send_msg(&txFrame);
 }
 
