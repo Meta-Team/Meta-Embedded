@@ -135,12 +135,12 @@ class ActionTriggerThread : public chibios_rt::BaseStaticThread<512> {
                     if (start_time_pushing_ch1 == 0) {
                         start_time_pushing_ch1 = chVTGetSystemTime();
                     } else {
-                        if (TIME_MS2I(chVTGetSystemTime() - start_time_pushing_ch1) > 1500 && !has_started_buzzer) {
+                        if (TIME_I2MS(chVTGetSystemTime() - start_time_pushing_ch1) > 1500 && !has_started_buzzer) {
                             Buzzer::play_sound(Buzzer::sound_alert, LOWPRIO);
                             has_started_buzzer = true;
                         }
 
-                        if (TIME_MS2I(chVTGetSystemTime() - start_time_pushing_ch1) > 4000 && !has_started_elevator) {
+                        if (TIME_I2MS(chVTGetSystemTime() - start_time_pushing_ch1) > 4000 && !has_started_elevator) {
                             elevatorThread.start_up_actions(NORMALPRIO + 1);
                             has_started_elevator = true;
                         }
@@ -161,12 +161,12 @@ class ActionTriggerThread : public chibios_rt::BaseStaticThread<512> {
                     if (start_time_pushing_ch1 == 0) {
                         start_time_pushing_ch1 = chVTGetSystemTime();
                     } else {
-                        if (TIME_MS2I(chVTGetSystemTime() - start_time_pushing_ch1) > 1500 && !has_started_buzzer) {
+                        if (TIME_I2MS(chVTGetSystemTime() - start_time_pushing_ch1) > 1500 && !has_started_buzzer) {
                             Buzzer::play_sound(Buzzer::sound_alert, LOWPRIO);
                             has_started_buzzer = true;
                         }
 
-                        if (TIME_MS2I(chVTGetSystemTime() - start_time_pushing_ch1) > 4000 && !has_started_elevator) {
+                        if (TIME_I2MS(chVTGetSystemTime() - start_time_pushing_ch1) > 4000 && !has_started_elevator) {
                             roboticArmThread.start_actions(NORMALPRIO + 1);
                             has_started_elevator = true;
                         }
@@ -186,6 +186,22 @@ class ActionTriggerThread : public chibios_rt::BaseStaticThread<512> {
     }
 } actionTriggerThread;
 
+static void cmd_elevator_set_target_position(BaseSequentialStream *chp, int argc, char *argv[]) {
+    (void) argv;
+    if (argc != 2) {
+        shellUsage(chp, "e_set front_pos[cm] back_pos[cm] positive for VEHICLE to DOWN");
+        return;
+    }
+    ElevatorInterface::apply_rear_position(Shell::atof(argv[0]));
+    ElevatorInterface::apply_front_position(Shell::atof(argv[1]));
+    chprintf(chp, "Target pos = %f, %f" SHELL_NEWLINE_STR, Shell::atof(argv[0]), Shell::atof(argv[1]));
+}
+
+ShellCommand elevatorInterfaceCommands[] = {
+        {"e_set", cmd_elevator_set_target_position},
+        {nullptr, nullptr}
+};
+
 int main(void) {
 
     /*** --------------------------- Period 1. Basic Setup --------------------------- ***/
@@ -198,6 +214,7 @@ int main(void) {
 
     /** Debug Setup **/
     Shell::start(HIGHPRIO);
+    Shell::addCommands(elevatorInterfaceCommands);
 
     /** Basic IO Setup **/
     can1.start(HIGHPRIO - 1);

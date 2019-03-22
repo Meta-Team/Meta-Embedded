@@ -42,9 +42,12 @@ void ElevatorThread::main() {
         /** Step 1. Lower all wheels **/
         ElevatorInterface::apply_front_position(-stage_height_);
         ElevatorInterface::apply_rear_position(-stage_height_);
+
+        Shell::printf("[Elevator] Step 1 completed." SHELL_NEWLINE_STR);
+
         // FIXME: FIGURE OUT WHY WHEEL 0 STOP FEEDBACK
         while (/*ElevatorInterface::elevator_wheels[0].is_in_action() ||*/
-               ElevatorInterface::elevator_wheels[1].is_in_action() ||
+//               ElevatorInterface::elevator_wheels[1].is_in_action() ||
                ElevatorInterface::elevator_wheels[2].is_in_action() ||
                ElevatorInterface::elevator_wheels[3].is_in_action()) {
             ElevatorInterface::apply_front_position(-stage_height_);
@@ -61,6 +64,8 @@ void ElevatorThread::main() {
         chassis_target_vy_ = 0;
         sleep(TIME_MS2I(100));//
 
+        Shell::printf("[Elevator] Step 2 completed." SHELL_NEWLINE_STR);
+
         /** Step 3. Lift the front wheels **/
         ElevatorInterface::apply_front_position(0);
         // FIXME: FIGURE OUT WHY WHEEL 0 STOP FEEDBACK
@@ -72,6 +77,8 @@ void ElevatorThread::main() {
 
         sleep(TIME_MS2I(100));  // Time interval between steps
 
+        Shell::printf("[Elevator] Step 3 completed." SHELL_NEWLINE_STR);
+
         /** Step 4. Move forward to make the front wheels and rear assistant wheel to be on the stage **/
         chassis_target_vy_ = -1000;
         sleep(TIME_MS2I(500));
@@ -81,6 +88,8 @@ void ElevatorThread::main() {
         chassis_target_vy_ = 0;
 
         sleep(TIME_MS2I(100));  // Time interval between steps
+
+        Shell::printf("[Elevator] Step 4 completed." SHELL_NEWLINE_STR);
 
         /** Step 5. Lift the rear wheels **/
         ElevatorInterface::apply_rear_position(0);
@@ -93,6 +102,8 @@ void ElevatorThread::main() {
         sleep(TIME_MS2I(1000));
 
         chassis_target_vy_ = 0;
+
+        Shell::printf("[Elevator] Step 5 completed." SHELL_NEWLINE_STR);
 
         /** Complete **/
         status_ = STOP;
