@@ -147,6 +147,7 @@
  */
 typedef void (*palcallback_t)(void *arg);
 
+#if (PAL_USE_WAIT == TRUE) || (PAL_USE_CALLBACKS == TRUE) || defined(__DOXYGEN__)
 /**
  * @brief   Type of a PAL event record.
  */
@@ -168,6 +169,7 @@ typedef struct {
   void                  *arg;
 #endif
 } palevent_t;
+#endif
 
 #include "hal_pal_lld.h"
 
@@ -912,6 +914,42 @@ typedef struct {
     osalSysUnlock();                                                        \
   } while (false)
 
+/**
+ * @brief   Pad event enable check.
+ *
+ * @param[in] port      port identifier
+ * @param[in] pad       pad number within the port
+ * @return              Pad event status.
+ * @retval false        if the pad event is disabled.
+ * @retval true         if the pad event is enabled.
+ *
+ * @xclass
+ */
+#if !defined(pal_lld_ispadeventenabled) || defined(__DOXYGEN__)
+#define palIsPadEventEnabledX(port, pad) false
+#else
+#define palIsPadEventEnabledX(port, pad)                                    \
+  pal_lld_ispadeventenabled(port, pad)
+#endif
+
+/**
+ * @brief   Line event enable check.
+ *
+ * @param[in] line      line identifier
+ * @return              Line event status.
+ * @retval false        if the line event is disabled.
+ * @retval true         if the line event is enabled.
+ *
+ * @xclass
+ */
+#if !defined(pal_lld_islineeventenabled) || defined(__DOXYGEN__)
+#define palIsLineEventEnabledX(line)                                        \
+  pal_lld_ispadeventenabled(PAL_PORT(line), PAL_PAD(line))
+#else
+#define palIsLineEventEnabledX(line)                                        \
+  pal_lld_islineeventenabled(line)
+#endif
+
 #endif /* PAL_USE_CALLBACKS || PAL_USE_WAIT */
 
 #if (PAL_USE_CALLBACKS == TRUE) || defined(__DOXYGEN__)
@@ -939,7 +977,7 @@ typedef struct {
  * @param[in] cb        event callback function
  * @param[in] arg       callback argument
  *
- * @iclass
+ * @api
  */
 #define palSetLineCallback(line, cb, arg)                                   \
   do {                                                                      \

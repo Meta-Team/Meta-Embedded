@@ -76,7 +76,111 @@ typedef enum {
   DAC_ERROR = 5                     /**< Error.                             */
 } dacstate_t;
 
+/**
+ * @brief   Type of a structure representing an DAC driver.
+ */
+typedef struct hal_dac_driver DACDriver;
+
+/**
+ * @brief   Type of a structure representing an DAC driver configuration.
+ */
+typedef struct hal_dac_config DACConfig;
+
+/**
+ * @brief   Type of a DAC conversion group.
+ */
+typedef struct hal_dac_conversion_group DACConversionGroup;
+
+/* Including the low level driver header, it exports information required
+   for completing types.*/
 #include "hal_dac_lld.h"
+
+/**
+ * @brief   DAC notification callback type.
+ *
+ * @param[in] dacp      pointer to the @p DACDriver object triggering the
+ */
+typedef void (*daccallback_t)(DACDriver *dacp);
+
+/**
+ * @brief   DAC error callback type.
+ *
+ * @param[in] dacp      pointer to the @p DACDriver object triggering the
+ *                      callback
+ * @param[in] err       DAC error code
+ */
+typedef void (*dacerrorcallback_t)(DACDriver *dacp, dacerror_t err);
+
+/**
+ * @brief   DAC Conversion group structure.
+ */
+struct hal_dac_conversion_group {
+  /**
+   * @brief   Number of DAC channels.
+   */
+  uint32_t                  num_channels;
+  /**
+   * @brief   Operation complete callback or @p NULL.
+   */
+  daccallback_t             end_cb;
+  /**
+   * @brief   Error handling callback or @p NULL.
+   */
+  dacerrorcallback_t        error_cb;
+  /* End of the mandatory fields.*/
+  dac_lld_conversion_group_fields;
+};
+
+/**
+ * @brief   Driver configuration structure.
+ */
+struct hal_dac_config {
+  /* End of the mandatory fields.*/
+  dac_lld_config_fields;
+};
+
+/**
+ * @brief   Structure representing a DAC driver.
+ */
+struct hal_dac_driver {
+  /**
+   * @brief   Driver state.
+   */
+  dacstate_t                state;
+  /**
+   * @brief   Conversion group.
+   */
+  const DACConversionGroup  *grpp;
+  /**
+   * @brief   Samples buffer pointer.
+   */
+  dacsample_t               *samples;
+  /**
+   * @brief   Samples buffer size.
+   */
+  size_t                    depth;
+  /**
+   * @brief   Current configuration data.
+   */
+  const DACConfig           *config;
+#if (DAC_USE_WAIT == TRUE) || defined(__DOXYGEN__)
+  /**
+   * @brief   Waiting thread.
+   */
+  thread_reference_t        thread;
+#endif /* DAC_USE_WAIT */
+#if (DAC_USE_MUTUAL_EXCLUSION == TRUE) || defined(__DOXYGEN__)
+  /**
+   * @brief   Mutex protecting the bus.
+   */
+  mutex_t                   mutex;
+#endif /* DAC_USE_MUTUAL_EXCLUSION */
+#if defined(DAC_DRIVER_EXT_FIELDS)
+  DAC_DRIVER_EXT_FIELDS
+#endif
+  /* End of the mandatory fields.*/
+  dac_lld_driver_fields;
+};
 
 /*===========================================================================*/
 /* Driver macros.                                                            */
@@ -86,6 +190,21 @@ typedef enum {
  * @name    Low level driver helper macros
  * @{
  */
+/**
+ * @brief   Buffer state.
+ * @note    This function is meant to be called from the DAC callback only.
+ *
+ * @param[in] dacp      pointer to the @p DACDriver object
+ * @return              The buffer state.
+ * @retval              false if the driver filled/sent the first half of the
+ *                      buffer.
+ * @retval              true if the driver filled/sent the second half of the
+ *                      buffer.
+ *
+ * @special
+ */
+#define dacIsBufferComplete(dacp) ((bool)((dacp)->state == DAC_COMPLETE))
+
 #if (DAC_USE_WAIT == TRUE) || defined(__DOXYGEN__)
 /**
  * @brief   Waits for operation completion.
@@ -167,7 +286,7 @@ typedef enum {
  */
 #define _dac_isr_half_code(dacp) {                                          \
   if ((dacp)->grpp->end_cb != NULL) {                                       \
-    (dacp)->grpp->end_cb(dacp, (dacp)->samples, (dacp)->depth / 2);         \
+    (dacp)->grpp->end_cb(dacp);                                             \
   }                                                                         \
 }
 
@@ -175,7 +294,6 @@ typedef enum {
  * @brief   Common ISR code, full buffer event.
  * @details This code handles the portable part of the ISR code:
  *          - Callback invocation.
- *          - Waiting thread wakeup, if any.
  *          - Driver state transitions.
  *          .
  * @note    This macro is meant to be used in the low level drivers
@@ -186,17 +304,11 @@ typedef enum {
  * @notapi
  */
 #define _dac_isr_full_code(dacp) {                                          \
-  if ((dacp)->grpp->end_cb != NULL) {                                       \
-    if ((dacp)->depth > 1) {                                                \
-      /* Invokes the callback passing the 2nd half of the buffer.*/         \
-      size_t half = (dacp)->depth / 2;                                      \
-      size_t half_index = half * (dacp)->grpp->num_channels;                \
-      (dacp)->grpp->end_cb(dacp, (dacp)->samples + half_index, half);       \
-    }                                                                       \
-    else {                                                                  \
-      /* Invokes the callback passing the whole buffer.*/                   \
-      (dacp)->grpp->end_cb(dacp, (dacp)->samples, (dacp)->depth);           \
-    }                                                                       \
+  if ((dacp)->grpp->end_cb) {                                               \
+    (dacp)->state = DAC_COMPLETE;                                           \
+    (dacp)->grpp->end_cb(dacp);                                             \
+    if ((dacp)->state == DAC_COMPLETE)                                      \
+      (dacp)->state = DAC_ACTIVE;                                           \
   }                                                                         \
 }
 

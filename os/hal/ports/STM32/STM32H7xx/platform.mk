@@ -11,11 +11,15 @@ PLATFORMINC := $(CHIBIOS)/os/hal/ports/common/ARMCMx \
 ifeq ($(USE_SMART_BUILD),yes)
 
 # Configuration files directory
-ifeq ($(CONFDIR),)
-  CONFDIR = .
+ifeq ($(HALCONFDIR),)
+  ifeq ($(CONFDIR),)
+    HALCONFDIR = .
+  else
+    HALCONFDIR := $(CONFDIR)
+  endif
 endif
 
-HALCONF := $(strip $(shell cat $(CONFDIR)/halconf.h | egrep -e "\#define"))
+HALCONF := $(strip $(shell cat $(HALCONFDIR)/halconf.h | egrep -e "\#define"))
 
 else
 endif
@@ -24,9 +28,11 @@ endif
 include $(CHIBIOS)/os/hal/ports/STM32/LLD/ADCv4/driver.mk
 include $(CHIBIOS)/os/hal/ports/STM32/LLD/BDMAv1/driver.mk
 include $(CHIBIOS)/os/hal/ports/STM32/LLD/CRYPv1/driver.mk
-include $(CHIBIOS)/os/hal/ports/STM32/LLD/DMAv3/driver.mk
+include $(CHIBIOS)/os/hal/ports/STM32/LLD/DACv1/driver.mk
+include $(CHIBIOS)/os/hal/ports/STM32/LLD/DMAv2/driver.mk
 include $(CHIBIOS)/os/hal/ports/STM32/LLD/GPIOv2/driver.mk
 include $(CHIBIOS)/os/hal/ports/STM32/LLD/I2Cv3/driver.mk
+include $(CHIBIOS)/os/hal/ports/STM32/LLD/OTGv1/driver.mk
 include $(CHIBIOS)/os/hal/ports/STM32/LLD/SPIv3/driver.mk
 include $(CHIBIOS)/os/hal/ports/STM32/LLD/RTCv2/driver.mk
 include $(CHIBIOS)/os/hal/ports/STM32/LLD/TIMv1/driver.mk

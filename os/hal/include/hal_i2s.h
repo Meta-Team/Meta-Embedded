@@ -62,7 +62,68 @@ typedef enum {
   I2S_COMPLETE = 4                  /**< Transmission complete.             */
 } i2sstate_t;
 
+/**
+ * @brief   Type of a structure representing an I2S driver.
+ */
+typedef struct hal_i2s_driver I2SDriver;
+
+/**
+ * @brief   Type of a structure representing an I2S driver configuration.
+ */
+typedef struct hal_i2s_config I2SConfig;
+
+/**
+ * @brief   I2S notification callback type.
+ *
+ * @param[in] i2sp      pointer to the @p I2SDriver object
+ */
+typedef void (*i2scallback_t)(I2SDriver *i2sp);
+
+/* Including the low level driver header, it exports information required
+   for completing types.*/
 #include "hal_i2s_lld.h"
+
+/**
+ * @brief   Structure representing an I2S driver.
+ */
+struct hal_i2s_driver {
+  /**
+   * @brief   Driver state.
+   */
+  i2sstate_t                state;
+  /**
+   * @brief   Current configuration data.
+   */
+  const I2SConfig           *config;
+  /* End of the mandatory fields.*/
+  i2s_lld_driver_fields;
+};
+
+/**
+ * @brief   Driver configuration structure.
+ */
+struct hal_i2s_config {
+  /**
+   * @brief   Transmission buffer pointer.
+   * @note    Can be @p NULL if TX is not required.
+   */
+  const void                *tx_buffer;
+  /**
+   * @brief   Receive buffer pointer.
+   * @note    Can be @p NULL if RX is not required.
+   */
+  void                      *rx_buffer;
+  /**
+   * @brief   TX and RX buffers size as number of samples.
+   */
+  size_t                    size;
+  /**
+   * @brief   Callback function called during streaming.
+   */
+  i2scallback_t             end_cb;
+  /* End of the mandatory fields.*/
+  i2s_lld_config_fields;
+};
 
 /*===========================================================================*/
 /* Driver macros.                                                            */
@@ -72,6 +133,21 @@ typedef enum {
  * @name    Macro Functions
  * @{
  */
+/**
+ * @brief   Buffer state.
+ * @note    This function is meant to be called from the SPI callback only.
+ *
+ * @param[in] i2sp      pointer to the @p I2SDriver object
+ * @return              The buffer state.
+ * @retval              false if the driver filled/sent the first half of the
+ *                      buffer.
+ * @retval              true if the driver filled/sent the second half of the
+ *                      buffer.
+ *
+ * @special
+ */
+#define i2sIsBufferComplete(i2sp) ((bool)((i2sp)->state == I2S_COMPLETE))
+
 /**
  * @brief   Starts a I2S data exchange.
  *
@@ -112,7 +188,7 @@ typedef enum {
  */
 #define _i2s_isr_half_code(i2sp) {                                          \
   if ((i2sp)->config->end_cb != NULL) {                                     \
-    (i2sp)->config->end_cb(i2sp, 0, (i2sp)->config->size / 2);              \
+    (i2sp)->config->end_cb(i2sp);                                           \
   }                                                                         \
 }
 
@@ -129,17 +205,14 @@ typedef enum {
  *
  * @notapi
  */
-#define _i2s_isr_full_code(i2sp) {                                               \
+#define _i2s_isr_full_code(i2sp) {                                          \
   if ((i2sp)->config->end_cb) {                                             \
     (i2sp)->state = I2S_COMPLETE;                                           \
-    (i2sp)->config->end_cb(i2sp,                                            \
-                           (i2sp)->config->size / 2,                        \
-                           (i2sp)->config->size / 2);                       \
-    if ((i2sp)->state == I2S_COMPLETE)                                      \
-      (i2sp)->state = I2S_READY;                                            \
+    (i2sp)->config->end_cb(i2sp);                                           \
+    if ((i2sp)->state == I2S_COMPLETE) {                                    \
+      (i2sp)->state = I2S_ACTIVE;                                           \
+    }                                                                       \
   }                                                                         \
-  else                                                                      \
-    (i2sp)->state = I2S_READY;                                              \
 }
 /** @} */
 

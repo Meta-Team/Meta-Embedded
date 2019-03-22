@@ -301,9 +301,6 @@
 #error "Invalid DMA priority assigned to SPI6"
 #endif
 
-/* The following checks are only required when there is a DMA able to
-   reassign streams to different channels.*/
-#if STM32_ADVANCED_DMA
 /* Check on the presence of the DMA streams settings in mcuconf.h.*/
 #if STM32_SPI_USE_SPI1 && (!defined(STM32_SPI_SPI1_RX_DMA_STREAM) ||        \
                            !defined(STM32_SPI_SPI1_TX_DMA_STREAM))
@@ -334,6 +331,65 @@
                            !defined(STM32_SPI_SPI6_TX_DMA_STREAM))
 #error "SPI6 DMA streams not defined"
 #endif
+
+/* Check on the validity of the assigned DMA channels.*/
+#if STM32_SPI_USE_SPI1 &&                                                   \
+    !STM32_DMA_IS_VALID_STREAM(STM32_SPI_SPI1_TX_DMA_STREAM)
+#error "Invalid DMA channel assigned to SPI1 TX"
+#endif
+
+#if STM32_SPI_USE_SPI2 &&                                                   \
+    !STM32_DMA_IS_VALID_STREAM(STM32_SPI_SPI2_RX_DMA_STREAM)
+#error "Invalid DMA channel assigned to SPI2 RX"
+#endif
+
+#if STM32_SPI_USE_SPI2 &&                                                   \
+    !STM32_DMA_IS_VALID_STREAM(STM32_SPI_SPI2_TX_DMA_STREAM)
+#error "Invalid DMA channel assigned to SPI2 TX"
+#endif
+
+#if STM32_SPI_USE_SPI3 &&                                                   \
+    !STM32_DMA_IS_VALID_STREAM(STM32_SPI_SPI3_RX_DMA_STREAM)
+#error "Invalid DMA channel assigned to SPI3 RX"
+#endif
+
+#if STM32_SPI_USE_SPI3 &&                                                   \
+    !STM32_DMA_IS_VALID_STREAM(STM32_SPI_SPI3_TX_DMA_STREAM)
+#error "Invalid DMA channel assigned to SPI3 TX"
+#endif
+
+#if STM32_SPI_USE_SPI4 &&                                                   \
+    !STM32_DMA_IS_VALID_STREAM(STM32_SPI_SPI4_RX_DMA_STREAM)
+#error "Invalid DMA channel assigned to SPI4 RX"
+#endif
+
+#if STM32_SPI_USE_SPI4 &&                                                   \
+    !STM32_DMA_IS_VALID_STREAM(STM32_SPI_SPI4_TX_DMA_STREAM)
+#error "Invalid DMA channel assigned to SPI4 TX"
+#endif
+
+#if STM32_SPI_USE_SPI5 &&                                                   \
+    !STM32_DMA_IS_VALID_STREAM(STM32_SPI_SPI5_RX_DMA_STREAM)
+#error "Invalid DMA channel assigned to SPI5 RX"
+#endif
+
+#if STM32_SPI_USE_SPI5 &&                                                   \
+    !STM32_DMA_IS_VALID_STREAM(STM32_SPI_SPI5_TX_DMA_STREAM)
+#error "Invalid DMA channel assigned to SPI5 TX"
+#endif
+
+#if STM32_SPI_USE_SPI6 &&                                                   \
+    !STM32_DMA_IS_VALID_STREAM(STM32_SPI_SPI6_RX_DMA_STREAM)
+#error "Invalid DMA channel assigned to SPI6 RX"
+#endif
+
+#if STM32_SPI_USE_SPI6 &&                                                   \
+    !STM32_DMA_IS_VALID_STREAM(STM32_SPI_SPI6_TX_DMA_STREAM)
+#error "Invalid DMA channel assigned to SPI6 TX"
+#endif
+
+/* Devices without DMAMUX require an additional check.*/
+#if STM32_ADVANCED_DMA && !STM32_DMA_SUPPORTS_DMAMUX
 
 /* Check on the validity of the assigned DMA channels.*/
 #if STM32_SPI_USE_SPI1 &&                                                   \
@@ -395,7 +451,8 @@
     !STM32_DMA_IS_VALID_ID(STM32_SPI_SPI6_TX_DMA_STREAM, STM32_SPI6_TX_DMA_MSK)
 #error "invalid DMA stream associated to SPI6 TX"
 #endif
-#endif /* STM32_ADVANCED_DMA */
+
+#endif /* STM32_ADVANCED_DMA && !STM32_DMA_SUPPORTS_DMAMUX */
 
 #if !defined(STM32_DMA_REQUIRED)
 #define STM32_DMA_REQUIRED
@@ -409,123 +466,33 @@
 /* Driver data structures and types.                                         */
 /*===========================================================================*/
 
-/**
- * @brief   Type of a structure representing an SPI driver.
- */
-typedef struct SPIDriver SPIDriver;
-
-/**
- * @brief   SPI notification callback type.
- *
- * @param[in] spip      pointer to the @p SPIDriver object triggering the
- *                      callback
- */
-typedef void (*spicallback_t)(SPIDriver *spip);
-
-/**
- * @brief   Driver configuration structure.
- */
-typedef struct {
-#if (SPI_SUPPORTS_CIRCULAR == TRUE) || defined(__DOXYGEN__)
-  /**
-   * @brief   Enables the circular buffer mode.
-   */
-  bool                      circular;
-#endif
-  /**
-   * @brief Operation complete callback or @p NULL.
-   */
-  spicallback_t             end_cb;
-#if (SPI_SELECT_MODE == SPI_SELECT_MODE_LINE) || defined(__DOXYGEN__)
-  /**
-   * @brief The chip select line.
-   */
-  ioline_t                  ssline;
-#endif
-#if (SPI_SELECT_MODE == SPI_SELECT_MODE_PORT) || defined(__DOXYGEN__)
-  /**
-   * @brief The chip select port.
-   */
-  ioportid_t                ssport;
-  /**
-   * @brief The chip select port mask.
-   */
-  ioportmask_t              ssmask;
-#endif
-#if (SPI_SELECT_MODE == SPI_SELECT_MODE_PAD) || defined(__DOXYGEN__)
-  /**
-   * @brief The chip select port.
-   */
-  ioportid_t                ssport;
-  /**
-   * @brief The chip select pad number.
-   */
-  uint_fast8_t              sspad;
-#endif
-  /* End of the mandatory fields.*/
-  /**
-   * @brief SPI CR1 register initialization data.
-   */
-  uint16_t                  cr1;
-  /**
-   * @brief SPI CR2 register initialization data.
-   */
-  uint16_t                  cr2;
-} SPIConfig;
-
-/**
- * @brief   Structure representing an SPI driver.
- */
-struct SPIDriver {
-  /**
-   * @brief Driver state.
-   */
-  spistate_t                state;
-  /**
-   * @brief Current configuration data.
-   */
-  const SPIConfig           *config;
-#if SPI_USE_WAIT || defined(__DOXYGEN__)
-  /**
-   * @brief   Waiting thread.
-   */
-  thread_reference_t        thread;
-#endif /* SPI_USE_WAIT */
-#if SPI_USE_MUTUAL_EXCLUSION || defined(__DOXYGEN__)
-  /**
-   * @brief   Mutex protecting the peripheral.
-   */
-  mutex_t                   mutex;
-#endif /* SPI_USE_MUTUAL_EXCLUSION */
-#if defined(SPI_DRIVER_EXT_FIELDS)
-  SPI_DRIVER_EXT_FIELDS
-#endif
-  /* End of the mandatory fields.*/
-  /**
-   * @brief Pointer to the SPIx registers block.
-   */
-  SPI_TypeDef               *spi;
-  /**
-   * @brief   Receive DMA stream.
-   */
-  const stm32_dma_stream_t  *dmarx;
-  /**
-   * @brief   Transmit DMA stream.
-   */
-  const stm32_dma_stream_t  *dmatx;
-  /**
-   * @brief   RX DMA mode bit mask.
-   */
-  uint32_t                  rxdmamode;
-  /**
-   * @brief   TX DMA mode bit mask.
-   */
-  uint32_t                  txdmamode;
-};
-
 /*===========================================================================*/
 /* Driver macros.                                                            */
 /*===========================================================================*/
+
+/**
+ * @brief   Low level fields of the SPI driver structure.
+ */
+#define spi_lld_driver_fields                                               \
+  /* Pointer to the SPIx registers block.*/                                 \
+  SPI_TypeDef               *spi;                                           \
+  /* Receive DMA stream.*/                                                  \
+  const stm32_dma_stream_t  *dmarx;                                         \
+  /* Transmit DMA stream.*/                                                 \
+  const stm32_dma_stream_t  *dmatx;                                         \
+  /* RX DMA mode bit mask.*/                                                \
+  uint32_t                  rxdmamode;                                      \
+  /* TX DMA mode bit mask.*/                                                \
+  uint32_t                  txdmamode
+
+/**
+ * @brief   Low level fields of the SPI configuration structure.
+ */
+#define spi_lld_config_fields                                               \
+  /* SPI CR1 register initialization data.*/                                \
+  uint16_t                  cr1;                                            \
+  /* SPI CR2 register initialization data.*/                                \
+  uint16_t                  cr2
 
 /*===========================================================================*/
 /* External declarations.                                                    */

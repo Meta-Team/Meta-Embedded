@@ -76,11 +76,149 @@ typedef enum {
   ADC_ERROR = 5                             /**< Conversion error.          */
 } adcstate_t;
 
+/**
+ * @brief   Type of a structure representing an ADC driver.
+ */
+typedef struct hal_adc_driver ADCDriver;
+
+/**
+ * @brief   Type of a structure representing an ADC driver configuration.
+ */
+typedef struct hal_adc_config ADCConfig;
+
+/**
+ * @brief   Conversion group configuration structure.
+ * @details This implementation-dependent structure describes a conversion
+ *          operation.
+ * @note    The use of this configuration structure requires knowledge of
+ *          STM32 ADC cell registers interface, please refer to the STM32
+ *          reference manual for details.
+ */
+typedef struct hal_adc_configuration_group ADCConversionGroup;
+
+/* Including the low level driver header, it exports information required
+   for completing types.*/
 #include "hal_adc_lld.h"
+
+/**
+ * @brief   Type of an ADC notification callback.
+ *
+ * @param[in] adcp      pointer to the @p ADCDriver object triggering the
+ */
+typedef void (*adccallback_t)(ADCDriver *adcp);
+
+/**
+ * @brief   Type of an ADC error callback.
+ *
+ * @param[in] adcp      pointer to the @p ADCDriver object triggering the
+ *                      callback
+ * @param[in] err       ADC error code
+ */
+typedef void (*adcerrorcallback_t)(ADCDriver *adcp, adcerror_t err);
+
+/**
+ * @brief   Conversion group configuration structure.
+ * @details This implementation-dependent structure describes a conversion
+ *          operation.
+ * @note    The use of this configuration structure requires knowledge of
+ *          STM32 ADC cell registers interface, please refer to the STM32
+ *          reference manual for details.
+ */
+struct hal_adc_configuration_group {
+  /**
+   * @brief   Enables the circular buffer mode for the group.
+   */
+  bool                      circular;
+  /**
+   * @brief   Number of the analog channels belonging to the conversion group.
+   */
+  adc_channels_num_t        num_channels;
+  /**
+   * @brief   Callback function associated to the group or @p NULL.
+   */
+  adccallback_t             end_cb;
+  /**
+   * @brief   Error callback or @p NULL.
+   */
+  adcerrorcallback_t        error_cb;
+  /* End of the mandatory fields.*/
+  adc_lld_configuration_group_fields;
+};
+
+/**
+ * @brief   Driver configuration structure.
+ */
+struct hal_adc_config {
+  /* End of the mandatory fields.*/
+  adc_lld_config_fields;
+};
+
+/**
+ * @brief   Structure representing an ADC driver.
+ */
+struct hal_adc_driver {
+  /**
+   * @brief Driver state.
+   */
+  adcstate_t                state;
+  /**
+   * @brief Current configuration data.
+   */
+  const ADCConfig           *config;
+  /**
+   * @brief Current samples buffer pointer or @p NULL.
+   */
+  adcsample_t               *samples;
+  /**
+   * @brief Current samples buffer depth or @p 0.
+   */
+  size_t                    depth;
+  /**
+   * @brief Current conversion group pointer or @p NULL.
+   */
+  const ADCConversionGroup  *grpp;
+#if (ADC_USE_WAIT == TRUE) || defined(__DOXYGEN__)
+  /**
+   * @brief Waiting thread.
+   */
+  thread_reference_t        thread;
+#endif /* ADC_USE_WAIT == TRUE */
+#if (ADC_USE_MUTUAL_EXCLUSION == TRUE) || defined(__DOXYGEN__)
+  /**
+   * @brief Mutex protecting the peripheral.
+   */
+  mutex_t                   mutex;
+#endif /* ADC_USE_MUTUAL_EXCLUSION == TRUE */
+#if defined(ADC_DRIVER_EXT_FIELDS)
+  ADC_DRIVER_EXT_FIELDS
+#endif
+  /* End of the mandatory fields.*/
+  adc_lld_driver_fields;
+};
 
 /*===========================================================================*/
 /* Driver macros.                                                            */
 /*===========================================================================*/
+
+/**
+ * @name    Macro Functions
+ * @{
+ */
+/**
+ * @brief   Buffer state.
+ * @note    This function is meant to be called from the SPI callback only.
+ *
+ * @param[in] adcp      pointer to the @p ADCDriver object
+ * @return              The buffer state.
+ * @retval              false if the driver filled/sent the first half of the
+ *                      buffer.
+ * @retval              true if the driver filled/sent the second half of the
+ *                      buffer.
+ *
+ * @special
+ */
+#define adcIsBufferComplete(adcp) ((bool)((adcp)->state == ADC_COMPLETE))
+/** @} */
 
 /**
  * @name    Low level driver helper macros
@@ -154,7 +292,7 @@ typedef enum {
  */
 #define _adc_isr_half_code(adcp) {                                          \
   if ((adcp)->grpp->end_cb != NULL) {                                       \
-    (adcp)->grpp->end_cb(adcp, (adcp)->samples, (adcp)->depth / 2);         \
+    (adcp)->grpp->end_cb(adcp);                                             \
   }                                                                         \
 }
 
@@ -176,15 +314,10 @@ typedef enum {
   if ((adcp)->grpp->circular) {                                             \
     /* Callback handling.*/                                                 \
     if ((adcp)->grpp->end_cb != NULL) {                                     \
-      if ((adcp)->depth > 1) {                                              \
-        /* Invokes the callback passing the 2nd half of the buffer.*/       \
-        size_t half = (adcp)->depth / 2;                                    \
-        size_t half_index = half * (adcp)->grpp->num_channels;              \
-        (adcp)->grpp->end_cb(adcp, (adcp)->samples + half_index, half);     \
-      }                                                                     \
-      else {                                                                \
-        /* Invokes the callback passing the whole buffer.*/                 \
-        (adcp)->grpp->end_cb(adcp, (adcp)->samples, (adcp)->depth);         \
+      (adcp)->state = ADC_COMPLETE;                                         \
+      (adcp)->grpp->end_cb(adcp);                                           \
+      if ((adcp)->state == ADC_COMPLETE) {                                  \
+        (adcp)->state = ADC_ACTIVE;                                         \
       }                                                                     \
     }                                                                       \
   }                                                                         \
@@ -193,8 +326,7 @@ typedef enum {
     adc_lld_stop_conversion(adcp);                                          \
     if ((adcp)->grpp->end_cb != NULL) {                                     \
       (adcp)->state = ADC_COMPLETE;                                         \
-      /* Invoke the callback passing the whole buffer.*/                    \
-      (adcp)->grpp->end_cb(adcp, (adcp)->samples, (adcp)->depth);           \
+      (adcp)->grpp->end_cb(adcp);                                           \
       if ((adcp)->state == ADC_COMPLETE) {                                  \
         (adcp)->state = ADC_READY;                                          \
         (adcp)->grpp = NULL;                                                \

@@ -29,7 +29,7 @@
  *          - STM32L011xx, STM32L031xx, 
  *            STM32L051xx, STM32L052xx, STM32L053xx,
  *            STM32L061xx, STM32L062xx, STM32L063xx,
- *            STM32L073xx for ultra-low-power MCUs.
+ *            STM32L071xx, STM32L072xx, STM32L073xx for ultra-low-power MCUs.
  *          .
  *
  * @addtogroup HAL
@@ -75,6 +75,12 @@
 
 #elif defined(STM32L063xx)
 #define PLATFORM_NAME           "STM32L063xx ultra-low-power MCU"
+
+#elif defined(STM32L071xx)
+#define PLATFORM_NAME           "STM32L071xx ultra-low-power MCU"
+
+#elif defined(STM32L072xx)
+#define PLATFORM_NAME           "STM32L073xx ultra-low-power MCU"
 
 #elif defined(STM32L073xx)
 #define PLATFORM_NAME           "STM32L073xx ultra-low-power MCU"
@@ -1191,6 +1197,7 @@
 #include "cache.h"
 #include "stm32_isr.h"
 #include "stm32_dma.h"
+#include "stm32_exti.h"
 #include "stm32_rcc.h"
 
 #ifdef __cplusplus

@@ -112,11 +112,11 @@ void ElevatorInterface::init(CANInterface *can_interface) {
 //    }
 
     /* Step 4: Set the PWM and target position = 0 for the four wheels. Function ID = 5 */
-    txFrame.SID = (can_group_id << 8 | 0x05); // Use id 0 for broadcast
-    txFrame.data8[0] = (uint8_t) ((driver_pwm >> 8) & 0xFF);
-    txFrame.data8[1] = (uint8_t) (driver_pwm & 0xFF);
-    txFrame.data8[4] = txFrame.data8[5] = txFrame.data8[6] = txFrame.data8[7] = 0;
-    can->send_msg(&txFrame);
+//    txFrame.SID = (can_group_id << 8 | 0x05); // Use id 0 for broadcast
+//    txFrame.data8[0] = (uint8_t) ((driver_pwm >> 8) & 0xFF);
+//    txFrame.data8[1] = (uint8_t) (driver_pwm & 0xFF);
+//    txFrame.data8[4] = txFrame.data8[5] = txFrame.data8[6] = txFrame.data8[7] = 0;
+//    can->send_msg(&txFrame);
 }
 
 bool ElevatorInterface::UnitInterface::get_safety_button_status() {

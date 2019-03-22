@@ -31,11 +31,6 @@
 /* Driver constants.                                                         */
 /*===========================================================================*/
 
-/**
- * @brief   Maximum size of a key for all supported algorithms.
- */
-#define HAL_CRY_MAX_KEY_SIZE                32
-
 /*===========================================================================*/
 /* Driver pre-compile time settings.                                         */
 /*===========================================================================*/
@@ -96,7 +91,8 @@ typedef enum {
   CRY_ERR_INV_ALGO = 1,                     /**< Invalid cypher/mode.       */
   CRY_ERR_INV_KEY_SIZE = 2,                 /**< Invalid key size.          */
   CRY_ERR_INV_KEY_TYPE = 3,                 /**< Invalid key type.          */
-  CRY_ERR_INV_KEY_ID = 4                    /**< Invalid key type.          */
+  CRY_ERR_INV_KEY_ID = 4,                   /**< Invalid key identifier.    */
+  CRY_ERR_OP_FAILURE = 5                    /**< Requested operation failed.*/
 } cryerror_t;
 
 /**
@@ -106,7 +102,8 @@ typedef enum {
 typedef enum {
   cry_algo_none = 0,
   cry_algo_aes,                             /**< AES 128, 192, 256 bits.    */
-  cry_algo_des                              /**< DES 56, TDES 112, 168 bits.*/
+  cry_algo_des,                             /**< DES 56, TDES 112, 168 bits.*/
+  cry_algo_hmac                             /**< HMAC variable size.        */
 } cryalgorithm_t;
 
 #if HAL_CRY_ENFORCE_FALLBACK == FALSE
@@ -125,7 +122,8 @@ typedef enum {
     !defined(CRY_LLD_SUPPORTS_SHA1) ||                                      \
     !defined(CRY_LLD_SUPPORTS_SHA256) ||                                    \
     !defined(CRY_LLD_SUPPORTS_SHA512) ||                                    \
-    !defined(CRY_LLD_SUPPORTS_TRNG)
+    !defined(CRY_LLD_SUPPORTS_HMAC_SHA256) ||                               \
+    !defined(CRY_LLD_SUPPORTS_HMAC_SHA512)
 #error "CRYPTO LLD does not export the required switches"
 #endif
 
@@ -144,7 +142,8 @@ typedef enum {
 #define CRY_LLD_SUPPORTS_SHA1               FALSE
 #define CRY_LLD_SUPPORTS_SHA256             FALSE
 #define CRY_LLD_SUPPORTS_SHA512             FALSE
-#define CRY_LLD_SUPPORTS_TRNG               FALSE
+#define CRY_LLD_SUPPORTS_HMAC_SHA256        FALSE
+#define CRY_LLD_SUPPORTS_HMAC_SHA512        FALSE
 
 typedef uint_fast8_t crykey_t;
 
@@ -157,9 +156,6 @@ typedef struct {
 struct CRYDriver {
   crystate_t                state;
   const CRYConfig           *config;
-  cryalgorithm_t            key0_type;
-  size_t                    key0_size;
-  uint8_t                   key0_buffer[HAL_CRY_MAX_KEY_SIZE];
 };
 #endif /* HAL_CRY_ENFORCE_FALLBACK == TRUE */
 
@@ -169,27 +165,43 @@ struct CRYDriver {
 #endif
 
 #if (HAL_CRY_USE_FALLBACK == FALSE) && (CRY_LLD_SUPPORTS_SHA1 == FALSE)
-/* Stub @p SHA1Context structure type declaration. It is not provided by the
-   LLD and the fallback is not enabled.*/
+/* Stub @p SHA1Context structure type declaration. It is not provided by
+   the LLD and the fallback is not enabled.*/
 typedef struct {
   uint32_t dummy;
 } SHA1Context;
 #endif
 
 #if (HAL_CRY_USE_FALLBACK == FALSE) && (CRY_LLD_SUPPORTS_SHA256 == FALSE)
-/* Stub @p SHA256Context structure type declaration. It is not provided by the
-   LLD and the fallback is not enabled.*/
+/* Stub @p SHA256Context structure type declaration. It is not provided by
+   the LLD and the fallback is not enabled.*/
 typedef struct {
   uint32_t dummy;
 } SHA256Context;
 #endif
 
 #if (HAL_CRY_USE_FALLBACK == FALSE) && (CRY_LLD_SUPPORTS_SHA512 == FALSE)
-/* Stub @p SHA512Context structure type declaration. It is not provided by the
-   LLD and the fallback is not enabled.*/
+/* Stub @p SHA512Context structure type declaration. It is not provided by
+   the LLD and the fallback is not enabled.*/
 typedef struct {
   uint32_t dummy;
 } SHA512Context;
+#endif
+
+#if (HAL_CRY_USE_FALLBACK == FALSE) && (CRY_LLD_SUPPORTS_HMAC_SHA256 == FALSE)
+/* Stub @p HMACSHA256Context structure type declaration. It is not provided by
+   the LLD and the fallback is not enabled.*/
+typedef struct {
+  uint32_t dummy;
+} HMACSHA256Context;
+#endif
+
+#if (HAL_CRY_USE_FALLBACK == FALSE) && (CRY_LLD_SUPPORTS_HMAC_SHA512 == FALSE)
+/* Stub @p HMACSHA512Context structure type declaration. It is not provided by
+   the LLD and the fallback is not enabled.*/
+typedef struct {
+  uint32_t dummy;
+} HMACSHA512Context;
 #endif
 
 /*===========================================================================*/
@@ -213,10 +225,9 @@ extern "C" {
   void cryObjectInit(CRYDriver *cryp);
   void cryStart(CRYDriver *cryp, const CRYConfig *config);
   void cryStop(CRYDriver *cryp);
-  cryerror_t cryLoadTransientKey(CRYDriver *cryp,
-                                 cryalgorithm_t algorithm,
-                                 size_t size,
-                                 const uint8_t *keyp);
+  cryerror_t cryLoadAESTransientKey(CRYDriver *cryp,
+                                    size_t size,
+                                    const uint8_t *keyp);
   cryerror_t cryEncryptAES(CRYDriver *cryp,
                                crykey_t key_id,
                                const uint8_t *in,
@@ -289,6 +300,9 @@ extern "C" {
                                size_t aadsize,
                                const uint8_t *aad,
                                uint8_t *authtag);
+  cryerror_t cryLoadDESTransientKey(CRYDriver *cryp,
+                                    size_t size,
+                                    const uint8_t *keyp);
   cryerror_t cryEncryptDES(CRYDriver *cryp,
                            crykey_t key_id,
                            const uint8_t *in,
@@ -334,7 +348,27 @@ extern "C" {
                              size_t size, const uint8_t *in);
   cryerror_t crySHA512Final(CRYDriver *cryp, SHA512Context *sha512ctxp,
                             uint8_t *out);
-  cryerror_t cryTRNG(CRYDriver *cryp, uint8_t *out);
+  cryerror_t cryLoadHMACTransientKey(CRYDriver *cryp,
+                                     size_t size,
+                                     const uint8_t *keyp);
+  cryerror_t cryHMACSHA256Init(CRYDriver *cryp,
+                               HMACSHA256Context *hmacsha256ctxp);
+  cryerror_t cryHMACSHA256Update(CRYDriver *cryp,
+                                 HMACSHA256Context *hmacsha256ctxp,
+                                 size_t size,
+                                 const uint8_t *in);
+  cryerror_t cryHMACSHA256Final(CRYDriver *cryp,
+                                HMACSHA256Context *hmacsha256ctxp,
+                                uint8_t *out);
+  cryerror_t cryHMACSHA512Init(CRYDriver *cryp,
+                               HMACSHA512Context *hmacsha512ctxp);
+  cryerror_t cryHMACSHA512Update(CRYDriver *cryp,
+                                 HMACSHA512Context *hmacsha512ctxp,
+                                 size_t size,
+                                 const uint8_t *in);
+  cryerror_t cryHMACSHA512Final(CRYDriver *cryp,
+                                HMACSHA512Context *hmacsha512ctxp,
+                                uint8_t *out);
 #ifdef __cplusplus
 }
 #endif

@@ -18,12 +18,12 @@
 */
 
 /**
- * @file    ch.h
+ * @file    rt/include/ch.h
  * @brief   ChibiOS/RT main include file.
- * @details This header includes all the required kernel headers so it is the
- *          only kernel header you usually want to include in your application.
  *
  * @addtogroup kernel_info
+ * @details This header includes all the required kernel headers so it is the
+ *          only kernel header you usually want to include in your application.
  * @details Kernel related info.
  * @{
  */
@@ -48,12 +48,12 @@
 /**
  * @brief   Kernel version string.
  */
-#define CH_KERNEL_VERSION       "5.0.0"
+#define CH_KERNEL_VERSION       "6.0.0"
 
 /**
  * @brief   Kernel version major number.
  */
-#define CH_KERNEL_MAJOR         5
+#define CH_KERNEL_MAJOR         6
 
 /**
  * @brief   Kernel version minor number.
@@ -74,7 +74,7 @@
  * @note    It is meant to be used in configuration files as switch.
  */
 #if !defined(FALSE) || defined(__DOXYGEN__)
-#define FALSE               0
+#define FALSE                   0
 #endif
 
 /**
@@ -82,7 +82,7 @@
  * @note    It is meant to be used in configuration files as switch.
  */
 #if !defined(TRUE) || defined(__DOXYGEN__)
-#define TRUE                1
+#define TRUE                    1
 #endif
 /** @} */
 
@@ -119,19 +119,15 @@ extern "C" {
 /* Optional subsystems headers.*/
 #include "chregistry.h"
 #include "chsem.h"
-#include "chbsem.h"
 #include "chmtx.h"
 #include "chcond.h"
 #include "chevents.h"
 #include "chmsg.h"
 
-/* OSLIB headers.*/
-#include "chmboxes.h"
-#include "chmemcore.h"
-#include "chheap.h"
-#include "chmempools.h"
-#include "chfifo.h"
-#include "chfactory.h"
+/* OSLIB.*/
+#include "chlib.h"
+
+/* Headers dependent on the OSLIB.*/
 #include "chdynamic.h"
 
 #endif /* CH_H */

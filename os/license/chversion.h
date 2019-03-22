@@ -21,7 +21,9 @@
  * @file    chversion.h
  * @brief   Version Module macros and structures.
  *
- * @addtogroup version
+ * @addtogroup chibios_version
+ * @details This module contains information about the ChibiOS release, it
+ *          is common to all subsystems.
  * @{
  */
 
@@ -49,27 +51,27 @@
 /**
  * @brief   ChibiOS version string.
  */
-#define CH_VERSION              "18.2.1"
+#define CH_VERSION              "19.1.0"
 
 /**
  * @brief   ChibiOS version release year.
  */
-#define CH_VERSION_YEAR         18
+#define CH_VERSION_YEAR         19
 
 /**
  * @brief   ChibiOS version release month.
  */
-#define CH_VERSION_MONTH        2
+#define CH_VERSION_MONTH        1
 
 /**
  * @brief   ChibiOS version patch number.
  */
-#define CH_VERSION_PATCH        1
+#define CH_VERSION_PATCH        0
 
 /**
  * @brief   ChibiOS version nickname.
  */
-#define CH_VERSION_NICKNAME     "Ravello"
+#define CH_VERSION_NICKNAME     "Vietri"
 /** @} */
 
 /*===========================================================================*/

@@ -60,7 +60,7 @@
  * @name    Sampling rates
  * @{
  */
-#if defined(STM32F3XX)
+#if defined(STM32F3XX) || defined(__DOXYGEN__)
 #define ADC_SMPR_SMP_1P5        0   /**< @brief 14 cycles conversion time   */
 #define ADC_SMPR_SMP_2P5        1   /**< @brief 15 cycles conversion time.  */
 #define ADC_SMPR_SMP_4P5        2   /**< @brief 17 cycles conversion time.  */
@@ -70,7 +70,7 @@
 #define ADC_SMPR_SMP_181P5      6   /**< @brief 194 cycles conversion time. */
 #define ADC_SMPR_SMP_601P5      7   /**< @brief 614 cycles conversion time. */
 #endif
-#if defined(STM32L4XX)
+#if defined(STM32L4XX) || defined(STM32L4XXP)
 #define ADC_SMPR_SMP_2P5        0   /**< @brief 15 cycles conversion time   */
 #define ADC_SMPR_SMP_6P5        1   /**< @brief 19 cycles conversion time.  */
 #define ADC_SMPR_SMP_12P5       2   /**< @brief 25 cycles conversion time.  */
@@ -319,14 +319,14 @@
 #endif
 #endif /* defined(STM32F3XX) */
 
-#if defined(STM32L4XX) || defined(__DOXYGEN__)
+#if defined(STM32L4XX) || defined(STM32L4XXP) || defined(__DOXYGEN__)
 /**
  * @brief   ADC1/ADC2/ADC3 clock source and mode.
  */
 #if !defined(STM32_ADC_ADC123_CLOCK_MODE) || defined(__DOXYGEN__)
 #define STM32_ADC_ADC123_CLOCK_MODE         ADC_CCR_CKMODE_AHB_DIV1
 #endif
-#endif /* defined(STM32L4XX) */
+#endif /* defined(STM32L4XX) || defined(STM32L4XXP)  */
 
 /** @} */
 
@@ -335,8 +335,14 @@
 /*===========================================================================*/
 
 /* Supported devices checks.*/
-#if !defined(STM32F3XX) && !defined(STM32L4XX)
-#error "ADCv3 only supports F3 and L4 STM32 devices"
+#if !defined(STM32F3XX) && !defined(STM32L4XX) && !defined(STM32L4XXP)
+#error "ADCv3 only supports F3, L4 and L4+ STM32 devices"
+#endif
+
+#if defined(STM32L4XX) || defined(STM32L4XXP) || defined(__DOXYGEN__)
+#define STM32_ADCV3_OVERSAMPLING            TRUE
+#else
+#define STM32_ADCV3_OVERSAMPLING            FALSE
 #endif
 
 /* Registry checks.*/
@@ -359,6 +365,7 @@
 #error "STM32_ADCx_NUMBER not defined in registry"
 #endif
 
+#if !STM32_DMA_SUPPORTS_DMAMUX
 #if (STM32_ADC_USE_ADC1 && !defined(STM32_ADC1_DMA_MSK)) ||                 \
     (STM32_ADC_USE_ADC2 && !defined(STM32_ADC2_DMA_MSK)) ||                 \
     (STM32_ADC_USE_ADC3 && !defined(STM32_ADC3_DMA_MSK)) ||                 \
@@ -372,6 +379,7 @@
     (STM32_ADC_USE_ADC4 && !defined(STM32_ADC4_DMA_CHN))
 #error "STM32_ADCx_DMA_CHN not defined in registry"
 #endif
+#endif /* !STM32_DMA_SUPPORTS_DMAMUX */
 
 /* Units checks.*/
 #if STM32_ADC_USE_ADC1 && !STM32_HAS_ADC1
@@ -500,6 +508,10 @@
 #error "ADC4 DMA stream not defined"
 #endif
 
+#if STM32_DMA_SUPPORTS_DMAMUX
+
+#else /* !STM32_DMA_SUPPORTS_DMAMUX */
+
 /* Check on the validity of the assigned DMA channels.*/
 #if STM32_ADC_USE_ADC1 &&                                                   \
     !STM32_DMA_IS_VALID_ID(STM32_ADC_ADC1_DMA_STREAM, STM32_ADC1_DMA_MSK)
@@ -519,6 +531,28 @@
 #if STM32_ADC_USE_ADC4 &&                                                   \
     !STM32_DMA_IS_VALID_ID(STM32_ADC_ADC4_DMA_STREAM, STM32_ADC4_DMA_MSK)
 #error "invalid DMA stream associated to ADC4"
+#endif
+
+#endif /* !STM32_DMA_SUPPORTS_DMAMUX */
+
+#if STM32_ADC_USE_ADC1 &&                                                   \
+    !STM32_DMA_IS_VALID_PRIORITY(STM32_ADC_ADC1_DMA_PRIORITY)
+#error "Invalid DMA priority assigned to ADC1"
+#endif
+
+#if STM32_ADC_USE_ADC2 &&                                                   \
+    !STM32_DMA_IS_VALID_PRIORITY(STM32_ADC_ADC2_DMA_PRIORITY)
+#error "Invalid DMA priority assigned to ADC2"
+#endif
+
+#if STM32_ADC_USE_ADC3 &&                                                   \
+    !STM32_DMA_IS_VALID_PRIORITY(STM32_ADC_ADC3_DMA_PRIORITY)
+#error "Invalid DMA priority assigned to ADC3"
+#endif
+
+#if STM32_ADC_USE_ADC4 &&                                                   \
+    !STM32_DMA_IS_VALID_PRIORITY(STM32_ADC_ADC4_DMA_PRIORITY)
+#error "Invalid DMA priority assigned to ADC4"
 #endif
 
 /* ADC clock source checks.*/
@@ -556,9 +590,9 @@
 #endif
 #endif /* defined(STM32F3XX) */
 
-#if defined(STM32L4XX)
+#if defined(STM32L4XX) || defined(STM32L4XXP)
 #if STM32_ADC_ADC123_CLOCK_MODE == ADC_CCR_CKMODE_ADCCK
-#define STM32_ADC123_CLOCK              STM32_ADC12CLK
+#define STM32_ADC123_CLOCK              STM32_ADCCLK
 #elif STM32_ADC_ADC123_CLOCK_MODE == ADC_CCR_CKMODE_AHB_DIV1
 #define STM32_ADC123_CLOCK              (STM32_HCLK / 1)
 #elif STM32_ADC_ADC123_CLOCK_MODE == ADC_CCR_CKMODE_AHB_DIV2
@@ -572,7 +606,7 @@
 #if STM32_ADC123_CLOCK > STM32_ADCCLK_MAX
 #error "STM32_ADC123_CLOCK exceeding maximum frequency (STM32_ADCCLK_MAX)"
 #endif
-#endif /* defined(STM32L4XX) */
+#endif /* defined(STM32L4XX) || defined(STM32L4XXP) */
 
 #if !defined(STM32_DMA_REQUIRED)
 #define STM32_DMA_REQUIRED
@@ -609,177 +643,101 @@ typedef enum {
   ADC_ERR_AWD3 = 4                          /**< Watchdog 3 triggered.      */
 } adcerror_t;
 
-/**
- * @brief   Type of a structure representing an ADC driver.
- */
-typedef struct ADCDriver ADCDriver;
-
-/**
- * @brief   ADC notification callback type.
- *
- * @param[in] adcp      pointer to the @p ADCDriver object triggering the
- *                      callback
- * @param[in] buffer    pointer to the most recent samples data
- * @param[in] n         number of buffer rows available starting from @p buffer
- */
-typedef void (*adccallback_t)(ADCDriver *adcp, adcsample_t *buffer, size_t n);
-
-/**
- * @brief   ADC error callback type.
- *
- * @param[in] adcp      pointer to the @p ADCDriver object triggering the
- *                      callback
- * @param[in] err       ADC error code
- */
-typedef void (*adcerrorcallback_t)(ADCDriver *adcp, adcerror_t err);
-
-/**
- * @brief   Conversion group configuration structure.
- * @details This implementation-dependent structure describes a conversion
- *          operation.
- * @note    The use of this configuration structure requires knowledge of
- *          STM32 ADC cell registers interface, please refer to the STM32
- *          reference manual for details.
- */
-typedef struct {
-  /**
-   * @brief   Enables the circular buffer mode for the group.
-   */
-  bool                      circular;
-  /**
-   * @brief   Number of the analog channels belonging to the conversion group.
-   */
-  adc_channels_num_t        num_channels;
-  /**
-   * @brief   Callback function associated to the group or @p NULL.
-   */
-  adccallback_t             end_cb;
-  /**
-   * @brief   Error callback or @p NULL.
-   */
-  adcerrorcallback_t        error_cb;
-  /* End of the mandatory fields.*/
-  /**
-   * @brief   ADC CFGR register initialization data.
-   * @note    The bits DMAEN and DMACFG are enforced internally
-   *          to the driver, keep them to zero.
-   * @note    The bits @p ADC_CFGR_CONT or @p ADC_CFGR_DISCEN must be
-   *          specified in continuous mode or if the buffer depth is
-   *          greater than one.
-   */
-  uint32_t                  cfgr;
-  /**
-   * @brief   ADC TR1 register initialization data.
-   */
-  uint32_t                  tr1;
-#if STM32_ADC_DUAL_MODE || defined(__DOXYGEN__)
-  /**
-   * @brief   ADC CCR register initialization data.
-   * @note    The bits CKMODE, MDMA, DMACFG are enforced internally to the
-   *          driver, keep them to zero.
-   * @note    This field is only present in dual mode.
-   */
-  uint32_t                  ccr;
-#endif
-  /**
-   * @brief   ADC SMPRx registers initialization data.
-   */
-  uint32_t                  smpr[2];
-  /**
-   * @brief   ADC SQRx register initialization data.
-   */
-  uint32_t                  sqr[4];
-#if STM32_ADC_DUAL_MODE || defined(__DOXYGEN__)
-  /**
-   * @brief   Slave ADC SMPRx registers initialization data.
-   * @note    This field is only present in dual mode.
-   */
-  uint32_t                  ssmpr[2];
-  /**
-   * @brief   Slave ADC SQRx register initialization data.
-   * @note    This field is only present in dual mode.
-   */
-  uint32_t                  ssqr[4];
-#endif /* STM32_ADC_DUAL_MODE */
-} ADCConversionGroup;
-
-/**
- * @brief   Driver configuration structure.
- */
-typedef struct {
-  /**
-   * @brief   ADC DIFSEL register initialization data.
-   */
-  uint32_t                  difsel;
-} ADCConfig;
-
-/**
- * @brief   Structure representing an ADC driver.
- */
-struct ADCDriver {
-  /**
-   * @brief   Driver state.
-   */
-  adcstate_t                state;
-  /**
-   * @brief   Current configuration data.
-   */
-  const ADCConfig           *config;
-  /**
-   * @brief   Current samples buffer pointer or @p NULL.
-   */
-  adcsample_t               *samples;
-  /**
-   * @brief   Current samples buffer depth or @p 0.
-   */
-  size_t                    depth;
-  /**
-   * @brief   Current conversion group pointer or @p NULL.
-   */
-  const ADCConversionGroup  *grpp;
-#if ADC_USE_WAIT || defined(__DOXYGEN__)
-  /**
-   * @brief   Waiting thread.
-   */
-  thread_reference_t        thread;
-#endif
-#if ADC_USE_MUTUAL_EXCLUSION || defined(__DOXYGEN__)
-  /**
-   * @brief   Mutex protecting the peripheral.
-   */
-  mutex_t                   mutex;
-#endif /* ADC_USE_MUTUAL_EXCLUSION */
-#if defined(ADC_DRIVER_EXT_FIELDS)
-  ADC_DRIVER_EXT_FIELDS
-#endif
-  /* End of the mandatory fields.*/
-  /**
-   * @brief   Pointer to the master ADCx registers block.
-   */
-  ADC_TypeDef               *adcm;
-#if STM32_ADC_DUAL_MODE || defined(__DOXYGEN__)
-  /**
-   * @brief   Pointer to the slave ADCx registers block.
-   */
-  ADC_TypeDef               *adcs;
-#endif /* STM32_ADC_DUAL_MODE */
-  /**
-   * @brief   Pointer to the common ADCx_y registers block.
-   */
-  ADC_Common_TypeDef        *adcc;
-  /**
-   * @brief   Pointer to associated DMA channel.
-   */
-  const stm32_dma_stream_t  *dmastp;
-  /**
-   * @brief   DMA mode bit mask.
-   */
-  uint32_t                  dmamode;
-};
-
 /*===========================================================================*/
 /* Driver macros.                                                            */
 /*===========================================================================*/
+
+/**
+ * @brief   Low level fields of the ADC driver structure.
+ */
+#if (STM32_ADC_DUAL_MODE == TRUE) || defined(__DOXYGEN__)
+#define adc_lld_driver_fields                                               \
+  /* Pointer to the master ADCx registers block.*/                          \
+  ADC_TypeDef               *adcm;                                          \
+  /* Pointer to the slave ADCx registers block.*/                           \
+  ADC_TypeDef               *adcs;                                          \
+   /* Pointer to the common ADCx_y registers block.*/                       \
+  ADC_Common_TypeDef        *adcc;                                          \
+  /* Pointer to associated DMA channel.*/                                   \
+  const stm32_dma_stream_t  *dmastp;                                        \
+  /* DMA mode bit mask.*/                                                   \
+  uint32_t                  dmamode
+#else
+#define adc_lld_driver_fields                                               \
+  /* Pointer to the master ADCx registers block.*/                          \
+  ADC_TypeDef               *adcm;                                          \
+  /* Pointer to the slave ADCx registers block.*/                           \
+  ADC_Common_TypeDef        *adcc;                                          \
+  /* Pointer to associated DMA channel.*/                                   \
+  const stm32_dma_stream_t  *dmastp;                                        \
+  /* DMA mode bit mask.*/                                                   \
+  uint32_t                  dmamode
+#endif
+
+/**
+ * @brief   Low level fields of the ADC configuration structure.
+ */
+#define adc_lld_config_fields                                               \
+  /* ADC DIFSEL register initialization data.*/                             \
+  uint32_t                  difsel
+
+/**
+ * @brief   Low level fields of the ADC group configuration structure.
+ */
+#if (STM32_ADCV3_OVERSAMPLING == TRUE) || defined(__DOXYGEN__)
+#if (STM32_ADC_DUAL_MODE == TRUE) || defined(__DOXYGEN__)
+#define adc_lld_configuration_group_fields                                  \
+  /* ADC CFGR register initialization data.                                 \
+     NOTE: The bits DMAEN and DMACFG are enforced internally                \
+           to the driver, keep them to zero.                                \
+     NOTE: The bits @p ADC_CFGR_CONT or @p ADC_CFGR_DISCEN must be          \
+           specified in continuous mode or if the buffer depth is           \
+           greater than one.*/                                              \
+  uint32_t                  cfgr;                                           \
+  /* ADC CFGR2 register initialization data.*/                                              \
+  uint32_t                  cfgr2;                                          \
+  /* ADC TR1 register initialization data.*/                                \
+  uint32_t                  tr1;                                            \
+  /* ADC CCR register initialization data.                                  \
+     NOTE: Put this field to zero if not using oversampling.*/              \
+  uint32_t                  ccr;                                            \
+  /* ADC SMPRx registers initialization data.*/                             \
+  uint32_t                  smpr[2];                                        \
+  /* ADC SQRx register initialization data.*/                               \
+  uint32_t                  sqr[4];                                         \
+  /* Slave ADC SMPRx registers initialization data.                         \
+     NOTE: This field is only present in dual mode.*/                       \
+  uint32_t                  ssmpr[2];                                       \
+  /* Slave ADC SQRx register initialization data.                           \
+     NOTE: This field is only present in dual mode.*/                       \
+  uint32_t                  ssqr[4]
+#else /* STM32_ADC_DUAL_MODE == FALSE */
+#define adc_lld_configuration_group_fields                                  \
+  uint32_t                  cfgr;                                           \
+  uint32_t                  cfgr2;                                          \
+  uint32_t                  tr1;                                            \
+  uint32_t                  smpr[2];                                        \
+  uint32_t                  sqr[4]
+#endif /* STM32_ADC_DUAL_MODE == FALSE */
+
+#else /* STM32_ADCV3_OVERSAMPLING == FALSE */
+#if (STM32_ADC_DUAL_MODE == TRUE) || defined(__DOXYGEN__)
+#define adc_lld_configuration_group_fields                                  \
+  uint32_t                  cfgr;                                           \
+  uint32_t                  tr1;                                            \
+  uint32_t                  ccr;                                            \
+  uint32_t                  smpr[2];                                        \
+  uint32_t                  sqr[4];                                         \
+  uint32_t                  ssmpr[2];                                       \
+  uint32_t                  ssqr[4]
+#else /* STM32_ADC_DUAL_MODE == FALSE */
+#define adc_lld_configuration_group_fields                                  \
+  uint32_t                  cfgr;                                           \
+  uint32_t                  tr1;                                            \
+  uint32_t                  smpr[2];                                        \
+  uint32_t                  sqr[4]
+#endif /* STM32_ADC_DUAL_MODE == FALSE */
+#endif /* STM32_ADCV3_OVERSAMPLING == FALSE */
 
 /**
  * @name    Threashold register initializer

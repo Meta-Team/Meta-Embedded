@@ -40,7 +40,7 @@
 /*===========================================================================*/
 
 /**
- * @brief   Mask of the BDMA streams in @p bdma_streams_mask.
+ * @brief   Mask of the BDMA streams in @p bdma_allocated_mask.
  */
 #define STM32_BDMA_STREAMS_MASK     0x000000FFU
 
@@ -85,11 +85,20 @@ static struct {
   /**
    * @brief   Mask of the allocated streams.
    */
-  uint32_t              streams_mask;
+  uint32_t              allocated_mask;
   /**
-   * @brief   BDMA IRQ redirectors.
+   * @brief   DMA IRQ redirectors.
    */
-  bdma_isr_redir_t      isr_redir[STM32_BDMA_STREAMS];
+  struct {
+    /**
+     * @brief   DMA callback function.
+     */
+    stm32_bdmaisr_t    func;
+    /**
+     * @brief   DMA callback parameter.
+     */
+    void              *param;
+  } streams[STM32_BDMA_STREAMS];
 } bdma;
 
 /*===========================================================================*/
@@ -112,8 +121,8 @@ OSAL_IRQ_HANDLER(STM32_BDMA1_CH0_HANDLER) {
 
   flags = (BDMA->ISR >> 0U) & STM32_BDMA_ISR_MASK;
   BDMA->IFCR = flags << 0U;
-  if (bdma.isr_redir[0].func)
-    bdma.isr_redir[0].func(bdma.isr_redir[0].param, flags);
+  if (bdma.streams[0].func)
+    bdma.streams[0].func(bdma.streams[0].param, flags);
 
   OSAL_IRQ_EPILOGUE();
 }
@@ -130,8 +139,8 @@ OSAL_IRQ_HANDLER(STM32_BDMA1_CH1_HANDLER) {
 
   flags = (BDMA->ISR >> 4U) & STM32_BDMA_ISR_MASK;
   BDMA->IFCR = flags << 4U;
-  if (bdma.isr_redir[1].func)
-    bdma.isr_redir[1].func(bdma.isr_redir[1].param, flags);
+  if (bdma.streams[1].func)
+    bdma.streams[1].func(bdma.streams[1].param, flags);
 
   OSAL_IRQ_EPILOGUE();
 }
@@ -148,8 +157,8 @@ OSAL_IRQ_HANDLER(STM32_BDMA1_CH2_HANDLER) {
 
   flags = (BDMA->ISR >> 8U) & STM32_BDMA_ISR_MASK;
   BDMA->IFCR = flags << 8U;
-  if (bdma.isr_redir[2].func)
-    bdma.isr_redir[2].func(bdma.isr_redir[2].param, flags);
+  if (bdma.streams[2].func)
+    bdma.streams[2].func(bdma.streams[2].param, flags);
 
   OSAL_IRQ_EPILOGUE();
 }
@@ -166,8 +175,8 @@ OSAL_IRQ_HANDLER(STM32_BDMA1_CH3_HANDLER) {
 
   flags = (BDMA->ISR >> 12U) & STM32_BDMA_ISR_MASK;
   BDMA->IFCR = flags << 12U;
-  if (bdma.isr_redir[3].func)
-    bdma.isr_redir[3].func(bdma.isr_redir[3].param, flags);
+  if (bdma.streams[3].func)
+    bdma.streams[3].func(bdma.streams[3].param, flags);
 
   OSAL_IRQ_EPILOGUE();
 }
@@ -184,8 +193,8 @@ OSAL_IRQ_HANDLER(STM32_BDMA1_CH4_HANDLER) {
 
   flags = (BDMA->ISR >> 16U) & STM32_BDMA_ISR_MASK;
   BDMA->IFCR = flags << 16U;
-  if (bdma.isr_redir[4].func)
-    bdma.isr_redir[4].func(bdma.isr_redir[4].param, flags);
+  if (bdma.streams[4].func)
+    bdma.streams[4].func(bdma.streams[4].param, flags);
 
   OSAL_IRQ_EPILOGUE();
 }
@@ -202,8 +211,8 @@ OSAL_IRQ_HANDLER(STM32_BDMA1_CH5_HANDLER) {
 
   flags = (BDMA->ISR >> 20U) & STM32_BDMA_ISR_MASK;
   BDMA->IFCR = flags << 20U;
-  if (bdma.isr_redir[5].func)
-    bdma.isr_redir[5].func(bdma.isr_redir[5].param, flags);
+  if (bdma.streams[5].func)
+    bdma.streams[5].func(bdma.streams[5].param, flags);
 
   OSAL_IRQ_EPILOGUE();
 }
@@ -220,8 +229,8 @@ OSAL_IRQ_HANDLER(STM32_BDMA1_CH6_HANDLER) {
 
   flags = (BDMA->ISR >> 24U) & STM32_BDMA_ISR_MASK;
   BDMA->IFCR = flags << 24U;
-  if (bdma.isr_redir[6].func)
-    bdma.isr_redir[6].func(bdma.isr_redir[6].param, flags);
+  if (bdma.streams[6].func)
+    bdma.streams[6].func(bdma.streams[6].param, flags);
 
   OSAL_IRQ_EPILOGUE();
 }
@@ -238,8 +247,8 @@ OSAL_IRQ_HANDLER(STM32_BDMA1_CH7_HANDLER) {
 
   flags = (BDMA->ISR >> 28U) & STM32_BDMA_ISR_MASK;
   BDMA->IFCR = flags << 28U;
-  if (bdma.isr_redir[7].func)
-    bdma.isr_redir[7].func(bdma.isr_redir[7].param, flags);
+  if (bdma.streams[7].func)
+    bdma.streams[7].func(bdma.streams[7].param, flags);
 
   OSAL_IRQ_EPILOGUE();
 }
@@ -256,11 +265,11 @@ OSAL_IRQ_HANDLER(STM32_BDMA1_CH7_HANDLER) {
 void bdmaInit(void) {
   unsigned i;
 
-  bdma.streams_mask = 0U;
+  bdma.allocated_mask = 0U;
   for (i = 0; i < STM32_BDMA_STREAMS; i++) {
     _stm32_bdma_streams[i].channel->CCR = 0U;
-    bdma.isr_redir[i].func  = NULL;
-    bdma.isr_redir[i].param = NULL;
+    bdma.streams[i].func  = NULL;
+    bdma.streams[i].param = NULL;
   }
   BDMA->IFCR = 0xFFFFFFFFU;
 }
@@ -270,57 +279,158 @@ void bdmaInit(void) {
  * @details The stream is allocated and, if required, the BDMA clock enabled.
  *          The function also enables the IRQ vector associated to the stream
  *          and initializes its priority.
- * @pre     The stream must not be already in use or an error is returned.
- * @post    The stream is allocated and the default ISR handler redirected
- *          to the specified function.
- * @post    The stream ISR vector is enabled and its priority configured.
- * @post    The stream must be freed using @p bdmaStreamRelease() before it can
- *          be reused with another peripheral.
- * @post    The stream is in its post-reset state.
- * @note    This function can be invoked in both ISR or thread context.
  *
- * @param[in] stp       pointer to an @p stm32_bdma_stream_t structure
+ * @param[in] id        numeric identifiers of a specific stream or:
+ *                      - @p STM32_BDMA_STREAM_ID_ANY for any stream.
+ *                      .
  * @param[in] priority  IRQ priority for the BDMA stream
  * @param[in] func      handling function pointer, can be @p NULL
  * @param[in] param     a parameter to be passed to the handling function
- * @return              The operation status.
- * @retval false        no error, stream taken.
- * @retval true         error, stream already taken.
+ * @return              Pointer to the allocated @p stm32_bdma_stream_t
+ *                      structure.
+ * @retval NULL         if a/the stream is not available.
  *
- * @special
+ * @iclass
  */
-bool bdmaStreamAllocate(const stm32_bdma_stream_t *stp,
-                        uint32_t priority,
-                        stm32_bdmaisr_t func,
-                        void *param) {
+const stm32_bdma_stream_t *bdmaStreamAllocI(uint32_t id,
+                                            uint32_t priority,
+                                            stm32_bdmaisr_t func,
+                                            void *param) {
+  uint32_t i, startid, endid;
+
+  osalDbgCheckClassI();
+
+  if (id < STM32_BDMA_STREAMS) {
+    startid = id;
+    endid   = id;
+  }
+  else if (id == STM32_BDMA_STREAM_ID_ANY) {
+    startid = 0U;
+    endid   = STM32_BDMA_STREAMS - 1U;
+  }
+  else {
+    osalDbgCheck(false);
+  }
+
+  for (i = startid; i <= endid; i++) {
+    uint32_t mask = (1U << i);
+    if ((bdma.allocated_mask & mask) == 0U) {
+      const stm32_bdma_stream_t *stp = STM32_BDMA_STREAM(i);
+
+      /* Installs the DMA handler.*/
+      bdma.streams[i].func  = func;
+      bdma.streams[i].param = param;
+      bdma.allocated_mask  |= mask;
+
+      /* Enabling DMA clocks required by the current streams set.*/
+      if ((STM32_BDMA_STREAMS_MASK & mask) != 0U) {
+        rccEnableBDMA1(true);
+      }
+
+#if defined(rccEnableDMAMUX)
+      /* Enabling DMAMUX if present.*/
+      if (bdma.allocated_mask != 0U) {
+        rccEnableDMAMUX(true);
+      }
+#endif
+
+      /* Enables the associated IRQ vector if not already enabled and if a
+         callback is defined.*/
+      if (func != NULL) {
+        nvicEnableVector(stp->vector, priority);
+      }
+
+      /* Putting the stream in a known state.*/
+      bdmaStreamDisable(stp);
+      stp->channel->CCR = STM32_BDMA_CR_RESET_VALUE;
+
+      return stp;
+    }
+  }
+
+  return NULL;
+}
+
+/**
+ * @brief   Allocates a BDMA stream.
+ * @details The stream is allocated and, if required, the BDMA clock enabled.
+ *          The function also enables the IRQ vector associated to the stream
+ *          and initializes its priority.
+ *
+ * @param[in] id        numeric identifiers of a specific stream or:
+ *                      - @p STM32_BDMA_STREAM_ID_ANY for any stream.
+ *                      .
+ * @param[in] priority  IRQ priority for the BDMA stream
+ * @param[in] func      handling function pointer, can be @p NULL
+ * @param[in] param     a parameter to be passed to the handling function
+ * @return              Pointer to the allocated @p stm32_bdma_stream_t
+ *                      structure.
+ * @retval NULL         if a/the stream is not available.
+ *
+ * @api
+ */
+const stm32_bdma_stream_t *bdmaStreamAlloc(uint32_t id,
+                                           uint32_t priority,
+                                           stm32_bdmaisr_t func,
+                                           void *param) {
+  const stm32_bdma_stream_t *stp;
+
+  osalSysLock();
+  stp = bdmaStreamAllocI(id, priority, func, param);
+  osalSysUnlock();
+
+  return stp;
+}
+
+/**
+ * @brief   Releases a BDMA stream.
+ * @details The stream is freed and, if required, the BDMA clock disabled.
+ *          Trying to release a unallocated stream is an illegal operation
+ *          and is trapped if assertions are enabled.
+ *
+ * @param[in] stp       pointer to an @p stm32_bdma_stream_t structure
+ *
+ * @iclass
+ */
+void bdmaStreamFreeI(const stm32_bdma_stream_t *stp) {
 
   osalDbgCheck(stp != NULL);
 
-  /* Checks if the stream is already taken.*/
-  if ((bdma.streams_mask & (1U << stp->selfindex)) != 0U)
-    return true;
+  /* Check if the streams is not taken.*/
+  osalDbgAssert((bdma.allocated_mask & (1U << stp->selfindex)) != 0U,
+                "not allocated");
 
-  /* Installs the BDMA handler.*/
-  bdma.isr_redir[stp->selfindex].func  = func;
-  bdma.isr_redir[stp->selfindex].param = param;
-  bdma.streams_mask |= (1U << stp->selfindex);
+  /* Disables the associated IRQ vector.*/
+  nvicDisableVector(stp->vector);
 
-  /* Enabling BDMA clocks required by the current streams set.*/
-  if ((bdma.streams_mask & STM32_BDMA_STREAMS_MASK) == 0U) {
-    rccEnableBDMA1(true);
+  /* Marks the stream as not allocated.*/
+  bdma.allocated_mask &= ~(1U << stp->selfindex);
+
+  /* Clearing associated handler and parameter.*/
+  bdma.streams->func  = NULL;
+  bdma.streams->param = NULL;
+
+  /* Shutting down clocks that are no more required, if any.*/
+  if ((bdma.allocated_mask & STM32_BDMA_STREAMS_MASK) == 0U) {
+    rccDisableBDMA1();
   }
+}
 
-  /* Putting the stream in a safe state.*/
-  bdmaStreamDisable(stp);
-  stp->channel->CCR = STM32_BDMA_CR_RESET_VALUE;
+/**
+ * @brief   Releases a BDMA stream.
+ * @details The stream is freed and, if required, the BDMA clock disabled.
+ *          Trying to release a unallocated stream is an illegal operation
+ *          and is trapped if assertions are enabled.
+ *
+ * @param[in] stp       pointer to an @p stm32_bdma_stream_t structure
+ *
+ * @api
+ */
+void bdmaStreamFree(const stm32_bdma_stream_t *stp) {
 
-  /* Enables the associated IRQ vector if not already enabled and if a
-     callback is defined.*/
-  if (func != NULL) {
-    nvicEnableVector(stp->vector, priority);
-  }
-
-  return false;
+  osalSysLock();
+  bdmaStreamFreeI(stp);
+  osalSysUnlock();
 }
 
 /**
@@ -337,43 +447,6 @@ void bdmaSetRequestSource(const stm32_bdma_stream_t *stp, uint32_t per) {
   osalDbgCheck(per < 256U);
 
   stp->mux->CCR = per;
-}
-
-/**
- * @brief   Releases a BDMA stream.
- * @details The stream is freed and, if required, the BDMA clock disabled.
- *          Trying to release a unallocated stream is an illegal operation
- *          and is trapped if assertions are enabled.
- * @pre     The stream must have been allocated using @p bdmaStreamAllocate().
- * @post    The stream is again available.
- * @note    This function can be invoked in both ISR or thread context.
- *
- * @param[in] stp       pointer to an @p stm32_bdma_stream_t structure
- *
- * @special
- */
-void bdmaStreamRelease(const stm32_bdma_stream_t *stp) {
-
-  osalDbgCheck(stp != NULL);
-
-  /* Check if the streams is not taken.*/
-  osalDbgAssert((bdma.streams_mask & (1U << stp->selfindex)) != 0U,
-                "not allocated");
-
-  /* Disables the associated IRQ vector.*/
-  nvicDisableVector(stp->vector);
-
-  /* Marks the stream as not allocated.*/
-  bdma.streams_mask &= ~(1U << stp->selfindex);
-
-  /* Clearing associated handler and parameter.*/
-  bdma.isr_redir->func  = NULL;
-  bdma.isr_redir->param = NULL;
-
-  /* Shutting down clocks that are no more required, if any.*/
-  if ((bdma.streams_mask & STM32_BDMA_STREAMS_MASK) == 0U) {
-    rccDisableBDMA1();
-  }
 }
 
 #endif /* STM32_BDMA_REQUIRED */

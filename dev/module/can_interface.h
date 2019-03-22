@@ -23,7 +23,7 @@
 #endif
 
 #define CAN_INTERFACE_ENABLE_ERROR_FEEDBACK_THREAD TRUE
-#define CAN_INTERFACE_THREAD_WORK_AREA_SIZE 512
+#define CAN_INTERFACE_THREAD_WORK_AREA_SIZE 1024
 
 /**
  * @brief CAN driver to receive message and send message
@@ -86,7 +86,7 @@ private:
     /** Configurations **/
 
     CANConfig can_cfg = {
-            CAN_MCR_ABOM | CAN_MCR_AWUM | CAN_MCR_TXFP,
+            CAN_MCR_TTCM | CAN_MCR_TXFP | CAN_MCR_RFLM,
             CAN_BTR_SJW(0) | CAN_BTR_TS2(3) |
             CAN_BTR_TS1(8) | CAN_BTR_BRP(2)
     };

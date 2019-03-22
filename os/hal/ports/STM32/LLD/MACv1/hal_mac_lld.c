@@ -143,7 +143,7 @@ static void mii_find_phy(MACDriver *macp) {
   unsigned n = STM32_MAC_PHY_TIMEOUT;
  do {
 #endif
-    for (i = 0U; i < 31U; i++) {
+    for (i = 0U; i <= 31U; i++) {
       macp->phyaddr = i << 11U;
       ETH->MACMIIDR = (i << 6U) | MACMIIDR_CR;
       if ((mii_read(macp, MII_PHYSID1) == (BOARD_PHY_ID >> 16U)) &&
@@ -364,10 +364,14 @@ void mac_lld_start(MACDriver *macp) {
   /* DMA general settings.*/
   ETH->DMABMR   = ETH_DMABMR_AAB | ETH_DMABMR_RDP_1Beat | ETH_DMABMR_PBL_1Beat;
 
+  /* Check because errata on some devices. There should be no need to
+     disable flushing because the TXFIFO should be empty on macStart().*/
+#if !defined(STM32_MAC_DISABLE_TX_FLUSH)
   /* Transmit FIFO flush.*/
   ETH->DMAOMR   = ETH_DMAOMR_FTF;
   while (ETH->DMAOMR & ETH_DMAOMR_FTF)
     ;
+#endif
 
   /* DMA final configuration and start.*/
   ETH->DMAOMR   = ETH_DMAOMR_DTCEFD | ETH_DMAOMR_RSF | ETH_DMAOMR_TSF |

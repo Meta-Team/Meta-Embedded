@@ -902,6 +902,50 @@
 #error "Using a wrong mcuconf.h file, STM32F7xx_MCUCONF not defined"
 #endif
 
+#if defined(STM32F722xx) && !defined(STM32F722_MCUCONF)
+#error "Using a wrong mcuconf.h file, STM32F722_MCUCONF not defined"
+#endif
+
+#if defined(STM32F732xx) && !defined(STM32F732_MCUCONF)
+#error "Using a wrong mcuconf.h file, STM32F732_MCUCONF not defined"
+#endif
+
+#if defined(STM32F723xx) && !defined(STM32F723_MCUCONF)
+#error "Using a wrong mcuconf.h file, STM32F723_MCUCONF not defined"
+#endif
+
+#if defined(STM32F733xx) && !defined(STM32F733_MCUCONF)
+#error "Using a wrong mcuconf.h file, STM32F733_MCUCONF not defined"
+#endif
+
+#if defined(STM32F746xx) && !defined(STM32F746_MCUCONF)
+#error "Using a wrong mcuconf.h file, STM32F746_MCUCONF not defined"
+#endif
+
+#if defined(STM32F756xx) && !defined(STM32F756_MCUCONF)
+#error "Using a wrong mcuconf.h file, STM32F756_MCUCONF not defined"
+#endif
+
+#if defined(STM32F765xx) && !defined(STM32F765_MCUCONF)
+#error "Using a wrong mcuconf.h file, STM32F765_MCUCONF not defined"
+#endif
+
+#if defined(STM32F767xx) && !defined(STM32F767_MCUCONF)
+#error "Using a wrong mcuconf.h file, STM32F767_MCUCONF not defined"
+#endif
+
+#if defined(STM32F777xx) && !defined(STM32F777_MCUCONF)
+#error "Using a wrong mcuconf.h file, STM32F777_MCUCONF not defined"
+#endif
+
+#if defined(STM32F769xx) && !defined(STM32F769_MCUCONF)
+#error "Using a wrong mcuconf.h file, STM32F769_MCUCONF not defined"
+#endif
+
+#if defined(STM32F779xx) && !defined(STM32F779_MCUCONF)
+#error "Using a wrong mcuconf.h file, STM32F779_MCUCONF not defined"
+#endif
+
 /*
  * Board file checks.
  */
@@ -2087,6 +2131,7 @@
 #include "mpu_v7m.h"
 #include "stm32_isr.h"
 #include "stm32_dma.h"
+#include "stm32_exti.h"
 #include "stm32_rcc.h"
 
 #ifdef __cplusplus

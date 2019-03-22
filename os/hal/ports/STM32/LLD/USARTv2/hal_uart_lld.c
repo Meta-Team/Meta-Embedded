@@ -252,6 +252,7 @@ static void usart_stop(UARTDriver *uartp) {
  * @param[in] uartp     pointer to the @p UARTDriver object
  */
 static void usart_start(UARTDriver *uartp) {
+  uint32_t fck;
   uint32_t cr1;
   const uint32_t tmo = uartp->config->timeout;
   USART_TypeDef *u = uartp->usart;
@@ -260,7 +261,14 @@ static void usart_start(UARTDriver *uartp) {
   usart_stop(uartp);
 
   /* Baud rate setting.*/
-  u->BRR = (uint32_t)(uartp->clock / uartp->config->speed);
+  fck = (uint32_t)(uartp->clock / uartp->config->speed);
+
+  /* Correcting USARTDIV when oversampling by 8 instead of 16.
+     Fraction is still 4 bits wide, but only lower 3 bits used.
+     Mantissa is doubled, but Fraction is left the same.*/
+  if (uartp->config->cr1 & USART_CR1_OVER8)
+    fck = ((fck & ~7) * 2) | (fck & 7);
+  u->BRR = fck;
 
   /* Resetting eventual pending status flags.*/
   u->ICR = 0xFFFFFFFFU;
@@ -586,8 +594,8 @@ void uart_lld_init(void) {
   UARTD1.usart   = USART1;
   UARTD1.clock   = STM32_USART1CLK;
   UARTD1.dmamode = STM32_DMA_CR_DMEIE | STM32_DMA_CR_TEIE;
-  UARTD1.dmarx   = STM32_DMA_STREAM(STM32_UART_USART1_RX_DMA_STREAM);
-  UARTD1.dmatx   = STM32_DMA_STREAM(STM32_UART_USART1_TX_DMA_STREAM);
+  UARTD1.dmarx   = NULL;
+  UARTD1.dmatx   = NULL;
 #if defined(STM32_USART1_NUMBER)
   nvicEnableVector(STM32_USART1_NUMBER, STM32_UART_USART1_IRQ_PRIORITY);
 #endif
@@ -598,8 +606,8 @@ void uart_lld_init(void) {
   UARTD2.usart   = USART2;
   UARTD2.clock   = STM32_USART2CLK;
   UARTD2.dmamode = STM32_DMA_CR_DMEIE | STM32_DMA_CR_TEIE;
-  UARTD2.dmarx   = STM32_DMA_STREAM(STM32_UART_USART2_RX_DMA_STREAM);
-  UARTD2.dmatx   = STM32_DMA_STREAM(STM32_UART_USART2_TX_DMA_STREAM);
+  UARTD2.dmarx   = NULL;
+  UARTD2.dmatx   = NULL;
 #if defined(STM32_USART2_NUMBER)
   nvicEnableVector(STM32_USART2_NUMBER, STM32_UART_USART2_IRQ_PRIORITY);
 #endif
@@ -610,8 +618,8 @@ void uart_lld_init(void) {
   UARTD3.usart   = USART3;
   UARTD3.clock   = STM32_USART3CLK;
   UARTD3.dmamode = STM32_DMA_CR_DMEIE | STM32_DMA_CR_TEIE;
-  UARTD3.dmarx   = STM32_DMA_STREAM(STM32_UART_USART3_RX_DMA_STREAM);
-  UARTD3.dmatx   = STM32_DMA_STREAM(STM32_UART_USART3_TX_DMA_STREAM);
+  UARTD3.dmarx   = NULL;
+  UARTD3.dmatx   = NULL;
 #if defined(STM32_USART3_NUMBER)
   nvicEnableVector(STM32_USART3_NUMBER, STM32_UART_USART3_IRQ_PRIORITY);
 #endif
@@ -622,8 +630,8 @@ void uart_lld_init(void) {
   UARTD4.usart   = UART4;
   UARTD4.clock   = STM32_UART4CLK;
   UARTD4.dmamode = STM32_DMA_CR_DMEIE | STM32_DMA_CR_TEIE;
-  UARTD4.dmarx   = STM32_DMA_STREAM(STM32_UART_UART4_RX_DMA_STREAM);
-  UARTD4.dmatx   = STM32_DMA_STREAM(STM32_UART_UART4_TX_DMA_STREAM);
+  UARTD4.dmarx   = NULL;
+  UARTD4.dmatx   = NULL;
 #if defined(STM32_UART4_NUMBER)
   nvicEnableVector(STM32_UART4_NUMBER, STM32_UART_UART4_IRQ_PRIORITY);
 #endif
@@ -634,8 +642,8 @@ void uart_lld_init(void) {
   UARTD5.usart   = UART5;
   UARTD5.clock   = STM32_UART5CLK;
   UARTD5.dmamode = STM32_DMA_CR_DMEIE | STM32_DMA_CR_TEIE;
-  UARTD5.dmarx   = STM32_DMA_STREAM(STM32_UART_UART5_RX_DMA_STREAM);
-  UARTD5.dmatx   = STM32_DMA_STREAM(STM32_UART_UART5_TX_DMA_STREAM);
+  UARTD5.dmarx   = NULL;
+  UARTD5.dmatx   = NULL;
 #if defined(STM32_UART5_NUMBER)
   nvicEnableVector(STM32_UART5_NUMBER, STM32_UART_UART5_IRQ_PRIORITY);
 #endif
@@ -646,8 +654,8 @@ void uart_lld_init(void) {
   UARTD6.usart   = USART6;
   UARTD6.clock   = STM32_USART6CLK;
   UARTD6.dmamode = STM32_DMA_CR_DMEIE | STM32_DMA_CR_TEIE;
-  UARTD6.dmarx   = STM32_DMA_STREAM(STM32_UART_USART6_RX_DMA_STREAM);
-  UARTD6.dmatx   = STM32_DMA_STREAM(STM32_UART_USART6_TX_DMA_STREAM);
+  UARTD6.dmarx   = NULL;
+  UARTD6.dmatx   = NULL;
 #if defined(STM32_USART6_NUMBER)
   nvicEnableVector(STM32_USART6_NUMBER, STM32_UART_USART6_IRQ_PRIORITY);
 #endif
@@ -658,8 +666,8 @@ void uart_lld_init(void) {
   UARTD7.usart   = UART7;
   UARTD7.clock   = STM32_UART7CLK;
   UARTD7.dmamode = STM32_DMA_CR_DMEIE | STM32_DMA_CR_TEIE;
-  UARTD7.dmarx   = STM32_DMA_STREAM(STM32_UART_UART7_RX_DMA_STREAM);
-  UARTD7.dmatx   = STM32_DMA_STREAM(STM32_UART_UART7_TX_DMA_STREAM);
+  UARTD7.dmarx   = NULL;
+  UARTD7.dmatx   = NULL;
 #if defined(STM32_UART7_NUMBER)
   nvicEnableVector(STM32_UART7_NUMBER, STM32_UART_UART7_IRQ_PRIORITY);
 #endif
@@ -670,15 +678,15 @@ void uart_lld_init(void) {
   UARTD8.usart   = UART8;
   UARTD8.clock   = STM32_UART8CLK;
   UARTD8.dmamode = STM32_DMA_CR_DMEIE | STM32_DMA_CR_TEIE;
-  UARTD8.dmarx   = STM32_DMA_STREAM(STM32_UART_UART8_RX_DMA_STREAM);
-  UARTD8.dmatx   = STM32_DMA_STREAM(STM32_UART_UART8_TX_DMA_STREAM);
+  UARTD8.dmarx   = NULL;
+  UARTD8.dmatx   = NULL;
 #if defined(STM32_UART8_NUMBER)
   nvicEnableVector(STM32_UART8_NUMBER, STM32_UART_UART8_IRQ_PRIORITY);
 #endif
 #endif
 
-#if STM32_UART_USE_USART3 || STM32_UART_USE_UART4  ||                   \
-    STM32_UART_USE_UART5  || STM32_UART_USE_USART6 ||                   \
+#if STM32_UART_USE_USART3 || STM32_UART_USE_UART4  ||                       \
+    STM32_UART_USE_UART5  || STM32_UART_USE_USART6 ||                       \
     STM32_UART_USE_UART7  || STM32_UART_USE_UART8
 #if defined(STM32_USART3_8_HANDLER)
   nvicEnableVector(STM32_USART3_8_NUMBER, STM32_UART_USART3_8_IRQ_PRIORITY);
@@ -698,153 +706,185 @@ void uart_lld_start(UARTDriver *uartp) {
   if (uartp->state == UART_STOP) {
 #if STM32_UART_USE_USART1
     if (&UARTD1 == uartp) {
-      bool b;
-      b = dmaStreamAllocate(uartp->dmarx,
-                            STM32_UART_USART1_IRQ_PRIORITY,
-                            (stm32_dmaisr_t)uart_lld_serve_rx_end_irq,
-                            (void *)uartp);
-      osalDbgAssert(!b, "stream already allocated");
-      b = dmaStreamAllocate(uartp->dmatx,
-                            STM32_UART_USART1_IRQ_PRIORITY,
-                            (stm32_dmaisr_t)uart_lld_serve_tx_end_irq,
-                            (void *)uartp);
-      osalDbgAssert(!b, "stream already allocated");
+      uartp->dmarx = dmaStreamAllocI(STM32_UART_USART1_RX_DMA_STREAM,
+                                     STM32_UART_USART1_IRQ_PRIORITY,
+                                     (stm32_dmaisr_t)uart_lld_serve_rx_end_irq,
+                                     (void *)uartp);
+      osalDbgAssert(uartp->dmarx != NULL, "unable to allocate stream");
+      uartp->dmatx = dmaStreamAllocI(STM32_UART_USART1_TX_DMA_STREAM,
+                                     STM32_UART_USART1_IRQ_PRIORITY,
+                                     (stm32_dmaisr_t)uart_lld_serve_tx_end_irq,
+                                     (void *)uartp);
+      osalDbgAssert(uartp->dmatx != NULL, "unable to allocate stream");
+
       rccEnableUSART1(true);
       uartp->dmamode |= STM32_DMA_CR_CHSEL(USART1_RX_DMA_CHANNEL) |
                         STM32_DMA_CR_PL(STM32_UART_USART1_DMA_PRIORITY);
+#if STM32_DMA_SUPPORTS_DMAMUX
+      dmaSetRequestSource(uartp->dmarx, STM32_DMAMUX1_USART1_RX);
+      dmaSetRequestSource(uartp->dmatx, STM32_DMAMUX1_USART1_TX);
+#endif
     }
 #endif
 
 #if STM32_UART_USE_USART2
     if (&UARTD2 == uartp) {
-      bool b;
-      b = dmaStreamAllocate(uartp->dmarx,
-                            STM32_UART_USART2_IRQ_PRIORITY,
-                            (stm32_dmaisr_t)uart_lld_serve_rx_end_irq,
-                            (void *)uartp);
-      osalDbgAssert(!b, "stream already allocated");
-      b = dmaStreamAllocate(uartp->dmatx,
-                            STM32_UART_USART2_IRQ_PRIORITY,
-                            (stm32_dmaisr_t)uart_lld_serve_tx_end_irq,
-                            (void *)uartp);
-      osalDbgAssert(!b, "stream already allocated");
+      uartp->dmarx = dmaStreamAllocI(STM32_UART_USART2_RX_DMA_STREAM,
+                                     STM32_UART_USART2_IRQ_PRIORITY,
+                                     (stm32_dmaisr_t)uart_lld_serve_rx_end_irq,
+                                     (void *)uartp);
+      osalDbgAssert(uartp->dmarx != NULL, "unable to allocate stream");
+      uartp->dmatx = dmaStreamAllocI(STM32_UART_USART2_TX_DMA_STREAM,
+                                     STM32_UART_USART2_IRQ_PRIORITY,
+                                     (stm32_dmaisr_t)uart_lld_serve_tx_end_irq,
+                                     (void *)uartp);
+      osalDbgAssert(uartp->dmatx != NULL, "unable to allocate stream");
+
       rccEnableUSART2(true);
       uartp->dmamode |= STM32_DMA_CR_CHSEL(USART2_RX_DMA_CHANNEL) |
                         STM32_DMA_CR_PL(STM32_UART_USART2_DMA_PRIORITY);
+#if STM32_DMA_SUPPORTS_DMAMUX
+      dmaSetRequestSource(uartp->dmarx, STM32_DMAMUX1_USART2_RX);
+      dmaSetRequestSource(uartp->dmatx, STM32_DMAMUX1_USART2_TX);
+#endif
     }
 #endif
 
 #if STM32_UART_USE_USART3
     if (&UARTD3 == uartp) {
-      bool b;
-      b = dmaStreamAllocate(uartp->dmarx,
-                            STM32_UART_USART3_IRQ_PRIORITY,
-                            (stm32_dmaisr_t)uart_lld_serve_rx_end_irq,
-                            (void *)uartp);
-      osalDbgAssert(!b, "stream already allocated");
-      b = dmaStreamAllocate(uartp->dmatx,
-                            STM32_UART_USART3_IRQ_PRIORITY,
-                            (stm32_dmaisr_t)uart_lld_serve_tx_end_irq,
-                            (void *)uartp);
-      osalDbgAssert(!b, "stream already allocated");
+      uartp->dmarx = dmaStreamAllocI(STM32_UART_USART3_RX_DMA_STREAM,
+                                     STM32_UART_USART3_IRQ_PRIORITY,
+                                     (stm32_dmaisr_t)uart_lld_serve_rx_end_irq,
+                                     (void *)uartp);
+      osalDbgAssert(uartp->dmarx != NULL, "unable to allocate stream");
+      uartp->dmatx = dmaStreamAllocI(STM32_UART_USART3_TX_DMA_STREAM,
+                                     STM32_UART_USART3_IRQ_PRIORITY,
+                                     (stm32_dmaisr_t)uart_lld_serve_tx_end_irq,
+                                     (void *)uartp);
+      osalDbgAssert(uartp->dmatx != NULL, "unable to allocate stream");
+
       rccEnableUSART3(true);
       uartp->dmamode |= STM32_DMA_CR_CHSEL(USART3_RX_DMA_CHANNEL) |
                         STM32_DMA_CR_PL(STM32_UART_USART3_DMA_PRIORITY);
+#if STM32_DMA_SUPPORTS_DMAMUX
+      dmaSetRequestSource(uartp->dmarx, STM32_DMAMUX1_USART3_RX);
+      dmaSetRequestSource(uartp->dmatx, STM32_DMAMUX1_USART3_TX);
+#endif
     }
 #endif
 
 #if STM32_UART_USE_UART4
     if (&UARTD4 == uartp) {
-      bool b;
-      b = dmaStreamAllocate(uartp->dmarx,
-                            STM32_UART_UART4_IRQ_PRIORITY,
-                            (stm32_dmaisr_t)uart_lld_serve_rx_end_irq,
-                            (void *)uartp);
-      osalDbgAssert(!b, "stream already allocated");
-      b = dmaStreamAllocate(uartp->dmatx,
-                            STM32_UART_UART4_IRQ_PRIORITY,
-                            (stm32_dmaisr_t)uart_lld_serve_tx_end_irq,
-                            (void *)uartp);
-      osalDbgAssert(!b, "stream already allocated");
+      uartp->dmarx = dmaStreamAllocI(STM32_UART_UART4_RX_DMA_STREAM,
+                                     STM32_UART_UART4_IRQ_PRIORITY,
+                                     (stm32_dmaisr_t)uart_lld_serve_rx_end_irq,
+                                     (void *)uartp);
+      osalDbgAssert(uartp->dmarx != NULL, "unable to allocate stream");
+      uartp->dmatx = dmaStreamAllocI(STM32_UART_UART4_TX_DMA_STREAM,
+                                     STM32_UART_UART4_IRQ_PRIORITY,
+                                     (stm32_dmaisr_t)uart_lld_serve_tx_end_irq,
+                                     (void *)uartp);
+      osalDbgAssert(uartp->dmatx != NULL, "unable to allocate stream");
+
       rccEnableUART4(true);
       uartp->dmamode |= STM32_DMA_CR_CHSEL(UART4_RX_DMA_CHANNEL) |
                         STM32_DMA_CR_PL(STM32_UART_UART4_DMA_PRIORITY);
+#if STM32_DMA_SUPPORTS_DMAMUX
+      dmaSetRequestSource(uartp->dmarx, STM32_DMAMUX1_UART4_RX);
+      dmaSetRequestSource(uartp->dmatx, STM32_DMAMUX1_UART4_TX);
+#endif
     }
 #endif
 
 #if STM32_UART_USE_UART5
     if (&UARTD5 == uartp) {
-      bool b;
-      b = dmaStreamAllocate(uartp->dmarx,
-                            STM32_UART_UART5_IRQ_PRIORITY,
-                            (stm32_dmaisr_t)uart_lld_serve_rx_end_irq,
-                            (void *)uartp);
-      osalDbgAssert(!b, "stream already allocated");
-      b = dmaStreamAllocate(uartp->dmatx,
-                            STM32_UART_UART5_IRQ_PRIORITY,
-                            (stm32_dmaisr_t)uart_lld_serve_tx_end_irq,
-                            (void *)uartp);
-      osalDbgAssert(!b, "stream already allocated");
+      uartp->dmarx = dmaStreamAllocI(STM32_UART_UART5_RX_DMA_STREAM,
+                                     STM32_UART_UART5_IRQ_PRIORITY,
+                                     (stm32_dmaisr_t)uart_lld_serve_rx_end_irq,
+                                     (void *)uartp);
+      osalDbgAssert(uartp->dmarx != NULL, "unable to allocate stream");
+      uartp->dmatx = dmaStreamAllocI(STM32_UART_UART5_TX_DMA_STREAM,
+                                     STM32_UART_UART5_IRQ_PRIORITY,
+                                     (stm32_dmaisr_t)uart_lld_serve_tx_end_irq,
+                                     (void *)uartp);
+      osalDbgAssert(uartp->dmatx != NULL, "unable to allocate stream");
+
       rccEnableUART5(true);
       uartp->dmamode |= STM32_DMA_CR_CHSEL(UART5_RX_DMA_CHANNEL) |
                         STM32_DMA_CR_PL(STM32_UART_UART5_DMA_PRIORITY);
+#if STM32_DMA_SUPPORTS_DMAMUX
+      dmaSetRequestSource(uartp->dmarx, STM32_DMAMUX1_UART5_RX);
+      dmaSetRequestSource(uartp->dmatx, STM32_DMAMUX1_UART5_TX);
+#endif
     }
 #endif
 
 #if STM32_UART_USE_USART6
     if (&UARTD6 == uartp) {
-      bool b;
-      b = dmaStreamAllocate(uartp->dmarx,
-                            STM32_UART_USART6_IRQ_PRIORITY,
-                            (stm32_dmaisr_t)uart_lld_serve_rx_end_irq,
-                            (void *)uartp);
-      osalDbgAssert(!b, "stream already allocated");
-      b = dmaStreamAllocate(uartp->dmatx,
-                            STM32_UART_USART6_IRQ_PRIORITY,
-                            (stm32_dmaisr_t)uart_lld_serve_tx_end_irq,
-                            (void *)uartp);
-      osalDbgAssert(!b, "stream already allocated");
+      uartp->dmarx = dmaStreamAllocI(STM32_UART_USART6_RX_DMA_STREAM,
+                                     STM32_UART_USART6_IRQ_PRIORITY,
+                                     (stm32_dmaisr_t)uart_lld_serve_rx_end_irq,
+                                     (void *)uartp);
+      osalDbgAssert(uartp->dmarx != NULL, "unable to allocate stream");
+      uartp->dmatx = dmaStreamAllocI(STM32_UART_USART6_TX_DMA_STREAM,
+                                     STM32_UART_USART6_IRQ_PRIORITY,
+                                     (stm32_dmaisr_t)uart_lld_serve_tx_end_irq,
+                                     (void *)uartp);
+      osalDbgAssert(uartp->dmatx != NULL, "unable to allocate stream");
+
       rccEnableUSART6(true);
       uartp->dmamode |= STM32_DMA_CR_CHSEL(USART6_RX_DMA_CHANNEL) |
                         STM32_DMA_CR_PL(STM32_UART_USART6_DMA_PRIORITY);
+#if STM32_DMA_SUPPORTS_DMAMUX
+      dmaSetRequestSource(uartp->dmarx, STM32_DMAMUX1_USART6_RX);
+      dmaSetRequestSource(uartp->dmatx, STM32_DMAMUX1_USART6_TX);
+#endif
     }
 #endif
 
 #if STM32_UART_USE_UART7
     if (&UARTD7 == uartp) {
-      bool b;
-      b = dmaStreamAllocate(uartp->dmarx,
-                            STM32_UART_UART7_IRQ_PRIORITY,
-                            (stm32_dmaisr_t)uart_lld_serve_rx_end_irq,
-                            (void *)uartp);
-      osalDbgAssert(!b, "stream already allocated");
-      b = dmaStreamAllocate(uartp->dmatx,
-                            STM32_UART_UART7_IRQ_PRIORITY,
-                            (stm32_dmaisr_t)uart_lld_serve_tx_end_irq,
-                            (void *)uartp);
-      osalDbgAssert(!b, "stream already allocated");
+      uartp->dmarx = dmaStreamAllocI(STM32_UART_UART7_RX_DMA_STREAM,
+                                     STM32_UART_UART7_IRQ_PRIORITY,
+                                     (stm32_dmaisr_t)uart_lld_serve_rx_end_irq,
+                                     (void *)uartp);
+      osalDbgAssert(uartp->dmarx != NULL, "unable to allocate stream");
+      uartp->dmatx = dmaStreamAllocI(STM32_UART_UART7_TX_DMA_STREAM,
+                                     STM32_UART_UART7_IRQ_PRIORITY,
+                                     (stm32_dmaisr_t)uart_lld_serve_tx_end_irq,
+                                     (void *)uartp);
+      osalDbgAssert(uartp->dmatx != NULL, "unable to allocate stream");
+
       rccEnableUART7(true);
       uartp->dmamode |= STM32_DMA_CR_CHSEL(UART7_RX_DMA_CHANNEL) |
                         STM32_DMA_CR_PL(STM32_UART_UART7_DMA_PRIORITY);
+#if STM32_DMA_SUPPORTS_DMAMUX
+      dmaSetRequestSource(uartp->dmarx, STM32_DMAMUX1_UART7_RX);
+      dmaSetRequestSource(uartp->dmatx, STM32_DMAMUX1_UART7_TX);
+#endif
     }
 #endif
 
 #if STM32_UART_USE_UART8
     if (&UARTD8 == uartp) {
-      bool b;
-      b = dmaStreamAllocate(uartp->dmarx,
-                            STM32_UART_UART8_IRQ_PRIORITY,
-                            (stm32_dmaisr_t)uart_lld_serve_rx_end_irq,
-                            (void *)uartp);
-      osalDbgAssert(!b, "stream already allocated");
-      b = dmaStreamAllocate(uartp->dmatx,
-                            STM32_UART_UART8_IRQ_PRIORITY,
-                            (stm32_dmaisr_t)uart_lld_serve_tx_end_irq,
-                            (void *)uartp);
-      osalDbgAssert(!b, "stream already allocated");
+      uartp->dmarx = dmaStreamAllocI(STM32_UART_UART8_RX_DMA_STREAM,
+                                     STM32_UART_UART8_IRQ_PRIORITY,
+                                     (stm32_dmaisr_t)uart_lld_serve_rx_end_irq,
+                                     (void *)uartp);
+      osalDbgAssert(uartp->dmarx != NULL, "unable to allocate stream");
+      uartp->dmatx = dmaStreamAllocI(STM32_UART_UART8_TX_DMA_STREAM,
+                                     STM32_UART_UART8_IRQ_PRIORITY,
+                                     (stm32_dmaisr_t)uart_lld_serve_tx_end_irq,
+                                     (void *)uartp);
+      osalDbgAssert(uartp->dmatx != NULL, "unable to allocate stream");
+
       rccEnableUART8(true);
       uartp->dmamode |= STM32_DMA_CR_CHSEL(UART8_RX_DMA_CHANNEL) |
                         STM32_DMA_CR_PL(STM32_UART_UART8_DMA_PRIORITY);
+#if STM32_DMA_SUPPORTS_DMAMUX
+      dmaSetRequestSource(uartp->dmarx, STM32_DMAMUX1_UART8_RX);
+      dmaSetRequestSource(uartp->dmatx, STM32_DMAMUX1_UART8_TX);
+#endif
     }
 #endif
 
@@ -873,8 +913,10 @@ void uart_lld_stop(UARTDriver *uartp) {
 
   if (uartp->state == UART_READY) {
     usart_stop(uartp);
-    dmaStreamRelease(uartp->dmarx);
-    dmaStreamRelease(uartp->dmatx);
+    dmaStreamFreeI(uartp->dmarx);
+    dmaStreamFreeI(uartp->dmatx);
+    uartp->dmarx = NULL;
+    uartp->dmatx = NULL;
 
 #if STM32_UART_USE_USART1
     if (&UARTD1 == uartp) {

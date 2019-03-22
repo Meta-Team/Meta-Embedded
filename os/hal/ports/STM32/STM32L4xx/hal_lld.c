@@ -18,7 +18,7 @@
  * @file    STM32L4xx/hal_lld.c
  * @brief   STM32L4xx HAL subsystem low level driver source.
  *
- * @addtogroup HAL
+ * @addtogroup STM32L4xx_ISR
  * @{
  */
 
@@ -92,6 +92,9 @@ static void hal_lld_backup_domain_init(void) {
     RCC->BDCR |= RCC_BDCR_RTCEN;
   }
 #endif /* HAL_USE_RTC */
+
+  /* Low speed output mode.*/
+  RCC->BDCR |= STM32_LSCOSEL;
 }
 
 /*===========================================================================*/

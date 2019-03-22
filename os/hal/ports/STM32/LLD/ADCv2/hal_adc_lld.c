@@ -124,7 +124,11 @@ OSAL_IRQ_HANDLER(STM32_ADC_HANDLER) {
     if (ADCD1.grpp != NULL)
       _adc_isr_error_code(&ADCD1, ADC_ERR_OVERFLOW);
   }
-  /* TODO: Add here analog watchdog handling.*/
+  if (sr & ADC_SR_AWD) {
+    if (ADCD1.grpp != NULL) {
+      _adc_isr_error_code(&ADCD1, ADC_ERR_WATCHDOG);
+    }
+  }
 #if defined(STM32_ADC_ADC1_IRQ_HOOK)
   STM32_ADC_ADC1_IRQ_HOOK
 #endif
@@ -141,7 +145,11 @@ OSAL_IRQ_HANDLER(STM32_ADC_HANDLER) {
     if (ADCD2.grpp != NULL)
       _adc_isr_error_code(&ADCD2, ADC_ERR_OVERFLOW);
   }
-  /* TODO: Add here analog watchdog handling.*/
+  if (sr & ADC_SR_AWD) {
+    if (ADCD2.grpp != NULL) {
+      _adc_isr_error_code(&ADCD2, ADC_ERR_WATCHDOG);
+    }
+  }
 #if defined(STM32_ADC_ADC2_IRQ_HOOK)
   STM32_ADC_ADC2_IRQ_HOOK
 #endif
@@ -158,7 +166,11 @@ OSAL_IRQ_HANDLER(STM32_ADC_HANDLER) {
     if (ADCD3.grpp != NULL)
       _adc_isr_error_code(&ADCD3, ADC_ERR_OVERFLOW);
   }
-  /* TODO: Add here analog watchdog handling.*/
+  if (sr & ADC_SR_AWD) {
+    if (ADCD3.grpp != NULL) {
+      _adc_isr_error_code(&ADCD3, ADC_ERR_WATCHDOG);
+    }
+  }
 #if defined(STM32_ADC_ADC3_IRQ_HOOK)
   STM32_ADC_ADC3_IRQ_HOOK
 #endif
@@ -182,8 +194,8 @@ void adc_lld_init(void) {
 #if STM32_ADC_USE_ADC1
   /* Driver initialization.*/
   adcObjectInit(&ADCD1);
-  ADCD1.adc = ADC1;
-  ADCD1.dmastp  = STM32_DMA_STREAM(STM32_ADC_ADC1_DMA_STREAM);
+  ADCD1.adc     = ADC1;
+  ADCD1.dmastp  = NULL;
   ADCD1.dmamode = STM32_DMA_CR_CHSEL(ADC1_DMA_CHANNEL) |
                   STM32_DMA_CR_PL(STM32_ADC_ADC1_DMA_PRIORITY) |
                   STM32_DMA_CR_DIR_P2M |
@@ -195,8 +207,8 @@ void adc_lld_init(void) {
 #if STM32_ADC_USE_ADC2
   /* Driver initialization.*/
   adcObjectInit(&ADCD2);
-  ADCD2.adc = ADC2;
-  ADCD2.dmastp  = STM32_DMA_STREAM(STM32_ADC_ADC2_DMA_STREAM);
+  ADCD2.adc     = ADC2;
+  ADCD2.dmastp  = NULL;
   ADCD2.dmamode = STM32_DMA_CR_CHSEL(ADC2_DMA_CHANNEL) |
                   STM32_DMA_CR_PL(STM32_ADC_ADC2_DMA_PRIORITY) |
                   STM32_DMA_CR_DIR_P2M |
@@ -208,8 +220,8 @@ void adc_lld_init(void) {
 #if STM32_ADC_USE_ADC3
   /* Driver initialization.*/
   adcObjectInit(&ADCD3);
-  ADCD3.adc = ADC3;
-  ADCD3.dmastp  = STM32_DMA_STREAM(STM32_ADC_ADC3_DMA_STREAM);
+  ADCD3.adc     = ADC3;
+  ADCD3.dmastp  = NULL;
   ADCD3.dmamode = STM32_DMA_CR_CHSEL(ADC3_DMA_CHANNEL) |
                   STM32_DMA_CR_PL(STM32_ADC_ADC3_DMA_PRIORITY) |
                   STM32_DMA_CR_DIR_P2M |
@@ -236,12 +248,11 @@ void adc_lld_start(ADCDriver *adcp) {
   if (adcp->state == ADC_STOP) {
 #if STM32_ADC_USE_ADC1
     if (&ADCD1 == adcp) {
-      bool b;
-      b = dmaStreamAllocate(adcp->dmastp,
-                            STM32_ADC_ADC1_DMA_IRQ_PRIORITY,
-                            (stm32_dmaisr_t)adc_lld_serve_rx_interrupt,
-                            (void *)adcp);
-      osalDbgAssert(!b, "stream already allocated");
+      adcp->dmastp = dmaStreamAllocI(STM32_ADC_ADC1_DMA_STREAM,
+                                     STM32_ADC_ADC1_DMA_IRQ_PRIORITY,
+                                     (stm32_dmaisr_t)adc_lld_serve_rx_interrupt,
+                                     (void *)adcp);
+      osalDbgAssert(adcp->dmastp != NULL, "unable to allocate stream");
       dmaStreamSetPeripheral(adcp->dmastp, &ADC1->DR);
       rccEnableADC1(true);
     }
@@ -249,12 +260,11 @@ void adc_lld_start(ADCDriver *adcp) {
 
 #if STM32_ADC_USE_ADC2
     if (&ADCD2 == adcp) {
-      bool b;
-      b = dmaStreamAllocate(adcp->dmastp,
-                            STM32_ADC_ADC2_DMA_IRQ_PRIORITY,
-                            (stm32_dmaisr_t)adc_lld_serve_rx_interrupt,
-                            (void *)adcp);
-      osalDbgAssert(!b, "stream already allocated");
+      adcp->dmastp = dmaStreamAllocI(STM32_ADC_ADC2_DMA_STREAM,
+                                     STM32_ADC_ADC2_DMA_IRQ_PRIORITY,
+                                     (stm32_dmaisr_t)adc_lld_serve_rx_interrupt,
+                                     (void *)adcp);
+      osalDbgAssert(adcp->dmastp != NULL, "unable to allocate stream");
       dmaStreamSetPeripheral(adcp->dmastp, &ADC2->DR);
       rccEnableADC2(true);
     }
@@ -262,12 +272,11 @@ void adc_lld_start(ADCDriver *adcp) {
 
 #if STM32_ADC_USE_ADC3
     if (&ADCD3 == adcp) {
-      bool b;
-      b = dmaStreamAllocate(adcp->dmastp,
-                            STM32_ADC_ADC3_DMA_IRQ_PRIORITY,
-                            (stm32_dmaisr_t)adc_lld_serve_rx_interrupt,
-                            (void *)adcp);
-      osalDbgAssert(!b, "stream already allocated");
+      adcp->dmastp = dmaStreamAllocI(STM32_ADC_ADC3_DMA_STREAM,
+                                     STM32_ADC_ADC3_DMA_IRQ_PRIORITY,
+                                     (stm32_dmaisr_t)adc_lld_serve_rx_interrupt,
+                                     (void *)adcp);
+      osalDbgAssert(adcp->dmastp != NULL, "unable to allocate stream");
       dmaStreamSetPeripheral(adcp->dmastp, &ADC3->DR);
       rccEnableADC3(true);
     }
@@ -297,7 +306,10 @@ void adc_lld_stop(ADCDriver *adcp) {
 
   /* If in ready state then disables the ADC clock.*/
   if (adcp->state == ADC_READY) {
-    dmaStreamRelease(adcp->dmastp);
+
+    dmaStreamFreeI(adcp->dmastp);
+    adcp->dmastp = NULL;
+
     adcp->adc->CR1 = 0;
     adcp->adc->CR2 = 0;
 
@@ -350,6 +362,8 @@ void adc_lld_start_conversion(ADCDriver *adcp) {
   adcp->adc->SR    = 0;
   adcp->adc->SMPR1 = grpp->smpr1;
   adcp->adc->SMPR2 = grpp->smpr2;
+  adcp->adc->HTR   = grpp->htr;
+  adcp->adc->LTR   = grpp->ltr;
   adcp->adc->SQR1  = grpp->sqr1 | ADC_SQR1_NUM_CH(grpp->num_channels);
   adcp->adc->SQR2  = grpp->sqr2;
   adcp->adc->SQR3  = grpp->sqr3;

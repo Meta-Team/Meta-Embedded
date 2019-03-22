@@ -39,6 +39,23 @@
 #define USART_CR2_LBDIE                     0
 #endif
 
+/* Differences in L4+ headers.*/
+#if defined(USART_CR1_TXEIE_TXFNFIE)
+#define USART_CR1_TXEIE                     USART_CR1_TXEIE_TXFNFIE
+#endif
+
+#if defined(USART_CR1_RXNEIE_RXFNEIE)
+#define USART_CR1_RXNEIE                    USART_CR1_RXNEIE_RXFNEIE
+#endif
+
+#if defined(USART_ISR_TXE_TXFNF)
+#define USART_ISR_TXE                       USART_ISR_TXE_TXFNF
+#endif
+
+#if defined(USART_ISR_RXNE_RXFNE)
+#define USART_ISR_RXNE                      USART_ISR_RXNE_RXFNE
+#endif
+
 /* STM32L0xx/STM32F7xx ST headers difference.*/
 #if !defined(USART_ISR_LBDF)
 #define USART_ISR_LBDF                      USART_ISR_LBD
@@ -213,17 +230,26 @@ static uint8_t sd_out_buflp1[STM32_SERIAL_LPUART1_OUT_BUF_SIZE];
  * @param[in] config    the architecture-dependent serial driver configuration
  */
 static void usart_init(SerialDriver *sdp, const SerialConfig *config) {
+  uint32_t fck;
   USART_TypeDef *u = sdp->usart;
 
   /* Baud rate setting.*/
 #if STM32_SERIAL_USE_LPUART1
-  if ( sdp == &LPSD1 )
-  {
-      u->BRR = (uint32_t)( ( (uint64_t)sdp->clock * 256 ) / config->speed);
+  if ( sdp == &LPSD1 ) {
+    fck = (uint32_t)(((uint64_t)sdp->clock * 256 ) / config->speed);
   }
   else
 #endif
-  u->BRR = (uint32_t)(sdp->clock / config->speed);
+  {
+    fck = (uint32_t)(sdp->clock / config->speed);
+  }
+
+  /* Correcting USARTDIV when oversampling by 8 instead of 16.
+     Fraction is still 4 bits wide, but only lower 3 bits used.
+     Mantissa is doubled, but Fraction is left the same.*/
+  if (config->cr1 & USART_CR1_OVER8)
+    fck = ((fck & ~7) * 2) | (fck & 7);
+  u->BRR = fck;
 
   /* Note that some bits are enforced.*/
   u->CR2 = config->cr2 | USART_CR2_LBDIE;
@@ -312,33 +338,51 @@ static void serve_interrupt(SerialDriver *sdp) {
     osalSysUnlockFromISR();
   }
 
-  /* Data available.*/
-  if (isr & USART_ISR_RXNE) {
+  /* Data available, note it is a while in order to handle two situations:
+     1) Another byte arrived after removing the previous one, this would cause
+        an extra interrupt to serve.
+     2) FIFO mode is enabled on devices that support it, we need to empty
+        the FIFO.*/
+  while (isr & USART_ISR_RXNE) {
     osalSysLockFromISR();
     sdIncomingDataI(sdp, (uint8_t)u->RDR & sdp->rxmask);
     osalSysUnlockFromISR();
+
+    isr = u->ISR;
   }
 
-  /* Transmission buffer empty.*/
-  if ((cr1 & USART_CR1_TXEIE) && (isr & USART_ISR_TXE)) {
-    msg_t b;
-    osalSysLockFromISR();
-    b = oqGetI(&sdp->oqueue);
-    if (b < MSG_OK) {
-      chnAddFlagsI(sdp, CHN_OUTPUT_EMPTY);
-      u->CR1 = (cr1 & ~USART_CR1_TXEIE) | USART_CR1_TCIE;
-    }
-    else
+  /* Transmission buffer empty, note it is a while in order to handle two
+     situations:
+     1) The data registers has been emptied immediately after writing it, this
+        would cause an extra interrupt to serve.
+     2) FIFO mode is enabled on devices that support it, we need to fill
+        the FIFO.*/
+  if (cr1 & USART_CR1_TXEIE) {
+    while (isr & USART_ISR_TXE) {
+      msg_t b;
+
+      osalSysLockFromISR();
+      b = oqGetI(&sdp->oqueue);
+      if (b < MSG_OK) {
+        chnAddFlagsI(sdp, CHN_OUTPUT_EMPTY);
+        u->CR1 = cr1 & ~USART_CR1_TXEIE;
+        osalSysUnlockFromISR();
+        break;
+      }
       u->TDR = b;
-    osalSysUnlockFromISR();
+      osalSysUnlockFromISR();
+
+      isr = u->ISR;
+    }
   }
 
   /* Physical transmission end.*/
-  if (isr & USART_ISR_TC) {
+  if ((cr1 & USART_CR1_TCIE) && (isr & USART_ISR_TC)) {
     osalSysLockFromISR();
-    if (oqIsEmptyI(&sdp->oqueue))
+    if (oqIsEmptyI(&sdp->oqueue)) {
       chnAddFlagsI(sdp, CHN_TRANSMISSION_END);
-    u->CR1 = cr1 & ~USART_CR1_TCIE;
+      u->CR1 = cr1 & ~USART_CR1_TCIE;
+    }
     osalSysUnlockFromISR();
   }
 }
@@ -347,7 +391,7 @@ static void serve_interrupt(SerialDriver *sdp) {
 static void notify1(io_queue_t *qp) {
 
   (void)qp;
-  USART1->CR1 |= USART_CR1_TXEIE;
+  USART1->CR1 |= USART_CR1_TXEIE | USART_CR1_TCIE;
 }
 #endif
 
@@ -355,7 +399,7 @@ static void notify1(io_queue_t *qp) {
 static void notify2(io_queue_t *qp) {
 
   (void)qp;
-  USART2->CR1 |= USART_CR1_TXEIE;
+  USART2->CR1 |= USART_CR1_TXEIE | USART_CR1_TCIE;
 }
 #endif
 
@@ -363,7 +407,7 @@ static void notify2(io_queue_t *qp) {
 static void notify3(io_queue_t *qp) {
 
   (void)qp;
-  USART3->CR1 |= USART_CR1_TXEIE;
+  USART3->CR1 |= USART_CR1_TXEIE | USART_CR1_TCIE;
 }
 #endif
 
@@ -371,7 +415,7 @@ static void notify3(io_queue_t *qp) {
 static void notify4(io_queue_t *qp) {
 
   (void)qp;
-  UART4->CR1 |= USART_CR1_TXEIE;
+  UART4->CR1 |= USART_CR1_TXEIE | USART_CR1_TCIE;
 }
 #endif
 
@@ -379,7 +423,7 @@ static void notify4(io_queue_t *qp) {
 static void notify5(io_queue_t *qp) {
 
   (void)qp;
-  UART5->CR1 |= USART_CR1_TXEIE;
+  UART5->CR1 |= USART_CR1_TXEIE | USART_CR1_TCIE;
 }
 #endif
 
@@ -387,7 +431,7 @@ static void notify5(io_queue_t *qp) {
 static void notify6(io_queue_t *qp) {
 
   (void)qp;
-  USART6->CR1 |= USART_CR1_TXEIE;
+  USART6->CR1 |= USART_CR1_TXEIE | USART_CR1_TCIE;
 }
 #endif
 
@@ -395,7 +439,7 @@ static void notify6(io_queue_t *qp) {
 static void notify7(io_queue_t *qp) {
 
   (void)qp;
-  UART7->CR1 |= USART_CR1_TXEIE;
+  UART7->CR1 |= USART_CR1_TXEIE | USART_CR1_TCIE;
 }
 #endif
 
@@ -403,7 +447,7 @@ static void notify7(io_queue_t *qp) {
 static void notify8(io_queue_t *qp) {
 
   (void)qp;
-  UART8->CR1 |= USART_CR1_TXEIE;
+  UART8->CR1 |= USART_CR1_TXEIE | USART_CR1_TCIE;
 }
 #endif
 
@@ -411,7 +455,7 @@ static void notify8(io_queue_t *qp) {
 static void notifylp1(io_queue_t *qp) {
 
   (void)qp;
-  LPUART1->CR1 |= USART_CR1_TXEIE;
+  LPUART1->CR1 |= USART_CR1_TXEIE | USART_CR1_TCIE;
 }
 #endif
 

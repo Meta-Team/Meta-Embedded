@@ -37,8 +37,6 @@
  */
 #define DAC_TRG_MASK                    7U
 #define DAC_TRG(n)                      (n)
-#define DAC_TRG_EXT                     6U
-#define DAC_TRG_SW                      7U
 /** @} */
 
 /*===========================================================================*/
@@ -179,9 +177,30 @@
 #error "DAC driver activated but no DAC peripheral assigned"
 #endif
 
+#if STM32_DAC_USE_DAC1_CH1 &&                                               \
+    !OSAL_IRQ_IS_VALID_PRIORITY(STM32_DAC_DAC1_CH1_IRQ_PRIORITY)
+#error "Invalid IRQ priority assigned to DAC1 CH1"
+#endif
+
+#if STM32_DAC_USE_DAC1_CH2 &&                                               \
+    !OSAL_IRQ_IS_VALID_PRIORITY(STM32_DAC_DAC1_CH2_IRQ_PRIORITY)
+#error "Invalid IRQ priority assigned to DAC1 CH2"
+#endif
+
+#if STM32_DAC_USE_DAC2_CH1 &&                                               \
+    !OSAL_IRQ_IS_VALID_PRIORITY(STM32_DAC_DAC2_CH1_IRQ_PRIORITY)
+#error "Invalid IRQ priority assigned to DAC2 CH1"
+#endif
+
+#if STM32_DAC_USE_DAC2_CH2 &&                                               \
+    !OSAL_IRQ_IS_VALID_PRIORITY(STM32_DAC_DAC2_CH2_IRQ_PRIORITY)
+#error "Invalid IRQ priority assigned to DAC2 CH2"
+#endif
+
 /* The following checks are only required when there is a DMA able to
    reassign streams to different channels.*/
 #if STM32_ADVANCED_DMA
+
 /* Check on the presence of the DMA streams settings in mcuconf.h.*/
 #if STM32_DAC_USE_DAC1_CH1 && !defined(STM32_DAC_DAC1_CH1_DMA_STREAM)
 #error "DAC1 CH1 DMA stream not defined"
@@ -199,7 +218,11 @@
 #error "DAC2 CH2 DMA stream not defined"
 #endif
 
-/* Check on the validity of the assigned DMA channels.*/
+#if STM32_DMA_SUPPORTS_DMAMUX
+
+#else /* !STM32_DMA_SUPPORTS_DMAMUX */
+
+/* Check on the validity of the assigned DMA streams.*/
 #if STM32_DAC_USE_DAC1_CH1 &&                                               \
     !STM32_DMA_IS_VALID_ID(STM32_DAC_DAC1_CH1_DMA_STREAM, STM32_DAC1_CH1_DMA_MSK)
 #error "invalid DMA stream associated to DAC1 CH1"
@@ -219,7 +242,30 @@
     !STM32_DMA_IS_VALID_ID(STM32_DAC_DAC2_CH2_DMA_STREAM, STM32_DAC2_CH2_DMA_MSK)
 #error "invalid DMA stream associated to DAC2 CH2"
 #endif
+
+#endif /* !STM32_DMA_SUPPORTS_DMAMUX */
+
 #endif /* STM32_ADVANCED_DMA */
+
+#if STM32_DAC_USE_DAC1_CH1 &&                                               \
+    !STM32_DMA_IS_VALID_PRIORITY(STM32_DAC_DAC1_CH1_DMA_PRIORITY)
+#error "Invalid DMA priority assigned to DAC1 CH1"
+#endif
+
+#if STM32_DAC_USE_DAC1_CH2 &&                                               \
+    !STM32_DMA_IS_VALID_PRIORITY(STM32_DAC_DAC1_CH2_DMA_PRIORITY)
+#error "Invalid DMA priority assigned to DAC1 CH2"
+#endif
+
+#if STM32_DAC_USE_DAC2_CH1 &&                                               \
+    !STM32_DMA_IS_VALID_PRIORITY(STM32_DAC_DAC2_CH1_DMA_PRIORITY)
+#error "Invalid DMA priority assigned to DAC2 CH1"
+#endif
+
+#if STM32_DAC_USE_DAC2_CH2 &&                                               \
+    !STM32_DMA_IS_VALID_PRIORITY(STM32_DAC_DAC2_CH2_DMA_PRIORITY)
+#error "Invalid DMA priority assigned to DAC2 CH2"
+#endif
 
 #if !defined(STM32_DMA_REQUIRED)
 #define STM32_DMA_REQUIRED
@@ -244,6 +290,11 @@
 typedef uint32_t dacchannel_t;
 
 /**
+ * @brief   Type representing a DAC sample.
+ */
+typedef uint16_t dacsample_t;
+
+/**
  * @brief   DAC channel parameters type.
  */
 typedef struct {
@@ -264,9 +315,9 @@ typedef struct {
    */
   uint32_t                  regmask;
   /**
-   * @brief   Associated DMA.
+   * @brief   Associated DMA stream.
    */
-  const stm32_dma_stream_t  *dma;
+  uint32_t                  dmastream;
   /**
    * @brief   Mode bits for the DMA.
    */
@@ -275,17 +326,13 @@ typedef struct {
    * @brief   DMA channel IRQ priority.
    */
   uint32_t                  dmairqprio;
+#if (STM32_DMA_SUPPORTS_DMAMUX == TRUE) || defined(__DOXYGEN__)
+  /**
+   * @brief   DMAMUX peripheral selector.
+   */
+  uint32_t                  peripheral;
+#endif
 } dacparams_t;
-
-/**
- * @brief   Type of a structure representing an DAC driver.
- */
-typedef struct DACDriver DACDriver;
-
-/**
- * @brief   Type representing a DAC sample.
- */
-typedef uint16_t dacsample_t;
 
 /**
  * @brief   Possible DAC failure causes.
@@ -296,25 +343,6 @@ typedef enum {
   DAC_ERR_DMAFAILURE = 0,                   /**< DMA operations failure.    */
   DAC_ERR_UNDERFLOW = 1                     /**< DAC overflow condition.    */
 } dacerror_t;
-
-/**
- * @brief   DAC notification callback type.
- *
- * @param[in] dacp      pointer to the @p DACDriver object triggering the
- * @param[in] buffer    pointer to the next semi-buffer to be filled
- * @param[in] n         number of buffer rows available starting from @p buffer
- *                      callback
- */
-typedef void (*daccallback_t)(DACDriver *dacp, dacsample_t *buffer, size_t n);
-
-/**
- * @brief   DAC error callback type.
- *
- * @param[in] dacp      pointer to the @p DACDriver object triggering the
- *                      callback
- * @param[in] err       DAC error code
- */
-typedef void (*dacerrorcallback_t)(DACDriver *dacp, dacerror_t err);
 
 /**
  * @brief   Samples alignment and size mode.
@@ -330,100 +358,38 @@ typedef enum {
 #endif
 } dacdhrmode_t;
 
-/**
- * @brief   DAC Conversion group structure.
- */
-typedef struct {
-  /**
-   * @brief   Number of DAC channels.
-   */
-  uint32_t                  num_channels;
-  /**
-   * @brief   Operation complete callback or @p NULL.
-   */
-  daccallback_t             end_cb;
-  /**
-   * @brief   Error handling callback or @p NULL.
-   */
-  dacerrorcallback_t        error_cb;
-  /* End of the mandatory fields.*/
-  /**
-   * @brief   DAC initialization data.
-   * @note    This field contains the (not shifted) value to be put into the
-   *          TSEL field of the DAC CR register during initialization. All
-   *          other fields are handled internally.
-   */
-  uint32_t                  trigger;
-} DACConversionGroup;
-
-/**
- * @brief   Driver configuration structure.
- */
-typedef struct {
-  /* End of the mandatory fields.*/
-  /**
-   * @brief   Initial output on DAC channels.
-   */
-  dacsample_t               init;
-  /**
-   * @brief   DAC data holding register mode.
-   */
-  dacdhrmode_t              datamode;
-  /**
-   * @brief   DAC control register.
-   */
-  uint16_t                  cr;
-} DACConfig;
-
-/**
- * @brief   Structure representing a DAC driver.
- */
-struct DACDriver {
-  /**
-   * @brief   Driver state.
-   */
-  dacstate_t                state;
-  /**
-   * @brief   Conversion group.
-   */
-  const DACConversionGroup  *grpp;
-  /**
-   * @brief   Samples buffer pointer.
-   */
-  dacsample_t               *samples;
-  /**
-   * @brief   Samples buffer size.
-   */
-  uint16_t                  depth;
-  /**
-   * @brief   Current configuration data.
-   */
-  const DACConfig           *config;
-#if DAC_USE_WAIT || defined(__DOXYGEN__)
-  /**
-   * @brief   Waiting thread.
-   */
-  thread_reference_t        thread;
-#endif /* DAC_USE_WAIT */
-#if DAC_USE_MUTUAL_EXCLUSION || defined(__DOXYGEN__)
-  /**
-   * @brief   Mutex protecting the bus.
-   */
-  mutex_t                   mutex;
-#endif /* DAC_USE_MUTUAL_EXCLUSION */
-#if defined(DAC_DRIVER_EXT_FIELDS)
-  DAC_DRIVER_EXT_FIELDS
-#endif
-  /* End of the mandatory fields.*/
-  /**
-   * @brief   DAC channel parameters.
-   */
-  const dacparams_t         *params;
-};
-
 /*===========================================================================*/
 /* Driver macros.                                                            */
 /*===========================================================================*/
+
+/**
+ * @brief   Low level fields of the DAC driver structure.
+ */
+#define dac_lld_driver_fields                                               \
+  /* DAC channel parameters.*/                                              \
+  const dacparams_t         *params;                                        \
+  /* Associated DMA.*/                                                      \
+  const stm32_dma_stream_t  *dma
+
+
+/**
+ * @brief   Low level fields of the DAC configuration structure.
+ */
+#define dac_lld_config_fields                                               \
+  /* Initial output on DAC channels.*/                                      \
+  dacsample_t               init;                                           \
+  /* DAC data holding register mode.*/                                      \
+  dacdhrmode_t              datamode;                                       \
+  /* DAC control register.*/                                                \
+  uint16_t                  cr
+/**
+ * @brief   Low level fields of the DAC group configuration structure.
+ */
+#define dac_lld_conversion_group_fields                                     \
+  /* DAC initialization data. This field contains the (not shifted) value   \
+     to be put into the TSEL field of the DAC CR register during            \
+     initialization. All other fields are handled internally.*/             \
+  uint32_t                  trigger
 
 /*===========================================================================*/
 /* External declarations.                                                    */

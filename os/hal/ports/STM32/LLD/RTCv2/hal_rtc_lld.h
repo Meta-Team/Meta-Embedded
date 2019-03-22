@@ -41,7 +41,7 @@
 /**
  * @brief   Callback support int the driver.
  */
-#define RTC_SUPPORTS_CALLBACKS      STM32_RTC_HAS_INTERRUPTS
+#define RTC_SUPPORTS_CALLBACKS      TRUE
 
 /**
  * @brief   Number of alarms available.
@@ -51,7 +51,7 @@
 /**
  * @brief   Presence of a local persistent storage.
  */
-#define RTC_HAS_STORAGE             FALSE
+#define RTC_HAS_STORAGE             (STM32_RTC_STORAGE_SIZE > 0)
 /** @} */
 
 /**
@@ -78,6 +78,11 @@
 #define RTC_ALRM_SU(n)              ((n) << 0)
 /** @} */
 
+/* Requires services from the EXTI driver.*/
+#if !defined(STM32_EXTI_REQUIRED)
+#define STM32_EXTI_REQUIRED
+#endif
+
 /*===========================================================================*/
 /* Driver pre-compile time settings.                                         */
 /*===========================================================================*/
@@ -100,6 +105,25 @@
  */
 #if !defined(STM32_RTC_PRESS_VALUE) || defined(__DOXYGEN__)
 #define STM32_RTC_PRESS_VALUE               1024
+#endif
+
+/**
+ * @brief   RTC CR register initialization value.
+ * @note    Use this value to initialize features not directly handled by
+ *          the RTC driver.
+ */
+#if !defined(STM32_RTC_CR_INIT) || defined(__DOXYGEN__)
+#define STM32_RTC_CR_INIT                   0
+#endif
+
+/**
+ * @brief   RTC TAMPCR register initialization value.
+ * @note    Use this value to initialize features not directly handled by
+ *          the RTC driver.
+ * @note    On some devices this values goes in the similar TAFCR register.
+ */
+#if !defined(STM32_RTC_TAMPCR_INIT) || defined(__DOXYGEN__)
+#define STM32_RTC_TAMPCR_INIT               0
 #endif
 /** @} */
 
@@ -134,20 +158,28 @@
 /*===========================================================================*/
 
 /**
- * @brief   FileStream specific methods.
+ * @brief   Type of an RTC event.
  */
-#define _rtc_driver_methods                                                 \
-  _file_stream_methods
+typedef enum {
+  RTC_EVENT_ALARM_A     = 0,            /** Alarm A.                        */
+  RTC_EVENT_ALARM_B     = 1,            /** Alarm B.                        */
+  RTC_EVENT_TS          = 2,            /** Time stamp.                     */
+  RTC_EVENT_TS_OVF      = 3,            /** Time stamp overflow.            */
+  RTC_EVENT_TAMP1       = 4,            /** Tamper 1.                       */
+  RTC_EVENT_TAMP2       = 5,            /** Tamper 2-                       */
+  RTC_EVENT_TAMP3       = 6,            /** Tamper 3.                       */
+  RTC_EVENT_WAKEUP      = 7             /** Wakeup.                         */
+ } rtcevent_t;
 
 /**
- * @brief   Type of an RTC alarm number.
+ * @brief   Type of a generic RTC callback.
  */
-typedef uint32_t rtcalarm_t;
+typedef void (*rtccb_t)(RTCDriver *rtcp, rtcevent_t event);
 
 /**
  * @brief   Type of a structure representing an RTC alarm time stamp.
  */
-typedef struct {
+typedef struct hal_rtc_alarm {
   /**
    * @brief   Type of an alarm as encoded in RTC ALRMxR registers.
    */
@@ -158,7 +190,7 @@ typedef struct {
 /**
  * @brief   Type of a wakeup as encoded in RTC WUTR register.
  */
-typedef struct {
+typedef struct hal_rtc_wakeup {
   /**
    * @brief   Wakeup as encoded in RTC WUTR register.
    * @note    ((WUTR == 0) || (WUCKSEL == 3)) are a forbidden combination.
@@ -168,33 +200,14 @@ typedef struct {
 } RTCWakeup;
 #endif
 
-#if RTC_HAS_STORAGE || defined(__DOXYGEN__)
 /**
- * @extends FileStream
- *
- * @brief   @p RTCDriver virtual methods table.
+ * @brief   Implementation-specific @p RTCDriver fields.
  */
-struct RTCDriverVMT {
-  _rtc_driver_methods
-};
-#endif
-
-/**
- * @brief   Structure representing an RTC driver.
- */
-struct RTCDriver {
-#if RTC_HAS_STORAGE || defined(__DOXYGEN__)
-  /**
-   * @brief Virtual Methods Table.
-   */
-  const struct RTCDriverVMT *vmt;
-#endif
-  /* End of the mandatory fields.*/
-  /**
-   * @brief   Pointer to the RTC registers block.
-   */
-  RTC_TypeDef               *rtc;
-};
+#define rtc_lld_driver_fields                                               \
+  /* Pointer to the RTC registers block.*/                                  \
+  RTC_TypeDef               *rtc;                                           \
+  /* Callback pointer.*/                                                    \
+  rtccb_t           callback
 
 /*===========================================================================*/
 /* Driver macros.                                                            */
@@ -204,19 +217,15 @@ struct RTCDriver {
 /* External declarations.                                                    */
 /*===========================================================================*/
 
-#if !defined(__DOXYGEN__)
-extern RTCDriver RTCD1;
-#if RTC_HAS_STORAGE
-extern struct RTCDriverVMT _rtc_lld_vmt;
-#endif
-#endif
-
 #ifdef __cplusplus
 extern "C" {
 #endif
   void rtc_lld_init(void);
   void rtc_lld_set_time(RTCDriver *rtcp, const RTCDateTime *timespec);
   void rtc_lld_get_time(RTCDriver *rtcp, RTCDateTime *timespec);
+#if RTC_SUPPORTS_CALLBACKS == TRUE
+  void rtc_lld_set_callback(RTCDriver *rtcp, rtccb_t callback);
+#endif
 #if RTC_ALARMS > 0
   void rtc_lld_set_alarm(RTCDriver *rtcp,
                          rtcalarm_t alarm,
