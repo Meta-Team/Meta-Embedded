@@ -9,6 +9,7 @@ int32_t ElevatorInterface::target_position[2] = {0, 0};
 ElevatorInterface::UnitInterface ElevatorInterface::elevator_wheels[4] = {GPIOE_PIN6, GPIOE_PIN12, GPIOE_PIN5,
                                                                           GPIOE_PIN4};
 CANInterface *ElevatorInterface::can = nullptr;
+adcsample_t ElevatorInterface::adcSample_[ElevatorInterface::kADCGroupChannelNumber_];
 
 
 bool ElevatorInterface::send_target_position(int wheel_index) {
@@ -117,6 +118,12 @@ void ElevatorInterface::init(CANInterface *can_interface) {
     txFrame.data8[1] = (uint8_t) (driver_pwm & 0xFF);
     txFrame.data8[4] = txFrame.data8[5] = txFrame.data8[6] = txFrame.data8[7] = 0;
     can->send_msg(&txFrame);
+
+
+    /** Start ADC driver **/
+    adcStart(&ADCD1, nullptr);
+//    adcSTM32EnableTSVREFE();
+    adcStartConversion(&ADCD1, &kADCConfig_, adcSample_, 1);
 }
 
 bool ElevatorInterface::UnitInterface::get_safety_button_status() {
@@ -125,4 +132,12 @@ bool ElevatorInterface::UnitInterface::get_safety_button_status() {
 
 bool ElevatorInterface::UnitInterface::is_in_action() {
     return is_actioning_;
+}
+
+void ElevatorInterface::adcCallback_(ADCDriver *adcp, adcsample_t *buffer, size_t n) {
+    Shell::printf("ADC: [0]%u, [1]%u, [2]%u, [3]%u", adcSample_[0], adcSample_[1], adcSample_[2], adcSample_[3]);
+}
+
+void ElevatorInterface::adcErrorCallback_(ADCDriver *adcp, adcerror_t err) {
+    Shell::printf("ADC Error: %d", err);
 }

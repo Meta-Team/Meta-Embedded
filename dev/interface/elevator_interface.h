@@ -123,14 +123,32 @@ private:
 
     static CANInterface *can;
 
-private:
 
-    /** Configurations **/
+    static void adcCallback_(ADCDriver *adcp, adcsample_t *buffer, size_t n);
+    static void adcErrorCallback_(ADCDriver *adcp, adcerror_t err);
 
     static constexpr unsigned int can_group_id = 3;
     static constexpr uint8_t feedback_interval = 100;
     static constexpr uint16_t driver_pwm = 2500;  // the pwm of the current
     static constexpr int stable_range = 1000; // the range that is regarded as target has been reached. [qc], 0.4 cm
+
+    static constexpr adc_channels_num_t kADCGroupChannelNumber_ = 4;
+    static constexpr ADCConversionGroup kADCConfig_ = {
+            TRUE,
+            kADCGroupChannelNumber_,
+            adcCallback_,
+            adcErrorCallback_,
+            0,                        /* CR1 */
+            ADC_CR2_SWSTART,          /* CR2 */
+            ADC_SMPR1_SMP_AN12(ADC_SAMPLE_56) | ADC_SMPR1_SMP_AN11(ADC_SAMPLE_56) |
+            ADC_SMPR1_SMP_AN13(ADC_SAMPLE_56) | ADC_SMPR1_SMP_AN14(ADC_SAMPLE_56),
+            0,                        /* SMPR2 */
+            0,                        /* SQR1 */
+            ADC_SQR3_SQ4_N(ADC_CHANNEL_IN14)   | ADC_SQR3_SQ3_N(ADC_CHANNEL_IN13) |
+            ADC_SQR3_SQ2_N(ADC_CHANNEL_IN12)   | ADC_SQR3_SQ1_N(ADC_CHANNEL_IN11)
+    };
+
+    static adcsample_t adcSample_[kADCGroupChannelNumber_];
 
 };
 
