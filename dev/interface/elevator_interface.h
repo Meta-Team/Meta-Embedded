@@ -51,10 +51,10 @@ public:
     static bool apply_rear_position(float rear_wheel_position_cm);
 
 
-    /** Unit Interface **/
+    /** Unit Interface for each RMDS module **/
     class UnitInterface {
     public:
-        int32_t real_position; // the real position of the motor
+        int32_t real_position; // the real position of the motor, [qc]
         int16_t real_current;  // the real current in the motor
         int16_t real_velocity;  // the real velocity of the motor
 
@@ -84,13 +84,18 @@ public:
      * elevator_wheels[0] and elevator_wheels[1] are for the front_left and front_right wheels accordingly
      * elevator_wheels[2] and elevator_wheels[3] are for the left_rear and right_rear wheels accordingly
      */
-    static UnitInterface elevator_wheels[4];
+    static UnitInterface wheels[4];
 
     /**
      * @brief set the CAN interface
      * @param can_interface
      */
     static void init(CANInterface *can_interface);
+
+    /**
+     *
+     */
+    static float sensor_height[4];
 
 private:
 
@@ -99,7 +104,7 @@ private:
      * target_position[0] contains the target position of the front wheels
      * target_position[1] contains the target position of the rear wheels
      */
-    static int32_t target_position[2]; // [pc]
+    static int32_t target_position_[2]; // [pc]
 
 
     enum wheel_can_id_t {
@@ -113,42 +118,41 @@ private:
      * @brief send message of each motor
      * @return true if success, false otherwise
      */
-    static bool send_target_position(int wheel_index);
+    static bool send_target_position_(int wheel_index);
 
     /**
      * @brief Get the feedback (real position, real velocity, real current) of each motor from the driver
      * @return true if success, false otherwise
      */
-    static void process_feedback(CANRxFrame const*rxmsg);
+    static void process_feedback_(CANRxFrame const *rxmsg);
 
-    static CANInterface *can;
+    static CANInterface *can_;
 
+    static void adc_callback_(ADCDriver *adcp, adcsample_t *buffer, size_t n);
+    static void adc_error_callback_(ADCDriver *adcp, adcerror_t err);
 
-    static void adcCallback_(ADCDriver *adcp, adcsample_t *buffer, size_t n);
-    static void adcErrorCallback_(ADCDriver *adcp, adcerror_t err);
+    static constexpr unsigned int RMDS_CAN_GROUP_ID = 3;
+    static constexpr uint8_t RMDS_FEEDBACK_INTERVAL = 100;
+    static constexpr uint16_t RMDS_DRIVER_PWM = 2500;  // the pwm of the current
+    static constexpr int RMDS_STABLE_RANGE = 1000; // the range that is regarded as target has been reached. [qc], 0.4 cm
 
-    static constexpr unsigned int can_group_id = 3;
-    static constexpr uint8_t feedback_interval = 100;
-    static constexpr uint16_t driver_pwm = 2500;  // the pwm of the current
-    static constexpr int stable_range = 1000; // the range that is regarded as target has been reached. [qc], 0.4 cm
-
-    static constexpr adc_channels_num_t kADCGroupChannelNumber_ = 4;
-    static constexpr ADCConversionGroup kADCConfig_ = {
+    static constexpr ADCConversionGroup ADC_CONFIG = {
             TRUE,
-            kADCGroupChannelNumber_,
-            adcCallback_,
-            adcErrorCallback_,
+            WHEEL_COUNT,
+            adc_callback_,
+            adc_error_callback_,
             0,                        /* CR1 */
             ADC_CR2_SWSTART,          /* CR2 */
-            ADC_SMPR1_SMP_AN12(ADC_SAMPLE_56) | ADC_SMPR1_SMP_AN11(ADC_SAMPLE_56) |
-            ADC_SMPR1_SMP_AN13(ADC_SAMPLE_56) | ADC_SMPR1_SMP_AN14(ADC_SAMPLE_56),
+            ADC_SMPR1_SMP_AN12(ADC_SAMPLE_3) | ADC_SMPR1_SMP_AN11(ADC_SAMPLE_3) |
+            ADC_SMPR1_SMP_AN13(ADC_SAMPLE_3) | ADC_SMPR1_SMP_AN14(ADC_SAMPLE_3),
             0,                        /* SMPR2 */
             0,                        /* SQR1 */
+            0,                        /* SQR2 */
             ADC_SQR3_SQ4_N(ADC_CHANNEL_IN14)   | ADC_SQR3_SQ3_N(ADC_CHANNEL_IN13) |
             ADC_SQR3_SQ2_N(ADC_CHANNEL_IN12)   | ADC_SQR3_SQ1_N(ADC_CHANNEL_IN11)
     };
 
-    static adcsample_t adcSample_[kADCGroupChannelNumber_];
+    static adcsample_t adc_sample_[WHEEL_COUNT];
 
 };
 

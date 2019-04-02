@@ -529,10 +529,10 @@
  *
  * PC0  - OTG_FS_POWER_ON           (output pushpull maximum).
  * PC1  - PIN1                      (input pullup).
- * PC2  - PIN2                      (input pullup).
- * PC3  - PDM_OUT                   (input pullup).
- * PC4  - PIN4                      (input pullup).
- * PC5  - PIN5                      (input pullup).
+ * PC2  - ADC1_IN12                 (analog input).
+ * PC3  - ADC1_IN13                 (analog input).
+ * PC4  - ADC1_IN14                 (analog input).
+ * PC5  - ADC1_IN15                 (analog input.
  * PC6  - PIN6                      (input pullup).
  * PC7  - MCLK                      (alternate 6).
  * PC8  - PIN8                      (input pullup).
@@ -546,10 +546,10 @@
  */
 #define VAL_GPIOC_MODER             (PIN_MODE_OUTPUT(GPIOC_OTG_FS_POWER_ON) |\
                                      PIN_MODE_INPUT(GPIOC_PIN1) |           \
-                                     PIN_MODE_INPUT(GPIOC_ADC1_IN12) |           \
-                                     PIN_MODE_INPUT(GPIOC_ADC1_IN13) |        \
-                                     PIN_MODE_INPUT(GPIOC_ADC1_IN14) |           \
-                                     PIN_MODE_INPUT(GPIOC_ADC1_IN15) |           \
+                                     PIN_MODE_ANALOG(GPIOC_ADC1_IN12) |           \
+                                     PIN_MODE_ANALOG(GPIOC_ADC1_IN13) |        \
+                                     PIN_MODE_ANALOG(GPIOC_ADC1_IN14) |           \
+                                     PIN_MODE_ANALOG(GPIOC_ADC1_IN15) |           \
                                      PIN_MODE_INPUT(GPIOC_PIN6) |           \
                                      PIN_MODE_ALTERNATE(GPIOC_MCLK) |       \
                                      PIN_MODE_INPUT(GPIOC_PIN8) |           \
