@@ -10,6 +10,7 @@
 #include "can_interface.h"
 
 #define ELEVATOR_INTERFACE_SAFETY_BUTTON_PAD GPIOE
+#define ELEVATOR_INTERFACE_SENSOR_THREAD_WORKSPACE 512
 
 #if defined(BOARD_RM_2018_A)
 #else
@@ -66,14 +67,8 @@ public:
          */
         bool is_in_action();
 
-        bool get_safety_button_status();
-
-        UnitInterface() : UnitInterface(0xFF) {};
-
-        UnitInterface(unsigned int safety_button_pin_id) : safety_button_pin(safety_button_pin_id) {};
-
     private:
-        unsigned int safety_button_pin;
+
         bool is_actioning_;
 
         friend ElevatorInterface;
@@ -90,7 +85,7 @@ public:
      * @brief set the CAN interface
      * @param can_interface
      */
-    static void init(CANInterface *can_interface);
+    static void init(CANInterface *can_interface, tprio_t sensor_thread_priority);
 
     /**
      *
@@ -137,22 +132,27 @@ private:
     static constexpr int RMDS_STABLE_RANGE = 1000; // the range that is regarded as target has been reached. [qc], 0.4 cm
 
     static constexpr ADCConversionGroup ADC_CONFIG = {
-            TRUE,
+            false,  // not continuous
             WHEEL_COUNT,
-            adc_callback_,
+            nullptr,
             adc_error_callback_,
             0,                        /* CR1 */
             ADC_CR2_SWSTART,          /* CR2 */
             ADC_SMPR1_SMP_AN12(ADC_SAMPLE_3) | ADC_SMPR1_SMP_AN11(ADC_SAMPLE_3) |
             ADC_SMPR1_SMP_AN13(ADC_SAMPLE_3) | ADC_SMPR1_SMP_AN14(ADC_SAMPLE_3),
             0,                        /* SMPR2 */
-            0,                        /* SQR1 */
+            ADC_SQR1_NUM_CH(WHEEL_COUNT),                        /* SQR1 */
             0,                        /* SQR2 */
             ADC_SQR3_SQ4_N(ADC_CHANNEL_IN14)   | ADC_SQR3_SQ3_N(ADC_CHANNEL_IN13) |
             ADC_SQR3_SQ2_N(ADC_CHANNEL_IN12)   | ADC_SQR3_SQ1_N(ADC_CHANNEL_IN11)
     };
 
     static adcsample_t adc_sample_[WHEEL_COUNT];
+
+    class HeightSensorThread : public chibios_rt::BaseStaticThread<ELEVATOR_INTERFACE_SENSOR_THREAD_WORKSPACE> {
+        void main() final;
+    };
+    static HeightSensorThread heightSensorThread;
 
 };
 

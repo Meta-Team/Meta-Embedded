@@ -6,13 +6,12 @@
 #include "common_macro.h"
 
 int32_t ElevatorInterface::target_position_[2] = {0, 0};
-ElevatorInterface::UnitInterface ElevatorInterface::wheels[4] = {GPIOE_PIN6, GPIOE_PIN12, GPIOE_PIN5,
-                                                                          GPIOE_PIN4};
+ElevatorInterface::UnitInterface ElevatorInterface::wheels[4];
 CANInterface *ElevatorInterface::can_ = nullptr;
 adcsample_t ElevatorInterface::adc_sample_[ElevatorInterface::WHEEL_COUNT];
 constexpr ADCConversionGroup ElevatorInterface::ADC_CONFIG;
 float ElevatorInterface::sensor_height[ElevatorInterface::WHEEL_COUNT];
-
+ElevatorInterface::HeightSensorThread ElevatorInterface::heightSensorThread;
 
 bool ElevatorInterface::send_target_position_(int wheel_index) {
 
@@ -55,6 +54,7 @@ bool ElevatorInterface::apply_rear_position(float rear_wheel_position_cm) {
 }
 
 void ElevatorInterface::process_feedback_(CANRxFrame const *rxmsg) {
+
     if (((rxmsg->SID >> 8) & 0xF) != RMDS_CAN_GROUP_ID) return;
     if ((rxmsg->SID & 0xF) != 0xB) return;
 
@@ -71,7 +71,7 @@ void ElevatorInterface::process_feedback_(CANRxFrame const *rxmsg) {
             wheels[index].real_position - target_position_[index / 2], RMDS_STABLE_RANGE);
 }
 
-void ElevatorInterface::init(CANInterface *can_interface) {
+void ElevatorInterface::init(CANInterface *can_interface, tprio_t sensor_thread_priority) {
 
     /** Set and Register CAN interface **/
     can_ = can_interface;
@@ -115,30 +115,27 @@ void ElevatorInterface::init(CANInterface *can_interface) {
     txFrame.data8[4] = txFrame.data8[5] = txFrame.data8[6] = txFrame.data8[7] = 0;
     can_->send_msg(&txFrame);
 
-
-    /** Start ADC driver **/
-    adcStart(&ADCD1, nullptr);
-    adcStartConversion(&ADCD1, &ADC_CONFIG, adc_sample_, 1);
-}
-
-bool ElevatorInterface::UnitInterface::get_safety_button_status() {
-    return (palReadPad(ELEVATOR_INTERFACE_SAFETY_BUTTON_PAD, safety_button_pin) == PAL_HIGH);
+    /** Start sensor thread **/
+    heightSensorThread.start(sensor_thread_priority);
 }
 
 bool ElevatorInterface::UnitInterface::is_in_action() {
     return is_actioning_;
 }
 
-void ElevatorInterface::adc_callback_(ADCDriver *adcp, adcsample_t *buffer, size_t n) {
-    (void)adcp;
-    (void)buffer;
-    (void)n;
-    for (int i = 0; i < WHEEL_COUNT; i++) {
-        sensor_height[i] = adc_sample_[i];
-    }
-}
-
 void ElevatorInterface::adc_error_callback_(ADCDriver *adcp, adcerror_t err) {
     (void)adcp;
     Shell::printf("ADC Error: %d", err);
+}
+
+void ElevatorInterface::HeightSensorThread::main() {
+    adcStart(&ADCD1, nullptr);
+    setName("Ele_Sensor");
+    while (!shouldTerminate()) {
+        adcConvert(&ADCD1, &ADC_CONFIG, adc_sample_, 1);
+        for (int i = 0; i < WHEEL_COUNT; i++) {
+            sensor_height[i] = adc_sample_[i];
+        }
+        sleep(TIME_MS2I(50));
+    }
 }

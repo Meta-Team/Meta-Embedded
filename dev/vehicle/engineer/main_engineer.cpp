@@ -204,7 +204,7 @@ int main(void) {
     Remote::start_receive();
 
     ChassisInterface::init(&can1);
-    ElevatorInterface::init(&can1);
+    ElevatorInterface::init(&can1, LOWPRIO + 10);
     RoboticArm::init(&can1);
 
     /*** ------------ Period 2. Calibration and Start Logic Control Thread ----------- ***/

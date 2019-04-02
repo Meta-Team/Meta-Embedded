@@ -61,7 +61,7 @@ class ElevatorThread : public BaseStaticThread<1024> {
 protected:
     void main() final {
         setName("elevator");
-        ElevatorInterface::init(&can1);
+        ElevatorInterface::init(&can1, HIGHPRIO - 10);
         while (!shouldTerminate()) {
 
             Shell::printf(
@@ -78,9 +78,9 @@ protected:
                     ElevatorInterface::wheels[ElevatorInterface::REAR_RIGHT].is_in_action(),
                     (int) ElevatorInterface::wheels[ElevatorInterface::REAR_RIGHT].real_position,
                     (int) ElevatorInterface::wheels[ElevatorInterface::REAR_RIGHT].real_velocity);
-            Shell::printf("Height: [0]%f, [1]%f, [2]%f, [3]%f" SHELL_NEWLINE_STR,
+            /*Shell::printf("Height: [0]%f, [1]%f, [2]%f, [3]%f" SHELL_NEWLINE_STR,
                     ElevatorInterface::sensor_height[0], ElevatorInterface::sensor_height[1],
-                    ElevatorInterface::sensor_height[2], ElevatorInterface::sensor_height[3]);
+                    ElevatorInterface::sensor_height[2], ElevatorInterface::sensor_height[3]);*/
 
             sleep(TIME_MS2I(2000));
         }
