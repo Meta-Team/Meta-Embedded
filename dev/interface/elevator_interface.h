@@ -85,12 +85,7 @@ public:
      * @brief set the CAN interface
      * @param can_interface
      */
-    static void init(CANInterface *can_interface, tprio_t sensor_thread_priority);
-
-    /**
-     *
-     */
-    static float sensor_height[4];
+    static void init(CANInterface *can_interface);
 
 private:
 
@@ -123,36 +118,10 @@ private:
 
     static CANInterface *can_;
 
-    static void adc_callback_(ADCDriver *adcp, adcsample_t *buffer, size_t n);
-    static void adc_error_callback_(ADCDriver *adcp, adcerror_t err);
-
     static constexpr unsigned int RMDS_CAN_GROUP_ID = 3;
     static constexpr uint8_t RMDS_FEEDBACK_INTERVAL = 100;
     static constexpr uint16_t RMDS_DRIVER_PWM = 2500;  // the pwm of the current
     static constexpr int RMDS_STABLE_RANGE = 1000; // the range that is regarded as target has been reached. [qc], 0.4 cm
-
-    static constexpr ADCConversionGroup ADC_CONFIG = {
-            false,  // not continuous
-            WHEEL_COUNT,
-            nullptr,
-            adc_error_callback_,
-            0,                        /* CR1 */
-            ADC_CR2_SWSTART,          /* CR2 */
-            ADC_SMPR1_SMP_AN12(ADC_SAMPLE_3) | ADC_SMPR1_SMP_AN11(ADC_SAMPLE_3) |
-            ADC_SMPR1_SMP_AN13(ADC_SAMPLE_3) | ADC_SMPR1_SMP_AN14(ADC_SAMPLE_3),
-            0,                        /* SMPR2 */
-            ADC_SQR1_NUM_CH(WHEEL_COUNT),                        /* SQR1 */
-            0,                        /* SQR2 */
-            ADC_SQR3_SQ4_N(ADC_CHANNEL_IN14)   | ADC_SQR3_SQ3_N(ADC_CHANNEL_IN13) |
-            ADC_SQR3_SQ2_N(ADC_CHANNEL_IN12)   | ADC_SQR3_SQ1_N(ADC_CHANNEL_IN11)
-    };
-
-    static adcsample_t adc_sample_[WHEEL_COUNT];
-
-    class HeightSensorThread : public chibios_rt::BaseStaticThread<ELEVATOR_INTERFACE_SENSOR_THREAD_WORKSPACE> {
-        void main() final;
-    };
-    static HeightSensorThread heightSensorThread;
 
 };
 

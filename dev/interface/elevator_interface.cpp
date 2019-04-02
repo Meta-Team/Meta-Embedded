@@ -8,10 +8,6 @@
 int32_t ElevatorInterface::target_position_[2] = {0, 0};
 ElevatorInterface::UnitInterface ElevatorInterface::wheels[4];
 CANInterface *ElevatorInterface::can_ = nullptr;
-adcsample_t ElevatorInterface::adc_sample_[ElevatorInterface::WHEEL_COUNT];
-constexpr ADCConversionGroup ElevatorInterface::ADC_CONFIG;
-float ElevatorInterface::sensor_height[ElevatorInterface::WHEEL_COUNT];
-ElevatorInterface::HeightSensorThread ElevatorInterface::heightSensorThread;
 
 bool ElevatorInterface::send_target_position_(int wheel_index) {
 
@@ -41,6 +37,7 @@ bool ElevatorInterface::apply_front_position(float front_wheel_position_cm) {
     send_target_position_(FRONT_LEFT);
     send_target_position_(FRONT_RIGHT);
     wheels[0].is_actioning_ = wheels[1].is_actioning_ = true;
+    Shell::printf("Apply front pos %f" SHELL_NEWLINE_STR, front_wheel_position_cm);
     return true;
 }
 
@@ -71,7 +68,7 @@ void ElevatorInterface::process_feedback_(CANRxFrame const *rxmsg) {
             wheels[index].real_position - target_position_[index / 2], RMDS_STABLE_RANGE);
 }
 
-void ElevatorInterface::init(CANInterface *can_interface, tprio_t sensor_thread_priority) {
+void ElevatorInterface::init(CANInterface *can_interface) {
 
     /** Set and Register CAN interface **/
     can_ = can_interface;
@@ -114,28 +111,8 @@ void ElevatorInterface::init(CANInterface *can_interface, tprio_t sensor_thread_
     txFrame.data8[1] = (uint8_t) (RMDS_DRIVER_PWM & 0xFF);
     txFrame.data8[4] = txFrame.data8[5] = txFrame.data8[6] = txFrame.data8[7] = 0;
     can_->send_msg(&txFrame);
-
-    /** Start sensor thread **/
-    heightSensorThread.start(sensor_thread_priority);
 }
 
 bool ElevatorInterface::UnitInterface::is_in_action() {
     return is_actioning_;
-}
-
-void ElevatorInterface::adc_error_callback_(ADCDriver *adcp, adcerror_t err) {
-    (void)adcp;
-    Shell::printf("ADC Error: %d", err);
-}
-
-void ElevatorInterface::HeightSensorThread::main() {
-    adcStart(&ADCD1, nullptr);
-    setName("Ele_Sensor");
-    while (!shouldTerminate()) {
-        adcConvert(&ADCD1, &ADC_CONFIG, adc_sample_, 1);
-        for (int i = 0; i < WHEEL_COUNT; i++) {
-            sensor_height[i] = adc_sample_[i];
-        }
-        sleep(TIME_MS2I(50));
-    }
 }

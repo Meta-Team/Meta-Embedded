@@ -39,14 +39,16 @@ void ElevatorThread::main() {
         exit(-1);
     } else if (status_ == UPWARD) {
 
-//        Shell::printf("=== Start performing upward ===" SHELL_NEWLINE_STR);
+        Shell::printf("=== Start performing upward ===" SHELL_NEWLINE_STR);
 
         /** Step 1. Lower all wheels **/
-//        Shell::printf("Prepare to perform step #1" SHELL_NEWLINE_STR);
+        Shell::printf("Prepare to perform step #1" SHELL_NEWLINE_STR);
         sleep(TIME_MS2I(1000));
         ElevatorInterface::apply_front_position(-stage_height_);
         ElevatorInterface::apply_rear_position(-stage_height_);
-        sleep(TIME_MS2I(1000));
+        sleep(TIME_MS2I(100));
+        ElevatorInterface::apply_front_position(-stage_height_);
+        ElevatorInterface::apply_rear_position(-stage_height_);
         while (ElevatorInterface::wheels[0].is_in_action() ||
                ElevatorInterface::wheels[1].is_in_action() ||
                ElevatorInterface::wheels[2].is_in_action() ||

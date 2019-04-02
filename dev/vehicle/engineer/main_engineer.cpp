@@ -177,8 +177,8 @@ class ActionTriggerThread : public chibios_rt::BaseStaticThread<512> {
                     has_started_elevator = false;
                 }
             } else {
-                ElevatorInterface::apply_front_position(0);
-                ElevatorInterface::apply_rear_position(0);
+//                ElevatorInterface::apply_front_position(0);
+//                ElevatorInterface::apply_rear_position(0);
             }
 
             sleep(TIME_MS2I(action_trigger_thread_interval));
@@ -204,7 +204,7 @@ int main(void) {
     Remote::start_receive();
 
     ChassisInterface::init(&can1);
-    ElevatorInterface::init(&can1, LOWPRIO + 10);
+    ElevatorInterface::init(&can1);
     RoboticArm::init(&can1);
 
     /*** ------------ Period 2. Calibration and Start Logic Control Thread ----------- ***/

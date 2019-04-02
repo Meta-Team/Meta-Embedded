@@ -61,7 +61,7 @@ class ElevatorThread : public BaseStaticThread<1024> {
 protected:
     void main() final {
         setName("elevator");
-        ElevatorInterface::init(&can1, HIGHPRIO - 10);
+        ElevatorInterface::init(&can1);
         while (!shouldTerminate()) {
 
             Shell::printf(
