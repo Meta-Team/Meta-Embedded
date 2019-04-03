@@ -11,6 +11,12 @@
 #include "hal.h"
 #include "can_interface.h"
 
+#if defined(BOARD_RM_2018_A)
+#elif defined(BOARD_RM_2017)
+#else
+#error "Gimbal has not been defined for selected board"
+#endif
+
 /**
  * Enable clip at the moment of sending current.
  * Only for safety. There is NO signal for clipping. Be sure to eliminate it if more current is needed.
@@ -26,11 +32,10 @@
  * @name GimbalInterface
  * @brief interface to process feedback from gimbal and send control signals to gimbal, including Yaw, Pitch, Bullet
  *        Loader (using CAN) and friction wheels (by PWM).
- * @pre Hardware is set properly (CAN id of Yaw = 5 and Pitch = 6, CAN id of bullet loader (C610) = 7, friction wheels
- *      left = PI5, right = PI6.
- * @pre PWM pin is set properly in board.h (I5 - alt 3, I6 - alt 3)
+ * @pre Hardware: CAN id of Yaw = 5, Pitch = 6, bullet loader (C610) = 7, friction wheels left = PI5, right = PI6.
+ * @pre PWM pins are set properly in board.h (I5 - alt 3, I6 - alt 3)
  * @usage 1. init(CANInterface *). The interface should be properly initialized.
- *        2. control the data flow based on actual implementation
+ *        2. Control the data flow based on actual implementation
  */
 class GimbalInterface {
 
@@ -77,7 +82,7 @@ public:
          * @return the accumulate angle since last reset_front_angle
          */
         float get_accumulate_angle();
-        
+
     private:
 
         uint16_t last_angle_raw = 0;  // the raw angle of the newest feedback, in [0, 8191]
@@ -89,12 +94,13 @@ public:
 
         friend GimbalInterface;
 
-    } ;
+    };
 
     static MotorInterface yaw;
     static MotorInterface pitch;
 
     static MotorInterface bullet_loader;
+
     /**
      * Friction Wheels Interface
      * control the two friction wheels that shoot the bullets
@@ -127,21 +133,34 @@ public:
      * @brief process CAN rx frame
      * @param rxmsg
      */
-    static void process_motor_feedback(CANRxFrame const*rxmsg);
+    static void process_motor_feedback(CANRxFrame const *rxmsg);
 
 private:
 
-    static CANInterface *can;
+    static CANInterface *can_;
 
     // Count of feedback for one sample of angular velocity
-    static constexpr int velocity_sample_interval = 50;
+    static constexpr int VELOCITY_SAMPLE_INTERVAL = 50;
 
-    static constexpr PWMDriver *friction_wheel_pwm_driver = &PWMD8;
+    static constexpr PWMDriver *FRICTION_WHEEL_PWM_DRIVER = &PWMD8;
 
-    // TODO: determine the install order of left and right wheels
     enum friction_wheel_channel_t {
         FW_LEFT = 0,  // The left friction wheel, PI5, channel 0
         FW_RIGHT = 1  // The right friction wheel, PI6, channel 1
+    };
+
+    static constexpr PWMConfig FRICTION_WHEELS_PWMCFG = {
+            50000,
+            1000,
+            nullptr,
+            {
+                    {PWM_OUTPUT_ACTIVE_HIGH, nullptr},
+                    {PWM_OUTPUT_ACTIVE_HIGH, nullptr},
+                    {PWM_OUTPUT_DISABLED, nullptr},
+                    {PWM_OUTPUT_DISABLED, nullptr}
+            },
+            0,
+            0
     };
 
 };

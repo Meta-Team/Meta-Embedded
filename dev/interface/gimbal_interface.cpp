@@ -11,49 +11,36 @@ GimbalInterface::MotorInterface GimbalInterface::yaw;
 GimbalInterface::MotorInterface GimbalInterface::pitch;
 GimbalInterface::MotorInterface GimbalInterface::bullet_loader;
 GimbalInterface::FrictionWheelsInterface GimbalInterface::friction_wheels;
-CANInterface *GimbalInterface::can = nullptr;
+CANInterface *GimbalInterface::can_ = nullptr;
 
-// FIXME: can't pass class static variable to HAL written in C. Find a better way to arrange these configs
-static PWMConfig friction_wheels_pwmcfg = {
-        50000,
-        1000,
-        nullptr,
-        {
-                {PWM_OUTPUT_ACTIVE_HIGH, nullptr},
-                {PWM_OUTPUT_ACTIVE_HIGH, nullptr},
-                {PWM_OUTPUT_DISABLED, nullptr},
-                {PWM_OUTPUT_DISABLED, nullptr}
-        },
-        0,
-        0
-};
+PWMConfig constexpr GimbalInterface::FRICTION_WHEELS_PWMCFG;
 
 void GimbalInterface::init(CANInterface *can_interface) {
 
-    can = can_interface;
-    can->register_callback(0x205, 0x207, process_motor_feedback);
+    can_ = can_interface;
+    can_->register_callback(0x205, 0x207, process_motor_feedback);
 
     yaw.id = YAW_ID;
     pitch.id = PIT_ID;
     bullet_loader.id = BULLET_LOADER_ID;
 
-    pwmStart(friction_wheel_pwm_driver, &friction_wheels_pwmcfg);
+    pwmStart(FRICTION_WHEEL_PWM_DRIVER, &FRICTION_WHEELS_PWMCFG);
 
     // Perform the initialization work of friction wheel driver (100% and then 0%)
-    pwmEnableChannel(friction_wheel_pwm_driver, FW_LEFT,
-                     PWM_PERCENTAGE_TO_WIDTH(friction_wheel_pwm_driver, 1 * 500 + 500));
-    pwmEnableChannel(friction_wheel_pwm_driver, FW_RIGHT,
-                     PWM_PERCENTAGE_TO_WIDTH(friction_wheel_pwm_driver, 1 * 500 + 500));
+    pwmEnableChannel(FRICTION_WHEEL_PWM_DRIVER, FW_LEFT,
+                     PWM_PERCENTAGE_TO_WIDTH(FRICTION_WHEEL_PWM_DRIVER, 1 * 500 + 500));
+    pwmEnableChannel(FRICTION_WHEEL_PWM_DRIVER, FW_RIGHT,
+                     PWM_PERCENTAGE_TO_WIDTH(FRICTION_WHEEL_PWM_DRIVER, 1 * 500 + 500));
     chThdSleep(TIME_MS2I(500));
-    pwmEnableChannel(friction_wheel_pwm_driver, FW_LEFT,
-                     PWM_PERCENTAGE_TO_WIDTH(friction_wheel_pwm_driver, 0 * 500 + 500));
-    pwmEnableChannel(friction_wheel_pwm_driver, FW_RIGHT,
-                     PWM_PERCENTAGE_TO_WIDTH(friction_wheel_pwm_driver, 0 * 500 + 500));
+    pwmEnableChannel(FRICTION_WHEEL_PWM_DRIVER, FW_LEFT,
+                     PWM_PERCENTAGE_TO_WIDTH(FRICTION_WHEEL_PWM_DRIVER, 0 * 500 + 500));
+    pwmEnableChannel(FRICTION_WHEEL_PWM_DRIVER, FW_RIGHT,
+                     PWM_PERCENTAGE_TO_WIDTH(FRICTION_WHEEL_PWM_DRIVER, 0 * 500 + 500));
 }
 
 bool GimbalInterface::send_gimbal_currents() {
 
-    if (!can) return false;
+    if (!can_) return false;
 
     CANTxFrame txmsg;
 
@@ -103,19 +90,19 @@ bool GimbalInterface::send_gimbal_currents() {
 
     txmsg.data8[6] = txmsg.data8[7] = 0;
 
-    can->send_msg(&txmsg);
+    can_->send_msg(&txmsg);
 
     // Set the PWM of friction wheels
     if (friction_wheels.enabled) {
-        pwmEnableChannel(friction_wheel_pwm_driver, FW_LEFT,
-                         PWM_PERCENTAGE_TO_WIDTH(friction_wheel_pwm_driver, friction_wheels.duty_cycle * 500 + 500));
-        pwmEnableChannel(friction_wheel_pwm_driver, FW_RIGHT,
-                         PWM_PERCENTAGE_TO_WIDTH(friction_wheel_pwm_driver, friction_wheels.duty_cycle * 500 + 500));
+        pwmEnableChannel(FRICTION_WHEEL_PWM_DRIVER, FW_LEFT,
+                         PWM_PERCENTAGE_TO_WIDTH(FRICTION_WHEEL_PWM_DRIVER, friction_wheels.duty_cycle * 500 + 500));
+        pwmEnableChannel(FRICTION_WHEEL_PWM_DRIVER, FW_RIGHT,
+                         PWM_PERCENTAGE_TO_WIDTH(FRICTION_WHEEL_PWM_DRIVER, friction_wheels.duty_cycle * 500 + 500));
     } else {
-        pwmEnableChannel(friction_wheel_pwm_driver, FW_LEFT,
-                         PWM_PERCENTAGE_TO_WIDTH(friction_wheel_pwm_driver, 0 * 500 + 500));
-        pwmEnableChannel(friction_wheel_pwm_driver, FW_RIGHT,
-                         PWM_PERCENTAGE_TO_WIDTH(friction_wheel_pwm_driver, 0 * 500 + 500));
+        pwmEnableChannel(FRICTION_WHEEL_PWM_DRIVER, FW_LEFT,
+                         PWM_PERCENTAGE_TO_WIDTH(FRICTION_WHEEL_PWM_DRIVER, 0 * 500 + 500));
+        pwmEnableChannel(FRICTION_WHEEL_PWM_DRIVER, FW_RIGHT,
+                         PWM_PERCENTAGE_TO_WIDTH(FRICTION_WHEEL_PWM_DRIVER, 0 * 500 + 500));
     }
 
     return true;
@@ -186,10 +173,10 @@ void GimbalInterface::process_motor_feedback(CANRxFrame const *rxmsg) {
             }
 
             // Calculate the angular velocity and get the actual current
-            // Sum angle movements for velocity_sample_interval times, and calculate the average.
+            // Sum angle movements for VELOCITY_SAMPLE_INTERVAL times, and calculate the average.
             motor->sample_movement_sum += angle_movement;
             motor->sample_count++;
-            if (motor->sample_count >= velocity_sample_interval) {
+            if (motor->sample_count >= VELOCITY_SAMPLE_INTERVAL) {
                 // calculate the angular velocity
                 time_msecs_t new_sample_time = TIME_I2MS(chibios_rt::System::getTime());
                 motor->angular_velocity = motor->sample_movement_sum * 360.0f * 1000.0f / 8192.0f /
