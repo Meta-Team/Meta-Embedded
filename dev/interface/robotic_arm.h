@@ -70,8 +70,9 @@ public:
     /**
      * @brief initialize this interface with properly started CANInterface
      * @param can_interface pointer to properly started CANInterface
+     * @param motor_front_angle_raw   the raw angle of motor when the robotic arm is inside
      */
-    static void init(CANInterface *can_interface);
+    static void init(CANInterface *can_interface, uint16_t motor_front_angle_raw = 0);
 
 private:
 
@@ -87,6 +88,7 @@ private:
     static CANInterface *can;
 
     friend CANInterface;
+    friend int main();
 
 private:
 

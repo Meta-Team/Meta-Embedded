@@ -5,7 +5,18 @@
 #ifndef META_INFANTRY_MAIN_INFANTRY_ONE_H
 #define META_INFANTRY_MAIN_INFANTRY_ONE_H
 
-#define VEHICLE_INFANTRY  // define the common macro for all infantry
+/*** Installation Based Params ***/
+
+// Raw angle of yaw and pitch when gimbal points straight forward.
+//   Note: the program will echo the raw angles of yaw and pitch as the program starts
+#define GIMBAL_YAW_FRONT_ANGLE_RAW 0
+#define GIMBAL_PITCH_FRONT_ANGLE_RAW 0
+
+// Relationship between MPU6500 data and gimbal angular velocities
+#define GIMBAL_YAW_ACTUAL_VELOCITY (-MPU6500Controller::angle_speed.x)
+#define GIMBAL_PITCH_ACTUAL_VELOCITY (-MPU6500Controller::angle_speed.y)
+
+/*** Gimbal Motor PID Params ***/
 
 #define GIMBAL_PID_YAW_V2I_KP 5.1f
 #define GIMBAL_PID_YAW_V2I_KI 0.075f
@@ -43,9 +54,6 @@
     GIMBAL_PID_PITCH_A2V_KP, GIMBAL_PID_PITCH_A2V_KI, GIMBAL_PID_PITCH_A2V_KD, \
     GIMBAL_PID_PITCH_A2V_I_LIMIT, GIMBAL_PID_PITCH_A2V_OUT_LIMIT
 
-#define GIMBAL_YAW_ACTUAL_VELOCITY (-MPU6500Controller::angle_speed.x)
-#define GIMBAL_PITCH_ACTUAL_VELOCITY (-MPU6500Controller::angle_speed.y)
-
 // TODO: select a better params
 #define GIMBAL_PID_BULLET_LOADER_V2I_KP 20.0f
 #define GIMBAL_PID_BULLET_LOADER_V2I_KI 0.0f
@@ -56,6 +64,7 @@
     GIMBAL_PID_BULLET_LOADER_V2I_KP, GIMBAL_PID_BULLET_LOADER_V2I_KI, GIMBAL_PID_BULLET_LOADER_V2I_KD, \
     GIMBAL_PID_BULLET_LOADER_V2I_I_LIMIT, GIMBAL_PID_BULLET_LOADER_V2I_OUT_LIMIT
 
+/*** Chassis PID Params ***/
 
 #define CHASSIS_PID_V2I_KP 22.0f
 #define CHASSIS_PID_V2I_KI 0.29f

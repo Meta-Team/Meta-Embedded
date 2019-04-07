@@ -102,6 +102,7 @@ public:
         int sample_movement_sum = 0;
 
         friend GimbalInterface;
+        friend int main();
 
     };
     static MotorInterface yaw;
@@ -122,8 +123,10 @@ public:
     /**
      * @brief set the CAN interface, start PWM driver and set the PID
      * @param can_interface
+     * @param yaw_front_angle_raw   raw angle of yaw when gimbal points straight forward, depending on installation.
+     * @param pitch_front_angle_raw   raw angle of pitch when gimbal points straight forward, depending on installation.
      */
-    static void init(CANInterface *can_interface);
+    static void init(CANInterface *can_interface, uint16_t yaw_front_angle_raw = 0, uint16_t pitch_front_angle_raw = 0);
 
     /**
      * @brief send target_current of each motor

@@ -74,11 +74,10 @@ CANInterface can1(&CAND1);
 
 /**
  * @name GimbalThread
- * @brief thread to control gimbal, including shooting mechanism
- * @pre RemoteInterpreter start receive
- * @pre initialize GimbalInterface with CAN driver
- * @pre start the thread of updating MPU6500
- * @pre reset front angle properly
+ * @brief Thread to control gimbal, including shooting mechanism
+ * @pre Remote interpreter starts receive
+ * @pre Initialize GimbalInterface with CAN driver and set the front angles of yaw and pitch properly
+ * @pre Start the thread of updating MPU6500
  */
 class GimbalThread : public chibios_rt::BaseStaticThread<1024> {
 
@@ -182,7 +181,8 @@ class GimbalThread : public chibios_rt::BaseStaticThread<1024> {
                 // If mouse left button is pressed, start continuous shooting
                 if (Remote::mouse.press_left) {
                     // TODO: enable friction in emergency
-                    if (!GimbalController::bullet_loader.get_shooting_status() && GimbalInterface::friction_wheels.duty_cycle > 0) {
+                    if (!GimbalController::bullet_loader.get_shooting_status() &&
+                        GimbalInterface::friction_wheels.duty_cycle > 0) {
                         GimbalController::bullet_loader.start_continuous_shooting();
                     }
 
@@ -345,28 +345,30 @@ int main(void) {
     MPU6500Controller::start(HIGHPRIO - 2);
     Remote::start_receive();
 
-    GimbalInterface::init(&can1);
+    GimbalInterface::init(&can1, GIMBAL_YAW_FRONT_ANGLE_RAW, GIMBAL_PITCH_FRONT_ANGLE_RAW);
     ChassisInterface::init(&can1);
 
 
     /*** ------------ Period 2. Calibration and Start Logic Control Thread ----------- ***/
 
-    while (palReadPad(STARTUP_BUTTON_PAD, STARTUP_BUTTON_PIN_ID) != STARTUP_BUTTON_PRESS_PAL_STATUS) {
-        // Wait for the button to be pressed
-        LED::green_toggle();
-        chThdSleepMilliseconds(300);
-    }
-
-    /** User has pressed the button **/
+//    while (palReadPad(STARTUP_BUTTON_PAD, STARTUP_BUTTON_PIN_ID) != STARTUP_BUTTON_PRESS_PAL_STATUS) {
+//        // Wait for the button to be pressed
+//        LED::green_toggle();
+//        chThdSleepMilliseconds(300);
+//    }
+//    /** User has pressed the button **/
 
     LED::green_on();
 
-    /** Gimbal Calibration **/
-    GimbalInterface::yaw.reset_front_angle();
-    GimbalInterface::pitch.reset_front_angle();
+//    /** Gimbal Calibration **/
+//    GimbalInterface::yaw.reset_front_angle();
+//    GimbalInterface::pitch.reset_front_angle();
 
-    palSetPadMode(GPIOG, GPIOG_PIN13, PAL_MODE_OUTPUT_PUSHPULL);
-    palSetPad(GPIOG, GPIOG_PIN13);
+    /** Echo Gimbal Raws and Converted Angles **/
+    chThdSleepMilliseconds(500);
+    LOG("Gimbal Yaw: %u, %f, Pitch: %u, %f",
+        GimbalInterface::yaw.last_angle_raw, GimbalInterface::yaw.actual_angle,
+        GimbalInterface::pitch.last_angle_raw, GimbalInterface::pitch.actual_angle);
 
     /** Start Logic Control Thread **/
     gimbalThread.start(NORMALPRIO);

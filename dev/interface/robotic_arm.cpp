@@ -23,9 +23,11 @@ void RoboticArm::clamp_action(RoboticArm::clamp_status_t target_status) {
     palWritePad(GPIOH, GPIOH_POWER1_CTRL, _clamp_status);
 }
 
-void RoboticArm::init(CANInterface *can_interface) {
+void RoboticArm::init(CANInterface *can_interface, uint16_t motor_front_angle_raw) {
     can = can_interface;
     can->register_callback(0x205, 0x205, process_motor_feedback);
+
+    motor_last_actual_angle_raw = motor_front_angle_raw;
 
     palSetPad(GPIOH, GPIOH_POWER3_CTRL);
 

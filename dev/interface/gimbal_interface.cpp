@@ -14,14 +14,17 @@ GimbalInterface::FrictionWheelsInterface GimbalInterface::friction_wheels;
 CANInterface *GimbalInterface::can_ = nullptr;
 PWMConfig constexpr GimbalInterface::FRICTION_WHEELS_PWM_CFG;
 
-void GimbalInterface::init(CANInterface *can_interface) {
+void GimbalInterface::init(CANInterface *can_interface, uint16_t yaw_front_angle_raw, uint16_t pitch_front_angle_raw) {
 
     can_ = can_interface;
     can_->register_callback(0x205, 0x207, process_motor_feedback);
 
     yaw.id = YAW_ID;
+    yaw.last_angle_raw = yaw_front_angle_raw;
     pitch.id = PIT_ID;
+    pitch.last_angle_raw = pitch_front_angle_raw;
     bullet_loader.id = BULLET_LOADER_ID;
+    bullet_loader.reset_front_angle();
 
     pwmStart(FRICTION_WHEEL_PWM_DRIVER, &FRICTION_WHEELS_PWM_CFG);
 

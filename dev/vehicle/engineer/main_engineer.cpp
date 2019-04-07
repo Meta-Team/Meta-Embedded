@@ -99,10 +99,10 @@ class ChassisThread : public chibios_rt::BaseStaticThread<1024> {
             if ((Remote::rc.s1 == Remote::RC_S_MIDDLE && Remote::rc.s2 == Remote::RC_S_DOWN) ||
                 (Remote::rc.s1 == Remote::RC_S_DOWN)) {
 
-                float target_vx, target_vy, target_w;
+                float target_vx = 0, target_vy = 0, target_w = 0;
 
                 if (elevatorThread.get_status() == elevatorThread.STOP) {  // if elevator thread is not in action,
-                                                                           // let user control the chassis
+                    // let user control the chassis
                     if (Remote::rc.s1 == Remote::RC_S_MIDDLE && Remote::rc.s2 == Remote::RC_S_DOWN) {
 
                         target_vx = -Remote::rc.ch2 * 1000.0f;
@@ -243,7 +243,7 @@ int main(void) {
 
     ChassisInterface::init(&can1);
     ElevatorInterface::init(&can1);
-    RoboticArm::init(&can1);
+    RoboticArm::init(&can1, ROBOTIC_ARM_INSIDE_ANGLE_RAW);
 
     /*** ------------ Period 2. Calibration and Start Logic Control Thread ----------- ***/
 
@@ -252,12 +252,15 @@ int main(void) {
 //        LED::green_toggle();
 //        chThdSleepMilliseconds(300);
 //    }
-
-    /** User has pressed the button **/
+//    /** User has pressed the button **/
 
     LED::green_on();
 
-    RoboticArm::reset_front_angle();
+//    RoboticArm::reset_front_angle();
+
+    /** Echo Gimbal Raws and Converted Angles **/
+    chThdSleepMilliseconds(500);
+    LOG("RA Motor: %u, %f", RoboticArm::motor_last_actual_angle_raw, RoboticArm::get_motor_actual_angle());
 
     actionTriggerThread.start(HIGHPRIO - 2);
 

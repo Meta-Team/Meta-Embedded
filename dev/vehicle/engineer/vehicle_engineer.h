@@ -5,6 +5,14 @@
 #ifndef META_INFANTRY_VEHICLE_ENGINEER_H
 #define META_INFANTRY_VEHICLE_ENGINEER_H
 
+/*** Installation Based Params ***/
+
+// Raw angle of motor when robotic arm is placed inside.
+//   Note: the program will echo the raw angles of the motor as the program starts
+#define ROBOTIC_ARM_INSIDE_ANGLE_RAW 0
+
+/*** Chassis PID Params ***/
+
 #define CHASSIS_PID_V2I_KP 33.0f
 #define CHASSIS_PID_V2I_KI 0.49f
 #define CHASSIS_PID_V2I_KD 2.4f
