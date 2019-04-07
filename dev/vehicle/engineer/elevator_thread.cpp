@@ -33,84 +33,112 @@ float ElevatorThread::get_chassis_target_vy() {
 }
 
 void ElevatorThread::main() {
+
     setName("elevator");
+
+    systime_t t;
 
     if (status_ == STOP) {
         exit(-1);
     } else if (status_ == UPWARD) {
 
-        Shell::printf("=== Start performing upward ===" SHELL_NEWLINE_STR);
+        LOG("[ELE UP] Start");
 
-        /** Step 1. Lower all wheels **/
-        Shell::printf("Prepare to perform step #1" SHELL_NEWLINE_STR);
+        /** Step 1. Lift the vehicle **/
+        LOG("[ELE UP] Step 1...");
+
         sleep(TIME_MS2I(1000));
         ElevatorInterface::apply_front_position(-stage_height_);
         ElevatorInterface::apply_rear_position(-stage_height_);
-        sleep(TIME_MS2I(100));
-        ElevatorInterface::apply_front_position(-stage_height_);
-        ElevatorInterface::apply_rear_position(-stage_height_);
+
+        t = chVTGetSystemTime();
         while (ElevatorInterface::wheels[0].is_in_action() ||
                ElevatorInterface::wheels[1].is_in_action() ||
                ElevatorInterface::wheels[2].is_in_action() ||
                ElevatorInterface::wheels[3].is_in_action()) {
+
+            if (TIME_I2MS(chVTGetSystemTime() - t) > 15000) {
+                LOG_ERR("[ELE UP] Step 1 timeout, is_in_action: %d %d %d %d",
+                        ElevatorInterface::wheels[0].is_in_action(),
+                        ElevatorInterface::wheels[1].is_in_action(),
+                        ElevatorInterface::wheels[2].is_in_action(),
+                        ElevatorInterface::wheels[3].is_in_action());
+                break;
+            }
+
             sleep(TIME_MS2I(elevator_check_interval_));
         }
-        Shell::printf("Complete step #1" SHELL_NEWLINE_STR);
 
         sleep(TIME_MS2I(100)); // Time interval between steps
 
         /** Step 2. Move forward to make the front assistant wheels to get onto the stage **/
-        Shell::printf("Prepare to perform step #2" SHELL_NEWLINE_STR);
+        LOG("[ELE UP] Step 2...");
+
         chassis_target_vy_ = -500;
         sleep(TIME_MS2I(500));
 
         chassis_target_vy_ = 0;
         sleep(TIME_MS2I(100));
-        Shell::printf("Complete step #2" SHELL_NEWLINE_STR);
 
         /** Step 3. Lift the front wheels **/
-        Shell::printf("Prepare to perform step #3" SHELL_NEWLINE_STR);
+        LOG("[ELE UP] Step 3...");
+
         ElevatorInterface::apply_front_position(0);
-        sleep(TIME_MS2I(1000));
+
+        t = chVTGetSystemTime();
         while (ElevatorInterface::wheels[0].is_in_action() ||
                ElevatorInterface::wheels[1].is_in_action()) {
+            if (TIME_I2MS(chVTGetSystemTime() - t) > 15000) {
+                LOG_ERR("[ELE UP] Step 3 timeout, is_in_action: %d %d %d %d",
+                        ElevatorInterface::wheels[0].is_in_action(),
+                        ElevatorInterface::wheels[1].is_in_action(),
+                        ElevatorInterface::wheels[2].is_in_action(),
+                        ElevatorInterface::wheels[3].is_in_action());
+                break;
+            }
             sleep(TIME_MS2I(elevator_check_interval_));
         }
-        Shell::printf("Complete step #3" SHELL_NEWLINE_STR);
 
-        sleep(TIME_MS2I(100));  // Time interval between steps
+        sleep(TIME_MS2I(500));  // Time interval between steps
 
         /** Step 4. Move forward to make the front wheels and rear assistant wheel to be on the stage **/
-        Shell::printf("Prepare to perform step #4" SHELL_NEWLINE_STR);
+        LOG("[ELE UP] Step 4...");
         chassis_target_vy_ = -1500;
         sleep(TIME_MS2I(1000));
         chassis_target_vy_ = -500;
         sleep(TIME_MS2I(1500));
-        Shell::printf("Complete step #4" SHELL_NEWLINE_STR);
         chassis_target_vy_ = 0;
-
 
         sleep(TIME_MS2I(100));  // Time interval between steps
 
         /** Step 5. Lift the rear wheels **/
-        Shell::printf("Prepare to perform step #5" SHELL_NEWLINE_STR);
+        LOG("[ELE UP] Step 5...");
+
         ElevatorInterface::apply_rear_position(0);
-        sleep(TIME_MS2I(1000));
+
+        t = chVTGetSystemTime();
         while (ElevatorInterface::wheels[2].is_in_action() ||
                ElevatorInterface::wheels[3].is_in_action()) {
+            if (TIME_I2MS(chVTGetSystemTime() - t) > 15000) {
+                LOG_ERR("[ELE UP] Step 3 timeout, is_in_action: %d %d %d %d",
+                        ElevatorInterface::wheels[0].is_in_action(),
+                        ElevatorInterface::wheels[1].is_in_action(),
+                        ElevatorInterface::wheels[2].is_in_action(),
+                        ElevatorInterface::wheels[3].is_in_action());
+                break;
+            }
             sleep(TIME_MS2I(elevator_check_interval_));
         }
         chassis_target_vy_ = -1500;
         sleep(TIME_MS2I(1000));
-        Shell::printf("Complete step #5" SHELL_NEWLINE_STR);
 
         chassis_target_vy_ = 0;
 
         /** Complete **/
-        Shell::printf("=== Ready to stop ===" SHELL_NEWLINE_STR);
+        LOG("[ELE UP] Complete");
         status_ = STOP;
         exit(0);
-    } 
+    }
     // TODO: write action of going downward
 }
 

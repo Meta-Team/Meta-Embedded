@@ -115,8 +115,8 @@ class GimbalThread : public chibios_rt::BaseStaticThread<1024> {
         while (!shouldTerminate()) {
 
             /*** Yaw and Pitch Motors ***/
-            if (Remote::rc.s1 == Remote::REMOTE_RC_S_MIDDLE &&
-                (Remote::rc.s2 == Remote::REMOTE_RC_S_UP || Remote::rc.s2 == Remote::REMOTE_RC_S_MIDDLE)) {
+            if (Remote::rc.s1 == Remote::RC_S_MIDDLE &&
+                (Remote::rc.s2 == Remote::RC_S_UP || Remote::rc.s2 == Remote::RC_S_MIDDLE)) {
                 // Remote control mode
 
                 // PID #1: target angle -> target velocity
@@ -130,7 +130,7 @@ class GimbalThread : public chibios_rt::BaseStaticThread<1024> {
                 GimbalInterface::pitch.target_current = (int) GimbalController::pitch.v_to_i(
                         GIMBAL_PITCH_ACTUAL_VELOCITY, pitch_target_velocity);
 
-            } else if (Remote::rc.s1 == Remote::REMOTE_RC_S_DOWN) { // PC control mode
+            } else if (Remote::rc.s1 == Remote::RC_S_DOWN) { // PC control mode
 
                 // If V is pressed, reset target angle
                 if (Remote::key.v) {
@@ -164,7 +164,7 @@ class GimbalThread : public chibios_rt::BaseStaticThread<1024> {
             /*** Friction Wheels and Bullet Loader ***/
             GimbalController::bullet_loader.update_accumulation_angle(
                     GimbalInterface::bullet_loader.get_accumulate_angle());
-            if (Remote::rc.s1 == Remote::REMOTE_RC_S_MIDDLE && Remote::rc.s2 == Remote::REMOTE_RC_S_MIDDLE) {
+            if (Remote::rc.s1 == Remote::RC_S_MIDDLE && Remote::rc.s2 == Remote::RC_S_MIDDLE) {
                 GimbalInterface::friction_wheels.duty_cycle = REMOTE_FRICTION_WHEEL_DUTY_CYCLE;
                 if (Remote::rc.ch3 < 0.1) {
                     if (!GimbalController::bullet_loader.get_shooting_status()) {
@@ -177,7 +177,7 @@ class GimbalThread : public chibios_rt::BaseStaticThread<1024> {
                         GimbalController::bullet_loader.stop_shooting();
                     }
                 }
-            } else if (Remote::rc.s1 == Remote::REMOTE_RC_S_DOWN) { // PC control mode
+            } else if (Remote::rc.s1 == Remote::RC_S_DOWN) { // PC control mode
 
                 // If mouse left button is pressed, start continuous shooting
                 if (Remote::mouse.press_left) {
@@ -250,13 +250,13 @@ class ChassisThread : public chibios_rt::BaseStaticThread<1024> {
 
         while (!shouldTerminate()) {
 
-            if (Remote::rc.s1 == Remote::REMOTE_RC_S_MIDDLE &&
-                (Remote::rc.s2 == Remote::REMOTE_RC_S_UP || Remote::rc.s2 == Remote::REMOTE_RC_S_DOWN)) {
+            if (Remote::rc.s1 == Remote::RC_S_MIDDLE &&
+                (Remote::rc.s2 == Remote::RC_S_UP || Remote::rc.s2 == Remote::RC_S_DOWN)) {
 
                 float target_vx = -Remote::rc.ch2 * 1000.0f;
                 float target_vy = -Remote::rc.ch3 * 1000.0f;
                 float target_w;
-                if (Remote::rc.s2 == Remote::REMOTE_RC_S_DOWN) {
+                if (Remote::rc.s2 == Remote::RC_S_DOWN) {
                     target_w = Remote::rc.ch0 * 180.0f;
                 } else {
                     target_w = 0;
@@ -276,7 +276,7 @@ class ChassisThread : public chibios_rt::BaseStaticThread<1024> {
                     ChassisInterface::motor[i].target_current = (int) ChassisController::motor[i].target_current;
                 }
 
-            } else if (Remote::rc.s1 == Remote::REMOTE_RC_S_DOWN) { // PC control mode
+            } else if (Remote::rc.s1 == Remote::RC_S_DOWN) { // PC control mode
 
                 float target_vx, target_vy, target_w;
 

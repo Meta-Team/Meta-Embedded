@@ -37,7 +37,7 @@ bool ElevatorInterface::apply_front_position(float front_wheel_position_cm) {
     send_target_position_(FRONT_LEFT);
     send_target_position_(FRONT_RIGHT);
     wheels[0].is_actioning_ = wheels[1].is_actioning_ = true;
-    Shell::printf("Apply front pos %f" SHELL_NEWLINE_STR, front_wheel_position_cm);
+    LOG("[ElevatorInterface] Apply front pos %f", front_wheel_position_cm);
     return true;
 }
 
@@ -47,6 +47,7 @@ bool ElevatorInterface::apply_rear_position(float rear_wheel_position_cm) {
     send_target_position_(REAR_LEFT);
     send_target_position_(REAR_RIGHT);
     wheels[2].is_actioning_ = wheels[3].is_actioning_ = true;
+    LOG("[ElevatorInterface] Apply rear pos %f", rear_wheel_position_cm);
     return true;
 }
 
