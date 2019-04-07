@@ -2,6 +2,11 @@
 // Created by liuzikai on 2019-02-24.
 //
 
+/**
+ * This file contain a thread for Engineer robotic arm. This thread is started manually when there are actions needed
+ * to be perform, and ends as the actions are done.
+ */
+
 #ifndef META_INFANTRY_ROBOTIC_ARM_THREAD_H
 #define META_INFANTRY_ROBOTIC_ARM_THREAD_H
 
@@ -28,7 +33,9 @@ class RoboticArmThread : public chibios_rt::BaseStaticThread<ROBOTIC_ARM_THREAD_
 public:
     enum status_t {
         STOP,
-        ACTIONING
+        INITIAL_OUTWARD,
+        FETCH_ONCE,
+        FINAL_INWARD
     };
 
     /**
@@ -38,18 +45,24 @@ public:
     status_t get_status();
 
     /**
-     * @brief start a series of fetching actions
+     * @brief start a series of actions to make the robotic arm outward
      * @param prio thread priority
      * @return whether the actions can be start.
-     * @note if last action is not completed or the clamp is not inside, it will fails to start
      */
-    bool start_actions(tprio_t prio);
+    bool start_initial_outward(tprio_t prio);
+
+    bool start_one_fetch(tprio_t prio);
+
+    bool start_final_inward(tprio_t prio);
 
     void emergency_stop();
+    
+    bool is_outward();
 
 private:
 
-    status_t status = STOP;
+    status_t status_ = STOP;
+    bool should_stop_ = false;
 
     void main() final;
 
@@ -67,18 +80,6 @@ private:
 
     // If actual angle is GREATER than motor_inside_target_angle, we think that the robotic arm is completely inside
     static constexpr float motor_inside_target_angle = -3; // [degree]
-
-    // If actual angle is SMALLER than motor_outside_target_angle, we think that the robotic arm is completely outside
-    static constexpr float motor_outside_target_angle = -157;
-
-    // If actual angle is GREATER than motor_outward_boundary_angle, no current will supply to the rotation motor
-    static constexpr float motor_inward_boundary_angle = -67;
-
-    // If actual angle is SMALLER than motor_outward_boundary_angle, no current will supply to the rotation motor
-    static constexpr float motor_outward_boundary_angle = -65;
-
-    // If actual angle is SMALLER than motor_outward_boundary_angle, no current will supply to the rotation motor
-    static constexpr float motor_outward_cushion_angle = -95;
 };
 
 

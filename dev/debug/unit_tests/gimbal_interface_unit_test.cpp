@@ -2,6 +2,10 @@
 // Created by liuzikai on 2018/8/6.
 //
 
+/**
+ * This file contain GimbalInterface Unit Test.
+ */
+
 #include "ch.hpp"
 #include "hal.h"
 
@@ -153,8 +157,8 @@ static void cmd_gimbal_set_friction_wheels(BaseSequentialStream *chp, int argc, 
     chprintf(chp, "Gimbal target_current sent" SHELL_NEWLINE_STR);
 }
 
-// Shell commands to pause and resume the echos.
-ShellCommand remoteShellCommands[] = {
+// Shell commands to control gimbal.
+ShellCommand gimbalShellCommands[] = {
         {"g_enable", cmd_gimbal_enable},
         {"g_fix",    cmd_gimbal_fix_front_angle},
         {"g_set",    cmd_gimbal_set_target_currents},
@@ -162,6 +166,7 @@ ShellCommand remoteShellCommands[] = {
         {nullptr,    nullptr}
 };
 
+// Thread to send target current in period
 class GimbalThread : public BaseStaticThread <256> {
 protected:
     void main() final {
@@ -177,11 +182,9 @@ int main(void) {
     halInit();
     System::init();
 
-    // Start ChibiOS shell at high priority,
-    // so even if a thread stucks, we still have access to shell.
-
+    // Start ChibiOS shell at high priority, so even if a thread stucks, we still have access to shell.
     Shell::start(HIGHPRIO);
-    Shell::addCommands(remoteShellCommands);
+    Shell::addCommands(gimbalShellCommands);
 
     gimbalThread.start(NORMALPRIO + 1);
 

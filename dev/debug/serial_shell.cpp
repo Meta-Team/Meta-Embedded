@@ -5,10 +5,11 @@ using namespace chibios_rt;
 /**
  * Declaration for class variables
  */
-ShellCommand Shell::shellCommands[Shell::maxCommandCount + 1] = {nullptr, nullptr};
+ShellCommand Shell::shellCommands_[Shell::MAX_COMMAND_COUNT + 1] = {nullptr, nullptr};
 ShellConfig Shell::shellConfig;
-SerialConfig Shell::shellSerialConfig = {115200, 0, 0, 0};
+constexpr SerialConfig Shell::SHELL_SERIAL_CONFIG;
 bool Shell::enabled = false;
+char Shell::complection_[Shell::MAX_COMMAND_COUNT][SHELL_MAX_LINE_LENGTH] = {0};
 
 /**
  * The working area for the shell thread
@@ -29,14 +30,17 @@ bool Shell::start(tprio_t prio) {
     // Configure shell
     shellConfig = {
             (BaseSequentialStream *) &SD6,
-            shellCommands
+            shellCommands_
 #if (SHELL_USE_HISTORY == TRUE)
-    ,new char[64],
-64
+            , new char[64],
+            64
+#endif
+#if (SHELL_USE_COMPLETION == TRUE)
+            , (char**) complection_
 #endif
     };
 
-    sdStart(&SD6, &shellSerialConfig);
+    sdStart(&SD6, &SHELL_SERIAL_CONFIG);
     // Call init provided by shell
     shellInit();
 
@@ -53,14 +57,14 @@ bool Shell::start(tprio_t prio) {
 
 bool Shell::addCommands(ShellCommand *commandList) {
     int i = 0;
-    while (i < maxCommandCount && shellCommands[i].sc_name != nullptr) i++;
-    while (i < maxCommandCount && commandList->sc_name != nullptr) {
-        shellCommands[i].sc_name = commandList->sc_name;
-        shellCommands[i].sc_function = commandList->sc_function;
+    while (i < MAX_COMMAND_COUNT && shellCommands_[i].sc_name != nullptr) i++;
+    while (i < MAX_COMMAND_COUNT && commandList->sc_name != nullptr) {
+        shellCommands_[i].sc_name = commandList->sc_name;
+        shellCommands_[i].sc_function = commandList->sc_function;
         i++;
         commandList++;
     }
-    shellCommands[i] = {nullptr, nullptr};
+    shellCommands_[i] = {nullptr, nullptr};
     return (commandList->sc_name == nullptr);
 }
 
@@ -75,3 +79,38 @@ int Shell::printf(const char *fmt, ...) {
 
     return formatted_bytes;
 }
+
+int Shell::atoi(const char *s) {
+    int ret = 0;
+    const char *p = s;
+    if (*p == '-') p++;
+    while (*p) {
+        ret = ret * 10 + (*p - '0');
+        p++;
+    }
+    if (s[0] == '-') ret = -ret;
+    return ret;
+}
+
+float Shell::atof(const char *s) {
+    float rez = 0.0f;
+    float fact = 1.0f;
+    float sign = 1.0f;
+    if (*s == '-') {
+        s++;
+        sign = -1.0f;
+    }
+    for (int point_seen = 0; *s; s++) {
+        if (*s == '.') {
+            point_seen = 1;
+            continue;
+        };
+        if (point_seen) {
+            fact /= 10.0f;
+            rez = rez + (float) (*s - '0') * fact;
+        } else {
+            rez = rez * 10.0f + (float) (*s - '0');
+        }
+    };
+    return rez * sign;
+};

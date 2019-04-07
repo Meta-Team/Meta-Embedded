@@ -12,8 +12,7 @@ GimbalInterface::MotorInterface GimbalInterface::pitch;
 GimbalInterface::MotorInterface GimbalInterface::bullet_loader;
 GimbalInterface::FrictionWheelsInterface GimbalInterface::friction_wheels;
 CANInterface *GimbalInterface::can_ = nullptr;
-
-PWMConfig constexpr GimbalInterface::FRICTION_WHEELS_PWMCFG;
+PWMConfig constexpr GimbalInterface::FRICTION_WHEELS_PWM_CFG;
 
 void GimbalInterface::init(CANInterface *can_interface) {
 
@@ -24,7 +23,7 @@ void GimbalInterface::init(CANInterface *can_interface) {
     pitch.id = PIT_ID;
     bullet_loader.id = BULLET_LOADER_ID;
 
-    pwmStart(FRICTION_WHEEL_PWM_DRIVER, &FRICTION_WHEELS_PWMCFG);
+    pwmStart(FRICTION_WHEEL_PWM_DRIVER, &FRICTION_WHEELS_PWM_CFG);
 
     // Perform the initialization work of friction wheel driver (100% and then 0%)
     pwmEnableChannel(FRICTION_WHEEL_PWM_DRIVER, FW_LEFT,
@@ -109,12 +108,14 @@ bool GimbalInterface::send_gimbal_currents() {
 }
 
 void GimbalInterface::process_motor_feedback(CANRxFrame const *rxmsg) {
-/*
- * function logic description
- * first, get the absolute angle value from the motor, compared with the last absolute angle value, get the angle movement
- * add the angle movement with the relative angle, get the new relative angle, modify the relative angle and the base round value
- * divide the angle movement by the time break to get the angular velocity
- * */
+
+    /*
+     * function logic description
+     * first, get the absolute angle value from the motor, compared with the last absolute angle value, get the angle movement
+     * add the angle movement with the relative angle, get the new relative angle, modify the relative angle and the base round value
+     * divide the angle movement by the time break to get the angular velocity
+     */
+
     MotorInterface *motor = nullptr;
 
     uint16_t last_angle_raw;

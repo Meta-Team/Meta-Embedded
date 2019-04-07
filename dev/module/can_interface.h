@@ -11,15 +11,11 @@
 #include "serial_shell.h"
 
 #if defined(BOARD_RM_2018_A)
-// RM_BOARD_2018_A:
-//  CAN1_RX - PD0, CAN1_TX - PD1
-#define BUZZER_PWM_DRIVER PWMD12
+// CAN1_RX - PD0, CAN1_TX - PD1
 #elif defined(BOARD_RM_2017)
-// RM_BOARD_2017:
-//  CAN1_RX - PD0, CAN1_TX - PD1
-#define BUZZER_PWM_DRIVER PWMD3
+// CAN1_RX - PD0, CAN1_TX - PD1
 #else
-#error "Buzzer interface has not been defined for selected board"
+#error "CANInterface has not been defined for selected board"
 #endif
 
 #define CAN_INTERFACE_ENABLE_ERROR_FEEDBACK_THREAD TRUE

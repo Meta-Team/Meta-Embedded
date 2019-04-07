@@ -44,7 +44,7 @@ static void cmd_robotic_arm_action(BaseSequentialStream *chp, int argc, char *ar
         shellUsage(chp, "engi_fetch");
         return;
     }
-    int ret = roboticArmThread.start_actions(NORMALPRIO);
+    int ret = roboticArmThread.start_initial_outward(NORMALPRIO);
     chprintf(chp, "Start up action = %d" SHELL_NEWLINE_STR, ret);
 }
 
@@ -99,7 +99,7 @@ int main(void) {
 
 //    feedbackThread.start(NORMALPRIO);
 
-    roboticArmThread.start_actions(NORMALPRIO);
+    roboticArmThread.start_initial_outward(NORMALPRIO);
 
     Buzzer::play_sound(Buzzer::sound_startup, LOWPRIO);
 

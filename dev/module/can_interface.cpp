@@ -15,7 +15,7 @@ void CANInterface::ErrorFeedbackThread::main() {
     while (!shouldTerminate()) {
 
         if (waitAnyEventTimeout(ALL_EVENTS, TIME_MS2I(10000)) == 0) {
-            Shell::printf("--- End of error in CAN in last 10 s ---" SHELL_NEWLINE_STR);
+//            Shell::printf("--- End of error in CAN in last 10 s ---" SHELL_NEWLINE_STR);
             continue;
         }
 

@@ -62,6 +62,8 @@ add_library(ChibiOS_OBJ OBJECT ${CHIBIOS_XASM_SRC} ${CHIBIOS_C_SRC} ${CHIBIOS_CP
 
 # =========== Files and Targets Configurations ===========
 
+# NOTICE: UPDATE README IF THE CONFIGURATIONS IS UPDATED
+
 # Main Program -- Infantry #1
 add_executable(INFANTRY_ONE
         dev/module/pid_controller.cpp
@@ -174,6 +176,10 @@ add_executable(ut_robotic_arm
         dev/vehicle/engineer/robotic_arm_thread.cpp
         dev/debug/unit_tests/engineer_robotic_arm_unit_test.cpp)
 
+
+# Template Unit Test
+add_executable(ut_template
+        dev/debug/unit_tests/unit_test_template.cpp)
 
 # =========== Post Configurations for all targets ===========
 

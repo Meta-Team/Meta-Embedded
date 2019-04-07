@@ -2,6 +2,10 @@
 // Created by liuzikai on 2019-01-07.
 //
 
+/**
+ * This file contain program for GimbalParameter adjustment for Yaw and Pitch motors.
+ */
+
 #include "ch.hpp"
 #include "hal.h"
 
@@ -29,12 +33,15 @@ float const yaw_max_speed = 600; // absolute maximum, degree/s
 float const pitch_max_speed = 300; // absolute maximum, degree/s
 
 bool enable_angle_to_v_pid = false;
+// If not enabled, the thread will take target_velocity and perform v_to_i convention.
+// If enabled, the thread will take target_angle and perform two-ring conventions.
 
 float yaw_target_angle = 0.0;
 float yaw_target_velocity = 0.0;
 float pitch_target_angle = 0.0;
 float pitch_target_velocity = 0.0;
 
+// Depends on the install direction of the board
 #define GIMBAL_YAW_ACTUAL_VELOCITY (-MPU6500Controller::angle_speed.x)
 #define GIMBAL_PITCH_ACTUAL_VELOCITY (-MPU6500Controller::angle_speed.y)
 

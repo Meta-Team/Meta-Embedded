@@ -4,6 +4,14 @@
 // Feng Chuhao wrote code about sending gimbal currents.
 //
 
+/**
+ * This file contains Gimbal Interface module.
+ *
+ * @note This interface support both RM6623 and GM6020 motor, if their CAN ID and field number are configured properly.
+ *       For example, when RM6623 has motor ID 5, and GM6020 has motor ID 1, they both receive 0x1FF field 1 and
+ *       send feedback of 0x205.
+ */
+
 #ifndef META_INFANTRY_GIMBAL_INTERFACE_H
 #define META_INFANTRY_GIMBAL_INTERFACE_H
 
@@ -11,17 +19,18 @@
 #include "hal.h"
 #include "can_interface.h"
 
+/* Board Guard */
 #if defined(BOARD_RM_2018_A)
 #elif defined(BOARD_RM_2017)
 #else
-#error "Gimbal has not been defined for selected board"
+#error "GimbalInterface has not been defined for selected board"
 #endif
 
-/**
+/*
  * Enable clip at the moment of sending current.
  * Only for safety. There is NO signal for clipping. Be sure to eliminate it if more current is needed.
  */
-#define GIMBAL_INTERFACE_ENABLE_CLIP                  TRUE
+#define GIMBAL_INTERFACE_ENABLE_CLIP TRUE
 
 #if GIMBAL_INTERFACE_ENABLE_CLIP
 #define GIMBAL_INTERFACE_MAX_CURRENT 5000
@@ -30,12 +39,13 @@
 
 /**
  * @name GimbalInterface
- * @brief interface to process feedback from gimbal and send control signals to gimbal, including Yaw, Pitch, Bullet
+ * @brief Interface to process feedback from gimbal and send control signals to gimbal, including Yaw, Pitch, Bullet
  *        Loader (using CAN) and friction wheels (by PWM).
- * @pre Hardware: CAN id of Yaw = 5, Pitch = 6, bullet loader (C610) = 7, friction wheels left = PI5, right = PI6.
+ * @pre Hardware is connected properly (see ONES doc)
  * @pre PWM pins are set properly in board.h (I5 - alt 3, I6 - alt 3)
- * @usage 1. init(CANInterface *). The interface should be properly initialized.
- *        2. Control the data flow based on actual implementation
+ * @usage 1. Call init(CANInterface *). The interface should be properly initialized.
+ *        2. Read feedback from variables.
+ *           Write target current / duty cycle to variables, then call send_gimbal_currents.
  */
 class GimbalInterface {
 
@@ -48,8 +58,7 @@ public:
     } motor_id_t;
 
     /**
-     * Motor Interface
-     * which is used for yaw, pitch and bullet loader motors
+     * Interface for each motor, which is used for yaw, pitch and bullet loader motors
      */
     class MotorInterface {
 
@@ -95,10 +104,8 @@ public:
         friend GimbalInterface;
 
     };
-
     static MotorInterface yaw;
     static MotorInterface pitch;
-
     static MotorInterface bullet_loader;
 
     /**
@@ -110,12 +117,7 @@ public:
         bool enabled = false;
         float duty_cycle = 0.0f;
     };
-
     static FrictionWheelsInterface friction_wheels;
-
-    /**
-     * Class Static Functions
-     */
 
     /**
      * @brief set the CAN interface, start PWM driver and set the PID
@@ -129,15 +131,19 @@ public:
      */
     static bool send_gimbal_currents();
 
+
+
+private:
+
+    static CANInterface *can_;
+
     /**
      * @brief process CAN rx frame
      * @param rxmsg
      */
     static void process_motor_feedback(CANRxFrame const *rxmsg);
 
-private:
-
-    static CANInterface *can_;
+    friend CANInterface;
 
     // Count of feedback for one sample of angular velocity
     static constexpr int VELOCITY_SAMPLE_INTERVAL = 50;
@@ -149,15 +155,15 @@ private:
         FW_RIGHT = 1  // The right friction wheel, PI6, channel 1
     };
 
-    static constexpr PWMConfig FRICTION_WHEELS_PWMCFG = {
-            50000,
-            1000,
-            nullptr,
+    static constexpr PWMConfig FRICTION_WHEELS_PWM_CFG = {
+            50000,   // frequency
+            1000,    // period
+            nullptr, // callback
             {
-                    {PWM_OUTPUT_ACTIVE_HIGH, nullptr},
-                    {PWM_OUTPUT_ACTIVE_HIGH, nullptr},
-                    {PWM_OUTPUT_DISABLED, nullptr},
-                    {PWM_OUTPUT_DISABLED, nullptr}
+                    {PWM_OUTPUT_ACTIVE_HIGH, nullptr}, // CH0
+                    {PWM_OUTPUT_ACTIVE_HIGH, nullptr}, // CH1
+                    {PWM_OUTPUT_DISABLED, nullptr},    // CH2
+                    {PWM_OUTPUT_DISABLED, nullptr}     // CH3
             },
             0,
             0

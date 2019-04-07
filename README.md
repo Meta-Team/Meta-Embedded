@@ -51,13 +51,13 @@ dev
 
 ## INFANTRY_ONE
 步兵 #1。
-- [ ] RM Board 2017
+- [x] RM Board 2017
 - [ ] RM Board 2018 A
 
 ## ENGINEER
 工程。
 - [ ] RM Board 2017
-- [ ] RM Board 2018 A
+- [x] RM Board 2018 A
 
 ## ut_blink
 闪灯程序。按下用户自定义按键会改变闪灯状态。

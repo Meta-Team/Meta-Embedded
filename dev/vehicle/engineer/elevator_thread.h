@@ -2,17 +2,18 @@
 // Created by liuzikai on 2019-02-24.
 //
 
-#ifndef META_INFANTRY_ELEVATOR_CONTROLLER_H
-#define META_INFANTRY_ELEVATOR_CONTROLLER_H
+/**
+ * This file contain a thread for Engineer elevator. This thread is started manually when there are actions needed to be
+ * perform, and ends as the actions are done.
+ */
+
+#ifndef META_INFANTRY_ELEVATOR_THREAD_H
+#define META_INFANTRY_ELEVATOR_THREAD_H
 
 #include "ch.hpp"
 #include "hal.h"
 
 #include "elevator_interface.h"
-
-#include "chassis_common.h"
-#include "chassis_interface.h"
-#include "chassis_calculator.h"
 
 #define ELEVATOR_THREAD_WORKING_AREA_SIZE 512
 
@@ -31,13 +32,35 @@ public:
         DOWNWARD  // moving down to the stage
     };
 
+    /**
+     * Get status of elevator thread
+     * @return
+     */
     status_t get_status();
 
+    /**
+     * Start the thread to perform upward action
+     * @param prio priority of the thread
+     * @return whether the thread starts successfully
+     */
     bool start_up_actions(tprio_t prio);
+
+    /**
+     * Start the thread to perform downward action
+     * @param prio priority of the thread
+     * @return whether the thread starts successfully
+     */
     bool start_down_actions(tprio_t prio);
 
+    /**
+     * Stop the thread
+     */
     void emergency_stop();
 
+    /**
+     * Get target chassis velocity forward (vx). Used by the ChassisThread
+     * @return target_vx
+     */
     float get_chassis_target_vy();
 
 private:
@@ -53,7 +76,7 @@ private:
 
     /** Configurations **/
 
-    static constexpr float stage_height_ = 20; // [cm]
+    static constexpr float stage_height_ = 20; // height of the stage [cm]
 
     static constexpr int elevator_check_interval_ = 20; // [ms]
 
@@ -63,4 +86,4 @@ private:
 };
 
 
-#endif //META_INFANTRY_ELEVATOR_CONTROLLER_H
+#endif //META_INFANTRY_ELEVATOR_THREAD_H

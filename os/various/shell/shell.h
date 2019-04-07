@@ -149,12 +149,12 @@ typedef struct {
 typedef struct {
   BaseSequentialStream  *sc_channel;        /**< @brief I/O channel associated
                                                  to the shell.              */
-  const ShellCommand    *sc_commands;       /**< @brief Shell extra commands
+  ShellCommand    *sc_commands;       /**< @brief Shell extra commands
                                                  table.                     */
 #if (SHELL_USE_HISTORY == TRUE) || defined(__DOXYGEN__)
   char                  *sc_histbuf;        /**< @brief Shell command history
                                                  buffer.                    */
-  const int             sc_histsize;        /**< @brief Shell history buffer
+  int             sc_histsize;        /**< @brief Shell history buffer
                                                  size.                      */
 #endif
 #if (SHELL_USE_COMPLETION == TRUE) || defined(__DOXYGEN__)

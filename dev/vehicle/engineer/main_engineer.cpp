@@ -2,8 +2,6 @@
 // Created by liuzikai on 2019-01-27.
 //
 
-// Header for vehicle. VEHICLE is set for each target in CMakeLists.txt.
-
 // Basic headers (including board definitions, so they should be at the very beginning)
 #include "ch.hpp"
 #include "hal.h"
@@ -11,7 +9,7 @@
 #if defined(ENGINEER) // defined in CMakeLists.txt.
 #include "vehicle_engineer.h"
 #else
-#error "main_engineer.cpp should only be used for Infantry #1."
+#error "main_engineer.cpp should only be used for Engineer."
 #endif
 
 #if defined(BOARD_RM_2018_A) // defined in board.h (included in hal.h)
@@ -167,7 +165,7 @@ class ActionTriggerThread : public chibios_rt::BaseStaticThread<512> {
                         }
 
                         if (TIME_MS2I(chVTGetSystemTime() - start_time_pushing_ch1) > 4000 && !has_started_elevator) {
-                            roboticArmThread.start_actions(NORMALPRIO + 1);
+                            roboticArmThread.start_initial_outward(NORMALPRIO + 1);
                             has_started_elevator = true;
                         }
                     }
@@ -209,11 +207,11 @@ int main(void) {
 
     /*** ------------ Period 2. Calibration and Start Logic Control Thread ----------- ***/
 
-    while (palReadPad(STARTUP_BUTTON_PAD, STARTUP_BUTTON_PIN_ID) != STARTUP_BUTTON_PRESS_PAL_STATUS) {
-        // Wait for the button to be pressed
-        LED::green_toggle();
-        chThdSleepMilliseconds(300);
-    }
+//    while (palReadPad(STARTUP_BUTTON_PAD, STARTUP_BUTTON_PIN_ID) != STARTUP_BUTTON_PRESS_PAL_STATUS) {
+//        // Wait for the button to be pressed
+//        LED::green_toggle();
+//        chThdSleepMilliseconds(300);
+//    }
 
     /** User has pressed the button **/
 
