@@ -12,13 +12,12 @@
 
 using namespace chibios_rt;
 
-class MPU6500Thread : public BaseStaticThread<256> {
+class MPU6500FeedbackThread : public BaseStaticThread<1024> {
 protected:
     void main() final {
         setName("mpu6500");
-        MPU6500Controller::start();
+        MPU6500Controller::start(HIGHPRIO - 2);
         while (!shouldTerminate()) {
-            MPU6500Controller::getData();
             Shell::printf("w = (%.4f, %.4f, %.4f), temp = %.4f" SHELL_NEWLINE_STR,
                           MPU6500Controller::angle_speed.x,
                           MPU6500Controller::angle_speed.y,
@@ -27,7 +26,7 @@ protected:
             sleep(TIME_MS2I(100));
         }
     }
-} mpu6500Thread;
+} feedbackThread;
 
 int main(void) {
     halInit();
@@ -38,7 +37,7 @@ int main(void) {
     LED::green_off();
     LED::red_off();
 
-    mpu6500Thread.start(NORMALPRIO);
+    feedbackThread.start(NORMALPRIO);
 
     // See chconf.h for what this #define means.
 #if CH_CFG_NO_IDLE_THREAD

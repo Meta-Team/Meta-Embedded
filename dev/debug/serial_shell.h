@@ -13,6 +13,7 @@
 #include "hal.h"
 #include "shell.h"
 #include "chprintf.h"
+#include "common_macro.h"
 
 #include "shell_debug_commands.h"
 
@@ -25,8 +26,14 @@
 #endif
 
 /*** Debug Macro ***/
-#define LOG(fmt, ...) { Shell::printf(fmt, __VA_ARGS__) }
-#define DBPRINTF(fmt, ...) { Shell::printf("%s:%d:%s(): " fmt, __FILE__, __LINE__, __func__, __VA_ARGS__) }
+
+#define VA_ARGS(...) , ##__VA_ARGS__
+
+#define LOG(fmt, ...) Shell::printf("[%u] " fmt SHELL_NEWLINE_STR, TIME_I2S(chVTGetSystemTime()) VA_ARGS(__VA_ARGS__))
+#define LOG_USER(fmt, ...) Shell::printf("[%u] USER " fmt SHELL_NEWLINE_STR, TIME_I2S(chVTGetSystemTime()) VA_ARGS(__VA_ARGS__))
+#define LOG_ERR(fmt, ...) Shell::printf("[%u] ERR " fmt SHELL_NEWLINE_STR, TIME_I2S(chVTGetSystemTime()) VA_ARGS(__VA_ARGS__))
+#define LOG_WARN(fmt, ...) Shell::printf("[%u] WARN " fmt SHELL_NEWLINE_STR, TIME_I2S(chVTGetSystemTime()) VA_ARGS(__VA_ARGS__))
+#define DBPRINTF(fmt, ...) Shell::printf("%s:%d:%s(): " fmt SHELL_NEWLINE_STR, __FILE__, __LINE__, __func__ VA_ARGS(__VA_ARGS__))
 
 
 /**

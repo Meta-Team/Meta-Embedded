@@ -18,8 +18,12 @@
 #define STARTUP_BUTTON_PAD GPIOD
 #define STARTUP_BUTTON_PIN_ID GPIOD_USER_BUTTON
 #define STARTUP_BUTTON_PRESS_PAL_STATUS PAL_LOW
+#elif defined(BOARD_RM_2018_A) // defined in board.h (included in hal.h)
+#define STARTUP_BUTTON_PAD GPIOB
+#define STARTUP_BUTTON_PIN_ID GPIOB_USER_BUTTON
+#define STARTUP_BUTTON_PRESS_PAL_STATUS PAL_HIGH
 #else
-#error "Infantry #1 is only developed for RM board 2017."
+#error "Infantry #1 is only developed for RM board 2017 and RM board 2018 A."
 #endif
 
 // Debug headers

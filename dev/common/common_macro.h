@@ -5,6 +5,7 @@
 #ifndef META_INFANTRY_COMMON_MACRO_H
 #define META_INFANTRY_COMMON_MACRO_H
 
+/*** Math Operations ***/
 
 #define ABS_LIMIT(n, limit) { \
     if (n > limit) n = limit; \
