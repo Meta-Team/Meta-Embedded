@@ -122,7 +122,7 @@ class GimbalThread : public chibios_rt::BaseStaticThread<1024> {
                 float yaw_target_velocity = GimbalController::yaw.angle_to_v(GimbalInterface::yaw.actual_angle,
                                                                              -Remote::rc.ch0 * 60);
                 float pitch_target_velocity = GimbalController::pitch.angle_to_v(GimbalInterface::pitch.actual_angle,
-                                                                                 -Remote::rc.ch1 * 20);
+                                                                                 Remote::rc.ch1 * 20);
                 // PID #2: target velocity -> target current
                 GimbalInterface::yaw.target_current = (int) GimbalController::yaw.v_to_i(
                         GIMBAL_YAW_ACTUAL_VELOCITY, yaw_target_velocity);
@@ -138,7 +138,7 @@ class GimbalThread : public chibios_rt::BaseStaticThread<1024> {
                     pc_yaw_current_target_angle +=
                             -Remote::mouse.x * (PC_YAW_SPEED_RATIO * (GIMBAL_THREAD_INTERVAL / 1000.0f));
                     pc_pitch_current_target_angle +=
-                            Remote::mouse.y * (PC_PITCH_SPEED_RATIO * (GIMBAL_THREAD_INTERVAL / 1000.0f));
+                            -Remote::mouse.y * (PC_PITCH_SPEED_RATIO * (GIMBAL_THREAD_INTERVAL / 1000.0f));
                 }
 
                 ABS_LIMIT(pc_yaw_current_target_angle, PC_YAW_ANGLE_LIMITATION);
@@ -170,7 +170,7 @@ class GimbalThread : public chibios_rt::BaseStaticThread<1024> {
                         GimbalController::bullet_loader.start_continuous_shooting();
                     }
                     GimbalInterface::bullet_loader.target_current = (int) GimbalController::bullet_loader.get_target_current(
-                            GimbalInterface::bullet_loader.angular_velocity, -Remote::rc.ch3 * 360);
+                            GimbalInterface::bullet_loader.angular_velocity, Remote::rc.ch3 * 360);
                 } else {
                     if (GimbalController::bullet_loader.get_shooting_status()) {
                         GimbalController::bullet_loader.stop_shooting();
@@ -209,7 +209,7 @@ class GimbalThread : public chibios_rt::BaseStaticThread<1024> {
                 }
 
                 GimbalInterface::bullet_loader.target_current = (int) GimbalController::bullet_loader.get_target_current(
-                        GimbalInterface::bullet_loader.angular_velocity, 270);
+                        GimbalInterface::bullet_loader.angular_velocity, -270);
 
             } else {
                 GimbalInterface::friction_wheels.duty_cycle = 0;

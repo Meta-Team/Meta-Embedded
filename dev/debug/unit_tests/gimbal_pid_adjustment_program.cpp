@@ -43,7 +43,7 @@ float pitch_target_velocity = 0.0;
 
 // Depends on the install direction of the board
 #define GIMBAL_YAW_ACTUAL_VELOCITY (-MPU6500Controller::angle_speed.x)
-#define GIMBAL_PITCH_ACTUAL_VELOCITY (-MPU6500Controller::angle_speed.y)
+#define GIMBAL_PITCH_ACTUAL_VELOCITY (MPU6500Controller::angle_speed.y)
 
 CANInterface can1(&CAND1);
 
