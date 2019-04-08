@@ -59,7 +59,7 @@ void RoboticArmThread::main() {
         }
 
         // Step 3. Rotate outwards with deceleration
-        RoboticArm::set_motor_target_current(800);
+        RoboticArm::set_motor_target_current(1200);
         while (RoboticArm::get_motor_actual_angle() > -150) {
             RoboticArm::send_motor_target_current();
             sleep(TIME_MS2I(motor_action_interval));
@@ -122,7 +122,7 @@ void RoboticArmThread::main() {
     } else if (status_ == FINAL_INWARD) {
 
         // Step 1.1. Rotate inwards
-        RoboticArm::set_motor_target_current(7000);
+        RoboticArm::set_motor_target_current(3000);
         while (RoboticArm::get_motor_actual_angle() < -67) {
             RoboticArm::send_motor_target_current();
             sleep(TIME_MS2I(motor_action_interval));
@@ -136,7 +136,7 @@ void RoboticArmThread::main() {
         }
 
         // Step 1.3. Rotate inwards with deceleration
-        RoboticArm::set_motor_target_current(-1200);
+        RoboticArm::set_motor_target_current(-1500);
         while (RoboticArm::get_motor_actual_angle() < -5) {
             RoboticArm::send_motor_target_current();
             sleep(TIME_MS2I(motor_action_interval));

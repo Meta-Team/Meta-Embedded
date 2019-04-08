@@ -9,11 +9,11 @@
 
 // Raw angle of motor when robotic arm is placed inside.
 //   Note: the program will echo the raw angles of the motor as the program starts
-#define ROBOTIC_ARM_INSIDE_ANGLE_RAW 0
+#define ROBOTIC_ARM_INSIDE_ANGLE_RAW 4206
 
 /*** Chassis PID Params ***/
 
-#define CHASSIS_PID_V2I_KP 33.0f
+#define CHASSIS_PID_V2I_KP 31.0f
 #define CHASSIS_PID_V2I_KI 0.49f
 #define CHASSIS_PID_V2I_KD 2.4f
 #define CHASSIS_PID_V2I_I_LIMIT 2000.0f

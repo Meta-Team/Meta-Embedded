@@ -103,8 +103,8 @@ void ElevatorThread::main() {
 
         /** Step 4. Move forward to make the front wheels and rear assistant wheel to be on the stage **/
         LOG("[ELE UP] Step 4...");
-        chassis_target_vy_ = -1500;
-        sleep(TIME_MS2I(1000));
+        chassis_target_vy_ = -2000;
+        sleep(TIME_MS2I(800));
         chassis_target_vy_ = -500;
         sleep(TIME_MS2I(1500));
         chassis_target_vy_ = 0;

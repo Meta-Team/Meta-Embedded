@@ -15,7 +15,7 @@
 
 #include "elevator_interface.h"
 
-#define ELEVATOR_THREAD_WORKING_AREA_SIZE 512
+#define ELEVATOR_THREAD_WORKING_AREA_SIZE 2014
 
 /**
  * @name ElevatorThread

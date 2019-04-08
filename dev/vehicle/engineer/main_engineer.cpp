@@ -55,6 +55,23 @@
  * @note also update ONES doc
  */
 
+static void cmd_elevator_set_target_position(BaseSequentialStream *chp, int argc, char *argv[]) {
+    (void) argv;
+    if (argc != 2) {
+        shellUsage(chp, "e_set front_pos[cm] back_pos[cm] positive for VEHICLE to DOWN");
+        return;
+    }
+    ElevatorInterface::apply_rear_position(Shell::atof(argv[0]));
+    ElevatorInterface::apply_front_position(Shell::atof(argv[1]));
+    chprintf(chp, "Target pos = %f, %f" SHELL_NEWLINE_STR, Shell::atof(argv[0]), Shell::atof(argv[1]));
+}
+
+// Shell commands to control the elevator interface directly
+ShellCommand elevatorInterfaceCommands[] = {
+        {"e_set", cmd_elevator_set_target_position},
+        {nullptr, nullptr}
+};
+
 
 /** Declarations **/
 
@@ -79,12 +96,12 @@ class ChassisThread : public chibios_rt::BaseStaticThread<1024> {
      * Params for user
      * @note also update ONES doc
      */
-    static constexpr float PC_W_VY = -600.0f;
-    static constexpr float PC_S_VY = 600.0f;
-    static constexpr float PC_E_VX = -600.0f;
-    static constexpr float PC_Q_VX = 600.0f;
-    static constexpr float PC_A_W = -150.0f;
-    static constexpr float PC_D_W = 150.0f;
+    static constexpr float PC_W_VY = -500.0f;
+    static constexpr float PC_S_VY = 500.0f;
+    static constexpr float PC_E_VX = -500.0f;
+    static constexpr float PC_Q_VX = 500.0f;
+    static constexpr float PC_A_W = -100.0f;
+    static constexpr float PC_D_W = 100.0f;
 
     static constexpr float PC_CTRL_RATIO = 0.5f;
 
@@ -102,6 +119,7 @@ class ChassisThread : public chibios_rt::BaseStaticThread<1024> {
                 float target_vx = 0, target_vy = 0, target_w = 0;
 
                 if (elevatorThread.get_status() == elevatorThread.STOP) {  // if elevator thread is not in action,
+
                     // let user control the chassis
                     if (Remote::rc.s1 == Remote::RC_S_MIDDLE && Remote::rc.s2 == Remote::RC_S_DOWN) {
 
@@ -128,6 +146,8 @@ class ChassisThread : public chibios_rt::BaseStaticThread<1024> {
                             target_vy *= PC_CTRL_RATIO;
                             target_w *= PC_CTRL_RATIO;
                         }
+                    } else {
+                        target_vx = target_vy = target_w = 0;
                     }
 
                 } else {
@@ -166,55 +186,60 @@ class ChassisThread : public chibios_rt::BaseStaticThread<1024> {
     }
 } chassisThread;
 
-class ActionTriggerThread : public chibios_rt::BaseStaticThread<512> {
+class ActionTriggerThread : public chibios_rt::BaseStaticThread<2048> {
 
     static constexpr int action_trigger_thread_interval = 20; // [ms]
 
+    bool keyPressed = false;
 
     void main() final {
+
         setName("action_trigger");
+
         while (!shouldTerminate()) {
 
             if (Remote::rc.s1 == Remote::RC_S_DOWN) { // PC Mode
 
-                if (Remote::key.q) {                                               // elevator lift up
-                    LOG_USER("press Q");
+                if (Remote::key.v) {                                               // elevator lift up
+                    if (!keyPressed) {LOG_USER("press V");
                     ElevatorInterface::apply_rear_position(-20);
-                    ElevatorInterface::apply_front_position(-20);
-                } else if (Remote::key.e) {                                        // elevator lift down
-                    LOG_USER("press E");
+                    ElevatorInterface::apply_front_position(-20); keyPressed = true;}
+                } else if (Remote::key.b) {                                        // elevator lift down
+                    if (!keyPressed) {LOG_USER("press B");
                     ElevatorInterface::apply_rear_position(0);
-                    ElevatorInterface::apply_front_position(0);
+                    ElevatorInterface::apply_front_position(0); keyPressed = true;}
                 } else if (Remote::key.z) {                                        // robotic arm initial outward
-                    LOG_USER("press Z");
+                    if (!keyPressed) {LOG_USER("press Z"); keyPressed = true;}
                     if (roboticArmThread.get_status() == roboticArmThread.STOP) {
                         if (!roboticArmThread.is_outward()) {
                             LOG("Trigger RA out");
-                            roboticArmThread.start_initial_outward(NORMALPRIO + 3);
+                            roboticArmThread.start_initial_outward(NORMALPRIO - 3);
                         } else
-                            LOG_WARN("RA is already out");
+                            if (!keyPressed) {LOG_WARN("RA is already out"); keyPressed = true;}
                     } else
-                        LOG_WARN("RA is in action");
+                        if (!keyPressed) {LOG_WARN("RA is in action"); keyPressed = true;}
                 } else if (Remote::key.x) {                                        // robotic arm fetch once
-                    LOG_USER("press X");
+                    if (!keyPressed) {LOG_USER("press X"); keyPressed = true;}
                     if (roboticArmThread.get_status() == roboticArmThread.STOP) {
                         if (roboticArmThread.is_outward()) {
                             LOG("Trigger RA fetch");
-                            roboticArmThread.start_one_fetch(NORMALPRIO + 3);
+                            roboticArmThread.start_one_fetch(NORMALPRIO - 3);
                         } else
-                            LOG_WARN("RA is not out");
+                            if (!keyPressed) {LOG_WARN("RA is not out"); keyPressed = true;}
                     } else
-                        LOG_WARN("RA is in action");
+                        if (!keyPressed) {LOG_WARN("RA is in action"); keyPressed = true;}
                 } else if (Remote::key.c) {                                        // robotic arm final inward
-                    LOG_USER("press C");
+                    if (!keyPressed) {LOG_USER("press C"); keyPressed = true;}
                     if (roboticArmThread.get_status() == roboticArmThread.STOP) {
                         if (roboticArmThread.is_outward()) {
                             LOG("Trigger RA in");
-                            roboticArmThread.start_final_inward(NORMALPRIO + 3);
+                            roboticArmThread.start_final_inward(NORMALPRIO - 3);
                         } else
-                            LOG_WARN("RA is not out");
+                            if (!keyPressed) {LOG_WARN("RA is not out"); keyPressed = true;}
                     } else
-                        LOG_WARN("RA is in action");
+                        if (!keyPressed) {LOG_WARN("RA is in action"); keyPressed = true;}
+                } else {
+                    keyPressed = false;
                 }
 
             }
@@ -236,6 +261,7 @@ int main(void) {
 
     /** Debug Setup **/
     Shell::start(HIGHPRIO);
+    Shell::addCommands(elevatorInterfaceCommands);
 
     /** Basic IO Setup **/
     can1.start(HIGHPRIO - 1);
@@ -262,10 +288,10 @@ int main(void) {
     chThdSleepMilliseconds(500);
     LOG("RA Motor: %u, %f", RoboticArm::motor_last_actual_angle_raw, RoboticArm::get_motor_actual_angle());
 
-    actionTriggerThread.start(HIGHPRIO - 2);
+    actionTriggerThread.start(NORMALPRIO - 2);
 
     /** Start Logic Control Thread **/
-    chassisThread.start(NORMALPRIO);
+    chassisThread.start(NORMALPRIO + 1);
 
     /** Play the Startup Sound **/
     Buzzer::play_sound(Buzzer::sound_startup_intel, LOWPRIO);

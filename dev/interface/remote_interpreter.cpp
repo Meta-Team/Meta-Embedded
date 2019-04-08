@@ -12,53 +12,89 @@
  *  Speed: 100000
  **/
 
-static constexpr UARTConfig remoteUartConfig = {
-        nullptr,
-        nullptr,
-        Remote::uart_received_callback, // callback function when the buffer is filled
-        nullptr,
-        nullptr,
-        100000, // speed
-        USART_CR1_PCE,
-        0,
-        0,
-};
 
 Remote::rc_t Remote::rc;
 Remote::mouse_t Remote::mouse;
 Remote::keyboard_t Remote::key;
+char Remote::rx_buf_[Remote::RX_BUF_SIZE];
+constexpr UARTConfig Remote::REMOTE_UART_CONFIG;
 
-char Remote::rx_buf[Remote::rx_buf_size];
+/**
+ * Helper macro to log user behavior
+ */
+#define LOG_PRESS_AND_RELEASE(old_val, new_val, name) { \
+    if (old_val != new_val) { \
+        if (new_val) LOG_USER("press %s", name); \
+        else LOG_USER("release %s", name); \
+    } \
+}
 
 /**
  * @brief callback function when the buffer is filled
  * @param uartp
  */
-void Remote::uart_received_callback(UARTDriver *uartp) {
+void Remote::uart_received_callback_(UARTDriver *uartp) {
     (void) uartp;
 
-    chSysLock();
+    rc.ch0 = (((rx_buf_[0] | rx_buf_[1] << 8) & 0x07FF) - 1024.0f) / 660.0f;
+    rc.ch1 = (((rx_buf_[1] >> 3 | rx_buf_[2] << 5) & 0x07FF) - 1024.0f) / 660.0f;
+    rc.ch2 = (((rx_buf_[2] >> 6 | rx_buf_[3] << 2 | rx_buf_[4] << 10) & 0x07FF) - 1024.0f) / 660.0f;
+    rc.ch3 = (((rx_buf_[4] >> 1 | rx_buf_[5] << 7) & 0x07FF) - 1024.0f) / 660.0f;
 
-    rc.ch0 = (((rx_buf[0] | rx_buf[1] << 8) & 0x07FF) - 1024.0f) / 660.0f;
-    rc.ch1 = (((rx_buf[1] >> 3 | rx_buf[2] << 5) & 0x07FF) - 1024.0f) / 660.0f;
-    rc.ch2 = (((rx_buf[2] >> 6 | rx_buf[3] << 2 | rx_buf[4] << 10) & 0x07FF) - 1024.0f) / 660.0f;
-    rc.ch3 = (((rx_buf[4] >> 1 | rx_buf[5] << 7) & 0x07FF) - 1024.0f) / 660.0f;
+#if REMOTE_ENABLE_USER_LOG
 
-    rc.s1 = (rc_status_t) ((rx_buf[5] >> 6) & 0x0003);
-    rc.s2 = (rc_status_t) ((rx_buf[5] >> 4) & 0x0003);
+    rc_t rc_;
+    rc_.s1 = (rc_status_t) ((rx_buf_[5] >> 6) & 0x0003);
+    rc_.s2 = (rc_status_t) ((rx_buf_[5] >> 4) & 0x0003);
+    if (rc_.s1 != rc.s1) LOG_USER("switch s1 from %d to %d", rc.s1, rc_.s1);
+    if (rc_.s2 != rc.s2) LOG_USER("switch s2 from %d to %d", rc.s2, rc_.s2);
+    rc = rc_;
 
-    mouse.x = ((int16_t) (rx_buf[6] | rx_buf[7] << 8)) / 32767.0f;
-    mouse.y = ((int16_t) (rx_buf[8] | rx_buf[9] << 8)) / 32767.0f;
-    mouse.z = ((int16_t) (rx_buf[10] | rx_buf[11] << 8)) / 32767.0f;
+    mouse_t mouse_;
+    mouse_.press_left = (bool) rx_buf_[12];
+    mouse_.press_right = (bool) rx_buf_[13];
+    LOG_PRESS_AND_RELEASE(mouse.press_left, mouse_.press_left, "left");
+    LOG_PRESS_AND_RELEASE(mouse.press_right, mouse_.press_right, "right");
+    mouse = mouse_;
 
-    mouse.press_left = (bool) rx_buf[12];
-    mouse.press_right = (bool) rx_buf[13];
+    keyboard_t key_;
+    key_._key_code = static_cast<uint16_t>(rx_buf_[14] | rx_buf_[15] << 8);
+    LOG_PRESS_AND_RELEASE(key.w, key_.w, "W");
+    LOG_PRESS_AND_RELEASE(key.s, key_.s, "S");
+    LOG_PRESS_AND_RELEASE(key.a, key_.a, "A");
+    LOG_PRESS_AND_RELEASE(key.d, key_.d, "D");
+    LOG_PRESS_AND_RELEASE(key.shift, key_.shift, "Shift");
+    LOG_PRESS_AND_RELEASE(key.ctrl, key_.ctrl, "Ctrl");
+    LOG_PRESS_AND_RELEASE(key.q, key_.q, "Q");
+    LOG_PRESS_AND_RELEASE(key.e, key_.e, "E");
+    LOG_PRESS_AND_RELEASE(key.r, key_.r, "R");
+    LOG_PRESS_AND_RELEASE(key.f, key_.f, "f");
+    LOG_PRESS_AND_RELEASE(key.g, key_.g, "G");
+    LOG_PRESS_AND_RELEASE(key.z, key_.z, "Z");
+    LOG_PRESS_AND_RELEASE(key.x, key_.x, "X");
+    LOG_PRESS_AND_RELEASE(key.c, key_.c, "C");
+    LOG_PRESS_AND_RELEASE(key.v, key_.v, "V");
+    LOG_PRESS_AND_RELEASE(key.b, key_.b, "B");
+    key = key_;
 
-    key._key_code = static_cast<uint16_t>(rx_buf[14] | rx_buf[15] << 8);
+#else
 
-    chSysUnlock();
+    rc.s1 = (rc_status_t) ((rx_buf_[5] >> 6) & 0x0003);
+    rc.s2 = (rc_status_t) ((rx_buf_[5] >> 4) & 0x0003);
 
-    uartStartReceive(uartp, REMOTE_DATA_BUF_SIZE, rx_buf);
+    mouse.x = ((int16_t) (rx_buf_[6] | rx_buf_[7] << 8)) / 32767.0f;
+    mouse.y = ((int16_t) (rx_buf_[8] | rx_buf_[9] << 8)) / 32767.0f;
+    mouse.z = ((int16_t) (rx_buf_[10] | rx_buf_[11] << 8)) / 32767.0f;
+
+    mouse.press_left = (bool) rx_buf_[12];
+    mouse.press_right = (bool) rx_buf_[13];
+
+    key._key_code = static_cast<uint16_t>(rx_buf_[14] | rx_buf_[15] << 8);
+
+#endif
+
+    // Restart the receive
+    uartStartReceive(uartp, Remote::RX_BUF_SIZE, rx_buf_);
 }
 
 /**
@@ -66,6 +102,6 @@ void Remote::uart_received_callback(UARTDriver *uartp) {
  * @return the pointer of remote interpreter.
  */
 void Remote::start_receive() {
-    uartStart(&REMOTE_UART_DRIVER, &remoteUartConfig);
-    uartStartReceive(&REMOTE_UART_DRIVER, rx_buf_size, rx_buf);
+    uartStart(&REMOTE_UART_DRIVER, &REMOTE_UART_CONFIG);
+    uartStartReceive(&REMOTE_UART_DRIVER, RX_BUF_SIZE, rx_buf_);
 }

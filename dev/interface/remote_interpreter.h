@@ -3,7 +3,7 @@
 //
 
 /**
- * @component Remote Interpreter
+ * This file contains Remote Interpreter
  * @brief Remote Interpreter is an interface between remote side and other
  *        components. It handles data flow from the DR16 receiver, and
  *        interprets data to specific format for other program components
@@ -15,6 +15,8 @@
 
 #include "ch.hpp"
 #include "hal.h"
+
+#include "serial_shell.h"
 
 #if defined(BOARD_RM_2018_A)
 // PB7 USART1_RX (alternate 7)
@@ -32,7 +34,7 @@
 #error "Remote interpreter has not been defined for selected board"
 #endif
 
-#define REMOTE_DATA_BUF_SIZE 18
+#define REMOTE_ENABLE_USER_LOG FALSE
 
 /**
  * @name Remote
@@ -98,16 +100,28 @@ public:
 
     static void start_receive();
 
-    static void uart_received_callback(UARTDriver *uartp); // call back function when data is completely retrieved
-
 private:
 
-    static char rx_buf[]; // store buf data retrieved from UART
+    static void uart_received_callback_(UARTDriver *uartp); // call back function when data is completely retrieved
 
-    static const int rx_buf_size = 18;
+    static char rx_buf_[]; // store buf data retrieved from UART
+
+    static const int RX_BUF_SIZE = 18;
 
     friend void uartStart(UARTDriver *uartp, const UARTConfig *config);
     friend void uartStartReceive(UARTDriver *uartp, size_t n, void *rxbuf);
+
+    static constexpr UARTConfig REMOTE_UART_CONFIG = {
+            nullptr,
+            nullptr,
+            uart_received_callback_, // callback function when the buffer is filled
+            nullptr,
+            nullptr,
+            100000, // speed
+            USART_CR1_PCE,
+            0,
+            0,
+    };
 
 };
 
