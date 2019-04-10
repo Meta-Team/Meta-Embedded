@@ -57,7 +57,7 @@ void ElevatorThread::main() {
                ElevatorInterface::wheels[2].is_in_action() ||
                ElevatorInterface::wheels[3].is_in_action()) {
 
-            if (TIME_I2MS(chVTGetSystemTime() - t) > 15000) {
+            if (TIME_I2MS(chVTGetSystemTime() - t) > 14000) {
                 LOG_ERR("[ELE UP] Step 1 timeout, is_in_action: %d %d %d %d",
                         ElevatorInterface::wheels[0].is_in_action(),
                         ElevatorInterface::wheels[1].is_in_action(),
@@ -88,7 +88,7 @@ void ElevatorThread::main() {
         t = chVTGetSystemTime();
         while (ElevatorInterface::wheels[0].is_in_action() ||
                ElevatorInterface::wheels[1].is_in_action()) {
-            if (TIME_I2MS(chVTGetSystemTime() - t) > 15000) {
+            if (TIME_I2MS(chVTGetSystemTime() - t) > 14000) {
                 LOG_ERR("[ELE UP] Step 3 timeout, is_in_action: %d %d %d %d",
                         ElevatorInterface::wheels[0].is_in_action(),
                         ElevatorInterface::wheels[1].is_in_action(),
@@ -103,8 +103,9 @@ void ElevatorThread::main() {
 
         /** Step 4. Move forward to make the front wheels and rear assistant wheel to be on the stage **/
         LOG("[ELE UP] Step 4...");
-        chassis_target_vy_ = -2000;
         sleep(TIME_MS2I(800));
+        chassis_target_vy_ = -2400;
+        sleep(TIME_MS2I(1000));
         chassis_target_vy_ = -500;
         sleep(TIME_MS2I(1500));
         chassis_target_vy_ = 0;
@@ -129,8 +130,10 @@ void ElevatorThread::main() {
             }
             sleep(TIME_MS2I(elevator_check_interval_));
         }
-        chassis_target_vy_ = -1500;
-        sleep(TIME_MS2I(1000));
+        chassis_target_vy_ = -1600;
+        sleep(TIME_MS2I(700));
+        chassis_target_vy_ = -500;
+        sleep(TIME_MS2I(400));
 
         chassis_target_vy_ = 0;
 

@@ -186,6 +186,7 @@ class ChassisThread : public chibios_rt::BaseStaticThread<1024> {
     }
 } chassisThread;
 
+
 class ActionTriggerThread : public chibios_rt::BaseStaticThread<2048> {
 
     static constexpr int action_trigger_thread_interval = 20; // [ms]
@@ -201,47 +202,85 @@ class ActionTriggerThread : public chibios_rt::BaseStaticThread<2048> {
             if (Remote::rc.s1 == Remote::RC_S_DOWN) { // PC Mode
 
                 if (Remote::key.v) {                                               // elevator lift up
-                    if (!keyPressed) {LOG_USER("press V");
-                    ElevatorInterface::apply_rear_position(-20);
-                    ElevatorInterface::apply_front_position(-20); keyPressed = true;}
+                    if (!keyPressed) {
+                        LOG_USER("press V");
+                        ElevatorInterface::apply_rear_position(-20);
+                        ElevatorInterface::apply_front_position(-20);
+                        keyPressed = true;
+                    }
                 } else if (Remote::key.b) {                                        // elevator lift down
-                    if (!keyPressed) {LOG_USER("press B");
-                    ElevatorInterface::apply_rear_position(0);
-                    ElevatorInterface::apply_front_position(0); keyPressed = true;}
+                    if (!keyPressed) {
+                        LOG_USER("press B");
+                        ElevatorInterface::apply_rear_position(0);
+                        ElevatorInterface::apply_front_position(0);
+                        keyPressed = true;
+                    }
                 } else if (Remote::key.z) {                                        // robotic arm initial outward
-                    if (!keyPressed) {LOG_USER("press Z"); keyPressed = true;}
+                    if (!keyPressed) {
+                        LOG_USER("press Z");
+                        keyPressed = true;
+                    }
                     if (roboticArmThread.get_status() == roboticArmThread.STOP) {
                         if (!roboticArmThread.is_outward()) {
                             LOG("Trigger RA out");
                             roboticArmThread.start_initial_outward(NORMALPRIO - 3);
-                        } else
-                            if (!keyPressed) {LOG_WARN("RA is already out"); keyPressed = true;}
-                    } else
-                        if (!keyPressed) {LOG_WARN("RA is in action"); keyPressed = true;}
+                        } else if (!keyPressed) {
+                            LOG_WARN("RA is already out");
+                            keyPressed = true;
+                        }
+                    } else if (!keyPressed) {
+                        LOG_WARN("RA is in action");
+                        keyPressed = true;
+                    }
                 } else if (Remote::key.x) {                                        // robotic arm fetch once
-                    if (!keyPressed) {LOG_USER("press X"); keyPressed = true;}
+                    if (!keyPressed) {
+                        LOG_USER("press X");
+                        keyPressed = true;
+                    }
                     if (roboticArmThread.get_status() == roboticArmThread.STOP) {
                         if (roboticArmThread.is_outward()) {
                             LOG("Trigger RA fetch");
                             roboticArmThread.start_one_fetch(NORMALPRIO - 3);
-                        } else
-                            if (!keyPressed) {LOG_WARN("RA is not out"); keyPressed = true;}
-                    } else
-                        if (!keyPressed) {LOG_WARN("RA is in action"); keyPressed = true;}
+                        } else if (!keyPressed) {
+                            LOG_WARN("RA is not out");
+                            keyPressed = true;
+                        }
+                    } else if (!keyPressed) {
+                        LOG_WARN("RA is in action");
+                        keyPressed = true;
+                    }
                 } else if (Remote::key.c) {                                        // robotic arm final inward
-                    if (!keyPressed) {LOG_USER("press C"); keyPressed = true;}
+                    if (!keyPressed) {
+                        LOG_USER("press C");
+                        keyPressed = true;
+                    }
                     if (roboticArmThread.get_status() == roboticArmThread.STOP) {
                         if (roboticArmThread.is_outward()) {
                             LOG("Trigger RA in");
                             roboticArmThread.start_final_inward(NORMALPRIO - 3);
-                        } else
-                            if (!keyPressed) {LOG_WARN("RA is not out"); keyPressed = true;}
-                    } else
-                        if (!keyPressed) {LOG_WARN("RA is in action"); keyPressed = true;}
+                        } else if (!keyPressed) {
+                            LOG_WARN("RA is not out");
+                            keyPressed = true;
+                        }
+                    } else if (!keyPressed) {
+                        LOG_WARN("RA is in action");
+                        keyPressed = true;
+                    }
+                } else if (Remote::key.g) {
+                    if (!keyPressed) {
+                        LOG_USER("press G");
+                        keyPressed = true;
+                    }
+                    if (elevatorThread.get_status() == elevatorThread.STOP) {
+                        LOG("Trigger ELE up");
+                        elevatorThread.start_up_actions(NORMALPRIO - 2);
+                    } else if (!keyPressed) {
+                        LOG_WARN("ELE is in action");
+                        keyPressed = true;
+                    }
                 } else {
                     keyPressed = false;
                 }
-
             }
 
             sleep(TIME_MS2I(action_trigger_thread_interval));
