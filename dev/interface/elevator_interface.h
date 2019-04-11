@@ -36,6 +36,30 @@ public:
     };
 
     /**
+     * @name DistanceSensor
+     * @brief a subclass in the ElevatorInterface that inspects the height of each corner of the engineer
+     */
+    class DistanceSensor{
+    public:
+        bool getDist();
+        bool reachEdge();
+        void setGround();
+    private:
+        int presentDist;
+        bool outOfEdge = false;
+        static constexpr int stageHeight = 20;
+        static constexpr int offStageHeight = 10;
+    };
+
+    enum sensor_id{
+        SENSOR_FR = 0 ,
+        SENSOR_FL = 1,
+        SENSOR_BL = 2,
+        SENSOR_BR = 3
+    };
+    static DistanceSensor sensors[4];
+
+    /**
      * @brief set the target position for the front wheels
      * @param front_wheel_position_cm the target position of the front wheels, - for downward
      * @return whether the position is valid 

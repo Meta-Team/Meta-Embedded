@@ -8,6 +8,7 @@
 int32_t ElevatorInterface::target_position_[2] = {0, 0};
 ElevatorInterface::UnitInterface ElevatorInterface::wheels[4];
 CANInterface *ElevatorInterface::can_ = nullptr;
+ElevatorInterface::DistanceSensor ElevatorInterface::sensors[4];
 
 bool ElevatorInterface::send_target_position_(int wheel_index) {
 
@@ -116,4 +117,20 @@ void ElevatorInterface::init(CANInterface *can_interface) {
 
 bool ElevatorInterface::UnitInterface::is_in_action() {
     return is_actioning_;
+}
+
+bool ElevatorInterface::DistanceSensor::getDist() {
+    int newDist;
+    if(newDist >= stageHeight) outOfEdge = true;
+    if(newDist <= offStageHeight) outOfEdge = false;
+    presentDist = newDist;
+    return true;
+}
+
+bool ElevatorInterface::DistanceSensor::reachEdge(){
+    return outOfEdge;
+}
+
+void ElevatorInterface::DistanceSensor::setGround() {
+    outOfEdge = false;
 }

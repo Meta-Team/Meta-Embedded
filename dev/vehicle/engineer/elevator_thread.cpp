@@ -141,6 +141,8 @@ void ElevatorThread::main() {
         LOG("[ELE UP] Complete");
         status_ = STOP;
         exit(0);
+    } else if(status_== DOWNWARD){
+        if
     }
     // TODO: write action of going downward
 }
