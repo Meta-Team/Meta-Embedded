@@ -364,6 +364,10 @@ int main(void) {
 //    GimbalInterface::yaw.reset_front_angle();
 //    GimbalInterface::pitch.reset_front_angle();
 
+    // Start the red spot
+    palSetPadMode(GPIOG, GPIOG_PIN13, PAL_MODE_OUTPUT_PUSHPULL);
+    palSetPad(GPIOG, GPIOG_PIN13);
+
     /** Echo Gimbal Raws and Converted Angles **/
     chThdSleepMilliseconds(500);
     LOG("Gimbal Yaw: %u, %f, Pitch: %u, %f",

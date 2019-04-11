@@ -52,10 +52,10 @@ public:
     };
 
     typedef struct {
-        float ch0; // normalized: -1.0(leftmost) - 1.0(rightmost)
-        float ch1; // normalized: -1.0(downmost) - 1.0(upmost)
-        float ch2; // normalized: -1.0(leftmost) - 1.0(rightmost)
-        float ch3; // normalized: -1.0(downmost) - 1.0(upmost)
+        float ch0; // right horizontal, normalized: -1.0(leftmost) - 1.0(rightmost)
+        float ch1; // right vertical, normalized: -1.0(downmost) - 1.0(upmost)
+        float ch2; // left horizontal, normalized: -1.0(leftmost) - 1.0(rightmost)
+        float ch3; // left vertical, normalized: -1.0(downmost) - 1.0(upmost)
         rc_status_t s1;
         rc_status_t s2;
     } rc_t;

@@ -39,8 +39,8 @@ ShellCommand templateShellCommands[] = {
 
 
 // Thread to ...
-class TemplateThread : public BaseStaticThread <512> {
-protected:
+class SkywalkerAdjustThread : public BaseStaticThread <512> {
+private:
     void main() final {
         setName("template");
         while (!shouldTerminate()) {

@@ -38,6 +38,12 @@ void GimbalInterface::init(CANInterface *can_interface, uint16_t yaw_front_angle
                      PWM_PERCENTAGE_TO_WIDTH(FRICTION_WHEEL_PWM_DRIVER, 0 * 500 + 500));
     pwmEnableChannel(FRICTION_WHEEL_PWM_DRIVER, FW_RIGHT,
                      PWM_PERCENTAGE_TO_WIDTH(FRICTION_WHEEL_PWM_DRIVER, 0 * 500 + 500));
+
+#if defined(BOARD_RM_2018_A)
+    // Enable power of bullet loader motor
+    palSetPadMode(GPIOH, GPIOH_POWER1_CTRL, PAL_MODE_OUTPUT_PUSHPULL);
+    palSetPad(GPIOH, GPIOH_POWER1_CTRL);
+#endif
 }
 
 bool GimbalInterface::send_gimbal_currents() {
