@@ -142,7 +142,7 @@ void ElevatorThread::main() {
         status_ = STOP;
         exit(0);
     } else if(status_== DOWNWARD){
-        if
+
     }
     // TODO: write action of going downward
 }
