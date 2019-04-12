@@ -2,42 +2,44 @@
 // Created by liuzikai on 2019-04-12.
 //
 
-#ifndef META_INFANTRY_CHASSIS_INTERFACE_H
-#define META_INFANTRY_CHASSIS_INTERFACE_H
+#ifndef META_INFANTRY_SENTRY_CHASSIS_H
+#define META_INFANTRY_SENTRY_CHASSIS_H
 
 #include "ch.hpp"
 #include "hal.h"
 #include "can_interface.h"
-#include "chassis_common.h"
-
 
 /**
  * Enable clip at the moment of sending current.
  * Only for safety. There is NO signal for clipping. Be sure to eliminate it if more current is needed.
  */
-#define CHASSIS_INTERFACE_ENABLE_CLIP                  TRUE
+#define SENTRY_CHASSIS_ENABLE_CLIP                  TRUE
 
-#if CHASSIS_INTERFACE_ENABLE_CLIP
-#define CHASSIS_INTERFACE_MAX_CURRENT 5000  // mA
+#if SENTRY_CHASSIS_ENABLE_CLIP
+#define SENTRY_CHASSIS_MAX_CURRENT 5000  // mA
 #endif
 
 /**
- * @name ChassisInterface
+ * @name SentryChassis
  * @brief interface to process chassis motor feedback and send target current.
  * @pre hardware is properly set. CAN id of each motor should be the same as chassis_motor_id_t.
  * @usage 1. init(CANInterface *). The interface should be properly initialized.
  *        2. control the data flow based on actual implementation
  */
-class ChassisInterface {
+class SentryChassis {
 
 public:
 
-    /**
-     * Structure for each motor
-     */
+    enum motor_id_t {
+        MOTOR_LEFT,
+        MOTOR_RIGHT,
+        MOTOR_COUNT // = 2
+    };
+
+    // Structure for each motor
     struct motor_t {
 
-        chassis_motor_id_t id;
+        motor_id_t id;
 
         uint16_t actual_angle_raw;
         int16_t actual_rpm_raw;
@@ -46,8 +48,6 @@ public:
 
         float actual_angular_velocity; // degree/s
 
-        // +: ??, -: ??
-        // TODO: determine the direction of motor with positive and negative currents
         int target_current;
 
     };
@@ -58,7 +58,7 @@ public:
      * @brief send all target currents
      * @return
      */
-    static bool send_chassis_currents();
+    static bool send_currents();
 
     /**
      * @brief set CAN interface for receiving and sending
@@ -72,7 +72,7 @@ private:
 
     static CANInterface* can;
 
-    static void process_chassis_feedback(CANRxFrame const*rxmsg);
+    static void process_feedback(CANRxFrame const*rxmsg);
 
     friend CANInterface;
 
@@ -85,4 +85,4 @@ private:
 };
 
 
-#endif //META_INFANTRY_CHASSIS_INTERFACE_H
+#endif //META_INFANTRY_SENTRY_CHASSIS_H

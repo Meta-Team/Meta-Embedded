@@ -1,15 +1,15 @@
 //
-// Created by liuzikai on 2019-01-12.
+// Created by liuzikai on 2019-04-12.
 //
 
-#include "chassis_interface.h"
+#include "sentry_chassis_interface.h"
 #include "common_macro.h"
 
-ChassisInterface::motor_t ChassisInterface::motor[CHASSIS_MOTOR_COUNT];
+SentryChassis::motor_t SentryChassis::motor[SentryChassis::MOTOR_COUNT];
 
-CANInterface *ChassisInterface::can = nullptr;
+CANInterface *SentryChassis::can = nullptr;
 
-bool ChassisInterface::send_chassis_currents() {
+bool SentryChassis::send_currents() {
 
     if (!can) return false;
 
@@ -22,9 +22,9 @@ bool ChassisInterface::send_chassis_currents() {
     txmsg.DLC = 0x08;
 
     // Fill target currents
-    for (int i = 0; i < CHASSIS_MOTOR_COUNT; i++) {
-#if CHASSIS_INTERFACE_ENABLE_CLIP
-        ABS_LIMIT(motor[i].target_current, CHASSIS_INTERFACE_MAX_CURRENT);
+    for (int i = 0; i < MOTOR_COUNT; i++) {
+#if SENTRY_CHASSIS_ENABLE_CLIP
+        ABS_LIMIT(motor[i].target_current, SENTRY_CHASSIS_MAX_CURRENT);
 #endif
         txmsg.data8[i * 2] = (uint8_t) (motor[i].target_current >> 8);
         txmsg.data8[i * 2 + 1] = (uint8_t) motor[i].target_current;
@@ -35,9 +35,9 @@ bool ChassisInterface::send_chassis_currents() {
 
 }
 
-void ChassisInterface::process_chassis_feedback(CANRxFrame const*rxmsg) {
+void SentryChassis::process_feedback(CANRxFrame const*rxmsg) {
 
-    if (rxmsg->SID > 0x204 || rxmsg->SID < 0x201) return;
+    if (rxmsg->SID > 0x202 || rxmsg->SID < 0x201) return;
 
     int motor_id = (int) (rxmsg->SID - 0x201);
 
@@ -52,7 +52,7 @@ void ChassisInterface::process_chassis_feedback(CANRxFrame const*rxmsg) {
 
 }
 
-void ChassisInterface::init(CANInterface *can_interface) {
+void SentryChassis::init(CANInterface *can_interface) {
     can = can_interface;
-    can->register_callback(0x201, 0x204, process_chassis_feedback);
+    can->register_callback(0x201, 0x202, process_feedback);
 }

@@ -194,6 +194,12 @@ add_executable(pa_skywalker
         dev/interface/remote_interpreter.cpp
         dev/interface/buzzer.cpp)
 
+# Sentry Chassis
+add_executable(ut_sentry_chassis
+        dev/module/can_interface.cpp
+        dev/interface/sentry_chassis_interface.cpp
+        dev/debug/unit_tests/sentry_chassis_unit_test.cpp)
+
 # Template Unit Test
 add_executable(ut_template
         dev/debug/unit_tests/unit_test_template.cpp)

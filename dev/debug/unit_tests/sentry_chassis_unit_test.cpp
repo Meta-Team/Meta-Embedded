@@ -1,5 +1,5 @@
 //
-// Created by liuzikai on 2019-01-14.
+// Created by liuzikai on 2019-04-12.
 //
 
 #include "ch.hpp"
@@ -8,7 +8,7 @@
 #include "led.h"
 #include "serial_shell.h"
 #include "can_interface.h"
-#include "chassis_interface.h"
+#include "sentry_chassis_interface.h"
 
 using namespace chibios_rt;
 
@@ -27,16 +27,12 @@ static void cmd_chassis_echo(BaseSequentialStream *chp, int argc, char *argv[]) 
         return;
     }
 
-    chprintf(chp, "actual_angular_velocity: FR = %.2f, FL = %.2f, BL = %.2f, BR = %.2f" SHELL_NEWLINE_STR,
-             ChassisInterface::motor[CHASSIS_FR].actual_angular_velocity,
-             ChassisInterface::motor[CHASSIS_FL].actual_angular_velocity,
-             ChassisInterface::motor[CHASSIS_BL].actual_angular_velocity,
-             ChassisInterface::motor[CHASSIS_BR].actual_angular_velocity);
-    chprintf(chp, "target_current: FR = %d, FL = %d, BL = %d, BR = %d" SHELL_NEWLINE_STR,
-             ChassisInterface::motor[CHASSIS_FR].target_current,
-             ChassisInterface::motor[CHASSIS_FL].target_current,
-             ChassisInterface::motor[CHASSIS_BL].target_current,
-             ChassisInterface::motor[CHASSIS_BR].target_current);
+    chprintf(chp, "actual_angular_velocity: LEFT = %.2f, RIGHT = %.2f" SHELL_NEWLINE_STR,
+             SentryChassis::motor[SentryChassis::MOTOR_LEFT].actual_angular_velocity,
+             SentryChassis::motor[SentryChassis::MOTOR_RIGHT].actual_angular_velocity);
+    chprintf(chp, "target_current: LEFT = %d, RIGHT = %d" SHELL_NEWLINE_STR,
+             SentryChassis::motor[SentryChassis::MOTOR_LEFT].target_current,
+             SentryChassis::motor[SentryChassis::MOTOR_RIGHT].target_current);
 }
 
 /**
@@ -47,22 +43,17 @@ static void cmd_chassis_echo(BaseSequentialStream *chp, int argc, char *argv[]) 
  */
 static void cmd_chassis_set_target_currents(BaseSequentialStream *chp, int argc, char *argv[]) {
     (void) argv;
-    if (argc != 4) {
-        shellUsage(chp, "c_set_current FR FL BL BR");
+    if (argc != 2) {
+        shellUsage(chp, "c_set_current LEFT RIGHT");
         return;
     }
 
-    ChassisInterface::motor[CHASSIS_FR].target_current = Shell::atoi(argv[0]);
-    ChassisInterface::motor[CHASSIS_FL].target_current = Shell::atoi(argv[1]);
-    ChassisInterface::motor[CHASSIS_BL].target_current = Shell::atoi(argv[2]);
-    ChassisInterface::motor[CHASSIS_BR].target_current = Shell::atoi(argv[3]);
-    chprintf(chp, "target_current: FR = %d, FL = %d, BL = %d, BR = %d" SHELL_NEWLINE_STR,
-             ChassisInterface::motor[CHASSIS_FR].target_current,
-             ChassisInterface::motor[CHASSIS_FL].target_current,
-             ChassisInterface::motor[CHASSIS_BL].target_current,
-             ChassisInterface::motor[CHASSIS_BR].target_current);
-
-    ChassisInterface::send_chassis_currents();
+    SentryChassis::motor[SentryChassis::MOTOR_LEFT].target_current = Shell::atoi(argv[0]);
+    SentryChassis::motor[SentryChassis::MOTOR_RIGHT].target_current = Shell::atoi(argv[1]);
+    chprintf(chp, "target_current: LEFT = %d, RIGHT = %d" SHELL_NEWLINE_STR,
+             SentryChassis::motor[SentryChassis::MOTOR_LEFT].target_current,
+             SentryChassis::motor[SentryChassis::MOTOR_RIGHT].target_current);
+    SentryChassis::send_currents();
     chprintf(chp, "Chassis target_current sent" SHELL_NEWLINE_STR);
 }
 
@@ -73,13 +64,14 @@ ShellCommand chassisCommands[] = {
         {nullptr,    nullptr}
 };
 
-class GimbalThread : public BaseStaticThread<256> {
+
+class SentryChassisThread : public BaseStaticThread<256> {
 protected:
     void main() final {
         setName("chassis");
         while (!shouldTerminate()) {
 
-            ChassisInterface::send_chassis_currents();
+            SentryChassis::send_currents();
 
             sleep(TIME_MS2I(100));
         }
@@ -98,7 +90,7 @@ int main(void) {
     Shell::addCommands(chassisCommands);
 
     can1.start(HIGHPRIO - 1);
-    ChassisInterface::init(&can1);
+    SentryChassis::init(&can1);
 
     chassisThread.start(NORMALPRIO);
 
