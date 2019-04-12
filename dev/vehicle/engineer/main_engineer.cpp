@@ -267,7 +267,7 @@ class ActionTriggerThread : public chibios_rt::BaseStaticThread<2048> {
                     }
                     if (elevatorThread.get_status() == elevatorThread.STOP) {
                         LOG("Trigger ELE up");
-                        
+                        chThdSuspendS(chassisThread);
                         elevatorThread.start_up_actions(NORMALPRIO - 2);
                     } else if (!keyPressed) {
                         LOG_WARN("ELE is in action");

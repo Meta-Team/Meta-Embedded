@@ -64,8 +64,7 @@ add_library(ChibiOS_OBJ OBJECT ${CHIBIOS_XASM_SRC} ${CHIBIOS_C_SRC} ${CHIBIOS_CP
 
 # NOTICE: UPDATE README IF THE CONFIGURATIONS IS UPDATED
 
-# Main Program -- Infantry #1
-add_executable(INFANTRY_ONE
+set(INFANTRY
         dev/module/pid_controller.cpp
         dev/module/can_interface.cpp
         dev/interface/mpu6500.cpp
@@ -75,8 +74,21 @@ add_executable(INFANTRY_ONE
         dev/control/gimbal_calculator.cpp
         dev/control/chassis_calculator.cpp
         dev/vehicle/infantry/main_infantry.cpp)
+
+# Main Program -- Infantry #1
+add_executable(INFANTRY_ONE ${INFANTRY})
 target_include_directories(INFANTRY_ONE PRIVATE dev/vehicle/infantry)
 target_compile_definitions(INFANTRY_ONE PRIVATE INFANTRY_ONE)
+
+# Main Program -- Infantry #4
+add_executable(INFANTRY_FOUR ${INFANTRY})
+target_include_directories(INFANTRY_FOUR PRIVATE dev/vehicle/infantry)
+target_compile_definitions(INFANTRY_FOUR PRIVATE INFANTRY_FOUR)
+
+# Main Program -- Infantry #5
+add_executable(INFANTRY_FIVE ${INFANTRY})
+target_include_directories(INFANTRY_FIVE PRIVATE dev/vehicle/infantry)
+target_compile_definitions(INFANTRY_FIVE PRIVATE INFANTRY_FIVE)
 
 # Main Program -- Engineer
 add_executable(ENGINEER
