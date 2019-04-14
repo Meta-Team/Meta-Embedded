@@ -196,7 +196,7 @@ class GimbalThread : public chibios_rt::BaseStaticThread<1024> {
             GimbalController::bullet_loader.update_accumulation_angle(
                     GimbalInterface::bullet_loader.get_accumulate_angle());
 
-            if (Remote::rc.s1 == Remote::RC_S_MIDDLE && Remote::rc.s2 == Remote::RC_S_UP) {
+            /*if (Remote::rc.s1 == Remote::RC_S_MIDDLE && Remote::rc.s2 == Remote::RC_S_UP) {
                 GimbalInterface::friction_wheels.duty_cycle = GIMBAL_REMOTE_FRICTION_WHEEL_DUTY_CYCLE;
                 if (Remote::rc.ch1 > 0.5) {
                     if (!GimbalController::bullet_loader.get_shooting_status()) {
@@ -209,7 +209,7 @@ class GimbalThread : public chibios_rt::BaseStaticThread<1024> {
                 }
                 GimbalInterface::bullet_loader.target_current = (int) GimbalController::bullet_loader.get_target_current(
                         GimbalInterface::bullet_loader.angular_velocity, -270);
-            } else if (Remote::rc.s1 == Remote::RC_S_MIDDLE && Remote::rc.s2 == Remote::RC_S_MIDDLE) {
+            } else*/ if (Remote::rc.s1 == Remote::RC_S_MIDDLE && Remote::rc.s2 == Remote::RC_S_MIDDLE) {
                 GimbalInterface::friction_wheels.duty_cycle = GIMBAL_REMOTE_FRICTION_WHEEL_DUTY_CYCLE;
                 if (Remote::rc.ch3 < 0.1) {
                     if (!GimbalController::bullet_loader.get_shooting_status()) {
@@ -280,12 +280,12 @@ class ChassisThread : public chibios_rt::BaseStaticThread<1024> {
 
     static constexpr unsigned int chassis_thread_interval = 20;
 
-    static constexpr float PC_W_VY = -600.0f;
-    static constexpr float PC_S_VY = 600.0f;
-    static constexpr float PC_E_VX = -600.0f;
-    static constexpr float PC_Q_VX = 600.0f;
-    static constexpr float PC_A_W = -150.0f;
-    static constexpr float PC_D_W = 150.0f;
+    static constexpr float PC_W_VY = -800.0f;
+    static constexpr float PC_S_VY = 800.0f;
+    static constexpr float PC_E_VX = -800.0f;
+    static constexpr float PC_Q_VX = 800.0f;
+    static constexpr float PC_A_W = -180.0f;
+    static constexpr float PC_D_W = 180.0f;
 
     static constexpr float PC_CTRL_RATIO = 0.5f;
 
@@ -300,8 +300,8 @@ class ChassisThread : public chibios_rt::BaseStaticThread<1024> {
             if (Remote::rc.s1 == Remote::RC_S_MIDDLE && Remote::rc.s2 == Remote::RC_S_UP) {
 
                 float target_vx = 0;
-                float target_vy = -Remote::rc.ch3 * 1000.0f;
-                float target_w = Remote::rc.ch2 * 180.0f;
+                float target_vy = -Remote::rc.ch3 * 1500.0f;
+                float target_w = Remote::rc.ch2 * 270.0f;
 
                 // Pack the actual velocity into an array
                 float measured_velocity[4];
