@@ -9,8 +9,8 @@
 
 // Raw angle of yaw and pitch when gimbal points straight forward.
 //   Note: the program will echo the raw angles of yaw and pitch as the program starts
-#define GIMBAL_YAW_FRONT_ANGLE_RAW 6747
-#define GIMBAL_PITCH_FRONT_ANGLE_RAW 2823
+#define GIMBAL_YAW_FRONT_ANGLE_RAW 2724
+#define GIMBAL_PITCH_FRONT_ANGLE_RAW 16
 
 // Relationship between MPU6500 data and gimbal angular velocities
 #define GIMBAL_YAW_ACTUAL_VELOCITY (-MPU6500Controller::angle_speed.x)
