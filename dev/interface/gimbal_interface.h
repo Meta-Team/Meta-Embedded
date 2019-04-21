@@ -134,6 +134,7 @@ public:
      */
     static bool send_gimbal_currents();
 
+    static float absolute_angle;  // the absolute angle of the gimbal measured by the magnetometer, only used for YAW
 
 
 private:

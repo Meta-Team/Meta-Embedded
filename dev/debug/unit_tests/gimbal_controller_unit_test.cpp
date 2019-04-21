@@ -29,11 +29,13 @@ float const yaw_max_speed = 600; // absolute maximum, degree/s
 float const pitch_max_speed = 300; // absolute maximum, degree/s
 
 bool enable_angle_to_v_pid = false;
+bool fix_front = false;
 
 float yaw_target_angle = 0.0;
 float yaw_target_velocity = 0.0;
 float pitch_target_angle = 0.0;
 float pitch_target_velocity = 0.0;
+float gimbal_fix_front_angle = 0.0;
 //float bullet_loader_target_angle = 0.0;
 float bullet_loader_target_velocity = 0.0;
 
@@ -223,8 +225,12 @@ static void cmd_gimbal_set_target_angle(BaseSequentialStream *chp, int argc, cha
         shellUsage(chp, "g_set_angle yaw_angle pitch_angle");
         return;
     }
+    if(fix_front){
+        shellUsage(chp, "now is at the 'fix front mode' and the yaw won't be changed according to your command");
+    }else{
+        yaw_target_angle = Shell::atof(argv[0]);
+    }
 
-    yaw_target_angle = Shell::atof(argv[0]);
     pitch_target_angle = Shell::atof(argv[1]);
     GimbalController::yaw.v_to_i_pid.clear_i_out();
     GimbalController::yaw.angle_to_v_pid.clear_i_out();
@@ -364,6 +370,27 @@ static void cmd_gimbal_check(BaseSequentialStream *chp, int argc, char *argv[]) 
     chprintf(chp, "bullet_loader_target_current: %d" SHELL_NEWLINE_STR, GimbalInterface::bullet_loader.target_current);
 }
 
+static void cmd_fix_front(BaseSequentialStream *chp, int argc, char *argv[]){
+    (void) argv;
+    if (argc != 0){
+        return;
+    }
+    fix_front = true;
+    gimbal_fix_front_angle = GimbalInterface::absolute_angle;
+    GimbalInterface::yaw.reset_front_angle();
+    yaw_target_angle = 0.0;
+    chprintf(chp, "the 'fix front mode' is activated");
+}
+
+static void cmd_cancel_fix_front(BaseSequentialStream *chp, int argc, char *argv[]){
+    (void) argv;
+    if (argc != 0){
+        return;
+    }
+    fix_front = false;
+    chprintf(chp, "the fix front mode is canceled");
+}
+
 // Command lists for gimbal controller test and adjustments
 ShellCommand gimbalCotrollerCommands[] = {
         {"g_enable",                cmd_gimbal_enable},
@@ -379,6 +406,8 @@ ShellCommand gimbalCotrollerCommands[] = {
         {"g_stop_shooting",         cmd_gimbal_stop_shooting},
         {"g_set_shooting_speed",    cmd_gimbal_set_shooting_speed},
         {"g_check",                 cmd_gimbal_check},
+        {"g_fix_front",             cmd_fix_front},
+        {"g_cancel_fix_front",      cmd_cancel_fix_front},
         {nullptr,                   nullptr}
 };
 
@@ -397,6 +426,9 @@ protected:
 
                 // Calculate target velocity
                 if (enable_angle_to_v_pid) {
+                    if(fix_front){
+                        yaw_target_angle += GimbalInterface::absolute_angle - gimbal_fix_front_angle;
+                    }
                     yaw_target_velocity = GimbalController::yaw.angle_to_v(GimbalInterface::yaw.actual_angle,
                                                                            yaw_target_angle);
                     pitch_target_velocity = GimbalController::pitch.angle_to_v(GimbalInterface::pitch.actual_angle,

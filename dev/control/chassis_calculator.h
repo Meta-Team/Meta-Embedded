@@ -67,6 +67,8 @@ public:
      */
     static void calc(float measured_angular_velocity[CHASSIS_MOTOR_COUNT], float target_vx, float target_vy, float target_w);
 
+    static void rotateAroundWheel(chassis_motor_id_t pivotWheel, bool isClockwise, float angular_velocity);
+
 };
 
 #endif //PROJECT_CHASSIS_CONTROLLER_H

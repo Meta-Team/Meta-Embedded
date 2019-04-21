@@ -32,3 +32,7 @@ void ChassisController::calc(float *measured_angular_velocity, float target_vx, 
     motor[CHASSIS_BR].target_current = motor[CHASSIS_BR].pid.calc(measured_angular_velocity[CHASSIS_BR],
                                                                   motor[CHASSIS_BR].target_velocity);
 }
+
+void ChassisController::rotateAroundWheel(chassis_motor_id_t pivotWheel, bool isClockwise, float angular_velocity) {
+
+}

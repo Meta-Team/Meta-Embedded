@@ -11,6 +11,7 @@ GimbalInterface::MotorInterface GimbalInterface::yaw;
 GimbalInterface::MotorInterface GimbalInterface::pitch;
 GimbalInterface::MotorInterface GimbalInterface::bullet_loader;
 GimbalInterface::FrictionWheelsInterface GimbalInterface::friction_wheels;
+float GimbalInterface::absolute_angle;
 CANInterface *GimbalInterface::can_ = nullptr;
 PWMConfig constexpr GimbalInterface::FRICTION_WHEELS_PWM_CFG;
 
