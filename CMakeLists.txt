@@ -65,14 +65,14 @@ add_library(ChibiOS_OBJ OBJECT ${CHIBIOS_XASM_SRC} ${CHIBIOS_C_SRC} ${CHIBIOS_CP
 # NOTICE: UPDATE README IF THE CONFIGURATIONS IS UPDATED
 
 set(INFANTRY
-        dev/module/pid_controller.cpp
+        dev/module/pid_controller.hpp
         dev/module/can_interface.cpp
         dev/interface/mpu6500.cpp
         dev/interface/gimbal_interface.cpp
         dev/interface/chassis_interface.cpp
         dev/interface/remote_interpreter.cpp
         dev/control/gimbal_calculator.cpp
-        dev/control/chassis_calculator.cpp
+        dev/control/chassis.cpp
         dev/vehicle/infantry/main_infantry.cpp)
 
 # Main Program -- Infantry #1
@@ -92,14 +92,14 @@ target_compile_definitions(INFANTRY_FIVE PRIVATE INFANTRY_FIVE)
 
 # Main Program -- Engineer
 add_executable(ENGINEER
-        dev/module/pid_controller.cpp
+        dev/module/pid_controller.hpp
         dev/interface/buzzer.cpp
         dev/module/can_interface.cpp
         dev/interface/chassis_interface.cpp
         dev/interface/remote_interpreter.cpp
         dev/interface/elevator_interface.cpp
         dev/interface/robotic_arm.cpp
-        dev/control/chassis_calculator.cpp
+        dev/control/chassis.cpp
         dev/vehicle/engineer/elevator_thread.cpp
         dev/vehicle/engineer/robotic_arm_thread.cpp
         dev/vehicle/engineer/main_engineer.cpp)
@@ -126,7 +126,7 @@ add_executable(ut_gimbal_interface
 add_executable(ut_gimbal
         dev/module/can_interface.cpp
         dev/interface/gimbal_interface.cpp
-        dev/module/pid_controller.cpp
+        dev/module/pid_controller.hpp
         dev/control/gimbal_calculator.cpp
         dev/debug/unit_tests/gimbal_controller_unit_test.cpp
         dev/interface/mpu6500.cpp)
@@ -135,7 +135,7 @@ add_executable(ut_gimbal
 add_executable(pa_gimbal
         dev/module/can_interface.cpp
         dev/interface/gimbal_interface.cpp
-        dev/module/pid_controller.cpp
+        dev/module/pid_controller.hpp
         dev/control/gimbal_calculator.cpp
         dev/interface/mpu6500.cpp
         dev/debug/unit_tests/gimbal_pid_adjustment_program.cpp)
@@ -161,9 +161,10 @@ add_executable(ut_chassis_interface
 add_executable(ut_chassis
         dev/module/can_interface.cpp
         dev/interface/chassis_interface.cpp
-        dev/module/pid_controller.cpp
-        dev/control/chassis_calculator.cpp
-        dev/debug/unit_tests/chassis_controller_unit_test.cpp)
+        dev/module/pid_controller.hpp
+        dev/control/chassis.cpp
+        dev/debug/unit_tests/chassis_unit_test.cpp)
+target_include_directories(ut_chassis PRIVATE dev/vehicle/infantry)
 
 # Elevator Interface: include CANInterface, ElevatorInterface, and the unit test modules.
 add_executable(ut_elevator_interface
@@ -176,8 +177,8 @@ add_executable(ut_elevator
         dev/module/can_interface.cpp
         dev/interface/elevator_interface.cpp
         dev/interface/chassis_interface.cpp
-        dev/control/chassis_calculator.cpp
-        dev/module/pid_controller.cpp
+        dev/control/chassis.cpp
+        dev/module/pid_controller.hpp
         dev/debug/unit_tests/engineer_chassis_elevator_unit_test.cpp
         dev/vehicle/engineer/elevator_thread.cpp)
 

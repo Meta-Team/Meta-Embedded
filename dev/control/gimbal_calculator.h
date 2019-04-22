@@ -7,7 +7,7 @@
 
 #define GIMBAL_CONTROLLER_ENABLE_MIDDLE_VALUES 1
 
-#include "pid_controller.h"
+#include "pid_controller.hpp"
 
 /**
  * Module to perform calculation for gimbal controller

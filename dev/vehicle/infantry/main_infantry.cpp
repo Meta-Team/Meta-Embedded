@@ -56,7 +56,6 @@
 
 // Modules and basic communication channels
 #include "can_interface.h"
-#include "chassis_common.h"
 #include "common_macro.h"
 
 // Interfaces
@@ -64,11 +63,10 @@
 #include "mpu6500.h"
 #include "remote_interpreter.h"
 #include "gimbal_interface.h"
-#include "chassis_interface.h"
 
 // Controllers
 #include "gimbal_calculator.h"
-#include "chassis_calculator.h"
+#include "chassis.h"
 
 /**
  * Mode Table:
@@ -293,51 +291,26 @@ class ChassisThread : public chibios_rt::BaseStaticThread<1024> {
 
         setName("chassis");
 
-        ChassisController::change_pid_params(CHASSIS_PID_V2I_PARAMS);
+        Chassis::change_pid_params(CHASSIS_PID_V2I_PARAMS);
 
         while (!shouldTerminate()) {
 
             if (Remote::rc.s1 == Remote::RC_S_MIDDLE && Remote::rc.s2 == Remote::RC_S_UP) {
-
-                float target_vx = 0;
-                float target_vy = -Remote::rc.ch3 * 1500.0f;
-                float target_w = Remote::rc.ch2 * 270.0f;
-
-                // Pack the actual velocity into an array
-                float measured_velocity[4];
-                for (int i = 0; i < CHASSIS_MOTOR_COUNT; i++) {
-                    measured_velocity[i] = ChassisInterface::motor[i].actual_angular_velocity;
-                }
-
-                // Perform calculation
-                ChassisController::calc(measured_velocity, target_vx, target_vy, target_w);
-
-                // Pass the target current to interface
-                for (int i = 0; i < CHASSIS_MOTOR_COUNT; i++) {
-                    ChassisInterface::motor[i].target_current = (int) ChassisController::motor[i].target_current;
-                }
+                
+                Chassis::calc(0,
+                              -Remote::rc.ch3 * 1500.0f,
+                              Remote::rc.ch2 * 270.0f);
+                
             } else if (Remote::rc.s1 == Remote::RC_S_MIDDLE && Remote::rc.s2 == Remote::RC_S_DOWN) {
-
-                float target_vx = -Remote::rc.ch2 * 1000.0f;
-                float target_vy = -Remote::rc.ch3 * 1000.0f;
-                float target_w = Remote::rc.ch0 * 180.0f;
-
-                // Pack the actual velocity into an array
-                float measured_velocity[4];
-                for (int i = 0; i < CHASSIS_MOTOR_COUNT; i++) {
-                    measured_velocity[i] = ChassisInterface::motor[i].actual_angular_velocity;
-                }
-
-                // Perform calculation
-                ChassisController::calc(measured_velocity, target_vx, target_vy, target_w);
-
-                // Pass the target current to interface
-                for (int i = 0; i < CHASSIS_MOTOR_COUNT; i++) {
-                    ChassisInterface::motor[i].target_current = (int) ChassisController::motor[i].target_current;
-                }
+                
+                Chassis::calc(-Remote::rc.ch2 * 1000.0f,
+                              -Remote::rc.ch3 * 1000.0f,
+                              Remote::rc.ch0 * 180.0f);
 
             } else if (Remote::rc.s1 == Remote::RC_S_DOWN) { // PC control mode
 
+                // Determine target velocities
+                
                 float target_vx, target_vy, target_w;
 
                 if (Remote::key.w) target_vy = PC_W_VY;
@@ -357,28 +330,19 @@ class ChassisThread : public chibios_rt::BaseStaticThread<1024> {
                     target_vy *= PC_CTRL_RATIO;
                     target_w *= PC_CTRL_RATIO;
                 }
-
-                // Pack the actual velocity into an array
-                float measured_velocity[4];
-                for (int i = 0; i < CHASSIS_MOTOR_COUNT; i++) {
-                    measured_velocity[i] = ChassisInterface::motor[i].actual_angular_velocity;
-                }
-
+                
                 // Perform calculation
-                ChassisController::calc(measured_velocity, target_vx, target_vy, target_w);
-
-                // Pass the target current to interface
-                for (int i = 0; i < CHASSIS_MOTOR_COUNT; i++) {
-                    ChassisInterface::motor[i].target_current = (int) ChassisController::motor[i].target_current;
-                }
+                Chassis::calc(target_vx, target_vy, target_w);
 
             } else {
-                for (int i = 0; i < CHASSIS_MOTOR_COUNT; i++) {
-                    ChassisInterface::motor[i].target_current = 0;
+                
+                for (int i = 0; i < Chassis::CHASSIS_MOTOR_COUNT; i++) {
+                    Chassis::target_current[i] = 0;
                 }
+                
             }
 
-            ChassisInterface::send_chassis_currents();
+            Chassis::send_chassis_currents();
             sleep(TIME_MS2I(chassis_thread_interval));
 
         }
@@ -406,7 +370,7 @@ int main(void) {
     Remote::start_receive();
 
     GimbalInterface::init(&can1, GIMBAL_YAW_FRONT_ANGLE_RAW, GIMBAL_PITCH_FRONT_ANGLE_RAW);
-    ChassisInterface::init(&can1);
+    Chassis::init(&can1, CHASSIS_WHEEL_BASE, CHASSIS_WHEEL_TREAD, CHASSIS_WHEEL_CIRCUMFERENCE);
 
 
     /*** ------------ Period 2. Calibration and Start Logic Control Thread ----------- ***/

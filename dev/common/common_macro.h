@@ -21,4 +21,6 @@
 
 #define SIGN(n) (n == 0 ? 0 : (n > 0 ? 1 : -1))
 
+#define SYSTIME (TIME_I2MS(chVTGetSystemTime()))
+
 #endif //META_INFANTRY_COMMON_MACRO_H

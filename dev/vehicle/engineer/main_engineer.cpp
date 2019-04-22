@@ -28,17 +28,15 @@
 
 // Modules and basic communication channels
 #include "can_interface.h"
-#include "chassis_common.h"
 
 // Interfaces
 #include "buzzer.h"
 #include "remote_interpreter.h"
-#include "chassis_interface.h"
 #include "elevator_interface.h"
 #include "robotic_arm.h"
 
 // Controllers
-#include "chassis_calculator.h"
+#include "chassis.h"
 #include "elevator_thread.h"
 #include "robotic_arm_thread.h"
 
@@ -109,7 +107,7 @@ class ChassisThread : public chibios_rt::BaseStaticThread<1024> {
 
         setName("chassis");
 
-        ChassisController::change_pid_params(CHASSIS_PID_V2I_PARAMS);
+        Chassis::change_pid_params(CHASSIS_PID_V2I_PARAMS);
 
         while (!shouldTerminate()) {
 
@@ -156,30 +154,19 @@ class ChassisThread : public chibios_rt::BaseStaticThread<1024> {
                     target_vy = elevatorThread.get_chassis_target_vy();
 
                 }
-
-
-                // Pack the actual velocity into an array
-                float measured_velocity[4];
-                for (int i = 0; i < CHASSIS_MOTOR_COUNT; i++) {
-                    measured_velocity[i] = ChassisInterface::motor[i].actual_angular_velocity;
-                }
-
+                
                 // Perform calculation
-                ChassisController::calc(measured_velocity, target_vx, target_vy, target_w);
-
-                // Pass the target current to interface
-                for (int i = 0; i < CHASSIS_MOTOR_COUNT; i++) {
-                    ChassisInterface::motor[i].target_current = (int) ChassisController::motor[i].target_current;
-                }
+                Chassis::calc(target_vx, target_vy, target_w);
+                
             } else {
 
-                for (int i = 0; i < CHASSIS_MOTOR_COUNT; i++) {
-                    ChassisInterface::motor[i].target_current = 0;
+                for (int i = 0; i < Chassis::CHASSIS_MOTOR_COUNT; i++) {
+                    Chassis::target_current[i] = 0;
                 }
 
             }
 
-            ChassisInterface::send_chassis_currents();
+            Chassis::send_chassis_currents();
             sleep(TIME_MS2I(chassis_thread_interval));
 
         }
@@ -306,7 +293,7 @@ int main(void) {
     can1.start(HIGHPRIO - 1);
     Remote::start_receive();
 
-    ChassisInterface::init(&can1);
+    Chassis::init(&can1, CHASSIS_WHEEL_BASE, CHASSIS_WHEEL_TREAD, CHASSIS_WHEEL_CIRCUMFERENCE);
     ElevatorInterface::init(&can1);
     RoboticArm::init(&can1, ROBOTIC_ARM_INSIDE_ANGLE_RAW);
 

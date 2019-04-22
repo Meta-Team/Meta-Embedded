@@ -3,8 +3,8 @@
 // Revise by liuzikai
 //
 
-#ifndef META_INFANTRY_PID_CONTROLLER_H
-#define META_INFANTRY_PID_CONTROLLER_H
+#ifndef META_INFANTRY_PID_CONTROLLER_HPP
+#define META_INFANTRY_PID_CONTROLLER_HPP
 
 
 /**
@@ -65,7 +65,25 @@ public:
      * @param target
      * @return out
      */
-    float calc(float now, float target);
+    float calc(float now, float target) {
+
+        error[1] = error[0];
+        error[0] = target - now;
+
+        p_out = kp * error[0];
+        i_out += ki * error[0];
+        d_out = kd * (error[0] - error[1]);
+
+        if (i_out > i_limit) i_out = i_limit;
+        if (i_out < -i_limit) i_out = -i_limit;
+
+        out = p_out + i_out + d_out;
+        if (out > out_limit) out = out_limit;
+        if (out < -out_limit) out = -out_limit;
+
+        return out;
+
+    }
 
     /**
      * @brief clear i_out, mainly for debug and test
@@ -86,4 +104,4 @@ private:
 
 
 
-#endif //META_INFANTRY_PID_CONTROLLER_H
+#endif //META_INFANTRY_PID_CONTROLLER_HPP

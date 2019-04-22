@@ -27,7 +27,7 @@ static void cmd_chassis_echo(BaseSequentialStream *chp, int argc, char *argv[]) 
         return;
     }
 
-    chprintf(chp, "actual_angular_velocity: LEFT = %.2f, RIGHT = %.2f" SHELL_NEWLINE_STR,
+    chprintf(chp, "actual_velocity: LEFT = %.2f, RIGHT = %.2f" SHELL_NEWLINE_STR,
              SentryChassis::motor[SentryChassis::MOTOR_LEFT].actual_angular_velocity,
              SentryChassis::motor[SentryChassis::MOTOR_RIGHT].actual_angular_velocity);
     chprintf(chp, "target_current: LEFT = %d, RIGHT = %d" SHELL_NEWLINE_STR,

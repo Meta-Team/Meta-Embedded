@@ -10,8 +10,6 @@
 #include "ch.hpp"
 #include "hal.h"
 #include "can_interface.h"
-#include "chassis_common.h"
-
 
 /**
  * Enable clip at the moment of sending current.
@@ -27,17 +25,25 @@
  * @name ChassisInterface
  * @brief interface to process chassis motor feedback and send target current.
  * @pre hardware is properly set. CAN id of each motor should be the same as chassis_motor_id_t.
- * @usage 1. init(CANInterface *). The interface should be properly initialized.
- *        2. control the data flow based on actual implementation
+ * @usage 1. Call init(CANInterface *). The interface should be properly initialized.
+ *        2. Control the data flow based on actual implementation
+ * @note This module is designed to process feedback automatically, but not to send current automatically, to avoid
+ *       unintended chassis movements.
  */
 class ChassisInterface {
 
 public:
 
-    /**
-     * Structure for each motor
-     */
-    struct motor_t {
+    enum chassis_motor_id_t {  // goes in a counter-clockwise order
+        CHASSIS_FR, // front right motor, 0
+        CHASSIS_FL, // front left motor, 1
+        CHASSIS_BL, // back left motor, 2
+        CHASSIS_BR, // back right motor, 3
+        CHASSIS_MOTOR_COUNT
+    };
+
+    /** Structure for each motor */
+    struct motor_feedback_t {
 
         chassis_motor_id_t id;
 
@@ -46,15 +52,22 @@ public:
         int16_t actual_current_raw;
         uint8_t actual_temperature_raw;
 
-        float actual_angular_velocity; // degree/s
+        time_msecs_t last_update_time;
 
-        // +: ??, -: ??
-        // TODO: determine the direction of motor with positive and negative currents
-        int target_current;
+        float actual_velocity; // [degree/s]
 
     };
 
-    static motor_t motor[];
+    /**
+     * @brief interface for each chassis motor
+     */
+    static motor_feedback_t feedback[];
+
+
+    /**
+     * @brief target current array in the order defined in chassis_motor_id_t
+     */
+    static int target_current[CHASSIS_MOTOR_COUNT];
 
     /**
      * @brief send all target currents
@@ -68,12 +81,14 @@ public:
      */
     static void init(CANInterface* can_interface);
 
-
-
 private:
 
     static CANInterface* can;
 
+    /**
+     * @brief callback function for CANInterface to process motor feedback
+     * @param rxmsg
+     */
     static void process_chassis_feedback(CANRxFrame const*rxmsg);
 
     friend CANInterface;

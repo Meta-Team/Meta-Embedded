@@ -7,9 +7,11 @@
 
 #include "led.h"
 #include "serial_shell.h"
-#include "can_interface.h"
-#include "chassis_interface.h"
-#include "chassis_calculator.h"
+#include "chassis.h"
+
+#include "vehicle_infantry_one.h"
+
+#warning "ut_chassis is only designed for INFANTRY #1."
 
 using namespace chibios_rt;
 
@@ -60,13 +62,13 @@ static void cmd_chassis_set_parameters(BaseSequentialStream *chp, int argc, char
     }
 
 
-    ChassisController::change_pid_params(Shell::atof(argv[0]),
-                                         Shell::atof(argv[1]),
-                                         Shell::atof(argv[2]),
-                                         Shell::atof(argv[3]),
-                                         Shell::atof(argv[4]));
-    for (int i = 0; i < CHASSIS_MOTOR_COUNT; i++) {
-        ChassisController::motor[i].pid.clear_i_out();
+    Chassis::change_pid_params(Shell::atof(argv[0]),
+                               Shell::atof(argv[1]),
+                               Shell::atof(argv[2]),
+                               Shell::atof(argv[3]),
+                               Shell::atof(argv[4]));
+    for (int i = 0; i < Chassis::CHASSIS_MOTOR_COUNT; i++) {
+        Chassis::pid[i].clear_i_out();
     }
     chprintf(chp, "!cps" SHELL_NEWLINE_STR); // echo chassis parameters set
 }
@@ -84,19 +86,19 @@ static void cmd_chassis_echo_parameters(BaseSequentialStream *chp, int argc, cha
         return;
     }
     chprintf(chp, "Chassis PID: %f %f %f %f %f" SHELL_NEWLINE_STR,
-             ChassisController::motor[0].pid.kp,
-             ChassisController::motor[0].pid.ki,
-             ChassisController::motor[0].pid.kd,
-             ChassisController::motor[0].pid.i_limit,
-             ChassisController::motor[0].pid.out_limit); // echo chassis parameters
+             Chassis::pid[0].kp,
+             Chassis::pid[0].ki,
+             Chassis::pid[0].kd,
+             Chassis::pid[0].i_limit,
+             Chassis::pid[0].out_limit); // echo chassis parameters
 }
 
 // Shell commands to control the chassis
 ShellCommand chassisCommands[] = {
-        {"c_set_params", cmd_chassis_set_parameters},
-        {"c_set_target", cmd_chassis_set_target},
+        {"c_set_params",  cmd_chassis_set_parameters},
+        {"c_set_target",  cmd_chassis_set_target},
         {"c_echo_params", cmd_chassis_echo_parameters},
-        {nullptr,        nullptr}
+        {nullptr,         nullptr}
 };
 
 class ChassisFeedbackThread : public BaseStaticThread<1024> {
@@ -106,14 +108,14 @@ private:
         while (!shouldTerminate()) {
             Shell::printf("!cv,%u,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f" SHELL_NEWLINE_STR,
                           TIME_I2MS(chibios_rt::System::getTime()),
-                          ChassisInterface::motor[0].actual_angular_velocity,
-                          ChassisController::motor[0].target_velocity,
-                          ChassisInterface::motor[1].actual_angular_velocity,
-                          ChassisController::motor[1].target_velocity,
-                          ChassisInterface::motor[2].actual_angular_velocity,
-                          ChassisController::motor[2].target_velocity,
-                          ChassisInterface::motor[3].actual_angular_velocity,
-                          ChassisController::motor[3].target_velocity);
+                          Chassis::feedback[0].actual_velocity,
+                          Chassis::target_velocity[0],
+                          Chassis::feedback[1].actual_velocity,
+                          Chassis::target_velocity[1],
+                          Chassis::feedback[2].actual_velocity,
+                          Chassis::target_velocity[2],
+                          Chassis::feedback[3].actual_velocity,
+                          Chassis::target_velocity[3]);
             sleep(TIME_MS2I(chassis_feedback_interval));
         }
     }
@@ -131,31 +133,21 @@ protected:
 
                     target_vx = target_vy = target_w = 0.0f;
 
-                    for (int i = 0; i < CHASSIS_MOTOR_COUNT; i++) {
-                        ChassisInterface::motor[i].target_current = 0;
+                    for (int i = 0; i < Chassis::CHASSIS_MOTOR_COUNT; i++) {
+                        Chassis::target_current[i] = 0;
                     }
 
                     Shell::printf("!ce" SHELL_NEWLINE_STR);
 
                 } else {
 
-                    // Pack the actual velocity into an array
-                    float measured_velocity[4];
-                    for (int i = 0; i < CHASSIS_MOTOR_COUNT; i++) {
-                        measured_velocity[i] = ChassisInterface::motor[i].actual_angular_velocity;
-                    }
-
                     // Perform calculation
-                    ChassisController::calc(measured_velocity, target_vx, target_vy, target_w);
+                    Chassis::calc(target_vx, target_vy, target_w);
 
-                    // Pass the target current to interface
-                    for (int i = 0; i < CHASSIS_MOTOR_COUNT; i++) {
-                        ChassisInterface::motor[i].target_current = (int) ChassisController::motor[i].target_current;
-                    }
                 }
             }
 
-            ChassisInterface::send_chassis_currents();
+            Chassis::send_chassis_currents();
 
             sleep(TIME_MS2I(chassis_thread_interval));
         }
@@ -173,7 +165,7 @@ int main(void) {
     Shell::addCommands(chassisCommands);
 
     can1.start(HIGHPRIO - 1);
-    ChassisInterface::init(&can1);
+    Chassis::init(&can1, CHASSIS_WHEEL_BASE, CHASSIS_WHEEL_TREAD, CHASSIS_WHEEL_CIRCUMFERENCE);
 
     chassisFeedbackThread.start(NORMALPRIO - 1);
     chassisThread.start(NORMALPRIO);
@@ -185,9 +177,9 @@ int main(void) {
     while (true) {}
 #else
     // When main() quits, the main thread will somehow
-        // enter an infinite loop, so we set the priority to lowest
-        // before quitting, to let other threads run normally
-        BaseThread::setPriority(1);
+    // enter an infinite loop, so we set the priority to lowest
+    // before quitting, to let other threads run normally
+    BaseThread::setPriority(1);
 #endif
     return 0;
 }
