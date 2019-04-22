@@ -39,7 +39,6 @@ set(CMAKE_VERBOSE_MAKEFILE OFF)  # Enable this if you want to see verbose log
 include(os/ch.cmake)  # add files and directories from ChibiOS
 
 set(COMMON_CPP_SRC  # common cpp sources, which are included to every tartget at post configuration below
-        dev/common/port_to_string.cpp
         dev/debug/serial_shell.cpp
         dev/debug/shell_debug_commands.cpp
         dev/interface/led.cpp

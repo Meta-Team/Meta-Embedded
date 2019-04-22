@@ -9,7 +9,6 @@
 #include "hal.h"
 #include "hal_pal.h"
 #include "can_interface.h"
-#include "port_to_string.h"
 
 #if defined(BOARD_RM_2018_A)
 #else
