@@ -5,7 +5,6 @@
 #include "sentry_chassis_calculator.h"
 
 bool SentryChassisController::enable = false;
-bool SentryChassisController::go_right = false;
 SentryChassisController::motor_calculator_t SentryChassisController::motor_calculator[MOTOR_COUNT];
 
 
@@ -18,16 +17,12 @@ void SentryChassisController::init_calculator(CANInterface* can_interface) {
 
 void SentryChassisController::reset_present_position() {
     for(int i = 0; i < MOTOR_COUNT; i++)
-        motor_calculator[i].present_position = 0;
-}
-
-void SentryChassisController::set_direction(bool rightOrLeft) {
-    go_right = rightOrLeft;
+        motor_calculator[i].reset_position();
 }
 
 void SentryChassisController::move_certain_dist(float dist) {
     for(int i = 0; i < MOTOR_COUNT; i++){
-        motor_calculator[i].target_position = dist;
+        motor_calculator[i].set_target_position(dist);
         motor_calculator[i].set_target_current();
     }
 }

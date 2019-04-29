@@ -25,12 +25,6 @@ public:
     static void reset_present_position();
 
     /**
-     * @brief set the direction of the sentry movement
-     * @param rightOrLeft true for right and false for left
-     */
-    void set_direction(bool rightOrLeft);
-
-    /**
      * @brief let the sentry move to the given position
      * @param dist the given position, positive for right, negative for left
      */
@@ -46,26 +40,45 @@ public:
             motor_calculator[i].set_v_to_i_param(_kp, _ki, _kd, _i_limit, _out_limit);
     }
 
+    static void update_present_data(){
+        for(int i = 0; i < MOTOR_COUNT; i++)
+            motor_calculator[i].update_position();
+    }
+
 private:
-    static bool go_right;
 
     class motor_calculator_t{
     public:
         motor_id_t id;
-        float present_position = 0;
-        float target_position = 0;
+
+        void update_position(){
+            present_position = (motor[id].actual_angle + motor[id].round_count * 8192) * 360.0f / 8192;
+        }
+
+        void reset_position(){
+            present_position = 0;
+        }
+
+        void set_target_position(float dist){
+            target_position = dist;
+        }
+
         void set_dist_to_v_param(float _kp, float _ki, float _kd, float _i_limit, float _out_limit){
             dist_to_v.change_parameters(_kp, _ki, _kd, _i_limit, _out_limit);
             //dist_to_v.clear_i_out();
         }
+
         void set_v_to_i_param(float _kp, float _ki, float _kd, float _i_limit, float _out_limit){
             v_to_i.change_parameters(_kp, _ki, _kd, _i_limit, _out_limit);
             //v_to_i.clear_i_out();
         }
+
         void set_target_current(){
             motor[id].target_current = (int)(v_to_i.calc(motor[id].actual_angular_velocity, dist_to_v.calc(present_position, target_position)));
         }
     private:
+        float present_position = 0;
+        float target_position = 0;
         PIDController dist_to_v;
         PIDController v_to_i;
     };
