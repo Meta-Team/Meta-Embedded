@@ -200,6 +200,12 @@ add_executable(ut_sentry_chassis
         dev/interface/sentry_chassis_interface.cpp
         dev/debug/unit_tests/sentry_chassis_unit_test.cpp)
 
+add_executable(ut_referee_interface
+        dev/module/CRC8.cpp
+        dev/module/CRC16.cpp
+        dev/interface/referee_interface.cpp
+        dev/debug/unit_tests/referee_interface_unit_test.cpp)
+
 # Template Unit Test
 add_executable(ut_template
         dev/debug/unit_tests/unit_test_template.cpp)
