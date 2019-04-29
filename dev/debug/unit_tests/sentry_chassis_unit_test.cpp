@@ -9,6 +9,7 @@
 #include "serial_shell.h"
 #include "can_interface.h"
 #include "sentry_chassis_interface.h"
+#include "sentry_chassis_calculator.h"
 
 using namespace chibios_rt;
 
@@ -57,10 +58,58 @@ static void cmd_chassis_set_target_currents(BaseSequentialStream *chp, int argc,
     chprintf(chp, "Chassis target_current sent" SHELL_NEWLINE_STR);
 }
 
+/**
+ * @brief set chassis common PID params
+ * @param chp
+ * @param argc
+ * @param argv
+ */
+static void cmd_chassis_set_dist_to_v_parameters(BaseSequentialStream *chp, int argc, char *argv[]) {
+    (void) argv;
+    if (argc != 5) {
+        shellUsage(chp, "c_set_dist_to_v_params ki kp kd i_limit out_limit");
+        chprintf(chp, "!cpe" SHELL_NEWLINE_STR);  // echo chassis parameters error
+        return;
+    }
+
+
+    SentryChassisController::change_dist_to_v_pid(Shell::atof(argv[0]),
+                                         Shell::atof(argv[1]),
+                                         Shell::atof(argv[2]),
+                                         Shell::atof(argv[3]),
+                                         Shell::atof(argv[4]));
+    chprintf(chp, "!cps" SHELL_NEWLINE_STR); // echo chassis parameters set
+}
+
+/**
+ * @brief set chassis common PID params
+ * @param chp
+ * @param argc
+ * @param argv
+ */
+static void cmd_chassis_set_v_to_i_parameters(BaseSequentialStream *chp, int argc, char *argv[]) {
+    (void) argv;
+    if (argc != 5) {
+        shellUsage(chp, "c_set_v_to_i_params ki kp kd i_limit out_limit");
+        chprintf(chp, "!cpe" SHELL_NEWLINE_STR);  // echo chassis parameters error
+        return;
+    }
+
+
+    SentryChassisController::change_v_to_i_pid(Shell::atof(argv[0]),
+                                                  Shell::atof(argv[1]),
+                                                  Shell::atof(argv[2]),
+                                                  Shell::atof(argv[3]),
+                                                  Shell::atof(argv[4]));
+    chprintf(chp, "!cps" SHELL_NEWLINE_STR); // echo chassis parameters set
+}
+
 // Shell commands to control the chassis
 ShellCommand chassisCommands[] = {
         {"c_echo", cmd_chassis_echo},
         {"c_set_current",    cmd_chassis_set_target_currents},
+        {"c_set_dist_to_v_params",  cmd_chassis_set_dist_to_v_parameters},
+        {"c_set_v_to_i_params",  cmd_chassis_set_v_to_i_parameters},
         {nullptr,    nullptr}
 };
 
@@ -90,7 +139,7 @@ int main(void) {
     Shell::addCommands(chassisCommands);
 
     can1.start(HIGHPRIO - 1);
-    SentryChassis::init(&can1);
+    SentryChassisController::init_calculator(&can1);
 
     chassisThread.start(NORMALPRIO);
 
