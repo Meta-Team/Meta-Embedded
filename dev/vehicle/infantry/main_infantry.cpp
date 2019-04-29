@@ -7,64 +7,27 @@
 #include "hal.h"
 
 /** Vehicle Specific Config **/
-#if defined(INFANTRY_ONE)                                                   /** Infantry #1 **/
-
-#include "vehicle_infantry_one.h"
-
-#if defined(BOARD_RM_2017) // defined in board.h (included in hal.h)
-#define STARTUP_BUTTON_PAD GPIOD
-#define STARTUP_BUTTON_PIN_ID GPIOD_USER_BUTTON
-#define STARTUP_BUTTON_PRESS_PAL_STATUS PAL_LOW
-#else
-#error "Infantry #1 is only developed for RM board 2017."
-#endif
-
+#if defined(INFANTRY_THREE)                                                 /** Infantry #3 **/
+#include "vehicle_infantry_three.h"
 #elif defined(INFANTRY_FOUR)                                                /** Infantry #4 **/
-
 #include "vehicle_infantry_four.h"
-
-#if defined(BOARD_RM_2018_A) // defined in board.h (included in hal.h)
-#define STARTUP_BUTTON_PAD GPIOB
-#define STARTUP_BUTTON_PIN_ID GPIOB_USER_BUTTON
-#define STARTUP_BUTTON_PRESS_PAL_STATUS PAL_HIGH
-#else
-#error "Infantry #4 is only developed for RM board 2018 A."
-#endif
-
 #elif defined(INFANTRY_FIVE)                                                /** Infantry #5 **/
-
 #include "vehicle_infantry_five.h"
-
-#if defined(BOARD_RM_2018_A) // defined in board.h (included in hal.h)
-#define STARTUP_BUTTON_PAD GPIOB
-#define STARTUP_BUTTON_PIN_ID GPIOB_USER_BUTTON
-#define STARTUP_BUTTON_PRESS_PAL_STATUS PAL_HIGH
 #else
-#error "Infantry #5 is only developed for RM board 2018 A."
-#endif
-
-#else
-#error "main_infantry.cpp should only be used for Infantry #1, #4, #5."
+#error "main_infantry.cpp should only be used for Infantry #3, #4, #5."
 #endif
 
 
-
-
-// Debug headers
 #include "led.h"
 #include "serial_shell.h"
 
-// Modules and basic communication channels
 #include "can_interface.h"
 #include "common_macro.h"
 
-// Interfaces
 #include "buzzer.h"
 #include "mpu6500.h"
 #include "remote_interpreter.h"
-#include "gimbal_interface.h"
 
-// Controllers
 #include "gimbal.h"
 #include "chassis.h"
 

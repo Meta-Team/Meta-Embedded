@@ -9,7 +9,7 @@
 #include "serial_shell.h"
 #include "chassis.h"
 
-#include "vehicle_infantry_one.h"
+#include "vehicle_infantry_three.h"
 
 #warning "ut_chassis is only designed for INFANTRY #1."
 

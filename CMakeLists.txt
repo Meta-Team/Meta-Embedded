@@ -75,9 +75,9 @@ set(INFANTRY
         dev/vehicle/infantry/main_infantry.cpp)
 
 # Main Program -- Infantry #1
-add_executable(INFANTRY_ONE ${INFANTRY})
-target_include_directories(INFANTRY_ONE PRIVATE dev/vehicle/infantry)
-target_compile_definitions(INFANTRY_ONE PRIVATE INFANTRY_ONE)
+add_executable(INFANTRY_THREE ${INFANTRY})
+target_include_directories(INFANTRY_THREE PRIVATE dev/vehicle/infantry)
+target_compile_definitions(INFANTRY_THREE PRIVATE INFANTRY_THREE)
 
 # Main Program -- Infantry #4
 add_executable(INFANTRY_FOUR ${INFANTRY})
