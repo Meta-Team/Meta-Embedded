@@ -41,13 +41,15 @@ public:
 
         motor_id_t id;
 
-        uint16_t actual_angle_raw;
         int16_t actual_rpm_raw;
         int16_t actual_current_raw;
         uint8_t actual_temperature_raw;
 
-        float actual_angular_velocity; // degree/s
+        int16_t actual_angle = 0;
+        int16_t last_angle_raw = 0; // 8192 for 360 degrees
 
+        float actual_angular_velocity; // degree/s
+        int round_count = 0;
         int target_current;
 
     };
