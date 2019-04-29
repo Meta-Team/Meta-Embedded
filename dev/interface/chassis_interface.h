@@ -34,7 +34,7 @@ class ChassisInterface {
 
 public:
 
-    enum chassis_motor_id_t {  // goes in a counter-clockwise order
+    enum motor_id_t {  // goes in a counter-clockwise order
         CHASSIS_FR, // front right motor, 0
         CHASSIS_FL, // front left motor, 1
         CHASSIS_BL, // back left motor, 2
@@ -42,10 +42,16 @@ public:
         CHASSIS_MOTOR_COUNT
     };
 
+    /**
+     * @brief set CAN interface for receiving and sending
+     * @param can_interface
+     */
+    static void init(CANInterface* can_interface);
+
     /** Structure for each motor */
     struct motor_feedback_t {
 
-        chassis_motor_id_t id;
+        motor_id_t id;
 
         uint16_t actual_angle_raw;
         int16_t actual_rpm_raw;
@@ -63,9 +69,8 @@ public:
      */
     static motor_feedback_t feedback[];
 
-
     /**
-     * @brief target current array in the order defined in chassis_motor_id_t
+     * @brief target current array in the order defined in motor_id_t
      */
     static int target_current[CHASSIS_MOTOR_COUNT];
 
@@ -74,12 +79,6 @@ public:
      * @return
      */
     static bool send_chassis_currents();
-
-    /**
-     * @brief set CAN interface for receiving and sending
-     * @param can_interface
-     */
-    static void init(CANInterface* can_interface);
 
 private:
 

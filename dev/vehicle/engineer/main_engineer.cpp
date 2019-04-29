@@ -111,21 +111,21 @@ class ChassisThread : public chibios_rt::BaseStaticThread<1024> {
 
         while (!shouldTerminate()) {
 
-            if ((Remote::rc.s1 == Remote::RC_S_MIDDLE && Remote::rc.s2 == Remote::RC_S_DOWN) ||
-                (Remote::rc.s1 == Remote::RC_S_DOWN)) {
+            if ((Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_DOWN) ||
+                (Remote::rc.s1 == Remote::S_DOWN)) {
 
                 float target_vx = 0, target_vy = 0, target_w = 0;
 
                 if (elevatorThread.get_status() == elevatorThread.STOP) {  // if elevator thread is not in action,
 
                     // let user control the chassis
-                    if (Remote::rc.s1 == Remote::RC_S_MIDDLE && Remote::rc.s2 == Remote::RC_S_DOWN) {
+                    if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_DOWN) {
 
                         target_vx = -Remote::rc.ch2 * 1000.0f;
                         target_vy = -Remote::rc.ch3 * 1000.0f;
                         target_w = Remote::rc.ch0 * 180.0f;
 
-                    } else if (Remote::rc.s1 == Remote::RC_S_DOWN) {
+                    } else if (Remote::rc.s1 == Remote::S_DOWN) {
 
                         if (Remote::key.w) target_vy = PC_W_VY;
                         else if (Remote::key.s) target_vy = PC_S_VY;
@@ -186,7 +186,7 @@ class ActionTriggerThread : public chibios_rt::BaseStaticThread<2048> {
 
         while (!shouldTerminate()) {
 
-            if (Remote::rc.s1 == Remote::RC_S_DOWN) { // PC Mode
+            if (Remote::rc.s1 == Remote::S_DOWN) { // PC Mode
 
                 if (Remote::key.v) {                                               // elevator lift up
                     if (!keyPressed) {

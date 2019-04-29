@@ -58,7 +58,7 @@ void ChassisInterface::init(CANInterface *can_interface) {
     can = can_interface;
     can->register_callback(0x201, 0x204, process_chassis_feedback);
     for (int i = 0; i < CHASSIS_MOTOR_COUNT; i++) {
-        feedback[i].id = (chassis_motor_id_t) i;
+        feedback[i].id = (motor_id_t) i;
         feedback[i].last_update_time = 0;
         target_current[i] = 0;
     }

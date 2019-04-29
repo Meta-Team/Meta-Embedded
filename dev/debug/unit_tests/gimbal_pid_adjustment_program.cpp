@@ -13,7 +13,7 @@
 #include "serial_shell.h"
 #include "can_interface.h"
 #include "gimbal_interface.h"
-#include "gimbal_calculator.h"
+#include "gimbal.h"
 #include "mpu6500.h"
 
 using namespace chibios_rt;

@@ -2,13 +2,39 @@
 // Created by liuzikai on 2019-01-05.
 //
 
-#include "gimbal_calculator.h"
-#include "serial_shell.h"
+#include "gimbal.h"
+
+PIDController Gimbal::a2v_pid[MOTOR_COUNT];
+PIDController Gimbal::v2i_pid[MOTOR_COUNT];
+float Gimbal::target_velocity[MOTOR_COUNT];
+
+void Gimbal::calc_a2v_(GimbalInterface::motor_id_t id_, float actual_angle_, float target_angle_) {
+    target_velocity[id_] = a2v_pid[id_].calc(actual_angle_, target_angle_);
+}
+
+void Gimbal::calc_v2i_(GimbalInterface::motor_id_t id_, float actual_velocity_, float target_velocity_) {
+    target_velocity[id_] = target_velocity_;
+    target_current[id_] = (int) v2i_pid[id_].calc(actual_velocity_, target_velocity_);
+}
+
+void Gimbal::calc_gimbal(float yaw_actual_velocity, float pitch_actual_velocity,
+                         float yaw_target_angle, float pitch_target_angle) {
+
+    calc_a2v_(YAW, feedback[YAW].actual_angle, yaw_target_angle);
+    calc_v2i_(YAW, yaw_actual_velocity, target_velocity[YAW]);
+
+    calc_a2v_(PITCH, feedback[PITCH].actual_angle, pitch_target_angle);
+    calc_v2i_(PITCH, pitch_actual_velocity, target_velocity[PITCH]);
+
+}
+
+void Gimbal::calc_bullet(float bullet_target_velocity) {
+    calc_v2i_(BULLET, feedback[BULLET].actual_angle, bullet_target_velocity);
+}
 
 GimbalController::MotorController GimbalController::yaw(GimbalController::YAW_ID);
 GimbalController::MotorController GimbalController::pitch(GimbalController::PIT_ID);
 GimbalController::BulletLoaderController GimbalController::bullet_loader(GimbalController::BULLET_LOADER_ID);
-float GimbalController::shoot_duty_cycles[4] = {0.0, 0.1, 0.2, 0.3};  // the numbers are temporary
 int GimbalController::remained_bullet = 0;
 
 
@@ -16,7 +42,7 @@ int GimbalController::remained_bullet = 0;
  * Public Functions
  */
 
-float GimbalController::MotorController::angle_to_v(float measured_angle, float target_angle)  {
+float GimbalController::MotorController::angle_to_v(float measured_angle, float target_angle) {
     return angle_to_v_pid.calc(measured_angle, target_angle);
 }
 
@@ -30,7 +56,7 @@ int GimbalController::BulletLoaderController::get_remained_bullet() {
 
 void GimbalController::BulletLoaderController::update_bullet(int bullet_changed) {
     remained_bullet += bullet_changed;
-    if(remained_bullet < 0){
+    if (remained_bullet < 0) {
         remained_bullet = 0;
     }
 }

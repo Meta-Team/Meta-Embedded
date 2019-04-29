@@ -46,9 +46,9 @@ class Remote {
 public:
 
     enum rc_status_t {
-        RC_S_UP = 1,
-        RC_S_DOWN = 2,
-        RC_S_MIDDLE = 3
+        S_UP = 1,
+        S_DOWN = 2,
+        S_MIDDLE = 3
     };
 
     typedef struct {
