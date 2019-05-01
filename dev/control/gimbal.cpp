@@ -8,6 +8,20 @@ PIDController Gimbal::a2v_pid[MOTOR_COUNT];
 PIDController Gimbal::v2i_pid[MOTOR_COUNT];
 float Gimbal::target_velocity[MOTOR_COUNT];
 
+void Gimbal::init(CANInterface *can_interface, uint16_t yaw_front_angle_raw, uint16_t pitch_front_angle_raw,
+                  PIDControllerBase::pid_params_t yaw_a2v_params, PIDControllerBase::pid_params_t yaw_v2i_params,
+                  PIDControllerBase::pid_params_t pitch_a2v_params, PIDControllerBase::pid_params_t pitch_v2i_params) {
+
+    GimbalInterface::init(can_interface, yaw_front_angle_raw, pitch_front_angle_raw);
+
+    a2v_pid[YAW].change_parameters(yaw_a2v_params);
+    v2i_pid[YAW].change_parameters(yaw_v2i_params);
+
+    a2v_pid[PITCH].change_parameters(pitch_a2v_params);
+    v2i_pid[PITCH].change_parameters(pitch_v2i_params);
+
+}
+
 void Gimbal::calc_a2v_(GimbalInterface::motor_id_t id_, float actual_angle_, float target_angle_) {
     target_velocity[id_] = a2v_pid[id_].calc(actual_angle_, target_angle_);
 }
@@ -28,12 +42,6 @@ void Gimbal::calc_gimbal(float yaw_actual_velocity, float pitch_actual_velocity,
 
 }
 
-void Gimbal::calc_bullet(float bullet_target_velocity) {
-    calc_v2i_(BULLET, feedback[BULLET].actual_angle, bullet_target_velocity);
-}
-
-GimbalController::MotorController GimbalController::yaw(GimbalController::YAW_ID);
-GimbalController::MotorController GimbalController::pitch(GimbalController::PIT_ID);
 GimbalController::BulletLoaderController GimbalController::bullet_loader(GimbalController::BULLET_LOADER_ID);
 int GimbalController::remained_bullet = 0;
 

@@ -65,12 +65,12 @@ public:
     };
 
     /**
-     * @brief set the CAN interface
-     * @param can_interface
+     * @brief Initialize the gimbal
+     * @param can_interface           initialized CANInterface for yaw, pitch and bullet_loader motor
      * @param yaw_front_angle_raw     raw angle of yaw when gimbal points straight forward, depending on installation.
      * @param pitch_front_angle_raw   raw angle of pitch when gimbal points straight forward, depending on installation.
      */
-    static void init(CANInterface *can_interface, uint16_t yaw_front_angle_raw = 0, uint16_t pitch_front_angle_raw = 0);
+    static void init(CANInterface *can_interface, uint16_t yaw_front_angle_raw, uint16_t pitch_front_angle_raw);
 
 
     struct motor_feedback_t {

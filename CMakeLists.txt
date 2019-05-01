@@ -71,6 +71,7 @@ set(INFANTRY
         dev/interface/chassis_interface.cpp
         dev/interface/remote_interpreter.cpp
         dev/control/gimbal.cpp
+        dev/control/shoot.cpp
         dev/control/chassis.cpp
         dev/vehicle/infantry/main_infantry.cpp)
 
@@ -127,6 +128,7 @@ add_executable(ut_gimbal
         dev/interface/gimbal_interface.cpp
         dev/module/pid_controller.hpp
         dev/control/gimbal.cpp
+        dev/control/shoot.cpp
         dev/debug/unit_tests/gimbal_controller_unit_test.cpp
         dev/interface/mpu6500.cpp)
 
@@ -136,6 +138,7 @@ add_executable(pa_gimbal
         dev/interface/gimbal_interface.cpp
         dev/module/pid_controller.hpp
         dev/control/gimbal.cpp
+        dev/control/shoot.cpp
         dev/interface/mpu6500.cpp
         dev/debug/unit_tests/gimbal_pid_adjustment_program.cpp)
 

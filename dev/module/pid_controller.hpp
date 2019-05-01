@@ -6,57 +6,47 @@
 #ifndef META_INFANTRY_PID_CONTROLLER_HPP
 #define META_INFANTRY_PID_CONTROLLER_HPP
 
+class PIDControllerBase {
+public:
+
+    struct pid_params_t {
+        float kp;
+        float ki;
+        float kd;
+
+        float i_limit;    // limit for integral value
+        float out_limit;  // limit for total output
+    };
+
+};
 
 /**
  * PID controller unit
  */
-class PIDController {
+class PIDController : public PIDControllerBase {
 
 public:
 
-    float kp;
-    float ki;
-    float kd;
-
-    float i_limit;  // limit for integral value
-    float out_limit;  // limit for total output
+    pid_params_t p;
 
     float out;
 
     PIDController() {
-        change_parameters(0, 0, 0, 0, 0);
+        change_parameters({0, 0, 0, 0, 0});
         p_out = i_out = d_out = out = 0.0;
         error[0] = error[1] = 0.0;
     }
 
     /**
-     * Constructor for new PID controller unit
-     * @param _kp
-     * @param _ki
-     * @param _kd
-     * @param _i_limit
-     * @param _out_limit
-     */
-    PIDController(float _kp, float _ki, float _kd, float _i_limit, float _out_limit) {
-        change_parameters(_kp, _ki, _kd, _i_limit, _out_limit);
-        p_out = i_out = d_out = out = 0.0;
-        error[0] = error[1] = 0.0;
-    };
-
-    /**
      * Change PID parameters
-     * @param _kp
-     * @param _ki
-     * @param _kd
-     * @param _i_limit
-     * @param _out_limit
+     * @param p_
      */
-    void change_parameters(float _kp, float _ki, float _kd, float _i_limit, float _out_limit) {
-        kp = _kp;
-        ki = _ki;
-        kd = _kd;
-        i_limit = _i_limit;
-        out_limit = _out_limit;
+    void change_parameters(pid_params_t p_) {
+        p.kp = p_.kp;
+        p.ki = p_.ki;
+        p.kd = p_.kd;
+        p.i_limit = p_.i_limit;
+        p.out_limit = p_.out_limit;
     }
 
     /**
@@ -70,16 +60,16 @@ public:
         error[1] = error[0];
         error[0] = target - now;
 
-        p_out = kp * error[0];
-        i_out += ki * error[0];
-        d_out = kd * (error[0] - error[1]);
+        p_out = p.kp * error[0];
+        i_out += p.ki * error[0];
+        d_out = p.kd * (error[0] - error[1]);
 
-        if (i_out > i_limit) i_out = i_limit;
-        if (i_out < -i_limit) i_out = -i_limit;
+        if (i_out > p.i_limit) i_out = p.i_limit;
+        if (i_out < -p.i_limit) i_out = -p.i_limit;
 
         out = p_out + i_out + d_out;
-        if (out > out_limit) out = out_limit;
-        if (out < -out_limit) out = -out_limit;
+        if (out > p.out_limit) out = p.out_limit;
+        if (out < -p.out_limit) out = -p.out_limit;
 
         return out;
 
@@ -94,7 +84,7 @@ public:
 
 private:
 
-    float error[2]; // error[0]: error of this time, error[1]: error of last time
+    float error[2];  // error[0]: error of this time, error[1]: error of last time
 
     float p_out;
     float i_out;
