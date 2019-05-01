@@ -14,6 +14,7 @@
 using namespace chibios_rt;
 
 CANInterface can1(&CAND1);
+bool printPosition = false;
 
 /**
  * @brief enable the chassis
@@ -193,6 +194,15 @@ static void cmd_chassis_clear_position(BaseSequentialStream *chp, int argc, char
     SentryChassisController::reset_present_position();
 }
 
+static void cmd_chassis_print_position(BaseSequentialStream *chp, int argc, char *argv[]){
+    (void) argv;
+    if (argc != 0){
+        shellUsage(chp, "c_print_position");
+        chprintf(chp, "!cpe" SHELL_NEWLINE_STR);
+        return;
+    }
+    printPosition = !printPosition;
+}
 // Shell commands to control the chassis
 ShellCommand chassisCommands[] = {
         {"c_enable",   cmd_chassis_enable},
@@ -205,6 +215,7 @@ ShellCommand chassisCommands[] = {
         {"c_echo_pid_params",   cmd_chassis_echo_pid_params},
         {"c_target_position",   cmd_chassis_target_position},
         {"c_clear_position", cmd_chassis_clear_position},
+        {"c_print_position", cmd_chassis_print_position},
         {nullptr,    nullptr}
 };
 
@@ -214,11 +225,14 @@ protected:
     void main() final {
         setName("chassis");
         while (!shouldTerminate()) {
-
-            SentryChassisController::update_present_data();
             /*
             if (!SentryChassisController::test_mode){}
             */
+            if(printPosition){
+                SentryChassisController::print_position();
+            }else{
+                SentryChassisController::update_present_data();
+            }
             SentryChassisController::update_target_current();
             SentryChassisController::send_currents();
             //SentryChassis::send_currents();

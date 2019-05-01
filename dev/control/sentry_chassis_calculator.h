@@ -53,6 +53,11 @@ public:
         }
     }
 
+    static void print_position(){
+        LOG("motor %d position: %.2f", 0, motor_calculator[0].update_position());
+        LOG("motor %d position: %.2f", 1, motor_calculator[1].update_position());
+    }
+
     static void update_target_current();
 
 private:

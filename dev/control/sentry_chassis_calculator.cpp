@@ -60,7 +60,7 @@ void SentryChassisController::motor_calculator_t::reset_position(){
 float SentryChassisController::motor_calculator_t::update_position(){
     // Count the rounds first, like 1.5 rounds, -20.7 rounds, etc
     // Then transform it to displacement by multiplying the displacement_per_round factor
-    present_position = (motor[id].actual_angle/8192.0f + (float)motor[id].round_count) * displacement_per_round;
+    present_position = (motor[id].actual_angle + 8192.0f * motor[id].round_count) / 8192.0f * displacement_per_round;
     return present_position;
 }
 

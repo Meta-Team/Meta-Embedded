@@ -188,17 +188,18 @@ add_executable(ut_robotic_arm
         dev/vehicle/engineer/robotic_arm_thread.cpp
         dev/debug/unit_tests/engineer_robotic_arm_unit_test.cpp)
 
+# Sentry Chassis
+add_executable(ut_sentry_chassis
+        dev/module/can_interface.cpp
+        dev/module/pid_controller.cpp
+        dev/interface/sentry_chassis_interface.cpp
+        dev/control/sentry_chassis_calculator.cpp
+        dev/debug/unit_tests/sentry_chassis_unit_test.cpp)
 # Adjust Params of Skywalker-20A for friction wheels
 add_executable(pa_skywalker
         dev/debug/unit_tests/friction_wheel_param_adjust.cpp
         dev/interface/remote_interpreter.cpp
         dev/interface/buzzer.cpp)
-
-# Sentry Chassis
-add_executable(ut_sentry_chassis
-        dev/module/can_interface.cpp
-        dev/interface/sentry_chassis_interface.cpp
-        dev/debug/unit_tests/sentry_chassis_unit_test.cpp)
 
 # Template Unit Test
 add_executable(ut_template
