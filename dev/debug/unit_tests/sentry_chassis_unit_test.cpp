@@ -16,6 +16,36 @@ using namespace chibios_rt;
 CANInterface can1(&CAND1);
 
 /**
+ * @brief enable the chassis
+ * @param chp
+ * @param argc
+ * @param argv
+ */
+static void cmd_chassis_enable(BaseSequentialStream *chp, int argc, char *argv[]){
+    (void) argv;
+    if (argc != 0) {
+        shellUsage(chp, "c_enable");
+        return;
+    }
+    SentryChassisController::enable = true;
+}
+
+/**
+ * @brief disable the chassis
+ * @param chp
+ * @param argc
+ * @param argv
+ */
+static void cmd_chassis_disable(BaseSequentialStream *chp, int argc, char *argv[]){
+    (void) argv;
+    if (argc != 0) {
+        shellUsage(chp, "c_disable");
+        return;
+    }
+    SentryChassisController::enable = false;
+}
+
+/**
  * @brief echo acutal angular velocity and target current of each motor
  * @param chp
  * @param argc
@@ -104,12 +134,34 @@ static void cmd_chassis_set_v_to_i_parameters(BaseSequentialStream *chp, int arg
     chprintf(chp, "!cps" SHELL_NEWLINE_STR); // echo chassis parameters set
 }
 
+static void cmd_chassis_pid_params(BaseSequentialStream *chp, int argc, char *argv[]) {
+    (void) argv;
+    if (argc != 0) {
+        shellUsage(chp, "c_pid_params");
+        return;
+    }
+    
+}
+
+static void cmd_chassis_target_position(BaseSequentialStream *chp, int argc, char *argv[]){
+    (void) argv;
+    if (argc != 1){
+        shellUsage(chp, "c_target_position target_position");
+        chprintf(chp, "!cpe" SHELL_NEWLINE_STR);
+        return;
+    }
+    SentryChassisController::move_certain_dist(Shell::atof(argv[0]));
+}
+
 // Shell commands to control the chassis
 ShellCommand chassisCommands[] = {
         {"c_echo", cmd_chassis_echo},
         {"c_set_current",    cmd_chassis_set_target_currents},
         {"c_set_dist_to_v_params",  cmd_chassis_set_dist_to_v_parameters},
         {"c_set_v_to_i_params",  cmd_chassis_set_v_to_i_parameters},
+        {"c_target_position",   cmd_chassis_target_position},
+        {"c_enable",   cmd_chassis_enable},
+        {"c_disable",   cmd_chassis_disable},
         {nullptr,    nullptr}
 };
 

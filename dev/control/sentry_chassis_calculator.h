@@ -65,16 +65,21 @@ private:
 
         void set_dist_to_v_param(float _kp, float _ki, float _kd, float _i_limit, float _out_limit){
             dist_to_v.change_parameters(_kp, _ki, _kd, _i_limit, _out_limit);
-            //dist_to_v.clear_i_out();
+            dist_to_v.clear_i_out();
         }
 
         void set_v_to_i_param(float _kp, float _ki, float _kd, float _i_limit, float _out_limit){
             v_to_i.change_parameters(_kp, _ki, _kd, _i_limit, _out_limit);
-            //v_to_i.clear_i_out();
+            v_to_i.clear_i_out();
         }
 
         void set_target_current(){
             motor[id].target_current = (int)(v_to_i.calc(motor[id].actual_angular_velocity, dist_to_v.calc(present_position, target_position)));
+        }
+
+        void print_pid_params(BaseSequentialStream *chp){
+            chprintf(chp, "dist_to_v pid  kp = %.2f ki = %.2f kd = %.2f i_limit = %.2f out_limit = %.2f" SHELL_NEWLINE_STR, dist_to_v.kp, dist_to_v.ki, dist_to_v.kd, dist_to_v.i_limit, dist_to_v.out_limit);
+            chprintf(chp, "v_to_i pid  kp = %.2f ki = %.2f kd = %.2f i_limit = %.2f out_limit = %.2f" SHELL_NEWLINE_STR, v_to_i.kp, v_to_i.ki, v_to_i.kd, v_to_i.i_limit, v_to_i.out_limit);
         }
     private:
         float present_position = 0;
