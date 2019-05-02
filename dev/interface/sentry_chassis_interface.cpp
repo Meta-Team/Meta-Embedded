@@ -29,9 +29,9 @@ bool SentryChassis::send_currents() {
         if(i == MOTOR_LEFT){
             txmsg.data8[i * 2] = (uint8_t) ((-motor[i].target_current) >> 8);
             txmsg.data8[i * 2 + 1] = (uint8_t) (-motor[i].target_current);
-        }else{
-            txmsg.data8[i * 2] = (uint8_t) (motor[i].target_current >> 8);
-            txmsg.data8[i * 2 + 1] = (uint8_t) motor[i].target_current;
+        } else{
+            txmsg.data8[i * 2] = (uint8_t) ((motor[i].target_current) >> 8);
+            txmsg.data8[i * 2 + 1] = (uint8_t) (motor[i].target_current);
         }
     }
 

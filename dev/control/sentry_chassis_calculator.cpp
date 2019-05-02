@@ -4,13 +4,14 @@
 
 #include "sentry_chassis_calculator.h"
 
-bool SentryChassisController::enable = false;
-bool SentryChassisController::test_mode = true;
+bool SentryChassisController::enable;
+bool SentryChassisController::test_mode;
 SentryChassisController::motor_calculator_t SentryChassisController::motor_calculator[MOTOR_COUNT];
 
 
 void SentryChassisController::init_controller(CANInterface* can_interface) {
     init(can_interface);
+    enable = false;
     test_mode = true;
     reset_present_position();
     motor_calculator[MOTOR_LEFT].id = MOTOR_LEFT;
@@ -33,24 +34,23 @@ void SentryChassisController::update_target_current() {
 }
 
 void SentryChassisController::change_position() {
-    if(motor_calculator[0].update_position() > 0){
+    if(motor_calculator[0].position() > 0){
         move_certain_dist(-radius);
     } else{
         move_certain_dist(radius);
     }
+    LOG("I hit the end");
 }
 
-void SentryChassisController::motor_calculator_t::print_pid_params(BaseSequentialStream *chp){
-    chprintf(chp, "motor_id: %d" SHELL_NEWLINE_STR, id);
-    chprintf(chp, "dist_to_v pid  kp = %.2f ki = %.2f kd = %.2f i_limit = %.2f out_limit = %.2f" SHELL_NEWLINE_STR,
-             dist_to_v.kp, dist_to_v.ki, dist_to_v.kd, dist_to_v.i_limit, dist_to_v.out_limit);
-    chprintf(chp, "v_to_i pid  kp = %.2f ki = %.2f kd = %.2f i_limit = %.2f out_limit = %.2f" SHELL_NEWLINE_STR,
+void SentryChassisController::motor_calculator_t::print_pid_params(){
+    LOG("motor_id: %d" SHELL_NEWLINE_STR, id);
+    LOG("kp = %.2f ki = %.2f kd = %.2f i_limit = %.2f out_limit = %.2f" SHELL_NEWLINE_STR,
              v_to_i.kp, v_to_i.ki, v_to_i.kd, v_to_i.i_limit, v_to_i.out_limit);
 }
 
 int SentryChassisController::motor_calculator_t::set_target_current(){
     if (enable){
-        motor[id].target_current = (int)(v_to_i.calc(motor[id].actual_angular_velocity, dist_to_v.calc(present_position, target_position)));
+        motor[id].target_current = (int)(v_to_i.calc(present_velocity, target_velocity));
     }else {
         motor[id].target_current = 0;
     }
@@ -64,19 +64,25 @@ void SentryChassisController::motor_calculator_t::reset_position(){
     target_position = 0;
 }
 
-float SentryChassisController::motor_calculator_t::update_position(){
+void SentryChassisController::motor_calculator_t::set_target_position(float dist) {
+    target_position = dist;
+    if (target_position > present_position){
+        target_velocity = maximum_speed;
+    } else if (target_position < present_position){
+        target_velocity = - maximum_speed;
+    } else{
+        target_velocity = 0;
+    }
+}
+
+void SentryChassisController::motor_calculator_t::update_motor_data(){
     // Count the rounds first, like 1.5 rounds, -20.7 rounds, etc
     // Then transform it to displacement by multiplying the displacement_per_round factor
     present_position = (motor[id].actual_angle + 8192.0f * motor[id].round_count) / 8192.0f * displacement_per_round;
-    return present_position;
-}
-
-float SentryChassisController::motor_calculator_t::update_velocity(){
     // The unit of actual_angular_velocity is degrees/s, so we first translate it into r/s and then multiplying by displacement_per_round factor
     present_velocity = motor[id].actual_angular_velocity / 360.0f * displacement_per_round;
-    return present_velocity;
 }
 
 bool SentryChassisController::motor_calculator_t::should_change() {
-    return present_position >= radius || present_position <= -radius;
+    return present_position >= radius-15 || present_position <= -radius+15;
 }

@@ -61,7 +61,12 @@ static void cmd_chassis_test_mode(BaseSequentialStream *chp, int argc, char *arg
         shellUsage(chp, "c_test_mode test_mode(0/1)");
         return;
     }
-    SentryChassisController::test_mode = (*argv[0] == '0');
+    SentryChassisController::test_mode = (*argv[0] == '1');
+    if(!SentryChassisController::test_mode){
+        SentryChassisController::move_certain_dist(SentryChassisController::radius);
+    }else{
+        SentryChassisController::reset_present_position();
+    }
 }
 /**
  * @brief echo acutal angular velocity and target current of each motor
@@ -119,19 +124,14 @@ static void cmd_chassis_set_pid(BaseSequentialStream *chp, int argc, char *argv[
         chprintf(chp, "!cpe" SHELL_NEWLINE_STR);  // echo chassis parameters error
         return;
     }
-    if(*argv[0] == '0') {
-        SentryChassisController::change_dist_to_v_pid(Shell::atof(argv[1]),
-                                                      Shell::atof(argv[2]),
-                                                      Shell::atof(argv[3]),
-                                                      Shell::atof(argv[4]),
-                                                      Shell::atof(argv[5]));
-    } else{
-        SentryChassisController::change_v_to_i_pid(Shell::atof(argv[1]),
-                                                   Shell::atof(argv[2]),
-                                                   Shell::atof(argv[3]),
-                                                   Shell::atof(argv[4]),
-                                                   Shell::atof(argv[5]));
-    }
+
+
+    SentryChassisController::change_v_to_i_pid(Shell::atof(argv[1]),
+                                               Shell::atof(argv[2]),
+                                               Shell::atof(argv[3]),
+                                               Shell::atof(argv[4]),
+                                               Shell::atof(argv[5]));
+
     chprintf(chp, "!cps" SHELL_NEWLINE_STR); // echo chassis parameters set
 }
 
@@ -152,7 +152,7 @@ static void cmd_chassis_print_pid(BaseSequentialStream *chp, int argc, char *arg
         shellUsage(chp, "wrong motor_id");
         return;
     }
-    SentryChassisController::print_pid_params(chp, motor_id);
+    SentryChassisController::print_pid_params(motor_id);
 }
 
 /**

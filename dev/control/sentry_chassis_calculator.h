@@ -15,6 +15,8 @@ public:
 
     static bool test_mode; // test_mode is true if it is being test and false if it is running automatically
 
+    static float constexpr radius = 30.0f;
+
     /**
      * @brief initialize the calculator class
      * @param can_interface
@@ -32,34 +34,23 @@ public:
      */
     static void move_certain_dist(float dist);
 
-    static void change_dist_to_v_pid(float _kp, float _ki, float _kd, float _i_limit, float _out_limit){
-        for(int i = 0; i < MOTOR_COUNT; i++)
-            motor_calculator[i].set_dist_to_v_param(_kp, _ki, _kd, _i_limit, _out_limit);
-    }
-
     static void change_v_to_i_pid(float _kp, float _ki, float _kd, float _i_limit, float _out_limit){
         for(int i = 0; i < MOTOR_COUNT; i++)
             motor_calculator[i].set_v_to_i_param(_kp, _ki, _kd, _i_limit, _out_limit);
     }
 
-    static void print_pid_params(BaseSequentialStream *chp, int motor_id){
-        motor_calculator[motor_id].print_pid_params(chp);
+    static void print_pid_params(int motor_id){
+        motor_calculator[motor_id].print_pid_params();
     }
 
     static void update_present_data(){
-        for(int i = 0; i < MOTOR_COUNT; i++){
-            motor_calculator[i].update_position();
-            motor_calculator[i].update_velocity();
-        }
+        motor_calculator[MOTOR_RIGHT].update_motor_data();
+        motor_calculator[MOTOR_LEFT].update_motor_data();
     }
 
     static void print_position(){
-        LOG("motor %d position: %.2f", 0, motor_calculator[0].update_position());
-        LOG("motor %d position: %.2f", 1, motor_calculator[1].update_position());
-        /*motor_calculator[0].update_position();
-        motor_calculator[1].update_position();
-        LOG("%d",motor[0].actual_angle);
-        LOG("%d",motor[1].actual_angle);*/
+        LOG("motor %d position: %.2f", 0, motor_calculator[0].position());
+        LOG("motor %d position: %.2f", 1, motor_calculator[1].position());
     }
 
     static void print_current(){
@@ -68,8 +59,8 @@ public:
     }
 
     static void print_velocity(){
-        LOG("motor %d present_velocity: %.2f", 0, motor_calculator[0].update_velocity());
-        LOG("motor %d present_velocity: %.2f", 1, motor_calculator[1].update_velocity());
+        LOG("motor %d present_velocity: %.2f", 0, motor_calculator[0].velocity());
+        LOG("motor %d present_velocity: %.2f", 1, motor_calculator[1].velocity());
     }
 
     static void update_target_current();
@@ -102,15 +93,17 @@ private:
         bool should_change();
 
         /**
-         * @brief update the present position according to the data from interface
-         * @return the updated position
+         * @brief update the present position and velocity according to the data from interface
          */
-        float update_position();
-        /**
-         * @brief update the present velocity according to the data from interface
-         * @return the updated position
-         */
-        float update_velocity();
+        void update_motor_data();
+
+        float position(){
+            return present_position;
+        }
+
+        float velocity(){
+            return present_velocity;
+        }
 
         /**
          * @brief reset the position to the origin
@@ -121,25 +114,7 @@ private:
          * @brief set the target position
          * @param dist (cm)
          */
-        void set_target_position(float dist){
-            target_position = dist;
-        }
-
-        /**
-         * @brief set the dist_to_v pid
-         * @attention the _ki parameter should always be 0,
-         * otherwise, there will be such great amount of accumulated distance that the robot won't stop when it reaches the target position
-         * @param _kp
-         * @param _ki
-         * @param _kd
-         * @param _i_limit
-         * @param _out_limit
-         */
-        void set_dist_to_v_param(float _kp, float _ki, float _kd, float _i_limit, float _out_limit){
-            _ki = 0;
-            dist_to_v.change_parameters(_kp, _ki, _kd, _i_limit, _out_limit);
-            dist_to_v.clear_i_out();
-        }
+        void set_target_position(float dist);
 
         /**
          * @brief set the v_to_i pid
@@ -160,13 +135,13 @@ private:
          */
         int set_target_current();
 
-        void print_pid_params(BaseSequentialStream *chp);
+        void print_pid_params();
 
     private:
         float present_position = 0;
         float present_velocity = 0;
         float target_position = 0;
-        PIDController dist_to_v;
+        float target_velocity = 0;
         PIDController v_to_i;
     };
 
@@ -176,12 +151,9 @@ private:
      * @brief the const values
      */
 
-    //todo: the maximum speed is to be determined according to the actual power
-    static float constexpr maximum_speed = 20.0f;
+    static float constexpr maximum_speed = 100.0f;
     //todo: determine what displacement is changed as the motor goes one round
     static float constexpr displacement_per_round = 1.0f;
-
-    static float constexpr radius = 50.0f;
 };
 
 
