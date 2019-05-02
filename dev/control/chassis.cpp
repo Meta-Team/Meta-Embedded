@@ -15,9 +15,9 @@ void Chassis::init(CANInterface *can_interface, float wheel_base, float wheel_tr
     v_to_wheel_angular_velocity_ = (360.0f / wheel_circumference);
 }
 
-void Chassis::change_pid_params(float kp_v_loop, float ki_v_loop, float kd_v_loop, float i_limit, float out_limit) {
+void Chassis::change_pid_params(PIDControllerBase::pid_params_t pid_params) {
     for (int i = 0; i < CHASSIS_MOTOR_COUNT; i++) {
-        pid[i].change_parameters(kp_v_loop, ki_v_loop, kd_v_loop, i_limit, out_limit);
+        pid[i].change_parameters(pid_params);
     }
 }
 

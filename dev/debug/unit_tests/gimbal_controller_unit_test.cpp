@@ -405,9 +405,9 @@ protected:
 
                 // Calculate target current
                 GimbalInterface::yaw.target_current = (int) GimbalController::yaw.v_to_i(
-                        MPU6500Controller::angle_speed.z, yaw_target_velocity);
+                        MPU6500::angle_speed.z, yaw_target_velocity);
                 GimbalInterface::pitch.target_current = (int) GimbalController::pitch.v_to_i(
-                        MPU6500Controller::angle_speed.y, pitch_target_velocity);
+                        MPU6500::angle_speed.y, pitch_target_velocity);
 
                 GimbalInterface::bullet_loader.target_current = (int) GimbalController::bullet_loader.get_target_current(
                         GimbalInterface::bullet_loader.angular_velocity, bullet_loader_target_velocity);
@@ -432,7 +432,7 @@ int main(void) {
     Shell::start(HIGHPRIO);
     Shell::addCommands(gimbalCotrollerCommands);
 
-    MPU6500Controller::start(HIGHPRIO - 3);
+    MPU6500::start(HIGHPRIO - 3);
 
     gimbalFeedbackThread.start(NORMALPRIO);
 

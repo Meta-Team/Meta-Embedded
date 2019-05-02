@@ -11,20 +11,21 @@
 #define MPU6500_BIAS_SAMPLE_COUNT 10
 #define MPU6500_BIAS_SAMPLE_INTERVAL 10 // [ms]
 
-MPU6500Controller::MPU6500UpdateThread MPU6500Controller::updateThread;
+MPU6500::MPU6500UpdateThread MPU6500::updateThread;
 
-Vector3D MPU6500Controller::angle_speed;  // final data of gyro
-Vector3D MPU6500Controller::a_component;  // final data of acceleration
-float MPU6500Controller::temperature;
+Vector3D MPU6500::angle_speed;  // final data of gyro
+Vector3D MPU6500::a_component;  // final data of acceleration
+float MPU6500::temperature;
+time_msecs_t MPU6500::last_update_time;
 
-float MPU6500Controller::dt;
-float MPU6500Controller::prev_t;
+float MPU6500::dt;
+float MPU6500::prev_t;
 
-float MPU6500Controller::_gyro_psc;  // get the coefficient converting the raw data to degree
-float MPU6500Controller::_accel_psc;  // get the coefficient converting the raw data to g
+float MPU6500::_gyro_psc;  // get the coefficient converting the raw data to degree
+float MPU6500::_accel_psc;  // get the coefficient converting the raw data to g
 
-Vector3D MPU6500Controller::_gyro_bias;  // for gyro bias
-matrix3 MPU6500Controller::_accel_bias;  // a matrix for accelerate bias
+Vector3D MPU6500::_gyro_bias;  // for gyro bias
+matrix3 MPU6500::_accel_bias;  // a matrix for accelerate bias
 
 uint8_t mpu6500_RXData[MPU6500_RX_BUF_SIZE];
 
@@ -39,7 +40,7 @@ static const SPIConfig SPI5_cfg =
                 0
         };
 
-void MPU6500Controller::mpu6500_write_reg(uint8_t reg_addr, uint8_t value) {
+void MPU6500::mpu6500_write_reg(uint8_t reg_addr, uint8_t value) {
     uint8_t tx_data[2] = {reg_addr, value};
     spiAcquireBus(&MPU6500_SPI_DRIVER);
     spiSelect(&MPU6500_SPI_DRIVER);LED::red_on();
@@ -48,7 +49,7 @@ void MPU6500Controller::mpu6500_write_reg(uint8_t reg_addr, uint8_t value) {
     spiReleaseBus(&MPU6500_SPI_DRIVER);
 }
 
-bool MPU6500Controller::start(tprio_t prio) {
+bool MPU6500::start(tprio_t prio) {
 
     spiStart(&MPU6500_SPI_DRIVER, &SPI5_cfg);
     mpu6500_write_reg(MPU6500_PWR_MGMT_1, MPU6500_RESET);
@@ -153,7 +154,7 @@ bool MPU6500Controller::start(tprio_t prio) {
     return true;
 }
 
-void MPU6500Controller::getData() {
+void MPU6500::getData() {
     uint32_t current_time =  chibios_rt::System::getTime();
     dt = TIME_I2MS(current_time - prev_t) / 1000.0f;
     prev_t = current_time;

@@ -42,8 +42,8 @@ float pitch_target_angle = 0.0;
 float pitch_target_velocity = 0.0;
 
 // Depends on the install direction of the board
-#define GIMBAL_YAW_ACTUAL_VELOCITY (-MPU6500Controller::angle_speed.x)
-#define GIMBAL_PITCH_ACTUAL_VELOCITY (MPU6500Controller::angle_speed.y)
+#define GIMBAL_YAW_ACTUAL_VELOCITY (-MPU6500::angle_speed.x)
+#define GIMBAL_PITCH_ACTUAL_VELOCITY (MPU6500::angle_speed.y)
 
 CANInterface can1(&CAND1);
 
@@ -414,7 +414,7 @@ int main(void) {
     Shell::start(HIGHPRIO);
     Shell::addCommands(gimbalCotrollerCommands);
 
-    MPU6500Controller::start(HIGHPRIO - 3);
+    MPU6500::start(HIGHPRIO - 3);
 
     gimbalFeedbackThread.start(NORMALPRIO);
 

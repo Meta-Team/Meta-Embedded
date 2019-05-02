@@ -8,6 +8,8 @@
 #include "ch.hpp"
 #include "hal.h"
 
+#include "common_macro.h"
+
 #include "mpu6500_reg.h"
 
 #if defined(BOARD_RM_2017)
@@ -66,13 +68,15 @@ public:
  * @usage 1. Call start() to enable MPU6500 driver and the data fetching thread
  *        2. Fetch data from angle_speed, angle_speed, etc.
  */
-class MPU6500Controller {
+class MPU6500 {
 
 public:
 
     static Vector3D angle_speed;  // final data of gyro
     static Vector3D a_component;  // final data of acceleration
     static float temperature;
+
+    static time_msecs_t last_update_time;
 
     static float dt;
 
@@ -136,10 +140,10 @@ private:
      * MPU6500_GYRO_CONFIG, [4:3] bits, shift when set SPI
      */
     typedef enum {
-        MPU6500_GYRO_SCALE_250 = 0,  // range of 250 with sensitivity factor 131
-        MPU6500_GYRO_SCALE_500 = 1, // range of 500 with sensitivity factor 65.5
-        MPU6500_GYRO_SCALE_1000 = 2, // range of 1000 with sensitivity factor 32.8 √
-        MPU6500_GYRO_SCALE_2000 = 3 // range of 1000 with sensitivity factor 16.4
+        MPU6500_GYRO_SCALE_250 = 0,  // range of 250 with sensitivity factor 131 √
+        MPU6500_GYRO_SCALE_500 = 1,  // range of 500 with sensitivity factor 65.5
+        MPU6500_GYRO_SCALE_1000 = 2, // range of 1000 with sensitivity factor 32.8
+        MPU6500_GYRO_SCALE_2000 = 3  // range of 1000 with sensitivity factor 16.4
     } gyro_scale_t;
 
     /**
@@ -168,7 +172,7 @@ private:
         void main() final {
             setName("mpu6500");
             while (!shouldTerminate()) {
-                MPU6500Controller::getData();
+                MPU6500::getData();
                 sleep(TIME_MS2I(mpu6500_thread_update_interval));
             }
         }
@@ -181,10 +185,10 @@ private:
 
     /** Configurations **/
 
-    static constexpr mpu6500_config_t config = {MPU6500_GYRO_SCALE_1000, MPU6500_ACCEL_SCALE_8G,
+    static constexpr mpu6500_config_t config = {MPU6500_GYRO_SCALE_250, MPU6500_ACCEL_SCALE_8G,
                                                 MPU6500_DLPF_41HZ, MPU6500_ADLPF_20HZ};
 
-    static constexpr unsigned int mpu6500_thread_update_interval = 25; // [ms]
+    static constexpr unsigned int mpu6500_thread_update_interval = 1; // [ms]
 };
 
 #endif

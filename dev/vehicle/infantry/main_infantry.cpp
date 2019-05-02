@@ -2,21 +2,9 @@
 // Created by liuzikai on 2019-01-27.
 //
 
-// Basic headers (including board definitions, so they should be at the very beginning)
+// Headers
 #include "ch.hpp"
 #include "hal.h"
-
-/** Vehicle Specific Config **/
-#if defined(INFANTRY_THREE)                                                 /** Infantry #3 **/
-#include "vehicle_infantry_three.h"
-#elif defined(INFANTRY_FOUR)                                                /** Infantry #4 **/
-#include "vehicle_infantry_four.h"
-#elif defined(INFANTRY_FIVE)                                                /** Infantry #5 **/
-#include "vehicle_infantry_five.h"
-#else
-#error "main_infantry.cpp should only be used for Infantry #3, #4, #5."
-#endif
-
 
 #include "led.h"
 #include "serial_shell.h"
@@ -29,269 +17,38 @@
 #include "remote_interpreter.h"
 
 #include "gimbal.h"
+#include "shoot.h"
 #include "chassis.h"
 
-/**
- * Mode Table:
- * ------------------------------------------------------------
- * Left  Right  Mode
- * ------------------------------------------------------------
- *  UP    *     Safe
- *  MID   UP    Remote - Chassis XW (left) + Gimbal Pitch + Shoot (right)
- *  MID   MID   Remote - Shooting (left) + Gimbal (right)
- *  MID   DOWN  Remote - Chassis W (left) + Chassis XY (right)
- *  DOWN  *     PC - Gimbal + Chassis + Shooting
- *  -Others-    Safe
- * ------------------------------------------------------------
- */
+// Vehicle specific config
+#if defined(INFANTRY_THREE)                                                 /** Infantry #3 **/
+#include "vehicle_infantry_three.h"
+#elif defined(INFANTRY_FOUR)                                                /** Infantry #4 **/
+#include "vehicle_infantry_four.h"
+#elif defined(INFANTRY_FIVE)                                                /** Infantry #5 **/
+#include "vehicle_infantry_five.h"
+#else
+#error "main_infantry.cpp should only be used for Infantry #3, #4, #5."
+#endif
 
-/**
- * PC Control:
- * WSAD move, QE rotate.
- * Move mouse to move gimbal. Press left to shoot 6 bullet. Press right to reset gimbal to front direction.
- */
+// Board guard
+#if defined(BOARD_RM_2018_A)
+#else
+#error "RoboticArm interface is only developed for RM board 2018 A."
+#endif
 
-/** Declarations **/
+// Threads code
+#include "thread_gimbal.hpp"
+#include "thread_shoot.hpp"
+#include "thread_chassis.hpp"
 
+// Interfaces
 CANInterface can1(&CAND1);
 
-/** Threads **/
-
-/**
- * @name GimbalThread
- * @brief Thread to control gimbal, including shooting mechanism
- * @pre Remote interpreter starts receive
- * @pre Initialize GimbalInterface with CAN driver and set the front angles of yaw and pitch properly
- * @pre Start the thread of updating MPU6500
- */
-class GimbalThread : public chibios_rt::BaseStaticThread<1024> {
-
-    static constexpr unsigned int GIMBAL_THREAD_INTERVAL = 10; // [ms]
-
-    static constexpr float PC_YAW_SPEED_RATIO = 54000; // rotation speed when mouse moves at the fastest limit [degree/s]
-    static constexpr float PC_YAW_ANGLE_LIMITATION = 60; // maximum range (both CW and CCW) [degree]
-
-    static constexpr float PC_PITCH_SPEED_RATIO = 12000; // rotation speed when mouse moves at the fastest limit [degree/s]
-    static constexpr float PC_PITCH_ANGLE_LIMITATION = 25; // maximum range (both up and down) [degree]
-
-    float pc_yaw_current_target_angle = 0;
-    float pc_pitch_current_target_angle = 0;
-
-    bool pc_right_pressed = false;
-
-    void main() final {
-        setName("gimbal");
-
-        /*** Parameters Set up ***/
-        Gimbal::v2i_pid[Gimbal::YAW].change_parameters(GIMBAL_PID_YAW_V2I_PARAMS);
-        Gimbal::a2v_pid[Gimbal::YAW].change_parameters(GIMBAL_PID_YAW_A2V_PARAMS);
-        Gimbal::v2i_pid[Gimbal::PITCH].change_parameters(GIMBAL_PID_PITCH_V2I_PARAMS);
-        Gimbal::a2v_pid[Gimbal::PITCH].change_parameters(GIMBAL_PID_PITCH_A2V_PARAMS);
-        Gimbal::v2i_pid[Gimbal::BULLET].change_parameters(GIMBAL_PID_BULLET_LOADER_V2I_PARAMS);
-
-        while (!shouldTerminate()) {
-
-            /*** Yaw and Pitch Motors ***/
-
-            if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_UP) {
-
-                Gimbal::calc_gimbal(GIMBAL_YAW_ACTUAL_VELOCITY, GIMBAL_PITCH_ACTUAL_VELOCITY,
-                                    -Remote::rc.ch0 * 60,  // Yaw   target angle
-                                    0                      // Pitch target angle
-                );
-
-            } else if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_MIDDLE) {
-
-                Gimbal::calc_gimbal(GIMBAL_YAW_ACTUAL_VELOCITY, GIMBAL_PITCH_ACTUAL_VELOCITY,
-                                    -Remote::rc.ch0 * 60,  // Yaw   target angle
-                                    Remote::rc.ch1 * 20    // Pitch target angle
-                );
-
-            } else if (Remote::rc.s1 == Remote::S_DOWN) { // PC control mode
-
-                // If V is pressed, reset target angle
-                if (Remote::key.v) {
-                    pc_yaw_current_target_angle = pc_pitch_current_target_angle = 0;
-                } else {
-                    pc_yaw_current_target_angle +=
-                            -Remote::mouse.x * (PC_YAW_SPEED_RATIO * (GIMBAL_THREAD_INTERVAL / 1000.0f));
-                    pc_pitch_current_target_angle +=
-                            -Remote::mouse.y * (PC_PITCH_SPEED_RATIO * (GIMBAL_THREAD_INTERVAL / 1000.0f));
-                }
-
-                ABS_LIMIT(pc_yaw_current_target_angle, PC_YAW_ANGLE_LIMITATION);
-                ABS_LIMIT(pc_pitch_current_target_angle, PC_PITCH_ANGLE_LIMITATION);
-
-                Gimbal::calc_gimbal(GIMBAL_YAW_ACTUAL_VELOCITY, GIMBAL_PITCH_ACTUAL_VELOCITY,
-                                    pc_yaw_current_target_angle,  // Yaw   target angle
-                                    pc_pitch_current_target_angle // Pitch target angle
-                );
-
-            } else {
-
-                Gimbal::target_current[Gimbal::YAW] = Gimbal::target_current[Gimbal::PITCH] = 0;
-
-            }
-
-            /*** Friction Wheels and Bullet Loader ***/
-            GimbalController::bullet_loader.update_accumulation_angle(
-                    GimbalInterface::bullet_loader.get_accumulate_angle());
-
-            /*if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_UP) {
-                GimbalInterface::friction_wheels.duty_cycle = GIMBAL_REMOTE_FRICTION_WHEEL_DUTY_CYCLE;
-                if (Remote::rc.ch1 > 0.5) {
-                    if (!GimbalController::bullet_loader.get_shooting_status()) {
-                        GimbalController::bullet_loader.start_continuous_shooting();
-                    }
-                } else {
-                    if (GimbalController::bullet_loader.get_shooting_status()) {
-                        GimbalController::bullet_loader.stop_shooting();
-                    }
-                }
-                GimbalInterface::bullet_loader.target_current = (int) GimbalController::bullet_loader.get_target_current(
-                        GimbalInterface::bullet_loader.angular_velocity, -270);
-            } else*/ if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_MIDDLE) {
-                GimbalInterface::friction_wheels.duty_cycle = GIMBAL_REMOTE_FRICTION_WHEEL_DUTY_CYCLE;
-                if (Remote::rc.ch3 < 0.1) {
-                    if (!GimbalController::bullet_loader.get_shooting_status()) {
-                        GimbalController::bullet_loader.start_continuous_shooting();
-                    }
-
-                    GimbalInterface::bullet_loader.target_current = (int) GimbalController::bullet_loader.get_target_current(
-                            GimbalInterface::bullet_loader.angular_velocity, Remote::rc.ch3 * 360);
-                } else {
-                    if (GimbalController::bullet_loader.get_shooting_status()) {
-                        GimbalController::bullet_loader.stop_shooting();
-                    }
-                }
-            } else if (Remote::rc.s1 == Remote::S_DOWN) { // PC control mode
-
-                // If mouse left button is pressed, start continuous shooting
-                if (Remote::mouse.press_left) {
-                    // TODO: enable friction in emergency
-                    if (!GimbalController::bullet_loader.get_shooting_status() &&
-                        GimbalInterface::friction_wheels.duty_cycle > 0) {
-                        GimbalController::bullet_loader.start_continuous_shooting();
-                    }
-
-                } else {
-
-                    if (GimbalController::bullet_loader.get_shooting_status()) {
-                        GimbalController::bullet_loader.stop_shooting();
-                    }
-                }
-
-                if (Remote::mouse.press_right) {
-                    if (!pc_right_pressed) {
-                        if (GimbalInterface::friction_wheels.duty_cycle == 0) {
-                            GimbalInterface::friction_wheels.duty_cycle = GIMBAL_PC_FRICTION_WHEEL_DUTY_CYCLE;
-                        } else {
-                            GimbalInterface::friction_wheels.duty_cycle = 0;
-                        }
-                        pc_right_pressed = true;
-                    }
-                } else {
-                    if (pc_right_pressed) {
-                        pc_right_pressed = false;
-                    }
-                }
-
-                GimbalInterface::bullet_loader.target_current = (int) GimbalController::bullet_loader.get_target_current(
-                        GimbalInterface::bullet_loader.angular_velocity, -270);
-
-            } else {
-                GimbalInterface::friction_wheels.duty_cycle = 0;
-                GimbalInterface::bullet_loader.target_current = 0;
-            }
-
-            GimbalInterface::send_gimbal_currents();
-
-            sleep(TIME_MS2I(GIMBAL_THREAD_INTERVAL));
-        }
-    }
-} gimbalThread;
-
-/**
- * @name ChassisThread
- * @brief thread to control chassis
- * @pre RemoteInterpreter start receive
- * @pre initialize ChassisInterface with CAN driver
- */
-class ChassisThread : public chibios_rt::BaseStaticThread<1024> {
-
-    static constexpr unsigned int chassis_thread_interval = 20;
-
-    static constexpr float PC_W_VY = -800.0f;
-    static constexpr float PC_S_VY = 800.0f;
-    static constexpr float PC_E_VX = -800.0f;
-    static constexpr float PC_Q_VX = 800.0f;
-    static constexpr float PC_A_W = -180.0f;
-    static constexpr float PC_D_W = 180.0f;
-
-    static constexpr float PC_CTRL_RATIO = 0.5f;
-
-    void main() final {
-
-        setName("chassis");
-
-        Chassis::change_pid_params(CHASSIS_PID_V2I_PARAMS);
-
-        while (!shouldTerminate()) {
-
-            if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_UP) {
-
-                Chassis::calc(0,
-                              -Remote::rc.ch3 * 1500.0f,
-                              Remote::rc.ch2 * 270.0f);
-
-            } else if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_DOWN) {
-
-                Chassis::calc(-Remote::rc.ch2 * 1000.0f,
-                              -Remote::rc.ch3 * 1000.0f,
-                              Remote::rc.ch0 * 180.0f);
-
-            } else if (Remote::rc.s1 == Remote::S_DOWN) { // PC control mode
-
-                // Determine target velocities
-
-                float target_vx, target_vy, target_w;
-
-                if (Remote::key.w) target_vy = PC_W_VY;
-                else if (Remote::key.s) target_vy = PC_S_VY;
-                else target_vy = 0;
-
-                if (Remote::key.q) target_vx = PC_Q_VX;
-                else if (Remote::key.e) target_vx = PC_E_VX;
-                else target_vx = 0;
-
-                if (Remote::key.a) target_w = PC_A_W;
-                else if (Remote::key.d) target_w = PC_D_W;
-                else target_w = 0;
-
-                if (Remote::key.ctrl) {
-                    target_vx *= PC_CTRL_RATIO;
-                    target_vy *= PC_CTRL_RATIO;
-                    target_w *= PC_CTRL_RATIO;
-                }
-
-                // Perform calculation
-                Chassis::calc(target_vx, target_vy, target_w);
-
-            } else {
-
-                for (int i = 0; i < Chassis::CHASSIS_MOTOR_COUNT; i++) {
-                    Chassis::target_current[i] = 0;
-                }
-
-            }
-
-            Chassis::send_chassis_currents();
-
-            sleep(TIME_MS2I(chassis_thread_interval));
-
-        }
-    }
-} chassisThread;
+// Threads
+GimbalThread gimbalThread;
+ShootThread ShootThread;
+ChassisThread chassisThread;
 
 
 int main(void) {
@@ -310,7 +67,7 @@ int main(void) {
 
     /** Basic IO Setup **/
     can1.start(HIGHPRIO - 1);
-    MPU6500Controller::start(HIGHPRIO - 2);
+    MPU6500::start(HIGHPRIO - 2);
     Remote::start_receive();
 
     GimbalInterface::init(&can1, GIMBAL_YAW_FRONT_ANGLE_RAW, GIMBAL_PITCH_FRONT_ANGLE_RAW);
