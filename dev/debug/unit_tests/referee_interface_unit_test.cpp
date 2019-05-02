@@ -21,7 +21,7 @@ private:
 
             Shell::printf("chassis_volt = %u" SHELL_NEWLINE_STR, (unsigned int) Referee::power_heat_data.chassis_volt);
             Shell::printf("chassis_current = %u" SHELL_NEWLINE_STR, (unsigned int) Referee::power_heat_data.chassis_current);
-            Shell::printf("chassis_power = %u" SHELL_NEWLINE_STR, (unsigned int) Referee::power_heat_data.chassis_power);
+            Shell::printf("chassis_power = %f" SHELL_NEWLINE_STR, Referee::power_heat_data.chassis_power);
             Shell::printf("chassis_power_buffer = %u" SHELL_NEWLINE_STR, (unsigned int) Referee::power_heat_data.chassis_power_buffer);
             Shell::printf("shooter_heat0 = %u" SHELL_NEWLINE_STR, (unsigned int) Referee::power_heat_data.shooter_heat0);
             Shell::printf("shooter_heat1 = %u" SHELL_NEWLINE_STR, (unsigned int) Referee::power_heat_data.shooter_heat1);
@@ -32,7 +32,11 @@ private:
             Shell::printf("bullet_speed = %u" SHELL_NEWLINE_STR, (unsigned int) Referee::shoot_data.bullet_speed);
             Shell::printf(SHELL_NEWLINE_STR);
 
-            sleep(TIME_MS2I(500));
+            Shell::printf("armor_id = %u" SHELL_NEWLINE_STR, (unsigned int) Referee::robot_hurt.armor_id);
+            Shell::printf("hurt_type = %u" SHELL_NEWLINE_STR, (unsigned int) Referee::robot_hurt.hurt_type);
+            Shell::printf(SHELL_NEWLINE_STR);
+
+            sleep(TIME_MS2I(200));
         }
     }
 } refereeEchoThread;

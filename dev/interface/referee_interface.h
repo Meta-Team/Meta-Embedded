@@ -99,7 +99,7 @@ public:
     } aerial_robot_energy;
 
     static __PACKED_STRUCT robot_hurt_t {
-        uint8_t armor_id:4;
+        uint8_t armor_id : 4;
         uint8_t hurt_type : 4;
     } robot_hurt;
 

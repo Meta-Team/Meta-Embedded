@@ -8,6 +8,7 @@
 #include "serial_shell.h"
 #include "memstreams.h"
 #include "string.h"
+#include "led.h"
 
 Referee::game_state_t Referee::game_state;
 Referee::game_result_t Referee::game_result;
@@ -55,6 +56,7 @@ void Referee::uart_rx_callback(UARTDriver *uartp) {
             } // else, keep waiting for SOF
 
             break;
+
         case WAIT_REMAINING_HEADER:
 
             if (Verify_CRC8_Check_Sum((uint8_t *) rx_buf, FRAME_HEADER_SIZE)) {
@@ -62,7 +64,7 @@ void Referee::uart_rx_callback(UARTDriver *uartp) {
                 memcpy(&cmd_id, rx_buf + FRAME_HEADER_SIZE, CMD_ID_SIZE);
                 rx_status = WAIT_CMD_ID_DATA_TAIL; // go to next status
             } else {
-                LOG_ERR("[REFEREE] Invalid frameHeader!");
+//                LOG_ERR("[REFEREE] Invalid frameHeader!");
                 rx_status = WAIT_STARTING_BYTE;
             }
             break;
@@ -76,18 +78,22 @@ void Referee::uart_rx_callback(UARTDriver *uartp) {
                         memcpy(&game_robot_state, rx_buf + FRAME_HEADER_SIZE + CMD_ID_SIZE, frame_header.data_length);
                         break;
                     case 0x0202:
+
                         memcpy(&power_heat_data, rx_buf + FRAME_HEADER_SIZE + CMD_ID_SIZE, frame_header.data_length);
                         break;
                     case 0x0207:
                         memcpy(&shoot_data, rx_buf + FRAME_HEADER_SIZE + CMD_ID_SIZE, frame_header.data_length);
                         break;
+                    case 0x0206:
+                        if (frame_header.data_length  == 14)LED::red_toggle();
+                        memcpy(&robot_hurt, rx_buf + FRAME_HEADER_SIZE + CMD_ID_SIZE, frame_header.data_length);
                     default:
                         // FIXME: temporarily disabled since not all ID has been implemented
                         // LOG_ERR("[REFEREE] Unknown cmd_id %u", cmd_id);
                         break;
                 }
             } else {
-                LOG_ERR("[REFEREE] Invalid data of type %u!", cmd_id);
+//                LOG_ERR("[REFEREE] Invalid data of type %u!", cmd_id);
             }
 
             rx_status = WAIT_STARTING_BYTE;
@@ -116,4 +122,6 @@ void Referee::init() {
     // Wait for starting byte
     rx_status = WAIT_STARTING_BYTE;
     uartStartReceive(UART_DRIVER, FRAME_SOF_SIZE, rx_buf);
+
+    LOG("sizeof(power_heat_data) = %u", sizeof(power_heat_data));
 }
