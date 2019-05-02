@@ -31,8 +31,8 @@ class SentryChassis {
 public:
 
     enum motor_id_t {
-        MOTOR_LEFT,
         MOTOR_RIGHT,
+        MOTOR_LEFT,
         MOTOR_COUNT // = 2
     };
 

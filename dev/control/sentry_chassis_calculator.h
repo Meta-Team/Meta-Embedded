@@ -67,6 +67,11 @@ public:
         LOG("motor %d target_current: %d", 1, motor[1].target_current);
     }
 
+    static void print_velocity(){
+        LOG("motor %d present_velocity: %.2f", 0, motor_calculator[0].update_velocity());
+        LOG("motor %d present_velocity: %.2f", 1, motor_calculator[1].update_velocity());
+    }
+
     static void update_target_current();
 
     static bool should_change_position(){

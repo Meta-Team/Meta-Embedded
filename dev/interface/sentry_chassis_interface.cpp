@@ -26,8 +26,13 @@ bool SentryChassis::send_currents() {
 #if SENTRY_CHASSIS_ENABLE_CLIP
         ABS_LIMIT(motor[i].target_current, SENTRY_CHASSIS_MAX_CURRENT);
 #endif
-        txmsg.data8[i * 2] = (uint8_t) (motor[i].target_current >> 8);
-        txmsg.data8[i * 2 + 1] = (uint8_t) motor[i].target_current;
+        if(i == MOTOR_LEFT){
+            txmsg.data8[i * 2] = (uint8_t) ((-motor[i].target_current) >> 8);
+            txmsg.data8[i * 2 + 1] = (uint8_t) (-motor[i].target_current);
+        }else{
+            txmsg.data8[i * 2] = (uint8_t) (motor[i].target_current >> 8);
+            txmsg.data8[i * 2 + 1] = (uint8_t) motor[i].target_current;
+        }
     }
 
     can->send_msg(&txmsg);
@@ -54,6 +59,17 @@ void SentryChassis::process_feedback(CANRxFrame const*rxmsg) {
     } else if (angle_movement > 4096) {
         angle_movement -= 8192;
     }
+    // Update the actual data
+    motor[motor_id].actual_rpm_raw = (int16_t) (rxmsg->data8[2] << 8 | rxmsg->data8[3]);
+    motor[motor_id].actual_current_raw = (int16_t) (rxmsg->data8[4] << 8 | rxmsg->data8[5]);
+    motor[motor_id].actual_temperature_raw = rxmsg->data8[6];
+
+    // Modify the data to the same direction, let the direction of the right wheel be the correct direction, and the left wheel is on the opposite
+    if (motor_id == MOTOR_LEFT){
+        angle_movement = - angle_movement;
+        motor[motor_id].actual_rpm_raw = - motor[motor_id].actual_rpm_raw;
+        motor[motor_id].actual_current_raw = - motor[motor_id].actual_current_raw;
+    }
     // Update the actual angle
     motor[motor_id].actual_angle += angle_movement;
     // modify the actual angle and update the round count when appropriate
@@ -69,10 +85,6 @@ void SentryChassis::process_feedback(CANRxFrame const*rxmsg) {
     }
     // Update last angle
     motor[motor_id].last_angle_raw = new_actual_angle_raw;
-
-    motor[motor_id].actual_rpm_raw = (int16_t) (rxmsg->data8[2] << 8 | rxmsg->data8[3]);
-    motor[motor_id].actual_current_raw = (int16_t) (rxmsg->data8[4] << 8 | rxmsg->data8[5]);
-    motor[motor_id].actual_temperature_raw = rxmsg->data8[6];
 
     // See the meaning of the motor decelerate ratio
     motor[motor_id].actual_angular_velocity =

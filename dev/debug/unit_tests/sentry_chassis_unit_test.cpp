@@ -16,6 +16,8 @@ using namespace chibios_rt;
 CANInterface can1(&CAND1);
 bool printPosition = false;
 bool printCurrent = false;
+bool printVelocity = false;
+bool testCurrent = false;
 
 /**
  * @brief enable the chassis
@@ -198,6 +200,26 @@ static void cmd_chassis_print_current(BaseSequentialStream *chp, int argc, char 
     }
     printCurrent = !printCurrent;
 }
+
+static void cmd_chassis_print_velocity(BaseSequentialStream *chp, int argc, char *argv[]){
+    (void) argv;
+    if (argc != 0){
+        shellUsage(chp, "c_v");
+        chprintf(chp, "!cpe" SHELL_NEWLINE_STR);
+        return;
+    }
+    printVelocity = !printVelocity;
+}
+
+static void cmd_chassis_test_current(BaseSequentialStream *chp, int argc, char *argv[]){
+    (void) argv;
+    if (argc != 0){
+        shellUsage(chp, "c_testC");
+        chprintf(chp, "!cpe" SHELL_NEWLINE_STR);
+        return;
+    }
+    testCurrent = !testCurrent;
+}
 // Shell commands to control the chassis
 ShellCommand chassisCommands[] = {
         {"c_enable",   cmd_chassis_enable},
@@ -211,6 +233,8 @@ ShellCommand chassisCommands[] = {
         {"c_clear", cmd_chassis_clear_position},
         {"c_pos", cmd_chassis_print_position},
         {"c_cur", cmd_chassis_print_current},
+        {"c_v", cmd_chassis_print_velocity},
+        {"c_testc", cmd_chassis_test_current},
         {nullptr,    nullptr}
 };
 
@@ -221,18 +245,31 @@ protected:
         setName("chassis");
         while (!shouldTerminate()) {
 
-            if (!SentryChassisController::test_mode && SentryChassisController::should_change_position())
-                SentryChassisController::change_position();
-
-            if(printPosition){
-                SentryChassisController::print_position();
+            if(testCurrent){
+                if(!SentryChassisController::enable){
+                    SentryChassisController::motor[0].target_current = 0;
+                    SentryChassisController::motor[1].target_current = 0;
+                }else{
+                    SentryChassisController::motor[0].target_current = 1000;
+                    SentryChassisController::motor[1].target_current = 1000;
+                }
             }else{
-                SentryChassisController::update_present_data();
+                if (!SentryChassisController::test_mode && SentryChassisController::should_change_position())
+                    SentryChassisController::change_position();
+
+                if(printPosition){
+                    SentryChassisController::print_position();
+                }else{
+                    SentryChassisController::update_present_data();
+                }
+                if(printCurrent){
+                    SentryChassisController::print_current();
+                }
+                if(printVelocity)
+                    SentryChassisController::print_velocity();
+
+                SentryChassisController::update_target_current();
             }
-            if(printCurrent){
-                SentryChassisController::print_current();
-            }
-            SentryChassisController::update_target_current();
             SentryChassisController::send_currents();
             //SentryChassis::send_currents();
 
