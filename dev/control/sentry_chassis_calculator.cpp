@@ -32,6 +32,14 @@ void SentryChassisController::update_target_current() {
         motor_calculator[i].set_target_current();
 }
 
+void SentryChassisController::change_position() {
+    if(motor_calculator[0].update_position() > 0){
+        move_certain_dist(-radius);
+    } else{
+        move_certain_dist(radius);
+    }
+}
+
 void SentryChassisController::motor_calculator_t::print_pid_params(BaseSequentialStream *chp){
     chprintf(chp, "motor_id: %d" SHELL_NEWLINE_STR, id);
     chprintf(chp, "dist_to_v pid  kp = %.2f ki = %.2f kd = %.2f i_limit = %.2f out_limit = %.2f" SHELL_NEWLINE_STR,
@@ -52,7 +60,6 @@ int SentryChassisController::motor_calculator_t::set_target_current(){
 void SentryChassisController::motor_calculator_t::reset_position(){
     motor[id].round_count = 0;
     motor[id].actual_angle = 0;
-    motor[id].last_angle_raw = 0;
     present_position = 0;
     target_position = 0;
 }
@@ -68,4 +75,8 @@ float SentryChassisController::motor_calculator_t::update_velocity(){
     // The unit of actual_angular_velocity is degrees/s, so we first translate it into r/s and then multiplying by displacement_per_round factor
     present_velocity = motor[id].actual_angular_velocity / 360.0f * displacement_per_round;
     return present_velocity;
+}
+
+bool SentryChassisController::motor_calculator_t::should_change() {
+    return present_position >= radius || present_position <= -radius;
 }

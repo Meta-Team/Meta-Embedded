@@ -56,9 +56,27 @@ public:
     static void print_position(){
         LOG("motor %d position: %.2f", 0, motor_calculator[0].update_position());
         LOG("motor %d position: %.2f", 1, motor_calculator[1].update_position());
+        /*motor_calculator[0].update_position();
+        motor_calculator[1].update_position();
+        LOG("%d",motor[0].actual_angle);
+        LOG("%d",motor[1].actual_angle);*/
+    }
+
+    static void print_current(){
+        LOG("motor %d target_current: %d", 0, motor[0].target_current);
+        LOG("motor %d target_current: %d", 1, motor[1].target_current);
     }
 
     static void update_target_current();
+
+    static bool should_change_position(){
+        return motor_calculator[0].should_change() && motor_calculator[1].should_change();
+    }
+
+    /**
+     * @brief this function set the rule for the automatically driving
+     */
+    static void change_position();
 
 private:
 
@@ -71,7 +89,12 @@ private:
     public:
         motor_id_t id;
 
-        bool should_reverse = false;
+        /**
+         * @brief this function decides whether the motor should change its target position
+         * @attention this function is only used for autonomous mode
+         * @return
+         */
+        bool should_change();
 
         /**
          * @brief update the present position according to the data from interface
