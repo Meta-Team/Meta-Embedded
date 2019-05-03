@@ -113,11 +113,11 @@ static void cmd_chassis_set_pid(BaseSequentialStream *chp, int argc, char *argv[
         return;
     }
 
-    SentryChassisController::change_v_to_i_pid(Shell::atof(argv[1]),
+    SentryChassisController::change_v_to_i_pid(Shell::atof(argv[0]),
+                                               Shell::atof(argv[1]),
                                                Shell::atof(argv[2]),
                                                Shell::atof(argv[3]),
-                                               Shell::atof(argv[4]),
-                                               Shell::atof(argv[5]));
+                                               Shell::atof(argv[4]));
 
     chprintf(chp, "!cps" SHELL_NEWLINE_STR); // echo chassis parameters set
 }

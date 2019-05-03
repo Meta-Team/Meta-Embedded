@@ -192,7 +192,7 @@ private:
 
     static float constexpr maximum_speed = 80.0f;
     //todo: determine what displacement is changed as the motor goes one round
-    static float constexpr displacement_per_round = 1.0f;
+    static float constexpr displacement_per_round = 17.28f;
 };
 
 

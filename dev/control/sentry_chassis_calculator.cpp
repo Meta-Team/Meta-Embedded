@@ -29,7 +29,8 @@ void SentryChassisController::set_destination(float dist) {
 }
 
 void SentryChassisController::update_target_current() {
-    if(motor_calculator[MOTOR_LEFT].should_change() && motor_calculator[MOTOR_RIGHT].should_change()){
+    if(motor_calculator[MOTOR_LEFT].should_change() || motor_calculator[MOTOR_RIGHT].should_change()){
+
         // If the sentry is in the "stop area"
         if (test_mode){
             // If we are in the TEST MODE, we stop the sentry by simply set the target velocity to 0
@@ -52,7 +53,6 @@ void SentryChassisController::set_auto_destination() {
         motor_calculator[MOTOR_RIGHT].set_motor_target_position(radius);
         motor_calculator[MOTOR_LEFT].set_motor_target_position(radius);
     }
-    LOG("I hit the end");
 }
 
 void SentryChassisController::motor_calculator_t::set_motor_target_position(float dist) {
@@ -92,11 +92,11 @@ void SentryChassisController::motor_calculator_t::reset_position(){
 void SentryChassisController::motor_calculator_t::update_motor_data(){
     // Count the rounds first, like 1.5 rounds, -20.7 rounds, etc
     // Then transform it to displacement by multiplying the displacement_per_round factor
-    present_position = (motor[id].actual_angle + 8192.0f * motor[id].round_count) / 8192.0f * displacement_per_round;
+    present_position = (motor[id].actual_angle + 8192.0f * motor[id].round_count) / 8192.0f * displacement_per_round / chassis_motor_decelerate_ratio;
     // The unit of actual_angular_velocity is degrees/s, so we first translate it into r/s and then multiplying by displacement_per_round factor
     present_velocity = motor[id].actual_angular_velocity / 360.0f * displacement_per_round;
 }
 
 bool SentryChassisController::motor_calculator_t::should_change() {
-    return present_position >= target_position-15 || present_position <= target_position+15;
+    return present_position >= target_position-5 && present_position <= target_position+5;
 }
