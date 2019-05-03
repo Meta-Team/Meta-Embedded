@@ -59,11 +59,10 @@ int main(void) {
     halInit();
     chibios_rt::System::init();
 
-    LED::green_off();
-    LED::red_off();
-
     /** Debug Setup **/
     Shell::start(HIGHPRIO);
+    LED::green_off();
+    LED::red_off();
 
     /** Basic IO Setup **/
     can1.start(HIGHPRIO - 1);

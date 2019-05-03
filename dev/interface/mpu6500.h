@@ -122,13 +122,16 @@ private:
 
 
     /**
-     * MPU6500_CONFIG, [2:0] bits
+     * Gyro Digital Low-Pass Filter Configuration
+     * Register 26 – Configuration, [2:0] bits DLPF_CFG
+     * @note to enable DLPF, [1:0] FCHOICE_B at Reg 27 should be set to 00 (default by reset)
+     * @note when DLPF is enabled, the sample rate is 1kHz by default (can be changed with Reg 25 – Sample Rate Divider)
      */
     typedef enum{
         MPU6500_DLPF_250HZ  =  0,
         MPU6500_DLPF_184HZ  =  1,
         MPU6500_DLPF_92HZ   =  2,
-        MPU6500_DLPF_41HZ   =  3,
+        MPU6500_DLPF_41HZ   =  3,  // √
         MPU6500_DLPF_20HZ   =  4,
         MPU6500_DLPF_10HZ   =  5,
         MPU6500_DLPF_5HZ    =  6,
@@ -136,14 +139,14 @@ private:
     } dlpf_config_t;
 
     /**
-     * Scale config for gyro
-     * MPU6500_GYRO_CONFIG, [4:3] bits, shift when set SPI
+     * Gyro full scale config
+     * Register 27 - Gyroscope Configuration, [4:3] bits GYRO_FS_SEL
      */
     typedef enum {
-        MPU6500_GYRO_SCALE_250 = 0,  // range of 250 with sensitivity factor 131 √
-        MPU6500_GYRO_SCALE_500 = 1,  // range of 500 with sensitivity factor 65.5
-        MPU6500_GYRO_SCALE_1000 = 2, // range of 1000 with sensitivity factor 32.8
-        MPU6500_GYRO_SCALE_2000 = 3  // range of 1000 with sensitivity factor 16.4
+        MPU6500_GYRO_SCALE_250 = 0,  // range of 250 dps with sensitivity factor 131 √
+        MPU6500_GYRO_SCALE_500 = 1,  // range of 500 dps with sensitivity factor 65.5
+        MPU6500_GYRO_SCALE_1000 = 2, // range of 1000 dps with sensitivity factor 32.8
+        MPU6500_GYRO_SCALE_2000 = 3  // range of 1000 dps with sensitivity factor 16.4
     } gyro_scale_t;
 
     /**
@@ -153,7 +156,7 @@ private:
     typedef enum {
         MPU6500_ACCEL_SCALE_2G = 0,
         MPU6500_ACCEL_SCALE_4G = 1,
-        MPU6500_ACCEL_SCALE_8G = 2, // √
+        MPU6500_ACCEL_SCALE_8G = 2,  // √
         MPU6500_ACCEL_SCALE_16G = 3
     } accel_scale_t;
 
@@ -185,10 +188,12 @@ private:
 
     /** Configurations **/
 
-    static constexpr mpu6500_config_t config = {MPU6500_GYRO_SCALE_250, MPU6500_ACCEL_SCALE_8G,
-                                                MPU6500_DLPF_41HZ, MPU6500_ADLPF_20HZ};
+    static constexpr mpu6500_config_t config = {MPU6500_GYRO_SCALE_250,  // Gyro full scale 250 dps (degree per second)
+                                                MPU6500_ACCEL_SCALE_8G,  // Accel full scale 8g
+                                                MPU6500_DLPF_41HZ,       // Gyro digital low-pass filter 41Hz
+                                                MPU6500_ADLPF_20HZ};     // Accel digital low-pass filter 20Hz
 
-    static constexpr unsigned int mpu6500_thread_update_interval = 1; // [ms]
+    static constexpr unsigned int mpu6500_thread_update_interval = 1;  // read interval 1ms (1kHz)
 };
 
 #endif
