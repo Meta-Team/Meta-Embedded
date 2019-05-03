@@ -21,9 +21,6 @@ bool testCurrent = false;
 
 /**
  * @brief enable the chassis
- * @param chp
- * @param argc
- * @param argv
  */
 static void cmd_chassis_enable(BaseSequentialStream *chp, int argc, char *argv[]){
     (void) argv;
@@ -36,9 +33,6 @@ static void cmd_chassis_enable(BaseSequentialStream *chp, int argc, char *argv[]
 
 /**
  * @brief disable the chassis
- * @param chp
- * @param argc
- * @param argv
  */
 static void cmd_chassis_disable(BaseSequentialStream *chp, int argc, char *argv[]){
     (void) argv;
@@ -51,9 +45,7 @@ static void cmd_chassis_disable(BaseSequentialStream *chp, int argc, char *argv[
 
 /**
  * @brief set the mode for the sentry
- * @param chp
- * @param argc
- * @param argv
+ * @attention test_mode is true for testing, and is false for automatically driving
  */
 static void cmd_chassis_test_mode(BaseSequentialStream *chp, int argc, char *argv[]){
     (void) argv;
@@ -62,11 +54,10 @@ static void cmd_chassis_test_mode(BaseSequentialStream *chp, int argc, char *arg
         return;
     }
     SentryChassisController::test_mode = (*argv[0] == '1');
-    if(!SentryChassisController::test_mode){
-        SentryChassisController::move_certain_dist(SentryChassisController::radius);
-    }else{
-        SentryChassisController::reset_present_position();
-    }
+
+    // If it is not the TEST MODE, then it is the AUTO MODE, so, start the AUTO MODE
+    if(!SentryChassisController::test_mode)
+        SentryChassisController::start_auto_mode();
 }
 /**
  * @brief echo acutal angular velocity and target current of each motor
@@ -113,18 +104,14 @@ static void cmd_chassis_set_target_currents(BaseSequentialStream *chp, int argc,
 
 /**
  * @brief set chassis common PID params
- * @param chp
- * @param argc
- * @param argv
  */
 static void cmd_chassis_set_pid(BaseSequentialStream *chp, int argc, char *argv[]) {
     (void) argv;
-    if (argc != 6) {
-        shellUsage(chp, "c_set_pid dist_to_v(0)/v_to_i(1) ki kp kd i_limit out_limit");
+    if (argc != 5) {
+        shellUsage(chp, "c_set_pid ki kp kd i_limit out_limit");
         chprintf(chp, "!cpe" SHELL_NEWLINE_STR);  // echo chassis parameters error
         return;
     }
-
 
     SentryChassisController::change_v_to_i_pid(Shell::atof(argv[1]),
                                                Shell::atof(argv[2]),
@@ -137,9 +124,6 @@ static void cmd_chassis_set_pid(BaseSequentialStream *chp, int argc, char *argv[
 
 /**
  * @brief print the pid information of the specific motor
- * @param chp
- * @param argc
- * @param argv
  */
 static void cmd_chassis_print_pid(BaseSequentialStream *chp, int argc, char *argv[]) {
     (void) argv;
@@ -157,9 +141,6 @@ static void cmd_chassis_print_pid(BaseSequentialStream *chp, int argc, char *arg
 
 /**
  * @brief set the target_position in the unit of cm
- * @param chp
- * @param argc
- * @param argv
  */
 static void cmd_chassis_set_position(BaseSequentialStream *chp, int argc, char *argv[]){
     (void) argv;
@@ -168,9 +149,15 @@ static void cmd_chassis_set_position(BaseSequentialStream *chp, int argc, char *
         chprintf(chp, "!cpe" SHELL_NEWLINE_STR);
         return;
     }
-    SentryChassisController::move_certain_dist(Shell::atof(argv[0]));
+    SentryChassisController::set_destination(Shell::atof(argv[0]));
 }
 
+/**
+ * @brief clear the present and target position
+ * @param chp
+ * @param argc
+ * @param argv
+ */
 static void cmd_chassis_clear_position(BaseSequentialStream *chp, int argc, char *argv[]){
     (void) argv;
     if (argc != 0){
@@ -178,7 +165,7 @@ static void cmd_chassis_clear_position(BaseSequentialStream *chp, int argc, char
         chprintf(chp, "!cpe" SHELL_NEWLINE_STR);
         return;
     }
-    SentryChassisController::reset_present_position();
+    SentryChassisController::clear_position();
 }
 
 static void cmd_chassis_print_position(BaseSequentialStream *chp, int argc, char *argv[]){
@@ -246,32 +233,30 @@ protected:
         while (!shouldTerminate()) {
 
             if(testCurrent){
-                if(!SentryChassisController::enable){
-                    SentryChassisController::motor[0].target_current = 0;
-                    SentryChassisController::motor[1].target_current = 0;
-                }else{
+                // In testCurrent mode, we send a constant current to the motor without processing any feedback
+                // This is a fundamental test, check how the motors respond to the given current
+                if(SentryChassisController::enable){
                     SentryChassisController::motor[0].target_current = 1000;
                     SentryChassisController::motor[1].target_current = 1000;
+                }else{
+                    SentryChassisController::motor[0].target_current = 0;
+                    SentryChassisController::motor[1].target_current = 0;
                 }
             }else{
-                if (!SentryChassisController::test_mode && SentryChassisController::should_change_position())
-                    SentryChassisController::change_position();
+                SentryChassisController::update_present_data();
 
-                if(printPosition){
+                if(printPosition)
                     SentryChassisController::print_position();
-                }else{
-                    SentryChassisController::update_present_data();
-                }
-                if(printCurrent){
+
+                if(printCurrent)
                     SentryChassisController::print_current();
-                }
+
                 if(printVelocity)
                     SentryChassisController::print_velocity();
 
                 SentryChassisController::update_target_current();
             }
             SentryChassisController::send_currents();
-            //SentryChassis::send_currents();
 
             sleep(TIME_MS2I(100));
         }
