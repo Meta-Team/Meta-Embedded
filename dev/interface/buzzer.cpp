@@ -8,6 +8,7 @@
 constexpr Buzzer::note_with_time_t Buzzer::sound_alert[];
 constexpr Buzzer::note_with_time_t Buzzer::sound_startup[];
 constexpr Buzzer::note_with_time_t Buzzer::sound_startup_intel[];
+constexpr Buzzer::note_with_time_t Buzzer::sound_infinty_warning[];
 constexpr Buzzer::note_with_time_t Buzzer::sound_little_star[];
 constexpr Buzzer::note_with_time_t Buzzer::sound_orange[];
 
@@ -55,19 +56,22 @@ void Buzzer::BuzzerThread::main(void) {
         };
         pwmStart(&BUZZER_PWM_DRIVER, &pwm_config);
 
-        while (sound_seq->note != -1) {
+        curr = sound_seq;
+        while (curr->note != Finish) {
 
-            if (sound_seq->note > 0) {  // a valid note
+            if (curr->note > 0) {  // a valid note
                 // See note above for this formula
-                pwmChangePeriod(&BUZZER_PWM_DRIVER, 1000000 / (unsigned long) sound_seq->note);
+                pwmChangePeriod(&BUZZER_PWM_DRIVER, 1000000 / (unsigned long) curr->note);
                 pwmEnableChannel(&BUZZER_PWM_DRIVER, 0, PWM_PERCENTAGE_TO_WIDTH(&BUZZER_PWM_DRIVER, 5000)); // 50%
-            } else {  // a silent note
+            } else if (curr->note == Finish) {  // a silent note
                 pwmDisableChannel(&BUZZER_PWM_DRIVER, 0);
+            } else if (curr->note == InfLoop) {  // restart the sound
+                curr = sound_seq;
             }
 
-            sleep(TIME_MS2I(sound_seq->duration));
+            sleep(TIME_MS2I(curr->duration));
 
-            sound_seq++; // move to next note
+            curr++;  // move to next note
         }
 
         pwmStop(&BUZZER_PWM_DRIVER);

@@ -109,7 +109,7 @@ target_compile_definitions(ENGINEER PRIVATE ENGINEER)
 # Blink
 add_executable(ut_blink
         dev/module/button_monitor.cpp
-        dev/debug/unit_tests/main_blink.cpp)
+        dev/debug/unit_tests/led_unit_test.cpp)
 
 # Remote Interpreter: include remote_interpreter sources and the unit test modules.
 add_executable(ut_remote_interpreter

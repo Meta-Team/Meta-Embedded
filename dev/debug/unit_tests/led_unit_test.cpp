@@ -29,6 +29,10 @@ private:
 
     ButtonMonitorThread* button = nullptr;
 
+#if defined(BOARD_RM_2018_A)
+    unsigned led_i = 1;
+#endif
+
     void main() final {
         setName("blink");
         while (!shouldTerminate()) {
@@ -44,6 +48,12 @@ private:
                 LED::green_off();
                 sleep(TIME_MS2I((1 + button->counter % 3) * 100));
             }
+#if defined(BOARD_RM_2018_A)
+            LED::led_off(led_i);
+            led_i++;
+            if (led_i > 8) led_i = 1;
+            LED::led_on(led_i);
+#endif
         }
     }
 } blinkLEDThread;
