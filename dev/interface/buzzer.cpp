@@ -63,7 +63,7 @@ void Buzzer::BuzzerThread::main(void) {
                 // See note above for this formula
                 pwmChangePeriod(&BUZZER_PWM_DRIVER, 1000000 / (unsigned long) curr->note);
                 pwmEnableChannel(&BUZZER_PWM_DRIVER, 0, PWM_PERCENTAGE_TO_WIDTH(&BUZZER_PWM_DRIVER, 5000)); // 50%
-            } else if (curr->note == Finish) {  // a silent note
+            } else if (curr->note == Silent) {  // a silent note
                 pwmDisableChannel(&BUZZER_PWM_DRIVER, 0);
             } else if (curr->note == InfLoop) {  // restart the sound
                 curr = sound_seq;
