@@ -151,6 +151,8 @@ bool MPU6500::start(tprio_t prio) {
     // Start the update thread
     updateThread.start(prio);
 
+    StateHandler::echoEvent(StateHandler::MPU6500_START);
+
     return true;
 }
 
@@ -169,6 +171,9 @@ void MPU6500::getData() {
     spiUnselect(&MPU6500_SPI_DRIVER);
     spiReleaseBus(&MPU6500_SPI_DRIVER);
 
+
+    chSysLock();  // --- Enter Critical Zone ---
+
     float accel_x = _accel_psc * (int16_t)((mpu6500_RXData[ 0]<<8) | mpu6500_RXData[ 1]); // Accel X
     float accel_y = _accel_psc * (int16_t)((mpu6500_RXData[ 2]<<8) | mpu6500_RXData[ 3]); // Accel Y
     float accel_z = _accel_psc * (int16_t)((mpu6500_RXData[ 4]<<8) | mpu6500_RXData[ 5]); // Accel Z
@@ -184,4 +189,6 @@ void MPU6500::getData() {
     angle_speed.z = (gyro_z + _gyro_bias.z);
 
     a_component = Vector3D(accel_x, accel_y, accel_z) * _accel_bias;
+
+    chSysUnlock();  // --- Exit Critical Zone ---
 }

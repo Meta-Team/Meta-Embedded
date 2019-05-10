@@ -42,7 +42,8 @@ set(COMMON_CPP_SRC  # common cpp sources, which are included to every tartget at
         dev/debug/serial_shell.cpp
         dev/debug/shell_debug_commands.cpp
         dev/interface/led.cpp
-        dev/interface/buzzer.cpp)
+        dev/interface/buzzer.cpp
+        dev/module/state_handler.cpp)
 
 include_directories(  # common include directories
         dev

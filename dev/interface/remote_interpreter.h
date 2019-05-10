@@ -17,6 +17,7 @@
 #include "hal.h"
 
 #include "serial_shell.h"
+#include "state_handler.h"
 
 #if defined(BOARD_RM_2018_A)
 // PB7 USART1_RX (alternate 7)
@@ -106,7 +107,7 @@ private:
 
     static char rx_buf_[]; // store buf data retrieved from UART
 
-    static const int RX_BUF_SIZE = 18;
+    static const int RX_FRAME_SIZE = 18;
 
     friend void uartStart(UARTDriver *uartp, const UARTConfig *config);
     friend void uartStartReceive(UARTDriver *uartp, size_t n, void *rxbuf);

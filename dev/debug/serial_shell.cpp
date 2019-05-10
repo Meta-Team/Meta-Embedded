@@ -51,6 +51,8 @@ bool Shell::start(tprio_t prio) {
     chRegSetThreadNameX(shellThreadRef, "shell");
 
     enabled = true;
+
+    StateHandler::echoEvent(StateHandler::SHELL_START);
     return true;
 }
 

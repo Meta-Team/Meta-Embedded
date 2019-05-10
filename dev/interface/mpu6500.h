@@ -9,6 +9,7 @@
 #include "hal.h"
 
 #include "common_macro.h"
+#include "state_handler.h"
 
 #include "mpu6500_reg.h"
 

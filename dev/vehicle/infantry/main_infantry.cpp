@@ -60,14 +60,23 @@ int main(void) {
     chibios_rt::System::init();
 
     /** Debug Setup **/
+    LED::all_off();
+
     Shell::start(HIGHPRIO);
-    LED::green_off();
-    LED::red_off();
+    // LED 1 on now
+
 
     /** Basic IO Setup **/
+
     can1.start(HIGHPRIO - 1);
+    StateHandler::performAction(StateHandler::CAN_CHECK_NO_ERROR);  // block for 100 ms
+    // LED 2 on now
+
     MPU6500::start(HIGHPRIO - 2);
+    // LED 3 on now
+
     Remote::start_receive();
+    // LED 4 on now
 
     /** Module Setup **/
     Gimbal::init(&can1, GIMBAL_YAW_FRONT_ANGLE_RAW, GIMBAL_PITCH_FRONT_ANGLE_RAW);
@@ -76,18 +85,9 @@ int main(void) {
 
     /*** ------------ Period 2. Calibration and Start Logic Control Thread ----------- ***/
 
-//    while (palReadPad(STARTUP_BUTTON_PAD, STARTUP_BUTTON_PIN_ID) != STARTUP_BUTTON_PRESS_PAL_STATUS) {
-//        // Wait for the button to be pressed
-//        LED::green_toggle();
-//        chThdSleepMilliseconds(300);
-//    }
-//    /** User has pressed the button **/
 
     LED::green_on();
 
-//    /** Gimbal Calibration **/
-//    GimbalInterface::yaw.reset_front_angle();
-//    GimbalInterface::pitch.reset_front_angle();
 
     // Start the red spot
     palSetPadMode(GPIOG, GPIOG_PIN13, PAL_MODE_OUTPUT_PUSHPULL);
