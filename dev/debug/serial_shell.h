@@ -17,8 +17,6 @@
 
 #include "shell_debug_commands.h"
 
-#include "state_handler.h"
-
 #if defined(BOARD_RM_2018_A)
 // USART6_TX - PG14, USART6_RX - PG9
 #elif defined(BOARD_RM_2017)

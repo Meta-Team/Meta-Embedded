@@ -20,7 +20,7 @@ void CANInterface::ErrorFeedbackThread::main() {
         }
 
         eventflags_t flags = chEvtGetAndClearFlags(&el);
-        Shell::printf("CAN error: %u" SHELL_NEWLINE_STR, (unsigned int) flags);
+        StateHandler::raiseException(StateHandler::CAN_ERROR, flags);
 
     }
 

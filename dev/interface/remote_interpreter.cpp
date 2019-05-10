@@ -16,6 +16,7 @@
 Remote::rc_t Remote::rc;
 Remote::mouse_t Remote::mouse;
 Remote::keyboard_t Remote::key;
+time_msecs_t Remote::last_update_time;
 char Remote::rx_buf_[Remote::RX_FRAME_SIZE];
 constexpr UARTConfig Remote::REMOTE_UART_CONFIG;
 
@@ -94,6 +95,8 @@ void Remote::uart_received_callback_(UARTDriver *uartp) {
 
 #endif
 
+    last_update_time = SYSTIME;
+
     // Restart the receive
     uartStartReceive(uartp, RX_FRAME_SIZE, rx_buf_);
 
@@ -107,5 +110,4 @@ void Remote::uart_received_callback_(UARTDriver *uartp) {
 void Remote::start_receive() {
     uartStart(&REMOTE_UART_DRIVER, &REMOTE_UART_CONFIG);
     uartStartReceive(&REMOTE_UART_DRIVER, RX_FRAME_SIZE, rx_buf_);
-    StateHandler::echoEvent(StateHandler::REMOTE_START);
 }

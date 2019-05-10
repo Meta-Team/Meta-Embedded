@@ -81,6 +81,6 @@ class GimbalThread : public chibios_rt::BaseStaticThread<1024> {
             sleep(TIME_MS2I(GIMBAL_THREAD_INTERVAL));
         }
     }
-}
+};
 
 #endif //META_INFANTRY_THREAD_GIMBAL_H

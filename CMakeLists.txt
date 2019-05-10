@@ -43,7 +43,7 @@ set(COMMON_CPP_SRC  # common cpp sources, which are included to every tartget at
         dev/debug/shell_debug_commands.cpp
         dev/interface/led.cpp
         dev/interface/buzzer.cpp
-        dev/module/state_handler.cpp)
+        dev/control/state_handler.cpp)
 
 include_directories(  # common include directories
         dev
@@ -79,17 +79,17 @@ set(INFANTRY
 # Main Program -- Infantry #1
 add_executable(INFANTRY_THREE ${INFANTRY})
 target_include_directories(INFANTRY_THREE PRIVATE dev/vehicle/infantry)
-target_compile_definitions(INFANTRY_THREE PRIVATE INFANTRY_THREE)
+target_compile_definitions(INFANTRY_THREE PRIVATE INFANTRY INFANTRY_THREE ENABLE_STATE_HANDLE)
 
 # Main Program -- Infantry #4
 add_executable(INFANTRY_FOUR ${INFANTRY})
 target_include_directories(INFANTRY_FOUR PRIVATE dev/vehicle/infantry)
-target_compile_definitions(INFANTRY_FOUR PRIVATE INFANTRY_FOUR)
+target_compile_definitions(INFANTRY_FOUR PRIVATE INFANTRY INFANTRY_FOUR ENABLE_STATE_HANDLE)
 
 # Main Program -- Infantry #5
 add_executable(INFANTRY_FIVE ${INFANTRY})
 target_include_directories(INFANTRY_FIVE PRIVATE dev/vehicle/infantry)
-target_compile_definitions(INFANTRY_FIVE PRIVATE INFANTRY_FIVE)
+target_compile_definitions(INFANTRY_FIVE PRIVATE INFANTRY INFANTRY_FIVE ENABLE_STATE_HANDLE)
 
 # Main Program -- Engineer
 add_executable(ENGINEER
@@ -105,7 +105,7 @@ add_executable(ENGINEER
         dev/vehicle/engineer/robotic_arm_thread.cpp
         dev/vehicle/engineer/main_engineer.cpp)
 target_include_directories(ENGINEER PRIVATE dev/vehicle/engineer)
-target_compile_definitions(ENGINEER PRIVATE ENGINEER)
+target_compile_definitions(ENGINEER PRIVATE ENGINEER ENABLE_STATE_HANDLE)
 
 # Blink
 add_executable(ut_blink

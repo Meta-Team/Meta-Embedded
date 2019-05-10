@@ -16,6 +16,7 @@
 #include "ch.hpp"
 #include "hal.h"
 
+#include "common_macro.h"
 #include "serial_shell.h"
 #include "state_handler.h"
 
@@ -96,6 +97,8 @@ public:
     static rc_t rc;
     static mouse_t mouse;
     static keyboard_t key;
+
+    static time_msecs_t last_update_time;
 
     /** Interface functions **/
 

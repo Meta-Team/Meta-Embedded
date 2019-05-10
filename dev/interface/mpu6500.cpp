@@ -151,8 +151,6 @@ bool MPU6500::start(tprio_t prio) {
     // Start the update thread
     updateThread.start(prio);
 
-    StateHandler::echoEvent(StateHandler::MPU6500_START);
-
     return true;
 }
 

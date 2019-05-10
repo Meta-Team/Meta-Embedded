@@ -177,7 +177,7 @@
 #define GPIOG_PIN10                 10U
 #define GPIOG_PIN11                 11U
 #define GPIOG_PIN12                 12U
-#define GPIOG_PIN13                 13U
+#define GPIOG_RED_SPOT_LASER                 13U
 #define GPIOG_USART6_TX                 14U
 #define GPIOG_PIN15                 15U
 
@@ -1008,7 +1008,7 @@
  * PG10 - PIN10                     (input floating).
  * PG11 - PIN11                     (input floating).
  * PG12 - PIN12                     (input floating).
- * PG13 - PIN13                     (input floating).
+ * PG13 - RED_SPOT_LAZER                     (output pushpull maximum).
  * PG14 - USART6_TX                     (alternate 8).
  * PG15 - PIN15                     (input floating).
  */
@@ -1025,7 +1025,7 @@
                                      PIN_MODE_INPUT(GPIOG_PIN10) |          \
                                      PIN_MODE_INPUT(GPIOG_PIN11) |          \
                                      PIN_MODE_INPUT(GPIOG_PIN12) |          \
-                                     PIN_MODE_INPUT(GPIOG_PIN13) |          \
+                                     PIN_MODE_OUTPUT(GPIOG_RED_SPOT_LASER) |          \
                                      PIN_MODE_ALTERNATE(GPIOG_USART6_TX) |          \
                                      PIN_MODE_INPUT(GPIOG_PIN15))
 #define VAL_GPIOG_OTYPER            (PIN_OTYPE_PUSHPULL(GPIOG_PIN0) |       \
@@ -1041,7 +1041,7 @@
                                      PIN_OTYPE_PUSHPULL(GPIOG_PIN10) |      \
                                      PIN_OTYPE_PUSHPULL(GPIOG_PIN11) |      \
                                      PIN_OTYPE_PUSHPULL(GPIOG_PIN12) |      \
-                                     PIN_OTYPE_PUSHPULL(GPIOG_PIN13) |      \
+                                     PIN_OTYPE_PUSHPULL(GPIOG_RED_SPOT_LASER) |      \
                                      PIN_OTYPE_PUSHPULL(GPIOG_USART6_TX) |      \
                                      PIN_OTYPE_PUSHPULL(GPIOG_PIN15))
 #define VAL_GPIOG_OSPEEDR           (PIN_OSPEED_HIGH(GPIOG_PIN0) |          \
@@ -1057,7 +1057,7 @@
                                      PIN_OSPEED_HIGH(GPIOG_PIN10) |         \
                                      PIN_OSPEED_HIGH(GPIOG_PIN11) |         \
                                      PIN_OSPEED_HIGH(GPIOG_PIN12) |         \
-                                     PIN_OSPEED_HIGH(GPIOG_PIN13) |         \
+                                     PIN_OSPEED_HIGH(GPIOG_RED_SPOT_LASER) |         \
                                      PIN_OSPEED_HIGH(GPIOG_USART6_TX) |         \
                                      PIN_OSPEED_HIGH(GPIOG_PIN15))
 #define VAL_GPIOG_PUPDR             (PIN_PUPDR_FLOATING(GPIOG_PIN0) |       \
@@ -1073,7 +1073,7 @@
                                      PIN_PUPDR_FLOATING(GPIOG_PIN10) |      \
                                      PIN_PUPDR_FLOATING(GPIOG_PIN11) |      \
                                      PIN_PUPDR_FLOATING(GPIOG_PIN12) |      \
-                                     PIN_PUPDR_FLOATING(GPIOG_PIN13) |      \
+                                     PIN_PUPDR_FLOATING(GPIOG_RED_SPOT_LASER) |      \
                                      PIN_PUPDR_FLOATING(GPIOG_USART6_TX) |      \
                                      PIN_PUPDR_FLOATING(GPIOG_PIN15))
 #define VAL_GPIOG_ODR               (PIN_ODR_HIGH(GPIOG_PIN0) |             \
@@ -1089,7 +1089,7 @@
                                      PIN_ODR_HIGH(GPIOG_PIN10) |            \
                                      PIN_ODR_HIGH(GPIOG_PIN11) |            \
                                      PIN_ODR_HIGH(GPIOG_PIN12) |            \
-                                     PIN_ODR_HIGH(GPIOG_PIN13) |            \
+                                     PIN_ODR_HIGH(GPIOG_RED_SPOT_LASER) |            \
                                      PIN_ODR_HIGH(GPIOG_USART6_TX) |            \
                                      PIN_ODR_HIGH(GPIOG_PIN15))
 #define VAL_GPIOG_AFRL              (PIN_AFIO_AF(GPIOG_PIN0, 0U) |          \
@@ -1105,7 +1105,7 @@
                                      PIN_AFIO_AF(GPIOG_PIN10, 0U) |         \
                                      PIN_AFIO_AF(GPIOG_PIN11, 0U) |         \
                                      PIN_AFIO_AF(GPIOG_PIN12, 0U) |         \
-                                     PIN_AFIO_AF(GPIOG_PIN13, 0U) |         \
+                                     PIN_AFIO_AF(GPIOG_RED_SPOT_LASER, 0U) |         \
                                      PIN_AFIO_AF(GPIOG_USART6_TX, 8U) |         \
                                      PIN_AFIO_AF(GPIOG_PIN15, 0U))
 
