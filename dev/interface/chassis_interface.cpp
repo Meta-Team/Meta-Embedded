@@ -5,8 +5,8 @@
 #include "chassis_interface.h"
 #include "common_macro.h"
 
-ChassisInterface::motor_feedback_t ChassisInterface::feedback[CHASSIS_MOTOR_COUNT];
-int ChassisInterface::target_current[ChassisInterface::CHASSIS_MOTOR_COUNT];
+ChassisInterface::motor_feedback_t ChassisInterface::feedback[MOTOR_COUNT];
+int ChassisInterface::target_current[ChassisInterface::MOTOR_COUNT];
 CANInterface *ChassisInterface::can = nullptr;
 
 bool ChassisInterface::send_chassis_currents() {
@@ -22,9 +22,9 @@ bool ChassisInterface::send_chassis_currents() {
     txmsg.DLC = 0x08;
 
     // Fill target currents
-    for (int i = 0; i < CHASSIS_MOTOR_COUNT; i++) {
+    for (int i = 0; i < MOTOR_COUNT; i++) {
 #if CHASSIS_INTERFACE_ENABLE_CLIP
-        ABS_LIMIT(target_current[i], CHASSIS_INTERFACE_MAX_CURRENT);
+        ABS_CROP(target_current[i], CHASSIS_INTERFACE_MAX_CURRENT);
 #endif
         txmsg.data8[i * 2] = (uint8_t) (target_current[i] >> 8);
         txmsg.data8[i * 2 + 1] = (uint8_t) target_current[i];
@@ -36,6 +36,8 @@ bool ChassisInterface::send_chassis_currents() {
 }
 
 void ChassisInterface::process_chassis_feedback(CANRxFrame const *rxmsg) {
+
+    chSysUnlock();  // --- Exit Critical Zone ---
 
     if (rxmsg->SID > 0x204 || rxmsg->SID < 0x201) return;
 
@@ -52,12 +54,14 @@ void ChassisInterface::process_chassis_feedback(CANRxFrame const *rxmsg) {
 
     feedback[motor_id].last_update_time = SYSTIME;
 
+    chSysUnlock();  // --- Exit Critical Zone ---
+
 }
 
 void ChassisInterface::init(CANInterface *can_interface) {
     can = can_interface;
     can->register_callback(0x201, 0x204, process_chassis_feedback);
-    for (int i = 0; i < CHASSIS_MOTOR_COUNT; i++) {
+    for (int i = 0; i < MOTOR_COUNT; i++) {
         feedback[i].id = (motor_id_t) i;
         feedback[i].last_update_time = 0;
         target_current[i] = 0;

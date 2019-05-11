@@ -160,7 +160,7 @@ class ChassisThread : public chibios_rt::BaseStaticThread<1024> {
                 
             } else {
 
-                for (int i = 0; i < Chassis::CHASSIS_MOTOR_COUNT; i++) {
+                for (int i = 0; i < Chassis::MOTOR_COUNT; i++) {
                     Chassis::target_current[i] = 0;
                 }
 

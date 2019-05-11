@@ -23,6 +23,9 @@ class StateHandler {
 
 public:
 
+    /**
+     * Events collection
+     */
     enum Events {
         SHELL_START,
         CAN_START_SUCCESSFULLY,
@@ -36,7 +39,7 @@ public:
 #if defined(INFANTRY) || defined(ENGINEER)
         CHASSIS_CONNECTED,
 #endif
-        MAIN_MODULES_SETUP_COMMPLETE,
+        MAIN_MODULES_SETUP_COMPLETE,
         MAIN_THREAD_SETUP_COMPLETE
     };
 
@@ -54,8 +57,22 @@ public:
      */
     static void echoEventFromISR(Events event, ...);
 
+    /**
+     * Exceptions collection
+     */
     enum Exceptions {
-        CAN_ERROR
+        CAN_ERROR,
+#if defined(INFANTRY)
+        MPU6500_DISCONNECTED,
+#endif
+        REMOTE_DISCONNECTED,
+#if defined(INFANTRY)
+        GIMBAL_DISCONNECTED,
+        BULLET_LOADER_STUCK,
+#endif
+#if defined(INFANTRY) || defined(ENGINEER)
+        CHASSIS_DISCONNECTED
+#endif
     };
 
     /**
@@ -83,6 +100,12 @@ public:
      */
     static bool fetchCANErrorMark();
 
+    static bool remoteDisconnected() { return remoteDisconnected_; }
+
+    static bool gimbalSeriousErrorOccured() { return gimbalSeriousErrorOccured_; }
+
+    static bool chassisSeriousErrorOccured() { return chassisSeriousErrorOccured_; }
+
 #endif
 
 private:
@@ -104,6 +127,9 @@ private:
     static void handleException(Exceptions exception, bool fromISR, ...);
 
     static bool canErrorOccured_;
+    static bool remoteDisconnected_;
+    static bool gimbalSeriousErrorOccured_;
+    static bool chassisSeriousErrorOccured_;
 
 };
 

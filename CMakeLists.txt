@@ -193,7 +193,7 @@ add_executable(ut_robotic_arm
 
 # Adjust Params of Skywalker-20A for friction wheels
 add_executable(pa_skywalker
-        dev/debug/unit_tests/friction_wheel_param_adjust.cpp
+        dev/debug/unit_tests/skywalker_param_adjust.cpp
         dev/interface/remote_interpreter.cpp
         dev/interface/buzzer.cpp)
 

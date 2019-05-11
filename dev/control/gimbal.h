@@ -10,7 +10,7 @@
 
 /**
  * @name Gimbal
- * @brief
+ * @brief Gimbal controller from high level to low level (by inheritance)
  * @note
  */
 class Gimbal : public GimbalInterface, public PIDControllerBase {

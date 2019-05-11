@@ -4,8 +4,8 @@
 
 #include "chassis.h"
 
-PIDController Chassis::pid[Chassis::CHASSIS_MOTOR_COUNT];
-float Chassis::target_velocity[Chassis::CHASSIS_MOTOR_COUNT];
+PIDController Chassis::pid[Chassis::MOTOR_COUNT];
+float Chassis::target_velocity[Chassis::MOTOR_COUNT];
 float Chassis::w_to_v_ratio_ = 0.0f;
 float Chassis::v_to_wheel_angular_velocity_ = 0.0f;
 
@@ -16,7 +16,7 @@ void Chassis::init(CANInterface *can_interface, float wheel_base, float wheel_tr
 }
 
 void Chassis::change_pid_params(PIDControllerBase::pid_params_t pid_params) {
-    for (int i = 0; i < CHASSIS_MOTOR_COUNT; i++) {
+    for (int i = 0; i < MOTOR_COUNT; i++) {
         pid[i].change_parameters(pid_params);
     }
 }
@@ -28,16 +28,16 @@ void Chassis::calc(float target_vx, float target_vy, float target_w) {
     // BL, +vx, -vy, +w, since the motor is installed in the opposite direction
     // BR, +vx, +vy, +w
 
-    target_velocity[CHASSIS_FR] = (-target_vx + target_vy + target_w * w_to_v_ratio_) * v_to_wheel_angular_velocity_;
-    target_current[CHASSIS_FR] = (int) pid[CHASSIS_FR].calc(feedback[CHASSIS_FR].actual_velocity,
-                                                            target_velocity[CHASSIS_FR]);
-    target_velocity[CHASSIS_FL] = (-target_vx - target_vy + target_w * w_to_v_ratio_) * v_to_wheel_angular_velocity_;
-    target_current[CHASSIS_FL] = (int) pid[CHASSIS_FL].calc(feedback[CHASSIS_FL].actual_velocity,
-                                                            target_velocity[CHASSIS_FL]);
-    target_velocity[CHASSIS_BL] = (+target_vx - target_vy + target_w * w_to_v_ratio_) * v_to_wheel_angular_velocity_;
-    target_current[CHASSIS_BL] = (int) pid[CHASSIS_BL].calc(feedback[CHASSIS_BL].actual_velocity,
-                                                            target_velocity[CHASSIS_BL]);
-    target_velocity[CHASSIS_BR] = (+target_vx + target_vy + target_w * w_to_v_ratio_) * v_to_wheel_angular_velocity_;
-    target_current[CHASSIS_BR] = (int) pid[CHASSIS_BR].calc(feedback[CHASSIS_BR].actual_velocity,
-                                                            target_velocity[CHASSIS_BR]);
+    target_velocity[FR] = (-target_vx + target_vy + target_w * w_to_v_ratio_) * v_to_wheel_angular_velocity_;
+    target_current[FR] = (int) pid[FR].calc(feedback[FR].actual_velocity,
+                                                            target_velocity[FR]);
+    target_velocity[FL] = (-target_vx - target_vy + target_w * w_to_v_ratio_) * v_to_wheel_angular_velocity_;
+    target_current[FL] = (int) pid[FL].calc(feedback[FL].actual_velocity,
+                                                            target_velocity[FL]);
+    target_velocity[BL] = (+target_vx - target_vy + target_w * w_to_v_ratio_) * v_to_wheel_angular_velocity_;
+    target_current[BL] = (int) pid[BL].calc(feedback[BL].actual_velocity,
+                                                            target_velocity[BL]);
+    target_velocity[BR] = (+target_vx + target_vy + target_w * w_to_v_ratio_) * v_to_wheel_angular_velocity_;
+    target_current[BR] = (int) pid[BR].calc(feedback[BR].actual_velocity,
+                                                            target_velocity[BR]);
 }

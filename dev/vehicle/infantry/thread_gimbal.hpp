@@ -36,41 +36,49 @@ class GimbalThread : public chibios_rt::BaseStaticThread<1024> {
 
         while (!shouldTerminate()) {
 
-            if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_UP) {
+            if (!StateHandler::remoteDisconnected() && !StateHandler::gimbalSeriousErrorOccured()) {
 
-                Gimbal::calc_gimbal(GIMBAL_YAW_ACTUAL_VELOCITY, GIMBAL_PITCH_ACTUAL_VELOCITY,
-                                    -Remote::rc.ch0 * 60,  // Yaw   target angle
-                                    0                      // Pitch target angle
-                );
+                if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_UP) {
 
-            } else if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_MIDDLE) {
+                    Gimbal::calc_gimbal(GIMBAL_YAW_ACTUAL_VELOCITY, GIMBAL_PITCH_ACTUAL_VELOCITY,
+                                        -Remote::rc.ch0 * 60,  // Yaw   target angle
+                                        0                      // Pitch target angle
+                    );
 
-                Gimbal::calc_gimbal(GIMBAL_YAW_ACTUAL_VELOCITY, GIMBAL_PITCH_ACTUAL_VELOCITY,
-                                    -Remote::rc.ch0 * 60,  // Yaw   target angle
-                                    Remote::rc.ch1 * 20    // Pitch target angle
-                );
+                } else if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_MIDDLE) {
 
-            } else if (Remote::rc.s1 == Remote::S_DOWN) { // PC control mode
+                    Gimbal::calc_gimbal(GIMBAL_YAW_ACTUAL_VELOCITY, GIMBAL_PITCH_ACTUAL_VELOCITY,
+                                        -Remote::rc.ch0 * 60,  // Yaw   target angle
+                                        Remote::rc.ch1 * 20    // Pitch target angle
+                    );
+
+                } else if (Remote::rc.s1 == Remote::S_DOWN) { // PC control mode
 
 
-                if (Remote::key.v) {  // if V is pressed, reset target angle
-                    pc_yaw_current_target_angle = pc_pitch_current_target_angle = 0;
+                    if (Remote::key.v) {  // if V is pressed, reset target angle
+                        pc_yaw_current_target_angle = pc_pitch_current_target_angle = 0;
+                    } else {
+                        pc_yaw_current_target_angle +=
+                                -Remote::mouse.x * (PC_YAW_SPEED_RATIO * (GIMBAL_THREAD_INTERVAL / 1000.0f));
+                        pc_pitch_current_target_angle +=
+                                -Remote::mouse.y * (PC_PITCH_SPEED_RATIO * (GIMBAL_THREAD_INTERVAL / 1000.0f));
+                    }
+
+                    ABS_CROP(pc_yaw_current_target_angle, PC_YAW_ANGLE_LIMITATION);
+                    ABS_CROP(pc_pitch_current_target_angle, PC_PITCH_ANGLE_LIMITATION);
+
+                    Gimbal::calc_gimbal(GIMBAL_YAW_ACTUAL_VELOCITY, GIMBAL_PITCH_ACTUAL_VELOCITY,
+                                        pc_yaw_current_target_angle,  // Yaw   target angle
+                                        pc_pitch_current_target_angle // Pitch target angle
+                    );
+
                 } else {
-                    pc_yaw_current_target_angle +=
-                            -Remote::mouse.x * (PC_YAW_SPEED_RATIO * (GIMBAL_THREAD_INTERVAL / 1000.0f));
-                    pc_pitch_current_target_angle +=
-                            -Remote::mouse.y * (PC_PITCH_SPEED_RATIO * (GIMBAL_THREAD_INTERVAL / 1000.0f));
+
+                    Gimbal::target_current[Gimbal::YAW] = Gimbal::target_current[Gimbal::PITCH] = 0;
+
                 }
 
-                ABS_LIMIT(pc_yaw_current_target_angle, PC_YAW_ANGLE_LIMITATION);
-                ABS_LIMIT(pc_pitch_current_target_angle, PC_PITCH_ANGLE_LIMITATION);
-
-                Gimbal::calc_gimbal(GIMBAL_YAW_ACTUAL_VELOCITY, GIMBAL_PITCH_ACTUAL_VELOCITY,
-                                    pc_yaw_current_target_angle,  // Yaw   target angle
-                                    pc_pitch_current_target_angle // Pitch target angle
-                );
-
-            } else {
+            } else {  // StateHandler::remoteDisconnected() || StateHandler::gimbalSeriousErrorOccured()
 
                 Gimbal::target_current[Gimbal::YAW] = Gimbal::target_current[Gimbal::PITCH] = 0;
 

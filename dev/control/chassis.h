@@ -13,7 +13,7 @@
 
 /**
  * @name Chassis
- * @brief
+ * @brief Chassis controller from high level to low level (by inheritance)
  * @note +X is right, +Y is front, +w is counter-clockwise
  */
 class Chassis : public ChassisInterface, public PIDControllerBase {
@@ -48,13 +48,13 @@ public:
      * PID controller for each motor
      * @note For debug use
      */
-    static PIDController pid[CHASSIS_MOTOR_COUNT];
+    static PIDController pid[MOTOR_COUNT];
 
     /**
      * Target_velocity for each motor (mid value for two-ring PID)
      * @note For debug use
      */
-    static float target_velocity[CHASSIS_MOTOR_COUNT];
+    static float target_velocity[MOTOR_COUNT];
 
 private:
 

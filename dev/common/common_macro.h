@@ -5,14 +5,12 @@
 #ifndef META_INFANTRY_COMMON_MACRO_H
 #define META_INFANTRY_COMMON_MACRO_H
 
-/*** Math Operations ***/
-
-#define ABS_LIMIT(n, limit) { \
+#define ABS_CROP(n, limit) { \
     if (n > limit) n = limit; \
     if (n < -(limit)) n = -(limit); \
 }
 
-#define VAL_LIMIT(n, max, min) { \
+#define VAL_CROP(n, max, min) { \
     if (n > max) n = max; \
     if (n < min) n = min; \
 }

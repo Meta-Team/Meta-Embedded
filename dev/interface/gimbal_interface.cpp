@@ -71,7 +71,7 @@ void GimbalInterface::send_gimbal_currents() {
 
     // Fill the current of Yaw
 #if GIMBAL_INTERFACE_ENABLE_CLIP
-    ABS_LIMIT(target_current[YAW], GIMBAL_INTERFACE_MAX_CURRENT);
+    ABS_CROP(target_current[YAW], GIMBAL_INTERFACE_MAX_CURRENT);
 #endif
     /** NOTICE: target current is reversed. */
     txmsg.data8[0] = (uint8_t) (-target_current[YAW] >> 8); // upper byte
@@ -80,7 +80,7 @@ void GimbalInterface::send_gimbal_currents() {
 
     // Fill the current of Pitch
 #if GIMBAL_INTERFACE_ENABLE_CLIP
-    ABS_LIMIT(target_current[PITCH], GIMBAL_INTERFACE_MAX_CURRENT);
+    ABS_CROP(target_current[PITCH], GIMBAL_INTERFACE_MAX_CURRENT);
 #endif
     /** NOTICE: target current is reversed. */
     txmsg.data8[2] = (uint8_t) (-target_current[PITCH] >> 8); // upper byte
@@ -90,7 +90,7 @@ void GimbalInterface::send_gimbal_currents() {
     // Fill the current of bullet loader
 
 #if GIMBAL_INTERFACE_ENABLE_CLIP
-    ABS_LIMIT(target_current[BULLET], GIMBAL_INTERFACE_BULLET_LOADER_MAX_CURRENT);
+    ABS_CROP(target_current[BULLET], GIMBAL_INTERFACE_BULLET_LOADER_MAX_CURRENT);
 #endif
     txmsg.data8[4] = (uint8_t) (target_current[BULLET] >> 8); // upper byte
     txmsg.data8[5] = (uint8_t) target_current[BULLET];       // lower byte
@@ -107,11 +107,15 @@ void GimbalInterface::send_gimbal_currents() {
 
 void GimbalInterface::process_motor_feedback(CANRxFrame const *rxmsg) {
 
-    /*
-     * function logic description
-     * first, get the absolute angle value from the motor, compared with the last absolute angle value, get the angle movement
-     * add the angle movement with the relative angle, get the new relative angle, modify the relative angle and the base round value
-     * divide the angle movement by the time break to get the angular velocity
+    chSysLock();  // --- Enter Critical Zone ---
+
+    /**
+     * Function logic description:
+     *  1. First, get the absolute angle value from the motor, compared with the last absolute angle value, get the
+     *     angle movement
+     *  2. Add the angle movement with the relative angle, get the new relative angle, modify the relative angle and
+     *     the base round value
+     *  3. Divide the angle movement by the time break to get the angular velocity
      */
 
     motor_id_t id = (motor_id_t) (rxmsg->SID - 0x205);
@@ -121,12 +125,13 @@ void GimbalInterface::process_motor_feedback(CANRxFrame const *rxmsg) {
 
     // Check whether this new raw angle is valid
     if (new_actual_angle_raw > 8191) {
+        chSysUnlock();  // --- Exit Critical Zone ---
         return;
     }
 
     // Calculate the angle movement in raw data
-    // and we assume that the absolute value of the angle movement is smaller than 180 degrees(4096 of raw data)
-    // currently motor->last_angle_raw holds the actual angle of last time
+    // We assume that the absolute value of the angle movement is smaller than 180 degrees (4096 of raw data)
+
     int angle_movement = (int) new_actual_angle_raw - (int) feedback[id].last_angle_raw;
 
     switch (id) {
@@ -212,6 +217,8 @@ void GimbalInterface::process_motor_feedback(CANRxFrame const *rxmsg) {
 
             break;
     }
+
+    chSysUnlock();  // --- Exit Critical Zone ---
 }
 
 void GimbalInterface::motor_feedback_t::reset_front_angle() {

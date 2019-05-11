@@ -43,14 +43,16 @@
 #include "thread_gimbal.hpp"
 #include "thread_shoot.hpp"
 #include "thread_chassis.hpp"
+#include "thread_error_detect.hpp"
 
 // Interfaces
 CANInterface can1(&CAND1);
 
 // Threads
 GimbalThread gimbalThread;
-ShootThread ShootThread;
+ShootThread shootThread;
 ChassisThread chassisThread;
+ErrorDetectThread errorDetectThread;
 
 
 int main(void) {
@@ -60,124 +62,72 @@ int main(void) {
     halInit();
     chibios_rt::System::init();
 
-    /*** --------------------------- Period 1. Modules Setup --------------------------- ***/
+    /*** ---------------------- Period 1. Modules Setup and Self-Check ---------------------- ***/
 
     LED::all_off();
 
-    time_msecs_t t;  // variable for startup check
-
+    /** Setup Shell */
     Shell::start(HIGHPRIO);
     // LED 1 on now
 
-
+    /** Setup CAN1 */
     can1.start(HIGHPRIO - 1);
-    // Check no persistent CAN Error (100 ms)
-    t = SYSTIME;
-    while (SYSTIME - t < 100) {
-        if (StateHandler::fetchCANErrorMark()) {  // can error occurs
-            t = SYSTIME;  // reset the counter
-        }
-        chThdSleepMilliseconds(5);
-    }
+    chThdSleepMilliseconds(5);
+    startupCheckCAN();  // check no persistent CAN Error. Block for 100 ms
     StateHandler::echoEvent(StateHandler::CAN_START_SUCCESSFULLY);
     // LED 2 on now
 
 
+    /** Setup MPU6500 */
     MPU6500::start(HIGHPRIO - 2);
-    // Check MPU6500 has signal. Block for 10 ms
-    t = SYSTIME;
-    while (SYSTIME - t < 20) {
-        if (SYSTIME - MPU6500::last_update_time > 3) {
-            // No signal in last 3 ms (normal interval 1 ms)
-            t = SYSTIME;  // reset the counter
-        }
-        chThdSleepMilliseconds(3);
-    }
+    startupCheckMPU6500();  // check MPU6500 has signal. Block for 10 ms
     StateHandler::echoEvent(StateHandler::MPU6500_START_SUCCESSFULLY);
     // LED 3 on now
 
 
+    /** Setup Remote */
     Remote::start_receive();
-    // Check Remote has signal. Block for 50 ms
-    t = SYSTIME;
-    while (SYSTIME - t < 50) {
-        if (SYSTIME - Remote::last_update_time > 15) {
-            // No signal in last 15 ms (normal interval 7 ms)
-            t = SYSTIME;  // reset the counter
-        }
-        chThdSleepMilliseconds(15);
-    }
+    startupCheckRemote();  // check Remote has signal. Block for 50 ms
     StateHandler::echoEvent(StateHandler::REMOTE_START_SUCCESSFULLY);
     // LED 4 on now
 
 
+    /** Setup Gimbal and Shoot */
     Gimbal::init(&can1, GIMBAL_YAW_FRONT_ANGLE_RAW, GIMBAL_PITCH_FRONT_ANGLE_RAW);
-    chThdSleepMilliseconds(10);  // wait for 10 ms
-    // Check gimbal motors has continuous feedback. Block for 50 ms
-    // TODO: echo to user which motor lose connection
-    t = SYSTIME;
-    while (SYSTIME - t < 50) {
-        if (SYSTIME - Gimbal::feedback[Gimbal::YAW].last_update_time > 3) {
-            // No feedback in last 3 ms (normal 1 ms)
-            t = SYSTIME;  // reset the counter
-        }
-        if (SYSTIME - Gimbal::feedback[Gimbal::PITCH].last_update_time > 3) {
-            // No feedback in last 3 ms (normal 1 ms)
-            t = SYSTIME;  // reset the counter
-        }
-        if (SYSTIME - Gimbal::feedback[Gimbal::BULLET].last_update_time > 3) {
-            // No feedback in last 3 ms (normal 1 ms)
-            t = SYSTIME;  // reset the counter
-        }
-        chThdSleepMilliseconds(3);
-    }
+    Shoot::init(SHOOT_DEGREE_PER_BULLER);
+    chThdSleepMilliseconds(10);
+    startupCheckGimbalFeedback(); // check gimbal motors has continuous feedback. Block for 50 ms
     StateHandler::echoEvent(StateHandler::GIMBAL_CONNECTED);
     // LED 5 on now
 
 
+    /** Setup Chassis */
     Chassis::init(&can1, CHASSIS_WHEEL_BASE, CHASSIS_WHEEL_TREAD, CHASSIS_WHEEL_CIRCUMFERENCE);
-    chThdSleepMilliseconds(10);  // wait for 10 ms
-    // Check chassis motors has continuous feedback. Block for 50 ms
-    // TODO: echo to user which motor lose connection
-    t = SYSTIME;
-    while (SYSTIME - t < 50) {
-        if (SYSTIME - Chassis::feedback[Chassis::CHASSIS_FR].last_update_time > 3) {
-            // No feedback in last 3 ms (normal 1 ms)
-            t = SYSTIME;  // reset the counter
-        }
-        if (SYSTIME - Chassis::feedback[Chassis::CHASSIS_FL].last_update_time > 3) {
-            // No feedback in last 3 ms (normal 1 ms)
-            t = SYSTIME;  // reset the counter
-        }
-        if (SYSTIME - Chassis::feedback[Chassis::CHASSIS_BL].last_update_time > 3) {
-            // No feedback in last 3 ms (normal 1 ms)
-            t = SYSTIME;  // reset the counter
-        }
-        if (SYSTIME - Chassis::feedback[Chassis::CHASSIS_BR].last_update_time > 3) {
-            // No feedback in last 3 ms (normal 1 ms)
-            t = SYSTIME;  // reset the counter
-        }
-        chThdSleepMilliseconds(3);
-    }
+    chThdSleepMilliseconds(10);
+    startupCheckChassisFeedback();  // check chassis motors has continuous feedback. Block for 50 ms
     StateHandler::echoEvent(StateHandler::CHASSIS_CONNECTED);
     // LED 6 on now
 
-    palSetPad(GPIOG, GPIOG_RED_SPOT_LASER);  // Enable the red spot laser
 
-    StateHandler::echoEvent(StateHandler::MAIN_MODULES_SETUP_COMMPLETE);
+    /** Setup Red Spot Laser*/
+    palSetPad(GPIOG, GPIOG_RED_SPOT_LASER);  // enable the red spot laser
+
+
+    StateHandler::echoEvent(StateHandler::MAIN_MODULES_SETUP_COMPLETE);
     // LED Green on now
 
     /*** ------------ Period 2. Calibration and Start Logic Control Thread ----------- ***/
 
     /** Echo Gimbal Raws and Converted Angles **/
-    chThdSleepMilliseconds(500);
     LOG("Gimbal Yaw: %u, %f, Pitch: %u, %f",
         Gimbal::feedback[Gimbal::YAW].last_angle_raw, Gimbal::feedback[Gimbal::YAW].actual_angle,
         Gimbal::feedback[Gimbal::PITCH].last_angle_raw, Gimbal::feedback[Gimbal::PITCH].actual_angle);
 
-    /** Start Logic Control Thread **/
+    /** Start Threads **/
     gimbalThread.start(NORMALPRIO);
     chassisThread.start(NORMALPRIO - 1);
+    shootThread.start(NORMALPRIO - 2);
+    errorDetectThread.start(LOWPRIO + 1);
 
     StateHandler::echoEvent(StateHandler::MAIN_THREAD_SETUP_COMPLETE);
     // Now play the startup sound

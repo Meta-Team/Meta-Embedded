@@ -8,6 +8,11 @@
 #include "gimbal_interface.h"
 #include "pid_controller.hpp"
 
+/**
+ * @name Shoot
+ * @brief Shooter controller from high level to low level (by inheritance)
+ * @note Share low-level GimbalInterface with Gimbal. Low-level initialization is done by Gimbal.
+ */
 class Shoot : public GimbalInterface, public PIDControllerBase {
 
 public:

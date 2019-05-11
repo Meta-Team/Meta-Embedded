@@ -74,13 +74,4 @@
     {CHASSIS_PID_V2I_KP, CHASSIS_PID_V2I_KI, CHASSIS_PID_V2I_KD, \
     CHASSIS_PID_V2I_I_LIMIT, CHASSIS_PID_V2I_OUT_LIMIT}
 
-/*** Board Start up Configuration ***/
-#if defined(BOARD_RM_2018_A) // defined in board.h (included in hal.h)
-#define STARTUP_BUTTON_PAD GPIOB
-#define STARTUP_BUTTON_PIN_ID GPIOB_USER_BUTTON
-#define STARTUP_BUTTON_PRESS_PAL_STATUS PAL_HIGH
-#else
-#error "Infantry is only developed for RM board 2018 A."
-#endif
-
 #endif //META_INFANTRY_VEHICLE_INFANTRY_H

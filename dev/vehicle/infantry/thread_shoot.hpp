@@ -31,63 +31,73 @@ class ShootThread : public chibios_rt::BaseStaticThread<1024> {
 
         while (!shouldTerminate()) {
 
-            if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_UP) {
 
-                // Friction wheels
-                Shoot::set_friction_wheels(GIMBAL_REMOTE_FRICTION_WHEEL_DUTY_CYCLE);
+            if (!StateHandler::remoteDisconnected() && !StateHandler::gimbalSeriousErrorOccured()) {
+                if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_UP) {
 
-                // Bullet loader motor
-                if (Remote::rc.ch1 > 0.5) {
-                    Shoot::calc_bullet_loader(COMMON_SHOOT_SPEED);
-                } else {
-                    Shoot::calc_bullet_loader(0);
-                }
+                    // Friction wheels
+                    Shoot::set_friction_wheels(GIMBAL_REMOTE_FRICTION_WHEEL_DUTY_CYCLE);
 
-            } else if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_MIDDLE) {
-
-                // Friction wheels
-                Shoot::set_friction_wheels(GIMBAL_REMOTE_FRICTION_WHEEL_DUTY_CYCLE);
-
-                // Bullet loader motor
-                if (Remote::rc.ch3 < 0.1) {
-                    Shoot::calc_bullet_loader(Remote::rc.ch3 * COMMON_SHOOT_SPEED);
-                } else {
-                    Shoot::calc_bullet_loader(0);
-                }
-            } else if (Remote::rc.s1 == Remote::S_DOWN) { // PC control mode
-
-                // Bullet loader motor
-                if (Remote::mouse.press_left) {
-
-                    if (Shoot::fw_duty_cycle == 0) {  // if fw have not start, start it and delay for shooting
-                        Shoot::set_friction_wheels(GIMBAL_PC_FRICTION_WHEEL_DUTY_CYCLE);
-                        sleep(TIME_MS2I(500));
+                    // Bullet loader motor
+                    if (Remote::rc.ch1 > 0.5) {
+                        Shoot::calc_bullet_loader(COMMON_SHOOT_SPEED);
+                    } else {
+                        Shoot::calc_bullet_loader(0);
                     }
 
-                    Shoot::calc_bullet_loader(COMMON_SHOOT_SPEED);
+                } else if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_MIDDLE) {
 
-                } else {
+                    // Friction wheels
+                    Shoot::set_friction_wheels(GIMBAL_REMOTE_FRICTION_WHEEL_DUTY_CYCLE);
 
-                    Shoot::calc_bullet_loader(0);
-                }
+                    // Bullet loader motor
+                    if (Remote::rc.ch3 < 0.1) {
+                        Shoot::calc_bullet_loader(Remote::rc.ch3 * COMMON_SHOOT_SPEED);
+                    } else {
+                        Shoot::calc_bullet_loader(0);
+                    }
 
-                // Friction wheels
-                if (Remote::mouse.press_right) {
-                    if (!pc_right_pressed) {
-                        if (Shoot::fw_duty_cycle == 0) {
+                } else if (Remote::rc.s1 == Remote::S_DOWN) { // PC control mode
+
+                    // Bullet loader motor
+                    if (Remote::mouse.press_left) {
+
+                        if (Shoot::fw_duty_cycle == 0) {  // if fw have not start, start it and delay for shooting
                             Shoot::set_friction_wheels(GIMBAL_PC_FRICTION_WHEEL_DUTY_CYCLE);
-                        } else {
-                            Shoot::set_friction_wheels(0);
+                            sleep(TIME_MS2I(500));
                         }
-                        pc_right_pressed = true;
+
+                        Shoot::calc_bullet_loader(COMMON_SHOOT_SPEED);
+
+                    } else {
+
+                        Shoot::calc_bullet_loader(0);
                     }
+
+                    // Friction wheels
+                    if (Remote::mouse.press_right) {
+                        if (!pc_right_pressed) {
+                            if (Shoot::fw_duty_cycle == 0) {
+                                Shoot::set_friction_wheels(GIMBAL_PC_FRICTION_WHEEL_DUTY_CYCLE);
+                            } else {
+                                Shoot::set_friction_wheels(0);
+                            }
+                            pc_right_pressed = true;
+                        }
+                    } else {
+                        if (pc_right_pressed) {
+                            pc_right_pressed = false;
+                        }
+                    }
+
                 } else {
-                    if (pc_right_pressed) {
-                        pc_right_pressed = false;
-                    }
+
+                    Shoot::set_friction_wheels(0);
+                    Shoot::target_current[Shoot::BULLET] = 0;
+
                 }
 
-            } else {
+            } else {  // StateHandler::remoteDisconnected() || StateHandler::gimbalSeriousErrorOccured()
 
                 Shoot::set_friction_wheels(0);
                 Shoot::target_current[Shoot::BULLET] = 0;

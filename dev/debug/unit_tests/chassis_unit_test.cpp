@@ -66,7 +66,7 @@ static void cmd_chassis_set_parameters(BaseSequentialStream *chp, int argc, char
                                 Shell::atof(argv[2]),
                                 Shell::atof(argv[3]),
                                 Shell::atof(argv[4])});
-    for (int i = 0; i < Chassis::CHASSIS_MOTOR_COUNT; i++) {
+    for (int i = 0; i < Chassis::MOTOR_COUNT; i++) {
         Chassis::pid[i].clear_i_out();
     }
     chprintf(chp, "!cps" SHELL_NEWLINE_STR); // echo chassis parameters set
@@ -124,11 +124,11 @@ protected:
 
             if (target_vx != 0.0f || target_vy != 0.0f || target_w != 0.0f) {
 
-                if (TIME_I2MS(chVTGetSystemTime()) >= test_end_time) {
+                if (SYSTIME >= test_end_time) {
 
                     target_vx = target_vy = target_w = 0.0f;
 
-                    for (int i = 0; i < Chassis::CHASSIS_MOTOR_COUNT; i++) {
+                    for (int i = 0; i < Chassis::MOTOR_COUNT; i++) {
                         Chassis::target_current[i] = 0;
                     }
 

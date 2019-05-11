@@ -35,11 +35,11 @@ class ChassisInterface {
 public:
 
     enum motor_id_t {  // goes in a counter-clockwise order
-        CHASSIS_FR, // front right motor, 0
-        CHASSIS_FL, // front left motor, 1
-        CHASSIS_BL, // back left motor, 2
-        CHASSIS_BR, // back right motor, 3
-        CHASSIS_MOTOR_COUNT
+        FR, // front right motor, 0
+        FL, // front left motor, 1
+        BL, // back left motor, 2
+        BR, // back right motor, 3
+        MOTOR_COUNT
     };
 
     /**
@@ -72,7 +72,7 @@ public:
     /**
      * @brief target current array in the order defined in motor_id_t
      */
-    static int target_current[CHASSIS_MOTOR_COUNT];
+    static int target_current[MOTOR_COUNT];
 
     /**
      * @brief send all target currents

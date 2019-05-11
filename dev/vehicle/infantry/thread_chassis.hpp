@@ -31,54 +31,63 @@ private:
 
         while (!shouldTerminate()) {
 
-            if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_UP) {
+            if (!StateHandler::remoteDisconnected() && !StateHandler::chassisSeriousErrorOccured()) {
 
-                Chassis::calc(0,
-                              -Remote::rc.ch3 * COMMON_VY,
-                              Remote::rc.ch2 * COMMON_W);
+                if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_UP) {
 
-            } else if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_DOWN) {
+                    Chassis::calc(0,
+                                  -Remote::rc.ch3 * COMMON_VY,
+                                  Remote::rc.ch2 * COMMON_W);
 
-                Chassis::calc(-Remote::rc.ch2 * COMMON_VX,
-                              -Remote::rc.ch3 * COMMON_VY,
-                              Remote::rc.ch0 * COMMON_W);
+                } else if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_DOWN) {
 
-            } else if (Remote::rc.s1 == Remote::S_DOWN) { // PC control mode
+                    Chassis::calc(-Remote::rc.ch2 * COMMON_VX,
+                                  -Remote::rc.ch3 * COMMON_VY,
+                                  Remote::rc.ch0 * COMMON_W);
 
-                // Determine target velocities
+                } else if (Remote::rc.s1 == Remote::S_DOWN) { // PC control mode
 
-                float target_vx, target_vy, target_w;
+                    // Determine target velocities
 
-                /** NOTICE: here the minus sign make it incoherent with the initial definition of chassis coordinate */
+                    float target_vx, target_vy, target_w;
 
-                if (Remote::key.w) target_vy = -COMMON_VY;
-                else if (Remote::key.s) target_vy = COMMON_VY;
-                else target_vy = 0;
+                    /** NOTICE: here the minus sign make it incoherent with the initial definition of chassis coordinate */
 
-                if (Remote::key.q) target_vx = -COMMON_VX;
-                else if (Remote::key.e) target_vx = COMMON_VX;
-                else target_vx = 0;
+                    if (Remote::key.w) target_vy = -COMMON_VY;
+                    else if (Remote::key.s) target_vy = COMMON_VY;
+                    else target_vy = 0;
 
-                if (Remote::key.a) target_w = -COMMON_W;
-                else if (Remote::key.d) target_w = COMMON_W;
-                else target_w = 0;
+                    if (Remote::key.q) target_vx = -COMMON_VX;
+                    else if (Remote::key.e) target_vx = COMMON_VX;
+                    else target_vx = 0;
 
-                if (Remote::key.ctrl) {
-                    target_vx *= PC_CTRL_RATIO;
-                    target_vy *= PC_CTRL_RATIO;
-                    target_w *= PC_CTRL_RATIO;
+                    if (Remote::key.a) target_w = -COMMON_W;
+                    else if (Remote::key.d) target_w = COMMON_W;
+                    else target_w = 0;
+
+                    if (Remote::key.ctrl) {
+                        target_vx *= PC_CTRL_RATIO;
+                        target_vy *= PC_CTRL_RATIO;
+                        target_w *= PC_CTRL_RATIO;
+                    }
+
+                    Chassis::calc(target_vx, target_vy, target_w);
+
+                } else {
+
+                    for (int i = 0; i < Chassis::MOTOR_COUNT; i++) {
+                        Chassis::target_current[i] = 0;
+                    }
+
                 }
 
-                Chassis::calc(target_vx, target_vy, target_w);
+            } else {  // StateHandler::remoteDisconnected() || StateHandler::gimbalSeriousErrorOccured()
 
-            } else {
-
-                for (int i = 0; i < Chassis::CHASSIS_MOTOR_COUNT; i++) {
+                for (int i = 0; i < Chassis::MOTOR_COUNT; i++) {
                     Chassis::target_current[i] = 0;
                 }
 
             }
-
             Chassis::send_chassis_currents();
 
             sleep(TIME_MS2I(chassis_thread_interval));

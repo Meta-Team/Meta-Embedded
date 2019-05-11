@@ -5,6 +5,9 @@
 #include "state_handler.h"
 
 bool StateHandler::canErrorOccured_ = false;
+bool StateHandler::remoteDisconnected_ = false;
+bool StateHandler::gimbalSeriousErrorOccured_ = false;
+bool StateHandler::chassisSeriousErrorOccured_ = false;
 
 #ifdef ENABLE_STATE_HANDLE
 
@@ -40,9 +43,48 @@ void StateHandler::handleException(StateHandler::Exceptions exception, bool from
         case CAN_ERROR:
             canErrorOccured_ = true;
             if (!fromISR) {
-                Shell::printf("CAN error: %u" SHELL_NEWLINE_STR, va_arg(args, unsigned));
+                LOG_ERR("CAN error: %u", va_arg(args, unsigned));
             }
             break;
+#if defined(INFANTRY)
+        case MPU6500_DISCONNECTED:
+            if (!gimbalSeriousErrorOccured_) {
+                gimbalSeriousErrorOccured_ = true;
+                if (!fromISR) {
+                    LOG_ERR("MPU6500 DISCONNECTED!");
+                }
+            }
+            break;
+#endif
+        case REMOTE_DISCONNECTED:
+            if (!remoteDisconnected_) {
+                remoteDisconnected_ = true;
+                if (!fromISR) {
+                    LOG_ERR("REMOTE DISCONNECTED!");
+                }
+            }
+            break;
+#if defined(INFANTRY)
+        case GIMBAL_DISCONNECTED:
+            if (!gimbalSeriousErrorOccured_) {
+                gimbalSeriousErrorOccured_ = true;
+                if (!fromISR) {
+                    LOG_ERR("GIMBAL MOTOR %d DISCONNECTED!", va_arg(args, int));
+                }
+            }
+            break;
+#endif
+#if defined(INFANTRY) || defined(ENGINEER)
+        case CHASSIS_DISCONNECTED:
+            if (!chassisSeriousErrorOccured_) {
+                chassisSeriousErrorOccured_ = true;
+                if (!fromISR) {
+                    LOG_ERR("CHASSIS MOTOR %d DISCONNECTED!", va_arg(args, int));
+                }
+            }
+            break;
+#endif
+
     }
 }
 
@@ -75,7 +117,7 @@ void StateHandler::handleEvent(StateHandler::Events event, bool fromISR, ...) {
             LED::led_on(6);
             break;
 #endif
-        case MAIN_MODULES_SETUP_COMMPLETE:
+        case MAIN_MODULES_SETUP_COMPLETE:
             LED::green_on();
             break;
         case MAIN_THREAD_SETUP_COMPLETE:
