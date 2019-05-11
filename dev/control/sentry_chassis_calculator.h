@@ -4,10 +4,13 @@
 
 #ifndef META_INFANTRY_SENTRY_CHASSIS_CALCULATOR_H
 #define META_INFANTRY_SENTRY_CHASSIS_CALCULATOR_H
+#define SYSTIME (TIME_I2MS(chVTGetSystemTime()))
 
 #include "sentry_chassis_interface.h"
 #include "pid_controller.h"
 #include "can_interface.h"
+#include "ch.hpp"
+#include "hal.h"
 
 class SentryChassisController: public SentryChassis{
 public:
@@ -55,6 +58,15 @@ public:
  * @brief use the present data and PIDController to calculate and set the target current that will be sent
  */
     static void update_target_current();
+
+    /**
+     * @brief set the speed mode
+     * @param mode true for varying_speed mode, false for const_speed mode
+     */
+    static void change_speed_mode(bool mode){
+        change_speed = mode;
+        if(change_speed) present_time = SYSTIME;
+    }
 
     /**
      * @brief change the parameters for the v_to_i PIDController
@@ -106,14 +118,11 @@ public:
 
 private:
 
-    /**
- * @brief set the target destination for auto driving
- * change the destination if the two motors are both ready to change target destination, or do nothing change otherwise
- * @attention this function is specially for AUTO DRIVING MODE
- */
-    static void change_auto_destination();
-
     static sentry_mode_t running_mode;
+
+    static bool change_speed;
+
+    static time_msecs_t present_time;
 
     /**
      * @brief process the data for each motor and do the calculation
@@ -206,6 +215,13 @@ private:
     static float constexpr maximum_speed = 80.0f;
     //todo: determine what displacement is changed as the motor goes one round
     static float constexpr displacement_per_round = 17.28f;
+
+    /**
+* @brief set the target destination for auto driving
+* change the destination if the two motors are both ready to change target destination, or do nothing change otherwise
+* @attention this function is specially for AUTO DRIVING MODE
+*/
+    static void change_auto_destination();
 };
 
 

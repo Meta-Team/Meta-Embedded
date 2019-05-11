@@ -7,6 +7,8 @@
 bool SentryChassisController::enable;
 SentryChassisController::sentry_mode_t SentryChassisController::running_mode;
 SentryChassisController::motor_calculator_t SentryChassisController::motor_calculator[MOTOR_COUNT];
+bool SentryChassisController::change_speed;
+time_msecs_t SentryChassisController::present_time;
 
 
 void SentryChassisController::init_controller(CANInterface* can_interface) {
@@ -16,6 +18,7 @@ void SentryChassisController::init_controller(CANInterface* can_interface) {
     clear_position();
     motor_calculator[MOTOR_LEFT].id = MOTOR_LEFT;
     motor_calculator[MOTOR_RIGHT].id = MOTOR_RIGHT;
+    change_speed = false;
 }
 
 void SentryChassisController::clear_position() {
@@ -44,6 +47,11 @@ void SentryChassisController::update_target_current() {
             // If we are in the AUTO MODE, we change the destination according to the rule we set in set_auto_destination()
             change_auto_destination();
         }
+    } else if(change_speed){
+        // If we are not in the STOP_MODE, that means now the sentry is movable
+        // If the sentry is not in the "stop area", then the speed should not be constantly 0
+        // If the change_speed is true, then the speed should change variously from time to time
+
     }
     motor_calculator[MOTOR_RIGHT].set_target_current();
     motor_calculator[MOTOR_LEFT].set_target_current();
