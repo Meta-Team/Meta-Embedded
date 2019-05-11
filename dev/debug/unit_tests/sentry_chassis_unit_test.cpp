@@ -47,17 +47,22 @@ static void cmd_chassis_disable(BaseSequentialStream *chp, int argc, char *argv[
  * @brief set the mode for the sentry
  * @attention test_mode is true for testing, and is false for automatically driving
  */
-static void cmd_chassis_test_mode(BaseSequentialStream *chp, int argc, char *argv[]){
+static void cmd_chassis_set_mode(BaseSequentialStream *chp, int argc, char *argv[]){
     (void) argv;
     if (argc != 1) {
-        shellUsage(chp, "c_test_mode test_mode(0/1)");
+        shellUsage(chp, "c_set_mode stop_mode(0)/one_step_mode(1)/auto_mode(2)");
         return;
     }
-    SentryChassisController::test_mode = (*argv[0] == '1');
-
-    // If it is not the TEST MODE, then it is the AUTO MODE, so, start the AUTO MODE
-    if(!SentryChassisController::test_mode)
-        SentryChassisController::start_auto_mode();
+    switch (*argv[0]){
+        case ('1'):
+            SentryChassisController::set_mode(SentryChassisController::ONE_STEP_MODE);
+            break;
+        case ('2'):
+            SentryChassisController::set_mode(SentryChassisController::AUTO_MODE);
+            break;
+        default:
+            SentryChassisController::set_mode(SentryChassisController::STOP_MODE);
+    }
 }
 /**
  * @brief echo acutal angular velocity and target current of each motor
@@ -211,7 +216,7 @@ static void cmd_chassis_test_current(BaseSequentialStream *chp, int argc, char *
 ShellCommand chassisCommands[] = {
         {"c_enable",   cmd_chassis_enable},
         {"c_disable",   cmd_chassis_disable},
-        {"c_test_mode",    cmd_chassis_test_mode},
+        {"c_set_mode",    cmd_chassis_set_mode},
         {"c_echo", cmd_chassis_echo},
         {"c_set_current",   cmd_chassis_set_target_currents},
         {"c_set_pid",  cmd_chassis_set_pid},

@@ -11,9 +11,14 @@
 
 class SentryChassisController: public SentryChassis{
 public:
-    static bool enable;
 
-    static bool test_mode; // true for TEST MODE, false for AUTO MODE
+    enum sentry_mode_t{
+        STOP_MODE,
+        ONE_STEP_MODE,
+        AUTO_MODE
+    };
+
+    static bool enable;
 
     static float constexpr radius = 30.0f; // the range that sentry can move around the origin in the AUTO MODE
 
@@ -22,6 +27,18 @@ public:
      * @param can_interface
      */
     static void init_controller(CANInterface* can_interface);
+
+    /**
+     * @brief change the running mode if needed
+     * @param target_mode
+     */
+    static void set_mode(sentry_mode_t target_mode){
+        running_mode = target_mode;
+        clear_position();
+        if(running_mode == AUTO_MODE){
+            set_destination(radius);
+        }
+    }
 
     /**
      * @brief set the present position and target position to be the 0 point
@@ -33,6 +50,11 @@ public:
      * @param dist the given position, positive for right, negative for left
      */
     static void set_destination(float dist);
+
+    /**
+ * @brief use the present data and PIDController to calculate and set the target current that will be sent
+ */
+    static void update_target_current();
 
     /**
      * @brief change the parameters for the v_to_i PIDController
@@ -82,27 +104,16 @@ public:
         LOG("motor %d present_velocity: %.2f", 1, motor_calculator[1].velocity());
     }
 
-    /**
-     * @brief use the present data and PIDController to calculate and set the target current that will be sent
-     */
-    static void update_target_current();
-
-    /**
-     * @brief set the target destination for auto driving
-     * change the destination if the two motors are both ready to change target destination, or do nothing change otherwise
-     * @attention this function is specially for AUTO DRIVING MODE
-     */
-    static void set_auto_destination();
-
-    /**
-     * @brief start the AUTO MODE
-     */
-    static void start_auto_mode(){
-        clear_position();
-        set_destination(radius);
-    }
-
 private:
+
+    /**
+ * @brief set the target destination for auto driving
+ * change the destination if the two motors are both ready to change target destination, or do nothing change otherwise
+ * @attention this function is specially for AUTO DRIVING MODE
+ */
+    static void change_auto_destination();
+
+    static sentry_mode_t running_mode;
 
     /**
      * @brief process the data for each motor and do the calculation
@@ -118,7 +129,9 @@ private:
          * @attention this function is only used for AUTO MODE
          * @return true if motor should change its target position, false otherwise
          */
-        bool should_change();
+        bool should_change(){
+            return present_position >= target_position-3 && present_position <= target_position+3;
+        }
 
         /**
          * @brief update the present position and velocity according to the data from interface
