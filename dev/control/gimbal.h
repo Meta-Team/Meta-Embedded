@@ -28,24 +28,6 @@ public:
                                   pid_params_t pitch_a2v_params, pid_params_t pitch_v2i_params);
 
     /**
-     * Perform calculation from angle to velocity and put result into target_velocity_[]
-     * @param id
-     * @param actual_angle
-     * @param target_angle
-     * @note for outside code, only for test.
-     */
-    static void calc_a2v_(motor_id_t id_, float actual_angle_, float target_angle_);
-
-    /**
-     * Perform calculation from velocity to current and put result into target_current[]
-     * @param id
-     * @param actual_velocity
-     * @param target_velocity
-     * @note for outside code, only for test.
-     */
-    static void calc_v2i_(motor_id_t id_, float actual_velocity_, float target_velocity_);
-
-    /**
      * Perform calculation from angle to current and put result into target_current[]
      * @param yaw_actual_velocity
      * @param pitch_actual_velocity
@@ -67,6 +49,28 @@ private:
 
     static PIDController a2v_pid[2];
     static PIDController v2i_pid[2];
+
+    /**
+     * Perform calculation from angle to velocity and put result into target_velocity_[]
+     * @param id
+     * @param actual_angle
+     * @param target_angle
+     * @note for outside code, only for test.
+     */
+    static void calc_a2v_(motor_id_t id_, float actual_angle_, float target_angle_);
+
+    /**
+     * Perform calculation from velocity to current and put result into target_current[]
+     * @param id
+     * @param actual_velocity
+     * @param target_velocity
+     * @note for outside code, only for test.
+     */
+    static void calc_v2i_(motor_id_t id_, float actual_velocity_, float target_velocity_);
+
+    friend void cmd_gimbal_set_parameters(BaseSequentialStream *chp, int argc, char *argv[]);
+    friend void cmd_gimbal_echo_parameters(BaseSequentialStream *chp, int argc, char *argv[]);
+    friend class GimbalDebugThread;
 
 };
 

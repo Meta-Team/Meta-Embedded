@@ -11,35 +11,43 @@
 
 #include "led.h"
 #include "serial_shell.h"
+
 #include "can_interface.h"
-#include "gimbal_interface.h"
-#include "gimbal.h"
 #include "mpu6500.h"
+
+#include "gimbal.h"
+#include "shoot.h"
 
 using namespace chibios_rt;
 
+// Duplicate of motor_id_t in GimbalInterface to reduce code
+unsigned const YAW = Gimbal::YAW;
+unsigned const PITCH = Gimbal::PITCH;
+
+char MOTOR_CHAR[2] = {'y', 'p'};
+
 // Calculation interval for gimbal thread
-int const gimbal_thread_interval = 10; // ms
-int const gimbal_feedback_interval = 25; // ms
+unsigned const GIMBAL_THREAD_INTERVAL = 1;    // [ms]
+unsigned const GIMBAL_FEEDBACK_INTERVAL = 25; // [ms]
 
-int const maximum_current = 4000; // mA
+float const MIN_ANGLE[2] = {-170, -60};    // [degree]
+float const MAX_ANGLE[2] = {170, 60};      // [degree]
+float const MAX_VELOCITY[2] = {600, 300};  // absolute maximum, [degree/s]
+int const MAX_CURRENT = 4000;  // [mA]
 
-float const yaw_min_angle = -170; // degree
-float const yaw_max_angle = 170; // degree
-float const pitch_min_angle = -60; // degree
-float const pitch_max_angle = 60; // degree
+bool motor_enabled[2] = {false, false};
 
-float const yaw_max_speed = 600; // absolute maximum, degree/s
-float const pitch_max_speed = 300; // absolute maximum, degree/s
-
-bool enable_angle_to_v_pid = false;
+bool enable_a2v_pid = false;
 // If not enabled, the thread will take target_velocity and perform v_to_i convention.
 // If enabled, the thread will take target_angle and perform two-ring conventions.
 
-float yaw_target_angle = 0.0;
-float yaw_target_velocity = 0.0;
-float pitch_target_angle = 0.0;
-float pitch_target_velocity = 0.0;
+float target_angle[2] = {0.0, 0.0};
+float target_v[2] = {0.0, 0.0};
+
+// Raw angle of yaw and pitch when gimbal points straight forward.
+//   Note: the program will echo the raw angles of yaw and pitch as the program starts
+#define GIMBAL_YAW_FRONT_ANGLE_RAW 7772
+#define GIMBAL_PITCH_FRONT_ANGLE_RAW 2718
 
 // Depends on the install direction of the board
 #define GIMBAL_YAW_ACTUAL_VELOCITY (-MPU6500::angle_speed.x)
@@ -48,17 +56,12 @@ float pitch_target_velocity = 0.0;
 CANInterface can1(&CAND1);
 
 
-class GimbalFeedbackThread : public chibios_rt::BaseStaticThread<512> {
+class GimbalFeedbackThread : public chibios_rt::BaseStaticThread<1024> {
 
 public:
 
-    GimbalFeedbackThread() {
-        enable_yaw_feedback = false;
-        enable_pitch_feedback = false;
-    }
-
-    bool enable_yaw_feedback;
-    bool enable_pitch_feedback;
+    bool enable_yaw_feedback = false;
+    bool enable_pitch_feedback = false;
 
 private:
 
@@ -70,31 +73,24 @@ private:
 
             if (enable_yaw_feedback) {
                 Shell::printf("!gy,%u,%.2f,%.2f,%.2f,%.2f,%d,%d" SHELL_NEWLINE_STR,
-                              TIME_I2MS(chibios_rt::System::getTime()),
-                              GimbalInterface::yaw.actual_angle, yaw_target_angle,
-                              GIMBAL_YAW_ACTUAL_VELOCITY, yaw_target_velocity,
-                              GimbalInterface::yaw.actual_current, GimbalInterface::yaw.target_current);
-//        Shell::printf("yaw round = %d" SHELL_NEWLINE_STR,
-//                      GimbalInterface::yaw.round_count);
+                              SYSTIME,
+                              Gimbal::feedback[YAW].actual_angle, target_angle[YAW],
+                              GIMBAL_YAW_ACTUAL_VELOCITY, target_v[YAW],
+                              Gimbal::feedback[YAW].actual_current, Gimbal::target_current[YAW]);
             }
-
             if (enable_pitch_feedback) {
                 Shell::printf("!gp,%u,%.2f,%.2f,%.2f,%.2f,%d,%d" SHELL_NEWLINE_STR,
-                              TIME_I2MS(chibios_rt::System::getTime()),
-                              GimbalInterface::pitch.actual_angle, pitch_target_angle,
-                              GIMBAL_PITCH_ACTUAL_VELOCITY, pitch_target_velocity,
-                              GimbalInterface::pitch.actual_current, GimbalInterface::pitch.target_current);
-//        Shell::printf("pitch round = %d" SHELL_NEWLINE_STR,
-//                      GimbalInterface::pitch.round_count);
+                              SYSTIME,
+                              Gimbal::feedback[PITCH].actual_angle, target_angle[PITCH],
+                              GIMBAL_PITCH_ACTUAL_VELOCITY, target_v[PITCH],
+                              Gimbal::feedback[PITCH].actual_current, Gimbal::target_current[PITCH]);
             }
 
-            sleep(TIME_MS2I(gimbal_feedback_interval));
+            sleep(TIME_MS2I(GIMBAL_FEEDBACK_INTERVAL));
         }
-
     }
 
 } gimbalFeedbackThread;
-
 
 
 /**
@@ -109,12 +105,8 @@ static void cmd_gimbal_enable(BaseSequentialStream *chp, int argc, char *argv[])
         shellUsage(chp, "g_enable yaw(0/1) pitch(0/1)");
         return;
     }
-    GimbalInterface::yaw.enabled = *argv[0] - '0';
-    GimbalInterface::pitch.enabled = *argv[1] - '0';
-
-//    chprintf(chp, "Gimbal yaw enabled = %d" SHELL_NEWLINE_STR, GimbalInterface::yaw.enabled);
-//    chprintf(chp, "Gimbal pitch enabled = %d" SHELL_NEWLINE_STR, GimbalInterface::pitch.enabled);
-//    chprintf(chp, "Enabled set." SHELL_NEWLINE_STR);
+    motor_enabled[YAW] = *argv[0] - '0';
+    motor_enabled[PITCH] = *argv[1] - '0';
 }
 
 /**
@@ -129,11 +121,11 @@ static void cmd_gimbal_enable_fw(BaseSequentialStream *chp, int argc, char *argv
         shellUsage(chp, "g_enable_fw 0/1");
         return;
     }
-    GimbalInterface::friction_wheels.duty_cycle = 0.2;
-    GimbalInterface::friction_wheels.enabled = *argv[0] - '0';
-
-//    chprintf(chp, "Gimbal friction_wheels enabled = %d" SHELL_NEWLINE_STR, GimbalInterface::friction_wheels.enabled);
-
+    if (*argv[0] == '1') {
+        Shoot::set_friction_wheels(0.5);
+    } else {
+        Shoot::set_friction_wheels(0);
+    }
 }
 
 /**
@@ -150,10 +142,6 @@ static void cmd_gimbal_enable_feedback(BaseSequentialStream *chp, int argc, char
     }
     gimbalFeedbackThread.enable_yaw_feedback = *argv[0] - '0';
     gimbalFeedbackThread.enable_pitch_feedback = *argv[1] - '0';
-
-//    chprintf(chp, "Gimbal yaw feedback = %d" SHELL_NEWLINE_STR, feedbackModule.enable_yaw_feedback);
-//    chprintf(chp, "Gimbal pitch feedback = %d" SHELL_NEWLINE_STR, feedbackModule.enable_pitch_feedback);
-//    chprintf(chp, "Feedback set." SHELL_NEWLINE_STR);
 }
 
 
@@ -169,8 +157,8 @@ static void cmd_gimbal_fix_front_angle(BaseSequentialStream *chp, int argc, char
         shellUsage(chp, "g_fix");
         return;
     }
-    GimbalInterface::yaw.reset_front_angle();
-    GimbalInterface::pitch.reset_front_angle();
+    Gimbal::feedback[YAW].reset_front_angle();
+    Gimbal::feedback[PITCH].reset_front_angle();
 
 //    chprintf(chp, "!f" SHELL_NEWLINE_STR);
 }
@@ -188,17 +176,10 @@ static void cmd_gimbal_set_target_velocities(BaseSequentialStream *chp, int argc
         return;
     }
 
-    yaw_target_velocity = Shell::atof(argv[0]);
-    pitch_target_velocity = Shell::atof(argv[1]);
-    GimbalController::yaw.v_to_i_pid.clear_i_out();
-    GimbalController::yaw.angle_to_v_pid.clear_i_out();
-    GimbalController::pitch.v_to_i_pid.clear_i_out();
-    GimbalController::pitch.angle_to_v_pid.clear_i_out();
-//    chprintf(chp, "Gimbal yaw target_velocity = %f" SHELL_NEWLINE_STR, yaw_target_velocity);
-//    chprintf(chp, "Gimbal pitch target_velocity = %f" SHELL_NEWLINE_STR, pitch_target_velocity);
+    target_v[YAW] = Shell::atof(argv[0]);
+    target_v[PITCH] = Shell::atof(argv[1]);
 
-    enable_angle_to_v_pid = false;
-//    chprintf(chp, "Target velocity set. pos_to_v_pid disabled." SHELL_NEWLINE_STR);
+    enable_a2v_pid = false;
 }
 
 /**
@@ -214,17 +195,10 @@ static void cmd_gimbal_set_target_angle(BaseSequentialStream *chp, int argc, cha
         return;
     }
 
-    yaw_target_angle = Shell::atof(argv[0]);
-    pitch_target_angle = Shell::atof(argv[1]);
-    GimbalController::yaw.v_to_i_pid.clear_i_out();
-    GimbalController::yaw.angle_to_v_pid.clear_i_out();
-    GimbalController::pitch.v_to_i_pid.clear_i_out();
-    GimbalController::pitch.angle_to_v_pid.clear_i_out();
-//    chprintf(chp, "Gimbal yaw target_angle = %f" SHELL_NEWLINE_STR, yaw_target_angle);
-//    chprintf(chp, "Gimbal pitch target_angle = %f" SHELL_NEWLINE_STR, pitch_target_angle);
+    target_angle[YAW] = Shell::atof(argv[0]);
+    target_angle[PITCH] = Shell::atof(argv[1]);
 
-    enable_angle_to_v_pid = true;
-//    chprintf(chp, "Target angle set. pos_to_v_pid enabled." SHELL_NEWLINE_STR);
+    enable_a2v_pid = true;
 }
 
 /**
@@ -233,7 +207,7 @@ static void cmd_gimbal_set_target_angle(BaseSequentialStream *chp, int argc, cha
  * @param argc
  * @param argv
  */
-static void cmd_gimbal_set_parameters(BaseSequentialStream *chp, int argc, char *argv[]) {
+void cmd_gimbal_set_parameters(BaseSequentialStream *chp, int argc, char *argv[]) {
     (void) argv;
     if (argc != 7) {
         shellUsage(chp, "g_set_params yaw(0)/pitch(1) angle_to_v(0)/v_to_i(0) ki kp kd i_limit out_limit");
@@ -241,40 +215,37 @@ static void cmd_gimbal_set_parameters(BaseSequentialStream *chp, int argc, char 
         return;
     }
 
-    PIDController *pidController = nullptr;
-    if (*argv[0] == '0' && *argv[1] == '0') pidController = &GimbalController::yaw.angle_to_v_pid;
-    else if (*argv[0] == '0' && *argv[1] == '1') pidController = &GimbalController::yaw.v_to_i_pid;
-    else if (*argv[0] == '1' && *argv[1] == '0') pidController = &GimbalController::pitch.angle_to_v_pid;
-    else if (*argv[0] == '1' && *argv[1] == '1') pidController = &GimbalController::pitch.v_to_i_pid;
+    Gimbal::pid_params_t yaw_a2v_params = Gimbal::a2v_pid[YAW].get_parameters();
+    Gimbal::pid_params_t yaw_v2i_params = Gimbal::v2i_pid[YAW].get_parameters();
+    Gimbal::pid_params_t pitch_a2v_params = Gimbal::a2v_pid[PITCH].get_parameters();
+    Gimbal::pid_params_t pitch_v2i_params = Gimbal::v2i_pid[PITCH].get_parameters();
+
+    Gimbal::pid_params_t *p = nullptr;
+    if (*argv[0] == '0' && *argv[1] == '0') p = &yaw_a2v_params;
+    else if (*argv[0] == '0' && *argv[1] == '1') p = &yaw_v2i_params;
+    else if (*argv[0] == '1' && *argv[1] == '0') p = &pitch_a2v_params;
+    else if (*argv[0] == '1' && *argv[1] == '1') p = &pitch_v2i_params;
     else {
         chprintf(chp, "!pe" SHELL_NEWLINE_STR);  // echo parameters error
         return;
     }
 
-    pidController->change_parameters(Shell::atof(argv[2]),
-                                     Shell::atof(argv[3]),
-                                     Shell::atof(argv[4]),
-                                     Shell::atof(argv[5]),
-                                     Shell::atof(argv[6]));
-    GimbalController::yaw.v_to_i_pid.clear_i_out();
-    GimbalController::yaw.angle_to_v_pid.clear_i_out();
-    GimbalController::pitch.v_to_i_pid.clear_i_out();
-    GimbalController::pitch.angle_to_v_pid.clear_i_out();
+    *p = {Shell::atof(argv[2]),
+          Shell::atof(argv[3]),
+          Shell::atof(argv[4]),
+          Shell::atof(argv[5]),
+          Shell::atof(argv[6])};
+
+    Gimbal::change_pid_params(yaw_a2v_params, yaw_v2i_params, pitch_a2v_params, pitch_v2i_params);
+
     chprintf(chp, "!ps" SHELL_NEWLINE_STR); // echo parameters set
 }
 
 /**
  * @brief helper function for cmd_gimbal_echo_parameters()
- * @param chp
- * @param pidController
  */
-static inline void _cmd_gimbal_echo_parameters(BaseSequentialStream *chp, PIDController *pidController) {
-    chprintf(chp, "%f %f %f %f %f" SHELL_NEWLINE_STR,
-             pidController->kp,
-             pidController->ki,
-             pidController->kd,
-             pidController->i_limit,
-             pidController->out_limit);
+static inline void _cmd_gimbal_echo_parameters(BaseSequentialStream *chp, Gimbal::pid_params_t p) {
+    chprintf(chp, "%f %f %f %f %f" SHELL_NEWLINE_STR, p.kp, p.ki, p.kd, p.i_limit, p.out_limit);
 }
 
 /**
@@ -283,7 +254,7 @@ static inline void _cmd_gimbal_echo_parameters(BaseSequentialStream *chp, PIDCon
  * @param argc
  * @param argv
  */
-static void cmd_gimbal_echo_parameters(BaseSequentialStream *chp, int argc, char *argv[]) {
+void cmd_gimbal_echo_parameters(BaseSequentialStream *chp, int argc, char *argv[]) {
     (void) argv;
     if (argc != 0) {
         shellUsage(chp, "g_echo_params");
@@ -291,13 +262,13 @@ static void cmd_gimbal_echo_parameters(BaseSequentialStream *chp, int argc, char
     }
 
     chprintf(chp, "yaw angle_to_v:   ");
-    _cmd_gimbal_echo_parameters(chp, &GimbalController::yaw.angle_to_v_pid);
+    _cmd_gimbal_echo_parameters(chp, Gimbal::a2v_pid[YAW].get_parameters());
     chprintf(chp, "yaw v_to_i:       ");
-    _cmd_gimbal_echo_parameters(chp, &GimbalController::yaw.v_to_i_pid);
+    _cmd_gimbal_echo_parameters(chp, Gimbal::v2i_pid[YAW].get_parameters());
     chprintf(chp, "pitch angle_to_v: ");
-    _cmd_gimbal_echo_parameters(chp, &GimbalController::pitch.angle_to_v_pid);
+    _cmd_gimbal_echo_parameters(chp, Gimbal::a2v_pid[PITCH].get_parameters());
     chprintf(chp, "pitch v_to_i:     ");
-    _cmd_gimbal_echo_parameters(chp, &GimbalController::pitch.v_to_i_pid);
+    _cmd_gimbal_echo_parameters(chp, Gimbal::v2i_pid[PITCH].get_parameters());
 }
 
 // Command lists for gimbal controller test and adjustments
@@ -313,116 +284,92 @@ ShellCommand gimbalCotrollerCommands[] = {
         {nullptr,         nullptr}
 };
 
-/**
- * Main calculation thread
- */
-class GimbalThread : public BaseStaticThread<256> {
+
+class GimbalDebugThread : public BaseStaticThread<1024> {
 protected:
     void main() final {
         setName("gimbal");
         while (!shouldTerminate()) {
 
-            if (GimbalInterface::yaw.enabled || GimbalInterface::pitch.enabled) {
+            // Calculation and check
+            if (motor_enabled[YAW] || motor_enabled[PITCH]) {
 
-                // Perform angle check
-                if (GimbalInterface::yaw.actual_angle > yaw_max_angle) {
-                    Shell::printf("!dyA" SHELL_NEWLINE_STR);
-                    GimbalInterface::yaw.enabled = false;
-                    GimbalInterface::send_gimbal_currents();
-                    continue; // make sure there is no chSysLock() before
-                } else if (GimbalInterface::yaw.actual_angle < yaw_min_angle) {
-                    Shell::printf("!dya" SHELL_NEWLINE_STR);
-                    GimbalInterface::yaw.enabled = false;
-                    GimbalInterface::send_gimbal_currents();
-                    continue; // make sure there is no chSysLock() before
-                }
-                if (GimbalInterface::pitch.actual_angle > pitch_max_angle) {
-                    Shell::printf("!dpA" SHELL_NEWLINE_STR);
-                    GimbalInterface::pitch.enabled = false;
-                    GimbalInterface::send_gimbal_currents();
-                    continue; // make sure there is no chSysLock() before
-                } else if (GimbalInterface::pitch.actual_angle < pitch_min_angle) {
-                    Shell::printf("!dpa" SHELL_NEWLINE_STR);
-                    GimbalInterface::pitch.enabled = false;
-                    GimbalInterface::send_gimbal_currents();
-                    continue; // make sure there is no chSysLock() before
-                }
+                for (unsigned i = YAW; i <= PITCH; i++) {
+
+                    // Perform angle check
+                    if (Gimbal::feedback[i].actual_angle > MAX_ANGLE[i]) {
+                        Shell::printf("!d%cA" SHELL_NEWLINE_STR, MOTOR_CHAR[i]);
+                        motor_enabled[i] = false;
+                        continue;
+                    }
+                    if (Gimbal::feedback[i].actual_angle < MIN_ANGLE[i]) {
+                        Shell::printf("!d%ca" SHELL_NEWLINE_STR, MOTOR_CHAR[i]);
+                        motor_enabled[i] = false;
+                        continue;
+                    }
+
+                    if (enable_a2v_pid) {
+                        // Calculate from angle to velocity
+                        Gimbal::calc_a2v_((Gimbal::motor_id_t) i, Gimbal::feedback[i].actual_angle, target_angle[i]);
+                    } else {
+                        // Directly fill the target velocity
+                        Gimbal::target_velocity[i] = target_v[i];
+                    }
+
+                    // Perform velocity check
+                    float actual_velocity_;
+                    if (i == YAW) actual_velocity_ = GIMBAL_YAW_ACTUAL_VELOCITY;
+                    else actual_velocity_ = GIMBAL_PITCH_ACTUAL_VELOCITY;
+                    if (actual_velocity_ > MAX_VELOCITY[i]) {
+                        Shell::printf("!d%cv" SHELL_NEWLINE_STR, MOTOR_CHAR[i]);
+                        motor_enabled[i] = false;
+                        continue;
+                    }
+
+                    // Calculate from velocity to current
+                    Gimbal::calc_v2i_((Gimbal::motor_id_t) i, actual_velocity_, Gimbal::target_velocity[i]);
+                    // NOTE: Gimbal::target_velocity[i] is either calculated or filled (see above)
 
 
-                // Calculate target velocity
-                if (enable_angle_to_v_pid) {
-                    yaw_target_velocity = GimbalController::yaw.angle_to_v(GimbalInterface::yaw.actual_angle,
-                                                                           yaw_target_angle);
-                    pitch_target_velocity = GimbalController::pitch.angle_to_v(GimbalInterface::pitch.actual_angle,
-                                                                               pitch_target_angle);
+                    // Perform current check
+                    if (Gimbal::target_current[i] > MAX_CURRENT || Gimbal::target_current[i] < -MAX_CURRENT) {
+                        Shell::printf("!d%cc" SHELL_NEWLINE_STR, MOTOR_CHAR[i]);
+                        motor_enabled[i] = false;
+                        continue;
+                    }
                 }
-
-                // Perform velocity check
-                if (GIMBAL_YAW_ACTUAL_VELOCITY > yaw_max_speed ||
-                    GIMBAL_YAW_ACTUAL_VELOCITY < -yaw_max_speed) {
-                    Shell::printf("!dyv" SHELL_NEWLINE_STR);
-                    GimbalInterface::yaw.enabled = false;
-                    GimbalInterface::send_gimbal_currents();
-                    continue; // make sure there is no chSysLock() before
-                }
-                if (GIMBAL_PITCH_ACTUAL_VELOCITY > pitch_max_speed ||
-                    GIMBAL_PITCH_ACTUAL_VELOCITY < -pitch_max_speed) {
-                    Shell::printf("!dpv" SHELL_NEWLINE_STR);
-                    GimbalInterface::pitch.enabled = false;
-                    GimbalInterface::send_gimbal_currents();
-                    continue; // make sure there is no chSysLock() before
-                }
-
-                // Calculate target current
-                GimbalInterface::yaw.target_current = (int) GimbalController::yaw.v_to_i(
-                        GIMBAL_YAW_ACTUAL_VELOCITY, yaw_target_velocity);
-                GimbalInterface::pitch.target_current = (int) GimbalController::pitch.v_to_i(
-                        GIMBAL_PITCH_ACTUAL_VELOCITY, pitch_target_velocity);
-
-                // Perform current check
-                if (GimbalInterface::yaw.target_current > maximum_current ||
-                    GimbalInterface::yaw.target_current < -maximum_current) {
-                    Shell::printf("!dyc" SHELL_NEWLINE_STR);
-                    GimbalInterface::yaw.enabled = false;
-                    GimbalInterface::send_gimbal_currents();
-                    continue; // make sure there is no chSysLock() before
-                }
-                if (GimbalInterface::pitch.target_current > maximum_current ||
-                    GimbalInterface::pitch.target_current < -maximum_current) {
-                    Shell::printf("!dpc" SHELL_NEWLINE_STR);
-                    GimbalInterface::pitch.enabled = false;
-                    GimbalInterface::send_gimbal_currents();
-                    continue; // make sure there is no chSysLock() before
-                }
-
-                // Send current
 
             }
 
+            // This two operations should be after calculation since motor can get disabled if check failed
+            // This two operations should always perform, instead of being put in a 'else' block
+            if (!motor_enabled[YAW]) Gimbal::target_current[YAW] = 0;
+            if (!motor_enabled[PITCH]) Gimbal::target_current[PITCH] = 0;
+
+            // Send currents
             GimbalInterface::send_gimbal_currents();
 
-            sleep(TIME_MS2I(gimbal_thread_interval));
+            sleep(TIME_MS2I(GIMBAL_THREAD_INTERVAL));
         }
     }
 } gimbalThread;
 
 
 int main(void) {
+
     halInit();
     System::init();
-
+    LED::all_off();
     Shell::start(HIGHPRIO);
     Shell::addCommands(gimbalCotrollerCommands);
 
-    MPU6500::start(HIGHPRIO - 3);
-
-    gimbalFeedbackThread.start(NORMALPRIO);
-
     can1.start(HIGHPRIO - 1);
+    MPU6500::start(HIGHPRIO - 2);
+    chThdSleepMilliseconds(10);
+    Gimbal::init(&can1, GIMBAL_YAW_FRONT_ANGLE_RAW, GIMBAL_PITCH_FRONT_ANGLE_RAW);
 
-    GimbalInterface::init(&can1);
-
-    gimbalThread.start(HIGHPRIO - 2);
+    gimbalFeedbackThread.start(NORMALPRIO - 1);
+    gimbalThread.start(NORMALPRIO);
 
     // See chconf.h for what this #define means.
 #if CH_CFG_NO_IDLE_THREAD

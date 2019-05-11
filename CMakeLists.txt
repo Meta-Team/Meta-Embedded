@@ -130,7 +130,6 @@ add_executable(ut_gimbal
         dev/module/pid_controller.hpp
         dev/control/gimbal.cpp
         dev/control/shoot.cpp
-        dev/debug/unit_tests/gimbal_controller_unit_test.cpp
         dev/interface/mpu6500.cpp)
 
 # Gimbal: include CANInterface, GimbalInterface, GimbalController, GimbalFeedbackThread and adjustment modules.

@@ -27,8 +27,6 @@ class PIDController : public PIDControllerBase {
 
 public:
 
-    pid_params_t p;
-
     float out;
 
     PIDController() {
@@ -47,6 +45,10 @@ public:
         p.kd = p_.kd;
         p.i_limit = p_.i_limit;
         p.out_limit = p_.out_limit;
+    }
+
+    pid_params_t get_parameters() {
+        return p;
     }
 
     /**
@@ -83,6 +85,8 @@ public:
     }
 
 private:
+
+    pid_params_t p;
 
     float error[2];  // error[0]: error of this time, error[1]: error of last time
 

@@ -117,8 +117,4 @@ void StateHandler::handleEvent(StateHandler::Events event, bool fromISR, ...) {
     (void) fromISR;
 }
 
-bool StateHandler::performAction(StateHandler::Actions action) {
-    (void) action;
-    return false;
-}
 #endif
