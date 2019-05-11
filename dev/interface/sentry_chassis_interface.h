@@ -54,6 +54,8 @@ public:
         int round_count = 0;
         int target_current;
 
+        float present_position;
+        float present_velocity;
     };
 
     static motor_t motor[];
@@ -77,6 +79,8 @@ private:
     static CANInterface* can;
 
     static void process_feedback(CANRxFrame const*rxmsg);
+
+    static float constexpr displacement_per_round = 17.28f;
 
     friend CANInterface;
 

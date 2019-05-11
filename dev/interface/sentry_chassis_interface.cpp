@@ -90,6 +90,13 @@ void SentryChassis::process_feedback(CANRxFrame const*rxmsg) {
     motor[motor_id].actual_angular_velocity =
             motor[motor_id].actual_rpm_raw / chassis_motor_decelerate_ratio * 360.0f / 60.0f;
 
+    // Update the position and velocity
+
+    // Count the rounds first, like 1.5 rounds, -20.7 rounds, etc
+    // Then transform it to displacement by multiplying the displacement_per_round factor
+    motor[motor_id].present_position = (motor[motor_id].actual_angle + 8192.0f * motor[motor_id].round_count) / 8192.0f * displacement_per_round / chassis_motor_decelerate_ratio;
+    // The unit of actual_angular_velocity is degrees/s, so we first translate it into r/s and then multiplying by displacement_per_round factor
+    motor[motor_id].present_velocity = motor[motor_id].actual_angular_velocity / 360.0f * displacement_per_round;
 }
 
 void SentryChassis::init(CANInterface *can_interface) {

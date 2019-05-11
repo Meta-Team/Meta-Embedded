@@ -48,6 +48,8 @@ public:
      */
     static void clear_position();
 
+    static void set_target_current();
+
     /**
      * @brief set the target position and the target velocity according to the given position
      * @param dist the given position, positive for right, negative for left
@@ -72,32 +74,29 @@ public:
      * @brief change the parameters for the v_to_i PIDController
      */
     static void change_v_to_i_pid(float _kp, float _ki, float _kd, float _i_limit, float _out_limit){
-        for(int i = 0; i < MOTOR_COUNT; i++)
-            motor_calculator[i].set_v_to_i_param(_kp, _ki, _kd, _i_limit, _out_limit);
+        motor_right_pid.change_parameters(_kp, _ki, _kd, _i_limit, _out_limit);
+        motor_left_pid.change_parameters(_kp, _ki, _kd, _i_limit, _out_limit);
     }
 
     /**
      * @brief Debug helper function. Print the PIDController parameters
      * @param motor_id
      */
-    static void print_pid_params(int motor_id){
-        motor_calculator[motor_id].print_pid_params();
-    }
-
-    /**
-     * @brief update the present position and present velocity information
-     */
-    static void update_present_data(){
-        motor_calculator[MOTOR_RIGHT].update_motor_data();
-        motor_calculator[MOTOR_LEFT].update_motor_data();
+    static void print_pid_params(){
+        LOG("motor_right:" SHELL_NEWLINE_STR);
+        LOG("kp = %.2f ki = %.2f kd = %.2f i_limit = %.2f out_limit = %.2f" SHELL_NEWLINE_STR,
+            motor_right_pid.kp, motor_right_pid.ki, motor_right_pid.kd, motor_right_pid.i_limit, motor_right_pid.out_limit);
+        LOG("motor_left:" SHELL_NEWLINE_STR);
+        LOG("kp = %.2f ki = %.2f kd = %.2f i_limit = %.2f out_limit = %.2f" SHELL_NEWLINE_STR,
+            motor_left_pid.kp, motor_left_pid.ki, motor_left_pid.kd, motor_left_pid.i_limit, motor_left_pid.out_limit);
     }
 
     /**
      * @brief Debug helper function. Print the present position in cm
      */
     static void print_position(){
-        LOG("motor %d position: %.2f", 0, motor_calculator[0].position());
-        LOG("motor %d position: %.2f", 1, motor_calculator[1].position());
+        LOG("motor %d position: %.2f", 0, motor[0].present_position);
+        LOG("motor %d position: %.2f", 1, motor[1].present_position);
     }
 
     /**
@@ -112,8 +111,8 @@ public:
      * @brief Debug helper function. Print the present velocity in cm/s
      */
     static void print_velocity(){
-        LOG("motor %d present_velocity: %.2f", 0, motor_calculator[0].velocity());
-        LOG("motor %d present_velocity: %.2f", 1, motor_calculator[1].velocity());
+        LOG("motor %d present_velocity: %.2f", 0, motor[0].present_velocity);
+        LOG("motor %d present_velocity: %.2f", 1, motor[1].present_velocity);
     }
 
 private:
@@ -124,104 +123,19 @@ private:
 
     static time_msecs_t present_time;
 
-    /**
-     * @brief process the data for each motor and do the calculation
-     * @param unit for displacement: cm
-     * @param unit for velocity: cm/s
-     */
-    class motor_calculator_t{
-    public:
-        motor_id_t id;
+    static float target_position;
 
-        /**
-         * @brief this function decides whether the motor should change its target position
-         * @attention this function is only used for AUTO MODE
-         * @return true if motor should change its target position, false otherwise
-         */
-        bool should_change(){
-            return present_position >= target_position-3 && present_position <= target_position+3;
-        }
+    static float target_velocity;
 
-        /**
-         * @brief update the present position and velocity according to the data from interface
-         */
-        void update_motor_data();
-
-        /**
-         * @return present position
-         */
-        float position() {
-            return present_position;
-        }
-        /**
-         * @return present velocity
-         */
-        float velocity(){
-            return present_velocity;
-        }
-
-        /**
-         * @brief reset the present position and the target position to the origin
-         */
-        void reset_position();
-
-        /**
-         * @brief set the target position and target velocity
-         * @param dist (cm)
-         */
-        void set_motor_target_position(float dist);
-
-        /**
-         * set the target velocity
-         * @param speed (cm/s)
-         */
-        void set_motor_target_velocity(float speed){
-            target_velocity = speed;
-        }
-
-        /**
-         * @brief set the v_to_i pid
-         */
-        void set_v_to_i_param(float _kp, float _ki, float _kd, float _i_limit, float _out_limit){
-            v_to_i.change_parameters(_kp, _ki, _kd, _i_limit, _out_limit);
-            v_to_i.clear_i_out();
-        }
-
-        /**
-         * @brief use the PIDs to calculate the target current according to the present position and the target position and the present velocity
-         * @return
-         */
-        void set_target_current();
-
-        /**
-         * @brief Debug helper function. Print the PIDController parameters
-         */
-        void print_pid_params();
-
-    private:
-        float present_position = 0;
-        float present_velocity = 0;
-        float target_position = 0;
-        float target_velocity = 0;
-        PIDController v_to_i;
-    };
-
-    static motor_calculator_t motor_calculator[];
+    static PIDController motor_right_pid;
+    static PIDController motor_left_pid;
 
     /**
      * @brief the const values
      */
 
     static float constexpr maximum_speed = 80.0f;
-    //todo: determine what displacement is changed as the motor goes one round
-    static float constexpr displacement_per_round = 17.28f;
 
-    /**
-* @brief set the target destination for auto driving
-* change the destination if the two motors are both ready to change target destination, or do nothing change otherwise
-* @attention this function is specially for AUTO DRIVING MODE
-*/
-    static void change_auto_destination();
 };
 
 

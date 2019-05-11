@@ -132,16 +132,11 @@ static void cmd_chassis_set_pid(BaseSequentialStream *chp, int argc, char *argv[
  */
 static void cmd_chassis_print_pid(BaseSequentialStream *chp, int argc, char *argv[]) {
     (void) argv;
-    if (argc != 1) {
-        shellUsage(chp, "c_pid motor_id");
+    if (argc != 0) {
+        shellUsage(chp, "c_pid");
         return;
     }
-    int motor_id = Shell::atoi(argv[0]);
-    if(motor_id != 0 && motor_id != 1){
-        shellUsage(chp, "wrong motor_id");
-        return;
-    }
-    SentryChassisController::print_pid_params(motor_id);
+    SentryChassisController::print_pid_params();
 }
 
 /**
@@ -248,7 +243,6 @@ protected:
                     SentryChassisController::motor[1].target_current = 0;
                 }
             }else{
-                SentryChassisController::update_present_data();
 
                 if(printPosition)
                     SentryChassisController::print_position();
