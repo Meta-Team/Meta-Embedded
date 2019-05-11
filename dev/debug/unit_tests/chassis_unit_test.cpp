@@ -10,21 +10,20 @@
 #include "chassis.h"
 
 #include "vehicle_infantry_three.h"
-
-#warning "ut_chassis is only designed for INFANTRY #1."
+#warning "ut_chassis is only designed for INFANTRY #3."
 
 using namespace chibios_rt;
 
 CANInterface can1(&CAND1);
 
-float target_vx = 0.0f; // (mm/s)
-float target_vy = 0.0f; // (mm/s)
-float target_w = 0.0f; // (degree/s, negative value for clockwise)
+float target_vx = 0.0f; // [mm/s]
+float target_vy = 0.0f; // [mm/s]
+float target_w = 0.0f;  // [degree/s], negative value for clockwise)
 
 time_msecs_t test_end_time = 0; // [ms]
 
-int const chassis_feedback_interval = 25; // ms
-int const chassis_thread_interval = 20; // ms
+unsigned const CHASSIS_FEEDBACK_INTERVAL = 25; // [ms]
+unsigned const CHASSIS_THREAD_INTERVAL = 2;    // [ms]
 
 /**
  * @brief set chassis controller target
@@ -62,11 +61,11 @@ static void cmd_chassis_set_parameters(BaseSequentialStream *chp, int argc, char
     }
 
 
-    Chassis::change_pid_params(Shell::atof(argv[0]),
-                               Shell::atof(argv[1]),
-                               Shell::atof(argv[2]),
-                               Shell::atof(argv[3]),
-                               Shell::atof(argv[4]));
+    Chassis::change_pid_params({Shell::atof(argv[0]),
+                                Shell::atof(argv[1]),
+                                Shell::atof(argv[2]),
+                                Shell::atof(argv[3]),
+                                Shell::atof(argv[4])});
     for (int i = 0; i < Chassis::CHASSIS_MOTOR_COUNT; i++) {
         Chassis::pid[i].clear_i_out();
     }
@@ -85,12 +84,8 @@ static void cmd_chassis_echo_parameters(BaseSequentialStream *chp, int argc, cha
         shellUsage(chp, "c_echo_params");
         return;
     }
-    chprintf(chp, "Chassis PID: %f %f %f %f %f" SHELL_NEWLINE_STR,
-             Chassis::pid[0].kp,
-             Chassis::pid[0].ki,
-             Chassis::pid[0].kd,
-             Chassis::pid[0].i_limit,
-             Chassis::pid[0].out_limit); // echo chassis parameters
+    Chassis::pid_params_t p = Chassis::pid[0].get_parameters();  // all PID params should be the same
+    chprintf(chp, "Chassis PID: %f %f %f %f %f" SHELL_NEWLINE_STR, p.kp, p.ki, p.kd, p.i_limit, p.out_limit);
 }
 
 // Shell commands to control the chassis
@@ -116,12 +111,12 @@ private:
                           Chassis::target_velocity[2],
                           Chassis::feedback[3].actual_velocity,
                           Chassis::target_velocity[3]);
-            sleep(TIME_MS2I(chassis_feedback_interval));
+            sleep(TIME_MS2I(CHASSIS_FEEDBACK_INTERVAL));
         }
     }
 } chassisFeedbackThread;
 
-class ChassisThread : public BaseStaticThread<512> {
+class ChassisThread : public BaseStaticThread<1024> {
 protected:
     void main() final {
         setName("chassis");
@@ -149,18 +144,18 @@ protected:
 
             Chassis::send_chassis_currents();
 
-            sleep(TIME_MS2I(chassis_thread_interval));
+            sleep(TIME_MS2I(CHASSIS_THREAD_INTERVAL));
         }
     }
 } chassisThread;
 
 
 int main(void) {
+    
     halInit();
     System::init();
 
-    // Start ChibiOS shell at high priority,
-    // so even if a thread stucks, we still have access to shell.
+    // Start ChibiOS shell at high priority, so even if a thread stucks, we still have access to shell.
     Shell::start(HIGHPRIO);
     Shell::addCommands(chassisCommands);
 
