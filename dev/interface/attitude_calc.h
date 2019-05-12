@@ -1,53 +1,50 @@
-#ifndef MATA_ATTITUDE_CALC_H
-#define MATA_ATTITUDE_CALC_H
+#ifndef META_ATTITUDE_CALC_H
+#define META_ATTITUDE_CALC_H
 
 #include "mpu6500.h"
 
 // output
-
 typedef struct quaternion_t {
     float q0, q1, q2, q3;
 };
 
 class BoardAttitude {
-
+    
 public:
 
     static quaternion_t q;
-
     static void return_quaternion();
-    // init pid
-//    BoardAttitude(int p, int i, int d): kp(p), ki(i), kd(d), dt(0) {
-//        BoardAttitude();
-//    }
+    static void attitude_init(float _kp, float _ki, float _kd) {
+        // init q
+        q.q0 = 1.0f;
+        q.q1 = q.q2 = q.q3 = 0.0f; 
+        // init m
+        m.x = m.y = m.z = 0;  
+        // init integral
+        integral.x = integral.y = integral.z = 0.0f;
+        // init pid constant
+        kp = _kp;
+        ki = _ki;
+        kd = _kd;
+    }
     
 private:
 
     // input
     static Vector3D w; // angular speed
-    static Vector3D a;
-    static float a[3]; // acceleration
-    static float m[3]; // magnetic field
+    static Vector3D a; // acceleration
+    static Vector3D m; // magnetic field
+
     // TODO: assume dt are same in imu6500 and ist8310
     static float dt;
 
     // integral for pid
-    static float integral[3];
-    // pid constant
-    static constexpr float kp = 1.0f;
-    static constexpr float ki = 0.0f;
-    static constexpr float kd = 0.0f;
+    static Vector3D integral;
 
-    // init q, b
-    BoardAttitude() {
-        // init m[3]
-        m[0] = m[1] = m[2] = 0;
-        // init q[3]
-        q[0] = 1.0f;
-        q[1] = q[2] = q[3] = 0.0f;
-        // init integral[3]
-        integral[0] = integral[1] = integral[2] = 0.0f;
-    };
+    // pid constant
+    static float kp;
+    static float ki;
+    static float kd;
 
     // update quaternion
     static void quaternion_update();
@@ -55,4 +52,4 @@ private:
     static void without_ist8310();
 };
 
-#endif // MATA_ATTITUDE_CALC_H
+#endif // META_ATTITUDE_CALC_H

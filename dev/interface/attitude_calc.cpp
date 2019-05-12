@@ -19,21 +19,15 @@ void BoardAttitude::return_quaternion() {
 
     dt = MPU6500Controller::dt;
     // TODO: copy the data from ist8310
-    m[0] = 0;
-    m[1] = 0;
-    m[2] = 0;
+    m.x = 0;
+    m.y = 0;
+    m.z = 0;
 
     quaternion_update();
-    
-    // return q
-    q.q0 = q.q0;
-    q.q1 = q.q1;
-    q.q2 = q.q2;
-    q.q3 = q.q3;
 }
 
 void BoardAttitude::quaternion_update() {  
-    if (!(m[0] == 0.0f && m[1] == 0.0f && m[2] == 0.0f)) {
+    if (!(m.x == 0.0f && m.y == 0.0f && m.z == 0.0f)) {
         // magnetic field can never be zero
         without_ist8310();
     } else {
@@ -52,10 +46,10 @@ void BoardAttitude::with_ist8310() {
     }
 
     // normalize m
-    float lenm = 1.0f / sqrt(m[0]*m[0] + m[1]*m[1] + m[2]*m[2]);
-    m[0] *= lenm;
-    m[1] *= lenm;
-    m[2] *= lenm;
+    float lenm = 1.0f / sqrt(m.x*m.x + m.y*m.y + m.z*m.z);
+    m.x *= lenm;
+    m.y *= lenm;
+    m.z *= lenm;
 
     // pre-calculation
     float q00 = q.q0 * q.q0;
@@ -71,11 +65,11 @@ void BoardAttitude::with_ist8310() {
 
     // reference direction
     // hx and hy are used to calc bx, bz
-    float hx = 2.0f * (m[0] * (0.5f - q22 - q33) + m[1] * (q12 - q03) + m[2] * (q13 + q02));
-    float hy = 2.0f * (m[1] * (0.5f - q11 - q33) + m[0] * (q12 + q03) + m[2] * (q23 - q01));
+    float hx = 2.0f * (m.x * (0.5f - q22 - q33) + m.y * (q12 - q03) + m.z * (q13 + q02));
+    float hy = 2.0f * (m.y * (0.5f - q11 - q33) + m.x * (q12 + q03) + m.z * (q23 - q01));
     float bx = sqrt(hx*hx + hy*hy);
     //    by = 0;
-    float bz = 2.0f * (m[2] * (0.5f - q11 - q22) + m[0] * (q13 - q02) + m[1] * (q23 + q01));
+    float bz = 2.0f * (m.z * (0.5f - q11 - q22) + m.x * (q13 - q02) + m.y * (q23 + q01));
 
     // calc the direction of gravity
     float halfvx = q13 - q02;
@@ -88,21 +82,21 @@ void BoardAttitude::with_ist8310() {
     float halfwz = bz * (0.5f - q11 - q22) + bx * (q02 + q13);
 
     // calc error
-    float halfex = (a.y * halfvz - a.z * halfvy) + (m[1] * halfwz - m[2] * halfwy);
-    float halfey = (a.z * halfvx - a.x * halfvz) + (m[2] * halfwx - m[0] * halfwz);
-    float halfez = (a.x * halfvy - a.y * halfvx) + (m[0] * halfwy - m[1] * halfwx);
+    float halfex = (a.y * halfvz - a.z * halfvy) + (m.y * halfwz - m.z * halfwy);
+    float halfey = (a.z * halfvx - a.x * halfvz) + (m.z * halfwx - m.x * halfwz);
+    float halfez = (a.x * halfvy - a.y * halfvx) + (m.x * halfwy - m.y * halfwx);
 
     // correct w using ki
     if (ki > 0.0f) {
-        integral[0] = ki * 2.0f * halfex * dt;
-        integral[1] = ki * 2.0f * halfey * dt;
-        integral[2] = ki * 2.0f * halfez * dt;
+        integral.x = ki * 2.0f * halfex * dt;
+        integral.y = ki * 2.0f * halfey * dt;
+        integral.z = ki * 2.0f * halfez * dt;
 
-        w.x += integral[0];
-        w.y += integral[1];
-        w.z += integral[2];
+        w.x += integral.x;
+        w.y += integral.y;
+        w.z += integral.z;
     } else {
-        integral[0] = integral[1] = integral[2] = 0.0f;
+        integral.x = integral.y = integral.z = 0.0f;
     }
 
     // correct w using kp
@@ -148,15 +142,15 @@ void BoardAttitude::without_ist8310() {
 
     // correct w using ki
     if (ki > 0.0f) {
-        integral[0] = ki * 2.0f * halferr.x * dt;
-        integral[1] = ki * 2.0f * halferr.y * dt;
-        integral[2] = ki * 2.0f * halferr.z * dt;
+        integral.x = ki * 2.0f * halferr.x * dt;
+        integral.y = ki * 2.0f * halferr.y * dt;
+        integral.z = ki * 2.0f * halferr.z * dt;
 
-        w.x += integral[0];
-        w.y += integral[1];
-        w.z += integral[2];
+        w.x += integral.x;
+        w.y += integral.y;
+        w.z += integral.z;
     } else {
-        integral[0] = integral[1] = integral[2] = 0.0f;
+        integral.x = integral.y = integral.z = 0.0f;
     }
 
     // correct w using kp
