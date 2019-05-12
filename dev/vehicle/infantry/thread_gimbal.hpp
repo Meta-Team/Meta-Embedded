@@ -49,7 +49,7 @@ class GimbalThread : public chibios_rt::BaseStaticThread<1024> {
 
                     Gimbal::calc_gimbal(GIMBAL_YAW_ACTUAL_VELOCITY, GIMBAL_PITCH_ACTUAL_VELOCITY,
                                         -Remote::rc.ch0 * 60,  // Yaw   target angle
-                                        Remote::rc.ch1 * 20    // Pitch target angle
+                                        -Remote::rc.ch1 * 20    // Pitch target angle
                     );
 
                 } else if (Remote::rc.s1 == Remote::S_DOWN) { // PC control mode

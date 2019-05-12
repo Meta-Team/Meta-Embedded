@@ -36,7 +36,8 @@ class ShootThread : public chibios_rt::BaseStaticThread<1024> {
                 if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_UP) {
 
                     // Friction wheels
-                    Shoot::set_friction_wheels(GIMBAL_REMOTE_FRICTION_WHEEL_DUTY_CYCLE);
+                    // Shoot::set_friction_wheels(GIMBAL_REMOTE_FRICTION_WHEEL_DUTY_CYCLE);
+                    Shoot::set_friction_wheels(0);
 
                     // Bullet loader motor
                     if (Remote::rc.ch1 > 0.5) {
