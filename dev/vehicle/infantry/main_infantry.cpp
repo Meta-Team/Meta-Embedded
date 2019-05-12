@@ -68,6 +68,7 @@ int main(void) {
 
     /** Setup Shell */
     Shell::start(HIGHPRIO);
+    StateHandler::echoEvent(StateHandler::SHELL_START);
     // LED 1 on now
 
     /** Setup CAN1 */

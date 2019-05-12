@@ -30,10 +30,10 @@ char MOTOR_CHAR[2] = {'y', 'p'};
 unsigned const GIMBAL_THREAD_INTERVAL = 1;    // [ms]
 unsigned const GIMBAL_FEEDBACK_INTERVAL = 25; // [ms]
 
-float const MIN_ANGLE[2] = {-170, -60};    // [degree]
-float const MAX_ANGLE[2] = {170, 60};      // [degree]
+float const MIN_ANGLE[2] = {-170, -45};    // [degree]
+float const MAX_ANGLE[2] = {170, 45};      // [degree]
 float const MAX_VELOCITY[2] = {600, 300};  // absolute maximum, [degree/s]
-int const MAX_CURRENT = 4000;  // [mA]
+int const MAX_CURRENT = 4500;  // [mA]
 
 bool motor_enabled[2] = {false, false};
 
@@ -44,14 +44,14 @@ bool enable_a2v_pid = false;
 float target_angle[2] = {0.0, 0.0};
 float target_v[2] = {0.0, 0.0};
 
-// Raw angle of yaw and pitch when gimbal points straight forward.
+// Raw angle of yaw and pitch when GimbalInterface points straight forward.
 //   Note: the program will echo the raw angles of yaw and pitch as the program starts
-#define GIMBAL_YAW_FRONT_ANGLE_RAW 7772
-#define GIMBAL_PITCH_FRONT_ANGLE_RAW 2718
+#define GIMBAL_YAW_FRONT_ANGLE_RAW 620
+#define GIMBAL_PITCH_FRONT_ANGLE_RAW 5684
 
 // Depends on the install direction of the board
-#define GIMBAL_YAW_ACTUAL_VELOCITY (-MPU6500::angle_speed.x)
-#define GIMBAL_PITCH_ACTUAL_VELOCITY (MPU6500::angle_speed.y)
+#define GIMBAL_YAW_ACTUAL_VELOCITY (-MPU6500::angle_speed.y)
+#define GIMBAL_PITCH_ACTUAL_VELOCITY (-MPU6500::angle_speed.x)
 
 CANInterface can1(&CAND1);
 
@@ -126,6 +126,7 @@ static void cmd_gimbal_enable_fw(BaseSequentialStream *chp, int argc, char *argv
     } else {
         Shoot::set_friction_wheels(0);
     }
+    Shoot::send_gimbal_currents();
 }
 
 /**
@@ -163,6 +164,13 @@ static void cmd_gimbal_fix_front_angle(BaseSequentialStream *chp, int argc, char
 //    chprintf(chp, "!f" SHELL_NEWLINE_STR);
 }
 
+void _cmd_gimbal_clear_i_out() {
+    for (int i = 0; i < 2; i++) {
+        Gimbal::v2i_pid[i].clear_i_out();
+        Gimbal::a2v_pid[i].clear_i_out();
+    }
+}
+
 /**
  * @brief set target velocity of yaw and pitch and disable pos_to_v_pid
  * @param chp
@@ -178,6 +186,7 @@ static void cmd_gimbal_set_target_velocities(BaseSequentialStream *chp, int argc
 
     target_v[YAW] = Shell::atof(argv[0]);
     target_v[PITCH] = Shell::atof(argv[1]);
+    _cmd_gimbal_clear_i_out();
 
     enable_a2v_pid = false;
 }
@@ -197,6 +206,7 @@ static void cmd_gimbal_set_target_angle(BaseSequentialStream *chp, int argc, cha
 
     target_angle[YAW] = Shell::atof(argv[0]);
     target_angle[PITCH] = Shell::atof(argv[1]);
+    _cmd_gimbal_clear_i_out();
 
     enable_a2v_pid = true;
 }

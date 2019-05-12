@@ -28,12 +28,12 @@ unsigned const GIMBAL_FEEDBACK_INTERVAL = 25; // [ms]
 
 // Raw angle of yaw and pitch when GimbalInterface points straight forward.
 //   Note: the program will echo the raw angles of yaw and pitch as the program starts
-#define GIMBAL_YAW_FRONT_ANGLE_RAW 7772
-#define GIMBAL_PITCH_FRONT_ANGLE_RAW 2718
+#define GIMBAL_YAW_FRONT_ANGLE_RAW 620
+#define GIMBAL_PITCH_FRONT_ANGLE_RAW 5684
 
 // Depends on the install direction of the board
-#define GIMBAL_YAW_ACTUAL_VELOCITY (-MPU6500::angle_speed.x)
-#define GIMBAL_PITCH_ACTUAL_VELOCITY (MPU6500::angle_speed.y)
+#define GIMBAL_YAW_ACTUAL_VELOCITY (-MPU6500::angle_speed.y)
+#define GIMBAL_PITCH_ACTUAL_VELOCITY (-MPU6500::angle_speed.x)
 
 CANInterface can1(&CAND1);
 
@@ -88,6 +88,7 @@ static void cmd_gimbal_enable_fw(BaseSequentialStream *chp, int argc, char *argv
     } else {
         GimbalInterface::fw_duty_cycle = 0;
     }
+    GimbalInterface::send_gimbal_currents();
 }
 
 /**
@@ -146,6 +147,11 @@ int main(void) {
     GimbalInterface::init(&can1, GIMBAL_YAW_FRONT_ANGLE_RAW, GIMBAL_PITCH_FRONT_ANGLE_RAW);
 
     gimbalFeedbackThread.start(NORMALPRIO - 1);
+
+    chThdSleepMilliseconds(100);
+    LOG("Gimbal Yaw: %u, %f, Pitch: %u, %f",
+        GimbalInterface::feedback[YAW].last_angle_raw, GimbalInterface::feedback[YAW].actual_angle,
+        GimbalInterface::feedback[PITCH].last_angle_raw, GimbalInterface::feedback[PITCH].actual_angle);
 
     // See chconf.h for what this #define means.
 #if CH_CFG_NO_IDLE_THREAD

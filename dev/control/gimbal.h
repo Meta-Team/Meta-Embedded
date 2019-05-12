@@ -71,6 +71,7 @@ private:
     friend void cmd_gimbal_set_parameters(BaseSequentialStream *chp, int argc, char *argv[]);
     friend void cmd_gimbal_echo_parameters(BaseSequentialStream *chp, int argc, char *argv[]);
     friend class GimbalDebugThread;
+    friend void _cmd_gimbal_clear_i_out();
 
 };
 

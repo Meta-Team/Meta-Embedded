@@ -22,7 +22,7 @@ inline void startupCheckMPU6500() {
             // No signal in last 3 ms (normal interval 1 ms)
             t = SYSTIME;  // reset the counter
         }
-        chThdSleepMilliseconds(3);
+        chThdSleepMilliseconds(5);
     }
 }
 

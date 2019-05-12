@@ -43,7 +43,7 @@ static const SPIConfig SPI5_cfg =
 void MPU6500::mpu6500_write_reg(uint8_t reg_addr, uint8_t value) {
     uint8_t tx_data[2] = {reg_addr, value};
     spiAcquireBus(&MPU6500_SPI_DRIVER);
-    spiSelect(&MPU6500_SPI_DRIVER);LED::red_on();
+    spiSelect(&MPU6500_SPI_DRIVER);
     spiSend(&MPU6500_SPI_DRIVER, 2, tx_data);
     spiUnselect(&MPU6500_SPI_DRIVER);
     spiReleaseBus(&MPU6500_SPI_DRIVER);
@@ -187,6 +187,8 @@ void MPU6500::getData() {
     angle_speed.z = (gyro_z + _gyro_bias.z);
 
     a_component = Vector3D(accel_x, accel_y, accel_z) * _accel_bias;
+
+    last_update_time = SYSTIME;
 
     chSysUnlock();  // --- Exit Critical Zone ---
 }

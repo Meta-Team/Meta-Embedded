@@ -120,6 +120,7 @@ add_executable(ut_remote_interpreter
 # Gimbal Interface: include CANInterface, GimbalInterface, GimbalFeedbackThread and the unit test modules.
 add_executable(ut_gimbal_interface
         dev/module/can_interface.cpp
+        dev/interface/mpu6500.cpp
         dev/interface/gimbal_interface.cpp
         dev/debug/unit_tests/gimbal_interface_unit_test.cpp)
 
