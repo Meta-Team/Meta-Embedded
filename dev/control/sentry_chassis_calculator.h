@@ -11,19 +11,19 @@
 #include "can_interface.h"
 #include "ch.hpp"
 #include "hal.h"
+#include "math.h"
 
 class SentryChassisController: public SentryChassis{
 public:
 
     enum sentry_mode_t{
         STOP_MODE,
+        CONST_CURRENT_MODE,
         ONE_STEP_MODE,
         AUTO_MODE
     };
 
     static bool enable;
-
-    static float constexpr radius = 30.0f; // the range that sentry can move around the origin in the AUTO MODE
 
     /**
      * @brief initialize the calculator class
@@ -35,20 +35,12 @@ public:
      * @brief change the running mode if needed
      * @param target_mode
      */
-    static void set_mode(sentry_mode_t target_mode){
-        running_mode = target_mode;
-        clear_position();
-        if(running_mode == AUTO_MODE){
-            set_destination(radius);
-        }
-    }
+    static void set_mode(sentry_mode_t target_mode, float index = 0);
 
     /**
      * @brief set the present position and target position to be the 0 point
      */
     static void clear_position();
-
-    static void set_target_current();
 
     /**
      * @brief set the target position and the target velocity according to the given position
@@ -67,7 +59,7 @@ public:
      */
     static void change_speed_mode(bool mode){
         change_speed = mode;
-        if(change_speed) present_time = SYSTIME;
+        if(change_speed) start_time = SYSTIME;
     }
 
     /**
@@ -121,11 +113,15 @@ private:
 
     static bool change_speed;
 
-    static time_msecs_t present_time;
+    static time_msecs_t start_time;
 
     static float target_position;
 
     static float target_velocity;
+
+    static float radius; // the range that sentry can move around the origin in the AUTO MODE
+
+    static int const_current;
 
     static PIDController motor_right_pid;
     static PIDController motor_left_pid;
