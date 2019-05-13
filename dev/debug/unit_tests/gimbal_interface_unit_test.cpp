@@ -25,6 +25,7 @@ unsigned const YAW = GimbalInterface::YAW;
 unsigned const PITCH = GimbalInterface::PITCH;
 unsigned const BULLET = GimbalInterface::BULLET;
 
+unsigned const GIMBAL_THREAD_INTERVAL = 1;    // [ms]
 unsigned const GIMBAL_FEEDBACK_INTERVAL = 25; // [ms]
 
 // Raw angle of yaw and pitch when GimbalInterface points straight forward.
@@ -144,7 +145,6 @@ static void cmd_gimbal_set_target_currents(BaseSequentialStream *chp, int argc, 
     chprintf(chp, "Gimbal yaw target_current = %d" SHELL_NEWLINE_STR, GimbalInterface::target_current[YAW]);
     chprintf(chp, "Gimbal pitch target_current = %d" SHELL_NEWLINE_STR, GimbalInterface::target_current[PITCH]);
     chprintf(chp, "Gimbal bullet loader target_current = %d" SHELL_NEWLINE_STR, GimbalInterface::target_current[BULLET]);
-    GimbalInterface::send_gimbal_currents();
 }
 
 // Command lists for GimbalInterface test
@@ -155,6 +155,17 @@ ShellCommand gimbalCotrollerCommands[] = {
         {"g_set", cmd_gimbal_set_target_currents},
         {nullptr,         nullptr}
 };
+
+class GimbalDebugThread : public BaseStaticThread<1024> {
+protected:
+    void main() final {
+        setName("gimbal");
+        while (!shouldTerminate()) {
+            GimbalInterface::send_gimbal_currents();
+            sleep(TIME_MS2I(GIMBAL_THREAD_INTERVAL));
+        }
+    }
+} gimbalThread;
 
 
 int main(void) {
@@ -171,6 +182,7 @@ int main(void) {
     GimbalInterface::init(&can1, GIMBAL_YAW_FRONT_ANGLE_RAW, GIMBAL_PITCH_FRONT_ANGLE_RAW);
 
     gimbalFeedbackThread.start(NORMALPRIO - 1);
+    gimbalThread.start(NORMALPRIO);
 
     chThdSleepMilliseconds(100);
     LOG("Gimbal Yaw: %u, %f, Pitch: %u, %f",
