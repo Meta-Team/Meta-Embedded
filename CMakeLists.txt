@@ -50,6 +50,7 @@ include_directories(  # common include directories
         dev/common
         dev/debug
         dev/interface
+        dev/interface/imu
         dev/module
         dev/control)
 
@@ -67,7 +68,7 @@ add_library(ChibiOS_OBJ OBJECT ${CHIBIOS_XASM_SRC} ${CHIBIOS_C_SRC} ${CHIBIOS_CP
 set(INFANTRY
         dev/module/pid_controller.hpp
         dev/module/can_interface.cpp
-        dev/interface/mpu6500.cpp
+        dev/interface/imu/mpu6500.cpp
         dev/interface/gimbal_interface.cpp
         dev/interface/chassis_interface.cpp
         dev/interface/remote_interpreter.cpp
@@ -120,18 +121,9 @@ add_executable(ut_remote_interpreter
 # Gimbal Interface: include CANInterface, GimbalInterface, GimbalFeedbackThread and the unit test modules.
 add_executable(ut_gimbal_interface
         dev/module/can_interface.cpp
-        dev/interface/mpu6500.cpp
+        dev/interface/imu/mpu6500.cpp
         dev/interface/gimbal_interface.cpp
         dev/debug/unit_tests/gimbal_interface_unit_test.cpp)
-
-# Gimbal: include CANInterface, GimbalInterface, GimbalController, GimbalFeedbackThread and testmodules.
-add_executable(ut_gimbal
-        dev/module/can_interface.cpp
-        dev/interface/gimbal_interface.cpp
-        dev/module/pid_controller.hpp
-        dev/control/gimbal.cpp
-        dev/control/shoot.cpp
-        dev/interface/mpu6500.cpp)
 
 # Gimbal: include CANInterface, GimbalInterface, GimbalController, GimbalFeedbackThread and adjustment modules.
 add_executable(pa_gimbal
@@ -140,14 +132,22 @@ add_executable(pa_gimbal
         dev/module/pid_controller.hpp
         dev/control/gimbal.cpp
         dev/control/shoot.cpp
-        dev/interface/mpu6500.cpp
+        dev/interface/imu/mpu6500.cpp
         dev/debug/unit_tests/gimbal_pid_adjustment_program.cpp)
 
 
 # MPU6500: include MP6500 interface and unit test.
 add_executable(ut_mpu6500
-        dev/interface/mpu6500.cpp
+        dev/interface/imu/mpu6500.cpp
         dev/debug/unit_tests//mpu6500_unit_test.cpp)
+
+# IMU: include IMU interface and unit test.
+add_executable(ut_imu
+        dev/interface/imu/imu_math.hpp
+        dev/interface/imu/mpu6500.cpp
+        dev/interface/imu/ist8310.cpp
+        dev/interface/imu/imu.cpp
+        dev/debug/unit_tests/imu_unit_test.cpp)
 
 # Buzzer: inlcude Buzzer interface and unit test.
 add_executable(ut_buzzer

@@ -8,7 +8,7 @@
 
 /* Initialize the controller.
  * Actually, I don't know what happens here. Just copy and change properly from others.*/
-bool IST8310Controller::initial(SPIDriver *spi, IST8310Controller::magConfigStruct conf){
+bool IST8310::initial(SPIDriver *spi, IST8310::magConfigStruct conf){
     uint8_t data[5];
     data[0] = MPU6500_I2C_MST_CTRL;
     data[1] = MPU6500_I2CMST_CLK_400K; //set imu master i2c freq to 320kHz;
@@ -82,7 +82,7 @@ bool IST8310Controller::initial(SPIDriver *spi, IST8310Controller::magConfigStru
     return true;
 }
 
-void IST8310Controller::getData(SPIDriver *spi) {
+void IST8310::getData(SPIDriver *spi) {
     uint16_t rawData[3];
     uint8_t data = MPU6500_EXT_SENS_DATA_00 | MPU6500_I2C_MSTR_READ;
 

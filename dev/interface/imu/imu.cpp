@@ -1,4 +1,4 @@
-#include "attitude_calc.h"
+#include "imu.h"
 
 #include "math.h"
 #include "mpu6500.h"
@@ -6,7 +6,7 @@
 
 #define PI 3.14159265358979323846f
 
-void BoardAttitude::return_quaternion() {
+void IMU::return_quaternion() {
 
     MPU6500Controller::getData();
     // input
@@ -26,7 +26,7 @@ void BoardAttitude::return_quaternion() {
     quaternion_update();
 }
 
-void BoardAttitude::quaternion_update() {  
+void IMU::quaternion_update() {
     if (!(m.x == 0.0f && m.y == 0.0f && m.z == 0.0f)) {
         // magnetic field can never be zero
         without_ist8310();
@@ -36,7 +36,7 @@ void BoardAttitude::quaternion_update() {
     }
  }
 
-void BoardAttitude::with_ist8310() {
+void IMU::with_ist8310() {
     // normalize a
     if (!(a.x == 0.0f && a.y == 0.0f && a.z == 0.0f)) {
         float lena = 1.0f / sqrt(a.x*a.x + a.y*a.y + a.z*a.z);
@@ -128,7 +128,7 @@ void BoardAttitude::with_ist8310() {
     }
 }
 
-void BoardAttitude::without_ist8310() {
+void IMU::without_ist8310() {
     
     // calc the direction of gravity
     float halfvx = q.q1 * q.q3 - q.q0 * q.q2;

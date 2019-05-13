@@ -1,16 +1,22 @@
 #ifndef META_ATTITUDE_CALC_H
 #define META_ATTITUDE_CALC_H
 
+#define IMU_ENABLE_IST8310  FALSE
+
+
+#include "imu_math.hpp"
 #include "mpu6500.h"
+#if IMU_ENABLE_IST8310
+#include "ist8310.h"
+#endif
 
-// output
-typedef struct quaternion_t {
-    float q0, q1, q2, q3;
-};
-
-class BoardAttitude {
+class IMU {
     
 public:
+
+    struct quaternion_t {
+        float q0, q1, q2, q3;
+    };
 
     static quaternion_t q;
     static void return_quaternion();
