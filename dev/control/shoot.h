@@ -42,12 +42,12 @@ public:
      */
     static void set_friction_wheels(float duty_cycle);
 
-
 private:
 
     static PIDController v2i_pid;
 
     static float degree_per_bullet_;
+    static float degree_per_bullet_plate;
 
 };
 
