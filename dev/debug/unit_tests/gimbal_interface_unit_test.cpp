@@ -23,6 +23,7 @@ using namespace chibios_rt;
 // Duplicate of motor_id_t in GimbalInterface to reduce code
 unsigned const YAW = GimbalInterface::YAW;
 unsigned const PITCH = GimbalInterface::PITCH;
+unsigned const BULLET = GimbalInterface::BULLET;
 
 unsigned const GIMBAL_FEEDBACK_INTERVAL = 25; // [ms]
 
@@ -124,11 +125,34 @@ static void cmd_gimbal_fix_front_angle(BaseSequentialStream *chp, int argc, char
     GimbalInterface::feedback[PITCH].reset_front_angle();
 }
 
+/**
+ * @brief set target currents of yaw and pitch
+ * @param chp
+ * @param argc
+ * @param argv
+ */
+static void cmd_gimbal_set_target_currents(BaseSequentialStream *chp, int argc, char *argv[]) {
+    (void) argv;
+    if (argc != 3) {
+        shellUsage(chp, "g_set yaw_current pitch_current bullet_loader_current");
+        return;
+    }
+
+    GimbalInterface::target_current[YAW] = Shell::atoi(argv[0]);
+    GimbalInterface::target_current[PITCH] = Shell::atoi(argv[1]);
+    GimbalInterface::target_current[BULLET] = Shell::atoi(argv[2]);
+    chprintf(chp, "Gimbal yaw target_current = %d" SHELL_NEWLINE_STR, GimbalInterface::target_current[YAW]);
+    chprintf(chp, "Gimbal pitch target_current = %d" SHELL_NEWLINE_STR, GimbalInterface::target_current[PITCH]);
+    chprintf(chp, "Gimbal bullet loader target_current = %d" SHELL_NEWLINE_STR, GimbalInterface::target_current[BULLET]);
+    GimbalInterface::send_gimbal_currents();
+}
+
 // Command lists for GimbalInterface test
 ShellCommand gimbalCotrollerCommands[] = {
         {"g_enable_fb",   cmd_gimbal_enable_feedback},
         {"g_fix",         cmd_gimbal_fix_front_angle},
         {"g_enable_fw",   cmd_gimbal_enable_fw},
+        {"g_set", cmd_gimbal_set_target_currents},
         {nullptr,         nullptr}
 };
 
