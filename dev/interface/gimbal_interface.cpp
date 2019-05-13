@@ -34,8 +34,11 @@ void GimbalInterface::init(CANInterface *can_interface, uint16_t yaw_front_angle
     feedback[PITCH].id = PITCH;
     feedback[PITCH].last_angle_raw = pitch_front_angle_raw;
 
-    feedback[BULLET].id = PITCH;
+    feedback[BULLET].id = BULLET;
     feedback[BULLET].reset_front_angle();
+
+    feedback[PLATE].id = PLATE;
+    feedback[PLATE].reset_front_angle();
 
     can_ = can_interface;
     can_->register_callback(0x205, 0x207, process_motor_feedback);
@@ -95,7 +98,12 @@ void GimbalInterface::send_gimbal_currents() {
     txmsg.data8[4] = (uint8_t) (target_current[BULLET] >> 8); // upper byte
     txmsg.data8[5] = (uint8_t) target_current[BULLET];       // lower byte
 
-    txmsg.data8[6] = txmsg.data8[7] = 0;
+#if GIMBAL_INTERFACE_ENABLE_CLIP
+    ABS_CROP(target_current[PLATE], GIMBAL_INTERFACE_PLATE_MAX_CURRENT);
+#endif
+    txmsg.data8[6] = (uint8_t) (target_current[PLATE] >> 8);
+    txmsg.data8[7] = (uint8_t) target_current[PLATE];
+
 
     can_->send_msg(&txmsg);
 
@@ -212,7 +220,31 @@ void GimbalInterface::process_motor_feedback(CANRxFrame const *rxmsg) {
             feedback[id].last_update_time = SYSTIME;
 
             break;
+        case 3:   // PLATE
 
+            feedback[id].last_angle_raw = new_actual_angle_raw;
+
+            // Make sure that the angle movement is positive
+            if (angle_movement < -2000) angle_movement / angle_movement + 8192;
+
+
+            feedback[id].actual_angle += angle_movement * 18.9f / 8192; // deceleration ratio : 19, 360/19 = 18.947368421052632
+
+            // IF the actual angle is beyond (-180,180)
+            if (feedback[id].actual_angle >= 360.0f) {
+                feedback[id].actual_angle -= 360.0f;
+                feedback[id].round_count++;
+            }
+            if (feedback[id].actual_angle <= -360.0f) {
+                feedback[id].actual_angle +=360.0f;
+                feedback[id].round_count--;
+            }
+
+            feedback[id].actual_velocity = ((int16_t) (rxmsg->data8[2] << 8 | rxmsg->data8[3])) / 19.2f * 360.0f / 60.0f;
+
+            feedback[id].last_update_time = SYSTIME;
+
+            break;
         default:
 
             break;
