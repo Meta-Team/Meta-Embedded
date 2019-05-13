@@ -145,8 +145,8 @@ add_executable(ut_mpu6500
 add_executable(ut_imu
         dev/interface/imu/imu_math.hpp
         dev/interface/imu/mpu6500.cpp
-        dev/interface/imu/ist8310.cpp
-        dev/interface/imu/imu.cpp
+#        dev/interface/imu/ist8310.cpp
+        dev/interface/imu/ahrs.cpp
         dev/debug/unit_tests/imu_unit_test.cpp)
 
 # Buzzer: inlcude Buzzer interface and unit test.
