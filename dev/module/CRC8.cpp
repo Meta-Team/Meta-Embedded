@@ -23,38 +23,37 @@ const unsigned char CRC8_TAB[256] =
                 0xe9, 0xb7, 0x55, 0x0b, 0x88, 0xd6, 0x34, 0x6a, 0x2b, 0x75, 0x97, 0xc9, 0x4a, 0x14, 0xf6, 0xa8,
                 0x74, 0x2a, 0xc8, 0x96, 0x15, 0x4b, 0xa9, 0xf7, 0xb6, 0xe8, 0x0a, 0x54, 0xd7, 0x89, 0x6b, 0x35,
         };
-unsigned char Get_CRC8_Check_Sum(unsigned char *pchMessage,unsigned int dwLength,unsigned
-char ucCRC8)
-{
+
+unsigned char Get_CRC8_Check_Sum(unsigned char *pchMessage, unsigned int dwLength, unsigned
+char ucCRC8) {
     unsigned char ucIndex;
-    while (dwLength--)
-    {
-        ucIndex = ucCRC8^(*pchMessage++);
+    while (dwLength--) {
+        ucIndex = ucCRC8 ^ (*pchMessage++);
         ucCRC8 = CRC8_TAB[ucIndex];
     }
-    return(ucCRC8);
+    return (ucCRC8);
 }
+
 /*
 ** Descriptions: CRC8 Verify function
 ** Input: Data to Verify,Stream length = Data + checksum
 ** Output: True or False (CRC Verify Result)
 */
-unsigned int Verify_CRC8_Check_Sum(unsigned char *pchMessage, unsigned int dwLength)
-{
+unsigned int Verify_CRC8_Check_Sum(unsigned char *pchMessage, unsigned int dwLength) {
     unsigned char ucExpected = 0;
     if ((pchMessage == 0) || (dwLength <= 2)) return 0;
-    ucExpected = Get_CRC8_Check_Sum (pchMessage, dwLength-1, CRC8_INIT);
-    return ( ucExpected == pchMessage[dwLength-1] );
+    ucExpected = Get_CRC8_Check_Sum(pchMessage, dwLength - 1, CRC8_INIT);
+    return (ucExpected == pchMessage[dwLength - 1]);
 }
+
 /*
 ** Descriptions: append CRC8 to the end of data
 ** Input: Data to CRC and append,Stream length = Data + checksum
 ** Output: True or False (CRC Verify Result)
 */
-void Append_CRC8_Check_Sum(unsigned char *pchMessage, unsigned int dwLength)
-{
+void Append_CRC8_Check_Sum(unsigned char *pchMessage, unsigned int dwLength) {
     unsigned char ucCRC = 0;
     if ((pchMessage == 0) || (dwLength <= 2)) return;
-    ucCRC = Get_CRC8_Check_Sum ( (unsigned char *)pchMessage, dwLength-1, CRC8_INIT);
-    pchMessage[dwLength-1] = ucCRC;
+    ucCRC = Get_CRC8_Check_Sum((unsigned char *) pchMessage, dwLength - 1, CRC8_INIT);
+    pchMessage[dwLength - 1] = ucCRC;
 }
