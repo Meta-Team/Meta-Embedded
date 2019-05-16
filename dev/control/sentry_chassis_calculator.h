@@ -7,6 +7,7 @@
 #define SYSTIME (TIME_I2MS(chVTGetSystemTime()))
 
 #include "sentry_chassis_interface.h"
+#include "referee_interface.h"
 #include "pid_controller.h"
 #include "can_interface.h"
 #include "ch.hpp"
