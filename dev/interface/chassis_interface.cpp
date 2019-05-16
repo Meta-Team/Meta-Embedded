@@ -3,7 +3,6 @@
 //
 
 #include "chassis_interface.h"
-#include "common_macro.h"
 
 ChassisInterface::motor_feedback_t ChassisInterface::feedback[MOTOR_COUNT];
 int ChassisInterface::target_current[ChassisInterface::MOTOR_COUNT];

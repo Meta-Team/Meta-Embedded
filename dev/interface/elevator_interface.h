@@ -9,143 +9,91 @@
 #include "hal.h"
 #include "can_interface.h"
 
-#define ELEVATOR_INTERFACE_SAFETY_BUTTON_PAD GPIOE
-#define ELEVATOR_INTERFACE_SENSOR_THREAD_WORKSPACE 512
-
-#if defined(BOARD_RM_2018_A)
-#else
-#error "ElevatorInterface is only developed for RM board 2018 A."
-#endif
+#include "common_macro.h"
 
 /**
  * @name ElevatorInterface
- * @brief an interface to control elevator motor height and handle feedback
- * @pre hardware is properly configured. CAN IDs of RMDS should be the same as wheel_can_id_t below.
- * @usage 1. init() with properly intialized CANInterface
- *        2. apply_front/read_position(), and read feedback from elevator_wheels[]
+ * @brief interface to process elevator motor feedback and send target current.
+ * @pre hardware is properly set. CAN id of each motor should be the same as motor_id_t.
+ * @usage 1. Call init(CANInterface *). The interface should be properly initialized.
+ *        2. Control the data flow based on actual implementation
+ * @note This module is designed to process feedback automatically, but not to send current automatically, to avoid
+ *       unintended elevator movements.
  */
 class ElevatorInterface {
+
 public:
 
-    enum wheel_t {
-        FRONT_RIGHT,
-        FRONT_LEFT,
-        REAR_LEFT,
-        REAR_RIGHT,
-        WHEEL_COUNT // = 4
+    enum motor_id_t {  // goes in a counter-clockwise order
+        FR, // front right motor, 0
+        FL, // front left motor, 1
+        BL, // back left motor, 2
+        BR, // back right motor, 3
+        MOTOR_COUNT
     };
 
     /**
-     * @name DistanceSensor
-     * @brief a subclass in the ElevatorInterface that inspects the height of each corner of the engineer
-     */
-    class DistanceSensor{
-    public:
-        bool getDist();
-        bool reachEdge();
-        void setGround();
-    private:
-        int presentDist;
-        bool outOfEdge = false;
-        static constexpr int stageHeight = 20;
-        static constexpr int offStageHeight = 10;
-    };
-
-    enum sensor_id{
-        SENSOR_FR = 0 ,
-        SENSOR_FL = 1,
-        SENSOR_BL = 2,
-        SENSOR_BR = 3
-    };
-    static DistanceSensor sensors[4];
-
-    /**
-     * @brief set the target position for the front wheels
-     * @param front_wheel_position_cm the target position of the front wheels, - for downward
-     * @return whether the position is valid 
-     * @note we grant that the startup position is the lowest point, so this function DISALLOW positive position
-     */
-    static bool apply_front_position(float front_wheel_position_cm);
-
-    /**
-     * @brief set the target position for the rear wheels
-     * @param rear_wheel_position_cm the target position of the rear wheels, - for downward
-     * @return whether the position is valid 
-     * @note we grant that the startup position is the lowest point, so this function DISALLOW positive position
-     */
-    static bool apply_rear_position(float rear_wheel_position_cm);
-
-
-    /** Unit Interface for each RMDS module **/
-    class UnitInterface {
-    public:
-        int32_t real_position; // the real position of the motor, [qc]
-        int16_t real_current;  // the real current in the motor
-        int16_t real_velocity;  // the real velocity of the motor
-
-        /**
-         * @brief return whether the elevator unit is in action
-         * @return
-         * @note if the abs distance between real_position and target_position is greater than stable_range (configured
-         *       below, the unit is considered to be in action
-         */
-        bool is_in_action();
-
-    private:
-
-        bool is_actioning_;
-
-        friend ElevatorInterface;
-    };
-
-    /**
-     * @brief contains the real information of the four wheels
-     * elevator_wheels[0] and elevator_wheels[1] are for the front_left and front_right wheels accordingly
-     * elevator_wheels[2] and elevator_wheels[3] are for the left_rear and right_rear wheels accordingly
-     */
-    static UnitInterface wheels[4];
-
-    /**
-     * @brief set the CAN interface
+     * @brief set CAN interface for receiving and sending
      * @param can_interface
      */
-    static void init(CANInterface *can_interface);
+    static void init(CANInterface* can_interface);
+
+    /** Structure for each motor */
+    struct motor_feedback_t {
+
+        motor_id_t id;
+
+        uint16_t actual_angle_raw;
+        int16_t actual_rpm_raw;
+        int16_t actual_current_raw;
+        uint8_t actual_temperature_raw;
+
+        time_msecs_t last_update_time;
+
+        int accmulate_angle;      // [degree]
+
+        float actual_velocity; // [degree/s]
+
+        /**
+         * @brief set current actual angle as 0 degree
+         */
+        void clear_accmulate_angle();
+
+    };
+
+    /**
+     * @brief interface for each chassis motor
+     */
+    static motor_feedback_t feedback[];
+
+    /**
+     * @brief target current array in the order defined in motor_id_t
+     */
+    static int target_current[MOTOR_COUNT];
+
+    /**
+     * @brief send all target currents
+     * @return
+     */
+    static bool send_elevator_currents();
 
 private:
 
-    /**
-     * @brief contains the target position of both the front wheels and the rear wheels
-     * target_position[0] contains the target position of the front wheels
-     * target_position[1] contains the target position of the rear wheels
-     */
-    static int32_t target_position_[2]; // [pc]
-
-
-    enum wheel_can_id_t {
-        FRONT_RIGHT_CAN_ID = 1,
-        FRONT_LEFT_CAN_ID = 2,
-        REAR_LEFT_CAN_ID = 3,
-        REAR_RIGHT_CAN_ID = 4
-    };
+    static CANInterface* can;
 
     /**
-     * @brief send message of each motor
-     * @return true if success, false otherwise
+     * @brief callback function for CANInterface to process motor feedback
+     * @param rxmsg
      */
-    static bool send_target_position_(int wheel_index);
+    static void process_elevator_feedback(CANRxFrame const*rxmsg);
 
-    /**
-     * @brief Get the feedback (real position, real velocity, real current) of each motor from the driver
-     * @return true if success, false otherwise
-     */
-    static void process_feedback_(CANRxFrame const *rxmsg);
+    friend CANInterface;
 
-    static CANInterface *can_;
+private:
 
-    static constexpr unsigned int RMDS_CAN_GROUP_ID = 3;
-    static constexpr uint8_t RMDS_FEEDBACK_INTERVAL = 100;
-    static constexpr uint16_t RMDS_DRIVER_PWM = 2500;  // the pwm of the current
-    static constexpr int RMDS_STABLE_RANGE = 1000; // the range that is regarded as target has been reached. [qc], 0.4 cm
+    /** Configurations **/
+
+    static float constexpr chassis_motor_decelerate_ratio = 19.2f; // 3591/187 on the data sheet
 
 };
 

@@ -178,12 +178,10 @@ add_executable(ut_elevator_interface
 # Elevator: include CANInterface, ElevatorInterface, ElevatorController, and the unit test modules.
 add_executable(ut_elevator
         dev/module/can_interface.cpp
-        dev/interface/elevator_interface.cpp
-        dev/interface/chassis_interface.cpp
-        dev/control/chassis.cpp
         dev/module/pid_controller.hpp
-        dev/debug/unit_tests/engineer_chassis_elevator_unit_test.cpp
-        dev/vehicle/engineer/elevator_thread.cpp)
+        dev/interface/elevator_interface.cpp
+        dev/control/elevator.cpp
+        dev/debug/unit_tests/elevator_param_adjust.cpp)
 
 # Robotic Arm
 add_executable(ut_robotic_arm
