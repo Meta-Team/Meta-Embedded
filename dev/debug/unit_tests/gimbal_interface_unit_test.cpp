@@ -17,6 +17,7 @@
 #include "mpu6500.h"
 
 #include "gimbal_interface.h"
+#include "shoot.h"
 
 using namespace chibios_rt;
 
@@ -24,6 +25,7 @@ using namespace chibios_rt;
 unsigned const YAW = GimbalInterface::YAW;
 unsigned const PITCH = GimbalInterface::PITCH;
 unsigned const BULLET = GimbalInterface::BULLET;
+unsigned const PLATE = GimbalInterface::PLATE;
 
 unsigned const GIMBAL_THREAD_INTERVAL = 1;    // [ms]
 unsigned const GIMBAL_FEEDBACK_INTERVAL = 25; // [ms]
@@ -45,6 +47,8 @@ public:
 
     bool enable_yaw_feedback = false;
     bool enable_pitch_feedback = false;
+    bool enable_loader_feedback = false;
+    bool enable_plate_feedback = false;
 
 private:
 
@@ -66,6 +70,16 @@ private:
                               GIMBAL_PITCH_ACTUAL_VELOCITY,
                               GimbalInterface::feedback[PITCH].actual_current);
             }
+            if (enable_loader_feedback){
+                Shell::printf("[PIT] angle: %.2f, i: %d" SHELL_NEWLINE_STR,
+                            GimbalInterface::feedback[BULLET].actual_angle,
+                            GimbalInterface::feedback[BULLET].actual_current);
+            }
+            if (enable_plate_feedback){
+                Shell::printf("[PIT] angle: %.2f, i: %d" SHELL_NEWLINE_STR,
+                            GimbalInterface::feedback[PLATE].actual_angle,
+                            GimbalInterface::feedback[PLATE].actual_current);
+            }
 
             sleep(TIME_MS2I(GIMBAL_FEEDBACK_INTERVAL));
         }
@@ -80,19 +94,50 @@ private:
  * @param argv
  */
 static void cmd_gimbal_enable_fw(BaseSequentialStream *chp, int argc, char *argv[]) {
-    (void) argv;
-    if (argc != 1 || (*argv[0] != '0' && *argv[0] != '1')) {
-        shellUsage(chp, "g_enable_fw 0/1");
-        return;
-    }
     if (*argv[0] == '1') {
+        GimbalInterface::fw_duty_cycle = 0.1;
+    }
+    else if (*argv[0] == '2'){
+        GimbalInterface::fw_duty_cycle = 0.2;
+    }
+    else if (*argv[0] == '3'){
+        GimbalInterface::fw_duty_cycle = 0.3;
+    }
+    else if (*argv[0] == '4'){
+        GimbalInterface::fw_duty_cycle = 0.4;
+    }
+    else if (*argv[0] == '5'){
         GimbalInterface::fw_duty_cycle = 0.5;
+    }
+    else if (*argv[0] == '6'){
+        GimbalInterface::fw_duty_cycle = 0.6;
+    }
+    else if (*argv[0] == '7'){
+        GimbalInterface::fw_duty_cycle = 0.7;
+    }
+    else if (*argv[0] == '8'){
+        GimbalInterface::fw_duty_cycle = 0.8;
+    }
+    else if (*argv[0] == '9'){
+        GimbalInterface::fw_duty_cycle = 0.9;
     } else {
         GimbalInterface::fw_duty_cycle = 0;
     }
     GimbalInterface::send_gimbal_currents();
 }
-
+//static void cmd_gimbal_loader(BaseSequentialStream *chp, int argc, char *argv[]){
+//    (void) argv;
+//    if(argc != 3 || (float) *argv[0] < 0 || (float) *argv[1] < 0 || (float) *argv[2] < 0 ){
+//        shellUsage(chp, "g_enable_loader loader_angle>0 plate_angle>0 bullet_persecond>0");
+//        return;
+//    }
+//    else {
+//        Shoot::degree_per_bullet_ = (float) *argv[0];
+//      Shoot::degree_per_bullet_plate = (float) *argv[1];
+//        Shoot::calc_bullet_loader((float) *argv[3]);
+//    }
+//    GimbalInterface::send_gimbal_currents();
+//}
 /**
  * @brief set feedback enable states
  * @param chp
@@ -101,8 +146,8 @@ static void cmd_gimbal_enable_fw(BaseSequentialStream *chp, int argc, char *argv
  */
 static void cmd_gimbal_enable_feedback(BaseSequentialStream *chp, int argc, char *argv[]) {
     (void) argv;
-    if (argc != 2 || (*argv[0] != '0' && *argv[0] != '1') || (*argv[1] != '0' && *argv[1] != '1')) {
-        shellUsage(chp, "g_enable_fb yaw(0/1) pitch(0/1)");
+    if (argc != 4 || (*argv[0] != '0' && *argv[0] != '1') || (*argv[1] != '0' && *argv[1] != '1') || (*argv[2] != '0' && *argv[2] != '1') || (*argv[3] != '0' && *argv[3] != '1')) {
+        shellUsage(chp, "g_enable_fb yaw(0/1) pitch(0/1) bullet(0/1) plate(0/1)");
         return;
     }
     gimbalFeedbackThread.enable_yaw_feedback = *argv[0] - '0';
@@ -134,18 +179,23 @@ static void cmd_gimbal_fix_front_angle(BaseSequentialStream *chp, int argc, char
  */
 static void cmd_gimbal_set_target_currents(BaseSequentialStream *chp, int argc, char *argv[]) {
     (void) argv;
-    if (argc != 3) {
-        shellUsage(chp, "g_set yaw_current pitch_current bullet_loader_current");
+    if (argc != 4) {
+        shellUsage(chp, "g_set yaw_current pitch_current bullet_loader_current bullet_plate_current");
         return;
     }
 
     GimbalInterface::target_current[YAW] = Shell::atoi(argv[0]);
     GimbalInterface::target_current[PITCH] = Shell::atoi(argv[1]);
     GimbalInterface::target_current[BULLET] = Shell::atoi(argv[2]);
+    GimbalInterface::target_current[PLATE] = Shell::atoi(argv[3]);
     chprintf(chp, "Gimbal yaw target_current = %d" SHELL_NEWLINE_STR, GimbalInterface::target_current[YAW]);
     chprintf(chp, "Gimbal pitch target_current = %d" SHELL_NEWLINE_STR, GimbalInterface::target_current[PITCH]);
-    chprintf(chp, "Gimbal bullet loader target_current = %d" SHELL_NEWLINE_STR, GimbalInterface::target_current[BULLET]);
+    chprintf(chp, "Gimbal bullet loader_target_current = %d" SHELL_NEWLINE_STR, GimbalInterface::target_current[BULLET]);
+    chprintf(chp, "Gimbal plate target_current = %d" SHELL_NEWLINE_STR, GimbalInterface::target_current[PLATE]);
+    chprintf(chp, "Gimbal plate actual_current = %d" SHELL_NEWLINE_STR, GimbalInterface::feedback[PLATE].actual_current);
+    GimbalInterface::send_gimbal_currents();
 }
+
 
 // Command lists for GimbalInterface test
 ShellCommand gimbalCotrollerCommands[] = {
@@ -153,6 +203,8 @@ ShellCommand gimbalCotrollerCommands[] = {
         {"g_fix",         cmd_gimbal_fix_front_angle},
         {"g_enable_fw",   cmd_gimbal_enable_fw},
         {"g_set", cmd_gimbal_set_target_currents},
+//        {"g_enable_loader",cmd_gimbal_loader},
+
         {nullptr,         nullptr}
 };
 
@@ -175,7 +227,6 @@ int main(void) {
     LED::all_off();
     Shell::start(HIGHPRIO);
     Shell::addCommands(gimbalCotrollerCommands);
-
     can1.start(HIGHPRIO - 1);
     MPU6500::start(HIGHPRIO - 2);
     chThdSleepMilliseconds(10);
