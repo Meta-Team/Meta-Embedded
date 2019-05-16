@@ -8,8 +8,9 @@ PIDController Shoot::v2i_pid;
 
 float Shoot::degree_per_bullet_;
 
-void Shoot::init(float degree_per_bullet) {
+void Shoot::init(float degree_per_bullet, float degree_per_bullet_plate) {
     degree_per_bullet_ = degree_per_bullet;
+    degree_per_bullet_plate = degree_per_bullet_plate;
 }
 
 void Shoot::change_pid_params(PIDControllerBase::pid_params_t bullet_loader_v2i_params) {

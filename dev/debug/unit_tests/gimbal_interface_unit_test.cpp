@@ -71,17 +71,17 @@ private:
                               GimbalInterface::feedback[PITCH].actual_current);
             }
             if (enable_loader_feedback){
-                Shell::printf("[PIT] angle: %.2f, i: %d" SHELL_NEWLINE_STR,
+                Shell::printf("[PIT] angle: %.2f, v: %.2f" SHELL_NEWLINE_STR,
                             GimbalInterface::feedback[BULLET].actual_angle,
-                            GimbalInterface::feedback[BULLET].actual_current);
+                            GimbalInterface::feedback[BULLET].actual_velocity);
             }
             if (enable_plate_feedback){
-                Shell::printf("[PIT] angle: %.2f, i: %d" SHELL_NEWLINE_STR,
+                Shell::printf("[PIT] angle: %.2f, v: %.2f" SHELL_NEWLINE_STR,
                             GimbalInterface::feedback[PLATE].actual_angle,
-                            GimbalInterface::feedback[PLATE].actual_current);
+                            GimbalInterface::feedback[PLATE].actual_velocity);
             }
 
-            sleep(TIME_MS2I(GIMBAL_FEEDBACK_INTERVAL));
+            sleep(TIME_MS2I(500));
         }
     }
 
@@ -152,6 +152,8 @@ static void cmd_gimbal_enable_feedback(BaseSequentialStream *chp, int argc, char
     }
     gimbalFeedbackThread.enable_yaw_feedback = *argv[0] - '0';
     gimbalFeedbackThread.enable_pitch_feedback = *argv[1] - '0';
+    gimbalFeedbackThread.enable_loader_feedback = *argv[2] - '0';
+    gimbalFeedbackThread.enable_plate_feedback = *argv[3] - '0';
 }
 
 
@@ -192,8 +194,6 @@ static void cmd_gimbal_set_target_currents(BaseSequentialStream *chp, int argc, 
     chprintf(chp, "Gimbal pitch target_current = %d" SHELL_NEWLINE_STR, GimbalInterface::target_current[PITCH]);
     chprintf(chp, "Gimbal bullet loader_target_current = %d" SHELL_NEWLINE_STR, GimbalInterface::target_current[BULLET]);
     chprintf(chp, "Gimbal plate target_current = %d" SHELL_NEWLINE_STR, GimbalInterface::target_current[PLATE]);
-    chprintf(chp, "Gimbal plate actual_current = %d" SHELL_NEWLINE_STR, GimbalInterface::feedback[PLATE].actual_current);
-    GimbalInterface::send_gimbal_currents();
 }
 
 

@@ -122,7 +122,7 @@ static void cmd_gimbal_enable_fw(BaseSequentialStream *chp, int argc, char *argv
         return;
     }
     if (*argv[0] == '1') {
-        Shoot::set_friction_wheels(0.5);
+        Shoot::set_friction_wheels(0.8);
     } else {
         Shoot::set_friction_wheels(0);
     }

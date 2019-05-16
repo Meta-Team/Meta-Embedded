@@ -41,7 +41,7 @@ void GimbalInterface::init(CANInterface *can_interface, uint16_t yaw_front_angle
     feedback[PLATE].reset_front_angle();
 
     can_ = can_interface;
-    can_->register_callback(0x205, 0x207, process_motor_feedback);
+    can_->register_callback(0x205, 0x208, process_motor_feedback);
 
 #if defined(BOARD_RM_2018_A)
     // Enable power of bullet loader motor
@@ -97,6 +97,8 @@ void GimbalInterface::send_gimbal_currents() {
 #endif
     txmsg.data8[4] = (uint8_t) (target_current[BULLET] >> 8); // upper byte
     txmsg.data8[5] = (uint8_t) target_current[BULLET];       // lower byte
+
+    // Fill the current of plate
 
 #if GIMBAL_INTERFACE_ENABLE_CLIP
     ABS_CROP(target_current[PLATE], GIMBAL_INTERFACE_PLATE_MAX_CURRENT);
@@ -222,27 +224,27 @@ void GimbalInterface::process_motor_feedback(CANRxFrame const *rxmsg) {
             break;
         case 3:   // PLATE
 
-            feedback[id].last_angle_raw = new_actual_angle_raw;
+            feedback[PLATE].last_angle_raw = new_actual_angle_raw;
 
             // Make sure that the angle movement is positive
             if (angle_movement < -2000) angle_movement / angle_movement + 8192;
 
 
-            feedback[id].actual_angle += angle_movement * 18.9f / 8192; // deceleration ratio : 19, 360/19 = 18.947368421052632
+            feedback[PLATE].actual_angle += angle_movement * 18.9f / 8192; // deceleration ratio : 19, 360/19 = 18.947368421052632
 
             // IF the actual angle is beyond (-180,180)
-            if (feedback[id].actual_angle >= 360.0f) {
-                feedback[id].actual_angle -= 360.0f;
-                feedback[id].round_count++;
+            if (feedback[PLATE].actual_angle >= 360.0f) {
+                feedback[PLATE].actual_angle -= 360.0f;
+                feedback[PLATE].round_count++;
             }
-            if (feedback[id].actual_angle <= -360.0f) {
-                feedback[id].actual_angle +=360.0f;
-                feedback[id].round_count--;
+            if (feedback[PLATE].actual_angle <= -360.0f) {
+                feedback[PLATE].actual_angle +=360.0f;
+                feedback[PLATE].round_count--;
             }
 
-            feedback[id].actual_velocity = ((int16_t) (rxmsg->data8[2] << 8 | rxmsg->data8[3])) / 19.2f * 360.0f / 60.0f;
+            feedback[PLATE].actual_velocity = ((int16_t) (rxmsg->data8[2] << 8 | rxmsg->data8[3])) / 19.2f * 360.0f / 60.0f;
 
-            feedback[id].last_update_time = SYSTIME;
+            feedback[PLATE].last_update_time = SYSTIME;
 
             break;
         default:

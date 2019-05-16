@@ -27,16 +27,16 @@ static void cmd_chassis_echo(BaseSequentialStream *chp, int argc, char *argv[]) 
         return;
     }
 
-    chprintf(chp, "actual_velocity: FR = %.2f, FL = %.2f, BL = %.2f, BR = %.2f" SHELL_NEWLINE_STR,
-             ChassisInterface::feedback[ChassisInterface::FR].actual_velocity,
-             ChassisInterface::feedback[ChassisInterface::FL].actual_velocity,
-             ChassisInterface::feedback[ChassisInterface::BL].actual_velocity,
-             ChassisInterface::feedback[ChassisInterface::BR].actual_velocity);
-    chprintf(chp, "target_current: FR = %d, FL = %d, BL = %d, BR = %d" SHELL_NEWLINE_STR,
-             ChassisInterface::target_current[ChassisInterface::FR],
-             ChassisInterface::target_current[ChassisInterface::FL],
-             ChassisInterface::target_current[ChassisInterface::BL],
-             ChassisInterface::target_current[ChassisInterface::BR]);
+//    chprintf(chp, "actual_velocity: FR = %.2f, FL = %.2f, BL = %.2f, BR = %.2f" SHELL_NEWLINE_STR,
+//             ChassisInterface::feedback[ChassisInterface::FR].actual_velocity,
+//             ChassisInterface::feedback[ChassisInterface::FL].actual_velocity,
+//             ChassisInterface::feedback[ChassisInterface::BL].actual_velocity,
+//             ChassisInterface::feedback[ChassisInterface::BR].actual_velocity);
+//    chprintf(chp, "target_current: FR = %d, FL = %d, BL = %d, BR = %d" SHELL_NEWLINE_STR,
+//             ChassisInterface::target_current[ChassisInterface::FR],
+//             ChassisInterface::target_current[ChassisInterface::FL],
+//             ChassisInterface::target_current[ChassisInterface::BL],
+//             ChassisInterface::target_current[ChassisInterface::BR]);
 }
 
 /**
