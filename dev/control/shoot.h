@@ -22,14 +22,14 @@ public:
      * @param degree_per_bullet
      * @param bullet_loader_v2i_params
      */
-    static void init(float degree_per_bullet, float degree_per_bullet_plate);
+    static void init(CANInterface *can_interface, float degree_per_bullet, float degree_per_bullet_plate);
 
     /**
      * Change PID parameters of bullet loader
      * @param bullet_loader_v2i_params
      */
-    static void change_pid_params(pid_params_t bullet_loader_v2i_params,
-                                  pid_params_t bullet_plate_v2i_params );
+    static void change_pid_params(pid_params_t bullet_loader_v2i_params);
+    static void change_plate_params(PIDControllerBase::pid_params_t bullet_plate_v2i_params);
 
     /**
      * Perform calculation from velocity to current and put result into target_current[]
@@ -43,13 +43,11 @@ public:
      */
     static void set_friction_wheels(float duty_cycle);
 
-private:
-
-    static PIDController v2i_pid;
+    static PIDController v2i_pid[2];
 
 public:
     static float degree_per_bullet_;
-    static float degree_per_bullet_plate;
+    static float degree_per_bullet_plate_;
 
 };
 
