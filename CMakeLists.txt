@@ -57,7 +57,7 @@ include_directories(dev/board/${BOARD_NAME})  # include board configs
 
 # Reuse ChibiOS object files (without linking) to avoid repeat compile
 # They are included to every tartget at post configuration below
-add_library(ChibiOS_OBJ OBJECT ${CHIBIOS_XASM_SRC} ${CHIBIOS_C_SRC} ${CHIBIOS_CPP_SRC} dev/board/${BOARD_NAME}/board.c)
+add_library(ChibiOS_OBJ OBJECT ${CHIBIOS_XASM_SRC} ${CHIBIOS_C_SRC} ${CHIBIOS_CPP_SRC} dev/board/${BOARD_NAME}/board.c dev/vehicle/hero/main_hero.cpp)
 
 
 # =========== Files and Targets Configurations ===========
@@ -107,6 +107,19 @@ add_executable(ENGINEER
 target_include_directories(ENGINEER PRIVATE dev/vehicle/engineer)
 target_compile_definitions(ENGINEER PRIVATE ENGINEER ENABLE_STATE_HANDLE)
 
+add_executable(HERO
+        dev/module/pid_controller.hpp
+        dev/interface/buzzer.cpp
+        dev/module/can_interface.cpp
+        dev/interface/chassis_interface.cpp
+        dev/interface/remote_interpreter.cpp
+        dev/interface/elevator_interface.cpp
+        dev/interface/robotic_arm.cpp
+        dev/control/chassis.cpp
+        dev/vehicle/hero/main_hero.cpp
+        dev/vehicle/hero/thread_shoot.hpp dev/vehicle/hero/thread_gimbal.hpp)
+target_include_directories(HERO PRIVATE dev/vehicle/hero)
+target_compile_definitions(HERO PRIVATE HERO ENABLE_STATE_HANDLE)
 # Blink
 add_executable(ut_blink
         dev/module/button_monitor.cpp
