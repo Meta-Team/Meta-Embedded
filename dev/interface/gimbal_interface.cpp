@@ -224,27 +224,27 @@ void GimbalInterface::process_motor_feedback(CANRxFrame const *rxmsg) {
             break;
         case 3:   // PLATE
 
-            feedback[PLATE].last_angle_raw = new_actual_angle_raw;
+            feedback[id].last_angle_raw = new_actual_angle_raw;
 
             // Make sure that the angle movement is positive
             if (angle_movement < -2000) angle_movement / angle_movement + 8192;
 
 
-            feedback[PLATE].actual_angle += angle_movement * 18.9f / 8192; // deceleration ratio : 19, 360/19 = 18.947368421052632
+            feedback[id].actual_angle += angle_movement * 18.9f / 8192; // deceleration ratio : 19, 360/19 = 18.947368421052632
 
             // IF the actual angle is beyond (-180,180)
-            if (feedback[PLATE].actual_angle >= 360.0f) {
-                feedback[PLATE].actual_angle -= 360.0f;
-                feedback[PLATE].round_count++;
+            if (feedback[id].actual_angle >= 360.0f) {
+                feedback[id].actual_angle -= 360.0f;
+                feedback[id].round_count++;
             }
-            if (feedback[PLATE].actual_angle <= -360.0f) {
-                feedback[PLATE].actual_angle +=360.0f;
-                feedback[PLATE].round_count--;
+            if (feedback[id].actual_angle <= -360.0f) {
+                feedback[id].actual_angle +=360.0f;
+                feedback[id].round_count--;
             }
 
-            feedback[PLATE].actual_velocity = ((int16_t) (rxmsg->data8[2] << 8 | rxmsg->data8[3])) / 19.2f * 360.0f / 60.0f;
+            feedback[id].actual_velocity = ((int16_t) (rxmsg->data8[2] << 8 | rxmsg->data8[3])) / 19.2f * 360.0f / 60.0f;
 
-            feedback[PLATE].last_update_time = SYSTIME;
+            feedback[id].last_update_time = SYSTIME;
 
             break;
         default:
