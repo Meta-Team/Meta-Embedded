@@ -256,7 +256,7 @@ ShellCommand elevatorCotrollerCommands[] = {
         {"g_echo_params", cmd_elevator_echo_parameters},
         {"g_enable_fw",   cmd_elevator_enable_fw},
         {nullptr,         nullptr}
-};
+}
 
 
 class ElevatorDebugThread : public BaseStaticThread<1024> {

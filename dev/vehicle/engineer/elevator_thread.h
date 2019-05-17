@@ -13,7 +13,7 @@
 #include "ch.hpp"
 #include "hal.h"
 
-#include "elevator_interface.h"
+#include "elevator.h"
 
 #define ELEVATOR_THREAD_WORKING_AREA_SIZE 2048
 
@@ -75,8 +75,6 @@ private:
 private:
 
     /** Configurations **/
-
-    static constexpr float stage_height_ = 21; // height of the stage [cm]
 
     static constexpr int elevator_check_interval_ = 20; // [ms]
 

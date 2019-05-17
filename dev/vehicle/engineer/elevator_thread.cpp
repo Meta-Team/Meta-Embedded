@@ -5,6 +5,7 @@
 #include "elevator_thread.h"
 #include "buzzer.h"
 
+
 ElevatorThread::status_t ElevatorThread::get_status() {
     return status_;
 }
@@ -48,24 +49,25 @@ void ElevatorThread::main() {
         LOG("[ELE UP] Step 1...");
 
         sleep(TIME_MS2I(1000));
-        ElevatorInterface::apply_front_position(-stage_height_);
-        ElevatorInterface::apply_rear_position(-stage_height_);
+        Elevator::apply_front_position(-Elevator::STAGE_HEIGHT);
+        Elevator::apply_back_position(-Elevator::STAGE_HEIGHT);
 
         t = chVTGetSystemTime();
-        while (ElevatorInterface::wheels[0].is_in_action() ||
-               ElevatorInterface::wheels[1].is_in_action() ||
-               ElevatorInterface::wheels[2].is_in_action() ||
-               ElevatorInterface::wheels[3].is_in_action()) {
+        while (Elevator::feedback[0].in_action ||
+               Elevator::feedback[1].in_action ||
+               Elevator::feedback[2].in_action ||
+               Elevator::feedback[3].in_action) {
 
             if (TIME_I2MS(chVTGetSystemTime() - t) > 14000) {
                 LOG_ERR("[ELE UP] Step 1 timeout, is_in_action: %d %d %d %d",
-                        ElevatorInterface::wheels[0].is_in_action(),
-                        ElevatorInterface::wheels[1].is_in_action(),
-                        ElevatorInterface::wheels[2].is_in_action(),
-                        ElevatorInterface::wheels[3].is_in_action());
+                        Elevator::feedback[0].in_action,
+                        Elevator::feedback[1].in_action,
+                        Elevator::feedback[2].in_action,
+                        Elevator::feedback[3].in_action);
                 break;
             }
 
+            Elevator::send_elevator_currents();
             sleep(TIME_MS2I(elevator_check_interval_));
         }
 
@@ -83,19 +85,21 @@ void ElevatorThread::main() {
         /** Step 3. Lift the front wheels **/
         LOG("[ELE UP] Step 3...");
 
-        ElevatorInterface::apply_front_position(0);
+        Elevator::apply_front_position(0);
 
         t = chVTGetSystemTime();
-        while (ElevatorInterface::wheels[0].is_in_action() ||
-               ElevatorInterface::wheels[1].is_in_action()) {
+        while (Elevator::feedback[Elevator::FR].in_action ||
+               Elevator::feedback[Elevator::FL].in_action) {
             if (TIME_I2MS(chVTGetSystemTime() - t) > 14000) {
                 LOG_ERR("[ELE UP] Step 3 timeout, is_in_action: %d %d %d %d",
-                        ElevatorInterface::wheels[0].is_in_action(),
-                        ElevatorInterface::wheels[1].is_in_action(),
-                        ElevatorInterface::wheels[2].is_in_action(),
-                        ElevatorInterface::wheels[3].is_in_action());
+                        Elevator::feedback[0].in_action,
+                        Elevator::feedback[1].in_action,
+                        Elevator::feedback[2].in_action,
+                        Elevator::feedback[3].in_action);
                 break;
             }
+
+            Elevator::send_elevator_currents();
             sleep(TIME_MS2I(elevator_check_interval_));
         }
 
@@ -115,19 +119,21 @@ void ElevatorThread::main() {
         /** Step 5. Lift the rear wheels **/
         LOG("[ELE UP] Step 5...");
 
-        ElevatorInterface::apply_rear_position(0);
+        Elevator::apply_back_position(0);
 
         t = chVTGetSystemTime();
-        while (ElevatorInterface::wheels[2].is_in_action() ||
-               ElevatorInterface::wheels[3].is_in_action()) {
+        while (Elevator::feedback[Elevator::BL].in_action ||
+               Elevator::feedback[Elevator::BR].in_action) {
             if (TIME_I2MS(chVTGetSystemTime() - t) > 15000) {
                 LOG_ERR("[ELE UP] Step 3 timeout, is_in_action: %d %d %d %d",
-                        ElevatorInterface::wheels[0].is_in_action(),
-                        ElevatorInterface::wheels[1].is_in_action(),
-                        ElevatorInterface::wheels[2].is_in_action(),
-                        ElevatorInterface::wheels[3].is_in_action());
+                        Elevator::feedback[0].in_action,
+                        Elevator::feedback[1].in_action,
+                        Elevator::feedback[2].in_action,
+                        Elevator::feedback[3].in_action);
                 break;
             }
+
+            Elevator::send_elevator_currents();
             sleep(TIME_MS2I(elevator_check_interval_));
         }
         chassis_target_vy_ = -1600;

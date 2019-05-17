@@ -53,6 +53,7 @@ public:
         int accmulate_angle;      // [degree]
 
         float actual_velocity; // [degree/s]
+        bool in_action;
 
         /**
          * @brief set current actual angle as 0 degree
@@ -70,6 +71,7 @@ public:
      * @brief target current array in the order defined in motor_id_t
      */
     static int target_current[MOTOR_COUNT];
+    static int target_angle[MOTOR_COUNT];
 
     /**
      * @brief send all target currents
@@ -86,6 +88,8 @@ private:
      * @param rxmsg
      */
     static void process_elevator_feedback(CANRxFrame const*rxmsg);
+
+    static constexpr int STABLE_RANGE = 0;
 
     friend CANInterface;
 

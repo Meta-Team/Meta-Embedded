@@ -104,7 +104,8 @@ add_executable(ENGINEER
         dev/control/chassis.cpp
         dev/vehicle/engineer/elevator_thread.cpp
         dev/vehicle/engineer/robotic_arm_thread.cpp
-        dev/vehicle/engineer/main_engineer.cpp)
+        dev/vehicle/engineer/main_engineer.cpp
+        dev/control/elevator.cpp)
 target_include_directories(ENGINEER PRIVATE dev/vehicle/engineer)
 target_compile_definitions(ENGINEER PRIVATE ENGINEER ENABLE_STATE_HANDLE)
 
