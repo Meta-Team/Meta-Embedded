@@ -2,8 +2,8 @@
 // Created by on 2019-05-18.
 //
 
-#ifndef META_INFANTRY_THREAD_GIMBAL_HPP
-#define META_INFANTRY_THREAD_GIMBAL_HPP
+#ifndef META_INFANTRY_THREAD_GIMBAL_H
+#define META_INFANTRY_THREAD_GIMBAL_H
 
 /**
  * @name GimbalThread

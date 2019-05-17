@@ -2,8 +2,8 @@
 // Created by 钱晨 on 2019-05-18.
 //
 
-#ifndef META_INFANTRY_THREAD_SHOOT_HPP
-#define META_INFANTRY_THREAD_SHOOT_HPP
+#ifndef META_INFANTRY_THREAD_SHOOT_H
+#define META_INFANTRY_THREAD_SHOOT_H
 
 /**
  * @name ShootThread

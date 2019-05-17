@@ -117,7 +117,7 @@ add_executable(HERO
         dev/interface/robotic_arm.cpp
         dev/control/chassis.cpp
         dev/vehicle/hero/main_hero.cpp
-        dev/vehicle/hero/thread_shoot.hpp dev/vehicle/hero/thread_gimbal.hpp)
+        dev/vehicle/hero/thread_shoot.hpp dev/vehicle/hero/thread_gimbal.hpp dev/vehicle/hero/thread_chassis.hpp)
 target_include_directories(HERO PRIVATE dev/vehicle/hero)
 target_compile_definitions(HERO PRIVATE HERO ENABLE_STATE_HANDLE)
 # Blink
