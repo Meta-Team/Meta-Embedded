@@ -22,13 +22,14 @@ public:
      * @param degree_per_bullet
      * @param bullet_loader_v2i_params
      */
-    static void init(float degree_per_bullet);
+    void init(float degree_per_bullet, float degree_per_bullet_plate);
 
     /**
      * Change PID parameters of bullet loader
      * @param bullet_loader_v2i_params
      */
-    static void change_pid_params(pid_params_t bullet_loader_v2i_params);
+    void change_pid_params(PIDControllerBase::pid_params_t bullet_loader_v2i_params,
+            PIDControllerBase::pid_params_t bullet_plate_v2i_params);
 
     /**
      * Perform calculation from velocity to current and put result into target_current[]
@@ -45,9 +46,10 @@ public:
 
 private:
 
-    static PIDController v2i_pid;
+    static PIDController v2i_pid[2];
 
     static float degree_per_bullet_;
+    static float degree_per_bullet_plate_;
 
 };
 

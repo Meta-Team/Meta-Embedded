@@ -41,6 +41,7 @@
 #if GIMBAL_INTERFACE_ENABLE_CLIP
 #define GIMBAL_INTERFACE_MAX_CURRENT 5000
 #define GIMBAL_INTERFACE_BULLET_LOADER_MAX_CURRENT 5000
+#define GIMBAL_INTERFACE_BULLET_PLATE_MAX_CURRENT 5000
 #endif
 
 /**
@@ -61,7 +62,8 @@ public:
         YAW = 0,
         PITCH = 1,
         BULLET = 2,
-        MOTOR_COUNT = 3
+        PLATE = 3,
+        MOTOR_COUNT = 4
     };
 
     /**

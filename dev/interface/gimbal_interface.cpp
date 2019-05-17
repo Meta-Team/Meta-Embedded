@@ -34,11 +34,14 @@ void GimbalInterface::init(CANInterface *can_interface, uint16_t yaw_front_angle
     feedback[PITCH].id = PITCH;
     feedback[PITCH].last_angle_raw = pitch_front_angle_raw;
 
-    feedback[BULLET].id = PITCH;
+    feedback[BULLET].id = BULLET;
     feedback[BULLET].reset_front_angle();
 
+    feedback[PLATE].id = PLATE;
+    feedback[PLATE].reset_front_angle();
+
     can_ = can_interface;
-    can_->register_callback(0x205, 0x207, process_motor_feedback);
+    can_->register_callback(0x205, 0x208, process_motor_feedback);
 
 #if defined(BOARD_RM_2018_A)
     // Enable power of bullet loader motor
@@ -95,7 +98,8 @@ void GimbalInterface::send_gimbal_currents() {
     txmsg.data8[4] = (uint8_t) (target_current[BULLET] >> 8); // upper byte
     txmsg.data8[5] = (uint8_t) target_current[BULLET];       // lower byte
 
-    txmsg.data8[6] = txmsg.data8[7] = 0;
+    txmsg.data8[7] = (uint8_t) (target_current[PLATE] >> 8); // upper byte
+    txmsg.data8[8] = (uint8_t) target_current[PLATE];       // lower byte
 
     can_->send_msg(&txmsg);
 
@@ -212,7 +216,28 @@ void GimbalInterface::process_motor_feedback(CANRxFrame const *rxmsg) {
             feedback[id].last_update_time = SYSTIME;
 
             break;
+        case 3:  // Bullet Plate
+            feedback[id].last_angle_raw = new_actual_angle_raw;
 
+            //make sure that the angle movement is positive
+            if (angle_movement < -2000) angle_movement = angle_movement + 8192;
+
+
+            feedback[id].actual_angle += angle_movement * 360.0f/ 19.2f / 8192;
+            if (feedback[id].actual_angle >= 360.0f) {
+                feedback[id].actual_angle -= 360.0f;
+                feedback[id].round_count++;
+            }
+            if (feedback[id].actual_angle < 0.0f) {
+                feedback[id].actual_angle += 360.0f;
+                feedback[id].round_count--;
+            }
+
+            feedback[id].actual_velocity = ((int16_t) (rxmsg->data8[2] << 8 | rxmsg->data8[3])) / 19.2 * 6.0f;
+
+            feedback[id].last_update_time = SYSTIME;
+
+            break;
         default:
 
             break;
