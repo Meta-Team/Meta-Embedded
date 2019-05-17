@@ -45,7 +45,7 @@ public:
 
     static PIDController v2i_pid[2];
 
-public:
+private:
     static float degree_per_bullet_;
     static float degree_per_bullet_plate_;
 
