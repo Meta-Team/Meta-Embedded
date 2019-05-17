@@ -13,6 +13,7 @@
 using namespace chibios_rt;
 
 CANInterface can1(&CAND1);
+CANInterface can2(&CAND2);
 
 /**
  * @brief echo actual angular velocity and target current of each motor
@@ -26,7 +27,7 @@ static void cmd_elevator_echo(BaseSequentialStream *chp, int argc, char *argv[])
         shellUsage(chp, "c_echo");
         return;
     }
-    chprintf(chp, "accmulate_angle: FR = %.2f, FL = %.2f, BL = %.2f, BR = %.2f" SHELL_NEWLINE_STR,
+    chprintf(chp, "accmulate_angle: FR = %d, FL = %d, BL = %d, BR = %d" SHELL_NEWLINE_STR,
              ElevatorInterface::feedback[ElevatorInterface::FR].accmulate_angle,
              ElevatorInterface::feedback[ElevatorInterface::FL].accmulate_angle,
              ElevatorInterface::feedback[ElevatorInterface::BL].accmulate_angle,
@@ -102,7 +103,8 @@ int main(void) {
     Shell::addCommands(elevatorCommands);
 
     can1.start(HIGHPRIO - 1);
-    ElevatorInterface::init(&can1);
+    can2.start(HIGHPRIO - 2);
+    ElevatorInterface::init(&can2);
 
     elevatorThread.start(NORMALPRIO);
 
