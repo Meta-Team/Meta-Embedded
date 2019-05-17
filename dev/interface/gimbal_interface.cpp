@@ -222,12 +222,13 @@ void GimbalInterface::process_motor_feedback(CANRxFrame const *rxmsg) {
             feedback[id].last_update_time = SYSTIME;
 
             break;
+
         case 3:   // PLATE
 
             feedback[id].last_angle_raw = new_actual_angle_raw;
 
             // Make sure that the angle movement is positive
-            if (angle_movement < -2000) angle_movement / angle_movement + 8192;
+            if (angle_movement < -2000) angle_movement = angle_movement + 8192;
 
 
             feedback[id].actual_angle += angle_movement * 18.9f / 8192; // deceleration ratio : 19, 360/19 = 18.947368421052632

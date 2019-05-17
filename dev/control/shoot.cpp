@@ -16,17 +16,17 @@ void Shoot::init(CANInterface *can_interface, float degree_per_bullet, float deg
 }
 
 void Shoot::change_pid_params(PIDControllerBase::pid_params_t bullet_loader_v2i_params) {
-    v2i_pid[1].change_parameters(bullet_loader_v2i_params);
+    v2i_pid[0].change_parameters(bullet_loader_v2i_params);
 }
 void Shoot::change_plate_params(PIDControllerBase::pid_params_t bullet_plate_v2i_params) {
-    v2i_pid[2].change_parameters(bullet_plate_v2i_params);
+    v2i_pid[1].change_parameters(bullet_plate_v2i_params);
 }
 
 void Shoot::calc_bullet_loader(float bullet_per_second) {
     /** NOTICE: minus sign has been added here */
-    target_current[BULLET] = (int) v2i_pid[1].calc(feedback[BULLET].actual_velocity,
+    target_current[BULLET] = (int) v2i_pid[0].calc(feedback[BULLET].actual_velocity,
                                                 -degree_per_bullet_ * bullet_per_second);
-    target_current[PLATE] = (int) v2i_pid[2].calc(feedback[PLATE].actual_velocity,
+    target_current[PLATE] = (int) v2i_pid[1].calc(feedback[PLATE].actual_velocity,
                                                 -degree_per_bullet_plate_ * bullet_per_second);
 }
 
