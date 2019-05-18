@@ -5,7 +5,7 @@
 #include "elevator.h"
 
 float Elevator::target_velocity[MOTOR_COUNT];
-int Elevator::target_angle[MOTOR_COUNT];
+float Elevator::target_angle[MOTOR_COUNT];
 
 PIDController Elevator::a2v_pid[MOTOR_COUNT];
 PIDController Elevator::v2i_pid[MOTOR_COUNT];
@@ -33,20 +33,20 @@ void Elevator::calc_motor_(motor_id_t motor) {
 }
 
 void Elevator::calc_front(float height) {
-    target_angle[FL] = target_angle[FR] = (int) (height * ANGLE_HEIGHT_RATIO);
+    target_angle[FL] = target_angle[FR] = height * ANGLE_HEIGHT_RATIO;
     calc_motor_(FL);
     calc_motor_(FR);
 }
 
 void Elevator::calc_back(float height) {
-    target_angle[BL] = target_angle[BR] = (int) (height * ANGLE_HEIGHT_RATIO);
+    target_angle[BL] = target_angle[BR] = height * ANGLE_HEIGHT_RATIO;
     calc_motor_(BL);
     calc_motor_(BR);
 }
 
 float Elevator::get_front_height() {
-    float fl_height = (float) feedback[FL].accmulate_angle / (float) ANGLE_HEIGHT_RATIO;
-    float fr_height = (float) feedback[FR].accmulate_angle / (float) ANGLE_HEIGHT_RATIO;
+    float fl_height = feedback[FL].accmulate_angle / ANGLE_HEIGHT_RATIO;
+    float fr_height = feedback[FR].accmulate_angle / ANGLE_HEIGHT_RATIO;
     if (!ABS_IN_RANGE(fl_height - fr_height, UNBALANCE_LIMIT)) {
         StateHandler::raiseException(StateHandler::ELEVATOR_UNBALANCE);
     }
@@ -54,8 +54,8 @@ float Elevator::get_front_height() {
 }
 
 float Elevator::get_back_height() {
-    float bl_height = (float) feedback[BL].accmulate_angle / (float) ANGLE_HEIGHT_RATIO;
-    float br_height = (float) feedback[BR].accmulate_angle / (float) ANGLE_HEIGHT_RATIO;
+    float bl_height = feedback[BL].accmulate_angle / ANGLE_HEIGHT_RATIO;
+    float br_height = feedback[BR].accmulate_angle / ANGLE_HEIGHT_RATIO;
     if (!ABS_IN_RANGE(bl_height - br_height, UNBALANCE_LIMIT)) {
         StateHandler::raiseException(StateHandler::ELEVATOR_UNBALANCE);
     }

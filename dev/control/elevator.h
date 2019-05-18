@@ -32,7 +32,7 @@ public:
 
     static bool motor_reach_target(motor_id_t motor);
 
-    static constexpr int ANGLE_HEIGHT_RATIO = -196773;  // [qc/cm]
+    static constexpr float ANGLE_HEIGHT_RATIO = 458.0f;  // [degree/cm]
 
 private:
 
@@ -41,7 +41,7 @@ private:
      * @note middle value. For outside code, only for test.
      */
     static float target_velocity[MOTOR_COUNT];
-    static int target_angle[MOTOR_COUNT];
+    static float target_angle[MOTOR_COUNT];
 
     static PIDController a2v_pid[MOTOR_COUNT];
     static PIDController v2i_pid[MOTOR_COUNT];

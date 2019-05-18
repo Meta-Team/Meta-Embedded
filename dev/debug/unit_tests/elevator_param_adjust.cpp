@@ -43,6 +43,7 @@ float target_angle = 0;
 float target_v = 0;
 
 CANInterface can1(&CAND1);
+CANInterface can2(&CAND2);
 
 
 class ElevatorFeedbackThread : public chibios_rt::BaseStaticThread<1024> {
@@ -59,10 +60,10 @@ private:
 
             // Reuse channel for gimbal yaw
             // Use one motor as representation
-            Shell::printf("!gy,%u,%d,%d,%.2f,%.2f,%d,%d" SHELL_NEWLINE_STR,
+            Shell::printf("!gy,%u,%.2f,%.2f,%.2f,%.2f,%d,%d" SHELL_NEWLINE_STR,
                           SYSTIME,
-                          Elevator::feedback[FR].accmulate_angle, target_angle,
-                          Elevator::feedback[FR].actual_velocity, target_v,
+                          (float) Elevator::feedback[FR].accmulate_angle, (float) target_angle,
+                          (float) Elevator::feedback[FR].actual_velocity, (float) target_v,
                           Elevator::feedback[FR].actual_current_raw, Elevator::target_current[FR]);
 
 
@@ -256,7 +257,7 @@ ShellCommand elevatorCotrollerCommands[] = {
         {"g_echo_params", cmd_elevator_echo_parameters},
         {"g_enable_fw",   cmd_elevator_enable_fw},
         {nullptr,         nullptr}
-}
+};
 
 
 class ElevatorDebugThread : public BaseStaticThread<1024> {
@@ -272,7 +273,7 @@ protected:
 
                     if (enable_a2v_pid) {
                         // Calculate from angle to velocity
-                        Elevator::calc_a2v_(Elevator::feedback[i].accmulate_angle, target_angle);
+                        Elevator::calc_a2v_((Elevator::motor_id_t) i, Elevator::feedback[i].accmulate_angle, target_angle);
                     } else {
                         // Directly fill the target velocity
                         Elevator::target_velocity[i] = target_v;
@@ -287,7 +288,7 @@ protected:
                     }
 
                     // Calculate from velocity to current
-                    Elevator::calc_v2i_(Elevator::feedback[i].actual_velocity, Elevator::target_velocity[i]);
+                    Elevator::calc_v2i_((Elevator::motor_id_t) i, Elevator::feedback[i].actual_velocity, Elevator::target_velocity[i]);
                     // NOTE: Elevator::target_velocity[i] is either calculated or filled (see above)
 
 
@@ -328,8 +329,9 @@ int main(void) {
     Shell::addCommands(elevatorCotrollerCommands);
 
     can1.start(HIGHPRIO - 1);
+    can2.start(HIGHPRIO - 2);
     chThdSleepMilliseconds(10);
-    Elevator::init(&can1);
+    Elevator::init(&can2);
 
     elevatorFeedbackThread.start(NORMALPRIO - 1);
     elevatorThread.start(NORMALPRIO);

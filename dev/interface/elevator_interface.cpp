@@ -43,7 +43,7 @@ void ElevatorInterface::process_elevator_feedback(CANRxFrame const *rxmsg) {
     feedback[motor_id].actual_current_raw = (int16_t) (rxmsg->data8[4] << 8 | rxmsg->data8[5]);
     feedback[motor_id].actual_temperature_raw = rxmsg->data8[6];
 
-    int angle_movement = (int) feedback[motor_id].actual_angle_raw - (int) new_angle_raw;
+    int angle_movement = (int) new_angle_raw - (int) feedback[motor_id].actual_angle_raw;
 
     // If angle_movement is too extreme between two samples,
     // we grant that it's caused by moving over the 0(8192) point.
@@ -53,7 +53,7 @@ void ElevatorInterface::process_elevator_feedback(CANRxFrame const *rxmsg) {
         angle_movement -= 8192;
     }
 
-    feedback[motor_id].accmulate_angle += angle_movement;
+    feedback[motor_id].accmulate_angle += angle_movement * 360.0f / 8192.0f / 19.2f;
 
     feedback[motor_id].actual_angle_raw = new_angle_raw;
 
