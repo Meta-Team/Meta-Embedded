@@ -92,7 +92,7 @@ void SentryChassisController::update_target_current() {
             motor[MOTOR_RIGHT].target_current = (int)(motor_right_pid.calc(motor[MOTOR_RIGHT].present_velocity, target_velocity));
             motor[MOTOR_LEFT].target_current = (int)(motor_left_pid.calc(motor[MOTOR_LEFT].present_velocity, target_velocity));
         }
-        if(Referee::power_heat_data.chassis_power)
+        if(Referee::power_heat_data.chassis_power > 20) LOG("power overload: %.2f", Referee::power_heat_data.chassis_power);
     }else {
         motor[MOTOR_LEFT].target_current = motor[MOTOR_RIGHT].target_current = 0;
     }

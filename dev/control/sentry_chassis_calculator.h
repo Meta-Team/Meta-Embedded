@@ -68,7 +68,9 @@ public:
      */
     static void change_v_to_i_pid(float _kp, float _ki, float _kd, float _i_limit, float _out_limit){
         motor_right_pid.change_parameters(_kp, _ki, _kd, _i_limit, _out_limit);
+        motor_right_pid.clear_i_out();
         motor_left_pid.change_parameters(_kp, _ki, _kd, _i_limit, _out_limit);
+        motor_left_pid.clear_i_out();
     }
 
     /**

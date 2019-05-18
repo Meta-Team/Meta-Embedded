@@ -194,7 +194,10 @@ add_executable(ut_sentry_chassis
         dev/module/pid_controller.cpp
         dev/interface/sentry_chassis_interface.cpp
         dev/control/sentry_chassis_calculator.cpp
-        dev/debug/unit_tests/sentry_chassis_unit_test.cpp)
+        dev/debug/unit_tests/sentry_chassis_unit_test.cpp
+        dev/interface/referee_interface.cpp
+        dev/module/CRC8.cpp
+        dev/module/CRC16.cpp)
 # Adjust Params of Skywalker-20A for friction wheels
 add_executable(pa_skywalker
         dev/debug/unit_tests/friction_wheel_param_adjust.cpp
