@@ -21,8 +21,8 @@ public:
      * Initialize the shooter controller
      * @param degree_per_bullet
      * @param bullet_loader_v2i_params
-     */
-    static void init(float degree_per_bullet, float degree_per_bullet_plate);
+    */
+    static void init(CANInterface* can_interface, float degree_per_bullet, float degree_per_bullet_plate);
 
     /**
      * Change PID parameters of bullet loader

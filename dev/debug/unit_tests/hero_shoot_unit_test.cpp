@@ -48,8 +48,8 @@ unsigned const SHOOT_THREAD_INTERVAL = 2; // [ms]
   */
 static void cmd_shoot_set_plate_parameters(BaseSequentialStream *chp, int argc, char *argv[]) {
      (void) argv;
-     if (argc != 4) {
-         shellUsage(chp, "c_set_p_params ki kp kd i_limit out_limit");
+     if (argc != 3) {
+         shellUsage(chp, "c_set_p_params ki kp kd");
          chprintf(chp, "!cpe" SHELL_NEWLINE_STR); //echo shoot parameters error
          return;
      }
@@ -57,8 +57,8 @@ static void cmd_shoot_set_plate_parameters(BaseSequentialStream *chp, int argc, 
      Shoot::change_plate_params({Shell::atof(argv[0]),
                                  Shell::atof(argv[1]),
                                  Shell::atof(argv[2]),
-                                 Shell::atof(argv[3]),
-                                 Shell::atof(argv[4])});
+                                 500.0f,
+                                 5000.0f});
      Shoot::v2i_pid[1].clear_i_out();
      chprintf(chp, "!cps" SHELL_NEWLINE_STR); // echo chassis parameters set
 }
@@ -71,8 +71,8 @@ static void cmd_shoot_set_plate_parameters(BaseSequentialStream *chp, int argc, 
  */
 static void cmd_shoot_set_loader_parameters(BaseSequentialStream *chp, int argc, char *argv[]) {
     (void) argv;
-    if (argc != 4) {
-        shellUsage(chp, "c_set_l_params ki kp kd i_limit out_limit");
+    if (argc != 3) {
+        shellUsage(chp, "c_set_l_params ki kp kd");
         chprintf(chp, "!cpe" SHELL_NEWLINE_STR); //echo shoot parameters error
         return;
     }
@@ -80,8 +80,8 @@ static void cmd_shoot_set_loader_parameters(BaseSequentialStream *chp, int argc,
     Shoot::change_pid_params({Shell::atof(argv[0]),
                               Shell::atof(argv[1]),
                               Shell::atof(argv[2]),
-                              Shell::atof(argv[3]),
-                              Shell::atof(argv[4])});
+                              0.0f,
+                              2000.0f});
     Shoot::v2i_pid[0].clear_i_out();
     chprintf(chp, "!cps" SHELL_NEWLINE_STR); // echo chassis parameters set
 }
@@ -128,7 +128,7 @@ int main(void) {
     Shell::start(HIGHPRIO);
     Shell::addCommands(shootCommands);
     can1.start(HIGHPRIO - 1);
-    Shoot::init(&can1, 72.0, 36.0);
+    Shoot::init(&can1, 72.0f, 36.0f);
 
     shootFeedbackThread.start(NORMALPRIO -1);
     shootThread.start(NORMALPRIO);
