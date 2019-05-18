@@ -60,6 +60,10 @@ inline void startupCheckGimbalFeedback() {
             // No feedback in last 3 ms (normal 1 ms)
             t = SYSTIME;  // reset the counter
         }
+        if (SYSTIME - Gimbal::feedback[Gimbal::PLATE].last_update_time > 3) {
+            // No feedback in last 3 ms (normal 1 ms)
+            t = SYSTIME;  // reset the counter
+        }
         chThdSleepMilliseconds(3);
     }
 }
