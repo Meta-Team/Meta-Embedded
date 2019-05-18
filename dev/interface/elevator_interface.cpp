@@ -76,6 +76,10 @@ void ElevatorInterface::init(CANInterface *can_interface) {
         feedback[i].clear_accmulate_angle();
         target_current[i] = 0;
     }
+    chThdSleepMilliseconds(10);
+    for (int i = 0; i < MOTOR_COUNT; i++) {
+        feedback[i].clear_accmulate_angle();
+    }
 }
 
 void ElevatorInterface::motor_feedback_t::clear_accmulate_angle() {
