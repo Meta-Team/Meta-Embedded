@@ -3,7 +3,6 @@
 //
 
 // Headers
-#include <control/state_handler.h>
 #include "ch.hpp"
 #include "hal.h"
 

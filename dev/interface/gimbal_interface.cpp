@@ -101,7 +101,7 @@ void GimbalInterface::send_gimbal_currents() {
     // Fill the current of plate
 
 #if GIMBAL_INTERFACE_ENABLE_CLIP
-    ABS_CROP(target_current[PLATE], GIMBAL_INTERFACE_PLATE_MAX_CURRENT);
+    ABS_CROP(target_current[PLATE], GIMBAL_INTERFACE_BULLET_PLATE_MAX_CURRENT);
 #endif
     txmsg.data8[6] = (uint8_t) (target_current[PLATE] >> 8);
     txmsg.data8[7] = (uint8_t) target_current[PLATE];
