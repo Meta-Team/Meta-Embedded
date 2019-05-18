@@ -29,6 +29,7 @@ unsigned const PLATE = GimbalInterface::PLATE;
 
 unsigned const GIMBAL_THREAD_INTERVAL = 1;    // [ms]
 unsigned const GIMBAL_FEEDBACK_INTERVAL = 25; // [ms]
+unsigned bullet_per_second = 0;
 
 // Raw angle of yaw and pitch when GimbalInterface points straight forward.
 //   Note: the program will echo the raw angles of yaw and pitch as the program starts
@@ -87,6 +88,26 @@ private:
 
 } gimbalFeedbackThread;
 
+class GimbalShootThread : public chibios_rt::BaseStaticThread<1024> {
+public:
+    bool GimbalShootEnable = false;
+protected:
+    void  main() final {
+        setName("shoot");
+        Shoot::init(72.0f,36.0f);
+        Shoot::change_pid_params({ 20.0f, 0.0f, 0.0f, 0.0f, 2000.0f});
+        Shoot::change_plate_params({26.0f, 0.1f, 0.02f, 500.0f, 5000.0f});
+        Shoot::calc_bullet_loader(0);
+        while(!shouldTerminate()) {
+            if (GimbalShootEnable) {
+                Shoot::calc_bullet_loader(bullet_per_second);
+            } else {
+                GimbalInterface::target_current[BULLET] = GimbalInterface::target_current[PLATE] = 0;
+            }
+            sleep(TIME_MS2I((GIMBAL_THREAD_INTERVAL)));
+        }
+    }
+} gimbalShootThread;
 /**
  * @brief set enabled state of friction wheels
  * @param chp
@@ -138,6 +159,16 @@ static void cmd_gimbal_enable_fw(BaseSequentialStream *chp, int argc, char *argv
 //    }
 //    GimbalInterface::send_gimbal_currents();
 //}
+
+static void cmd_gimbal_loader (BaseSequentialStream *chp, int argc, char *argv[]) {
+    (void) argv;
+    if (argc != 1) {
+        shellUsage(chp, "g_enable_loader (0/n)");
+        return;
+    }
+    bullet_per_second = Shell::atof(argv[0]);
+    gimbalShootThread.GimbalShootEnable = true;
+}
 /**
  * @brief set feedback enable states
  * @param chp
@@ -203,7 +234,7 @@ ShellCommand gimbalCotrollerCommands[] = {
         {"g_fix",         cmd_gimbal_fix_front_angle},
         {"g_enable_fw",   cmd_gimbal_enable_fw},
         {"g_set", cmd_gimbal_set_target_currents},
-//        {"g_enable_loader",cmd_gimbal_loader},
+        {"g_enable_loader",cmd_gimbal_loader},
 
         {nullptr,         nullptr}
 };
@@ -234,6 +265,7 @@ int main(void) {
 
     gimbalFeedbackThread.start(NORMALPRIO - 1);
     gimbalThread.start(NORMALPRIO);
+    gimbalShootThread.start(NORMALPRIO-2);
 
     chThdSleepMilliseconds(100);
     LOG("Gimbal Yaw: %u, %f, Pitch: %u, %f",
