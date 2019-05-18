@@ -57,7 +57,7 @@ include_directories(dev/board/${BOARD_NAME})  # include board configs
 
 # Reuse ChibiOS object files (without linking) to avoid repeat compile
 # They are included to every tartget at post configuration below
-add_library(ChibiOS_OBJ OBJECT ${CHIBIOS_XASM_SRC} ${CHIBIOS_C_SRC} ${CHIBIOS_CPP_SRC} dev/board/${BOARD_NAME}/board.c)
+add_library(ChibiOS_OBJ OBJECT ${CHIBIOS_XASM_SRC} ${CHIBIOS_C_SRC} ${CHIBIOS_CPP_SRC} dev/board/${BOARD_NAME}/board.c dev/vehicle/sentry/main_sentry.cpp dev/vehicle/sentry/vehicle_sentry.h)
 
 
 # =========== Files and Targets Configurations ===========
@@ -105,6 +105,20 @@ add_executable(ENGINEER
         dev/vehicle/engineer/main_engineer.cpp)
 target_include_directories(ENGINEER PRIVATE dev/vehicle/engineer)
 target_compile_definitions(ENGINEER PRIVATE ENGINEER)
+
+# Main Program -- Sentry
+add_executable(SENTRY
+        dev/module/pid_controller.cpp
+        dev/module/can_interface.cpp
+        dev/interface/mpu6500.cpp
+        dev/interface/gimbal_interface.cpp
+        dev/interface/sentry_chassis_interface.cpp
+        dev/interface/remote_interpreter.cpp
+        dev/control/gimbal_calculator.cpp
+        dev/control/sentry_chassis_calculator.cpp
+        dev/vehicle/sentry/main_sentry.cpp)
+target_include_directories(SENTRY PRIVATE dev/vehicle/sentry)
+target_compile_definitions(SENTRY PRIVATE SENTRY)
 
 # Blink
 add_executable(ut_blink
