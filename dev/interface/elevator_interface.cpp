@@ -6,7 +6,6 @@
 
 ElevatorInterface::motor_feedback_t ElevatorInterface::feedback[MOTOR_COUNT];
 int ElevatorInterface::target_current[ElevatorInterface::MOTOR_COUNT];
-int ElevatorInterface::target_angle[ElevatorInterface::MOTOR_COUNT];
 CANInterface *ElevatorInterface::can = nullptr;
 
 bool ElevatorInterface::send_elevator_currents() {

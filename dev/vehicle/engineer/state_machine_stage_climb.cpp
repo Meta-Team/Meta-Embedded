@@ -2,38 +2,38 @@
 // Created by liuzikai on 2019-02-24.
 //
 
-#include "elevator_thread.h"
+#include "state_machine_stage_climb.h"
 #include "buzzer.h"
 
 
-ElevatorThread::status_t ElevatorThread::get_status() {
+StageClimbThread::status_t StageClimbThread::get_status() {
     return status_;
 }
 
-bool ElevatorThread::start_up_actions(tprio_t prio) {
+bool StageClimbThread::start_up_actions(tprio_t prio) {
     if (status_ != STOP) return false;
     status_ = UPWARD;
     chibios_rt::BaseStaticThread<ELEVATOR_THREAD_WORKING_AREA_SIZE>::start(prio);
     return true;
 }
 
-bool ElevatorThread::start_down_actions(tprio_t prio) {
+bool StageClimbThread::start_down_actions(tprio_t prio) {
     if (status_ != STOP) return false;
     status_ = DOWNWARD;
     chibios_rt::BaseStaticThread<ELEVATOR_THREAD_WORKING_AREA_SIZE>::start(prio);
     return true;
 }
 
-void ElevatorThread::emergency_stop() {
+void StageClimbThread::emergency_stop() {
     status_ = STOP;
     exit(0xFF); // FIXME: this doesn't work since it terminate the call thread
 }
 
-float ElevatorThread::get_chassis_target_vy() {
+float StageClimbThread::get_chassis_target_vy() {
     return chassis_target_vy_;
 }
 
-void ElevatorThread::main() {
+void StageClimbThread::main() {
 
     setName("elevator");
 
@@ -49,8 +49,8 @@ void ElevatorThread::main() {
         LOG("[ELE UP] Step 1...");
 
         sleep(TIME_MS2I(1000));
-        Elevator::apply_front_position(-Elevator::STAGE_HEIGHT);
-        Elevator::apply_back_position(-Elevator::STAGE_HEIGHT);
+        Elevator::calc_front(-Elevator::STAGE_HEIGHT);
+        Elevator::calc_back(-Elevator::STAGE_HEIGHT);
 
         t = chVTGetSystemTime();
         while (Elevator::feedback[0].in_action ||
@@ -85,7 +85,7 @@ void ElevatorThread::main() {
         /** Step 3. Lift the front wheels **/
         LOG("[ELE UP] Step 3...");
 
-        Elevator::apply_front_position(0);
+        Elevator::calc_front(0);
 
         t = chVTGetSystemTime();
         while (Elevator::feedback[Elevator::FR].in_action ||
@@ -119,7 +119,7 @@ void ElevatorThread::main() {
         /** Step 5. Lift the rear wheels **/
         LOG("[ELE UP] Step 5...");
 
-        Elevator::apply_back_position(0);
+        Elevator::calc_back(0);
 
         t = chVTGetSystemTime();
         while (Elevator::feedback[Elevator::BL].in_action ||

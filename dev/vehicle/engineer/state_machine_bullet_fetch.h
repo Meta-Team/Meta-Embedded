@@ -7,8 +7,8 @@
  * to be perform, and ends as the actions are done.
  */
 
-#ifndef META_INFANTRY_ROBOTIC_ARM_THREAD_H
-#define META_INFANTRY_ROBOTIC_ARM_THREAD_H
+#ifndef META_INFANTRY_STATE_MACHINE_BULLET_FETCH_H
+#define META_INFANTRY_STATE_MACHINE_BULLET_FETCH_H
 
 #include "ch.hpp"
 #include "hal.h"
@@ -31,6 +31,7 @@
  */
 class RoboticArmThread : public chibios_rt::BaseStaticThread<ROBOTIC_ARM_THREAD_WORKING_AREA_SIZE> {
 public:
+
     enum status_t {
         STOP,
         INITIAL_OUTWARD,
@@ -83,4 +84,4 @@ private:
 };
 
 
-#endif //META_INFANTRY_ROBOTIC_ARM_THREAD_H
+#endif //META_INFANTRY_STATE_MACHINE_BULLET_FETCH_H

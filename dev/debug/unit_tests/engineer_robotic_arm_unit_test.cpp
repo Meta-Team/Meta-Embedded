@@ -10,7 +10,7 @@
 #include "can_interface.h"
 #include "robotic_arm.h"
 
-#include "vehicle/engineer/robotic_arm_thread.h"
+#include "vehicle/engineer/state_machine_bullet_fetch.h"
 
 #include "buzzer.h"
 

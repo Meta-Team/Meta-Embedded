@@ -27,20 +27,23 @@ public:
      * Events collection
      */
     enum Events {
-        SHELL_START,
-        CAN_START_SUCCESSFULLY,
+        SHELL_START
+        ,CAN_START_SUCCESSFULLY
 #if defined(INFANTRY)
-        MPU6500_START_SUCCESSFULLY,
+        ,MPU6500_START_SUCCESSFULLY
 #endif
-        REMOTE_START_SUCCESSFULLY,
+        ,REMOTE_START_SUCCESSFULLY
 #if defined(INFANTRY)
-        GIMBAL_CONNECTED,
+        ,GIMBAL_CONNECTED
 #endif
 #if defined(INFANTRY) || defined(ENGINEER)
-        CHASSIS_CONNECTED,
+        ,CHASSIS_CONNECTED
 #endif
-        MAIN_MODULES_SETUP_COMPLETE,
-        MAIN_THREAD_SETUP_COMPLETE
+#if defined(ENGINEER)
+        ,ELEVATOR_CONNECTED
+#endif
+        ,MAIN_MODULES_SETUP_COMPLETE
+        ,MAIN_THREAD_SETUP_COMPLETE
     };
 
     /**
@@ -61,17 +64,21 @@ public:
      * Exceptions collection
      */
     enum Exceptions {
-        CAN_ERROR,
+        CAN_ERROR
 #if defined(INFANTRY)
-        MPU6500_DISCONNECTED,
+        ,MPU6500_DISCONNECTED
 #endif
-        REMOTE_DISCONNECTED,
+        ,REMOTE_DISCONNECTED
 #if defined(INFANTRY)
-        GIMBAL_DISCONNECTED,
-        BULLET_LOADER_STUCK,
+        ,GIMBAL_DISCONNECTED,
+        ,BULLET_LOADER_STUCK
 #endif
 #if defined(INFANTRY) || defined(ENGINEER)
-        CHASSIS_DISCONNECTED
+        ,CHASSIS_DISCONNECTED
+#endif
+#if defined(ENGINEER)
+        ,ELEVATOR_DISCONNECTED
+        ,ELEVATOR_UNBALANCE
 #endif
     };
 

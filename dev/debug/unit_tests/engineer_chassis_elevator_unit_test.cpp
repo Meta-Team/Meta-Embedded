@@ -10,7 +10,7 @@
 #include "can_interface.h"
 #include "elevator_interface.h"
 
-#include "vehicle/engineer/elevator_thread.h"
+#include "vehicle/engineer/state_machine_stage_climb.h"
 
 CANInterface can1(&CAND1);
 ElevatorThread elevatorThread;

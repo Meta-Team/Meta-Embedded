@@ -7,8 +7,8 @@
  * perform, and ends as the actions are done.
  */
 
-#ifndef META_INFANTRY_ELEVATOR_THREAD_H
-#define META_INFANTRY_ELEVATOR_THREAD_H
+#ifndef META_INFANTRY_STATE_MACHINE_STAGE_CLIMB_H
+#define META_INFANTRY_STATE_MACHINE_STAGE_CLIMB_H
 
 #include "ch.hpp"
 #include "hal.h"
@@ -23,7 +23,7 @@
  * @usage 1. start_up_actions() or start_down_actions() with specific thread priority
  *        2. periodically read get_chassis_target_vy() to another thread for chassis motor
  */
-class ElevatorThread : public chibios_rt::BaseStaticThread<ELEVATOR_THREAD_WORKING_AREA_SIZE> {
+class StageClimbThread : public chibios_rt::BaseStaticThread<ELEVATOR_THREAD_WORKING_AREA_SIZE> {
 public:
 
     enum status_t {
@@ -84,4 +84,4 @@ private:
 };
 
 
-#endif //META_INFANTRY_ELEVATOR_THREAD_H
+#endif //META_INFANTRY_STATE_MACHINE_STAGE_CLIMB_H
