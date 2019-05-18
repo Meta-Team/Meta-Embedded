@@ -47,9 +47,33 @@ class GimbalThread : public chibios_rt::BaseStaticThread<1024> {
 
                 } else if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_MIDDLE) {
 
+//                    Gimbal::calc_gimbal(GIMBAL_YAW_ACTUAL_VELOCITY, GIMBAL_PITCH_ACTUAL_VELOCITY,
+//                                        -Remote::rc.ch0 * 60,  // Yaw   target angle
+//                                        -Remote::rc.ch1 * 20    // Pitch target angle
+//                    );
+
+                    if (Remote::rc.ch0 < -0.5) {
+                        Gimbal::calc_gimbal(GIMBAL_YAW_ACTUAL_VELOCITY, GIMBAL_PITCH_ACTUAL_VELOCITY,
+                                            30,  // Yaw   target angle
+                                            0    // Pitch target angle
+                        );
+                    } else if (Remote::rc.ch0 > 0.5) {
+                        Gimbal::calc_gimbal(GIMBAL_YAW_ACTUAL_VELOCITY, GIMBAL_PITCH_ACTUAL_VELOCITY,
+                                            -30,  // Yaw   target angle
+                                            3    // Pitch target angle
+                        );
+                    } else {
+                        Gimbal::calc_gimbal(GIMBAL_YAW_ACTUAL_VELOCITY, GIMBAL_PITCH_ACTUAL_VELOCITY,
+                                            0,  // Yaw   target angle
+                                            5.5    // Pitch target angle
+                        );
+                    }
+
+                } else if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_DOWN) {
+
                     Gimbal::calc_gimbal(GIMBAL_YAW_ACTUAL_VELOCITY, GIMBAL_PITCH_ACTUAL_VELOCITY,
-                                        -Remote::rc.ch0 * 60,  // Yaw   target angle
-                                        -Remote::rc.ch1 * 20    // Pitch target angle
+                                        0,  // Yaw   target angle
+                                        0   // Pitch target angle
                     );
 
                 } else if (Remote::rc.s1 == Remote::S_DOWN) { // PC control mode
