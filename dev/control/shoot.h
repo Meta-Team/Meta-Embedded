@@ -28,7 +28,7 @@ public:
      * Change PID parameters of bullet loader
      * @param bullet_loader_v2i_params
      */
-    static void change_pid_params(pid_params_t bullet_loader_v2i_params);
+    static void change_pid_params(PIDControllerBase::pid_params_t bullet_loader_v2i_params);
     static void change_plate_params(PIDControllerBase::pid_params_t bullet_plate_v2i_params);
 
     /**
