@@ -100,7 +100,7 @@
                  Shoot::target_current[Shoot::PLATE] = 0;
              }
 
-             sleep(TIME_I2MS(SHOOT_THREAD_INTERVAL));
+             sleep(TIME_MS2I(SHOOT_THREAD_INTERVAL));
          }
      }
  };

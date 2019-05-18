@@ -84,7 +84,7 @@
 
              GimbalInterface::send_gimbal_currents();
 
-             sleep(TIME_I2MS((GIMBAL_THREAD_INTERVAL)));
+             sleep(TIME_MS2I((GIMBAL_THREAD_INTERVAL)));
          }
      }
  };

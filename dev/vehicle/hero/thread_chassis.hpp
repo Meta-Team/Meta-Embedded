@@ -47,9 +47,40 @@ private:
 
                     // Deterine target velocities
 
+                    float target_vx, target_vy, target_w;
 
+                    /** NOTICE: here the minus sign make it incoherent with the initial definition of chassis coordinate */
+
+                    if (Remote::key.w) target_vy = -COMMON_VY;
+                    else if (Remote::key.s) target_vy = COMMON_VY;
+                    else target_vy = 0;
+
+                    if (Remote::key.q) target_vx = -COMMON_VX;
+                    else if (Remote::key.e) target_vx = COMMON_VX;
+                    else target_vx = 0;
+
+                    if (Remote::key.a) target_w = -COMMON_W;
+                    else if (Remote::key.d) target_w = COMMON_W;
+                    else target_w = 0;
+
+                    if (Remote::key.ctrl) {
+                        target_vx *= PC_CTRL_RATIO;
+                        target_vy *= PC_CTRL_RATIO;
+                        target_w *= PC_CTRL_RATIO;
+                    }
+
+                    Chassis::calc(target_vx, target_vy, target_w);
+
+                } else {
+
+                    for (int i = 0; i < Chassis::MOTOR_COUNT; i++) {
+                        Chassis::target_current[i] = 0;
+                    }
 
                 }
+                Chassis::send_chassis_currents();
+
+                sleep(TIME_MS2I(chassis_thread_interval));
             }
         }
     }
