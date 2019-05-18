@@ -5,7 +5,7 @@
 #ifndef META_INFANTRY_THREAD_ACTION_TRIGGER_HPP
 #define META_INFANTRY_THREAD_ACTION_TRIGGER_HPP
 
-#include "thread_elevator.hpp"
+#include "thread_elevator.h"
 #include "state_machine_bullet_fetch.h"
 #include "state_machine_stage_climb.h"
 

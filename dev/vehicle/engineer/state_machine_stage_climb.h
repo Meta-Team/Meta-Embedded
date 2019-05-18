@@ -12,8 +12,8 @@
 
 #include "elevator.h"
 
-#include "thread_chassis.hpp"
-#include "thread_elevator.hpp"
+#include "thread_chassis.h"
+#include "thread_elevator.h"
 
 #define STAGE_CLIMB_STATE_MACHINE_ENABLE_TIMEOUT  FALSE
 

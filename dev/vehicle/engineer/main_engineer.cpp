@@ -33,8 +33,8 @@
 
 
 // Threads and State Machines
-#include "thread_chassis.hpp"
-#include "thread_elevator.hpp"
+#include "thread_chassis.h"
+#include "thread_elevator.h"
 #include "thread_error_detect.hpp"
 #include "state_machine_stage_climb.h"
 #include "state_machine_bullet_fetch.h"
@@ -64,7 +64,7 @@ CANInterface can1(&CAND1);
 CANInterface can2(&CAND2);
 
 // Threads
-ChassisThread chassisThread;
+ChassisThread chassisThread({CHASSIS_PID_V2I_PARAMS});
 ElevatorThread elevatorThread;
 
 StageClimbStateMachine stageClimbStateMachine(chassisThread, elevatorThread);

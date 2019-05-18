@@ -143,7 +143,7 @@ public:
     static bool chassisSeriousErrorOccured() { return chassisSeriousErrorOccured_; }
 #endif
 #ifdef STATE_HANDLER_ENABLE_ELEVATOR
-    static bool elevatorSeriousErrorOccured() { return elevatorSeriousErrorOccured_ };
+    static bool elevatorSeriousErrorOccured() { return elevatorSeriousErrorOccured_; };
 #endif
 #ifdef STATE_HANDLER_ENABLE_ROBOTIC_ARM
     static bool roboticArmSeriousErrorOccured() { return roboticArmSeriousErrorOccured_; }
