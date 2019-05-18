@@ -36,9 +36,9 @@ bool ChassisInterface::send_chassis_currents() {
 
 void ChassisInterface::process_chassis_feedback(CANRxFrame const *rxmsg) {
 
-    chSysUnlock();  // --- Exit Critical Zone ---
-
     if (rxmsg->SID > 0x204 || rxmsg->SID < 0x201) return;
+
+    chSysLock();  // --- Enter Critical Zone ---
 
     int motor_id = (int) (rxmsg->SID - 0x201);
 

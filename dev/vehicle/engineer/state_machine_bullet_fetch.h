@@ -15,24 +15,18 @@
 #include "common_macro.h"
 #include "robotic_arm.h"
 
-#define ROBOTIC_ARM_THREAD_WORKING_AREA_SIZE 512
+#define BULLET_FETCH_STATE_MACHINE_WORKING_AREA_SIZE 1024
 
 #if defined(BOARD_RM_2018_A)
 #else
-#error "RoboticArmThread is only developed for RM board 2018 A."
+#error "BulletFetchStateMachine is only developed for RM board 2018 A."
 #endif
 
-/**
- * @name RoboticArmThread
- * @brief a thread to control robotic arm to complete a cycle of fetching bullet
- * @pre RoboticArm is properly init() and reset_front_angle()
- * @usage 0. instantiate an object
- *        1. start_actions() with specific thread priority to perform the fetching actions
- */
-class RoboticArmThread : public chibios_rt::BaseStaticThread<ROBOTIC_ARM_THREAD_WORKING_AREA_SIZE> {
+
+class BulletFetchStateMachine : public chibios_rt::BaseStaticThread<BULLET_FETCH_STATE_MACHINE_WORKING_AREA_SIZE> {
 public:
 
-    enum status_t {
+    enum action_t {
         STOP,
         INITIAL_OUTWARD,
         FETCH_ONCE,
@@ -40,10 +34,10 @@ public:
     };
 
     /**
-     * @brief get the status of this thread
+     * @brief get the current action of the state machine
      * @return
      */
-    status_t get_status();
+    action_t get_current_action();
 
     /**
      * @brief start a series of actions to make the robotic arm outward
@@ -55,14 +49,12 @@ public:
     bool start_one_fetch(tprio_t prio);
 
     bool start_final_inward(tprio_t prio);
-
-    void emergency_stop();
     
     bool is_outward();
 
 private:
 
-    status_t status_ = STOP;
+    action_t action_ = STOP;
     bool should_stop_ = false;
 
     void main() final;

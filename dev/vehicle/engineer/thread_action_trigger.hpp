@@ -5,17 +5,34 @@
 #ifndef META_INFANTRY_THREAD_ACTION_TRIGGER_HPP
 #define META_INFANTRY_THREAD_ACTION_TRIGGER_HPP
 
+#include "thread_elevator.hpp"
+#include "state_machine_bullet_fetch.h"
+#include "state_machine_stage_climb.h"
+
 class ActionTriggerThread : public chibios_rt::BaseStaticThread<2048> {
 
-    static constexpr int action_trigger_thread_interval = 20; // [ms]
+public:
+
+    ActionTriggerThread(ElevatorThread &elevatorThread_,
+                        BulletFetchStateMachine &bulletFetchStateMachine_,
+                        StageClimbStateMachine &stageClimbStateMachine_)
+            : elevatorThread(elevatorThread_),
+              bulletFetchStateMachine(bulletFetchStateMachine_),
+              stageClimbStateMachine(stageClimbStateMachine_) {};
+
+private:
+
+    ElevatorThread &elevatorThread;
+    BulletFetchStateMachine &bulletFetchStateMachine;
+    StageClimbStateMachine &stageClimbStateMachine;
+
+    static constexpr int ACTION_TRIGGER_THREAD_INTERVAL = 20; // [ms]
 
     bool keyPressed = false;
 
     void main() final {
 
-        setName("action_trigger");
-
-        Elevator::change_pid_params({ELEVATOR_PID_A2V_PARAMS}, {ELEVATOR_PID_V2I_PARAMS});
+        setName("action");
 
         enum box_door_status_t {
             HIGH,
@@ -31,83 +48,94 @@ class ActionTriggerThread : public chibios_rt::BaseStaticThread<2048> {
 
                 if (Remote::key.v) {                                               // elevator lift up
                     if (!keyPressed) {
-                        LOG_USER("press V");
-                        Elevator::calc_back(-Elevator::STAGE_HEIGHT);
-                        Elevator::calc_front(-Elevator::STAGE_HEIGHT);
+                        LOG_USER("click V");
+                        elevatorThread.set_front_target_height(20);
+                        elevatorThread.set_back_target_height(20);
                         keyPressed = true;
                     }
                 } else if (Remote::key.b) {                                        // elevator lift down
                     if (!keyPressed) {
-                        LOG_USER("press B");
-                        Elevator::calc_back(0);
-                        Elevator::calc_front(0);
+                        LOG_USER("click B");
+                        elevatorThread.set_front_target_height(0);
+                        elevatorThread.set_back_target_height(0);
                         keyPressed = true;
                     }
                 } else if (Remote::key.z) {                                        // robotic arm initial outward
                     if (!keyPressed) {
-                        LOG_USER("press Z");
-                        keyPressed = true;
-                    }
-                    if (roboticArmThread.get_status() == roboticArmThread.STOP) {
-                        if (!roboticArmThread.is_outward()) {
+                        LOG_USER("click Z");
+                        if (bulletFetchStateMachine.get_current_action() == bulletFetchStateMachine.STOP) {
                             LOG("Trigger RA out");
-                            roboticArmThread.start_initial_outward(NORMALPRIO - 3);
+                            bulletFetchStateMachine.start_initial_outward(NORMALPRIO - 3);
+                        } else {
+                            LOG_WARN("RA in action");
                         }
+                        keyPressed = true;
                     }
                 } else if (Remote::key.x) {                                        // robotic arm fetch once
                     if (!keyPressed) {
-                        LOG_USER("press X");
+                        LOG_USER("click X");
+                        if (bulletFetchStateMachine.get_current_action() == bulletFetchStateMachine.STOP) {
+                            if (bulletFetchStateMachine.is_outward()) {
+                                LOG("Trigger RA fetch");
+                                bulletFetchStateMachine.start_one_fetch(NORMALPRIO - 3);
+                            } else {
+                                LOG_WARN("RA in not outward");
+                            }
+                        } else {
+                            LOG_WARN("RA in action");
+                        }
                         keyPressed = true;
                     }
-                    if (roboticArmThread.get_status() == roboticArmThread.STOP) {
-                        if (roboticArmThread.is_outward()) {
-                            LOG("Trigger RA fetch");
-                            roboticArmThread.start_one_fetch(NORMALPRIO - 3);
-                        }
-                    }
+
                 } else if (Remote::key.c) {                                        // robotic arm final inward
                     if (!keyPressed) {
-                        LOG_USER("press C");
-                        keyPressed = true;
-                    }
-                    if (roboticArmThread.get_status() == roboticArmThread.STOP) {
-                        if (roboticArmThread.is_outward()) {
-                            LOG("Trigger RA in");
-                            roboticArmThread.start_final_inward(NORMALPRIO - 3);
+                        LOG_USER("click C");
+                        if (bulletFetchStateMachine.get_current_action() == bulletFetchStateMachine.STOP) {
+                            if (bulletFetchStateMachine.is_outward()) {
+                                LOG("Trigger RA in");
+                                bulletFetchStateMachine.start_final_inward(NORMALPRIO - 3);
+                            } else {
+                                LOG_WARN("RA in not outward");
+                            }
+                        } else {
+                            LOG_WARN("RA in action");
                         }
-                    }
-                } else if (Remote::key.g) {
-                    if (!keyPressed) {
-                        LOG_USER("press G");
                         keyPressed = true;
                     }
-                    if (elevatorThread.get_status() == elevatorThread.STOP) {
-                        elevatorThread.start_up_actions(NORMALPRIO - 2);
-                    }
-                } else if (Remote::key.f) {
+                } else if (Remote::key.g) {                                        // climb up the stage
                     if (!keyPressed) {
-                        LOG_USER("press F");
+                        LOG_USER("click G");
+                        if (stageClimbStateMachine.get_current_action() == stageClimbStateMachine.STOP) {
+                            LOG("Trigger SC up");
+                            stageClimbStateMachine.start_up_action(NORMALPRIO - 2);
+                        } else {
+                            LOG_WARN("SC in action");
+                        }
+                        keyPressed = true;
+                    }
+
+                } else if (Remote::key.f) {                                        // switch the bullet box
+                    if (!keyPressed) {
+                        LOG_USER("click F");
                         keyPressed = true;
                         if (box_door_status == HIGH) {
-                            LOG("Change to LOW");
+                            LOG("BD change to LOW");
                             box_door_status = LOW;
                             palClearPad(GPIOH, GPIOH_POWER3_CTRL);
-                        }
-                        else {
-                            LOG("Change to HIGH");
+                        } else {
+                            LOG("BD change to HIGH");
                             box_door_status = HIGH;
                             palSetPad(GPIOH, GPIOH_POWER3_CTRL);
                         }
                     }
-                }
-                else {
+                } else {
                     keyPressed = false;
                 }
             }
 
-            sleep(TIME_MS2I(action_trigger_thread_interval));
+            sleep(TIME_MS2I(ACTION_TRIGGER_THREAD_INTERVAL));
         }
     }
-}
+};
 
 #endif //META_INFANTRY_THREAD_ACTION_TRIGGER_HPP

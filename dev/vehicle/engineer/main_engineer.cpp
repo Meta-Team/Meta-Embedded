@@ -13,9 +13,10 @@
 
 #include "buzzer.h"
 #include "remote_interpreter.h"
-#include "elevator_interface.h"
 #include "robotic_arm.h"
+
 #include "chassis.h"
+#include "elevator.h"
 
 // Vehicle specific config
 #if defined(ENGINEER) // specified in CMakeLists.txt
@@ -31,14 +32,13 @@
 #endif
 
 
-// Threads
+// Threads and State Machines
 #include "thread_chassis.hpp"
 #include "thread_elevator.hpp"
-#include "thread_action_trigger.hpp"
-
-// State machines
+#include "thread_error_detect.hpp"
 #include "state_machine_stage_climb.h"
 #include "state_machine_bullet_fetch.h"
+#include "thread_action_trigger.hpp"
 
 
 static void cmd_elevator_set_target_position(BaseSequentialStream *chp, int argc, char *argv[]) {
@@ -61,61 +61,89 @@ ShellCommand elevatorInterfaceCommands[] = {
 
 // Interfaces
 CANInterface can1(&CAND1);
+CANInterface can2(&CAND2);
 
 // Threads
 ChassisThread chassisThread;
-ActionTriggerThread actionTriggerThread;
+ElevatorThread elevatorThread;
 
-StageClimbThread elevatorThread;
-RoboticArmThread roboticArmThread;
+StageClimbStateMachine stageClimbStateMachine(chassisThread, elevatorThread);
+BulletFetchStateMachine bulletFetchStateMachine;
+
+ActionTriggerThread actionTriggerThread(elevatorThread, bulletFetchStateMachine, stageClimbStateMachine);
+
+ErrorDetectThread errorDetectThread;
 
 int main(void) {
 
-    /*** --------------------------- Period 1. Basic Setup --------------------------- ***/
+    /*** --------------------------- Period 0. Fundamental Setup --------------------------- ***/
 
-    /** Basic Initializations **/
     halInit();
     chibios_rt::System::init();
-    LED::green_off();
-    LED::red_off();
 
-    /** Debug Setup **/
+    /*** ---------------------- Period 1. Modules Setup and Self-Check ---------------------- ***/
+
+    LED::all_off();
+
+    /** Setup Shell */
     Shell::start(HIGHPRIO);
     Shell::addCommands(elevatorInterfaceCommands);
+    StateHandler::echoEvent(StateHandler::SHELL_START);
+    // LED 1 on now
 
-    /** Basic IO Setup **/
+    /** Setup CAN1 & CAN2 */
     can1.start(HIGHPRIO - 1);
-    Remote::start_receive();
+    can1.start(HIGHPRIO - 2);
+    chThdSleepMilliseconds(5);
+    startupCheckCAN();  // check no persistent CAN Error. Block for 100 ms
+    StateHandler::echoEvent(StateHandler::CAN_START_SUCCESSFULLY);
+    // LED 2 on now
 
+    LED::led_on(3);
+    // LED 3 on now
+
+    /** Setup Remote */
+    Remote::start_receive();
+    startupCheckRemote();  // check Remote has signal. Block for 50 ms
+    StateHandler::echoEvent(StateHandler::REMOTE_START_SUCCESSFULLY);
+    // LED 4 on now
+
+    /** Setup RoboticArm */
+    RoboticArm::init(&can1);
+    chThdSleepMilliseconds(10);
+    startupCheckRoboticArmFeedback();  // check chassis motors has continuous feedback. Block for 50 ms
+    StateHandler::echoEvent(StateHandler::ROBOTIC_ARM_CONNECT);
+    // LED 5 on now
+
+    /** Setup Chassis */
     Chassis::init(&can1, CHASSIS_WHEEL_BASE, CHASSIS_WHEEL_TREAD, CHASSIS_WHEEL_CIRCUMFERENCE);
+    chThdSleepMilliseconds(10);
+    startupCheckChassisFeedback();  // check chassis motors has continuous feedback. Block for 50 ms
+    StateHandler::echoEvent(StateHandler::CHASSIS_CONNECTED);
+    // LED 6 on now
+
+    /** Setup Elevator */
     Elevator::init(&can1);
-    RoboticArm::init(&can1, ROBOTIC_ARM_INSIDE_ANGLE_RAW);
+    chThdSleepMilliseconds(10);
+    startupCheckElevatorFeedback();  // check chassis motors has continuous feedback. Block for 50 ms
+    StateHandler::echoEvent(StateHandler::ELEVATOR_CONNECTED);
+    // LED 7 on now
+
+    StateHandler::echoEvent(StateHandler::MAIN_MODULES_SETUP_COMPLETE);
+    // LED Green on now
+
 
     /*** ------------ Period 2. Calibration and Start Logic Control Thread ----------- ***/
 
-//    while (palReadPad(STARTUP_BUTTON_PAD, STARTUP_BUTTON_PIN_ID) != STARTUP_BUTTON_PRESS_PAL_STATUS) {
-//        // Wait for the button to be pressed
-//        LED::green_toggle();
-//        chThdSleepMilliseconds(300);
-//    }
-//    /** User has pressed the button **/
+    RoboticArm::reset_front_angle();
 
-    LED::green_on();
-
-//    RoboticArm::reset_front_angle();
-
-    /** Echo Gimbal Raws and Converted Angles **/
-    chThdSleepMilliseconds(500);
-    LOG("RA Motor: %u, %f", RoboticArm::motor_last_actual_angle_raw, RoboticArm::get_motor_actual_angle());
-
+    chassisThread.start(NORMALPRIO);
+    elevatorThread.start(NORMALPRIO - 1);
     actionTriggerThread.start(NORMALPRIO - 2);
+    errorDetectThread.start(LOWPRIO + 1);
 
-    /** Start Logic Control Thread **/
-    chassisThread.start(NORMALPRIO + 2);
-
-    /** Play the Startup Sound **/
-    Buzzer::play_sound(Buzzer::sound_startup_intel, LOWPRIO);
-
+    StateHandler::echoEvent(StateHandler::MAIN_THREAD_SETUP_COMPLETE);
+    // Now play the startup sound
 
     /*** ------------------------ Period 3. End of main thread ----------------------- ***/
 

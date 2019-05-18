@@ -32,8 +32,6 @@ public:
 
     static bool motor_reach_target(motor_id_t motor);
 
-    static constexpr float STAGE_HEIGHT = 21.0f;
-
     static constexpr int ANGLE_HEIGHT_RATIO = -196773;  // [qc/cm]
 
 private:

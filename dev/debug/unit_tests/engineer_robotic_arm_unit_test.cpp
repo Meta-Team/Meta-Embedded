@@ -23,7 +23,7 @@
 #endif
 
 CANInterface can1(&CAND1);
-RoboticArmThread roboticArmThread;
+BulletFetchStateMachine roboticArmThread;
 
 static void cmd_robotic_clamp_action(BaseSequentialStream *chp, int argc, char *argv[]) {
     (void) argv;

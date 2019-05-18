@@ -32,9 +32,9 @@ bool ElevatorInterface::send_elevator_currents() {
 
 void ElevatorInterface::process_elevator_feedback(CANRxFrame const *rxmsg) {
 
-    chSysUnlock();  // --- Exit Critical Zone ---
-
     if (rxmsg->SID > 0x208 || rxmsg->SID < 0x205) return;
+
+    chSysLock();  // --- Enter Critical Zone ---
 
     int motor_id = (int) (rxmsg->SID - 0x205);
 
@@ -63,8 +63,6 @@ void ElevatorInterface::process_elevator_feedback(CANRxFrame const *rxmsg) {
 
     feedback[motor_id].last_update_time = SYSTIME;
 
-    feedback[motor_id].in_action = !ABS_IN_RANGE(feedback[motor_id].accmulate_angle - target_angle[motor_id], STABLE_RANGE);
-
     chSysUnlock();  // --- Exit Critical Zone ---
 
 }
@@ -76,9 +74,7 @@ void ElevatorInterface::init(CANInterface *can_interface) {
         feedback[i].id = (motor_id_t) i;
         feedback[i].last_update_time = 0;
         feedback[i].clear_accmulate_angle();
-        feedback[i].in_action = false;
         target_current[i] = 0;
-        target_angle[i] = 0;
     }
 }
 
