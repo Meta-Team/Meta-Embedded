@@ -19,7 +19,7 @@ void Shoot::change_pid_params(PIDControllerBase::pid_params_t bullet_loader_v2i_
 void Shoot::calc_bullet_loader(float bullet_per_second) {
     /** NOTICE: minus sign has been added here */
     target_current[BULLET] = (int) v2i_pid.calc(feedback[BULLET].actual_velocity,
-                                                -degree_per_bullet_ * bullet_per_second);
+                                                degree_per_bullet_ * bullet_per_second);
 }
 
 void Shoot::set_friction_wheels(float duty_cycle) {

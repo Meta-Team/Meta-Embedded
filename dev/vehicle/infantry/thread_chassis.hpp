@@ -17,8 +17,8 @@ private:
 
     static constexpr unsigned int chassis_thread_interval = 2;  // PID calculation interval [ms]
 
-    static constexpr float COMMON_VX = 1500.0f;  // [mm/s]
-    static constexpr float COMMON_VY = 1500.0f;  // [mm/s]
+    static constexpr float COMMON_VX = 1200.0f;  // [mm/s]
+    static constexpr float COMMON_VY = 1200.0f;  // [mm/s]
     static constexpr float COMMON_W = 360.0f;    // [degree/s]
 
     static constexpr float PC_CTRL_RATIO = 0.5f;  // 50% when Ctrl is pressed
