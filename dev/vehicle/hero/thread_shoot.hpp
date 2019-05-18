@@ -12,7 +12,7 @@
  * @pre GimbalInterface(Shoot) get properly init()
  * @pre GimbalThread starts
  */
- class ShootAThread : public chibios_rt::BaseStaticThread<1024>{
+ class ShootThread : public chibios_rt::BaseStaticThread<1024>{
 
      static constexpr unsigned int SHOOT_THREAD_INTERVAL = 5; // PID calculation interval [ms]
 

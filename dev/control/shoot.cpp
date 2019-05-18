@@ -9,8 +9,7 @@ PIDController Shoot::v2i_pid[2];
 float Shoot::degree_per_bullet_;
 float Shoot::degree_per_bullet_plate_;
 
-void Shoot::init(CANInterface *can_interface, float degree_per_bullet, float degree_per_bullet_plate) {
-    GimbalInterface::init(can_interface, 0, 0);
+void Shoot::init(float degree_per_bullet, float degree_per_bullet_plate) {
     degree_per_bullet_ = degree_per_bullet;
     degree_per_bullet_plate_ = degree_per_bullet_plate;
 }
