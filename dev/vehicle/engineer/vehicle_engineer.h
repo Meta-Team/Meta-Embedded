@@ -13,9 +13,9 @@
 
 /** Mechanism Parameters */
 // TODO: to be determine
-#define CHASSIS_WHEEL_BASE  0.0// distance between front axle and the back axle, mm
-#define CHASSIS_WHEEL_TREAD  0.0// distance between left and right wheels, mm
-#define CHASSIS_WHEEL_CIRCUMFERENCE  0.0// mm
+#define CHASSIS_WHEEL_BASE  600.0f  // distance between front axle and the back axle, mm
+#define CHASSIS_WHEEL_TREAD 560.0f  // distance between left and right wheels, mm
+#define CHASSIS_WHEEL_CIRCUMFERENCE  0.0  // mm
 
 /*** Chassis PID Params ***/
 
