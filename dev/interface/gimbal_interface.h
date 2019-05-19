@@ -36,7 +36,7 @@
  * Enable clip at the moment of sending current.
  * Only for safety. There is NO signal for clipping. Be sure to eliminate it if more current is needed.
  */
-#define GIMBAL_INTERFACE_ENABLE_CLIP  TRUE
+#define GIMBAL_INTERFACE_ENABLE_CLIP  FALSE
 
 #if GIMBAL_INTERFACE_ENABLE_CLIP
 #define GIMBAL_INTERFACE_MAX_CURRENT 5000

@@ -31,7 +31,7 @@ unsigned const SHOOT_THREAD_INTERVAL = 2;    // [ms]
 unsigned const SHOOT_FEEDBACK_INTERVAL = 25; // [ms]
 
 float const MAX_VELOCITY[2] = {600, 600};  // absolute maximum, [degree/s]
-int const MAX_CURRENT = 4500;  // [mA]
+int const MAX_CURRENT = 6500;  // [mA]
 
 bool motor_enabled[2] = {false, false};
 
@@ -105,7 +105,7 @@ static void cmd_shoot_enable_fw(BaseSequentialStream *chp, int argc, char *argv[
         return;
     }
     if (*argv[0] == '1') {
-        Shoot::set_friction_wheels(0.8);
+        Shoot::set_friction_wheels(0.2);
     } else {
         Shoot::set_friction_wheels(0);
     }
