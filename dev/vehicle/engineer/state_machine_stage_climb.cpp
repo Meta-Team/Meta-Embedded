@@ -100,10 +100,12 @@ void StageClimbStateMachine::main() {
         /** Step 4. Move forward to make the front wheels and rear assistant wheel to be on the stage **/
         LOG("[ELE UP] Step 4...");
         sleep(TIME_MS2I(800));
-        chassisThread.set_external_target(0, -2000, 0);
-        sleep(TIME_MS2I(700));
+        chassisThread.set_external_target(0, -1900, 0);
+        sleep(TIME_MS2I(500));
         chassisThread.set_external_target(0, -400, 0);
-        sleep(TIME_MS2I(1500));
+        sleep(TIME_MS2I(1000));
+        chassisThread.set_external_target(0, -200, 0);
+        sleep(TIME_MS2I(500));
         chassisThread.set_external_target(0, 0, 0);
 
         sleep(TIME_MS2I(100));  // Time interval between steps
@@ -133,7 +135,7 @@ void StageClimbStateMachine::main() {
         /** Step 6. Move forward to make the rear wheels to be on the stage **/
 
         chassisThread.set_external_target(0, -1800, 0);
-        sleep(TIME_MS2I(1700));
+        sleep(TIME_MS2I(1000));
         chassisThread.set_external_target(0, -500, 0);
         sleep(TIME_MS2I(400));
         chassisThread.set_external_target(0, 0, 0);
