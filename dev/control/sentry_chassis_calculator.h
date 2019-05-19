@@ -133,7 +133,7 @@ private:
      * @brief the const values
      */
 
-    static float constexpr maximum_speed = 80.0f;
+    static float constexpr maximum_speed = 110.0f;
 
 };
 
