@@ -41,24 +41,6 @@
 #include "thread_action_trigger.hpp"
 
 
-static void cmd_elevator_set_target_position(BaseSequentialStream *chp, int argc, char *argv[]) {
-    (void) argv;
-    if (argc != 2) {
-        shellUsage(chp, "e_set front_pos[cm] back_pos[cm] positive for VEHICLE to DOWN");
-        return;
-    }
-    Elevator::calc_back(Shell::atof(argv[0]));
-    Elevator::calc_front(Shell::atof(argv[1]));
-    chprintf(chp, "Target pos = %f, %f" SHELL_NEWLINE_STR, Shell::atof(argv[0]), Shell::atof(argv[1]));
-}
-
-// Shell commands to control the elevator interface directly
-ShellCommand elevatorInterfaceCommands[] = {
-        {"e_set", cmd_elevator_set_target_position},
-        {nullptr, nullptr}
-};
-
-
 // Interfaces
 CANInterface can1(&CAND1);
 CANInterface can2(&CAND2);
@@ -73,6 +55,23 @@ BulletFetchStateMachine bulletFetchStateMachine;
 ActionTriggerThread actionTriggerThread(elevatorThread, bulletFetchStateMachine, stageClimbStateMachine);
 
 ErrorDetectThread errorDetectThread;
+
+static void cmd_elevator_set_target_position(BaseSequentialStream *chp, int argc, char *argv[]) {
+    (void) argv;
+    if (argc != 2) {
+        shellUsage(chp, "e_set front_pos[cm] back_pos[cm] positive for VEHICLE to UP");
+        return;
+    }
+    elevatorThread.set_front_target_height(Shell::atof(argv[0]));
+    elevatorThread.set_back_target_height(Shell::atof(argv[1]));
+    chprintf(chp, "Target pos = %f, %f" SHELL_NEWLINE_STR, Shell::atof(argv[0]), Shell::atof(argv[1]));
+}
+
+// Shell commands to control the elevator interface directly
+ShellCommand elevatorInterfaceCommands[] = {
+        {"e_set", cmd_elevator_set_target_position},
+        {nullptr, nullptr}
+};
 
 int main(void) {
 
