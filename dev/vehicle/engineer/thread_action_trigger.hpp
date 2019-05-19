@@ -34,13 +34,15 @@ private:
 
         setName("action");
 
-        enum box_door_status_t {
+        enum binary_status_t {
             HIGH,
             LOW
         };
 
-        box_door_status_t box_door_status = HIGH;
-        palSetPad(GPIOH, GPIOH_POWER3_CTRL);
+        binary_status_t box_door_status = LOW;
+        binary_status_t drawer_status = LOW;
+        palClearPad(GPIOH, GPIOH_POWER3_CTRL);
+        palClearPad(GPIOH, GPIOH_POWER4_CTRL);
 
         while (!shouldTerminate()) {
 
@@ -128,7 +130,22 @@ private:
                             palSetPad(GPIOH, GPIOH_POWER3_CTRL);
                         }
                     }
-                } else {
+                } else if (Remote::key.r) {                                        // switch the bullet box
+                    if (!keyPressed) {
+                        LOG_USER("click R");
+                        keyPressed = true;
+                        if (drawer_status == HIGH) {
+                            LOG("DR change to LOW");
+                            drawer_status = LOW;
+                            palClearPad(GPIOH, GPIOH_POWER4_CTRL);
+                        } else {
+                            LOG("DR change to HIGH");
+                            drawer_status = HIGH;
+                            palSetPad(GPIOH, GPIOH_POWER4_CTRL);
+                        }
+                    }
+                }
+                else {
                     keyPressed = false;
                 }
             }
