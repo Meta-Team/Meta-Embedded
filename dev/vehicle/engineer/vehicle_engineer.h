@@ -12,7 +12,7 @@
 
 /*** Chassis PID Params ***/
 
-#define CHASSIS_PID_V2I_KP 33f
+#define CHASSIS_PID_V2I_KP 33.0f
 #define CHASSIS_PID_V2I_KI 0.49f
 #define CHASSIS_PID_V2I_KD 2.4f
 #define CHASSIS_PID_V2I_I_LIMIT 4000.0f

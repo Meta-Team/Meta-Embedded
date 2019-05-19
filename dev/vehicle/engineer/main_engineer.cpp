@@ -91,8 +91,6 @@ int main(void) {
     // LED 1 on now
 
     /** Setup CAN1 & CAN2 */
-    can1.start(HIGHPRIO - 1);
-    can1.start(HIGHPRIO - 2);
     chThdSleepMilliseconds(5);
     startupCheckCAN();  // check no persistent CAN Error. Block for 100 ms
     StateHandler::echoEvent(StateHandler::CAN_START_SUCCESSFULLY);
