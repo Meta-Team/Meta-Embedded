@@ -19,7 +19,7 @@ protected:
         MPU6500::start(HIGHPRIO - 1);
         AHRS::init(HIGHPRIO - 2);
         while (!shouldTerminate()) {
-            Shell::printf("w = (%.4f, %.4f, %.4f)" SHELL_NEWLINE_STR,
+            Shell::printf("(%.4f, %.4f, %.4f)" SHELL_NEWLINE_STR,
                           AHRS::angle.x,
                           AHRS::angle.y,
                           AHRS::angle.z);

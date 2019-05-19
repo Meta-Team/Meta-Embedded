@@ -30,7 +30,6 @@ void AHRS::update_quaternion() {
     fetch_data();
     calc_quaternion();
 
-    //四元数转换成欧拉角，经过三角函数计算即可
     angle.x = -std::atan2(2 * q.q1 * q.q2 + 2 * q.q0 * q.q3, -2 * q.q2 * q.q2 - 2 * q.q3 * q.q3 + 1) * 180.0f / M_PI;
     angle.y = -std::asin(-2 * q.q1 * q.q3 + 2 * q.q0 * q.q2) * 180.0f / M_PI;
     angle.z = std::atan2(2 * q.q2 * q.q3 + 2 * q.q0 * q.q1, -2 * q.q1 * q.q1 - 2 * q.q2 * q.q2 + 1) * 180.0f / M_PI;

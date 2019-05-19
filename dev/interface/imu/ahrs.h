@@ -62,9 +62,9 @@ private:
         void main() final {
             setName("ahrs");
             while (!shouldTerminate()) {
-                chSysLock();    // --- Enter Critical Zone ---
+//                chSysLock();    // --- Enter Critical Zone ---
                 AHRS::update_quaternion();
-                chSysUnlock();  // --- Exit Critical Zone ---
+//                chSysUnlock();  // --- Exit Critical Zone ---
                 sleep(TIME_MS2I(AHRS_UPDATE_THREAD_INTERVAL));
             }
         }
