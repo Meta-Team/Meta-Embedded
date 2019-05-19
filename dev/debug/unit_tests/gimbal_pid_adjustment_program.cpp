@@ -50,7 +50,7 @@ float target_v[2] = {0.0, 0.0};
 #define GIMBAL_PITCH_FRONT_ANGLE_RAW 4128
 
 // Depends on the install direction of the board
-#define GIMBAL_YAW_ACTUAL_VELOCITY (MPU6500::angle_speed.z)
+#define GIMBAL_YAW_ACTUAL_VELOCITY (Gimbal::feedback[Gimbal::YAW].actual_angle)
 #define GIMBAL_PITCH_ACTUAL_VELOCITY (MPU6500::angle_speed.x)
 
 CANInterface can1(&CAND1);
