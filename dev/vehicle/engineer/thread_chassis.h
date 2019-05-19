@@ -21,7 +21,7 @@ class ChassisThread : public chibios_rt::BaseStaticThread<1024> {
 
 public:
 
-    ChassisThread(Chassis::pid_params_t CHASSIS_PID_V2I_PARAMS_) : CHASSIS_PID_V2I_PARAMS(CHASSIS_PID_V2I_PARAMS_) {};
+    ChassisThread(Chassis::pid_params_t CHASSIS_PID_V2I_PARAMS_) : PID_V2I_PARAMS(CHASSIS_PID_V2I_PARAMS_) {};
 
     void enable_external_mode();
 
@@ -31,7 +31,7 @@ public:
 
 private:
 
-    const Chassis::pid_params_t CHASSIS_PID_V2I_PARAMS;
+    const Chassis::pid_params_t PID_V2I_PARAMS;
 
     bool external_mode = false;
     float external_target_vx = 0.0f;

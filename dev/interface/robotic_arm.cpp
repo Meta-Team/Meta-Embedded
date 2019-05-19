@@ -44,7 +44,7 @@ void RoboticArm::process_motor_feedback(CANRxFrame const *rxmsg) {
 
     if (rxmsg->SID != 0x205) return;
 
-    chSysLock();  // --- Enter Critical Zone ---
+//    chSysLock();  // --- Enter Critical Zone ---
 
     uint16_t new_actual_angle_raw = rxmsg->data8[0] << 8 | rxmsg->data8[1];
 
@@ -63,7 +63,7 @@ void RoboticArm::process_motor_feedback(CANRxFrame const *rxmsg) {
 
     motor_last_update_time = SYSTIME;
 
-    chSysUnlock();  // --- Exit Critical Zone ---
+//    chSysUnlock();  // --- Exit Critical Zone ---
 }
 
 void RoboticArm::reset_front_angle() {

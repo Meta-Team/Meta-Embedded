@@ -107,7 +107,7 @@ void GimbalInterface::send_gimbal_currents() {
 
 void GimbalInterface::process_motor_feedback(CANRxFrame const *rxmsg) {
 
-    chSysLock();  // --- Enter Critical Zone ---
+//    chSysLock();  // --- Enter Critical Zone ---
 
     /**
      * Function logic description:
@@ -125,7 +125,7 @@ void GimbalInterface::process_motor_feedback(CANRxFrame const *rxmsg) {
 
     // Check whether this new raw angle is valid
     if (new_actual_angle_raw > 8191) {
-        chSysUnlock();  // --- Exit Critical Zone ---
+//        chSysUnlock();  // --- Exit Critical Zone ---
         return;
     }
 
@@ -218,7 +218,7 @@ void GimbalInterface::process_motor_feedback(CANRxFrame const *rxmsg) {
             break;
     }
 
-    chSysUnlock();  // --- Exit Critical Zone ---
+//    chSysUnlock();  // --- Exit Critical Zone ---
 }
 
 void GimbalInterface::motor_feedback_t::reset_front_angle() {

@@ -65,7 +65,7 @@ CANInterface can2(&CAND2);
 
 // Threads
 ChassisThread chassisThread({CHASSIS_PID_V2I_PARAMS});
-ElevatorThread elevatorThread;
+ElevatorThread elevatorThread({ELEVATOR_PID_A2V_PARAMS}, {ELEVATOR_PID_V2I_PARAMS});
 
 StageClimbStateMachine stageClimbStateMachine(chassisThread, elevatorThread);
 BulletFetchStateMachine bulletFetchStateMachine;

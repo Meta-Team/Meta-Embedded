@@ -34,7 +34,7 @@ void ElevatorInterface::process_elevator_feedback(CANRxFrame const *rxmsg) {
 
     if (rxmsg->SID > 0x208 || rxmsg->SID < 0x205) return;
 
-    chSysLock();  // --- Enter Critical Zone ---
+//    chSysLock();  // --- Enter Critical Zone ---
 
     int motor_id = (int) (rxmsg->SID - 0x205);
 
@@ -63,7 +63,7 @@ void ElevatorInterface::process_elevator_feedback(CANRxFrame const *rxmsg) {
 
     feedback[motor_id].last_update_time = SYSTIME;
 
-    chSysUnlock();  // --- Exit Critical Zone ---
+//    chSysUnlock();  // --- Exit Critical Zone ---
 
 }
 

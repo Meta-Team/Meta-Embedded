@@ -22,7 +22,7 @@ void ChassisThread::main() {
 
     setName("chassis");
 
-    Chassis::change_pid_params({CHASSIS_PID_V2I_PARAMS});
+    Chassis::change_pid_params({PID_V2I_PARAMS});
 
     while (!shouldTerminate()) {
 

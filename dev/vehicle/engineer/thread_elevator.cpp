@@ -17,7 +17,7 @@ void ElevatorThread::main() {
 
     setName("elevator");
 
-    Elevator::change_pid_params(ELEVATOR_PID_A2V_PARAMS, ELEVATOR_PID_V2I_PARAMS);
+    Elevator::change_pid_params(PID_A2V_PARAMS, PID_V2I_PARAMS);
 
     while (!shouldTerminate()) {
 

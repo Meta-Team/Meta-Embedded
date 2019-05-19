@@ -170,7 +170,7 @@ void MPU6500::getData() {
     spiReleaseBus(&MPU6500_SPI_DRIVER);
 
 
-    chSysLock();  // --- Enter Critical Zone ---
+//    chSysLock();  // --- Enter Critical Zone ---
 
     float accel_x = _accel_psc * (int16_t)((mpu6500_RXData[ 0]<<8) | mpu6500_RXData[ 1]); // Accel X
     float accel_y = _accel_psc * (int16_t)((mpu6500_RXData[ 2]<<8) | mpu6500_RXData[ 3]); // Accel Y
@@ -190,5 +190,5 @@ void MPU6500::getData() {
 
     last_update_time = SYSTIME;
 
-    chSysUnlock();  // --- Exit Critical Zone ---
+//    chSysUnlock();  // --- Exit Critical Zone ---
 }
