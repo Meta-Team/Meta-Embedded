@@ -100,25 +100,25 @@ class ErrorDetectThread : public chibios_rt::BaseStaticThread<1024> {
 
         while (!shouldTerminate()) {
 
-            if (SYSTIME - Remote::last_update_time > 30) {
-                StateHandler::raiseException(StateHandler::REMOTE_DISCONNECTED);
-            }
-
-            if (SYSTIME - RoboticArm::get_motor_last_update_time() > 3) {
-                StateHandler::raiseException(StateHandler::ROBOTIC_ARM_DISCONNECTED);
-            }
-
-            for (unsigned i = 0; i < Chassis::MOTOR_COUNT; i++) {
-                if (SYSTIME - Chassis::feedback[i].last_update_time > 5) {
-                    StateHandler::raiseException(StateHandler::CHASSIS_DISCONNECTED, i);
-                }
-            }
-
-            for (unsigned i = 0; i < Elevator::MOTOR_COUNT; i++) {
-                if (SYSTIME - Elevator::feedback[i].last_update_time > 5) {
-                    StateHandler::raiseException(StateHandler::ELEVATOR_DISCONNECTED, i);
-                }
-            }
+//            if (SYSTIME - Remote::last_update_time > 30) {
+//                StateHandler::raiseException(StateHandler::REMOTE_DISCONNECTED);
+//            }
+//
+//            if (SYSTIME - RoboticArm::get_motor_last_update_time() > 3) {
+//                StateHandler::raiseException(StateHandler::ROBOTIC_ARM_DISCONNECTED);
+//            }
+//
+//            for (unsigned i = 0; i < Chassis::MOTOR_COUNT; i++) {
+//                if (SYSTIME - Chassis::feedback[i].last_update_time > 5) {
+//                    StateHandler::raiseException(StateHandler::CHASSIS_DISCONNECTED, i);
+//                }
+//            }
+//
+//            for (unsigned i = 0; i < Elevator::MOTOR_COUNT; i++) {
+//                if (SYSTIME - Elevator::feedback[i].last_update_time > 5) {
+//                    StateHandler::raiseException(StateHandler::ELEVATOR_DISCONNECTED, i);
+//                }
+//            }
 
             sleep(TIME_MS2I(ERROR_DETECT_THREAD_INTERVAL));
         }
