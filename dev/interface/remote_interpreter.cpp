@@ -36,7 +36,7 @@ constexpr UARTConfig Remote::REMOTE_UART_CONFIG;
  */
 void Remote::uart_received_callback_(UARTDriver *uartp) {
 
-    chSysLockFromISR(); // --- Enter Critical Zone ---
+//    chSysLockFromISR(); // --- Enter Critical Zone ---
 
     rc.ch0 = (((rx_buf_[0] | rx_buf_[1] << 8) & 0x07FF) - 1024.0f) / 660.0f;
     rc.ch1 = (((rx_buf_[1] >> 3 | rx_buf_[2] << 5) & 0x07FF) - 1024.0f) / 660.0f;
@@ -100,7 +100,7 @@ void Remote::uart_received_callback_(UARTDriver *uartp) {
     // Restart the receive
     uartStartReceive(uartp, RX_FRAME_SIZE, rx_buf_);
 
-    chSysUnlockFromISR(); // --- Exit Critical Zone ---
+//    chSysUnlockFromISR(); // --- Exit Critical Zone ---
 }
 
 /**
