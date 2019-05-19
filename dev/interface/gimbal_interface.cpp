@@ -145,8 +145,42 @@ void GimbalInterface::process_motor_feedback(CANRxFrame const *rxmsg) {
     int angle_movement = (int) new_actual_angle_raw - (int) feedback[id].last_angle_raw;
 
     switch (id) {
-        case 0:
-        case 1:  // Yaw or Pitch
+        case 0:  // Yaw
+
+            feedback[id].last_angle_raw = new_actual_angle_raw;
+
+            // If angle_movement is too extreme between two samples,
+            // we grant that it's caused by moving over the 0(8192) point.
+            if (angle_movement < -4096) {
+                angle_movement += 8192;
+            } else if (angle_movement > 4096) {
+                angle_movement -= 8192;
+            }
+
+            // KEY IDEA: add the change of angle to actual angle
+            feedback[id].actual_angle += angle_movement * 360.0f / 8192;
+
+            // If the actual_angle is greater than 180(-180) then it turns a round in CCW(CW) direction
+            if (feedback[id].actual_angle >= 180.0f) {
+                feedback[id].actual_angle -= 360.0f;
+                feedback[id].round_count++;
+            }
+            if (feedback[id].actual_angle < -180.0f) {
+                feedback[id].actual_angle += 360.0f;
+                feedback[id].round_count--;
+            }
+
+#if GIMBAL_INTERFACE_ENABLE_VELOCITY_CALCULATION
+            feedback[id].actual_velocity = (float) (rxmsg->data8[2] << 8 | rxmsg->data8[3]) * 60.0f;  // rpm -> degree/s
+#endif
+
+            feedback[id].actual_current = (int16_t) (rxmsg->data8[4] << 8 | rxmsg->data8[5]);
+
+            feedback[id].last_update_time = SYSTIME;
+
+            break;
+
+        case 1:  // Pitch
 
             feedback[id].last_angle_raw = new_actual_angle_raw;
 
