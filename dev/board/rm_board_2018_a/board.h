@@ -1114,7 +1114,7 @@
  *
  * PH0  - OSC_IN                    (input floating).
  * PH1  - OSC_OUT                   (input floating).
- * PH2  - POWER1_CTRL                      (input floating).
+ * PH2  - POWER1_CTRL                      (output pushpull maximum).
  * PH3  - POWER2_CTRL                      (output pushpull maximum).
  * PH4  - POWER3_CTRL                      (output pushpull maximum).
  * PH5  - PIN5                      (input floating).
@@ -1131,7 +1131,7 @@
  */
 #define VAL_GPIOH_MODER             (PIN_MODE_INPUT(GPIOH_OSC_IN) |         \
                                      PIN_MODE_INPUT(GPIOH_OSC_OUT) |        \
-                                     PIN_MODE_INPUT(GPIOH_POWER1_CTRL) |           \
+                                     PIN_MODE_OUTPUT(GPIOH_POWER1_CTRL) |           \
                                      PIN_MODE_OUTPUT(GPIOH_POWER2_CTRL) |           \
                                      PIN_MODE_OUTPUT(GPIOH_POWER3_CTRL) |           \
                                      PIN_MODE_INPUT(GPIOH_PIN5) |           \

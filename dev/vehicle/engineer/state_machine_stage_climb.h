@@ -15,7 +15,7 @@
 #include "thread_chassis.h"
 #include "thread_elevator.h"
 
-#define STAGE_CLIMB_STATE_MACHINE_ENABLE_TIMEOUT  FALSE
+#define STAGE_CLIMB_STATE_MACHINE_ENABLE_TIMEOUT  TRUE
 
 #define STAGE_CLIMB_STATE_MACHINE_WORKING_AREA_SIZE 2048
 
@@ -65,7 +65,7 @@ private:
     chibios_rt::ThreadReference start(tprio_t) final {return nullptr;}; // delete this function
 
     static constexpr int ELEVATOR_CHECK_INTERVAL = 5; // [ms]
-    static constexpr float STAGE_HEIGHT = 21.0f;
+    static constexpr float STAGE_HEIGHT = 19.0f;
 
 };
 

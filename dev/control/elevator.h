@@ -69,7 +69,7 @@ private:
     static constexpr float UNBALANCE_LIMIT = 3;  // [cm]
 
     // When angle different between actual angle and target angle is in the range, we think it reaches its target.
-    static constexpr int STABLE_RANGE = 98387;  // [qc], ANGLE_HEIGHT_RATIO * 0.5 cm = 98387
+    static constexpr float STABLE_RANGE = 458.0f;  // [degree], ANGLE_HEIGHT_RATIO * 1 cm = 458.0f
 
     friend void _cmd_elevator_clear_i_out();
     friend void cmd_elevator_set_parameters(BaseSequentialStream *chp, int argc, char *argv[]);

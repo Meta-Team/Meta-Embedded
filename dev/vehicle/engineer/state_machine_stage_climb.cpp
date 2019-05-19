@@ -44,12 +44,12 @@ void StageClimbStateMachine::main() {
         sleep(TIME_MS2I(1000));
         elevatorThread.set_front_target_height(STAGE_HEIGHT);
         elevatorThread.set_back_target_height(STAGE_HEIGHT);
-
+        sleep(TIME_MS2I(5000));
         t = SYSTIME;
-        while (Elevator::motor_reach_target(Elevator::FR) ||
-               Elevator::motor_reach_target(Elevator::FL) ||
-               Elevator::motor_reach_target(Elevator::BL) ||
-               Elevator::motor_reach_target(Elevator::BR)) {
+        while (!Elevator::motor_reach_target(Elevator::FR) ||
+               !Elevator::motor_reach_target(Elevator::FL) ||
+               !Elevator::motor_reach_target(Elevator::BL) ||
+               !Elevator::motor_reach_target(Elevator::BR)) {
 #if STAGE_CLIMB_STATE_MACHINE_ENABLE_TIMEOUT
             if (SYSTIME - t > 20000) {
                 LOG_ERR("[ELE UP] Step 1 timeout, is_in_action: %d %d %d %d",
@@ -78,10 +78,10 @@ void StageClimbStateMachine::main() {
         LOG("[ELE UP] Step 3...");
 
         elevatorThread.set_front_target_height(0);
-
+        sleep(TIME_MS2I(5000));
         t = SYSTIME;
-        while (Elevator::motor_reach_target(Elevator::FR) ||
-               Elevator::motor_reach_target(Elevator::FL)) {
+        while (!Elevator::motor_reach_target(Elevator::FR) ||
+               !Elevator::motor_reach_target(Elevator::FL)) {
 #if STAGE_CLIMB_STATE_MACHINE_ENABLE_TIMEOUT
             if (SYSTIME - t > 20000) {
                 LOG_ERR("[ELE UP] Step 3 timeout, is_in_action: %d %d %d %d",
@@ -100,9 +100,9 @@ void StageClimbStateMachine::main() {
         /** Step 4. Move forward to make the front wheels and rear assistant wheel to be on the stage **/
         LOG("[ELE UP] Step 4...");
         sleep(TIME_MS2I(800));
-        chassisThread.set_external_target(0, -2400, 0);
-        sleep(TIME_MS2I(1000));
-        chassisThread.set_external_target(0, -500, 0);
+        chassisThread.set_external_target(0, -2000, 0);
+        sleep(TIME_MS2I(700));
+        chassisThread.set_external_target(0, -400, 0);
         sleep(TIME_MS2I(1500));
         chassisThread.set_external_target(0, 0, 0);
 
@@ -112,10 +112,10 @@ void StageClimbStateMachine::main() {
         LOG("[ELE UP] Step 5...");
 
         elevatorThread.set_back_target_height(0);
-
+        sleep(TIME_MS2I(5000));
         t = SYSTIME;
-        while (Elevator::motor_reach_target(Elevator::BL) ||
-                Elevator::motor_reach_target(Elevator::BR)) {
+        while (!Elevator::motor_reach_target(Elevator::BL) ||
+               !Elevator::motor_reach_target(Elevator::BR)) {
 #if STAGE_CLIMB_STATE_MACHINE_ENABLE_TIMEOUT
             if (SYSTIME - t > 20000) {
                 LOG_ERR("[ELE UP] Step 5 timeout, is_in_action: %d %d %d %d",
@@ -132,8 +132,8 @@ void StageClimbStateMachine::main() {
 
         /** Step 6. Move forward to make the rear wheels to be on the stage **/
 
-        chassisThread.set_external_target(0, -1600, 0);
-        sleep(TIME_MS2I(700));
+        chassisThread.set_external_target(0, -1800, 0);
+        sleep(TIME_MS2I(1700));
         chassisThread.set_external_target(0, -500, 0);
         sleep(TIME_MS2I(400));
         chassisThread.set_external_target(0, 0, 0);

@@ -25,7 +25,7 @@ RoboticArm::clamp_status_t RoboticArm::get_clamp_status() {
 
 void RoboticArm::clamp_action(RoboticArm::clamp_status_t target_status) {
     _clamp_status = target_status;
-    palWritePad(GPIOH, GPIOH_POWER1_CTRL, _clamp_status);
+    palWritePad(GPIOH, GPIOH_POWER2_CTRL, _clamp_status);
 }
 
 void RoboticArm::init(CANInterface *can_interface) {
@@ -33,10 +33,9 @@ void RoboticArm::init(CANInterface *can_interface) {
     can = can_interface;
     can->register_callback(0x205, 0x205, process_motor_feedback);
 
-    palSetPad(GPIOH, GPIOH_POWER3_CTRL);
+    palSetPad(GPIOH, GPIOH_POWER2_CTRL);
 
-    palSetPadMode(GPIOH, GPIOH_POWER1_CTRL, PAL_MODE_OUTPUT_PUSHPULL);
-    palClearPad(GPIOH, GPIOH_POWER1_CTRL);
+    palSetPad(GPIOH, GPIOH_POWER1_CTRL);
 
 }
 

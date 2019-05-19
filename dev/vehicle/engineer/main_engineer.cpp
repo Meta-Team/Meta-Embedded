@@ -92,7 +92,7 @@ int main(void) {
 
     /** Setup CAN1 & CAN2 */
     can1.start(HIGHPRIO - 1);
-    can1.start(HIGHPRIO - 2);
+    can2.start(HIGHPRIO - 2);
     chThdSleepMilliseconds(5);
     startupCheckCAN();  // check no persistent CAN Error. Block for 100 ms
     StateHandler::echoEvent(StateHandler::CAN_START_SUCCESSFULLY);
@@ -122,7 +122,7 @@ int main(void) {
     // LED 6 on now
 
     /** Setup Elevator */
-    Elevator::init(&can1);
+    Elevator::init(&can2);
     chThdSleepMilliseconds(10);
     startupCheckElevatorFeedback();  // check chassis motors has continuous feedback. Block for 50 ms
     StateHandler::echoEvent(StateHandler::ELEVATOR_CONNECTED);
