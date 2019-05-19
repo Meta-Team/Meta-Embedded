@@ -7,8 +7,8 @@
 #define META_INFANTRY_VEHICLE_INFANTRY_H
 
 /** Mechanism Parameters */
-#define CHASSIS_WHEEL_BASE 545.0f                      // distance between front axle and the back axle [mm]
-#define CHASSIS_WHEEL_TREAD 588.0f                     // distance between left and right wheels [mm]
+#define CHASSIS_WHEEL_BASE  420.0f                     // distance between front axle and the back axle [mm]
+#define CHASSIS_WHEEL_TREAD 372.0f                     // distance between left and right wheels [mm]
 #define CHASSIS_WHEEL_CIRCUMFERENCE 478.0f             // [mm]
 
 #define SHOOT_DEGREE_PER_BULLER 40.0f                  // rotation degree of bullet loader for each bullet
