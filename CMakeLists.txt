@@ -148,6 +148,13 @@ add_executable(ut_shoot
         dev/control/shoot.cpp
         dev/debug/unit_tests/hero_shoot_unit_test.cpp)
 
+# Shoot
+add_executable(pa_hero_shoot
+        dev/module/can_interface.cpp
+        dev/interface/gimbal_interface.cpp
+        dev/control/shoot.cpp
+        dev/debug/unit_tests/hero_shoot_param_adjust.cpp)
+
 # Gimbal: include CANInterface, GimbalInterface, GimbalController, GimbalFeedbackThread and testmodules.
 add_executable(ut_gimbal
         dev/module/can_interface.cpp

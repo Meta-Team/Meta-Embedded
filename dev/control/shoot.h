@@ -49,6 +49,10 @@ private:
     static float degree_per_bullet_;
     static float degree_per_bullet_plate_;
 
+    static void calc_motor_(motor_id_t motor, float actual_velocity, float target_velocity);
+    
+    
+    friend class ShootDebugThread;
 };
 
 
