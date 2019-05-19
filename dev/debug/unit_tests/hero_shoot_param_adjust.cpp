@@ -26,7 +26,7 @@ unsigned const PLATE = Shoot::PLATE;
 
 char MOTOR_CHAR[2] = {'y', 'p'};
 
-// Calculation interval for gimbal thread
+// Calculation interval for shoot thread
 unsigned const SHOOT_THREAD_INTERVAL = 2;    // [ms]
 unsigned const SHOOT_FEEDBACK_INTERVAL = 25; // [ms]
 
@@ -35,7 +35,7 @@ int const MAX_CURRENT = 4500;  // [mA]
 
 bool motor_enabled[2] = {false, false};
 
-float target_bullet_num = 0;
+float target_v[2] = {0, 0};
 
 CANInterface can1(&CAND1);
 
@@ -50,7 +50,7 @@ private:
 
     void main() final {
 
-        setName("gimbal_fb");
+        setName("shoot_fb");
 
         while (!shouldTerminate()) {
 
@@ -58,14 +58,14 @@ private:
                 Shell::printf("!gy,%u,%.2f,%.2f,%.2f,%.2f,%d,%d" SHELL_NEWLINE_STR,
                               SYSTIME,
                               0.0f, 0.0f,
-                              Shoot::feedback[BULLET].actual_velocity, -Shoot::degree_per_bullet_ * target_bullet_num,
+                              Shoot::feedback[BULLET].actual_velocity, target_v[0],
                               Shoot::feedback[BULLET].actual_current, Shoot::target_current[BULLET]);
             }
             if (enable_plate_feedback) {
                 Shell::printf("!gp,%u,%.2f,%.2f,%.2f,%.2f,%d,%d" SHELL_NEWLINE_STR,
                               SYSTIME,
                               0.0f, 0.0f,
-                              Shoot::feedback[PLATE].actual_velocity, -Shoot::degree_per_bullet_plate_ * target_bullet_num,
+                              Shoot::feedback[PLATE].actual_velocity, target_v[1],
                               Shoot::feedback[PLATE].actual_current, Shoot::target_current[PLATE]);
             }
 
@@ -82,7 +82,7 @@ private:
  * @param argc
  * @param argv
  */
-static void cmd_gimbal_enable(BaseSequentialStream *chp, int argc, char *argv[]) {
+static void cmd_shoot_enable(BaseSequentialStream *chp, int argc, char *argv[]) {
     (void) argv;
     if (argc != 2 || (*argv[0] != '0' && *argv[0] != '1') || (*argv[1] != '0' && *argv[1] != '1')) {
         shellUsage(chp, "g_enable yaw(0/1) pitch(0/1)");
@@ -98,7 +98,7 @@ static void cmd_gimbal_enable(BaseSequentialStream *chp, int argc, char *argv[])
  * @param argc
  * @param argv
  */
-static void cmd_gimbal_enable_fw(BaseSequentialStream *chp, int argc, char *argv[]) {
+static void cmd_shoot_enable_fw(BaseSequentialStream *chp, int argc, char *argv[]) {
     (void) argv;
     if (argc != 1 || (*argv[0] != '0' && *argv[0] != '1')) {
         shellUsage(chp, "g_enable_fw 0/1");
@@ -109,7 +109,7 @@ static void cmd_gimbal_enable_fw(BaseSequentialStream *chp, int argc, char *argv
     } else {
         Shoot::set_friction_wheels(0);
     }
-    Shoot::send_gimbal_currents();
+    GimbalInterface::send_gimbal_currents();
 }
 
 /**
@@ -118,7 +118,7 @@ static void cmd_gimbal_enable_fw(BaseSequentialStream *chp, int argc, char *argv
  * @param argc
  * @param argv
  */
-static void cmd_gimbal_enable_feedback(BaseSequentialStream *chp, int argc, char *argv[]) {
+static void cmd_shoot_enable_feedback(BaseSequentialStream *chp, int argc, char *argv[]) {
     (void) argv;
     if (argc != 2 || (*argv[0] != '0' && *argv[0] != '1') || (*argv[1] != '0' && *argv[1] != '1')) {
         shellUsage(chp, "g_enable_fb yaw(0/1) pitch(0/1)");
@@ -135,7 +135,7 @@ static void cmd_gimbal_enable_feedback(BaseSequentialStream *chp, int argc, char
  * @param argc
  * @param argv
  */
-static void cmd_gimbal_fix_front_angle(BaseSequentialStream *chp, int argc, char *argv[]) {
+static void cmd_shoot_fix_front_angle(BaseSequentialStream *chp, int argc, char *argv[]) {
     (void) argv;
     if (argc != 0) {
         shellUsage(chp, "g_fix");
@@ -147,7 +147,7 @@ static void cmd_gimbal_fix_front_angle(BaseSequentialStream *chp, int argc, char
 //    chprintf(chp, "!f" SHELL_NEWLINE_STR);
 }
 
-void _cmd_gimbal_clear_i_out() {
+void _cmd_shoot_clear_i_out() {
     for (int i = 0; i < 2; i++) {
         Shoot::v2i_pid[i].clear_i_out();
     }
@@ -159,7 +159,7 @@ void _cmd_gimbal_clear_i_out() {
  * @param argc
  * @param argv
  */
-static void cmd_gimbal_set_target_velocities(BaseSequentialStream *chp, int argc, char *argv[]) {
+static void cmd_shoot_set_target_velocities(BaseSequentialStream *chp, int argc, char *argv[]) {
     (void) argv;
     if (argc != 2) {
         shellUsage(chp, "g_set_v bullet_per plate_velocity");
@@ -168,7 +168,7 @@ static void cmd_gimbal_set_target_velocities(BaseSequentialStream *chp, int argc
 
     target_v[0] = Shell::atof(argv[0]);
     target_v[1] = Shell::atof(argv[1]);
-    _cmd_gimbal_clear_i_out();
+    _cmd_shoot_clear_i_out();
 }
 
 /**
@@ -177,7 +177,7 @@ static void cmd_gimbal_set_target_velocities(BaseSequentialStream *chp, int argc
  * @param argc
  * @param argv
  */
-static void cmd_gimbal_set_target_angle(BaseSequentialStream *chp, int argc, char *argv[]) {
+static void cmd_shoot_set_target_angle(BaseSequentialStream *chp, int argc, char *argv[]) {
     (void) argv;
     if (argc != 2) {
         shellUsage(chp, "g_set_angle NULL NULL");
@@ -193,7 +193,7 @@ static void cmd_gimbal_set_target_angle(BaseSequentialStream *chp, int argc, cha
  * @param argc
  * @param argv
  */
-void cmd_gimbal_set_parameters(BaseSequentialStream *chp, int argc, char *argv[]) {
+void cmd_shoot_set_parameters(BaseSequentialStream *chp, int argc, char *argv[]) {
     (void) argv;
     if (argc != 7) {
         shellUsage(chp, "g_set_params bullet(0)/plate(1) NULL(0)/v_to_i(1) ki kp kd i_limit out_limit");
@@ -218,15 +218,16 @@ void cmd_gimbal_set_parameters(BaseSequentialStream *chp, int argc, char *argv[]
           Shell::atof(argv[5]),
           Shell::atof(argv[6])};
 
-    Shoot::change_pid_params(bullet_v2i_params, plate_v2i_params);
+    Shoot::change_pid_params(bullet_v2i_params);
+    Shoot::change_plate_params(plate_v2i_params);
 
     chprintf(chp, "!ps" SHELL_NEWLINE_STR); // echo parameters set
 }
 
 /**
- * @brief helper function for cmd_gimbal_echo_parameters()
+ * @brief helper function for cmd_shoot_echo_parameters()
  */
-static inline void _cmd_gimbal_echo_parameters(BaseSequentialStream *chp, Shoot::pid_params_t p) {
+static inline void _cmd_shoot_echo_parameters(BaseSequentialStream *chp, Shoot::pid_params_t p) {
     chprintf(chp, "%f %f %f %f %f" SHELL_NEWLINE_STR, p.kp, p.ki, p.kd, p.i_limit, p.out_limit);
 }
 
@@ -236,7 +237,7 @@ static inline void _cmd_gimbal_echo_parameters(BaseSequentialStream *chp, Shoot:
  * @param argc
  * @param argv
  */
-void cmd_gimbal_echo_parameters(BaseSequentialStream *chp, int argc, char *argv[]) {
+void cmd_shoot_echo_parameters(BaseSequentialStream *chp, int argc, char *argv[]) {
     (void) argv;
     if (argc != 0) {
         shellUsage(chp, "g_echo_params");
@@ -244,29 +245,29 @@ void cmd_gimbal_echo_parameters(BaseSequentialStream *chp, int argc, char *argv[
     }
 
     chprintf(chp, "bullet v_to_i:       ");
-    _cmd_gimbal_echo_parameters(chp, Shoot::v2i_pid[BULLET].get_parameters());
+    _cmd_shoot_echo_parameters(chp, Shoot::v2i_pid[BULLET].get_parameters());
     chprintf(chp, "plate v_to_i:     ");
-    _cmd_gimbal_echo_parameters(chp, Shoot::v2i_pid[PLATE].get_parameters());
+    _cmd_shoot_echo_parameters(chp, Shoot::v2i_pid[PLATE].get_parameters());
 }
 
-// Command lists for gimbal controller test and adjustments
-ShellCommand gimbalCotrollerCommands[] = {
-        {"g_enable",      cmd_gimbal_enable},
-        {"g_enable_fb",   cmd_gimbal_enable_feedback},
-        {"g_fix",         cmd_gimbal_fix_front_angle},
-        {"g_set_v",       cmd_gimbal_set_target_velocities},
-        {"g_set_angle",   cmd_gimbal_set_target_angle},
-        {"g_set_params",  cmd_gimbal_set_parameters},
-        {"g_echo_params", cmd_gimbal_echo_parameters},
-        {"g_enable_fw",   cmd_gimbal_enable_fw},
+// Command lists for shoot controller test and adjustments
+ShellCommand shootCotrollerCommands[] = {
+        {"g_enable",      cmd_shoot_enable},
+        {"g_enable_fb",   cmd_shoot_enable_feedback},
+        {"g_fix",         cmd_shoot_fix_front_angle},
+        {"g_set_v",       cmd_shoot_set_target_velocities},
+        {"g_set_angle",   cmd_shoot_set_target_angle},
+        {"g_set_params",  cmd_shoot_set_parameters},
+        {"g_echo_params", cmd_shoot_echo_parameters},
+        {"g_enable_fw",   cmd_shoot_enable_fw},
         {nullptr,         nullptr}
 };
 
 
-class GimbalDebugThread : public BaseStaticThread<1024> {
+class ShootDebugThread : public BaseStaticThread<1024> {
 protected:
     void main() final {
-        setName("gimbal");
+        setName("shoot");
         while (!shouldTerminate()) {
 
             // Calculation and check
@@ -274,20 +275,20 @@ protected:
 
                 for (unsigned i = 0; i <= 1; i++) {
 
+                    auto motor = (Shoot::motor_id_t) (i + 2);
+
                     // Perform velocity check
-                    if (Shoot::feedback[i + 2].actual_velocity > MAX_VELOCITY[i]) {
+                    if (Shoot::feedback[motor].actual_velocity > MAX_VELOCITY[i]) {
                         Shell::printf("!d%cv" SHELL_NEWLINE_STR, MOTOR_CHAR[i]);
                         motor_enabled[i] = false;
                         continue;
                     }
 
                     // Calculate from velocity to current
-                    Shoot::calc_bullet_loader((Gimbal::motor_id_t) i, actual_velocity_, Gimbal::target_velocity[i]);
-                    // NOTE: Gimbal::target_velocity[i] is either calculated or filled (see above)
-
+                    Shoot::calc_motor_(motor, Shoot::feedback[motor].actual_velocity, target_v[i]);
 
                     // Perform current check
-                    if (Gimbal::target_current[i] > MAX_CURRENT || Gimbal::target_current[i] < -MAX_CURRENT) {
+                    if (Shoot::target_current[motor] > MAX_CURRENT || Shoot::target_current[motor] < -MAX_CURRENT) {
                         Shell::printf("!d%cc" SHELL_NEWLINE_STR, MOTOR_CHAR[i]);
                         motor_enabled[i] = false;
                         continue;
@@ -298,16 +299,16 @@ protected:
 
             // This two operations should be after calculation since motor can get disabled if check failed
             // This two operations should always perform, instead of being put in a 'else' block
-            if (!motor_enabled[YAW]) Gimbal::target_current[YAW] = 0;
-            if (!motor_enabled[PITCH]) Gimbal::target_current[PITCH] = 0;
+            if (!motor_enabled[0]) Shoot::target_current[BULLET] = 0;
+            if (!motor_enabled[1]) Shoot::target_current[PLATE] = 0;
 
             // Send currents
             GimbalInterface::send_gimbal_currents();
 
-            sleep(TIME_MS2I(GIMBAL_THREAD_INTERVAL));
+            sleep(TIME_MS2I(SHOOT_THREAD_INTERVAL));
         }
     }
-} gimbalThread;
+} shootThread;
 
 
 int main(void) {
@@ -316,15 +317,14 @@ int main(void) {
     System::init();
     LED::all_off();
     Shell::start(HIGHPRIO);
-    Shell::addCommands(gimbalCotrollerCommands);
+    Shell::addCommands(shootCotrollerCommands);
 
     can1.start(HIGHPRIO - 1);
-    MPU6500::start(HIGHPRIO - 2);
     chThdSleepMilliseconds(10);
-    Gimbal::init(&can1, GIMBAL_YAW_FRONT_ANGLE_RAW, GIMBAL_PITCH_FRONT_ANGLE_RAW);
+    GimbalInterface::init(&can1, 0, 0);
 
-    gimbalFeedbackThread.start(NORMALPRIO - 1);
-    gimbalThread.start(NORMALPRIO);
+    shootFeedbackThread.start(NORMALPRIO - 1);
+    shootThread.start(NORMALPRIO);
 
     // See chconf.h for what this #define means.
 #if CH_CFG_NO_IDLE_THREAD
@@ -337,3 +337,4 @@ int main(void) {
     BaseThread::setPriority(1);
 #endif
     return 0;
+}

@@ -128,7 +128,11 @@ int main(void) {
     Shell::start(HIGHPRIO);
     Shell::addCommands(shootCommands);
     can1.start(HIGHPRIO - 1);
-    Shoot::init(&can1, 72.0f, 36.0f);
+
+    // TODO: find a better way to handle this initialization
+    GimbalInterface::init(&can1, 0, 0);
+    /** NOTICE: minus sign has been added here */
+    Shoot::init(-72.0f, -36.0f);
 
     shootFeedbackThread.start(NORMALPRIO -1);
     shootThread.start(NORMALPRIO);
