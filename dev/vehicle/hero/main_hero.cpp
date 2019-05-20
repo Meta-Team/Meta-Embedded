@@ -72,7 +72,7 @@ int main(void){
 
     /** Setup CAN1 */
     can1.start(HIGHPRIO - 1);
-    chThdSleepMilliseconds(500);
+    chThdSleepMilliseconds(50);
     startupCheckCAN();  // check no persistent CAN Error. Block for 100 ms
     StateHandler::echoEvent(StateHandler::CAN_START_SUCCESSFULLY);
     // LED 2 on now
@@ -96,7 +96,7 @@ int main(void){
     Gimbal::init(&can1, GIMBAL_YAW_FRONT_ANGLE_RAW, GIMBAL_PITCH_FRONT_ANGLE_RAW);
     Shoot::init(SHOOT_DEGREE_PER_BULLER, SHOOT_DEGREE_PER_BULLER_PLATE);
     chThdSleepMilliseconds(10);
-//    startupCheckGimbalFeedback(); // check gimbal motors has continuous feedback. Block for 50 ms
+    startupCheckGimbalFeedback(); // check gimbal motors has continuous feedback. Block for 50 ms
     StateHandler::echoEvent(StateHandler::GIMBAL_CONNECTED);
     // LED 5 on now
 
