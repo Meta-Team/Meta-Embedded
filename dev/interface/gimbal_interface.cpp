@@ -76,9 +76,9 @@ void GimbalInterface::send_gimbal_currents() {
 #if GIMBAL_INTERFACE_ENABLE_CLIP
     ABS_CROP(target_current[YAW], GIMBAL_INTERFACE_MAX_CURRENT);
 #endif
-    /** NOTICE: target current is reversed. */
-    txmsg.data8[0] = (uint8_t) (-target_current[YAW] >> 8); // upper byte
-    txmsg.data8[1] = (uint8_t) -target_current[YAW];       // lower byte
+//    /** NOTICE: target current is reversed. */
+    txmsg.data8[0] = (uint8_t) (target_current[YAW] >> 8); // upper byte
+    txmsg.data8[1] = (uint8_t) target_current[YAW];       // lower byte
 
 
     // Fill the current of Pitch

@@ -37,7 +37,7 @@
 
                      // Bullet loader motor
                      if (Remote::rc.ch1 > 0.5) {
-                         Shoot::calc_bullet_loader(COMMON_SHOOT_SPEED);
+                         Shoot::calc_bullet_loader(-COMMON_SHOOT_SPEED);
                      } else {
                          Shoot::calc_bullet_loader(0);
                      }
@@ -48,8 +48,8 @@
                      Shoot::set_friction_wheels(GIMBAL_REMOTE_FRICTION_WHEEL_DUTY_CYCLE);
 
                      // Bullet loader motor
-                     if (Remote::rc.ch3 < 0.1) {
-                         Shoot::calc_bullet_loader(Remote::rc.ch3 * COMMON_SHOOT_SPEED);
+                     if (Remote::rc.ch3 < -0.1) {
+                         Shoot::calc_bullet_loader(-Remote::rc.ch3 * COMMON_SHOOT_SPEED);
                      } else {
                          Shoot::calc_bullet_loader(0);
                      }

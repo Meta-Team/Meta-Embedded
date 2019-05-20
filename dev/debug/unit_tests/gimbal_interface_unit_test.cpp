@@ -33,11 +33,11 @@ unsigned bullet_per_second = 0;
 
 // Raw angle of yaw and pitch when GimbalInterface points straight forward.
 //   Note: the program will echo the raw angles of yaw and pitch as the program starts
-#define GIMBAL_YAW_FRONT_ANGLE_RAW 620
-#define GIMBAL_PITCH_FRONT_ANGLE_RAW 5684
+#define GIMBAL_YAW_FRONT_ANGLE_RAW 5372
+#define GIMBAL_PITCH_FRONT_ANGLE_RAW 4128
 
 // Depends on the install direction of the board
-#define GIMBAL_YAW_ACTUAL_VELOCITY (MPU6500::angle_speed.z)
+#define GIMBAL_YAW_ACTUAL_VELOCITY (-MPU6500::angle_speed.z)
 #define GIMBAL_PITCH_ACTUAL_VELOCITY (MPU6500::angle_speed.x)
 
 CANInterface can1(&CAND1);

@@ -41,7 +41,7 @@
                  if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_UP) {
 
                      Gimbal::calc_gimbal(GIMBAL_YAW_ACTUAL_VELOCITY, GIMBAL_PITCH_ACTUAL_VELOCITY,
-                                         -Remote::rc.ch0 * 60, // Yaw   Target angle
+                                         -Remote::rc.ch0 * 45, // Yaw   Target angle
                                          0                     // Pitch Target angle
                      );
 
