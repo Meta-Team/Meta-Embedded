@@ -65,7 +65,7 @@ private:
     chibios_rt::ThreadReference start(tprio_t) final {return nullptr;}; // delete this function
 
     static constexpr int ELEVATOR_CHECK_INTERVAL = 5; // [ms]
-    static constexpr float STAGE_HEIGHT = 19.0f;
+    static constexpr float STAGE_HEIGHT = 20.0f;
 
 };
 

@@ -134,8 +134,8 @@ void StageClimbStateMachine::main() {
 
         /** Step 6. Move forward to make the rear wheels to be on the stage **/
 
-        chassisThread.set_external_target(0, -1800, 0);
-        sleep(TIME_MS2I(1000));
+        chassisThread.set_external_target(0, -1900, 0);
+        sleep(TIME_MS2I(1500));
         chassisThread.set_external_target(0, -500, 0);
         sleep(TIME_MS2I(400));
         chassisThread.set_external_target(0, 0, 0);
