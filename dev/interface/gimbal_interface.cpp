@@ -171,7 +171,7 @@ void GimbalInterface::process_motor_feedback(CANRxFrame const *rxmsg) {
             }
 
 #if GIMBAL_INTERFACE_ENABLE_VELOCITY_CALCULATION
-            feedback[id].actual_velocity = (float) (rxmsg->data8[2] << 8 | rxmsg->data8[3]) * 60.0f;  // rpm -> degree/s
+//            feedback[id].actual_velocity = (float) (rxmsg->data8[2] << 8 | rxmsg->data8[3]) * 60.0f;  // rpm -> degree/s
 #endif
 
             feedback[id].actual_current = (int16_t) (rxmsg->data8[4] << 8 | rxmsg->data8[5]);
