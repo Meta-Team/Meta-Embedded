@@ -40,10 +40,9 @@ private:
         };
 
         binary_status_t box_door_status = LOW;
-        binary_status_t drawer_status = LOW;
+//        binary_status_t drawer_status = LOW;
         palClearPad(GPIOH, GPIOH_POWER3_CTRL);
         palClearPad(GPIOH, GPIOH_POWER4_CTRL);
-
         while (!shouldTerminate()) {
 
             if (Remote::rc.s1 == Remote::S_DOWN) { // PC Mode
@@ -60,9 +59,11 @@ private:
                         LOG_USER("click B");
                         elevatorThread.set_front_target_height(0);
                         elevatorThread.set_back_target_height(0);
-                        keyPressed = true;
+                        keyPressed = true;}
+                    keyPressed = true;
                     }
-                } else if (Remote::key.z) {                                        // robotic arm initial outward
+                } else if (Remote::key.z) {// robotic arm initial outward
+                LOG_USER("GETHERE!");
                     if (!keyPressed) {
                         LOG_USER("click Z");
                         if (bulletFetchStateMachine.get_current_action() == bulletFetchStateMachine.STOP) {
@@ -70,8 +71,7 @@ private:
                             bulletFetchStateMachine.start_initial_outward(NORMALPRIO - 3);
                         } else {
                             LOG_WARN("RA in action");
-                        }
-                        keyPressed = true;
+
                     }
                 } else if (Remote::key.x) {                                        // robotic arm fetch once
                     if (!keyPressed) {
@@ -128,20 +128,6 @@ private:
                             LOG("BD change to HIGH");
                             box_door_status = HIGH;
                             palSetPad(GPIOH, GPIOH_POWER3_CTRL);
-                        }
-                    }
-                } else if (Remote::key.r) {                                        // switch the bullet box
-                    if (!keyPressed) {
-                        LOG_USER("click R");
-                        keyPressed = true;
-                        if (drawer_status == HIGH) {
-                            LOG("DR change to LOW");
-                            drawer_status = LOW;
-                            palClearPad(GPIOH, GPIOH_POWER4_CTRL);
-                        } else {
-                            LOG("DR change to HIGH");
-                            drawer_status = HIGH;
-                            palSetPad(GPIOH, GPIOH_POWER4_CTRL);
                         }
                     }
                 }
