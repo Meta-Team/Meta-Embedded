@@ -6,16 +6,18 @@
  * This file contain interface for serial shell and some macros for debug.
  */
 
-#ifndef META_INFANTRY_SERIAL_SHELL_H
-#define META_INFANTRY_SERIAL_SHELL_H
+#ifndef META_INFANTRY_SHELL_H
+#define META_INFANTRY_SHELL_H
 
 #include "ch.hpp"
 #include "hal.h"
-#include "shell.h"
-#include "chprintf.h"
-#include "common_macro.h"
 
-#include "shell_debug_commands.h"
+#include "shell_base.h"
+#include "printf.h"
+
+#include "shell_dbg_cmd.h"
+
+#include "common_macro.h"
 
 #if defined(BOARD_RM_2018_A)
 // USART6_TX - PG14, USART6_RX - PG9
@@ -24,6 +26,13 @@
 #else
 #error "Shell has not been defined for selected board"
 #endif
+
+#define SHELL_USE_FIFO TRUE
+#define SHELL_MAX_COMMAND_COUNT 20
+#define SHELL_RX_WORKAREA_SIZE 1024
+#define SHELL_TX_WORKAREA_SIZE 1024
+#define SHELL_TX_MAILBOX_SIZE 2048
+#define SHELL_TX_PRINTF_BUF_SIZE 1024
 
 /*** Debug Macro ***/
 
@@ -69,8 +78,26 @@ public:
      * @param fmt
      * @param ...
      * @return the number of bytes that has been printed
+     * @note api, can only be called from normal thread state
      */
     static int printf(const char *fmt, ...);
+
+    /**
+     * @brief printf through shell
+     * @param fmt
+     * @param ...
+     * @note S-Class function, can only be called from s-lock state (thread critical section)
+     */
+    static int printfS(const char *fmt, ...);
+
+    /**
+     * @brief printf through shell
+     * @param fmt
+     * @param ...
+     * @return the number of bytes that has been printed
+     * @note I-Class function, can only be called from I-Lock state (ISR critical section)
+     */
+    static int printfI(const char *fmt, ...);
 
     /**
      * @brief convert string to signed integer
@@ -92,8 +119,6 @@ private:
 
     static ShellCommand shellCommands_[]; // Container for the shell commands
 
-    static constexpr int MAX_COMMAND_COUNT = 20;
-
     /**
      * Config of the shell.
      * First parameter is the Serial port.
@@ -112,7 +137,22 @@ private:
                                                          0,
                                                          0};
 
-    static char complection_[MAX_COMMAND_COUNT][SHELL_MAX_LINE_LENGTH];
+    static char complection_[SHELL_MAX_COMMAND_COUNT][SHELL_MAX_LINE_LENGTH];
+
+#if SHELL_USE_FIFO
+
+    static uint8_t tx_buf_[SHELL_TX_PRINTF_BUF_SIZE];
+    static output_queue_t tx_queue_;
+
+    static void tx_queue_callback_(io_queue_t *qp);
+
+    class ShellTXThread : public chibios_rt::BaseStaticThread<SHELL_TX_WORKAREA_SIZE> {
+        void main() final;
+    };
+
+    static ShellTXThread txThread;
+
+#endif
 
 };
 

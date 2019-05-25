@@ -1,7 +1,7 @@
 #include "mpu6500.h"
 
 #include "led.h"
-#include "serial_shell.h"
+#include "debug/shell/shell.h"
 #include "math.h"
 
 #define GRAV 9.80665f

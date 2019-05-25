@@ -19,6 +19,7 @@
 
 #define SIGN(n) (n == 0 ? 0 : (n > 0 ? 1 : -1))
 
-#define SYSTIME (TIME_I2MS(chVTGetSystemTime()))
+#define SYSTIME (TIME_I2MS(chVTGetSystemTimeX()))
+// X indicates that this function can be call in all conditions (Thread, ISR, and their critical sections)
 
 #endif //META_INFANTRY_COMMON_MACRO_H

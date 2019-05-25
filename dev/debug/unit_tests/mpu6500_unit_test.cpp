@@ -6,7 +6,7 @@
 #include "hal.h"
 
 #include "led.h"
-#include "serial_shell.h"
+#include "debug/shell/shell.h"
 
 #include "mpu6500.h"
 

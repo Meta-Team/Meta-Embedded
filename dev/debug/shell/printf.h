@@ -22,13 +22,13 @@
  * @{
  */
 
-#ifndef CHPRINTF_H
-#define CHPRINTF_H
+#ifndef PRINTF_H
+#define PRINTF_H
 
 #include <stdarg.h>
 
 #if defined(SHELL_CONFIG_FILE)
-#include "debug/shell/shellconf.h"
+#include "shellconf.h"
 #endif
 
 /**
@@ -41,13 +41,13 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-  int chvprintf(BaseSequentialStream *chp, const char *fmt, va_list ap);
-  int chprintf(BaseSequentialStream *chp, const char *fmt, ...);
-  int chsnprintf(char *str, size_t size, const char *fmt, ...);
+int chvprintf(BaseSequentialStream *chp, const char *fmt, va_list ap);
+int chprintf(BaseSequentialStream *chp, const char *fmt, ...);
+int chsnprintf(char *str, size_t size, const char *fmt, ...);
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* CHPRINTF_H */
+#endif /* PRINTF_H */
 
 /** @} */

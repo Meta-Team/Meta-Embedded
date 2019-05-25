@@ -17,7 +17,7 @@
 #include "hal.h"
 
 #include "common_macro.h"
-#include "serial_shell.h"
+#include "debug/shell/shell.h"
 #include "state_handler.h"
 
 #if defined(BOARD_RM_2018_A)

@@ -10,7 +10,7 @@
 #include "hal.h"
 
 #include "led.h"
-#include "serial_shell.h"
+#include "debug/shell/shell.h"
 // Other headers here
 
 using namespace chibios_rt;

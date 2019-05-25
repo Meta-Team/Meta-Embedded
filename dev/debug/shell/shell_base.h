@@ -15,18 +15,18 @@
 */
 
 /**
- * @file    shell.h
- * @brief   Simple CLI shell header.
+ * @file    shell_base.h
+ * @brief   Revised CLI shell header from ChibiOS Shell.
  *
  * @addtogroup SHELL
  * @{
  */
 
-#ifndef SHELL_H
-#define SHELL_H
+#ifndef SHELL_BASE_H
+#define SHELL_BASE_H
 
 #if defined(SHELL_CONFIG_FILE)
-#include "debug/shell/shellconf.h"
+#include "shellconf.h"
 #endif
 
 /*===========================================================================*/
@@ -96,7 +96,7 @@
  * @brief   Prompt string
  */
 #if !defined(SHELL_PROMPT_STR) || defined(__DOXYGEN__)
-#define SHELL_PROMPT_STR            "ch> "
+ #define SHELL_PROMPT_STR            "ch> "
 #endif
 
 /**
@@ -123,23 +123,23 @@ typedef void (*shellcmd_t)(BaseSequentialStream *chp, int argc, char *argv[]);
  * @brief   Custom command entry type.
  */
 typedef struct {
-  const char            *sc_name;           /**< @brief Command name.       */
-  shellcmd_t            sc_function;        /**< @brief Command function.   */
+    const char            *sc_name;           /**< @brief Command name.       */
+    shellcmd_t            sc_function;        /**< @brief Command function.   */
 } ShellCommand;
 
 /**
  * @brief   Shell history type.
  */
 typedef struct {
-  char                   *sh_buffer;        /**< @brief Buffer to store command
+    char                   *sh_buffer;        /**< @brief Buffer to store command
                                                  history.                   */
-  const int              sh_size;           /**< @brief Shell history buffer
+    const int              sh_size;           /**< @brief Shell history buffer
                                                  size.                      */
-  int                    sh_beg;            /**< @brief Beginning command index
+    int                    sh_beg;            /**< @brief Beginning command index
                                                  in buffer.                 */
-  int                    sh_end;            /**< @brief Ending command index
+    int                    sh_end;            /**< @brief Ending command index
                                                  in buffer.                 */
-  int                    sh_cur;            /**< @brief Currently selected
+    int                    sh_cur;            /**< @brief Currently selected
                                                  command in buffer.         */
 } ShellHistory;
 
@@ -147,18 +147,18 @@ typedef struct {
  * @brief   Shell descriptor type.
  */
 typedef struct {
-  BaseSequentialStream  *sc_channel;        /**< @brief I/O channel associated
+    BaseSequentialStream  *sc_channel;        /**< @brief I/O channel associated
                                                  to the shell.              */
-  ShellCommand    *sc_commands;       /**< @brief Shell extra commands
+    ShellCommand    *sc_commands;       /**< @brief Shell extra commands
                                                  table.                     */
 #if (SHELL_USE_HISTORY == TRUE) || defined(__DOXYGEN__)
-  char                  *sc_histbuf;        /**< @brief Shell command history
+    char                  *sc_histbuf;        /**< @brief Shell command history
                                                  buffer.                    */
-  int             sc_histsize;        /**< @brief Shell history buffer
+    int             sc_histsize;        /**< @brief Shell history buffer
                                                  size.                      */
 #endif
 #if (SHELL_USE_COMPLETION == TRUE) || defined(__DOXYGEN__)
-  char                  **sc_completion;    /**< @brief Shell command completion
+    char                  **sc_completion;    /**< @brief Shell command completion
                                                  buffer.                    */
 #endif
 } ShellConfig;
@@ -210,11 +210,11 @@ extern event_source_t shell_terminated;
 #ifdef __cplusplus
 extern "C" {
 #endif
-  void shellInit(void);
-  THD_FUNCTION(shellThread, p);
-  void shellExit(msg_t msg);
-  bool shellGetLine(ShellConfig *scfg, char *line,
-                    unsigned size, ShellHistory *shp);
+void shellInit(void);
+THD_FUNCTION(shellThread, p);
+void shellExit(msg_t msg);
+bool shellGetLine(ShellConfig *scfg, char *line,
+                  unsigned size, ShellHistory *shp);
 #ifdef __cplusplus
 }
 #endif
@@ -223,6 +223,6 @@ extern "C" {
 /* Module inline functions.                                                  */
 /*===========================================================================*/
 
-#endif /* SHELL_H */
+#endif /* SHELL_BASE_H */
 
 /** @} */

@@ -178,7 +178,7 @@ include_directories(${CHIBIOS}/os/various/cpp_wrappers)
 
 # $(CHIBIOS)/os/hal/lib/streams/streams.mk
 set(CHIBIOS_C_SRC ${CHIBIOS_C_SRC}
-        ${CHIBIOS}/os/hal/lib/streams/chprintf.c
+#        ${CHIBIOS}/os/hal/lib/streams/chprintf.c
         ${CHIBIOS}/os/hal/lib/streams/memstreams.c
         ${CHIBIOS}/os/hal/lib/streams/nullstreams.c)
 
@@ -186,8 +186,8 @@ include_directories(${CHIBIOS}/os/hal/lib/streams)
 
 
 # $(CHIBIOS)/os/various/shell/shell.mk
-set(CHIBIOS_C_SRC ${CHIBIOS_C_SRC}
-        ${CHIBIOS}/os/various/shell/shell.c
-        ${CHIBIOS}/os/various/shell/shell_cmd.c)
+#set(CHIBIOS_C_SRC ${CHIBIOS_C_SRC}
+#        ${CHIBIOS}/os/various/shell/shell.c
+#        ${CHIBIOS}/os/various/shell/shell_cmd.c)
 
-include_directories(${CHIBIOS}/os/various/shell)
+#include_directories(${CHIBIOS}/os/various/shell)

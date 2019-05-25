@@ -24,7 +24,7 @@
 
 // Debug headers
 #include "led.h"
-#include "serial_shell.h"
+#include "debug/shell/shell.h"
 
 // Modules and basic communication channels
 #include "can_interface.h"

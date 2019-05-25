@@ -3,7 +3,7 @@
 //
 
 #include "buzzer.h"
-#include "serial_shell.h"
+#include "debug/shell/shell.h"
 
 constexpr Buzzer::note_with_time_t Buzzer::sound_alert[];
 constexpr Buzzer::note_with_time_t Buzzer::sound_startup[];
