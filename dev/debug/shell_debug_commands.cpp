@@ -29,7 +29,7 @@ static void cmd_show_thread_stats(BaseSequentialStream *chp, int argc, char *arg
         return;
     }
 
-    chSysLock();
+//    chSysLock();
 
     Registry reg; // a class managing registered threads
     ThreadReference thd_ref = reg.firstThread();
@@ -75,7 +75,7 @@ static void cmd_show_thread_stats(BaseSequentialStream *chp, int argc, char *arg
         thd_ref = reg.nextThread(thd_ref);
     }
 
-    chSysUnlock();
+//    chSysUnlock();
 }
 
 /**

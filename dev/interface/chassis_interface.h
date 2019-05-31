@@ -10,8 +10,6 @@
 #include "ch.hpp"
 #include "hal.h"
 #include "can_interface.h"
-#include "chassis_common.h"
-
 
 /**
  * Enable clip at the moment of sending current.
@@ -27,40 +25,22 @@
  * @name ChassisInterface
  * @brief interface to process chassis motor feedback and send target current.
  * @pre hardware is properly set. CAN id of each motor should be the same as chassis_motor_id_t.
- * @usage 1. init(CANInterface *). The interface should be properly initialized.
- *        2. control the data flow based on actual implementation
+ * @usage 1. Call init(CANInterface *). The interface should be properly initialized.
+ *        2. Control the data flow based on actual implementation
+ * @note This module is designed to process feedback automatically, but not to send current automatically, to avoid
+ *       unintended chassis movements.
  */
 class ChassisInterface {
 
 public:
 
-    /**
-     * Structure for each motor
-     */
-    struct motor_t {
-
-        chassis_motor_id_t id;
-
-        uint16_t actual_angle_raw;
-        int16_t actual_rpm_raw;
-        int16_t actual_current_raw;
-        uint8_t actual_temperature_raw;
-
-        float actual_angular_velocity; // degree/s
-
-        // +: ??, -: ??
-        // TODO: determine the direction of motor with positive and negative currents
-        int target_current;
-
+    enum motor_id_t {  // goes in a counter-clockwise order
+        FR, // front right motor, 0
+        FL, // front left motor, 1
+        BL, // back left motor, 2
+        BR, // back right motor, 3
+        MOTOR_COUNT
     };
-
-    static motor_t motor[];
-
-    /**
-     * @brief send all target currents
-     * @return
-     */
-    static bool send_chassis_currents();
 
     /**
      * @brief set CAN interface for receiving and sending
@@ -68,12 +48,46 @@ public:
      */
     static void init(CANInterface* can_interface);
 
+    /** Structure for each motor */
+    struct motor_feedback_t {
 
+        motor_id_t id;
+
+        uint16_t actual_angle_raw;
+        int16_t actual_rpm_raw;
+        int16_t actual_current_raw;
+        uint8_t actual_temperature_raw;
+
+        time_msecs_t last_update_time;
+
+        float actual_velocity; // [degree/s]
+
+    };
+
+    /**
+     * @brief interface for each chassis motor
+     */
+    static motor_feedback_t feedback[];
+
+    /**
+     * @brief target current array in the order defined in motor_id_t
+     */
+    static int target_current[MOTOR_COUNT];
+
+    /**
+     * @brief send all target currents
+     * @return
+     */
+    static bool send_chassis_currents();
 
 private:
 
     static CANInterface* can;
 
+    /**
+     * @brief callback function for CANInterface to process motor feedback
+     * @param rxmsg
+     */
     static void process_chassis_feedback(CANRxFrame const*rxmsg);
 
     friend CANInterface;

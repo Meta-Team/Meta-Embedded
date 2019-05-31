@@ -2,6 +2,8 @@
 // Created by liuzikai on 2018/8/6.
 //
 
+// [遥控器拨轮的数据解析【RoboMaster论坛-科技宅天堂】](https://bbs.robomaster.com/thread-8123-1-1.html)
+
 #include "ch.hpp"
 #include "hal.h"
 

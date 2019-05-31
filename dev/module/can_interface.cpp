@@ -20,7 +20,7 @@ void CANInterface::ErrorFeedbackThread::main() {
         }
 
         eventflags_t flags = chEvtGetAndClearFlags(&el);
-        Shell::printf("CAN error: %u" SHELL_NEWLINE_STR, (unsigned int) flags);
+        StateHandler::raiseException(StateHandler::CAN_ERROR, flags);
 
     }
 
@@ -70,13 +70,13 @@ void CANInterface::main() {
 
         // Process every received message
         while (canReceive(can_driver, CAN_ANY_MAILBOX, &rxmsg, TIME_IMMEDIATE) == MSG_OK) {
-            chSysLock();
+//            chSysLock();
             for (int i = 0; i < callback_list_count; i++) {
                 if (rxmsg.SID >= callback_list[i].sid_lower_bound && rxmsg.SID <= callback_list[i].sid_upper_bound) {
                     callback_list[i].callback_func(&rxmsg);
                 }
             }
-            chSysUnlock();
+//            chSysUnlock();
         }
 
     }

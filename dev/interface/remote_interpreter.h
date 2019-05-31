@@ -16,7 +16,9 @@
 #include "ch.hpp"
 #include "hal.h"
 
+#include "common_macro.h"
 #include "serial_shell.h"
+#include "state_handler.h"
 
 #if defined(BOARD_RM_2018_A)
 // PB7 USART1_RX (alternate 7)
@@ -46,9 +48,9 @@ class Remote {
 public:
 
     enum rc_status_t {
-        RC_S_UP = 1,
-        RC_S_DOWN = 2,
-        RC_S_MIDDLE = 3
+        S_UP = 1,
+        S_DOWN = 2,
+        S_MIDDLE = 3
     };
 
     typedef struct {
@@ -96,6 +98,8 @@ public:
     static mouse_t mouse;
     static keyboard_t key;
 
+    static time_msecs_t last_update_time;
+
     /** Interface functions **/
 
     static void start_receive();
@@ -106,7 +110,7 @@ private:
 
     static char rx_buf_[]; // store buf data retrieved from UART
 
-    static const int RX_BUF_SIZE = 18;
+    static const int RX_FRAME_SIZE = 18;
 
     friend void uartStart(UARTDriver *uartp, const UARTConfig *config);
     friend void uartStartReceive(UARTDriver *uartp, size_t n, void *rxbuf);

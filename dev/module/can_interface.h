@@ -10,6 +10,8 @@
 #include "led.h"
 #include "serial_shell.h"
 
+#include "state_handler.h"
+
 #if defined(BOARD_RM_2018_A)
 // CAN1_RX - PD0, CAN1_TX - PD1
 #elif defined(BOARD_RM_2017)

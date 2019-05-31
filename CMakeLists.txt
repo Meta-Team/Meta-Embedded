@@ -39,11 +39,11 @@ set(CMAKE_VERBOSE_MAKEFILE OFF)  # Enable this if you want to see verbose log
 include(os/ch.cmake)  # add files and directories from ChibiOS
 
 set(COMMON_CPP_SRC  # common cpp sources, which are included to every tartget at post configuration below
-        dev/common/port_to_string.cpp
         dev/debug/serial_shell.cpp
         dev/debug/shell_debug_commands.cpp
         dev/interface/led.cpp
-        dev/interface/buzzer.cpp)
+        dev/interface/buzzer.cpp
+        dev/control/state_handler.cpp)
 
 include_directories(  # common include directories
         dev
@@ -65,51 +65,52 @@ add_library(ChibiOS_OBJ OBJECT ${CHIBIOS_XASM_SRC} ${CHIBIOS_C_SRC} ${CHIBIOS_CP
 # NOTICE: UPDATE README IF THE CONFIGURATIONS IS UPDATED
 
 set(INFANTRY
-        dev/module/pid_controller.cpp
+        dev/module/pid_controller.hpp
         dev/module/can_interface.cpp
         dev/interface/mpu6500.cpp
         dev/interface/gimbal_interface.cpp
         dev/interface/chassis_interface.cpp
         dev/interface/remote_interpreter.cpp
-        dev/control/gimbal_calculator.cpp
-        dev/control/chassis_calculator.cpp
+        dev/control/gimbal.cpp
+        dev/control/shoot.cpp
+        dev/control/chassis.cpp
         dev/vehicle/infantry/main_infantry.cpp)
 
 # Main Program -- Infantry #1
-add_executable(INFANTRY_ONE ${INFANTRY})
-target_include_directories(INFANTRY_ONE PRIVATE dev/vehicle/infantry)
-target_compile_definitions(INFANTRY_ONE PRIVATE INFANTRY_ONE)
+add_executable(INFANTRY_THREE ${INFANTRY})
+target_include_directories(INFANTRY_THREE PRIVATE dev/vehicle/infantry)
+target_compile_definitions(INFANTRY_THREE PRIVATE INFANTRY INFANTRY_THREE ENABLE_STATE_HANDLE)
 
 # Main Program -- Infantry #4
 add_executable(INFANTRY_FOUR ${INFANTRY})
 target_include_directories(INFANTRY_FOUR PRIVATE dev/vehicle/infantry)
-target_compile_definitions(INFANTRY_FOUR PRIVATE INFANTRY_FOUR)
+target_compile_definitions(INFANTRY_FOUR PRIVATE INFANTRY INFANTRY_FOUR ENABLE_STATE_HANDLE)
 
 # Main Program -- Infantry #5
 add_executable(INFANTRY_FIVE ${INFANTRY} dev/control/sentry_chassis_calculator.cpp dev/control/sentry_chassis_calculator.h)
 target_include_directories(INFANTRY_FIVE PRIVATE dev/vehicle/infantry)
-target_compile_definitions(INFANTRY_FIVE PRIVATE INFANTRY_FIVE)
+target_compile_definitions(INFANTRY_FIVE PRIVATE INFANTRY INFANTRY_FIVE ENABLE_STATE_HANDLE)
 
 # Main Program -- Engineer
 add_executable(ENGINEER
-        dev/module/pid_controller.cpp
+        dev/module/pid_controller.hpp
         dev/interface/buzzer.cpp
         dev/module/can_interface.cpp
         dev/interface/chassis_interface.cpp
         dev/interface/remote_interpreter.cpp
         dev/interface/elevator_interface.cpp
         dev/interface/robotic_arm.cpp
-        dev/control/chassis_calculator.cpp
+        dev/control/chassis.cpp
         dev/vehicle/engineer/elevator_thread.cpp
         dev/vehicle/engineer/robotic_arm_thread.cpp
         dev/vehicle/engineer/main_engineer.cpp)
 target_include_directories(ENGINEER PRIVATE dev/vehicle/engineer)
-target_compile_definitions(ENGINEER PRIVATE ENGINEER)
+target_compile_definitions(ENGINEER PRIVATE ENGINEER ENABLE_STATE_HANDLE)
 
 # Blink
 add_executable(ut_blink
         dev/module/button_monitor.cpp
-        dev/debug/unit_tests/main_blink.cpp)
+        dev/debug/unit_tests/led_unit_test.cpp)
 
 # Remote Interpreter: include remote_interpreter sources and the unit test modules.
 add_executable(ut_remote_interpreter
@@ -119,6 +120,7 @@ add_executable(ut_remote_interpreter
 # Gimbal Interface: include CANInterface, GimbalInterface, GimbalFeedbackThread and the unit test modules.
 add_executable(ut_gimbal_interface
         dev/module/can_interface.cpp
+        dev/interface/mpu6500.cpp
         dev/interface/gimbal_interface.cpp
         dev/debug/unit_tests/gimbal_interface_unit_test.cpp)
 
@@ -126,17 +128,18 @@ add_executable(ut_gimbal_interface
 add_executable(ut_gimbal
         dev/module/can_interface.cpp
         dev/interface/gimbal_interface.cpp
-        dev/module/pid_controller.cpp
-        dev/control/gimbal_calculator.cpp
-        dev/debug/unit_tests/gimbal_controller_unit_test.cpp
+        dev/module/pid_controller.hpp
+        dev/control/gimbal.cpp
+        dev/control/shoot.cpp
         dev/interface/mpu6500.cpp)
 
 # Gimbal: include CANInterface, GimbalInterface, GimbalController, GimbalFeedbackThread and adjustment modules.
 add_executable(pa_gimbal
         dev/module/can_interface.cpp
         dev/interface/gimbal_interface.cpp
-        dev/module/pid_controller.cpp
-        dev/control/gimbal_calculator.cpp
+        dev/module/pid_controller.hpp
+        dev/control/gimbal.cpp
+        dev/control/shoot.cpp
         dev/interface/mpu6500.cpp
         dev/debug/unit_tests/gimbal_pid_adjustment_program.cpp)
 
@@ -161,9 +164,10 @@ add_executable(ut_chassis_interface
 add_executable(ut_chassis
         dev/module/can_interface.cpp
         dev/interface/chassis_interface.cpp
-        dev/module/pid_controller.cpp
-        dev/control/chassis_calculator.cpp
-        dev/debug/unit_tests/chassis_controller_unit_test.cpp)
+        dev/module/pid_controller.hpp
+        dev/control/chassis.cpp
+        dev/debug/unit_tests/chassis_unit_test.cpp)
+target_include_directories(ut_chassis PRIVATE dev/vehicle/infantry)
 
 # Elevator Interface: include CANInterface, ElevatorInterface, and the unit test modules.
 add_executable(ut_elevator_interface
@@ -176,8 +180,8 @@ add_executable(ut_elevator
         dev/module/can_interface.cpp
         dev/interface/elevator_interface.cpp
         dev/interface/chassis_interface.cpp
-        dev/control/chassis_calculator.cpp
-        dev/module/pid_controller.cpp
+        dev/control/chassis.cpp
+        dev/module/pid_controller.hpp
         dev/debug/unit_tests/engineer_chassis_elevator_unit_test.cpp
         dev/vehicle/engineer/elevator_thread.cpp)
 
@@ -190,7 +194,7 @@ add_executable(ut_robotic_arm
 
 # Adjust Params of Skywalker-20A for friction wheels
 add_executable(pa_skywalker
-        dev/debug/unit_tests/friction_wheel_param_adjust.cpp
+        dev/debug/unit_tests/skywalker_param_adjust.cpp
         dev/interface/remote_interpreter.cpp
         dev/interface/buzzer.cpp)
 

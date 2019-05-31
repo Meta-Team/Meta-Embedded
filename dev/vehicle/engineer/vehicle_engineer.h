@@ -11,6 +11,12 @@
 //   Note: the program will echo the raw angles of the motor as the program starts
 #define ROBOTIC_ARM_INSIDE_ANGLE_RAW 4206
 
+/** Mechanism Parameters */
+// TODO: to be determine
+#define CHASSIS_WHEEL_BASE  // distance between front axle and the back axle, mm
+#define CHASSIS_WHEEL_TREAD  // distance between left and right wheels, mm
+#define CHASSIS_WHEEL_CIRCUMFERENCE  // mm
+
 /*** Chassis PID Params ***/
 
 #define CHASSIS_PID_V2I_KP 8.0f

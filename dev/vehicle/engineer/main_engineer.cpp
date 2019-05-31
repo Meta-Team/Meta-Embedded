@@ -28,17 +28,15 @@
 
 // Modules and basic communication channels
 #include "can_interface.h"
-#include "chassis_common.h"
 
 // Interfaces
 #include "buzzer.h"
 #include "remote_interpreter.h"
-#include "chassis_interface.h"
 #include "elevator_interface.h"
 #include "robotic_arm.h"
 
 // Controllers
-#include "chassis_calculator.h"
+#include "chassis.h"
 #include "elevator_thread.h"
 #include "robotic_arm_thread.h"
 
@@ -109,25 +107,25 @@ class ChassisThread : public chibios_rt::BaseStaticThread<1024> {
 
         setName("chassis");
 
-        ChassisController::change_pid_params(CHASSIS_PID_V2I_PARAMS);
+        Chassis::change_pid_params(CHASSIS_PID_V2I_PARAMS);
 
         while (!shouldTerminate()) {
 
-            if ((Remote::rc.s1 == Remote::RC_S_MIDDLE && Remote::rc.s2 == Remote::RC_S_DOWN) ||
-                (Remote::rc.s1 == Remote::RC_S_DOWN)) {
+            if ((Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_DOWN) ||
+                (Remote::rc.s1 == Remote::S_DOWN)) {
 
                 float target_vx = 0, target_vy = 0, target_w = 0;
 
                 if (elevatorThread.get_status() == elevatorThread.STOP) {  // if elevator thread is not in action,
 
                     // let user control the chassis
-                    if (Remote::rc.s1 == Remote::RC_S_MIDDLE && Remote::rc.s2 == Remote::RC_S_DOWN) {
+                    if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_DOWN) {
 
                         target_vx = -Remote::rc.ch2 * 1000.0f;
                         target_vy = -Remote::rc.ch3 * 1000.0f;
                         target_w = Remote::rc.ch0 * 180.0f;
 
-                    } else if (Remote::rc.s1 == Remote::RC_S_DOWN) {
+                    } else if (Remote::rc.s1 == Remote::S_DOWN) {
 
                         if (Remote::key.w) target_vy = PC_W_VY;
                         else if (Remote::key.s) target_vy = PC_S_VY;
@@ -156,30 +154,19 @@ class ChassisThread : public chibios_rt::BaseStaticThread<1024> {
                     target_vy = elevatorThread.get_chassis_target_vy();
 
                 }
-
-
-                // Pack the actual velocity into an array
-                float measured_velocity[4];
-                for (int i = 0; i < CHASSIS_MOTOR_COUNT; i++) {
-                    measured_velocity[i] = ChassisInterface::motor[i].actual_angular_velocity;
-                }
-
+                
                 // Perform calculation
-                ChassisController::calc(measured_velocity, target_vx, target_vy, target_w);
-
-                // Pass the target current to interface
-                for (int i = 0; i < CHASSIS_MOTOR_COUNT; i++) {
-                    ChassisInterface::motor[i].target_current = (int) ChassisController::motor[i].target_current;
-                }
+                Chassis::calc(target_vx, target_vy, target_w);
+                
             } else {
 
-                for (int i = 0; i < CHASSIS_MOTOR_COUNT; i++) {
-                    ChassisInterface::motor[i].target_current = 0;
+                for (int i = 0; i < Chassis::MOTOR_COUNT; i++) {
+                    Chassis::target_current[i] = 0;
                 }
 
             }
 
-            ChassisInterface::send_chassis_currents();
+            Chassis::send_chassis_currents();
             sleep(TIME_MS2I(chassis_thread_interval));
 
         }
@@ -199,7 +186,7 @@ class ActionTriggerThread : public chibios_rt::BaseStaticThread<2048> {
 
         while (!shouldTerminate()) {
 
-            if (Remote::rc.s1 == Remote::RC_S_DOWN) { // PC Mode
+            if (Remote::rc.s1 == Remote::S_DOWN) { // PC Mode
 
                 if (Remote::key.v) {                                               // elevator lift up
                     if (!keyPressed) {
@@ -306,7 +293,7 @@ int main(void) {
     can1.start(HIGHPRIO - 1);
     Remote::start_receive();
 
-    ChassisInterface::init(&can1);
+    Chassis::init(&can1, CHASSIS_WHEEL_BASE, CHASSIS_WHEEL_TREAD, CHASSIS_WHEEL_CIRCUMFERENCE);
     ElevatorInterface::init(&can1);
     RoboticArm::init(&can1, ROBOTIC_ARM_INSIDE_ANGLE_RAW);
 
