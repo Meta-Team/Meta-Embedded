@@ -5,7 +5,7 @@
 #include "referee_interface.h"
 #include "CRC16.h"
 #include "CRC8.h"
-#include "serial_shell.h"
+#include "shell.h"
 #include "memstreams.h"
 #include "string.h"
 #include "led.h"

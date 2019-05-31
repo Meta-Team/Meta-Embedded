@@ -41,9 +41,9 @@ class ShootThread : public chibios_rt::BaseStaticThread<1024> {
 
                     // Bullet loader motor
                     if (Remote::rc.ch1 > 0.5) {
-                        Shoot::calc_bullet_loader(COMMON_SHOOT_SPEED);
+                        Shoot::calc(COMMON_SHOOT_SPEED);
                     } else {
-                        Shoot::calc_bullet_loader(0);
+                        Shoot::calc(0);
                     }
 
                 } else if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_MIDDLE) {
@@ -53,9 +53,9 @@ class ShootThread : public chibios_rt::BaseStaticThread<1024> {
 
                     // Bullet loader motor
                     if (Remote::rc.ch3 < 0.1) {
-                        Shoot::calc_bullet_loader(Remote::rc.ch3 * COMMON_SHOOT_SPEED);
+                        Shoot::calc(Remote::rc.ch3 * COMMON_SHOOT_SPEED);
                     } else {
-                        Shoot::calc_bullet_loader(0);
+                        Shoot::calc(0);
                     }
 
                 } else if (Remote::rc.s1 == Remote::S_DOWN) { // PC control mode
@@ -68,11 +68,11 @@ class ShootThread : public chibios_rt::BaseStaticThread<1024> {
                             sleep(TIME_MS2I(500));
                         }
 
-                        Shoot::calc_bullet_loader(COMMON_SHOOT_SPEED);
+                        Shoot::calc(COMMON_SHOOT_SPEED);
 
                     } else {
 
-                        Shoot::calc_bullet_loader(0);
+                        Shoot::calc(0);
                     }
 
                     // Friction wheels

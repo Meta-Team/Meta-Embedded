@@ -7,7 +7,7 @@
 #include "hal.h"
 
 #include "led.h"
-#include "serial_shell.h"
+#include "shell.h"
 #include "referee_interface.h"
 
 using namespace chibios_rt;

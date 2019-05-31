@@ -24,8 +24,7 @@
 
          setName("shoot");
 
-         Shoot::change_pid_params(GIMBAL_PID_BULLET_LOADER_V2I_PARAMS);
-         Shoot::change_plate_params(GIMBAL_PID_BULLET_PLATE_V2I_PARAMS);
+         Shoot::change_pid_params(GIMBAL_PID_BULLET_LOADER_V2I_PARAMS, GIMBAL_PID_BULLET_PLATE_V2I_PARAMS);
          while (!shouldTerminate()) {
 
 
@@ -37,9 +36,9 @@
 
                      // Bullet loader motor
                      if (Remote::rc.ch1 > 0.5) {
-                         Shoot::calc_bullet_loader(-COMMON_SHOOT_SPEED);
+                         Shoot::calc(-COMMON_SHOOT_SPEED);
                      } else {
-                         Shoot::calc_bullet_loader(0);
+                         Shoot::calc(0);
                      }
 
                  } else if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_MIDDLE) {
@@ -49,9 +48,9 @@
 
                      // Bullet loader motor
                      if (Remote::rc.ch3 < -0.1) {
-                         Shoot::calc_bullet_loader(-Remote::rc.ch3 * COMMON_SHOOT_SPEED);
+                         Shoot::calc(-Remote::rc.ch3 * COMMON_SHOOT_SPEED);
                      } else {
-                         Shoot::calc_bullet_loader(0);
+                         Shoot::calc(0);
                      }
 
                  } else if (Remote::rc.s1 == Remote::S_DOWN) { // PC control mode
@@ -64,11 +63,11 @@
                              sleep(TIME_I2MS(500));
                          }
 
-                         Shoot::calc_bullet_loader(COMMON_SHOOT_SPEED);
+                         Shoot::calc(COMMON_SHOOT_SPEED);
 
                      } else {
 
-                         Shoot::calc_bullet_loader(0);
+                         Shoot::calc(0);
                      }
 
                      // Friction wheels

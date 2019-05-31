@@ -9,7 +9,7 @@
 #include "hal.h"
 
 #include "led.h"
-#include "serial_shell.h"
+#include "shell.h"
 #include "buzzer.h"
 
 /**
@@ -20,15 +20,15 @@
  *       be reported by threads (although may through module code), instead of being fetched by this module.
  */
 
-#if defined(INFANTRY)
+#if defined(INFANTRY) || defined(HERO)
 #define STATE_HANDLER_ENABLE_MPU6500
 #endif
 
-#if defined(INFANTRY)
+#if defined(INFANTRY) || defined(HERO)
 #define STATE_HANDLER_ENABLE_GIMBAL
 #endif
 
-#if defined(INFANTRY) || defined(ENGINEER)
+#if defined(INFANTRY) || defined(ENGINEER) || defined(HERO)
 #define STATE_HANDLER_ENABLE_CHASSIS
 #endif
 
@@ -87,19 +87,20 @@ public:
     enum Exceptions {
         CAN_ERROR
 #ifdef STATE_HANDLER_ENABLE_MPU6500
+        ,MPU6500_DISCONNECTED
 #endif
         ,REMOTE_DISCONNECTED
 #ifdef STATE_HANDLER_ENABLE_GIMBAL
-        ,GIMBAL_DISCONNECTED,
+        ,GIMBAL_DISCONNECTED
         ,BULLET_LOADER_STUCK
 #endif
 #ifdef STATE_HANDLER_ENABLE_CHASSIS
         ,CHASSIS_DISCONNECTED
 #endif
-//#ifdef STATE_HANDLER_ENABLE_ELEVATOR
+#ifdef STATE_HANDLER_ENABLE_ELEVATOR
         ,ELEVATOR_DISCONNECTED
         ,ELEVATOR_UNBALANCE
-//#endif
+#endif
 #ifdef STATE_HANDLER_ENABLE_ROBOTIC_ARM
         ,ROBOTIC_ARM_DISCONNECTED
 #endif

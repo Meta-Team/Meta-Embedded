@@ -7,7 +7,7 @@
 #include "hal.h"
 
 #include "led.h"
-#include "serial_shell.h"
+#include "shell.h"
 
 #include "can_interface.h"
 #include "common_macro.h"

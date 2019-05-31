@@ -8,7 +8,7 @@
 #include "ch.hpp"
 #include "hal.h"
 
-#include "serial_shell.h"
+#include "shell.h"
 
 #include "elevator.h"
 

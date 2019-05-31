@@ -12,7 +12,7 @@
 #include "hal.h"
 
 #include "led.h"
-#include "serial_shell.h"
+#include "shell.h"
 
 #include "can_interface.h"
 
@@ -218,8 +218,7 @@ void cmd_shoot_set_parameters(BaseSequentialStream *chp, int argc, char *argv[])
           Shell::atof(argv[5]),
           Shell::atof(argv[6])};
 
-    Shoot::change_pid_params(bullet_v2i_params);
-    Shoot::change_plate_params(plate_v2i_params);
+    Shoot::change_pid_params(bullet_v2i_params, plate_v2i_params);
 
     chprintf(chp, "!ps" SHELL_NEWLINE_STR); // echo parameters set
 }

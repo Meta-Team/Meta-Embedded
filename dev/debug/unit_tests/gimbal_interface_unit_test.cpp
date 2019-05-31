@@ -97,10 +97,10 @@ protected:
         Shoot::init(72.0f,36.0f);
         Shoot::change_pid_params({ 20.0f, 0.0f, 0.0f, 0.0f, 2000.0f});
         Shoot::change_plate_params({26.0f, 0.1f, 0.02f, 500.0f, 5000.0f});
-        Shoot::calc_bullet_loader(0);
+        Shoot::calc(0);
         while(!shouldTerminate()) {
             if (GimbalShootEnable) {
-                Shoot::calc_bullet_loader(bullet_per_second);
+                Shoot::calc(bullet_per_second);
             } else {
                 GimbalInterface::target_current[BULLET] = GimbalInterface::target_current[PLATE] = 0;
             }
@@ -155,7 +155,7 @@ static void cmd_gimbal_enable_fw(BaseSequentialStream *chp, int argc, char *argv
 //    else {
 //        Shoot::degree_per_bullet_ = (float) *argv[0];
 //      Shoot::degree_per_bullet_plate = (float) *argv[1];
-//        Shoot::calc_bullet_loader((float) *argv[3]);
+//        Shoot::calc((float) *argv[3]);
 //    }
 //    GimbalInterface::send_gimbal_currents();
 //}

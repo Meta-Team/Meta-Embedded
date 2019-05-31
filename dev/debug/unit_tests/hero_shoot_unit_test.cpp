@@ -6,7 +6,7 @@
 #include "hal.h"
 
 #include "led.h"
-#include "serial_shell.h"
+#include "shell.h"
 #include "shoot.h"
 
 #include "common_macro.h"
@@ -113,7 +113,7 @@ protected:
     void main() final {
         setName("shoot");
         while (!shouldTerminate()) {
-            Shoot::calc_bullet_loader(bullet_per_second_);
+            Shoot::calc(bullet_per_second_);
             Shoot::send_gimbal_currents();
 
             sleep(TIME_I2MS((SHOOT_THREAD_INTERVAL)));

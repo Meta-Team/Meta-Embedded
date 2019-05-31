@@ -6,10 +6,10 @@
 #define META_INFANTRY_SENTRY_CHASSIS_CALCULATOR_H
 
 #include "sentry_chassis_interface.h"
-#include "pid_controller.h"
+#include "pid_controller.hpp"
 #include "can_interface.h"
 
-class SentryChassisController: public SentryChassis{
+class SentryChassisController: public SentryChassis {
 public:
 
     enum sentry_mode_t{
@@ -209,4 +209,4 @@ private:
 };
 
 
-#endif //META_INFANTRY_SENTRY_CHASSIS_CALCULATOR_H
+#endif //META_INFANTRY_SENTRY_CHASSIS_H

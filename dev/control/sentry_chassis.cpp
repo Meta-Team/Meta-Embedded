@@ -2,7 +2,7 @@
 // Created by zhukerui on 2019/4/29.
 //
 
-#include "sentry_chassis_calculator.h"
+#include "sentry_chassis.h"
 
 bool SentryChassisController::enable;
 SentryChassisController::sentry_mode_t SentryChassisController::running_mode;

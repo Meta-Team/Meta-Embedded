@@ -5,12 +5,11 @@
 #ifndef META_INFANTRY_THREAD_ERROR_DETECT_HPP
 #define META_INFANTRY_THREAD_ERROR_DETECT_HPP
 
-#include <chtime.h>
-#include <control/state_handler.h>
-#include <interface/mpu6500.h>
-#include <interface/remote_interpreter.h>
-#include <control/gimbal.h>
-#include <control/chassis.h>
+#include "state_handler.h"
+#include "mpu6500.h"
+#include "remote_interpreter.h"
+#include "gimbal.h"
+#include "chassis.h"
 
 inline void startupCheckCAN() {
     time_msecs_t t = SYSTIME;
