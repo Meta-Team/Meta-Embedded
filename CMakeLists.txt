@@ -12,7 +12,7 @@ set(CMAKE_CXX_STANDARD 11)
 # NOTICE: ${BOARD_NAME} needs to be specific externally
 # NOTICE: if you want to adapt this project to a new board, be sure to also set startup file in compile_options.cmake
 if (NOT DEFINED BOARD_NAME)
-    set(BOARD_NAME rm_board_2017)
+    set(BOARD_NAME rm_board_2018_a)
     #    message(FATAL_ERROR "[ERROR] No specific dev board. Do you forget to add -DBOARD_NAMD=\"***\" to CMake options?")
 endif ()
 
@@ -39,8 +39,11 @@ set(CMAKE_VERBOSE_MAKEFILE OFF)  # Enable this if you want to see verbose log
 include(os/ch.cmake)  # add files and directories from ChibiOS
 
 set(COMMON_CPP_SRC  # common cpp sources, which are included to every tartget at post configuration below
-        dev/debug/serial_shell.cpp
-        dev/debug/shell_debug_commands.cpp
+        dev/debug/shell/shell_base.c
+        dev/debug/shell/shell_base_cmd.c
+        dev/debug/shell/printf.c
+        dev/debug/shell/shell.cpp
+        dev/debug/shell/shell_dbg_cmd.cpp
         dev/interface/led.cpp
         dev/interface/buzzer.cpp
         dev/control/state_handler.cpp)
@@ -49,6 +52,7 @@ include_directories(  # common include directories
         dev
         dev/common
         dev/debug
+        dev/debug/shell
         dev/interface
         dev/interface/imu
         dev/module
@@ -134,7 +138,7 @@ add_executable(pa_gimbal
         dev/control/shoot.cpp
         dev/interface/imu/mpu6500.cpp
         dev/debug/unit_tests/gimbal_pid_adjustment_program.cpp)
-
+target_compile_definitions(pa_gimbal PRIVATE SHELL_NO_ECHO_MODE)
 
 # MPU6500: include MP6500 interface and unit test.
 add_executable(ut_mpu6500

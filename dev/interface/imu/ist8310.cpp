@@ -3,7 +3,7 @@
 //
 
 #include "led.h"
-#include "serial_shell.h"
+#include "debug/shell/shell.h"
 #include "ist8310.h"
 
 /* Initialize the controller.

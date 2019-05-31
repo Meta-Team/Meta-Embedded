@@ -6,16 +6,18 @@
  * This file contain interface for serial shell and some macros for debug.
  */
 
-#ifndef META_INFANTRY_SERIAL_SHELL_H
-#define META_INFANTRY_SERIAL_SHELL_H
+#ifndef META_INFANTRY_SHELL_H
+#define META_INFANTRY_SHELL_H
 
 #include "ch.hpp"
 #include "hal.h"
-#include "shell.h"
-#include "chprintf.h"
-#include "common_macro.h"
 
-#include "shell_debug_commands.h"
+#include "shell_base.h"
+#include "printf.h"
+
+#include "shell_dbg_cmd.h"
+
+#include "common_macro.h"
 
 #if defined(BOARD_RM_2018_A)
 // USART6_TX - PG14, USART6_RX - PG9
@@ -24,6 +26,12 @@
 #else
 #error "Shell has not been defined for selected board"
 #endif
+
+#define SHELL_ENABLE_ISR_FIFO TRUE
+#define SHELL_MAX_COMMAND_COUNT 20
+#define SHELL_RX_WORKAREA_SIZE 1024
+#define SHELL_ISR_TX_WORKAREA_SIZE 256
+#define SHELL_ISR_TX_BUF_SIZE 512
 
 /*** Debug Macro ***/
 
@@ -69,8 +77,21 @@ public:
      * @param fmt
      * @param ...
      * @return the number of bytes that has been printed
+     * @note api, can only be called from normal thread state
      */
     static int printf(const char *fmt, ...);
+
+
+#if SHELL_ENABLE_ISR_FIFO
+    /**
+     * @brief printf through shell
+     * @param fmt
+     * @param ...
+     * @return the number of bytes that has been printed
+     * @note I-Class function, can only be called from I-Lock state (ISR critical section)
+     */
+    static int printfI(const char *fmt, ...);
+#endif
 
     /**
      * @brief convert string to signed integer
@@ -92,8 +113,6 @@ private:
 
     static ShellCommand shellCommands_[]; // Container for the shell commands
 
-    static constexpr int MAX_COMMAND_COUNT = 20;
-
     /**
      * Config of the shell.
      * First parameter is the Serial port.
@@ -109,10 +128,23 @@ private:
      */
     static constexpr SerialConfig SHELL_SERIAL_CONFIG = {115200,
                                                          0,
-                                                         0,
+                                                         USART_CR2_STOP1_BITS,
                                                          0};
 
-    static char complection_[MAX_COMMAND_COUNT][SHELL_MAX_LINE_LENGTH];
+    static char complection_[SHELL_MAX_COMMAND_COUNT][SHELL_MAX_LINE_LENGTH];
+
+#if SHELL_ENABLE_ISR_FIFO
+
+    static uint8_t isrTxBuf_[SHELL_ISR_TX_BUF_SIZE];
+    static input_queue_t isrTxQueue_;
+
+    class ShellISRTxThread : public chibios_rt::BaseStaticThread<SHELL_ISR_TX_WORKAREA_SIZE> {
+        void main() final;
+    };
+
+    static ShellISRTxThread isrTxThread;
+
+#endif
 
 };
 

@@ -1,4 +1,4 @@
-#include "shell_debug_commands.h"
+#include "shell_dbg_cmd.h"
 using namespace chibios_rt;
 
 /**
@@ -28,8 +28,6 @@ static void cmd_show_thread_stats(BaseSequentialStream *chp, int argc, char *arg
         shellUsage(chp, "stats");
         return;
     }
-
-//    chSysLock();
 
     Registry reg; // a class managing registered threads
     ThreadReference thd_ref = reg.firstThread();
@@ -75,7 +73,6 @@ static void cmd_show_thread_stats(BaseSequentialStream *chp, int argc, char *arg
         thd_ref = reg.nextThread(thd_ref);
     }
 
-//    chSysUnlock();
 }
 
 /**

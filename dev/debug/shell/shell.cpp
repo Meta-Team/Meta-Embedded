@@ -1,20 +1,27 @@
-#include "serial_shell.h"
+#include "shell.h"
 
 using namespace chibios_rt;
 
 /**
  * Declaration for class variables
  */
-ShellCommand Shell::shellCommands_[Shell::MAX_COMMAND_COUNT + 1] = {nullptr, nullptr};
+ShellCommand Shell::shellCommands_[SHELL_MAX_COMMAND_COUNT + 1] = {{nullptr, nullptr}};
 ShellConfig Shell::shellConfig;
 constexpr SerialConfig Shell::SHELL_SERIAL_CONFIG;
 bool Shell::enabled = false;
-char Shell::complection_[Shell::MAX_COMMAND_COUNT][SHELL_MAX_LINE_LENGTH] = {0};
+char Shell::complection_[SHELL_MAX_COMMAND_COUNT][SHELL_MAX_LINE_LENGTH] = {{0}};
+#if SHELL_ENABLE_ISR_FIFO
+uint8_t Shell::isrTxBuf_[SHELL_ISR_TX_BUF_SIZE];
+output_queue_t Shell::isrTxQueue_;
+Shell::ShellISRTxThread Shell::isrTxThread;
+#endif
+
 
 /**
- * The working area for the shell thread
+ * The working area for the shell rx thread
  */
-THD_WORKING_AREA(wa, 4096);
+THD_WORKING_AREA(wa, SHELL_RX_WORKAREA_SIZE);
+
 
 /**
  * Function to start the thread.
@@ -36,7 +43,7 @@ bool Shell::start(tprio_t prio) {
             64
 #endif
 #if (SHELL_USE_COMPLETION == TRUE)
-            , (char**) complection_
+            , (char **) complection_
 #endif
     };
 
@@ -48,17 +55,21 @@ bool Shell::start(tprio_t prio) {
     thread_t *shellThreadRef = chThdCreateStatic(
             wa, sizeof(wa), prio,
             shellThread, (void *) &shellConfig);
-    chRegSetThreadNameX(shellThreadRef, "shell");
+    chRegSetThreadNameX(shellThreadRef, "shell_rx");
+
+#if SHELL_ENABLE_ISR_FIFO
+    iqObjectInit(&isrTxQueue_, isrTxBuf_, SHELL_ISR_TX_BUF_SIZE, nullptr, nullptr);
+    isrTxThread.start(prio - 1);
+#endif
 
     enabled = true;
     return true;
 }
 
-
 bool Shell::addCommands(ShellCommand *commandList) {
     int i = 0;
-    while (i < MAX_COMMAND_COUNT && shellCommands_[i].sc_name != nullptr) i++;
-    while (i < MAX_COMMAND_COUNT && commandList->sc_name != nullptr) {
+    while (i < SHELL_MAX_COMMAND_COUNT && shellCommands_[i].sc_name != nullptr) i++;
+    while (i < SHELL_MAX_COMMAND_COUNT && commandList->sc_name != nullptr) {
         shellCommands_[i].sc_name = commandList->sc_name;
         shellCommands_[i].sc_function = commandList->sc_function;
         i++;
@@ -79,6 +90,32 @@ int Shell::printf(const char *fmt, ...) {
 
     return formatted_bytes;
 }
+
+#if SHELL_ENABLE_ISR_FIFO
+int Shell::printfI(const char *fmt, ...) {
+    va_list ap;
+    int formatted_bytes;
+
+    va_start(ap, fmt);
+    formatted_bytes = chsnprintf((char *) isrTxBuf_, SHELL_ISR_TX_BUF_SIZE, fmt, ap);
+    oqWriteTimeout(&isrTxQueue_, isrTxBuf_, formatted_bytes, TIME_INFINITE);
+    va_end(ap);
+
+    return formatted_bytes;
+}
+
+void Shell::ShellISRTxThread::main() {
+    setName("shell_isr");
+    msg_t c;
+    while (!shouldTerminate()) {
+        c = iqGet(&isrTxQueue_);
+        if (c != MSG_TIMEOUT) {
+            streamPut((BaseSequentialStream *) &SD6, (uint8_t) c);
+        } else sleep(TIME_MS2I(1));
+    }
+}
+
+#endif
 
 int Shell::atoi(const char *s) {
     int ret = 0;

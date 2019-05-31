@@ -10,7 +10,7 @@
 #include "hal.h"
 
 #include "led.h"
-#include "serial_shell.h"
+#include "debug/shell/shell.h"
 #include "remote_interpreter.h"
 #include "buzzer.h"
 #include "gimbal_interface.h"

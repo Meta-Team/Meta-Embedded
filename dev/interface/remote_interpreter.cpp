@@ -25,8 +25,8 @@ constexpr UARTConfig Remote::REMOTE_UART_CONFIG;
  */
 #define LOG_PRESS_AND_RELEASE(old_val, new_val, name) { \
     if (old_val != new_val) { \
-        if (new_val) LOG_USER("press %s", name); \
-        else LOG_USER("release %s", name); \
+        if (new_val) Shell::printfI("[REMOTE] press %s", name); \
+        else Shell::printfI("[REMOTE] release %s", name); \
     } \
 }
 
