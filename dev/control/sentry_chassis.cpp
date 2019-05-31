@@ -73,8 +73,9 @@ void SentryChassisController::motor_calculator_t::set_motor_target_position(floa
 
 void SentryChassisController::motor_calculator_t::print_pid_params(){
     LOG("motor_id: %d" SHELL_NEWLINE_STR, id);
+    pid_params_t p = v_to_i.get_parameters();
     LOG("kp = %.2f ki = %.2f kd = %.2f i_limit = %.2f out_limit = %.2f" SHELL_NEWLINE_STR,
-             v_to_i.kp, v_to_i.ki, v_to_i.kd, v_to_i.i_limit, v_to_i.out_limit);
+             p.kp, p.ki, p.kd, p.i_limit, p.out_limit);
 }
 
 void SentryChassisController::motor_calculator_t::set_target_current(){

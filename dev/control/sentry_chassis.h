@@ -9,7 +9,7 @@
 #include "pid_controller.hpp"
 #include "can_interface.h"
 
-class SentryChassisController: public SentryChassis {
+class SentryChassisController: public SentryChassis, public PIDControllerBase {
 public:
 
     enum sentry_mode_t{
@@ -174,7 +174,7 @@ private:
          * @brief set the v_to_i pid
          */
         void set_v_to_i_param(float _kp, float _ki, float _kd, float _i_limit, float _out_limit){
-            v_to_i.change_parameters(_kp, _ki, _kd, _i_limit, _out_limit);
+            v_to_i.change_parameters({_kp, _ki, _kd, _i_limit, _out_limit});
             v_to_i.clear_i_out();
         }
 
