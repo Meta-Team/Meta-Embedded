@@ -58,13 +58,13 @@ void Referee::uart_rx_callback(UARTDriver *uartp) {
             break;
 
         case WAIT_REMAINING_HEADER:
-
+            LED::green_toggle();
             if (Verify_CRC8_Check_Sum((uint8_t *) rx_buf, FRAME_HEADER_SIZE)) {
                 memcpy(&frame_header, rx_buf, FRAME_HEADER_SIZE);
                 memcpy(&cmd_id, rx_buf + FRAME_HEADER_SIZE, CMD_ID_SIZE);
                 rx_status = WAIT_CMD_ID_DATA_TAIL; // go to next status
             } else {
-//                LOG_ERR("[REFEREE] Invalid frameHeader!");
+                Shell::printfI("[REFEREE] Invalid frameHeader!" SHELL_NEWLINE_STR);
                 rx_status = WAIT_STARTING_BYTE;
             }
             break;
@@ -73,27 +73,29 @@ void Referee::uart_rx_callback(UARTDriver *uartp) {
 
             if (Verify_CRC16_Check_Sum((uint8_t *) &rx_buf,
                                        FRAME_HEADER_SIZE + CMD_ID_SIZE + frame_header.data_length + FRAME_TAIL_SIZE)) {
+
                 switch (cmd_id) {
                     case 0x0201:
-                        memcpy(&game_robot_state, rx_buf + FRAME_HEADER_SIZE + CMD_ID_SIZE, frame_header.data_length);
+                        memcpy(&game_robot_state, rx_buf + FRAME_HEADER_SIZE + CMD_ID_SIZE, sizeof(game_robot_state));
                         break;
                     case 0x0202:
-
-                        memcpy(&power_heat_data, rx_buf + FRAME_HEADER_SIZE + CMD_ID_SIZE, frame_header.data_length);
+                        LED::red_toggle();
+                        memcpy(&power_heat_data, rx_buf + FRAME_HEADER_SIZE + CMD_ID_SIZE, sizeof(power_heat_data));
                         break;
                     case 0x0207:
-                        memcpy(&shoot_data, rx_buf + FRAME_HEADER_SIZE + CMD_ID_SIZE, frame_header.data_length);
+                        memcpy(&shoot_data, rx_buf + FRAME_HEADER_SIZE + CMD_ID_SIZE, sizeof(shoot_data));
                         break;
                     case 0x0206:
-                        if (frame_header.data_length  == 14)LED::red_toggle();
-                        memcpy(&robot_hurt, rx_buf + FRAME_HEADER_SIZE + CMD_ID_SIZE, frame_header.data_length);
+
+//                        Shell::printfI("[0x0206] data_length = %u" SHELL_NEWLINE_STR, frame_header.data_length);
+                        memcpy(&robot_hurt, rx_buf + FRAME_HEADER_SIZE + CMD_ID_SIZE, sizeof(robot_hurt));
                     default:
                         // FIXME: temporarily disabled since not all ID has been implemented
                         // LOG_ERR("[REFEREE] Unknown cmd_id %u", cmd_id);
                         break;
                 }
             } else {
-//                LOG_ERR("[REFEREE] Invalid data of type %u!", cmd_id);
+                Shell::printfI("[REFEREE] Invalid data of type %u!" SHELL_NEWLINE_STR, cmd_id);
             }
 
             rx_status = WAIT_STARTING_BYTE;
