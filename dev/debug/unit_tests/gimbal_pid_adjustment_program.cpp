@@ -30,10 +30,10 @@ char MOTOR_CHAR[2] = {'y', 'p'};
 unsigned const GIMBAL_THREAD_INTERVAL = 1;    // [ms]
 unsigned const GIMBAL_FEEDBACK_INTERVAL = 25; // [ms]
 
-float const MIN_ANGLE[2] = {-170, -45};    // [degree]
-float const MAX_ANGLE[2] = {170, 45};      // [degree]
+float const MIN_ANGLE[2] = {-170, -80};    // [degree]
+float const MAX_ANGLE[2] = {170, 80};      // [degree]
 float const MAX_VELOCITY[2] = {600, 300};  // absolute maximum, [degree/s]
-int const MAX_CURRENT = 4500;  // [mA]
+int const MAX_CURRENT = 30000;  // [mA]
 
 bool motor_enabled[2] = {false, false};
 
@@ -46,12 +46,12 @@ float target_v[2] = {0.0, 0.0};
 
 // Raw angle of yaw and pitch when GimbalInterface points straight forward.
 //   Note: the program will echo the raw angles of yaw and pitch as the program starts
-#define GIMBAL_YAW_FRONT_ANGLE_RAW 620
-#define GIMBAL_PITCH_FRONT_ANGLE_RAW 5684
+#define GIMBAL_YAW_FRONT_ANGLE_RAW 5372
+#define GIMBAL_PITCH_FRONT_ANGLE_RAW 4128
 
 // Depends on the install direction of the board
-#define GIMBAL_YAW_ACTUAL_VELOCITY (-MPU6500::angle_speed.y)
-#define GIMBAL_PITCH_ACTUAL_VELOCITY (-MPU6500::angle_speed.x)
+#define GIMBAL_YAW_ACTUAL_VELOCITY (-MPU6500::angle_speed.z)
+#define GIMBAL_PITCH_ACTUAL_VELOCITY (MPU6500::angle_speed.x)
 
 CANInterface can1(&CAND1);
 
@@ -122,7 +122,7 @@ static void cmd_gimbal_enable_fw(BaseSequentialStream *chp, int argc, char *argv
         return;
     }
     if (*argv[0] == '1') {
-        Shoot::set_friction_wheels(0.5);
+        Shoot::set_friction_wheels(0.8);
     } else {
         Shoot::set_friction_wheels(0);
     }
@@ -381,6 +381,10 @@ int main(void) {
     gimbalFeedbackThread.start(NORMALPRIO - 1);
     gimbalThread.start(NORMALPRIO);
 
+    chThdSleepMilliseconds(1000);
+    LOG("Gimbal Yaw: %u, %f, Pitch: %u, %f",
+        Gimbal::feedback[Gimbal::YAW].last_angle_raw, Gimbal::feedback[Gimbal::YAW].actual_angle,
+        Gimbal::feedback[Gimbal::PITCH].last_angle_raw, Gimbal::feedback[Gimbal::PITCH].actual_angle);
     // See chconf.h for what this #define means.
 #if CH_CFG_NO_IDLE_THREAD
     // ChibiOS idle thread has been disabled,

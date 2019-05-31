@@ -46,7 +46,7 @@ void StateHandler::handleException(StateHandler::Exceptions exception, bool from
                 LOG_ERR("CAN error: %u", va_arg(args, unsigned));
             }
             break;
-#if defined(INFANTRY)
+#if defined(INFANTRY) || defined(HERO)
         case MPU6500_DISCONNECTED:
             if (!gimbalSeriousErrorOccured_) {
                 gimbalSeriousErrorOccured_ = true;
@@ -64,7 +64,7 @@ void StateHandler::handleException(StateHandler::Exceptions exception, bool from
                 }
             }
             break;
-#if defined(INFANTRY)
+#if defined(INFANTRY) || defined(HERO)
         case GIMBAL_DISCONNECTED:
             if (!gimbalSeriousErrorOccured_) {
                 gimbalSeriousErrorOccured_ = true;
@@ -74,7 +74,7 @@ void StateHandler::handleException(StateHandler::Exceptions exception, bool from
             }
             break;
 #endif
-#if defined(INFANTRY) || defined(ENGINEER)
+#if defined(INFANTRY) || defined(ENGINEER) || defined(HERO)
         case CHASSIS_DISCONNECTED:
             if (!chassisSeriousErrorOccured_) {
                 chassisSeriousErrorOccured_ = true;
@@ -99,7 +99,7 @@ void StateHandler::handleEvent(StateHandler::Events event, bool fromISR, ...) {
         case CAN_START_SUCCESSFULLY:
             LED::led_on(2);
             break;
-#if defined(INFANTRY)
+#if defined(INFANTRY) || defined(HERO)
         case MPU6500_START_SUCCESSFULLY:
             LED::led_on(3);
             break;
@@ -107,12 +107,12 @@ void StateHandler::handleEvent(StateHandler::Events event, bool fromISR, ...) {
         case REMOTE_START_SUCCESSFULLY:
             LED::led_on(4);
             break;
-#if defined(INFANTRY)
+#if defined(INFANTRY) || defined(HERO)
         case GIMBAL_CONNECTED:
             LED::led_on(5);
             break;
 #endif
-#if defined(INFANTRY) || defined(ENGINEER)
+#if defined(INFANTRY) || defined(ENGINEER) || defined(HERO)
         case CHASSIS_CONNECTED:
             LED::led_on(6);
             break;

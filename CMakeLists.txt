@@ -99,7 +99,6 @@ target_compile_definitions(INFANTRY_FIVE PRIVATE INFANTRY INFANTRY_FIVE ENABLE_S
 # Main Program -- Engineer
 add_executable(ENGINEER
         dev/module/pid_controller.hpp
-        dev/interface/buzzer.cpp
         dev/module/can_interface.cpp
         dev/interface/chassis_interface.cpp
         dev/interface/remote_interpreter.cpp
@@ -111,6 +110,23 @@ add_executable(ENGINEER
         dev/vehicle/engineer/main_engineer.cpp)
 target_include_directories(ENGINEER PRIVATE dev/vehicle/engineer)
 target_compile_definitions(ENGINEER PRIVATE ENGINEER ENABLE_STATE_HANDLE)
+
+# Main Program -- Hero
+add_executable(HERO
+        dev/module/pid_controller.hpp
+        dev/module/can_interface.cpp
+        dev/interface/mpu6500.cpp
+        dev/interface/chassis_interface.cpp
+        dev/interface/gimbal_interface.cpp
+        dev/interface/remote_interpreter.cpp
+        dev/interface/elevator_interface.cpp
+        dev/interface/robotic_arm.cpp
+        dev/control/chassis.cpp
+        dev/control/gimbal.cpp
+        dev/control/shoot.cpp
+        dev/vehicle/hero/main_hero.cpp)
+target_include_directories(HERO PRIVATE dev/vehicle/hero)
+target_compile_definitions(HERO PUBLIC HERO ENABLE_STATE_HANDLE)
 
 # Blink
 add_executable(ut_blink
@@ -127,7 +143,22 @@ add_executable(ut_gimbal_interface
         dev/module/can_interface.cpp
         dev/interface/imu/mpu6500.cpp
         dev/interface/gimbal_interface.cpp
+        dev/control/shoot.cpp
         dev/debug/unit_tests/gimbal_interface_unit_test.cpp)
+# Shoot
+add_executable(ut_shoot
+        dev/module/can_interface.cpp
+        dev/interface/mpu6500.cpp
+        dev/interface/gimbal_interface.cpp
+        dev/control/shoot.cpp
+        dev/debug/unit_tests/hero_shoot_unit_test.cpp)
+
+# Shoot
+add_executable(pa_hero_shoot
+        dev/module/can_interface.cpp
+        dev/interface/gimbal_interface.cpp
+        dev/control/shoot.cpp
+        dev/debug/unit_tests/hero_shoot_param_adjust.cpp)
 
 # Gimbal: include CANInterface, GimbalInterface, GimbalController, GimbalFeedbackThread and adjustment modules.
 add_executable(pa_gimbal
@@ -180,7 +211,7 @@ add_executable(ut_elevator_interface
         dev/debug/unit_tests/elevator_interface_unit_test.cpp)
 
 # Elevator: include CANInterface, ElevatorInterface, ElevatorController, and the unit test modules.
-add_executable(ut_elevator
+add_executable(pa_elevator
         dev/module/can_interface.cpp
         dev/interface/elevator_interface.cpp
         dev/interface/chassis_interface.cpp

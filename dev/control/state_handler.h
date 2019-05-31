@@ -29,14 +29,14 @@ public:
     enum Events {
         SHELL_START,
         CAN_START_SUCCESSFULLY,
-#if defined(INFANTRY)
+#if defined(INFANTRY) || defined(HERO)
         MPU6500_START_SUCCESSFULLY,
 #endif
         REMOTE_START_SUCCESSFULLY,
-#if defined(INFANTRY)
+#if defined(INFANTRY) || defined(HERO)
         GIMBAL_CONNECTED,
 #endif
-#if defined(INFANTRY) || defined(ENGINEER)
+#if defined(INFANTRY) || defined(ENGINEER) || defined(HERO)
         CHASSIS_CONNECTED,
 #endif
         MAIN_MODULES_SETUP_COMPLETE,
@@ -62,15 +62,16 @@ public:
      */
     enum Exceptions {
         CAN_ERROR,
-#if defined(INFANTRY)
+#if defined(INFANTRY) || defined(HERO)
         MPU6500_DISCONNECTED,
 #endif
         REMOTE_DISCONNECTED,
-#if defined(INFANTRY)
+#if defined(INFANTRY) || defined(HERO)
         GIMBAL_DISCONNECTED,
         BULLET_LOADER_STUCK,
 #endif
-#if defined(INFANTRY) || defined(ENGINEER)
+
+#if defined(INFANTRY) || defined(ENGINEER) || defined(HERO)
         CHASSIS_DISCONNECTED
 #endif
     };

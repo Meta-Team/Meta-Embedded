@@ -34,11 +34,14 @@ void GimbalInterface::init(CANInterface *can_interface, uint16_t yaw_front_angle
     feedback[PITCH].id = PITCH;
     feedback[PITCH].last_angle_raw = pitch_front_angle_raw;
 
-    feedback[BULLET].id = PITCH;
+    feedback[BULLET].id = BULLET;
     feedback[BULLET].reset_front_angle();
 
+    feedback[PLATE].id = PLATE;
+    feedback[PLATE].reset_front_angle();
+
     can_ = can_interface;
-    can_->register_callback(0x205, 0x207, process_motor_feedback);
+    can_->register_callback(0x205, 0x208, process_motor_feedback);
 
 #if defined(BOARD_RM_2018_A)
     // Enable power of bullet loader motor
@@ -73,9 +76,9 @@ void GimbalInterface::send_gimbal_currents() {
 #if GIMBAL_INTERFACE_ENABLE_CLIP
     ABS_CROP(target_current[YAW], GIMBAL_INTERFACE_MAX_CURRENT);
 #endif
-    /** NOTICE: target current is reversed. */
-    txmsg.data8[0] = (uint8_t) (-target_current[YAW] >> 8); // upper byte
-    txmsg.data8[1] = (uint8_t) -target_current[YAW];       // lower byte
+//    /** NOTICE: target current is reversed. */
+    txmsg.data8[0] = (uint8_t) (target_current[YAW] >> 8); // upper byte
+    txmsg.data8[1] = (uint8_t) target_current[YAW];       // lower byte
 
 
     // Fill the current of Pitch
@@ -95,7 +98,14 @@ void GimbalInterface::send_gimbal_currents() {
     txmsg.data8[4] = (uint8_t) (target_current[BULLET] >> 8); // upper byte
     txmsg.data8[5] = (uint8_t) target_current[BULLET];       // lower byte
 
-    txmsg.data8[6] = txmsg.data8[7] = 0;
+    // Fill the current of plate
+
+#if GIMBAL_INTERFACE_ENABLE_CLIP
+    ABS_CROP(target_current[PLATE], GIMBAL_INTERFACE_BULLET_PLATE_MAX_CURRENT);
+#endif
+    txmsg.data8[6] = (uint8_t) (target_current[PLATE] >> 8);
+    txmsg.data8[7] = (uint8_t) target_current[PLATE];
+
 
     can_->send_msg(&txmsg);
 
@@ -135,8 +145,42 @@ void GimbalInterface::process_motor_feedback(CANRxFrame const *rxmsg) {
     int angle_movement = (int) new_actual_angle_raw - (int) feedback[id].last_angle_raw;
 
     switch (id) {
-        case 0:
-        case 1:  // Yaw or Pitch
+        case 0:  // Yaw
+
+            feedback[id].last_angle_raw = new_actual_angle_raw;
+
+            // If angle_movement is too extreme between two samples,
+            // we grant that it's caused by moving over the 0(8192) point.
+            if (angle_movement < -4096) {
+                angle_movement += 8192;
+            } else if (angle_movement > 4096) {
+                angle_movement -= 8192;
+            }
+
+            // KEY IDEA: add the change of angle to actual angle
+            feedback[id].actual_angle += angle_movement * 360.0f / 8192;
+
+            // If the actual_angle is greater than 180(-180) then it turns a round in CCW(CW) direction
+            if (feedback[id].actual_angle >= 180.0f) {
+                feedback[id].actual_angle -= 360.0f;
+                feedback[id].round_count++;
+            }
+            if (feedback[id].actual_angle < -180.0f) {
+                feedback[id].actual_angle += 360.0f;
+                feedback[id].round_count--;
+            }
+
+#if GIMBAL_INTERFACE_ENABLE_VELOCITY_CALCULATION
+//            feedback[id].actual_velocity = (float) (rxmsg->data8[2] << 8 | rxmsg->data8[3]) * 60.0f;  // rpm -> degree/s
+#endif
+
+            feedback[id].actual_current = (int16_t) (rxmsg->data8[4] << 8 | rxmsg->data8[5]);
+
+            feedback[id].last_update_time = SYSTIME;
+
+            break;
+
+        case 1:  // Pitch
 
             feedback[id].last_angle_raw = new_actual_angle_raw;
 
@@ -213,6 +257,31 @@ void GimbalInterface::process_motor_feedback(CANRxFrame const *rxmsg) {
 
             break;
 
+        case 3:   // PLATE
+
+            feedback[id].last_angle_raw = new_actual_angle_raw;
+
+            // Make sure that the angle movement is positive
+            if (angle_movement < -2000) angle_movement = angle_movement + 8192;
+
+
+            feedback[id].actual_angle += angle_movement * 18.9f / 8192; // deceleration ratio : 19, 360/19 = 18.947368421052632
+
+            // IF the actual angle is beyond (-180,180)
+            if (feedback[id].actual_angle >= 360.0f) {
+                feedback[id].actual_angle -= 360.0f;
+                feedback[id].round_count++;
+            }
+            if (feedback[id].actual_angle <= -360.0f) {
+                feedback[id].actual_angle +=360.0f;
+                feedback[id].round_count--;
+            }
+
+            feedback[id].actual_velocity = ((int16_t) (rxmsg->data8[2] << 8 | rxmsg->data8[3])) / 19.2f * 360.0f / 60.0f;
+
+            feedback[id].last_update_time = SYSTIME;
+
+            break;
         default:
 
             break;

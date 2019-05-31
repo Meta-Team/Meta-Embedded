@@ -21,14 +21,15 @@ public:
      * Initialize the shooter controller
      * @param degree_per_bullet
      * @param bullet_loader_v2i_params
-     */
-    static void init(float degree_per_bullet);
+    */
+    static void init(float degree_per_bullet, float degree_per_bullet_plate);
 
     /**
      * Change PID parameters of bullet loader
      * @param bullet_loader_v2i_params
      */
-    static void change_pid_params(pid_params_t bullet_loader_v2i_params);
+    static void change_pid_params(PIDControllerBase::pid_params_t bullet_loader_v2i_params);
+    static void change_plate_params(PIDControllerBase::pid_params_t bullet_plate_v2i_params);
 
     /**
      * Perform calculation from velocity to current and put result into target_current[]
@@ -42,13 +43,16 @@ public:
      */
     static void set_friction_wheels(float duty_cycle);
 
+    static PIDController v2i_pid[2];
 
 private:
-
-    static PIDController v2i_pid;
-
     static float degree_per_bullet_;
+    static float degree_per_bullet_plate_;
 
+    static void calc_motor_(motor_id_t motor, float actual_velocity, float target_velocity);
+    
+    
+    friend class ShootDebugThread;
 };
 
 
