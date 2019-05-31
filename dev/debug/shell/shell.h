@@ -27,12 +27,11 @@
 #error "Shell has not been defined for selected board"
 #endif
 
-#define SHELL_USE_FIFO TRUE
+#define SHELL_ENABLE_ISR_FIFO TRUE
 #define SHELL_MAX_COMMAND_COUNT 20
 #define SHELL_RX_WORKAREA_SIZE 1024
-#define SHELL_TX_WORKAREA_SIZE 1024
-#define SHELL_TX_MAILBOX_SIZE 2048
-#define SHELL_TX_PRINTF_BUF_SIZE 1024
+#define SHELL_ISR_TX_WORKAREA_SIZE 256
+#define SHELL_ISR_TX_BUF_SIZE 512
 
 /*** Debug Macro ***/
 
@@ -82,14 +81,8 @@ public:
      */
     static int printf(const char *fmt, ...);
 
-    /**
-     * @brief printf through shell
-     * @param fmt
-     * @param ...
-     * @note S-Class function, can only be called from s-lock state (thread critical section)
-     */
-    static int printfS(const char *fmt, ...);
 
+#if SHELL_ENABLE_ISR_FIFO
     /**
      * @brief printf through shell
      * @param fmt
@@ -98,6 +91,7 @@ public:
      * @note I-Class function, can only be called from I-Lock state (ISR critical section)
      */
     static int printfI(const char *fmt, ...);
+#endif
 
     /**
      * @brief convert string to signed integer
@@ -134,23 +128,21 @@ private:
      */
     static constexpr SerialConfig SHELL_SERIAL_CONFIG = {115200,
                                                          0,
-                                                         0,
+                                                         USART_CR2_STOP1_BITS,
                                                          0};
 
     static char complection_[SHELL_MAX_COMMAND_COUNT][SHELL_MAX_LINE_LENGTH];
 
-#if SHELL_USE_FIFO
+#if SHELL_ENABLE_ISR_FIFO
 
-    static uint8_t tx_buf_[SHELL_TX_PRINTF_BUF_SIZE];
-    static output_queue_t tx_queue_;
+    static uint8_t isrTxBuf_[SHELL_ISR_TX_BUF_SIZE];
+    static input_queue_t isrTxQueue_;
 
-    static void tx_queue_callback_(io_queue_t *qp);
-
-    class ShellTXThread : public chibios_rt::BaseStaticThread<SHELL_TX_WORKAREA_SIZE> {
+    class ShellISRTxThread : public chibios_rt::BaseStaticThread<SHELL_ISR_TX_WORKAREA_SIZE> {
         void main() final;
     };
 
-    static ShellTXThread txThread;
+    static ShellISRTxThread isrTxThread;
 
 #endif
 

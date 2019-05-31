@@ -44,6 +44,33 @@
 /*===========================================================================*/
 
 /**
+ * @brief   Do not echo input command
+ * @author liuzikai
+ */
+
+#if !defined(SHELL_NO_ECHO_MODE)
+#define SHELL_NO_ECHO_MODE                  FALSE
+#endif
+
+#if SHELL_NO_ECHO_MODE == TRUE
+
+#if defined(SHELL_USE_HISTORY)
+#undef SHELL_USE_HISTORY
+#endif
+#define SHELL_USE_HISTORY                   FALSE
+
+#if defined(SHELL_USE_COMPLETION)
+#undef SHELL_USE_COMPLETION
+#endif
+#define SHELL_USE_COMPLETION                FALSE
+
+#if defined(SHELL_PROMPT_STR)
+#undef SHELL_PROMPT_STR
+#endif
+#define SHELL_PROMPT_STR                    ""
+#endif
+
+/**
  * @brief   Shell maximum input line length.
  */
 #if !defined(SHELL_MAX_LINE_LENGTH) || defined(__DOXYGEN__)

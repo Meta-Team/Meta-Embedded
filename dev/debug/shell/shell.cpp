@@ -10,10 +10,10 @@ ShellConfig Shell::shellConfig;
 constexpr SerialConfig Shell::SHELL_SERIAL_CONFIG;
 bool Shell::enabled = false;
 char Shell::complection_[SHELL_MAX_COMMAND_COUNT][SHELL_MAX_LINE_LENGTH] = {{0}};
-#if SHELL_USE_FIFO
-uint8_t Shell::tx_buf_[SHELL_TX_PRINTF_BUF_SIZE];
-output_queue_t Shell::tx_queue_;
-Shell::ShellTXThread Shell::txThread;
+#if SHELL_ENABLE_ISR_FIFO
+uint8_t Shell::isrTxBuf_[SHELL_ISR_TX_BUF_SIZE];
+output_queue_t Shell::isrTxQueue_;
+Shell::ShellISRTxThread Shell::isrTxThread;
 #endif
 
 
@@ -57,17 +57,13 @@ bool Shell::start(tprio_t prio) {
             shellThread, (void *) &shellConfig);
     chRegSetThreadNameX(shellThreadRef, "shell_rx");
 
-#if SHELL_USE_FIFO
-    oqObjectInit(&tx_queue_, tx_buf_, SERIAL_BUFFERS_SIZE, tx_queue_callback_, nullptr);
-    txThread.start(prio - 1);
+#if SHELL_ENABLE_ISR_FIFO
+    iqObjectInit(&isrTxQueue_, isrTxBuf_, SHELL_ISR_TX_BUF_SIZE, nullptr, nullptr);
+    isrTxThread.start(prio - 1);
 #endif
 
     enabled = true;
     return true;
-}
-
-void Shell::tx_queue_callback_(io_queue_t *qp) {
-
 }
 
 bool Shell::addCommands(ShellCommand *commandList) {
@@ -89,28 +85,33 @@ int Shell::printf(const char *fmt, ...) {
     int formatted_bytes;
 
     va_start(ap, fmt);
-#if SHELL_USE_FIFO
-    formatted_bytes = chsnprintf((char *) tx_buf_, SHELL_TX_PRINTF_BUF_SIZE, fmt, ap);
-    oqWriteTimeout(&tx_queue_, tx_buf_, formatted_bytes, TIME_INFINITE);
-#else
     formatted_bytes = chvprintf((BaseSequentialStream *) &SD6, fmt, ap);
-#endif
-
     va_end(ap);
 
     return formatted_bytes;
 }
 
-#if SHELL_USE_FIFO
+#if SHELL_ENABLE_ISR_FIFO
+int Shell::printfI(const char *fmt, ...) {
+    va_list ap;
+    int formatted_bytes;
 
-void Shell::ShellTXThread::main() {
-    setName("shell_tx");
+    va_start(ap, fmt);
+    formatted_bytes = chsnprintf((char *) isrTxBuf_, SHELL_ISR_TX_BUF_SIZE, fmt, ap);
+    oqWriteTimeout(&isrTxQueue_, isrTxBuf_, formatted_bytes, TIME_INFINITE);
+    va_end(ap);
+
+    return formatted_bytes;
+}
+
+void Shell::ShellISRTxThread::main() {
+    setName("shell_isr");
     msg_t c;
     while (!shouldTerminate()) {
-        c = oqGetI(&tx_queue_);
+        c = iqGet(&isrTxQueue_);
         if (c != MSG_TIMEOUT) {
             streamPut((BaseSequentialStream *) &SD6, (uint8_t) c);
-        } else sleep(TIME_US2I(100));
+        } else sleep(TIME_MS2I(1));
     }
 }
 

@@ -138,7 +138,7 @@ add_executable(pa_gimbal
         dev/control/shoot.cpp
         dev/interface/imu/mpu6500.cpp
         dev/debug/unit_tests/gimbal_pid_adjustment_program.cpp)
-
+target_compile_definitions(pa_gimbal PRIVATE SHELL_NO_ECHO_MODE)
 
 # MPU6500: include MP6500 interface and unit test.
 add_executable(ut_mpu6500

@@ -26,6 +26,4 @@
 // Enlarge the maximum number of arguments
 #define SHELL_MAX_ARGUMENTS                 10
 
-#define SHELL_NO_ECHO_MODE                  FALSE
-
 #endif

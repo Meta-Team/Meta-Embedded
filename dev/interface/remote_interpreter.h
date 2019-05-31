@@ -36,7 +36,7 @@
 #error "Remote interpreter has not been defined for selected board"
 #endif
 
-#define REMOTE_ENABLE_USER_LOG FALSE
+#define REMOTE_ENABLE_USER_LOG     TRUE
 
 /**
  * @name Remote

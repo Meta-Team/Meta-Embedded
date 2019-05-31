@@ -354,7 +354,10 @@ THD_FUNCTION(shellThread, p) {
 #endif
 
     chprintf(chp, SHELL_NEWLINE_STR);
-    chprintf(chp, "ChibiOS/RT Shell" SHELL_NEWLINE_STR);
+    chprintf(chp, "> ChibiOS/RT Shell <" SHELL_NEWLINE_STR);
+#if SHELL_NO_ECHO_MODE == TRUE
+    chprintf(chp, "NOTICE: IN NO ECHO MODE NOW. YOU WON'T GET ECHO FOR INPUT COMMANDS." SHELL_NEWLINE_STR);
+#endif
     while (true) {
         chprintf(chp, SHELL_PROMPT_STR);
         if (shellGetLine(scfg, line, sizeof(line), shp)) {
@@ -523,9 +526,11 @@ bool shellGetLine(ShellConfig *scfg, char *line, unsigned size, ShellHistory *sh
 #endif
         if ((c == 8) || (c == 127)) {
             if (p != line) {
+#if SHELL_NO_ECHO_MODE == FALSE
                 streamPut(chp, 0x08);
                 streamPut(chp, 0x20);
                 streamPut(chp, 0x08);
+#endif
                 p--;
             }
             continue;
@@ -555,6 +560,7 @@ bool shellGetLine(ShellConfig *scfg, char *line, unsigned size, ShellHistory *sh
 #endif
 #if SHELL_USE_HISTORY == TRUE
         if (c == 27) {
+            /* Look for ^[B and ^[A */
             if (streamRead(chp, (uint8_t *) &c, 1) == 0)
                 return true;
             if (c != '[')
@@ -591,11 +597,12 @@ bool shellGetLine(ShellConfig *scfg, char *line, unsigned size, ShellHistory *sh
 
 #endif
         if (c < 0x20) {
-//            chprintf(chp, ">> %d" SHELL_NEWLINE_STR, c);
             continue;
         }
         if (p < line + size - 1) {
+#if SHELL_NO_ECHO_MODE == FALSE
             streamPut(chp, c);
+#endif
             *p++ = (char) c;
         }
     }
