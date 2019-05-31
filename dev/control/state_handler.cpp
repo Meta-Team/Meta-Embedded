@@ -6,8 +6,18 @@
 
 bool StateHandler::canErrorOccured_ = false;
 bool StateHandler::remoteDisconnected_ = false;
+#ifdef STATE_HANDLER_ENABLE_GIMBAL
 bool StateHandler::gimbalSeriousErrorOccured_ = false;
+#endif
+#ifdef STATE_HANDLER_ENABLE_CHASSIS
 bool StateHandler::chassisSeriousErrorOccured_ = false;
+#endif
+#ifdef STATE_HANDLER_ENABLE_ELEVATOR
+bool StateHandler::elevatorSeriousErrorOccured_ = false;
+#endif
+#ifdef STATE_HANDLER_ENABLE_ROBOTIC_ARM
+bool StateHandler::roboticArmSeriousErrorOccured_ = false;
+#endif
 
 #ifdef ENABLE_STATE_HANDLE
 
@@ -46,7 +56,7 @@ void StateHandler::handleException(StateHandler::Exceptions exception, bool from
                 LOG_ERR("CAN error: %u", va_arg(args, unsigned));
             }
             break;
-#if defined(INFANTRY) || defined(HERO)
+#ifdef STATE_HANDLER_ENABLE_MPU6500
         case MPU6500_DISCONNECTED:
             if (!gimbalSeriousErrorOccured_) {
                 gimbalSeriousErrorOccured_ = true;
@@ -64,7 +74,7 @@ void StateHandler::handleException(StateHandler::Exceptions exception, bool from
                 }
             }
             break;
-#if defined(INFANTRY) || defined(HERO)
+#ifdef STATE_HANDLER_ENABLE_GIMBAL
         case GIMBAL_DISCONNECTED:
             if (!gimbalSeriousErrorOccured_) {
                 gimbalSeriousErrorOccured_ = true;
@@ -74,12 +84,30 @@ void StateHandler::handleException(StateHandler::Exceptions exception, bool from
             }
             break;
 #endif
-#if defined(INFANTRY) || defined(ENGINEER) || defined(HERO)
+#ifdef STATE_HANDLER_ENABLE_CHASSIS
         case CHASSIS_DISCONNECTED:
             if (!chassisSeriousErrorOccured_) {
                 chassisSeriousErrorOccured_ = true;
                 if (!fromISR) {
                     LOG_ERR("CHASSIS MOTOR %d DISCONNECTED!", va_arg(args, int));
+                }
+            }
+            break;
+#endif
+#ifdef STATE_HANDLER_ENABLE_ELEVATOR
+        case ELEVATOR_DISCONNECTED:
+            if (!elevatorSeriousErrorOccured_) {
+                elevatorSeriousErrorOccured_ = true;
+                if (!fromISR) {
+                    LOG_ERR("ELEVATOR MOTOR %d DISCONNECTED!", va_arg(args, int));
+                }
+            }
+            break;
+        case ELEVATOR_UNBALANCE:
+            if (!elevatorSeriousErrorOccured_) {
+                elevatorSeriousErrorOccured_ = true;
+                if (!fromISR) {
+                    LOG_ERR("ELEVATOR UNBALANCE!");
                 }
             }
             break;
@@ -99,7 +127,7 @@ void StateHandler::handleEvent(StateHandler::Events event, bool fromISR, ...) {
         case CAN_START_SUCCESSFULLY:
             LED::led_on(2);
             break;
-#if defined(INFANTRY) || defined(HERO)
+#ifdef STATE_HANDLER_ENABLE_MPU6500
         case MPU6500_START_SUCCESSFULLY:
             LED::led_on(3);
             break;
@@ -107,14 +135,24 @@ void StateHandler::handleEvent(StateHandler::Events event, bool fromISR, ...) {
         case REMOTE_START_SUCCESSFULLY:
             LED::led_on(4);
             break;
-#if defined(INFANTRY) || defined(HERO)
+#ifdef STATE_HANDLER_ENABLE_GIMBAL
         case GIMBAL_CONNECTED:
             LED::led_on(5);
             break;
 #endif
-#if defined(INFANTRY) || defined(ENGINEER) || defined(HERO)
+#ifdef STATE_HANDLER_ENABLE_ROBOTIC_ARM
+        case ROBOTIC_ARM_CONNECT:
+            LED::led_on(5);
+            break;
+#endif
+#ifdef STATE_HANDLER_ENABLE_CHASSIS
         case CHASSIS_CONNECTED:
             LED::led_on(6);
+            break;
+#endif
+#ifdef STATE_HANDLER_ENABLE_ELEVATOR
+        case ELEVATOR_CONNECTED:
+            LED::led_on(7);
             break;
 #endif
         case MAIN_MODULES_SETUP_COMPLETE:
@@ -124,12 +162,6 @@ void StateHandler::handleEvent(StateHandler::Events event, bool fromISR, ...) {
             Buzzer::play_sound(Buzzer::sound_startup_intel, LOWPRIO);
             break;
     }
-}
-
-bool StateHandler::fetchCANErrorMark() {
-    bool ret = canErrorOccured_;
-    canErrorOccured_ = false;
-    return ret;
 }
 
 #else  // NULL implementation

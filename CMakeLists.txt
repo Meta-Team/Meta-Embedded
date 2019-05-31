@@ -105,9 +105,10 @@ add_executable(ENGINEER
         dev/interface/elevator_interface.cpp
         dev/interface/robotic_arm.cpp
         dev/control/chassis.cpp
-        dev/vehicle/engineer/elevator_thread.cpp
-        dev/vehicle/engineer/robotic_arm_thread.cpp
-        dev/vehicle/engineer/main_engineer.cpp)
+        dev/vehicle/engineer/state_machine_stage_climb.cpp
+        dev/vehicle/engineer/state_machine_bullet_fetch.cpp
+        dev/vehicle/engineer/main_engineer.cpp
+        dev/control/elevator.cpp dev/vehicle/engineer/thread_chassis.cpp dev/vehicle/engineer/thread_elevator.cpp)
 target_include_directories(ENGINEER PRIVATE dev/vehicle/engineer)
 target_compile_definitions(ENGINEER PRIVATE ENGINEER ENABLE_STATE_HANDLE)
 
@@ -213,18 +214,16 @@ add_executable(ut_elevator_interface
 # Elevator: include CANInterface, ElevatorInterface, ElevatorController, and the unit test modules.
 add_executable(pa_elevator
         dev/module/can_interface.cpp
-        dev/interface/elevator_interface.cpp
-        dev/interface/chassis_interface.cpp
-        dev/control/chassis.cpp
         dev/module/pid_controller.hpp
-        dev/debug/unit_tests/engineer_chassis_elevator_unit_test.cpp
-        dev/vehicle/engineer/elevator_thread.cpp)
+        dev/interface/elevator_interface.cpp
+        dev/control/elevator.cpp
+        dev/debug/unit_tests/elevator_param_adjust.cpp)
 
 # Robotic Arm
 add_executable(ut_robotic_arm
         dev/module/can_interface.cpp
         dev/interface/robotic_arm.cpp
-        dev/vehicle/engineer/robotic_arm_thread.cpp
+        dev/vehicle/engineer/state_machine_bullet_fetch.cpp
         dev/debug/unit_tests/engineer_robotic_arm_unit_test.cpp)
 
 # Adjust Params of Skywalker-20A for friction wheels

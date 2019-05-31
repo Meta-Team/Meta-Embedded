@@ -9,7 +9,7 @@
 #include "hal.h"
 
 #include "led.h"
-#include "debug/shell/shell.h"
+#include "serial_shell.h"
 #include "buzzer.h"
 
 /**
@@ -19,6 +19,24 @@
  * @note This module should only set upon debug module, but NOT any higher level module. Events or Exceptions should be
  *       be reported by threads (although may through module code), instead of being fetched by this module.
  */
+
+#if defined(INFANTRY)
+#define STATE_HANDLER_ENABLE_MPU6500
+#endif
+
+#if defined(INFANTRY)
+#define STATE_HANDLER_ENABLE_GIMBAL
+#endif
+
+#if defined(INFANTRY) || defined(ENGINEER)
+#define STATE_HANDLER_ENABLE_CHASSIS
+#endif
+
+#if defined(ENGINEER)
+#define STATE_HANDLER_ENABLE_ROBOTIC_ARM
+#define STATE_HANDLER_ENABLE_ELEVATOR
+#endif
+
 class StateHandler {
 
 public:
@@ -27,20 +45,26 @@ public:
      * Events collection
      */
     enum Events {
-        SHELL_START,
-        CAN_START_SUCCESSFULLY,
-#if defined(INFANTRY) || defined(HERO)
-        MPU6500_START_SUCCESSFULLY,
+        SHELL_START
+        ,CAN_START_SUCCESSFULLY
+#ifdef STATE_HANDLER_ENABLE_MPU6500
+        ,MPU6500_START_SUCCESSFULLY
 #endif
-        REMOTE_START_SUCCESSFULLY,
-#if defined(INFANTRY) || defined(HERO)
-        GIMBAL_CONNECTED,
+        ,REMOTE_START_SUCCESSFULLY
+#ifdef STATE_HANDLER_ENABLE_GIMBAL
+        ,GIMBAL_CONNECTED
 #endif
-#if defined(INFANTRY) || defined(ENGINEER) || defined(HERO)
-        CHASSIS_CONNECTED,
+#ifdef STATE_HANDLER_ENABLE_CHASSIS
+        ,CHASSIS_CONNECTED
 #endif
-        MAIN_MODULES_SETUP_COMPLETE,
-        MAIN_THREAD_SETUP_COMPLETE
+#ifdef STATE_HANDLER_ENABLE_ROBOTIC_ARM
+        ,ROBOTIC_ARM_CONNECT
+#endif
+#ifdef STATE_HANDLER_ENABLE_ELEVATOR
+        ,ELEVATOR_CONNECTED
+#endif
+        ,MAIN_MODULES_SETUP_COMPLETE
+        ,MAIN_THREAD_SETUP_COMPLETE
     };
 
     /**
@@ -61,18 +85,23 @@ public:
      * Exceptions collection
      */
     enum Exceptions {
-        CAN_ERROR,
-#if defined(INFANTRY) || defined(HERO)
-        MPU6500_DISCONNECTED,
+        CAN_ERROR
+#ifdef STATE_HANDLER_ENABLE_MPU6500
 #endif
-        REMOTE_DISCONNECTED,
-#if defined(INFANTRY) || defined(HERO)
-        GIMBAL_DISCONNECTED,
-        BULLET_LOADER_STUCK,
+        ,REMOTE_DISCONNECTED
+#ifdef STATE_HANDLER_ENABLE_GIMBAL
+        ,GIMBAL_DISCONNECTED,
+        ,BULLET_LOADER_STUCK
 #endif
-
-#if defined(INFANTRY) || defined(ENGINEER) || defined(HERO)
-        CHASSIS_DISCONNECTED
+#ifdef STATE_HANDLER_ENABLE_CHASSIS
+        ,CHASSIS_DISCONNECTED
+#endif
+//#ifdef STATE_HANDLER_ENABLE_ELEVATOR
+        ,ELEVATOR_DISCONNECTED
+        ,ELEVATOR_UNBALANCE
+//#endif
+#ifdef STATE_HANDLER_ENABLE_ROBOTIC_ARM
+        ,ROBOTIC_ARM_DISCONNECTED
 #endif
     };
 
@@ -99,13 +128,26 @@ public:
      * Return the mark of CAN error (set by CANInterface) and clear it
      * @return
      */
-    static bool fetchCANErrorMark();
+    static bool fetchCANErrorMark() {
+        bool ret = canErrorOccured_;
+        canErrorOccured_ = false;
+        return ret;
+    }
 
     static bool remoteDisconnected() { return remoteDisconnected_; }
 
+#ifdef STATE_HANDLER_ENABLE_GIMBAL
     static bool gimbalSeriousErrorOccured() { return gimbalSeriousErrorOccured_; }
-
+#endif
+#ifdef STATE_HANDLER_ENABLE_CHASSIS
     static bool chassisSeriousErrorOccured() { return chassisSeriousErrorOccured_; }
+#endif
+#ifdef STATE_HANDLER_ENABLE_ELEVATOR
+    static bool elevatorSeriousErrorOccured() { return elevatorSeriousErrorOccured_; };
+#endif
+#ifdef STATE_HANDLER_ENABLE_ROBOTIC_ARM
+    static bool roboticArmSeriousErrorOccured() { return roboticArmSeriousErrorOccured_; }
+#endif
 
 #endif
 
@@ -129,8 +171,18 @@ private:
 
     static bool canErrorOccured_;
     static bool remoteDisconnected_;
+#ifdef STATE_HANDLER_ENABLE_GIMBAL
     static bool gimbalSeriousErrorOccured_;
+#endif
+#ifdef STATE_HANDLER_ENABLE_CHASSIS
     static bool chassisSeriousErrorOccured_;
+#endif
+#ifdef STATE_HANDLER_ENABLE_ELEVATOR
+    static bool elevatorSeriousErrorOccured_;
+#endif
+#ifdef STATE_HANDLER_ENABLE_ROBOTIC_ARM
+    static bool roboticArmSeriousErrorOccured_;
+#endif
 
 };
 

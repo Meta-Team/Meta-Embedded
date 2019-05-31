@@ -2,50 +2,45 @@
 // Created by liuzikai on 2019-02-24.
 //
 
-#include "robotic_arm_thread.h"
+#include "state_machine_bullet_fetch.h"
 #include "buzzer.h"
 #include "led.h"
 
-RoboticArmThread::status_t RoboticArmThread::get_status() {
-    return status_;
+BulletFetchStateMachine::action_t BulletFetchStateMachine::get_current_action() {
+    return action_;
 }
 
-bool RoboticArmThread::start_initial_outward(tprio_t prio) {
-    if (status_ != STOP) return false;
-    status_ = INITIAL_OUTWARD;
-    chibios_rt::BaseStaticThread<ROBOTIC_ARM_THREAD_WORKING_AREA_SIZE>::start(prio);
+bool BulletFetchStateMachine::start_initial_outward(tprio_t prio) {
+    if (action_ != STOP) return false;
+    action_ = INITIAL_OUTWARD;
+    chibios_rt::BaseStaticThread<BULLET_FETCH_STATE_MACHINE_WORKING_AREA_SIZE>::start(prio);
     return true;
 }
 
-bool RoboticArmThread::start_one_fetch(tprio_t prio) {
-    if (status_ != STOP) return false;
-    status_ = FETCH_ONCE;
-    chibios_rt::BaseStaticThread<ROBOTIC_ARM_THREAD_WORKING_AREA_SIZE>::start(prio);
+bool BulletFetchStateMachine::start_one_fetch(tprio_t prio) {
+    if (action_ != STOP) return false;
+    action_ = FETCH_ONCE;
+    chibios_rt::BaseStaticThread<BULLET_FETCH_STATE_MACHINE_WORKING_AREA_SIZE>::start(prio);
     return true;
 }
 
-bool RoboticArmThread::start_final_inward(tprio_t prio) {
-    if (status_ != STOP) return false;
-    status_ = FINAL_INWARD;
-    chibios_rt::BaseStaticThread<ROBOTIC_ARM_THREAD_WORKING_AREA_SIZE>::start(prio);
+bool BulletFetchStateMachine::start_final_inward(tprio_t prio) {
+    if (action_ != STOP) return false;
+    action_ = FINAL_INWARD;
+    chibios_rt::BaseStaticThread<BULLET_FETCH_STATE_MACHINE_WORKING_AREA_SIZE>::start(prio);
     return true;
 }
 
-void RoboticArmThread::emergency_stop() {
-    status_ = STOP;
-    exit(0xFF); // FIXME: this won't work since it terminate the call thread
-}
-
-void RoboticArmThread::main() {
+void BulletFetchStateMachine::main() {
 
     setName("robotic_arm");
 
-    if (status_ == STOP) {
+    if (action_ == STOP) {
         // Do nothing
-    } else if (status_ == INITIAL_OUTWARD) {
+    } else if (action_ == INITIAL_OUTWARD) {
 
         // Step 1. Rotate outwards
-        RoboticArm::set_motor_target_current(-2000);
+        RoboticArm::set_motor_target_current(-2500);
         while (RoboticArm::get_motor_actual_angle() > -65) {
             RoboticArm::send_motor_target_current();
             sleep(TIME_MS2I(motor_action_interval));
@@ -70,22 +65,30 @@ void RoboticArmThread::main() {
         RoboticArm::send_motor_target_current();
         sleep(TIME_MS2I(500));
 
-        status_ = STOP;
+        action_ = STOP;
 
-    } else if (status_ == FETCH_ONCE) {
+    } else if (action_ == FETCH_ONCE) {
 
-        // Step 1. Clamp
+        // Step 1. Drawer goes outwards
+        palSetPad(GPIOH, GPIOH_POWER4_CTRL);
+        sleep(TIME_MS2I(2000));
+
+        // Step 2. Clamp
         RoboticArm::clamp_action(RoboticArm::CLAMP_CLAMPED);
         sleep(TIME_MS2I(2000));
 
-        // Step 2.1. Rotate inwards
+        // Step 3. Drawer goes inwards
+        palClearPad(GPIOH, GPIOH_POWER4_CTRL);
+        sleep(TIME_MS2I(2000));
+
+        // Step 4.1. Rotate inwards
         RoboticArm::set_motor_target_current(10000);
         while (RoboticArm::get_motor_actual_angle() < -67) {
             RoboticArm::send_motor_target_current();
             sleep(TIME_MS2I(motor_action_interval));
         }
 
-        // Step 2.2. Rotate inwards with inertia
+        // Step 4.2. Rotate inwards with inertia
         RoboticArm::set_motor_target_current(0);
         while (RoboticArm::get_motor_actual_angle() < -40) {
             RoboticArm::send_motor_target_current();
@@ -117,9 +120,9 @@ void RoboticArmThread::main() {
         RoboticArm::set_motor_target_current(0);
         RoboticArm::send_motor_target_current();
 
-        status_ = STOP;
+        action_ = STOP;
 
-    } else if (status_ == FINAL_INWARD) {
+    } else if (action_ == FINAL_INWARD) {
 
         // Step 1.1. Rotate inwards
         RoboticArm::set_motor_target_current(3000);
@@ -146,13 +149,13 @@ void RoboticArmThread::main() {
         RoboticArm::set_motor_target_current(0);
         RoboticArm::send_motor_target_current();
 
-        status_ = STOP;
+        action_ = STOP;
 
     }
 
     exit(0);
 }
 
-bool RoboticArmThread::is_outward() {
+bool BulletFetchStateMachine::is_outward() {
     return (RoboticArm::get_motor_actual_angle() < -150);
 }

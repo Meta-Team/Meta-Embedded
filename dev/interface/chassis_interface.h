@@ -11,11 +11,13 @@
 #include "hal.h"
 #include "can_interface.h"
 
+#include "common_macro.h"
+
 /**
  * Enable clip at the moment of sending current.
  * Only for safety. There is NO signal for clipping. Be sure to eliminate it if more current is needed.
  */
-#define CHASSIS_INTERFACE_ENABLE_CLIP                  TRUE
+#define CHASSIS_INTERFACE_ENABLE_CLIP                  FALSE
 
 #if CHASSIS_INTERFACE_ENABLE_CLIP
 #define CHASSIS_INTERFACE_MAX_CURRENT 5000  // mA
@@ -24,7 +26,7 @@
 /**
  * @name ChassisInterface
  * @brief interface to process chassis motor feedback and send target current.
- * @pre hardware is properly set. CAN id of each motor should be the same as chassis_motor_id_t.
+ * @pre hardware is properly set. CAN id of each motor should be the same as motor_id_t.
  * @usage 1. Call init(CANInterface *). The interface should be properly initialized.
  *        2. Control the data flow based on actual implementation
  * @note This module is designed to process feedback automatically, but not to send current automatically, to avoid
