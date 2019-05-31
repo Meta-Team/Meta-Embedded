@@ -46,19 +46,20 @@ const UARTConfig Referee::UART_CONFIG = {
 void Referee::uart_rx_callback(UARTDriver *uartp) {
     (void) uartp;
 
+    chSysLockFromISR();
     // Handle received data and transfer status properly
     switch (rx_status) {
 
         case WAIT_STARTING_BYTE:
-
+            LED::green_toggle();
             if (rx_buf[0] == 0xA5) {
                 rx_status = WAIT_REMAINING_HEADER;
             } // else, keep waiting for SOF
-
+            Shell::printfI("[REFEREE] %x" SHELL_NEWLINE_STR, (unsigned) rx_buf[0]);
             break;
 
         case WAIT_REMAINING_HEADER:
-            LED::green_toggle();
+
             if (Verify_CRC8_Check_Sum((uint8_t *) rx_buf, FRAME_HEADER_SIZE)) {
                 memcpy(&frame_header, rx_buf, FRAME_HEADER_SIZE);
                 memcpy(&cmd_id, rx_buf + FRAME_HEADER_SIZE, CMD_ID_SIZE);
@@ -105,15 +106,18 @@ void Referee::uart_rx_callback(UARTDriver *uartp) {
 
     switch (rx_status) {
         case WAIT_STARTING_BYTE:
-            uartStartReceive(uartp, FRAME_SOF_SIZE, rx_buf);
+            uartStartReceiveI(uartp, FRAME_SOF_SIZE, rx_buf);
             break;
         case WAIT_REMAINING_HEADER:
-            uartStartReceive(uartp, FRAME_HEADER_SIZE - FRAME_SOF_SIZE, rx_buf + FRAME_SOF_SIZE);
+            uartStartReceiveI(uartp, FRAME_HEADER_SIZE - FRAME_SOF_SIZE, rx_buf + FRAME_SOF_SIZE);
             break;
         case WAIT_CMD_ID_DATA_TAIL:
-            uartStartReceive(uartp, CMD_ID_SIZE + frame_header.data_length + FRAME_TAIL_SIZE, rx_buf + FRAME_HEADER_SIZE);
+            uartStartReceiveI(uartp, CMD_ID_SIZE + frame_header.data_length + FRAME_TAIL_SIZE, rx_buf + FRAME_HEADER_SIZE);
             break;
     }
+
+    chSysUnlockFromISR();
+
 }
 
 void Referee::init() {

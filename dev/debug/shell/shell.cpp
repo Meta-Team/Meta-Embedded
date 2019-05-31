@@ -98,7 +98,9 @@ int Shell::printfI(const char *fmt, ...) {
 
     va_start(ap, fmt);
     formatted_bytes = chsnprintf((char *) isrTxBuf_, SHELL_ISR_TX_BUF_SIZE, fmt, ap);
-    oqWriteTimeout(&isrTxQueue_, isrTxBuf_, formatted_bytes, TIME_INFINITE);
+    for (int i = 0; i < formatted_bytes; i++) {
+        iqPutI(&isrTxQueue_, isrTxBuf_[i]);
+    }
     va_end(ap);
 
     return formatted_bytes;

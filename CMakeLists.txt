@@ -92,7 +92,7 @@ target_include_directories(INFANTRY_FOUR PRIVATE dev/vehicle/infantry)
 target_compile_definitions(INFANTRY_FOUR PRIVATE INFANTRY INFANTRY_FOUR ENABLE_STATE_HANDLE)
 
 # Main Program -- Infantry #5
-add_executable(INFANTRY_FIVE ${INFANTRY} dev/control/sentry_chassis_calculator.cpp dev/control/sentry_chassis_calculator.h)
+add_executable(INFANTRY_FIVE ${INFANTRY})
 target_include_directories(INFANTRY_FIVE PRIVATE dev/vehicle/infantry)
 target_compile_definitions(INFANTRY_FIVE PRIVATE INFANTRY INFANTRY_FIVE ENABLE_STATE_HANDLE)
 
@@ -239,7 +239,7 @@ add_executable(ut_sentry_chassis
         dev/module/can_interface.cpp
         dev/module/pid_controller.hpp
         dev/interface/sentry_chassis_interface.cpp
-        dev/control/sentry_chassis_calculator.cpp
+        dev/control/sentry_chassis.cpp
         dev/debug/unit_tests/sentry_chassis_unit_test.cpp)
 
 add_executable(ut_referee_interface
