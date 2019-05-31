@@ -30,9 +30,11 @@ class SentryChassis {
 
 public:
 
+    static float constexpr chassis_motor_decelerate_ratio = 19.2f; // 3591/187 on the data sheet
+
     enum motor_id_t {
-        MOTOR_LEFT,
         MOTOR_RIGHT,
+        MOTOR_LEFT,
         MOTOR_COUNT // = 2
     };
 
@@ -77,12 +79,6 @@ private:
     static void process_feedback(CANRxFrame const*rxmsg);
 
     friend CANInterface;
-
-private:
-
-    /** Configurations **/
-
-    static float constexpr chassis_motor_decelerate_ratio = 19.2f; // 3591/187 on the data sheet
 
 };
 
