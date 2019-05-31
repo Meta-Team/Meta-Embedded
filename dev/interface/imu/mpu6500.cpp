@@ -14,7 +14,7 @@
 MPU6500::MPU6500UpdateThread MPU6500::updateThread;
 
 Vector3D MPU6500::angle_speed;  // final data of gyro
-Vector3D MPU6500::a_component;  // final data of acceleration
+Vector3D MPU6500::acceleration;  // final data of acceleration
 float MPU6500::temperature;
 time_msecs_t MPU6500::last_update_time;
 
@@ -122,9 +122,9 @@ bool MPU6500::start(tprio_t prio) {
         temp_g_bias_x -= angle_speed.x;
         temp_g_bias_y -= angle_speed.y;
         temp_g_bias_z -= angle_speed.z;
-        temp_a_bias_x += a_component.x;
-        temp_a_bias_y += a_component.y;
-        temp_a_bias_z += a_component.z;
+        temp_a_bias_x += acceleration.x;
+        temp_a_bias_y += acceleration.y;
+        temp_a_bias_z += acceleration.z;
         chThdSleepMilliseconds(MPU6500_BIAS_SAMPLE_INTERVAL);
     }
 
@@ -186,7 +186,7 @@ void MPU6500::getData() {
     angle_speed.y = (gyro_y + _gyro_bias.y);
     angle_speed.z = (gyro_z + _gyro_bias.z);
 
-    a_component = Vector3D(accel_x, accel_y, accel_z) * _accel_bias;
+    acceleration = Vector3D(accel_x, accel_y, accel_z) * _accel_bias;
 
     last_update_time = SYSTIME;
 

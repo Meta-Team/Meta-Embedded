@@ -1,5 +1,5 @@
 //
-// Created by liuzikai on 2019-01-15.
+// Created by liuzikai on 2019-05-13.
 //
 
 #include "ch.hpp"
@@ -8,33 +8,33 @@
 #include "led.h"
 #include "serial_shell.h"
 
-#include "mpu6500.h"
+#include "ahrs.h"
 
 using namespace chibios_rt;
 
-class MPU6500FeedbackThread : public BaseStaticThread<1024> {
+class AHRSFeedbackThread : public BaseStaticThread<1024> {
 protected:
     void main() final {
-        setName("mpu6500");
-        MPU6500::start(HIGHPRIO - 2);
+        setName("imu");
+        MPU6500::start(HIGHPRIO - 1);
+        AHRS::init(HIGHPRIO - 2);
         while (!shouldTerminate()) {
-            Shell::printf("w = (%.4f, %.4f, %.4f), a = (%.4f, %.4f, %.4f), temp = %.4f" SHELL_NEWLINE_STR,
-                          MPU6500::angle_speed.x, MPU6500::angle_speed.y, MPU6500::angle_speed.z,
-                          MPU6500::acceleration.x, MPU6500::acceleration.y, MPU6500::acceleration.z,
-                          MPU6500::temperature);
+            Shell::printf("(%.4f, %.4f, %.4f)" SHELL_NEWLINE_STR,
+                          AHRS::angle.x,
+                          AHRS::angle.y,
+                          AHRS::angle.z);
             sleep(TIME_MS2I(100));
         }
     }
 } feedbackThread;
 
 int main(void) {
+
     halInit();
     System::init();
 
-    // Start ChibiOS shell at high priority, so even if a thread stucks, we still have access to shell.
     Shell::start(HIGHPRIO);
-    LED::green_off();
-    LED::red_off();
+    LED::all_off();
 
     feedbackThread.start(NORMALPRIO);
 

@@ -9,7 +9,8 @@
 #include "hal.h"
 
 #include "common_macro.h"
-#include "control/state_handler.h"
+#include "state_handler.h"
+#include "imu_math.hpp"
 
 #include "mpu6500_reg.h"
 
@@ -27,42 +28,6 @@
 #error "MPU6500 interface has not been defined for selected board"
 #endif
 
-
-typedef float matrix3[3][3];
-
-class Vector3D {
-public:
-
-    float x;
-    float y;
-    float z;
-    Vector3D():x(0),y(0),z(0) {};
-    Vector3D(float a, float b, float c):x(a),y(b),z(c) {};
-    Vector3D(float a[3]):x(a[0]), y(a[1]), z(a[2]) {};
-
-    /**
-    * @brief rotate the vector with the bias matrix
-    * @param vector3D and bias matrix
-    * @return a vector
-    */
-    friend const Vector3D operator*(Vector3D a, matrix3 b) {
-        Vector3D converted;
-        converted.x = b[0][0] * a.x + b[0][1] * a.y + b[0][2] * a.z;
-        converted.y = b[1][0] * a.x + b[1][1] * a.y + b[1][2] * a.z;
-        converted.z = b[2][0] * a.x + b[2][1] * a.y + b[2][2] * a.z;
-        return converted;
-    }
-
-    const Vector3D crossMultiply(Vector3D b) {
-        Vector3D ans;
-        ans.x = y * b.z - z * b.y;
-        ans.y = z * b.x - x * b.z;
-        ans.z = x * b.y - y * b.x;
-        return ans;
-    }
-
-};
-
 /**
  * @name MPU6500Controller
  * @brief Interface to get MPU6500 data
@@ -74,7 +39,7 @@ class MPU6500 {
 public:
 
     static Vector3D angle_speed;  // final data of gyro
-    static Vector3D a_component;  // final data of acceleration
+    static Vector3D acceleration;  // final data of acceleration
     static float temperature;
 
     static time_msecs_t last_update_time;
