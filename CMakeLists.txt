@@ -116,7 +116,7 @@ target_compile_definitions(ENGINEER PRIVATE ENGINEER ENABLE_STATE_HANDLE)
 add_executable(HERO
         dev/module/pid_controller.hpp
         dev/module/can_interface.cpp
-        dev/interface/mpu6500.cpp
+        dev/interface/imu/mpu6500.cpp
         dev/interface/chassis_interface.cpp
         dev/interface/gimbal_interface.cpp
         dev/interface/remote_interpreter.cpp
@@ -149,7 +149,7 @@ add_executable(ut_gimbal_interface
 # Shoot
 add_executable(ut_shoot
         dev/module/can_interface.cpp
-        dev/interface/mpu6500.cpp
+        dev/interface/imu/mpu6500.cpp
         dev/interface/gimbal_interface.cpp
         dev/control/shoot.cpp
         dev/debug/unit_tests/hero_shoot_unit_test.cpp)
@@ -228,22 +228,17 @@ add_executable(ut_robotic_arm
 
 # Adjust Params of Skywalker-20A for friction wheels
 add_executable(pa_skywalker
-        dev/debug/unit_tests/friction_wheel_param_adjust.cpp
+        dev/debug/unit_tests/skywalker_param_adjust.cpp
         dev/interface/remote_interpreter.cpp
         dev/interface/buzzer.cpp)
 
 # Sentry Chassis
 add_executable(ut_sentry_chassis
         dev/module/can_interface.cpp
-        dev/module/pid_controller.cpp
+        dev/module/pid_controller.hpp
         dev/interface/sentry_chassis_interface.cpp
         dev/control/sentry_chassis_calculator.cpp
         dev/debug/unit_tests/sentry_chassis_unit_test.cpp)
-# Adjust Params of Skywalker-20A for friction wheels
-add_executable(pa_skywalker
-        dev/debug/unit_tests/friction_wheel_param_adjust.cpp
-        dev/interface/remote_interpreter.cpp
-        dev/interface/buzzer.cpp)
 
 add_executable(ut_referee_interface
         dev/module/CRC8.cpp
