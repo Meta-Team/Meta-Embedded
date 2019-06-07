@@ -295,7 +295,7 @@ protected:
 
                     if (enable_a2v_pid) {
                         // Calculate from angle to velocity
-                        Shoot::calc_a2v_((Shoot::motor_id_t) i, Shoot::feedback[i + 2].actual_angle, target_angle[i]);
+                        Shoot::calc_a2v_(motor, Shoot::feedback[motor].actual_angle, target_angle[i]);
                     } else {
                         Shoot::target_velocity[i] = target_v[i];
                     }
@@ -307,8 +307,7 @@ protected:
                         continue;
                     }
 
-                    Shoot::calc_v2i_((Shoot::motor_id_t) i, Shoot::feedback[i + 2].actual_velocity,
-                                     Shoot::target_velocity[i]);
+                    Shoot::calc_v2i_(motor, Shoot::feedback[motor].actual_velocity, Shoot::target_velocity[i]);
 
                     // Perform current check
                     if (Shoot::target_current[motor] > MAX_CURRENT || Shoot::target_current[motor] < -MAX_CURRENT) {
@@ -328,6 +327,7 @@ protected:
 
             // Send currents
             GimbalInterface::send_gimbal_currents();
+
 
             sleep(TIME_MS2I(SHOOT_THREAD_INTERVAL));
         }

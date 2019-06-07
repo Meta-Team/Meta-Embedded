@@ -50,12 +50,12 @@ public:
 
 private:
 
-    static float target_velocity[2];
-
     static float degree_per_bullet_;
     static float degree_per_bullet_plate_;
 
     friend class ShootDebugThread;
+
+    static float target_velocity[2];
 
     static void calc_a2v_(motor_id_t motor, float actual_angle_, float target_angle_);
     static void calc_v2i_(motor_id_t motor, float actual_velocity_, float target_velocity_);
