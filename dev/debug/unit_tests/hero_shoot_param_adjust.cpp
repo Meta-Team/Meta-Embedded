@@ -16,7 +16,7 @@
 
 #include "can_interface.h"
 
-#include "shoot.h"
+#include "hero_shoot.h"
 
 using namespace chibios_rt;
 
@@ -35,6 +35,9 @@ int const MAX_CURRENT = 6500;  // [mA]
 
 bool motor_enabled[2] = {false, false};
 
+bool enable_a2v_pid = false;
+
+float target_angle[2] = {0.0, 0.0};
 float target_v[2] = {0, 0};
 
 CANInterface can1(&CAND1);
@@ -57,14 +60,14 @@ private:
             if (enable_bullet_feedback) {
                 Shell::printf("!gy,%u,%.2f,%.2f,%.2f,%.2f,%d,%d" SHELL_NEWLINE_STR,
                               SYSTIME,
-                              0.0f, 0.0f,
+                              Shoot::feedback[BULLET].actual_angle, target_angle[0],
                               Shoot::feedback[BULLET].actual_velocity, target_v[0],
                               Shoot::feedback[BULLET].actual_current, Shoot::target_current[BULLET]);
             }
             if (enable_plate_feedback) {
                 Shell::printf("!gp,%u,%.2f,%.2f,%.2f,%.2f,%d,%d" SHELL_NEWLINE_STR,
                               SYSTIME,
-                              0.0f, 0.0f,
+                              Shoot::feedback[PLATE].actual_angle, target_angle[1],
                               Shoot::feedback[PLATE].actual_velocity, target_v[1],
                               Shoot::feedback[PLATE].actual_current, Shoot::target_current[PLATE]);
             }
@@ -169,6 +172,8 @@ static void cmd_shoot_set_target_velocities(BaseSequentialStream *chp, int argc,
     target_v[0] = Shell::atof(argv[0]);
     target_v[1] = Shell::atof(argv[1]);
     _cmd_shoot_clear_i_out();
+
+    enable_a2v_pid = false;
 }
 
 /**
@@ -180,11 +185,15 @@ static void cmd_shoot_set_target_velocities(BaseSequentialStream *chp, int argc,
 static void cmd_shoot_set_target_angle(BaseSequentialStream *chp, int argc, char *argv[]) {
     (void) argv;
     if (argc != 2) {
-        shellUsage(chp, "g_set_angle NULL NULL");
+        shellUsage(chp, "g_set_angle bullet_angle plate_angle");
         return;
     }
 
-    // Do nothing
+    target_angle[0] = Shell::atof(argv[0]);
+    target_angle[1] = Shell::atof(argv[1]);
+    _cmd_shoot_clear_i_out();
+
+    enable_a2v_pid = true;
 }
 
 /**
@@ -201,11 +210,15 @@ void cmd_shoot_set_parameters(BaseSequentialStream *chp, int argc, char *argv[])
         return;
     }
 
+    Shoot::pid_params_t bullet_a2v_params = Shoot::a2v_pid[0].get_parameters();
     Shoot::pid_params_t bullet_v2i_params = Shoot::v2i_pid[0].get_parameters();
+    Shoot::pid_params_t plate_a2v_params = Shoot::a2v_pid[1].get_parameters();
     Shoot::pid_params_t plate_v2i_params = Shoot::v2i_pid[1].get_parameters();
 
     Shoot::pid_params_t *p = nullptr;
-    if (*argv[0] == '0' && *argv[1] == '1') p = &bullet_v2i_params;
+    if (*argv[0] == '0' && *argv[1] == '0') p = &bullet_a2v_params;
+    else if (*argv[0] == '0' && *argv[1] == '1') p = &bullet_v2i_params;
+    else if (*argv[0] == '1' && *argv[1] == '0') p = &plate_a2v_params;
     else if (*argv[0] == '1' && *argv[1] == '1') p = &plate_v2i_params;
     else {
         chprintf(chp, "!pe" SHELL_NEWLINE_STR);  // echo parameters error
@@ -218,7 +231,7 @@ void cmd_shoot_set_parameters(BaseSequentialStream *chp, int argc, char *argv[])
           Shell::atof(argv[5]),
           Shell::atof(argv[6])};
 
-    Shoot::change_pid_params(bullet_v2i_params, plate_v2i_params);
+    Shoot::change_pid_params(bullet_a2v_params, bullet_v2i_params, plate_a2v_params, plate_v2i_params);
 
     chprintf(chp, "!ps" SHELL_NEWLINE_STR); // echo parameters set
 }
@@ -243,7 +256,9 @@ void cmd_shoot_echo_parameters(BaseSequentialStream *chp, int argc, char *argv[]
         return;
     }
 
-    chprintf(chp, "bullet v_to_i:       ");
+    chprintf(chp, "bullet angle_to_i:       ");
+    _cmd_shoot_echo_parameters(chp, Shoot::a2v_pid[BULLET].get_parameters());
+    chprintf(chp, "bullet v_to_i"       );
     _cmd_shoot_echo_parameters(chp, Shoot::v2i_pid[BULLET].get_parameters());
     chprintf(chp, "plate v_to_i:     ");
     _cmd_shoot_echo_parameters(chp, Shoot::v2i_pid[PLATE].get_parameters());
@@ -276,6 +291,15 @@ protected:
 
                     auto motor = (Shoot::motor_id_t) (i + 2);
 
+                    // No angle check
+
+                    if (enable_a2v_pid) {
+                        // Calculate from angle to velocity
+                        Shoot::calc_a2v_((Shoot::motor_id_t) i, Shoot::feedback[i + 2].actual_angle, target_angle[i]);
+                    } else {
+                        Shoot::target_velocity[i] = target_v[i];
+                    }
+
                     // Perform velocity check
                     if (Shoot::feedback[motor].actual_velocity > MAX_VELOCITY[i]) {
                         Shell::printf("!d%cv" SHELL_NEWLINE_STR, MOTOR_CHAR[i]);
@@ -283,8 +307,8 @@ protected:
                         continue;
                     }
 
-                    // Calculate from velocity to current
-                    Shoot::calc_motor_(motor, Shoot::feedback[motor].actual_velocity, target_v[i]);
+                    Shoot::calc_v2i_((Shoot::motor_id_t) i, Shoot::feedback[i + 2].actual_velocity,
+                                     Shoot::target_velocity[i]);
 
                     // Perform current check
                     if (Shoot::target_current[motor] > MAX_CURRENT || Shoot::target_current[motor] < -MAX_CURRENT) {
@@ -295,6 +319,7 @@ protected:
                 }
 
             }
+
 
             // This two operations should be after calculation since motor can get disabled if check failed
             // This two operations should always perform, instead of being put in a 'else' block
@@ -321,9 +346,15 @@ int main(void) {
     can1.start(HIGHPRIO - 1);
     chThdSleepMilliseconds(10);
     GimbalInterface::init(&can1, 0, 0);
+    Shoot::init(72.0f, 10.0f); // Set every step, to perform calculation properly
 
     shootFeedbackThread.start(NORMALPRIO - 1);
     shootThread.start(NORMALPRIO);
+
+    chThdSleepMilliseconds(1000);
+    LOG("Gimbal Yaw: %u, %f, Pitch: %u, %f",
+        Shoot::feedback[Shoot::BULLET].last_angle_raw, Shoot::feedback[Shoot::BULLET].actual_angle,
+        Shoot::feedback[Shoot::PLATE].last_angle_raw, Shoot::feedback[Shoot::PLATE].actual_angle);
 
     // See chconf.h for what this #define means.
 #if CH_CFG_NO_IDLE_THREAD

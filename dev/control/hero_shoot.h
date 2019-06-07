@@ -48,13 +48,13 @@ public:
     static void calc_shoot(float bullet_actual_velocity, float plate_actual_velocity,
                             float bullet_target_angle, float plate_target_angle);
 
-
 private:
+
+    static float target_velocity[2];
 
     static float degree_per_bullet_;
     static float degree_per_bullet_plate_;
 
-    static float target_velocity[2];
     friend class ShootDebugThread;
 
     static void calc_a2v_(motor_id_t motor, float actual_angle_, float target_angle_);
