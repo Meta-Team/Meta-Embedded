@@ -263,6 +263,8 @@ void cmd_shoot_echo_parameters(BaseSequentialStream *chp, int argc, char *argv[]
     _cmd_shoot_echo_parameters(chp, Shoot::a2v_pid[BULLET].get_parameters());
     chprintf(chp, "bullet v_to_i"       );
     _cmd_shoot_echo_parameters(chp, Shoot::v2i_pid[BULLET].get_parameters());
+    chprintf(chp, "plate angle_to_i:       ");
+    _cmd_shoot_echo_parameters(chp, Shoot::a2v_pid[PLATE].get_parameters());
     chprintf(chp, "plate v_to_i:     ");
     _cmd_shoot_echo_parameters(chp, Shoot::v2i_pid[PLATE].get_parameters());
 }
