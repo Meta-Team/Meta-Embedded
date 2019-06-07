@@ -84,7 +84,7 @@ class GimbalThread : public chibios_rt::BaseStaticThread<1024> {
 
             }
 
-            GimbalInterface::send_gimbal_currents();
+            GimbalIF::send_gimbal_currents();
 
             sleep(TIME_MS2I(GIMBAL_THREAD_INTERVAL));
         }

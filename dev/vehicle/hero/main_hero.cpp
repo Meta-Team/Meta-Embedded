@@ -16,9 +16,9 @@
 #include "mpu6500.h"
 #include "remote_interpreter.h"
 
-#include "gimbal.h"
+#include "gimbal_scheduler.h"
 #include "shoot.h"
-#include "chassis.h"
+#include "chassis_scheduler.h"
 
 #include "state_handler.h"
 

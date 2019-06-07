@@ -30,6 +30,15 @@ public:
         return converted;
     }
 
+    friend const Vector3D operator+(Vector3D a, Vector3D b) {
+        Vector3D converted;
+        converted.x = a.x + b.x;
+        converted.y = a.y + b.y;
+        converted.z = a.z + b.z;
+        return converted;
+    }
+
+
     const Vector3D crossMultiply(Vector3D b) {
         Vector3D ans;
         ans.x = y * b.z - z * b.y;

@@ -41,7 +41,7 @@ void Shoot::calc(float bullet_per_second) {
 #endif
 }
 
-void Shoot::calc_motor_(GimbalInterface::motor_id_t motor, float actual_velocity, float target_velocity) {
+void Shoot::calc_motor_(GimbalIF::motor_id_t motor, float actual_velocity, float target_velocity) {
     target_current[motor] = (int) v2i_pid[motor - 2].calc(actual_velocity, target_velocity);
 }
 

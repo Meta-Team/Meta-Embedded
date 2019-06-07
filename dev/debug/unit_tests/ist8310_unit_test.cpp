@@ -1,5 +1,5 @@
 //
-// Created by liuzikai on 2019-05-13.
+// Created by liuzikai on 2019-06-07.
 //
 
 #include "ch.hpp"
@@ -8,34 +8,33 @@
 #include "led.h"
 #include "debug/shell/shell.h"
 
-#include "ahrs.h"
+#include "mpu6500.h"
+#include "ist8310.h"
 
 using namespace chibios_rt;
 
-class AHRSFeedbackThread : public BaseStaticThread<1024> {
+class IST8310FeedbackThread : public BaseStaticThread<1024> {
 protected:
     void main() final {
-        setName("imu");
+        setName("ist8310");
         MPU6500::start(HIGHPRIO - 1);
         IST8310::start(HIGHPRIO - 2);
-        AHRS::init(HIGHPRIO - 3);
         while (!shouldTerminate()) {
-            Shell::printf("(%.4f, %.4f, %.4f)" SHELL_NEWLINE_STR,
-                          AHRS::angle.x,
-                          AHRS::angle.y,
-                          AHRS::angle.z);
+            Shell::printf("%.4f, %.4f, %.4f" SHELL_NEWLINE_STR,
+                          IST8310::magnet.x, IST8310::magnet.y, IST8310::magnet.z);
             sleep(TIME_MS2I(100));
         }
     }
 } feedbackThread;
 
 int main(void) {
-
     halInit();
     System::init();
 
+    // Start ChibiOS shell at high priority, so even if a thread stucks, we still have access to shell.
     Shell::start(HIGHPRIO);
-    LED::all_off();
+    LED::green_off();
+    LED::red_off();
 
     feedbackThread.start(NORMALPRIO);
 

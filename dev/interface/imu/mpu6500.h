@@ -55,6 +55,8 @@ public:
 
 private:
 
+    static int static_measurement_count;
+
     /**
      * @brief read data from mpu6000 and convert to angel_speed_t type
      * @param none

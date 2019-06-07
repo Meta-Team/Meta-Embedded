@@ -2,7 +2,7 @@
 // Created by Administrator on 2019/1/11 0011.
 //
 
-#include "chassis.h"
+#include "chassis_scheduler.h"
 
 PIDController Chassis::pid[Chassis::MOTOR_COUNT];
 float Chassis::target_velocity[Chassis::MOTOR_COUNT];
@@ -10,7 +10,7 @@ float Chassis::w_to_v_ratio_ = 0.0f;
 float Chassis::v_to_wheel_angular_velocity_ = 0.0f;
 
 void Chassis::init(CANInterface *can_interface, float wheel_base, float wheel_tread, float wheel_circumference) {
-    ChassisInterface::init(can_interface);
+    ChassisIF::init(can_interface);
     w_to_v_ratio_ = (wheel_base + wheel_tread) / 2.0f / 360.0f * 3.14159f;
     v_to_wheel_angular_velocity_ = (360.0f / wheel_circumference);
 }

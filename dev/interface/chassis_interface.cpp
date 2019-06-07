@@ -4,11 +4,11 @@
 
 #include "chassis_interface.h"
 
-ChassisInterface::motor_feedback_t ChassisInterface::feedback[MOTOR_COUNT];
-int ChassisInterface::target_current[ChassisInterface::MOTOR_COUNT];
-CANInterface *ChassisInterface::can = nullptr;
+ChassisIF::motor_feedback_t ChassisIF::feedback[MOTOR_COUNT];
+int ChassisIF::target_current[ChassisIF::MOTOR_COUNT];
+CANInterface *ChassisIF::can = nullptr;
 
-bool ChassisInterface::send_chassis_currents() {
+bool ChassisIF::send_chassis_currents() {
 
     if (!can) return false;
 
@@ -34,7 +34,7 @@ bool ChassisInterface::send_chassis_currents() {
 
 }
 
-void ChassisInterface::process_chassis_feedback(CANRxFrame const *rxmsg) {
+void ChassisIF::process_chassis_feedback(CANRxFrame const *rxmsg) {
 
     if (rxmsg->SID > 0x204 || rxmsg->SID < 0x201) return;
 
@@ -57,7 +57,7 @@ void ChassisInterface::process_chassis_feedback(CANRxFrame const *rxmsg) {
 
 }
 
-void ChassisInterface::init(CANInterface *can_interface) {
+void ChassisIF::init(CANInterface *can_interface) {
     can = can_interface;
     can->register_callback(0x201, 0x204, process_chassis_feedback);
     for (int i = 0; i < MOTOR_COUNT; i++) {

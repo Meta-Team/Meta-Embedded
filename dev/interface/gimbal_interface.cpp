@@ -7,10 +7,10 @@
 #include "gimbal_interface.h"
 #include "common_macro.h"
 
-GimbalInterface::motor_feedback_t GimbalInterface::feedback[MOTOR_COUNT];
-int GimbalInterface::target_current[MOTOR_COUNT] = {0, 0, 0};
-float GimbalInterface::fw_duty_cycle = 0.0f;
-CANInterface *GimbalInterface::can_ = nullptr;
+GimbalIF::motor_feedback_t GimbalIF::feedback[MOTOR_COUNT];
+int GimbalIF::target_current[MOTOR_COUNT] = {0, 0, 0};
+float GimbalIF::fw_duty_cycle = 0.0f;
+CANInterface *GimbalIF::can_ = nullptr;
 
 const PWMConfig FRICTION_WHEELS_PWM_CFG = {
         50000,   // frequency
@@ -26,7 +26,7 @@ const PWMConfig FRICTION_WHEELS_PWM_CFG = {
         0
 };
 
-void GimbalInterface::init(CANInterface *can_interface, uint16_t yaw_front_angle_raw, uint16_t pitch_front_angle_raw) {
+void GimbalIF::init(CANInterface *can_interface, uint16_t yaw_front_angle_raw, uint16_t pitch_front_angle_raw) {
 
     feedback[YAW].id = YAW;
     feedback[YAW].last_angle_raw = yaw_front_angle_raw;
@@ -62,7 +62,7 @@ void GimbalInterface::init(CANInterface *can_interface, uint16_t yaw_front_angle
 
 }
 
-void GimbalInterface::send_gimbal_currents() {
+void GimbalIF::send_gimbal_currents() {
 
     CANTxFrame txmsg;
 
@@ -115,7 +115,7 @@ void GimbalInterface::send_gimbal_currents() {
 
 }
 
-void GimbalInterface::process_motor_feedback(CANRxFrame const *rxmsg) {
+void GimbalIF::process_motor_feedback(CANRxFrame const *rxmsg) {
 
 //    chSysLock();  // --- Enter Critical Zone ---
 
@@ -290,11 +290,11 @@ void GimbalInterface::process_motor_feedback(CANRxFrame const *rxmsg) {
 //    chSysUnlock();  // --- Exit Critical Zone ---
 }
 
-void GimbalInterface::motor_feedback_t::reset_front_angle() {
+void GimbalIF::motor_feedback_t::reset_front_angle() {
     actual_angle = 0;
     round_count = 0;
 }
 
-float GimbalInterface::motor_feedback_t::get_accumulate_angle() {
+float GimbalIF::motor_feedback_t::get_accumulate_angle() {
     return actual_angle + round_count * 360.0f;
 }

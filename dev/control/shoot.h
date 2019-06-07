@@ -13,7 +13,7 @@
  * @brief Shooter controller from high level to low level (by inheritance)
  * @note Share low-level GimbalInterface with Gimbal. Low-level initialization is done by Gimbal.
  */
-class Shoot : public GimbalInterface, public PIDControllerBase {
+class Shoot : public GimbalIF, public PIDControllerBase {
 
 public:
 

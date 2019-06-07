@@ -12,11 +12,23 @@
 #include "mpu6500_reg.h"
 #include "ist8310_reg.h"
 
-#define IST8310_RESET()     (palClearPad(GPIOE,GPIOE_IST8310_RST))
-#define IST8310_SET()       (palSetPad(GPIOE,GPIOE_IST8310_RST))
+#if defined(BOARD_RM_2017)
+// SPI5
+#define MPU6500_SPI_DRIVER SPID5
+#define MPU6500_SPI_CS_PAD GPIOF
+#define MPU6500_SPI_CS_PIN GPIOF_SPI5_NSS
+#elif defined(BOARD_RM_2018_A)
+// SPI5
+#define MPU6500_SPI_DRIVER SPID5
+#define MPU6500_SPI_CS_PAD GPIOF
+#define MPU6500_SPI_CS_PIN GPIOF_SPI5_NSS
+#else
+#error "MPU6500 interface has not been defined for selected board"
+#endif
 
+#define IST8310_BIAS_SAMPLE_COUNT 500
 
-class IST8310{
+class IST8310 {
 public:
 
     typedef enum {
@@ -47,20 +59,35 @@ public:
 
     } ist8310_i2c_addr_t;
 
-    typedef struct{
-        ist8310_i2c_addr_t addr;
-        uint8_t sample_rate;
-    } magConfigStruct;
-
     static Vector3D magnet;
-    static bool initial(SPIDriver *spi, magConfigStruct conf);
-    static void getData(SPIDriver *spi, )
+
+    static bool start(tprio_t prio);
+    static void getData();
 
 private:
-    static SPIDriver *spi_driver;
-    static float bias_x;
-    static float bias_y;
-    static float bias_z;
+
+//    static float bias_x;
+//    static float bias_y;
+//    static float bias_z;
+
+    static matrix3 magnet_bias;  // a matrix for accelerate bias
+
+    static constexpr ist8310_i2c_addr_t IST8310_ADDR = IST8310_ADDR_FLOATING;
+    static constexpr uint8_t IST8310_SAMPLE_RATE = 200;
+
+    static constexpr unsigned int IST8310_THREAD_UPDATE_INTERVAL = 1;  // read interval 1ms (1kHz)
+
+    class IST8310UpdateThread : public chibios_rt::BaseStaticThread<512> {
+        void main() final {
+            setName("ist8310");
+            while (!shouldTerminate()) {
+                IST8310::getData();
+                sleep(TIME_MS2I(IST8310_THREAD_UPDATE_INTERVAL));
+            }
+        }
+    };
+
+    static IST8310UpdateThread updateThread;
 };
 
 #endif //META_INFANTRY_IST8310_H

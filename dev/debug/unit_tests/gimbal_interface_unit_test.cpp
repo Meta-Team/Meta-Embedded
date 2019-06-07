@@ -21,17 +21,17 @@
 
 using namespace chibios_rt;
 
-// Duplicate of motor_id_t in GimbalInterface to reduce code
-unsigned const YAW = GimbalInterface::YAW;
-unsigned const PITCH = GimbalInterface::PITCH;
-unsigned const BULLET = GimbalInterface::BULLET;
-unsigned const PLATE = GimbalInterface::PLATE;
+// Duplicate of motor_id_t in GimbalIF to reduce code
+unsigned const YAW = GimbalIF::YAW;
+unsigned const PITCH = GimbalIF::PITCH;
+unsigned const BULLET = GimbalIF::BULLET;
+unsigned const PLATE = GimbalIF::PLATE;
 
 unsigned const GIMBAL_THREAD_INTERVAL = 1;    // [ms]
 unsigned const GIMBAL_FEEDBACK_INTERVAL = 25; // [ms]
 unsigned bullet_per_second = 0;
 
-// Raw angle of yaw and pitch when GimbalInterface points straight forward.
+// Raw angle of yaw and pitch when GimbalIF points straight forward.
 //   Note: the program will echo the raw angles of yaw and pitch as the program starts
 #define GIMBAL_YAW_FRONT_ANGLE_RAW 5372
 #define GIMBAL_PITCH_FRONT_ANGLE_RAW 4128
@@ -61,25 +61,25 @@ private:
 
             if (enable_yaw_feedback) {
                 Shell::printf("[Yaw] angle: %.2f, v:%.2f, a: %d" SHELL_NEWLINE_STR,
-                              GimbalInterface::feedback[YAW].actual_angle,
+                              GimbalIF::feedback[YAW].actual_angle,
                               GIMBAL_YAW_ACTUAL_VELOCITY,
-                              GimbalInterface::feedback[YAW].actual_current);
+                              GimbalIF::feedback[YAW].actual_current);
             }
             if (enable_pitch_feedback) {
                 Shell::printf("[PIT] angle: %.2f, v:%.2f, a: %d" SHELL_NEWLINE_STR,
-                              GimbalInterface::feedback[PITCH].actual_angle,
+                              GimbalIF::feedback[PITCH].actual_angle,
                               GIMBAL_PITCH_ACTUAL_VELOCITY,
-                              GimbalInterface::feedback[PITCH].actual_current);
+                              GimbalIF::feedback[PITCH].actual_current);
             }
             if (enable_loader_feedback){
                 Shell::printf("[PIT] angle: %.2f, v: %.2f" SHELL_NEWLINE_STR,
-                            GimbalInterface::feedback[BULLET].actual_angle,
-                            GimbalInterface::feedback[BULLET].actual_velocity);
+                            GimbalIF::feedback[BULLET].actual_angle,
+                            GimbalIF::feedback[BULLET].actual_velocity);
             }
             if (enable_plate_feedback){
                 Shell::printf("[PIT] angle: %.2f, v: %.2f" SHELL_NEWLINE_STR,
-                            GimbalInterface::feedback[PLATE].actual_angle,
-                            GimbalInterface::feedback[PLATE].actual_velocity);
+                            GimbalIF::feedback[PLATE].actual_angle,
+                            GimbalIF::feedback[PLATE].actual_velocity);
             }
 
             sleep(TIME_MS2I(500));
@@ -102,7 +102,7 @@ protected:
             if (GimbalShootEnable) {
                 Shoot::calc(bullet_per_second);
             } else {
-                GimbalInterface::target_current[BULLET] = GimbalInterface::target_current[PLATE] = 0;
+                GimbalIF::target_current[BULLET] = GimbalIF::target_current[PLATE] = 0;
             }
             sleep(TIME_MS2I((GIMBAL_THREAD_INTERVAL)));
         }
@@ -116,35 +116,35 @@ protected:
  */
 static void cmd_gimbal_enable_fw(BaseSequentialStream *chp, int argc, char *argv[]) {
     if (*argv[0] == '1') {
-        GimbalInterface::fw_duty_cycle = 0.1;
+        GimbalIF::fw_duty_cycle = 0.1;
     }
     else if (*argv[0] == '2'){
-        GimbalInterface::fw_duty_cycle = 0.2;
+        GimbalIF::fw_duty_cycle = 0.2;
     }
     else if (*argv[0] == '3'){
-        GimbalInterface::fw_duty_cycle = 0.3;
+        GimbalIF::fw_duty_cycle = 0.3;
     }
     else if (*argv[0] == '4'){
-        GimbalInterface::fw_duty_cycle = 0.4;
+        GimbalIF::fw_duty_cycle = 0.4;
     }
     else if (*argv[0] == '5'){
-        GimbalInterface::fw_duty_cycle = 0.5;
+        GimbalIF::fw_duty_cycle = 0.5;
     }
     else if (*argv[0] == '6'){
-        GimbalInterface::fw_duty_cycle = 0.6;
+        GimbalIF::fw_duty_cycle = 0.6;
     }
     else if (*argv[0] == '7'){
-        GimbalInterface::fw_duty_cycle = 0.7;
+        GimbalIF::fw_duty_cycle = 0.7;
     }
     else if (*argv[0] == '8'){
-        GimbalInterface::fw_duty_cycle = 0.8;
+        GimbalIF::fw_duty_cycle = 0.8;
     }
     else if (*argv[0] == '9'){
-        GimbalInterface::fw_duty_cycle = 0.9;
+        GimbalIF::fw_duty_cycle = 0.9;
     } else {
-        GimbalInterface::fw_duty_cycle = 0;
+        GimbalIF::fw_duty_cycle = 0;
     }
-    GimbalInterface::send_gimbal_currents();
+    GimbalIF::send_gimbal_currents();
 }
 //static void cmd_gimbal_loader(BaseSequentialStream *chp, int argc, char *argv[]){
 //    (void) argv;
@@ -157,7 +157,7 @@ static void cmd_gimbal_enable_fw(BaseSequentialStream *chp, int argc, char *argv
 //      Shoot::degree_per_bullet_plate = (float) *argv[1];
 //        Shoot::calc((float) *argv[3]);
 //    }
-//    GimbalInterface::send_gimbal_currents();
+//    GimbalIF::send_gimbal_currents();
 //}
 
 static void cmd_gimbal_loader (BaseSequentialStream *chp, int argc, char *argv[]) {
@@ -200,8 +200,8 @@ static void cmd_gimbal_fix_front_angle(BaseSequentialStream *chp, int argc, char
         shellUsage(chp, "g_fix");
         return;
     }
-    GimbalInterface::feedback[YAW].reset_front_angle();
-    GimbalInterface::feedback[PITCH].reset_front_angle();
+    GimbalIF::feedback[YAW].reset_front_angle();
+    GimbalIF::feedback[PITCH].reset_front_angle();
 }
 
 /**
@@ -217,18 +217,18 @@ static void cmd_gimbal_set_target_currents(BaseSequentialStream *chp, int argc, 
         return;
     }
 
-    GimbalInterface::target_current[YAW] = Shell::atoi(argv[0]);
-    GimbalInterface::target_current[PITCH] = Shell::atoi(argv[1]);
-    GimbalInterface::target_current[BULLET] = Shell::atoi(argv[2]);
-    GimbalInterface::target_current[PLATE] = Shell::atoi(argv[3]);
-    chprintf(chp, "Gimbal yaw target_current = %d" SHELL_NEWLINE_STR, GimbalInterface::target_current[YAW]);
-    chprintf(chp, "Gimbal pitch target_current = %d" SHELL_NEWLINE_STR, GimbalInterface::target_current[PITCH]);
-    chprintf(chp, "Gimbal bullet loader_target_current = %d" SHELL_NEWLINE_STR, GimbalInterface::target_current[BULLET]);
-    chprintf(chp, "Gimbal plate target_current = %d" SHELL_NEWLINE_STR, GimbalInterface::target_current[PLATE]);
+    GimbalIF::target_current[YAW] = Shell::atoi(argv[0]);
+    GimbalIF::target_current[PITCH] = Shell::atoi(argv[1]);
+    GimbalIF::target_current[BULLET] = Shell::atoi(argv[2]);
+    GimbalIF::target_current[PLATE] = Shell::atoi(argv[3]);
+    chprintf(chp, "Gimbal yaw target_current = %d" SHELL_NEWLINE_STR, GimbalIF::target_current[YAW]);
+    chprintf(chp, "Gimbal pitch target_current = %d" SHELL_NEWLINE_STR, GimbalIF::target_current[PITCH]);
+    chprintf(chp, "Gimbal bullet loader_target_current = %d" SHELL_NEWLINE_STR, GimbalIF::target_current[BULLET]);
+    chprintf(chp, "Gimbal plate target_current = %d" SHELL_NEWLINE_STR, GimbalIF::target_current[PLATE]);
 }
 
 
-// Command lists for GimbalInterface test
+// Command lists for GimbalIF test
 ShellCommand gimbalCotrollerCommands[] = {
         {"g_enable_fb",   cmd_gimbal_enable_feedback},
         {"g_fix",         cmd_gimbal_fix_front_angle},
@@ -244,7 +244,7 @@ protected:
     void main() final {
         setName("gimbal");
         while (!shouldTerminate()) {
-            GimbalInterface::send_gimbal_currents();
+            GimbalIF::send_gimbal_currents();
             sleep(TIME_MS2I(GIMBAL_THREAD_INTERVAL));
         }
     }
@@ -261,7 +261,7 @@ int main(void) {
     can1.start(HIGHPRIO - 1);
     MPU6500::start(HIGHPRIO - 2);
     chThdSleepMilliseconds(10);
-    GimbalInterface::init(&can1, GIMBAL_YAW_FRONT_ANGLE_RAW, GIMBAL_PITCH_FRONT_ANGLE_RAW);
+    GimbalIF::init(&can1, GIMBAL_YAW_FRONT_ANGLE_RAW, GIMBAL_PITCH_FRONT_ANGLE_RAW);
 
     gimbalFeedbackThread.start(NORMALPRIO - 1);
     gimbalThread.start(NORMALPRIO);
@@ -269,8 +269,8 @@ int main(void) {
 
     chThdSleepMilliseconds(100);
     LOG("Gimbal Yaw: %u, %f, Pitch: %u, %f",
-        GimbalInterface::feedback[YAW].last_angle_raw, GimbalInterface::feedback[YAW].actual_angle,
-        GimbalInterface::feedback[PITCH].last_angle_raw, GimbalInterface::feedback[PITCH].actual_angle);
+        GimbalIF::feedback[YAW].last_angle_raw, GimbalIF::feedback[YAW].actual_angle,
+        GimbalIF::feedback[PITCH].last_angle_raw, GimbalIF::feedback[PITCH].actual_angle);
 
     // See chconf.h for what this #define means.
 #if CH_CFG_NO_IDLE_THREAD

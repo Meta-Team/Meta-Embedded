@@ -1,7 +1,7 @@
 #ifndef META_ATTITUDE_CALC_H
 #define META_ATTITUDE_CALC_H
 
-#define IMU_ENABLE_IST8310  FALSE
+#define IMU_ENABLE_IST8310  TRUE
 
 #include "ch.hpp"
 #include "hal.h"
@@ -45,8 +45,8 @@ private:
     static void calc_quaternion();
 
     // Pid constant
-    static constexpr float kp = 2.0f;
-    static constexpr float ki = 1.0f;
+    static constexpr float kp = 1.0f;
+    static constexpr float ki = 2.0f;
     static constexpr float kd = 0.0f;
 
     static constexpr unsigned dt = 1; // [ms]

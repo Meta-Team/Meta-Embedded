@@ -76,9 +76,9 @@ set(INFANTRY
         dev/interface/gimbal_interface.cpp
         dev/interface/chassis_interface.cpp
         dev/interface/remote_interpreter.cpp
-        dev/control/gimbal.cpp
+        dev/control/gimbal_scheduler.cpp
         dev/control/shoot.cpp
-        dev/control/chassis.cpp
+        dev/control/chassis_scheduler.cpp
         dev/vehicle/infantry/main_infantry.cpp)
 
 # Main Program -- Infantry #1
@@ -104,7 +104,7 @@ add_executable(ENGINEER
         dev/interface/remote_interpreter.cpp
         dev/interface/elevator_interface.cpp
         dev/interface/robotic_arm.cpp
-        dev/control/chassis.cpp
+        dev/control/chassis_scheduler.cpp
         dev/vehicle/engineer/state_machine_stage_climb.cpp
         dev/vehicle/engineer/state_machine_bullet_fetch.cpp
         dev/vehicle/engineer/main_engineer.cpp
@@ -122,8 +122,8 @@ add_executable(HERO
         dev/interface/remote_interpreter.cpp
         dev/interface/elevator_interface.cpp
         dev/interface/robotic_arm.cpp
-        dev/control/chassis.cpp
-        dev/control/gimbal.cpp
+        dev/control/chassis_scheduler.cpp
+        dev/control/gimbal_scheduler.cpp
         dev/control/shoot.cpp
         dev/vehicle/hero/main_hero.cpp)
 target_include_directories(HERO PRIVATE dev/vehicle/hero)
@@ -139,7 +139,7 @@ add_executable(ut_remote_interpreter
         dev/interface/remote_interpreter.cpp
         dev/debug/unit_tests/remote_interpreter_unit_test.cpp)
 
-# Gimbal Interface: include CANInterface, GimbalInterface, GimbalFeedbackThread and the unit test modules.
+# Gimbal Interface: include CANInterface, GimbalIF, GimbalFeedbackThread and the unit test modules.
 add_executable(ut_gimbal_interface
         dev/module/can_interface.cpp
         dev/interface/imu/mpu6500.cpp
@@ -163,12 +163,12 @@ add_executable(pa_hero_shoot
         dev/debug/unit_tests/hero_shoot_param_adjust.cpp)
 target_compile_definitions(pa_hero_shoot PUBLIC HERO)
 
-# Gimbal: include CANInterface, GimbalInterface, GimbalController, GimbalFeedbackThread and adjustment modules.
+# Gimbal: include CANInterface, GimbalIF, GimbalController, GimbalFeedbackThread and adjustment modules.
 add_executable(pa_gimbal
         dev/module/can_interface.cpp
         dev/interface/gimbal_interface.cpp
         dev/module/pid_controller.hpp
-        dev/control/gimbal.cpp
+        dev/control/gimbal_scheduler.cpp
         dev/control/shoot.cpp
         dev/interface/imu/mpu6500.cpp
         dev/debug/unit_tests/gimbal_pid_adjustment_program.cpp)
@@ -177,13 +177,19 @@ target_compile_definitions(pa_gimbal PRIVATE SHELL_NO_ECHO_MODE)
 # MPU6500: include MP6500 interface and unit test.
 add_executable(ut_mpu6500
         dev/interface/imu/mpu6500.cpp
-        dev/debug/unit_tests//mpu6500_unit_test.cpp)
+        dev/debug/unit_tests/mpu6500_unit_test.cpp)
+
+# IST8310
+add_executable(ut_ist8310
+        dev/interface/imu/mpu6500.cpp
+        dev/interface/imu/ist8310.cpp
+        dev/debug/unit_tests/ist8310_unit_test.cpp)
 
 # IMU: include IMU interface and unit test.
 add_executable(ut_imu
         dev/interface/imu/imu_math.hpp
         dev/interface/imu/mpu6500.cpp
-#        dev/interface/imu/ist8310.cpp
+        dev/interface/imu/ist8310.cpp
         dev/interface/imu/ahrs.cpp
         dev/debug/unit_tests/imu_unit_test.cpp)
 
@@ -203,7 +209,7 @@ add_executable(ut_chassis
         dev/module/can_interface.cpp
         dev/interface/chassis_interface.cpp
         dev/module/pid_controller.hpp
-        dev/control/chassis.cpp
+        dev/control/chassis_scheduler.cpp
         dev/debug/unit_tests/chassis_unit_test.cpp)
 target_include_directories(ut_chassis PRIVATE dev/vehicle/infantry)
 

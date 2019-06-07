@@ -8,7 +8,7 @@
 #define MPU6500_RX_BUF_SIZE 0x0E
 #define TEMP_OFFSET 0.0f
 
-#define MPU6500_BIAS_SAMPLE_COUNT 50
+#define IST8310_BIAS_SAMPLE_COUNT 1000
 #define MPU6500_BIAS_SAMPLE_INTERVAL 10 // [ms]
 
 MPU6500::MPU6500UpdateThread MPU6500::updateThread;
@@ -23,6 +23,8 @@ float MPU6500::prev_t;
 
 float MPU6500::_gyro_psc;  // get the coefficient converting the raw data to degree
 float MPU6500::_accel_psc;  // get the coefficient converting the raw data to g
+
+int MPU6500::static_measurement_count = 0;
 
 Vector3D MPU6500::_gyro_bias;  // for gyro bias
 matrix3 MPU6500::_accel_bias;  // a matrix for accelerate bias
@@ -117,7 +119,7 @@ bool MPU6500::start(tprio_t prio) {
     float temp_g_bias_x = 0, temp_g_bias_y = 0, temp_g_bias_z = 0;
     float temp_a_bias_x = 0, temp_a_bias_y = 0, temp_a_bias_z = 0;
 
-    for (int i = 0; i < MPU6500_BIAS_SAMPLE_COUNT; i++) {
+    for (int i = 0; i < IST8310_BIAS_SAMPLE_COUNT; i++) {
         getData();
         temp_g_bias_x -= angle_speed.x;
         temp_g_bias_y -= angle_speed.y;
@@ -125,16 +127,16 @@ bool MPU6500::start(tprio_t prio) {
         temp_a_bias_x += acceleration.x;
         temp_a_bias_y += acceleration.y;
         temp_a_bias_z += acceleration.z;
-        chThdSleepMilliseconds(MPU6500_BIAS_SAMPLE_INTERVAL);
+//        chThdSleepMilliseconds(MPU6500_BIAS_SAMPLE_INTERVAL);
     }
 
-    _gyro_bias.x = temp_g_bias_x / MPU6500_BIAS_SAMPLE_COUNT;
-    _gyro_bias.y = temp_g_bias_y / MPU6500_BIAS_SAMPLE_COUNT;
-    _gyro_bias.z = temp_g_bias_z / MPU6500_BIAS_SAMPLE_COUNT;
+    _gyro_bias.x = temp_g_bias_x / IST8310_BIAS_SAMPLE_COUNT;
+    _gyro_bias.y = temp_g_bias_y / IST8310_BIAS_SAMPLE_COUNT;
+    _gyro_bias.z = temp_g_bias_z / IST8310_BIAS_SAMPLE_COUNT;
 
-    _accel_bias[2][0] = temp_a_bias_x / MPU6500_BIAS_SAMPLE_COUNT;
-    _accel_bias[2][1] = temp_a_bias_y / MPU6500_BIAS_SAMPLE_COUNT;
-    _accel_bias[2][2] = temp_a_bias_z / MPU6500_BIAS_SAMPLE_COUNT;
+    _accel_bias[2][0] = temp_a_bias_x / IST8310_BIAS_SAMPLE_COUNT;
+    _accel_bias[2][1] = temp_a_bias_y / IST8310_BIAS_SAMPLE_COUNT;
+    _accel_bias[2][2] = temp_a_bias_z / IST8310_BIAS_SAMPLE_COUNT;
     _accel_bias[0][0] = _accel_bias[2][1] - _accel_bias[2][2];
     _accel_bias[0][1] = _accel_bias[2][2] - _accel_bias[2][0];
     _accel_bias[0][0] = _accel_bias[2][0] - _accel_bias[2][1];
