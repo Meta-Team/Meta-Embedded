@@ -189,6 +189,9 @@ static void cmd_shoot_set_target_angle(BaseSequentialStream *chp, int argc, char
         return;
     }
 
+    Shoot::feedback[BULLET].reset_front_angle();
+    Shoot::feedback[PLATE].reset_front_angle();
+
     target_angle[0] = Shell::atof(argv[0]);
     target_angle[1] = Shell::atof(argv[1]);
     _cmd_shoot_clear_i_out();
@@ -295,17 +298,20 @@ protected:
 
                     if (enable_a2v_pid) {
                         // Calculate from angle to velocity
+                        //if(target_angle[i]<Shoot::feedback[motor].actual_angle){
+                        //    target_angle[i] += 360.0f;
+                        //}
                         Shoot::calc_a2v_(motor, Shoot::feedback[motor].actual_angle, target_angle[i]);
                     } else {
                         Shoot::target_velocity[i] = target_v[i];
                     }
 
                     // Perform velocity check
-                    if (Shoot::feedback[motor].actual_velocity > MAX_VELOCITY[i]) {
-                        Shell::printf("!d%cv" SHELL_NEWLINE_STR, MOTOR_CHAR[i]);
-                        motor_enabled[i] = false;
-                        continue;
-                    }
+                    //if (Shoot::feedback[motor].actual_velocity > MAX_VELOCITY[i]) {
+                    //    Shell::printf("!d%cv" SHELL_NEWLINE_STR, MOTOR_CHAR[i]);
+                    //    motor_enabled[i] = false;
+                    //    continue;
+                    //}
 
                     Shoot::calc_v2i_(motor, Shoot::feedback[motor].actual_velocity, Shoot::target_velocity[i]);
 
