@@ -32,7 +32,7 @@
          Shoot::change_pid_params(GIMBAL_PID_BULLET_LOADER_A2V_PARAMS, GIMBAL_PID_BULLET_LOADER_V2I_PARAMS, GIMBAL_PID_BULLET_PLATE_A2V_PARAMS, GIMBAL_PID_BULLET_PLATE_V2I_PARAMS);
          while (!shouldTerminate()) {
 
-             // check if bullet is full or not, automatically load. TODO: check whether the bullet is full or not.
+             bullet_full = false;// check if bullet is full or not, automatically load. TODO: check whether the bullet is full or not.
              if(!bullet_full){
                  if (0.0f < plate_target_angle < 3.0f ){
                      if(plate_target_angle + 360.0f - Shoot::feedback[3].actual_angle < 3.0f){ // if the target angle is smaller than 5 degree and actual angle is near.
