@@ -189,8 +189,6 @@ static void cmd_shoot_set_target_angle(BaseSequentialStream *chp, int argc, char
         return;
     }
 
-    Shoot::feedback[BULLET].reset_front_angle();
-    Shoot::feedback[PLATE].reset_front_angle();
 
     target_angle[0] = Shell::atof(argv[0]);
     target_angle[1] = Shell::atof(argv[1]);
