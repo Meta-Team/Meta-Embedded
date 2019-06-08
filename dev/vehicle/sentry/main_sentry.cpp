@@ -1,6 +1,5 @@
 //
 // Created by zhukerui on 2019/5/18.
-// Copyright: liuzikai
 //
 
 #include "ch.hpp"
@@ -29,8 +28,10 @@
  * ------------------------------------------------------------
  * Left  Right  Mode
  * ------------------------------------------------------------
- *  UP    *     Safe
- *  MID   UP    Remote - Stop, shooting enabled
+ *  UP    UP    Safe
+ *  UP    MID   Remote - Chassis safe; gimbal remote controlling
+ *  UP    DOWN  Auto - Chassis safe; gimbal auto controlling
+ *  MID   UP    Remote - Chassis remote controlling, constant speed mode; gimbal fix
  *  MID   MID   Remote - Constant speed mode
  *  MID   DOWN  Remote - Various speed mode
  *  DOWN  *     Auto (temporarily this can't be achieved, so just left it be the Safe mode)

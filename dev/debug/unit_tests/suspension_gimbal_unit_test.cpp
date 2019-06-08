@@ -1,0 +1,200 @@
+//
+// Created by zhukerui on 2019/6/8.
+//
+
+#include "ch.hpp"
+#include "hal.h"
+
+#include "led.h"
+#include "serial_shell.h"
+#include "can_interface.h"
+#include "suspension_gimbal_interface.h"
+
+using namespace chibios_rt;
+
+CANInterface can1(&CAND1);
+int const gimbal_feedback_interval = 25; // ms
+
+class GimbalFeedbackThread : public chibios_rt::BaseStaticThread<512> {
+
+public:
+
+    GimbalFeedbackThread() {
+        enable_yaw_feedback = false;
+        enable_pitch_feedback = false;
+    }
+
+    bool enable_yaw_feedback;
+    bool enable_pitch_feedback;
+
+private:
+
+    void main() final {
+        setName("gimbal_fb");
+        while (!shouldTerminate()) {
+
+            if (enable_yaw_feedback) {
+                Shell::printf("!gy,%u,%.2f,%.2f,%.2f,%.2f" SHELL_NEWLINE_STR,
+                              TIME_I2MS(chibios_rt::System::getTime()),
+                              SuspensionGimbalInterface::yaw.actual_angle, 0.0f,
+                              SuspensionGimbalInterface::yaw.angular_velocity, 0.0f);
+//        Shell::printf("yaw round = %d" SHELL_NEWLINE_STR,
+//                      GimbalInterface::yaw.round_count);
+            }
+
+            if (enable_pitch_feedback) {
+                Shell::printf("!gp,%u,%.2f,%.2f,%.2f,%.2f" SHELL_NEWLINE_STR,
+                              TIME_I2MS(chibios_rt::System::getTime()),
+                              SuspensionGimbalInterface::pitch.actual_angle, 0.0f,
+                              SuspensionGimbalInterface::pitch.angular_velocity, 0.0f);
+//        Shell::printf("pitch round = %d" SHELL_NEWLINE_STR,
+//                      GimbalInterface::pitch.round_count);
+            }
+
+            sleep(TIME_MS2I(gimbal_feedback_interval));
+        }
+
+    }
+
+} gimbalFeedbackThread;
+
+/**
+ * @brief set enabled state of yaw and pitch motor
+ * @param chp
+ * @param argc
+ * @param argv
+ */
+static void cmd_gimbal_enable(BaseSequentialStream *chp, int argc, char *argv[]) {
+    (void) argv;
+    if (argc != 4 || (*argv[0] != '0' && *argv[0] != '1') || (*argv[1] != '0' && *argv[1] != '1')
+        || (*argv[2] != '0' && *argv[2] != '1') || (*argv[3] != '0' && *argv[3] != '1')) {
+        shellUsage(chp, "g_enable yaw(0/1) pitch(0/1) bullet_loader(0/1) friction(0/1)");
+        return;
+    }
+    SuspensionGimbalInterface::yaw.enabled = *argv[0] - '0';
+    SuspensionGimbalInterface::pitch.enabled = *argv[1] - '0';
+    SuspensionGimbalInterface::bullet_loader.enabled = *argv[2] - '0';
+    SuspensionGimbalInterface::friction_wheels.enabled = *argv[3] - '0';
+
+    chprintf(chp, "Gimbal yaw enabled = %d" SHELL_NEWLINE_STR, SuspensionGimbalInterface::yaw.enabled);
+    chprintf(chp, "Gimbal pitch enabled = %d" SHELL_NEWLINE_STR, SuspensionGimbalInterface::pitch.enabled);
+    chprintf(chp, "Gimbal bullet_loader enabled = %d" SHELL_NEWLINE_STR, SuspensionGimbalInterface::bullet_loader.enabled);
+    chprintf(chp, "Gimbal friction enabled = %d" SHELL_NEWLINE_STR, SuspensionGimbalInterface::friction_wheels.enabled);
+}
+
+/**
+ * @brief set front_angle_raw with current actual angle
+ * @param chp
+ * @param argc
+ * @param argv
+ */
+static void cmd_gimbal_fix_front_angle(BaseSequentialStream *chp, int argc, char *argv[]) {
+    (void) argv;
+    if (argc != 0) {
+        shellUsage(chp, "g_fix");
+        return;
+    }
+    SuspensionGimbalInterface::yaw.reset_front_angle();
+    SuspensionGimbalInterface::pitch.reset_front_angle();
+    SuspensionGimbalInterface::bullet_loader.reset_front_angle();
+
+    chprintf(chp, "Gimbal actual angle clear!" SHELL_NEWLINE_STR);
+}
+
+
+/**
+ * @brief set target currents of yaw and pitch
+ * @param chp
+ * @param argc
+ * @param argv
+ */
+static void cmd_gimbal_set_target_currents(BaseSequentialStream *chp, int argc, char *argv[]) {
+    (void) argv;
+    if (argc != 3) {
+        shellUsage(chp, "g_set yaw_current pitch_current bullet_loader_current");
+        return;
+    }
+
+    SuspensionGimbalInterface::yaw.target_signal = Shell::atoi(argv[0]);
+    SuspensionGimbalInterface::pitch.target_signal = Shell::atoi(argv[1]);
+    SuspensionGimbalInterface::bullet_loader.target_signal = Shell::atoi(argv[2]);
+    chprintf(chp, "Gimbal yaw target_current = %d" SHELL_NEWLINE_STR, SuspensionGimbalInterface::yaw.target_signal);
+    chprintf(chp, "Gimbal pitch target_current = %d" SHELL_NEWLINE_STR, SuspensionGimbalInterface::pitch.target_signal);
+    chprintf(chp, "Gimbal bullet loader target_current = %d" SHELL_NEWLINE_STR,
+             SuspensionGimbalInterface::bullet_loader.target_signal);
+}
+
+/**
+ * @brief set target current of bullet loader
+ * @param chp
+ * @param argc
+ * @param argv
+ */
+static void cmd_gimbal_set_friction_wheels(BaseSequentialStream *chp, int argc, char *argv[]) {
+    (void) argv;
+    if (argc != 1) {
+        shellUsage(chp, "g_set_fw duty_cycle(0 - 1)");
+        return;
+    }
+
+    float duty_cycle = Shell::atof(argv[0]);
+    if (duty_cycle < 0.0f || duty_cycle > 1.0f) {
+        shellUsage(chp, "g_set_fw duty_cycle(0 - 1)");
+        return;
+    }
+
+    SuspensionGimbalInterface::friction_wheels.duty_cycle = duty_cycle;
+    chprintf(chp, "Gimbal friction_wheels duty_cycle = %f" SHELL_NEWLINE_STR,
+             SuspensionGimbalInterface::friction_wheels.duty_cycle);
+
+    SuspensionGimbalInterface::send_gimbal_currents();
+    chprintf(chp, "Gimbal target_current sent" SHELL_NEWLINE_STR);
+}
+
+// Shell commands to control gimbal.
+ShellCommand gimbalShellCommands[] = {
+        {"g_enable", cmd_gimbal_enable},
+        {"g_fix",    cmd_gimbal_fix_front_angle},
+        {"g_set",    cmd_gimbal_set_target_currents},
+        {"g_set_fw", cmd_gimbal_set_friction_wheels},
+        {nullptr,    nullptr}
+};
+
+// Thread to send target current in period
+class GimbalThread : public BaseStaticThread <256> {
+protected:
+    void main() final {
+        setName("gimbal");
+        while (!shouldTerminate()) {
+            SuspensionGimbalInterface::send_gimbal_currents();
+            sleep(TIME_MS2I(100));
+        }
+    }
+} gimbalThread;
+
+int main(void) {
+    halInit();
+    System::init();
+
+    // Start ChibiOS shell at high priority, so even if a thread stucks, we still have access to shell.
+    Shell::start(HIGHPRIO);
+    Shell::addCommands(gimbalShellCommands);
+
+    gimbalThread.start(NORMALPRIO + 1);
+
+    can1.start(HIGHPRIO - 1);
+    SuspensionGimbalInterface::init(&can1);
+
+    // See chconf.h for what this #define means.
+#if CH_CFG_NO_IDLE_THREAD
+    // ChibiOS idle thread has been disabled,
+    // main() should implement infinite loop
+    while (true) {}
+#else
+    // When main() quits, the main thread will somehow
+    // enter an infinite loop, so we set the priority to lowest
+    // before quitting, to let other threads run normally
+    BaseThread::setPriority(1);
+#endif
+    return 0;
+}

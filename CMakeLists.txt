@@ -86,7 +86,7 @@ target_include_directories(INFANTRY_FOUR PRIVATE dev/vehicle/infantry)
 target_compile_definitions(INFANTRY_FOUR PRIVATE INFANTRY_FOUR)
 
 # Main Program -- Infantry #5
-add_executable(INFANTRY_FIVE ${INFANTRY} dev/control/sentry_chassis_calculator.cpp dev/control/sentry_chassis_calculator.h)
+add_executable(INFANTRY_FIVE ${INFANTRY} dev/control/sentry_chassis_calculator.cpp dev/control/sentry_chassis_calculator.h dev/control/suspension_gimbal_calculator.cpp dev/control/suspension_gimbal_calculator.h)
 target_include_directories(INFANTRY_FIVE PRIVATE dev/vehicle/infantry)
 target_compile_definitions(INFANTRY_FIVE PRIVATE INFANTRY_FIVE)
 
@@ -102,7 +102,7 @@ add_executable(ENGINEER
         dev/control/chassis_calculator.cpp
         dev/vehicle/engineer/elevator_thread.cpp
         dev/vehicle/engineer/robotic_arm_thread.cpp
-        dev/vehicle/engineer/main_engineer.cpp)
+        dev/vehicle/engineer/main_engineer.cpp dev/interface/suspension_gimbal_interface.cpp dev/interface/suspension_gimbal_interface.h)
 target_include_directories(ENGINEER PRIVATE dev/vehicle/engineer)
 target_compile_definitions(ENGINEER PRIVATE ENGINEER)
 
@@ -152,7 +152,7 @@ add_executable(pa_gimbal
         dev/module/pid_controller.cpp
         dev/control/gimbal_calculator.cpp
         dev/interface/mpu6500.cpp
-        dev/debug/unit_tests/gimbal_pid_adjustment_program.cpp)
+        dev/debug/unit_tests/gimbal_pid_adjustment_program.cpp dev/debug/unit_tests/suspension_gimbal_unit_test.cpp)
 
 
 # MPU6500: include MP6500 interface and unit test.
