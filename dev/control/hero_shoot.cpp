@@ -32,7 +32,7 @@ void Shoot::calc_plate(float plate_actual_velocity, float plate_target_angle){
         plate_target_angle+=360.0f;
     }
     calc_a2v_(PLATE, feedback[PLATE].actual_angle, plate_target_angle);
-    calc_v2i_(PLATE, plate_actual_velocity, target_velocity[PLATE]);
+    calc_v2i_(PLATE, plate_actual_velocity, target_velocity[PLATE-2]);
 }
 
 void Shoot::calc_bullet(float bullet_actual_velocity, float bullet_target_angle){
@@ -41,7 +41,7 @@ void Shoot::calc_bullet(float bullet_actual_velocity, float bullet_target_angle)
         bullet_target_angle+=360.0f;
     }
     calc_a2v_(BULLET, feedback[BULLET].actual_angle, bullet_target_angle);
-    calc_v2i_(BULLET, bullet_actual_velocity, target_velocity[BULLET]);
+    calc_v2i_(BULLET, bullet_actual_velocity, target_velocity[BULLET-2]);
 }
 
 void Shoot::calc_a2v_(GimbalInterface::motor_id_t id_, float actual_angle_, float target_angle_) {

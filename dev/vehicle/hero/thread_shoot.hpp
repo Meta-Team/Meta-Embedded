@@ -34,11 +34,11 @@
 
              bullet_full = false;// check if bullet is full or not, automatically load. TODO: check whether the bullet is full or not.
              if(!bullet_full){
-                 if (0.0f < plate_target_angle < 3.0f ){
-                     if(plate_target_angle + 360.0f - Shoot::feedback[3].actual_angle < 3.0f){ // if the target angle is smaller than 5 degree and actual angle is near.
+                 if (0.0f < plate_target_angle < 2.0f && Shoot::feedback[3].actual_angle > 356.0f){
+                     if(plate_target_angle + 360.0f - Shoot::feedback[3].actual_angle < 2.0f){ // if the target angle is smaller than 5 degree and actual angle is near.
                          plate_target_angle = plate_target_angle + 36.0f;
                      }
-                 } else if (plate_target_angle - Shoot::feedback[3].actual_angle < 3.0f) { // else is near
+                 } else if (plate_target_angle - Shoot::feedback[3].actual_angle < 2.0f) { // else is near
                      plate_target_angle = plate_target_angle + 36.0f;
                  }
 
@@ -59,9 +59,9 @@
                              Shoot::set_friction_wheels(GIMBAL_PC_FRICTION_WHEEL_DUTY_CYCLE);
                              sleep(TIME_I2MS(500));
                          }
-                         if (0.0f < bullet_target_angle < 4.0f)
+                         if (0.0f < bullet_target_angle < 4.0f && Shoot::feedback[2].actual_angle > 356.0f)
                          {
-                             if(Shoot::feedback[2].actual_angle > 356.0f){
+                             if(bullet_target_angle + 360.0f - Shoot::feedback[2].actual_angle < 4.0f){
                                  bullet_target_angle += 72.0f;
                              }
                          } else if (bullet_target_angle - Shoot::feedback[2].actual_angle < 4.0f){
@@ -81,9 +81,9 @@
                              Shoot::set_friction_wheels(GIMBAL_PC_FRICTION_WHEEL_DUTY_CYCLE);
                              sleep(TIME_I2MS(500));
                          }
-                         if (0.0f < bullet_target_angle < 4.0f)
+                         if (0.0f < bullet_target_angle < 4.0f && Shoot::feedback[2].actual_angle > 356.0f)
                          {
-                             if(Shoot::feedback[2].actual_angle > 356.0f){
+                             if(bullet_target_angle + 360.0f - Shoot::feedback[2].actual_angle < 4.0f){
                                  bullet_target_angle += 72.0f;
                              }
                          } else if (bullet_target_angle - Shoot::feedback[2].actual_angle < 4.0f){
@@ -101,13 +101,13 @@
                              Shoot::set_friction_wheels(GIMBAL_PC_FRICTION_WHEEL_DUTY_CYCLE);
                              sleep(TIME_I2MS(500));
                          }
-                         if (0.0f < bullet_target_angle < 4.0f)
+                         if (0.0f < bullet_target_angle < 4.0f && Shoot::feedback[2].actual_angle > 356.0f)
                          {
-                             if(Shoot::feedback[2].actual_angle > 356.0f){
+                             if(bullet_target_angle + 360.0f - Shoot::feedback[2].actual_angle < 4.0f){
                                  bullet_target_angle += 72.0f;
                              }
                          } else if (bullet_target_angle - Shoot::feedback[2].actual_angle < 4.0f){
-                                 bullet_target_angle += 72.0f;
+                             bullet_target_angle += 72.0f;
                          }
                          if(bullet_target_angle > 360.0f) bullet_target_angle -= 360.0f;
                      }
@@ -142,7 +142,7 @@
              }
 
              Shoot::calc_bullet(Shoot::feedback[2].actual_velocity, bullet_target_angle);
-
+             Shoot::calc_plate(Shoot::feedback[3].actual_velocity, plate_target_angle);
              sleep(TIME_MS2I(SHOOT_THREAD_INTERVAL));
          }
      }
