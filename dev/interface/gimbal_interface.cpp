@@ -273,7 +273,7 @@ void GimbalInterface::process_motor_feedback(CANRxFrame const *rxmsg) {
                 feedback[id].actual_angle -= 360.0f;
                 feedback[id].round_count++;
             }
-            if (feedback[id].actual_angle <= -360.0f) {
+            if (feedback[id].actual_angle <= 0.0f) {
                 feedback[id].actual_angle +=360.0f;
                 feedback[id].round_count--;
             }

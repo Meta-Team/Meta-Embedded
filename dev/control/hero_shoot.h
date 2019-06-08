@@ -45,8 +45,8 @@ public:
 
     static PIDController v2i_pid[2];
     static PIDController a2v_pid[2];
-    static void calc_shoot(float bullet_actual_velocity, float plate_actual_velocity,
-                            float bullet_target_angle, float plate_target_angle);
+    static void calc_plate(float plate_actual_velocity, float plate_target_angle);
+    static void calc_bullet(float bullet_actual_velocity, float bullet_target_angle);
 
 private:
 

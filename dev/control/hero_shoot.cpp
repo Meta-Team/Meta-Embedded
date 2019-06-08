@@ -25,22 +25,25 @@ void Shoot::change_pid_params(PIDControllerBase::pid_params_t bullet_loader_a2v_
     a2v_pid[0].change_parameters(bullet_loader_a2v_params);
     a2v_pid[1].change_parameters(bullet_plate_a2v_params);
 }
-void Shoot::calc_shoot(float bullet_actual_velocity, float plate_actual_velocity,
-                       float bullet_target_angle, float plate_target_angle){
-    if (plate_target_angle < degree_per_bullet_plate_ && feedback[PLATE].actual_angle > 360.0f - degree_per_bullet_plate_) // when here is definitely it has turned around.
+
+void Shoot::calc_plate(float plate_actual_velocity, float plate_target_angle){
+    if (plate_target_angle < degree_per_bullet_plate_ && feedback[PLATE].actual_angle > plate_actual_velocity + 360.0f - degree_per_bullet_plate_) // when here is definitely it has turned around.
     {
         plate_target_angle+=360.0f;
     }
     calc_a2v_(PLATE, feedback[PLATE].actual_angle, plate_target_angle);
     calc_v2i_(PLATE, plate_actual_velocity, target_velocity[PLATE]);
+}
 
-    if (bullet_target_angle < degree_per_bullet_ && feedback[BULLET].actual_angle > 360.0f - degree_per_bullet_)
+void Shoot::calc_bullet(float bullet_actual_velocity, float bullet_target_angle){
+    if (bullet_target_angle < degree_per_bullet_ && feedback[BULLET].actual_angle > bullet_target_angle + 360.0f - degree_per_bullet_)
     {
         bullet_target_angle+=360.0f;
     }
     calc_a2v_(BULLET, feedback[BULLET].actual_angle, bullet_target_angle);
     calc_v2i_(BULLET, bullet_actual_velocity, target_velocity[BULLET]);
 }
+
 void Shoot::calc_a2v_(GimbalInterface::motor_id_t id_, float actual_angle_, float target_angle_) {
     target_velocity[id_-2] = a2v_pid[id_-2].calc(actual_angle_, target_angle_);
 }
