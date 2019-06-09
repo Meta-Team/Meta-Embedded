@@ -28,7 +28,7 @@
 #endif
 
 /**
- * @name SuspensionGimbalInterface
+ * @name SuspensionGimbalIF
  * @brief Interface to process feedback from suspension gimbal and send control signals to gimbal, including Yaw, Pitch, Bullet
  *        Loader (using CAN) and friction wheels (by PWM).
  * @pre Hardware is connected properly (see ONES doc)
@@ -47,6 +47,12 @@ public:
         BULLET_LOADER_ID = 2
     } motor_id_t;
 
+    typedef enum {
+        OFF = 0,
+        AWAIT = 1,
+        SHOOT = 2,
+    } shoot_mode_t;
+
     /**
      * Interface for each motor, which is used for yaw, pitch and bullet loader motors
      */
@@ -59,7 +65,7 @@ public:
         float actual_angle = 0.0f; // the actual angle [degree] of the gimbal, compared with the front
         float angular_velocity = 0.0f;  // instant angular velocity [degree/s], positive when counter-clockwise, negative otherwise
         int round_count = 0;  // the rounds that the gimbal turns
-
+        bool status(){ return  enabled;}
     private:
         motor_id_t id;
 
@@ -82,17 +88,15 @@ public:
         void reset_front_angle();
 
         friend SuspensionGimbalIF;
+        friend class SuspensionGimbalController;
     };
     static MotorInterface yaw;
     static MotorInterface pitch;
     static MotorInterface bullet_loader;
 
-    /**
-     * Friction Wheels parameters
-     */
-
-    static bool friction_wheel_enabled;
-    static float friction_wheel_duty_cycle;
+    static shoot_mode_t shoot_status(){
+        return  shoot_mode;
+    }
 
     /**
      * @brief set the CAN interface, start PWM driver and set the PID
@@ -113,13 +117,14 @@ private:
 
     static CANInterface *can_;
 
+    friend CANInterface;
+    friend class SuspensionGimbalController;
+
     /**
      * @brief process CAN rx frame
      * @param rxmsg
      */
     static void process_motor_feedback(CANRxFrame const *rxmsg);
-
-    friend CANInterface;
 
     // Count of feedback for one sample of angular velocity
     static constexpr int VELOCITY_SAMPLE_INTERVAL = 50;
@@ -130,6 +135,9 @@ private:
         FW_LEFT = 0,  // The left friction wheel, PI5, channel 0
         FW_RIGHT = 1  // The right friction wheel, PI6, channel 1
     };
+
+    static shoot_mode_t shoot_mode;
+    static float shoot_duty_cycles[3];  // the array contains the duty cycles for different shoot modes
 
     static constexpr PWMConfig FRICTION_WHEELS_PWM_CFG = {
             50000,   // frequency
@@ -144,7 +152,6 @@ private:
             0,
             0
     };
-
 };
 
 

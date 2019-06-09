@@ -3,58 +3,58 @@
 //
 
 #include "suspension_gimbal_controller.h"
-#include "serial_shell.h"
 
-float SuspensionGimbalController::shoot_duty_cycles[3] = {0.0, 0.1, 0.3};  // the numbers are temporary
-int SuspensionGimbalController::remained_bullet = 0;
+PIDController SuspensionGimbalController::yaw_angle_to_v;
+PIDController SuspensionGimbalController::yaw_v_to_i;
+PIDController SuspensionGimbalController::pitch_angle_to_v;
+PIDController SuspensionGimbalController::pitch_v_to_i;
+PIDController SuspensionGimbalController::BL_v_to_i;
+bool SuspensionGimbalController::continuous_shooting = false;
+float SuspensionGimbalController::shoot_target_angle = 0; // in incontinuous mode, bullet loader stop if shoot_target_angle has been achieved
+float SuspensionGimbalController::target_yaw_angle = 0.0f;
+float SuspensionGimbalController::target_pitch_angle = 0.0f;
 
 
 /**
  * Public Functions
  */
 
-void SuspensionGimbalController::update_bullet(int bullet_changed) {
-    remained_bullet += bullet_changed;
-    if(remained_bullet < 0){
-        remained_bullet = 0;
-    }
+void SuspensionGimbalController::start_continuous_shooting() {
+    continuous_shooting = true;
+    set_shoot_mode(SuspensionGimbalIF::SHOOT);
 }
 
-void SuspensionGimbalController::start_continuous_shooting() {
-    if (shooting) stop_shooting();
-    continuous_shooting = true;
-    shooting = true;
-    shoot_accumulate_angle = 0;
+void SuspensionGimbalController::stop_continuous_shooting() {
+    set_shoot_mode(SuspensionGimbalIF::AWAIT);
 }
 
 void SuspensionGimbalController::start_incontinuous_shooting(int bullet_num) {
-    if (shooting) stop_shooting();
-    shoot_target_angle = one_bullet_step * bullet_num;
+    SuspensionGimbalIF::bullet_loader.round_count = 0;
+    shoot_target_angle = one_bullet_step * bullet_num + SuspensionGimbalIF::bullet_loader.actual_angle;
     continuous_shooting = false;
-    shooting = true;
-    shoot_accumulate_angle = 0;
+    set_shoot_mode(SuspensionGimbalIF::SHOOT);
 }
 
-void SuspensionGimbalController::stop_shooting() {
-    shooting = false;
-    int bullet_shot = (int) (shoot_accumulate_angle / one_bullet_step);  // calculate the number of the shot bullets
-    update_bullet(-bullet_shot);  // update the number of remained bullets
+void SuspensionGimbalController::set_shoot_mode(SuspensionGimbalIF::shoot_mode_t mode) {
+    SuspensionGimbalIF::shoot_mode = mode;
 }
 
-void SuspensionGimbalController::update_accumulation_angle(float accumulate_angle) {
-    if (shooting) {
-        shoot_accumulate_angle += accumulate_angle - last_accumulate_angle;
-        if (!continuous_shooting && shoot_accumulate_angle > shoot_target_angle) {
-            stop_shooting();
-        }
+void SuspensionGimbalController::set_target_signal() {
+    // Set bullet loader current
+    if (!continuous_shooting && SuspensionGimbalIF::bullet_loader.round_count * 360.0f + SuspensionGimbalIF::bullet_loader.actual_angle >= shoot_target_angle){
+        set_shoot_mode(SuspensionGimbalIF::AWAIT);
     }
-    last_accumulate_angle = accumulate_angle;
-}
 
-float SuspensionGimbalController::get_target_current(float measured_velocity, float target_velocity) {
-    if (shooting) {
-        return BL_v_to_i.calc(measured_velocity, target_velocity);
+    if (SuspensionGimbalIF::shoot_mode == SuspensionGimbalIF::SHOOT) {
+        SuspensionGimbalIF::bullet_loader.target_signal = (int16_t) BL_v_to_i.calc(SuspensionGimbalIF::bullet_loader.angular_velocity, bullet_loader_speed);
     } else {
-        return BL_v_to_i.calc(measured_velocity, 0);
+        SuspensionGimbalIF::bullet_loader.target_signal = (int16_t) BL_v_to_i.calc(SuspensionGimbalIF::bullet_loader.angular_velocity, 0);
     }
+    if (SuspensionGimbalIF::yaw.enabled)
+        SuspensionGimbalIF::yaw.target_signal = (int16_t) yaw_v_to_i.calc(SuspensionGimbalIF::yaw.angular_velocity,
+                yaw_angle_to_v.calc(SuspensionGimbalIF::yaw.actual_angle, target_yaw_angle));
+
+    if (SuspensionGimbalIF::pitch.enabled)
+        SuspensionGimbalIF::yaw.target_signal = (int16_t) pitch_v_to_i.calc(SuspensionGimbalIF::pitch.angular_velocity,
+                pitch_angle_to_v.calc(SuspensionGimbalIF::pitch.actual_angle, target_pitch_angle));
 }

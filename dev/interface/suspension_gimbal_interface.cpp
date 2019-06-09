@@ -9,9 +9,9 @@
 SuspensionGimbalIF::MotorInterface SuspensionGimbalIF::yaw;
 SuspensionGimbalIF::MotorInterface SuspensionGimbalIF::pitch;
 SuspensionGimbalIF::MotorInterface SuspensionGimbalIF::bullet_loader;
-bool SuspensionGimbalIF::friction_wheel_enabled = false;
-float SuspensionGimbalIF::friction_wheel_duty_cycle = 0.0f;
 CANInterface *SuspensionGimbalIF::can_ = nullptr;
+SuspensionGimbalIF::shoot_mode_t SuspensionGimbalIF::shoot_mode = OFF;
+float SuspensionGimbalIF::shoot_duty_cycles[3] = {0.0, 0.1, 0.3};
 PWMConfig constexpr SuspensionGimbalIF::FRICTION_WHEELS_PWM_CFG;
 
 void SuspensionGimbalIF::init(CANInterface *can_interface, uint16_t yaw_front_angle_raw, uint16_t pitch_front_angle_raw) {
@@ -119,17 +119,10 @@ bool SuspensionGimbalIF::send_gimbal_currents() {
     can_->send_msg(&txmsg);
 
     // Set the PWM of friction wheels
-    if (friction_wheel_enabled) {
-        pwmEnableChannel(FRICTION_WHEEL_PWM_DRIVER, FW_LEFT,
-                         PWM_PERCENTAGE_TO_WIDTH(FRICTION_WHEEL_PWM_DRIVER, friction_wheel_duty_cycle * 500 + 500));
-        pwmEnableChannel(FRICTION_WHEEL_PWM_DRIVER, FW_RIGHT,
-                         PWM_PERCENTAGE_TO_WIDTH(FRICTION_WHEEL_PWM_DRIVER, friction_wheel_duty_cycle * 500 + 500));
-    } else {
-        pwmEnableChannel(FRICTION_WHEEL_PWM_DRIVER, FW_LEFT,
-                         PWM_PERCENTAGE_TO_WIDTH(FRICTION_WHEEL_PWM_DRIVER, 0 * 500 + 500));
-        pwmEnableChannel(FRICTION_WHEEL_PWM_DRIVER, FW_RIGHT,
-                         PWM_PERCENTAGE_TO_WIDTH(FRICTION_WHEEL_PWM_DRIVER, 0 * 500 + 500));
-    }
+    pwmEnableChannel(FRICTION_WHEEL_PWM_DRIVER, FW_LEFT,
+                     PWM_PERCENTAGE_TO_WIDTH(FRICTION_WHEEL_PWM_DRIVER, shoot_duty_cycles[shoot_mode] * 500 + 500));
+    pwmEnableChannel(FRICTION_WHEEL_PWM_DRIVER, FW_RIGHT,
+                     PWM_PERCENTAGE_TO_WIDTH(FRICTION_WHEEL_PWM_DRIVER, shoot_duty_cycles[shoot_mode] * 500 + 500));
 
     return true;
 }
