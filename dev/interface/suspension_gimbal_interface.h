@@ -37,7 +37,7 @@
  *        2. Read feedback from variables.
  *           Write target voltage / target current / duty cycle to variables, then call send_gimbal_currents.
  */
-class SuspensionGimbalInterface {
+class SuspensionGimbalIF {
 
 public:
 
@@ -53,34 +53,22 @@ public:
     class MotorInterface {
 
     public:
+        /**
+         * Normalized Angle and Rounds
+         */
+        float actual_angle = 0.0f; // the actual angle [degree] of the gimbal, compared with the front
+        float angular_velocity = 0.0f;  // instant angular velocity [degree/s], positive when counter-clockwise, negative otherwise
+        int round_count = 0;  // the rounds that the gimbal turns
 
+    private:
         motor_id_t id;
 
         bool enabled = false;  // if not enabled, 0 current will be sent in send_gimbal_currents
 
         // +: clockwise, -: counter-clockwise
-        int target_signal = 0;  // the current that we want the motor to have
+        int target_signal = 0;  // the current/voltage that we want the motor to have
 
-        /**
-         * Normalized Angle and Rounds
-         *  Using the front angle_raw as reference.
-         *  Range: -180.0 (clockwise) to 180.0 (counter-clockwise)
-         */
-        float actual_angle = 0.0f; // the actual angle of the gimbal, compared with the front
-        float angular_velocity = 0.0f;  // instant angular velocity [degree/s], positive when counter-clockwise, negative otherwise
-        int round_count = 0;  // the rounds that the gimbal turns
-
-        /**
-         * @brief set current actual angle as the front angle
-         */
-        void reset_front_angle();
-
-        /**
-         * @brief get total angle from the original front angle
-         * @return the accumulate angle since last reset_front_angle
-         */
-        float get_accumulate_angle();
-
+        uint16_t last_angle_raw = 0;  // the raw angle of the newest feedback, in [0, 8191]
         // Some const parameters for feedback processing
         int angle_movement_lower_bound;
         int angle_movement_upper_bound;
@@ -88,28 +76,23 @@ public:
         float actual_angle_upper_bound;
         float deceleration_ratio;
 
-    private:
+        /**
+         * @brief set current actual angle as the front angle
+         */
+        void reset_front_angle();
 
-        uint16_t last_angle_raw = 0;  // the raw angle of the newest feedback, in [0, 8191]
-
-        friend SuspensionGimbalInterface;
-        friend int main();
-
+        friend SuspensionGimbalIF;
     };
     static MotorInterface yaw;
     static MotorInterface pitch;
     static MotorInterface bullet_loader;
 
     /**
-     * Friction Wheels Interface
-     * control the two friction wheels that shoot the bullets
+     * Friction Wheels parameters
      */
-    class FrictionWheelsInterface {
-    public:
-        bool enabled = false;
-        float duty_cycle = 0.0f;
-    };
-    static FrictionWheelsInterface friction_wheels;
+
+    static bool friction_wheel_enabled;
+    static float friction_wheel_duty_cycle;
 
     /**
      * @brief set the CAN interface, start PWM driver and set the PID

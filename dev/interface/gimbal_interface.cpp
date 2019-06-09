@@ -238,7 +238,3 @@ void GimbalInterface::MotorInterface::reset_front_angle() {
     actual_angle = 0;
     round_count = 0;
 }
-
-float GimbalInterface::MotorInterface::get_accumulate_angle() {
-    return actual_angle + round_count * 360.0f;
-}

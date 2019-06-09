@@ -97,7 +97,7 @@ class GimbalThread : public chibios_rt::BaseStaticThread<1024> {
 
             // Bullet loader part
             GimbalController::bullet_loader.update_accumulation_angle(
-                    GimbalInterface::bullet_loader.get_accumulate_angle());
+                    GimbalInterface::bullet_loader.actual_angle + GimbalInterface::bullet_loader.round_count * 360.0f);
 
             if (Remote::rc.s1 == Remote::RC_S_MIDDLE && Remote::rc.s2 == Remote::RC_S_UP){
                 GimbalInterface::friction_wheels.duty_cycle = GIMBAL_REMOTE_FRICTION_WHEEL_DUTY_CYCLE;

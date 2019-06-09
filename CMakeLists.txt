@@ -86,7 +86,7 @@ target_include_directories(INFANTRY_FOUR PRIVATE dev/vehicle/infantry)
 target_compile_definitions(INFANTRY_FOUR PRIVATE INFANTRY_FOUR)
 
 # Main Program -- Infantry #5
-add_executable(INFANTRY_FIVE ${INFANTRY} dev/control/sentry_chassis_calculator.cpp dev/control/sentry_chassis_calculator.h dev/control/suspension_gimbal_calculator.cpp dev/control/suspension_gimbal_calculator.h)
+add_executable(INFANTRY_FIVE ${INFANTRY} dev/control/sentry_chassis_calculator.cpp dev/control/sentry_chassis_calculator.h dev/skd/suspension_gimbal_skd.cpp dev/skd/suspension_gimbal_skd.h dev/control/suspension_gimbal_controller.cpp dev/control/suspension_gimbal_controller.h)
 target_include_directories(INFANTRY_FIVE PRIVATE dev/vehicle/infantry)
 target_compile_definitions(INFANTRY_FIVE PRIVATE INFANTRY_FIVE)
 

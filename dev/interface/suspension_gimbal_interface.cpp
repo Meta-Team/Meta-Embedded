@@ -6,14 +6,15 @@
 #include "common_macro.h"
 #include "queue"
 
-SuspensionGimbalInterface::MotorInterface SuspensionGimbalInterface::yaw;
-SuspensionGimbalInterface::MotorInterface SuspensionGimbalInterface::pitch;
-SuspensionGimbalInterface::MotorInterface SuspensionGimbalInterface::bullet_loader;
-SuspensionGimbalInterface::FrictionWheelsInterface SuspensionGimbalInterface::friction_wheels;
-CANInterface *SuspensionGimbalInterface::can_ = nullptr;
-PWMConfig constexpr SuspensionGimbalInterface::FRICTION_WHEELS_PWM_CFG;
+SuspensionGimbalIF::MotorInterface SuspensionGimbalIF::yaw;
+SuspensionGimbalIF::MotorInterface SuspensionGimbalIF::pitch;
+SuspensionGimbalIF::MotorInterface SuspensionGimbalIF::bullet_loader;
+bool SuspensionGimbalIF::friction_wheel_enabled = false;
+float SuspensionGimbalIF::friction_wheel_duty_cycle = 0.0f;
+CANInterface *SuspensionGimbalIF::can_ = nullptr;
+PWMConfig constexpr SuspensionGimbalIF::FRICTION_WHEELS_PWM_CFG;
 
-void SuspensionGimbalInterface::init(CANInterface *can_interface, uint16_t yaw_front_angle_raw, uint16_t pitch_front_angle_raw) {
+void SuspensionGimbalIF::init(CANInterface *can_interface, uint16_t yaw_front_angle_raw, uint16_t pitch_front_angle_raw) {
     yaw.id = YAW_ID;
     pitch.id = PIT_ID;
     // The reasonable angle movement of yaw and pitch are assumed to be limited in (-4096, 4096), in other word, (-180, 180) in degree
@@ -63,7 +64,7 @@ void SuspensionGimbalInterface::init(CANInterface *can_interface, uint16_t yaw_f
 #endif
 }
 
-bool SuspensionGimbalInterface::send_gimbal_currents() {
+bool SuspensionGimbalIF::send_gimbal_currents() {
 
     if (!can_) return false;
 
@@ -118,11 +119,11 @@ bool SuspensionGimbalInterface::send_gimbal_currents() {
     can_->send_msg(&txmsg);
 
     // Set the PWM of friction wheels
-    if (friction_wheels.enabled) {
+    if (friction_wheel_enabled) {
         pwmEnableChannel(FRICTION_WHEEL_PWM_DRIVER, FW_LEFT,
-                         PWM_PERCENTAGE_TO_WIDTH(FRICTION_WHEEL_PWM_DRIVER, friction_wheels.duty_cycle * 500 + 500));
+                         PWM_PERCENTAGE_TO_WIDTH(FRICTION_WHEEL_PWM_DRIVER, friction_wheel_duty_cycle * 500 + 500));
         pwmEnableChannel(FRICTION_WHEEL_PWM_DRIVER, FW_RIGHT,
-                         PWM_PERCENTAGE_TO_WIDTH(FRICTION_WHEEL_PWM_DRIVER, friction_wheels.duty_cycle * 500 + 500));
+                         PWM_PERCENTAGE_TO_WIDTH(FRICTION_WHEEL_PWM_DRIVER, friction_wheel_duty_cycle * 500 + 500));
     } else {
         pwmEnableChannel(FRICTION_WHEEL_PWM_DRIVER, FW_LEFT,
                          PWM_PERCENTAGE_TO_WIDTH(FRICTION_WHEEL_PWM_DRIVER, 0 * 500 + 500));
@@ -133,7 +134,7 @@ bool SuspensionGimbalInterface::send_gimbal_currents() {
     return true;
 }
 
-void SuspensionGimbalInterface::process_motor_feedback(CANRxFrame const *rxmsg) {
+void SuspensionGimbalIF::process_motor_feedback(CANRxFrame const *rxmsg) {
 
     /*
      * function logic description
@@ -207,11 +208,7 @@ void SuspensionGimbalInterface::process_motor_feedback(CANRxFrame const *rxmsg) 
     }
 }
 
-void SuspensionGimbalInterface::MotorInterface::reset_front_angle() {
+void SuspensionGimbalIF::MotorInterface::reset_front_angle() {
     actual_angle = 0;
     round_count = 0;
-}
-
-float SuspensionGimbalInterface::MotorInterface::get_accumulate_angle() {
-    return actual_angle + round_count * 360.0f;
 }
