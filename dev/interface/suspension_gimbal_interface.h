@@ -89,6 +89,7 @@ public:
 
         friend SuspensionGimbalIF;
         friend class SuspensionGimbalController;
+        friend void main();
     };
     static MotorInterface yaw;
     static MotorInterface pitch;

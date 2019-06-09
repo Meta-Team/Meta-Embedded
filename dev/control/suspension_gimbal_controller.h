@@ -10,6 +10,14 @@
 
 class SuspensionGimbalController {
 public:
+    /**
+     * PIDController for each motor
+     */
+    static PIDController yaw_angle_to_v;
+    static PIDController yaw_v_to_i;
+    static PIDController pitch_angle_to_v;
+    static PIDController pitch_v_to_i;
+    static PIDController BL_v_to_i;
 
     static void set_yaw_angle(float target_angle){
         target_yaw_angle = target_angle;
@@ -30,14 +38,6 @@ public:
     static void set_target_signal();
 
 private:
-    /**
-     * PIDController for each motor
-     */
-    static PIDController yaw_angle_to_v;
-    static PIDController yaw_v_to_i;
-    static PIDController pitch_angle_to_v;
-    static PIDController pitch_v_to_i;
-    static PIDController BL_v_to_i;
 
     static bool continuous_shooting;
     static float shoot_target_angle; // in incontinuous mode, bullet loader stop if shoot_target_angle has been achieved
