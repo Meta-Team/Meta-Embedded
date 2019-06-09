@@ -72,7 +72,6 @@ private:
 
     static matrix3 magnet_bias;  // a matrix for accelerate bias
 
-    static constexpr ist8310_i2c_addr_t IST8310_ADDR = IST8310_ADDR_FLOATING;
     static constexpr uint8_t IST8310_SAMPLE_RATE = 200;
 
     static constexpr unsigned int IST8310_THREAD_UPDATE_INTERVAL = 1;  // read interval 1ms (1kHz)
@@ -88,6 +87,8 @@ private:
     };
 
     static IST8310UpdateThread updateThread;
+
+    static void writeSPIReg(const uint8_t *data, size_t n);
 };
 
 #endif //META_INFANTRY_IST8310_H

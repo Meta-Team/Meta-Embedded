@@ -14,6 +14,7 @@
 MPU6500::MPU6500UpdateThread MPU6500::updateThread;
 
 Vector3D MPU6500::angle_speed;  // final data of gyro
+Vector3D MPU6500::accel_orig;  // final data of acceleration
 Vector3D MPU6500::acceleration;  // final data of acceleration
 float MPU6500::temperature;
 time_msecs_t MPU6500::last_update_time;
@@ -77,43 +78,21 @@ bool MPU6500::start(tprio_t prio) {
     _accel_bias[1][0] = 0.0f; _accel_bias[1][1] = 1.0f; _accel_bias[1][2] = 0.0f;
     _accel_bias[2][0] = 0.0f; _accel_bias[2][1] = 0.0f; _accel_bias[2][2] = 1.0f;
 
-    // get the coefficient converting the raw data to degree or gravity
-    switch(config._gyro_scale)
-    {
-        case MPU6500_GYRO_SCALE_250:
-            _gyro_psc = (1.0f / 131.0f);
-            break;
-        case MPU6500_GYRO_SCALE_500:
-            _gyro_psc = (1.0f /  65.5f);
-            break;
-        case MPU6500_GYRO_SCALE_1000:
-            _gyro_psc = (1.0f /  32.8f);
-            break;
-        case MPU6500_GYRO_SCALE_2000:
-            _gyro_psc = (1.0f /  16.4f);
-            break;
-        default:
-            _gyro_psc = 0.0f;
-            break;
+    // Get the coefficient converting the raw data to degree or gravity
+    switch(config._gyro_scale) {
+        case MPU6500_GYRO_SCALE_250:  _gyro_psc = (1.0f / 131.0f); break;
+        case MPU6500_GYRO_SCALE_500:  _gyro_psc = (1.0f /  65.5f); break;
+        case MPU6500_GYRO_SCALE_1000: _gyro_psc = (1.0f /  32.8f); break;
+        case MPU6500_GYRO_SCALE_2000: _gyro_psc = (1.0f /  16.4f); break;
+        default:                      _gyro_psc = 0.0f;            break;
     }
 
-    switch(config._accel_scale)
-    {
-        case MPU6500_ACCEL_SCALE_2G:
-            _accel_psc = (1 / 16384.0f);
-            break;
-        case MPU6500_ACCEL_SCALE_4G:
-            _accel_psc = (1 /  8192.0f);
-            break;
-        case MPU6500_ACCEL_SCALE_8G:
-            _accel_psc = (1 /  4096.0f);
-            break;
-        case MPU6500_ACCEL_SCALE_16G:
-            _accel_psc = (1 /  2048.0f);
-            break;
-        default:
-            _accel_psc = 0.0f;
-            break;
+    switch(config._accel_scale) {
+        case MPU6500_ACCEL_SCALE_2G:  _accel_psc = (1 / 16384.0f); break;
+        case MPU6500_ACCEL_SCALE_4G:  _accel_psc = (1 /  8192.0f); break;
+        case MPU6500_ACCEL_SCALE_8G:  _accel_psc = (1 /  4096.0f); break;
+        case MPU6500_ACCEL_SCALE_16G: _accel_psc = (1 /  2048.0f); break;
+        default:                      _accel_psc = 0.0f;           break;
     }
 
     float temp_g_bias_x = 0, temp_g_bias_y = 0, temp_g_bias_z = 0;
@@ -174,9 +153,9 @@ void MPU6500::getData() {
 
 //    chSysLock();  // --- Enter Critical Zone ---
 
-    float accel_x = _accel_psc * (int16_t)((mpu6500_RXData[ 0]<<8) | mpu6500_RXData[ 1]); // Accel X
-    float accel_y = _accel_psc * (int16_t)((mpu6500_RXData[ 2]<<8) | mpu6500_RXData[ 3]); // Accel Y
-    float accel_z = _accel_psc * (int16_t)((mpu6500_RXData[ 4]<<8) | mpu6500_RXData[ 5]); // Accel Z
+    accel_orig.x = _accel_psc * (int16_t)((mpu6500_RXData[ 0]<<8) | mpu6500_RXData[ 1]); // Accel X
+    accel_orig.y = _accel_psc * (int16_t)((mpu6500_RXData[ 2]<<8) | mpu6500_RXData[ 3]); // Accel Y
+    accel_orig.z = _accel_psc * (int16_t)((mpu6500_RXData[ 4]<<8) | mpu6500_RXData[ 5]); // Accel Z
     float gyro_x = _gyro_psc * (int16_t)((mpu6500_RXData[ 8]<<8) | mpu6500_RXData[ 9]);  // Gyro X
     float gyro_y = _gyro_psc * (int16_t)((mpu6500_RXData[10]<<8) | mpu6500_RXData[11]);  // Gyro Y
     float gyro_z = _gyro_psc * (int16_t)((mpu6500_RXData[12]<<8) | mpu6500_RXData[13]);  // Gyro Z
@@ -188,7 +167,7 @@ void MPU6500::getData() {
     angle_speed.y = (gyro_y + _gyro_bias.y);
     angle_speed.z = (gyro_z + _gyro_bias.z);
 
-    acceleration = Vector3D(accel_x, accel_y, accel_z) * _accel_bias;
+    acceleration = accel_orig * _accel_bias;
 
     last_update_time = SYSTIME;
 

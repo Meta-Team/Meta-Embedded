@@ -39,6 +39,7 @@ class MPU6500 {
 public:
 
     static Vector3D angle_speed;  // final data of gyro
+    static Vector3D accel_orig;
     static Vector3D acceleration;  // final data of acceleration
     static float temperature;
 

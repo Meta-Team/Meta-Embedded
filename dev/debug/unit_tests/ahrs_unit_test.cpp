@@ -15,16 +15,17 @@ using namespace chibios_rt;
 class AHRSFeedbackThread : public BaseStaticThread<1024> {
 protected:
     void main() final {
-        setName("imu");
+        setName("ahrs");
         MPU6500::start(HIGHPRIO - 1);
         IST8310::start(HIGHPRIO - 2);
-        AHRS::init(HIGHPRIO - 3);
+        sleep(TIME_MS2I(1000));
+        AHRS::start(HIGHPRIO - 3);
         while (!shouldTerminate()) {
-            Shell::printf("(%.4f, %.4f, %.4f)" SHELL_NEWLINE_STR,
-                          AHRS::angle.x,
-                          AHRS::angle.y,
-                          AHRS::angle.z);
-            sleep(TIME_MS2I(100));
+            Shell::printf("!a,%.4f,%.4f,%.4f" SHELL_NEWLINE_STR,
+                          AHRS::angle[0] * 57.3f,
+                          AHRS::angle[1] * 57.3f,
+                          AHRS::angle[2] * 57.3f);
+            sleep(TIME_MS2I(300));
         }
     }
 } feedbackThread;

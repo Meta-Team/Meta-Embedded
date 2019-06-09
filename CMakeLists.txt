@@ -191,7 +191,17 @@ add_executable(ut_imu
         dev/interface/imu/mpu6500.cpp
         dev/interface/imu/ist8310.cpp
         dev/interface/imu/ahrs.cpp
-        dev/debug/unit_tests/imu_unit_test.cpp)
+        dev/debug/unit_tests/ahrs_unit_test.cpp)
+
+# AHRS
+add_executable(ut_ahrs
+        dev/interface/imu/imu_math.hpp
+        dev/interface/imu/mpu6500.cpp
+        dev/interface/imu/ist8310.cpp
+        dev/interface/imu/ahrs_lib_middleware.c
+        dev/interface/imu/ahrs.cpp
+        dev/debug/unit_tests/ahrs_unit_test.cpp)
+target_link_libraries(ut_ahrs ${PROJECT_SOURCE_DIR}/dev/interface/imu/ahrs_lib.lib)
 
 # Buzzer: inlcude Buzzer interface and unit test.
 add_executable(ut_buzzer
