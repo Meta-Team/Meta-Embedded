@@ -26,8 +26,8 @@
          setName("shoot");
 
          bool bullet_full = false;
-         float plate_target_angle = 180;
-         float bullet_target_angle = 180;
+         float plate_target_angle = Shoot::feedback[3].actual_angle;
+         float bullet_target_angle = 180.0f;
 
          Shoot::change_pid_params(GIMBAL_PID_BULLET_LOADER_A2V_PARAMS, GIMBAL_PID_BULLET_LOADER_V2I_PARAMS, GIMBAL_PID_BULLET_PLATE_A2V_PARAMS, GIMBAL_PID_BULLET_PLATE_V2I_PARAMS);
          while (!shouldTerminate()) {
