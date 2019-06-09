@@ -34,14 +34,14 @@ private:
                 if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_UP) {
 
                     Chassis::calc(0,
-                                  -Remote::rc.ch3 * COMMON_VY,
-                                  Remote::rc.ch2 * COMMON_W);
+                                  Remote::rc.ch3 * COMMON_VY,
+                                  -Remote::rc.ch2 * COMMON_W);
 
                 } else if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_DOWN) {
 
-                    Chassis::calc(-Remote::rc.ch0 * COMMON_VX,
-                                  -Remote::rc.ch3 * COMMON_VY,
-                                  Remote::rc.ch2 * COMMON_W);
+                    Chassis::calc(Remote::rc.ch0 * COMMON_VX,
+                                  Remote::rc.ch3 * COMMON_VY,
+                                  -Remote::rc.ch2 * COMMON_W);
 
                 } else if (Remote::rc.s1 == Remote::S_DOWN) { //PC control mode
 
