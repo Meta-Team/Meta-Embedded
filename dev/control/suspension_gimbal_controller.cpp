@@ -55,17 +55,28 @@ void SuspensionGimbalController::set_target_signal() {
     if (!continuous_shooting && SuspensionGimbalIF::bullet_loader.round_count * 360.0f + SuspensionGimbalIF::bullet_loader.actual_angle >= shoot_target_angle){
         set_shoot_mode(SuspensionGimbalIF::AWAIT);
     }
-
     if (SuspensionGimbalIF::shoot_mode == SuspensionGimbalIF::SHOOT) {
         SuspensionGimbalIF::bullet_loader.target_signal = (int16_t) BL_v_to_i.calc(SuspensionGimbalIF::bullet_loader.angular_velocity, bullet_loader_speed);
     } else {
         SuspensionGimbalIF::bullet_loader.target_signal = (int16_t) BL_v_to_i.calc(SuspensionGimbalIF::bullet_loader.angular_velocity, 0);
     }
+    // Set yaw voltage
     if (SuspensionGimbalIF::yaw.enabled)
         SuspensionGimbalIF::yaw.target_signal = (int16_t) yaw_v_to_i.calc(SuspensionGimbalIF::yaw.angular_velocity,
                 yaw_angle_to_v.calc(SuspensionGimbalIF::yaw.actual_angle, target_yaw_angle));
 
+    // Set pitch voltage
     if (SuspensionGimbalIF::pitch.enabled)
         SuspensionGimbalIF::yaw.target_signal = (int16_t) pitch_v_to_i.calc(SuspensionGimbalIF::pitch.angular_velocity,
                 pitch_angle_to_v.calc(SuspensionGimbalIF::pitch.actual_angle, target_pitch_angle));
+}
+
+void SuspensionGimbalController::set_target_signal(SuspensionGimbalIF::motor_id_t motor, int signal){
+    if(motor == SuspensionGimbalIF::YAW_ID){
+        SuspensionGimbalIF::yaw.target_signal = signal;
+    } else if (motor == SuspensionGimbalIF::PIT_ID){
+        SuspensionGimbalIF::pitch.target_signal = signal;
+    } else if (motor == SuspensionGimbalIF::BULLET_LOADER_ID){
+        SuspensionGimbalIF::bullet_loader.target_signal = signal;
+    }
 }

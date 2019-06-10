@@ -19,14 +19,8 @@ public:
     static PIDController pitch_v_to_i;
     static PIDController BL_v_to_i;
     static float bullet_loader_speed; // degrees/s
-
-    static void set_yaw_angle(float target_angle){
-        target_yaw_angle = target_angle;
-    }
-
-    static void set_pitch_angle(float target_angle){
-        target_pitch_angle = target_angle;
-    }
+    static float target_yaw_angle;
+    static float target_pitch_angle;
 
     static void set_shoot_mode(SuspensionGimbalIF::shoot_mode_t mode);
 
@@ -40,12 +34,12 @@ public:
 
     static void set_target_signal();
 
+    static void set_target_signal(SuspensionGimbalIF::motor_id_t motor, int signal);
+
 private:
 
     static bool continuous_shooting;
     static float shoot_target_angle; // in incontinuous mode, bullet loader stop if shoot_target_angle has been achieved
-    static float target_yaw_angle;
-    static float target_pitch_angle;
 
     /** Configurations **/
     static constexpr float one_bullet_step = 40.0f; // degree

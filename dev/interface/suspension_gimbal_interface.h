@@ -59,14 +59,14 @@ public:
     class MotorInterface {
 
     public:
-        /**
-         * Normalized Angle and Rounds
-         */
-        float actual_angle = 0.0f; // the actual angle [degree] of the gimbal, compared with the front
+
         float angular_velocity = 0.0f;  // instant angular velocity [degree/s], positive when counter-clockwise, negative otherwise
-        int round_count = 0;  // the rounds that the gimbal turns
+
         bool status(){ return  enabled;}
         int get_target_signal(){ return target_signal;}
+        float get_angular_position(){
+            return actual_angle + 360.0f * round_count;
+        }
         /**
          * @brief set current actual angle as the front angle
          */
@@ -83,7 +83,13 @@ public:
         // +: clockwise, -: counter-clockwise
         int target_signal = 0;  // the current/voltage that we want the motor to have
 
+        /**
+         * Normalized Angle and Rounds
+         */
+        float actual_angle = 0.0f; // the actual angle [degree] of the gimbal, compared with the front
         uint16_t last_angle_raw = 0;  // the raw angle of the newest feedback, in [0, 8191]
+        int round_count = 0;  // the rounds that the gimbal turns
+
         // Some const parameters for feedback processing
         int angle_movement_lower_bound;
         int angle_movement_upper_bound;
