@@ -86,7 +86,7 @@ target_include_directories(INFANTRY_FOUR PRIVATE dev/vehicle/infantry)
 target_compile_definitions(INFANTRY_FOUR PRIVATE INFANTRY_FOUR)
 
 # Main Program -- Infantry #5
-add_executable(INFANTRY_FIVE ${INFANTRY} dev/control/sentry_chassis_calculator.cpp dev/control/sentry_chassis_calculator.h dev/skd/suspension_gimbal_skd.cpp dev/skd/suspension_gimbal_skd.h dev/control/suspension_gimbal_controller.cpp dev/control/suspension_gimbal_controller.h)
+add_executable(INFANTRY_FIVE ${INFANTRY})
 target_include_directories(INFANTRY_FIVE PRIVATE dev/vehicle/infantry)
 target_compile_definitions(INFANTRY_FIVE PRIVATE INFANTRY_FIVE)
 
@@ -212,6 +212,15 @@ add_executable(ut_sentry_chassis
         dev/interface/referee_interface.cpp
         dev/module/CRC8.cpp
         dev/module/CRC16.cpp)
+
+# Suspension Gimbal
+add_executable(ut_suspension_gimbal
+        dev/module/can_interface.cpp
+        dev/module/pid_controller.cpp
+        dev/interface/suspension_gimbal_interface.cpp
+        dev/control/suspension_gimbal_controller.cpp
+        dev/debug/unit_tests/suspension_gimbal_unit_test.cpp)
+
 # Adjust Params of Skywalker-20A for friction wheels
 add_executable(pa_skywalker
         dev/debug/unit_tests/friction_wheel_param_adjust.cpp

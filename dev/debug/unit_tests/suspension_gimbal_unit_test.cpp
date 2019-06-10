@@ -11,7 +11,7 @@
 #include "can_interface.h"
 #include "suspension_gimbal_interface.h"
 #include "suspension_gimbal_controller.h"
-#include "mpu6500.h"
+//#include "mpu6500.h"
 
 using namespace chibios_rt;
 
@@ -402,7 +402,7 @@ int main(void) {
     Shell::start(HIGHPRIO);
     Shell::addCommands(gimbalCotrollerCommands);
 
-    MPU6500Controller::start(HIGHPRIO - 3);
+    //MPU6500Controller::start(HIGHPRIO - 3);
 
     gimbalFeedbackThread.start(NORMALPRIO);
 
