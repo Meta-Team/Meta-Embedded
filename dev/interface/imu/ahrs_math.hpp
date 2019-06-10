@@ -2,8 +2,8 @@
 // Created by liuzikai on 2019-05-13.
 //
 
-#ifndef META_INFANTRY_IMU_MATH_HPP
-#define META_INFANTRY_IMU_MATH_HPP
+#ifndef META_INFANTRY_AHRS_MATH_HPP
+#define META_INFANTRY_AHRS_MATH_HPP
 
 typedef float Matrix33[3][3];
 
@@ -53,7 +53,6 @@ public:
 
 };
 
-#define DEG2RAD(d) ((d) / 57.296f)
-#define RAD2DEG(r) ((r) * 57.296f)
+#define GRAV_CONSTANT 9.80665f
 
-#endif //META_INFANTRY_IMU_MATH_HPP
+#endif //META_INFANTRY_AHRS_MATH_HPP

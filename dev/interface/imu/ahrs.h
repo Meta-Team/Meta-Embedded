@@ -4,7 +4,7 @@
 #include "ch.hpp"
 #include "hal.h"
 
-#include "imu_math.hpp"
+#include "ahrs_math.hpp"
 #include "math.h"
 #include "mpu6500.h"
 #include "ist8310.h"

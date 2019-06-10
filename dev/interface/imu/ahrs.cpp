@@ -24,7 +24,7 @@ void AHRS::start(const Matrix33 installPosition, tprio_t prio) {
 
 void AHRS::fetch_data() {
     gyro = (MPU6500::gyro * installPos) * (M_PI / 180.0f);
-    accel = (MPU6500::accel_orig * installPos) * 9.8f;
+    accel = MPU6500::accel * installPos;
     mag = IST8310::magnet;
 }
 

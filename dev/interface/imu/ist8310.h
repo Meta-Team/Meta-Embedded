@@ -8,7 +8,7 @@
 #include "ch.hpp"
 #include "hal.h"
 
-#include "imu_math.hpp"
+#include "ahrs_math.hpp"
 #include "mpu6500_reg.h"
 #include "ist8310_reg.h"
 
@@ -66,13 +66,6 @@ public:
 
 private:
 
-//    static float bias_x;
-//    static float bias_y;
-//    static float bias_z;
-
-    static Matrix33 magnet_bias;  // a matrix for accelerate bias
-
-    static constexpr uint8_t IST8310_SAMPLE_RATE = 200;
 
     static constexpr unsigned int IST8310_THREAD_UPDATE_INTERVAL = 1;  // read interval 1ms (1kHz)
 

@@ -24,6 +24,7 @@ protected:
         IST8310::start(HIGHPRIO - 2);
         sleep(TIME_MS2I(1000));
         AHRS::start(GIMBAL_AHRS_INSTALL_MATRIX, HIGHPRIO - 3);
+        Buzzer::play_sound(Buzzer::sound_startup, LOWPRIO);
         while (!shouldTerminate()) {
             Shell::printf("!a,%.4f,%.4f,%.4f" SHELL_NEWLINE_STR,
                           AHRS::angle.x * 57.3f,

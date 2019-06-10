@@ -187,7 +187,7 @@ add_executable(ut_ist8310
 
 # IMU: include IMU interface and unit test.
 add_executable(ut_imu
-        dev/interface/imu/imu_math.hpp
+        dev/interface/imu/ahrs_math.hpp
         dev/interface/imu/mpu6500.cpp
         dev/interface/imu/ist8310.cpp
         dev/interface/imu/ahrs.cpp
@@ -195,7 +195,7 @@ add_executable(ut_imu
 
 # AHRS
 add_executable(ut_ahrs
-        dev/interface/imu/imu_math.hpp
+        dev/interface/imu/ahrs_math.hpp
         dev/interface/imu/mpu6500.cpp
         dev/interface/imu/ist8310.cpp
         dev/interface/imu/ahrs_lib_middleware.c
