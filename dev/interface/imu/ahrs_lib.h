@@ -1,6 +1,23 @@
 #ifndef AHRS_H
 #define AHRS_H
 
+/**
+  ****************************(C) COPYRIGHT 2016 DJI****************************
+  * @file       AHRS_MiddleWare.c/h
+  * @brief      姿态解算中间层，为姿态解算提供相关函数
+  * @note
+  * @history
+  *  Version    Date            Author          Modification
+  *  V1.0.0     Dec-26-2018     RM              1. 完成
+  *
+  @verbatim
+  ==============================================================================
+
+  ==============================================================================
+  @endverbatim
+  ****************************(C) COPYRIGHT 2016 DJI****************************
+  */
+
 #include "ahrs_lib_middleware.h"
 
 extern "C" {

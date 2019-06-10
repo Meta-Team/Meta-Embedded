@@ -23,7 +23,7 @@ void AHRS::start(const Matrix33 installPosition, tprio_t prio) {
 }
 
 void AHRS::fetch_data() {
-    gyro = (MPU6500::gyro * installPos) * (M_PI / 180.0f);
+    gyro = (MPU6500::gyro * installPos) * DEG2RAD;
     accel = MPU6500::accel * installPos;
     mag = IST8310::magnet;
 }
@@ -36,6 +36,7 @@ void AHRS::AHRSUpdateThread::main() {
         AHRS_update(q, 0.001f, (const fp32 *) &gyro, (const fp32 *) &accel, (const fp32 *) &mag);
 
         get_angle(q, &angle.x, &angle.y, &angle.z);
+        angle = angle * RAD2DEG;
 
         sleep(TIME_MS2I(AHRS_CALCULATION_INTERVAL));
     }

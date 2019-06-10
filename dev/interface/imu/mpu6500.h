@@ -17,8 +17,8 @@
 #error "MPU6500 interface has not been defined for selected board"
 #endif
 
-// Enable rotation matrix to transform accel into Z direction
-#define MPU6500_ENABLE_ACCEL_BIAS  TRUE
+// Enable rotation matrix to transform accel into Z direction. AHRS requires accel WITHOUT rotation.
+#define MPU6500_ENABLE_ACCEL_BIAS  FALSE
 
 /**
  * @name MPU6500
@@ -29,6 +29,13 @@
 class MPU6500 {
 
 public:
+
+    /**
+     * Start MPU6500 driver and the thread of data fetching
+     * @param prio  thread priority (recommended to be high enough)
+     * @return
+     */
+    static bool start(tprio_t prio);
 
     /**
      * Data from gyroscope [deg/s]
@@ -44,13 +51,6 @@ public:
      * Temperature data [C]
      */
     static float temperature;
-
-    /**
-     * Start MPU6500 driver and the thread of data fetching
-     * @param prio  thread priority (recommended to be high enough)
-     * @return
-     */
-    static bool start(tprio_t prio);
 
     /**
      * Last update time from system start [ms]
@@ -78,7 +78,7 @@ private:
     static constexpr float TEMPERATURE_BIAS = 0.0f;
 
     // If changes in x, y, z of gyro is in this range MPU6500 is regarded as "static"
-    static constexpr float STATIC_RANGE = 0.5f;
+    static constexpr float STATIC_RANGE = 0.2f;
 
     static constexpr unsigned BIAS_SAMPLE_COUNT = 500;
     // When static_measurement_count reaches BIAS_SAMPLE_COUNT, calibration is performed.
@@ -129,9 +129,9 @@ private:
      * Register 27 - Gyroscope Configuration, [4:3] bits GYRO_FS_SEL
      */
     typedef enum {
-        MPU6500_GYRO_SCALE_250 = 0,  // range of 250 dps with sensitivity factor 131 √
+        MPU6500_GYRO_SCALE_250 = 0,  // range of 250 dps with sensitivity factor 131
         MPU6500_GYRO_SCALE_500 = 1,  // range of 500 dps with sensitivity factor 65.5
-        MPU6500_GYRO_SCALE_1000 = 2, // range of 1000 dps with sensitivity factor 32.8
+        MPU6500_GYRO_SCALE_1000 = 2, // range of 1000 dps with sensitivity factor 32.8 √
         MPU6500_GYRO_SCALE_2000 = 3  // range of 1000 dps with sensitivity factor 16.4
     } gyro_scale_t;
 
@@ -140,9 +140,9 @@ private:
      * MPU6500_ACCEL_CONFIG, [4:3] bits, shift when set SPI
      */
     typedef enum {
-        MPU6500_ACCEL_SCALE_2G = 0,
+        MPU6500_ACCEL_SCALE_2G = 0, // √
         MPU6500_ACCEL_SCALE_4G = 1,
-        MPU6500_ACCEL_SCALE_8G = 2,  // √
+        MPU6500_ACCEL_SCALE_8G = 2,
         MPU6500_ACCEL_SCALE_16G = 3
     } accel_scale_t;
 
@@ -153,8 +153,8 @@ private:
         acc_dlpf_config_t _acc_dlpf_config;
     } mpu6500_config_t;
 
-    static constexpr mpu6500_config_t CONFIG = {MPU6500_GYRO_SCALE_250,  // Gyro full scale 250 dps (degree per second)
-                                                MPU6500_ACCEL_SCALE_8G,  // Accel full scale 8g
+    static constexpr mpu6500_config_t CONFIG = {MPU6500_GYRO_SCALE_1000,  // Gyro full scale 1000 dps (degree per second)
+                                                MPU6500_ACCEL_SCALE_2G,  // Accel full scale 8g
                                                 MPU6500_DLPF_41HZ,       // Gyro digital low-pass filter 41Hz
                                                 MPU6500_ADLPF_20HZ};     // Accel digital low-pass filter 20Hz
 };
