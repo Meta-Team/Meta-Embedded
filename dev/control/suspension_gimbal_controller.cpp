@@ -9,6 +9,7 @@ PIDController SuspensionGimbalController::yaw_v_to_i;
 PIDController SuspensionGimbalController::pitch_angle_to_v;
 PIDController SuspensionGimbalController::pitch_v_to_i;
 PIDController SuspensionGimbalController::BL_v_to_i;
+float SuspensionGimbalController::bullet_loader_speed = 0; // degrees/s
 bool SuspensionGimbalController::continuous_shooting = false;
 float SuspensionGimbalController::shoot_target_angle = 0; // in incontinuous mode, bullet loader stop if shoot_target_angle has been achieved
 float SuspensionGimbalController::target_yaw_angle = 0.0f;
@@ -37,6 +38,16 @@ void SuspensionGimbalController::start_incontinuous_shooting(int bullet_num) {
 
 void SuspensionGimbalController::set_shoot_mode(SuspensionGimbalIF::shoot_mode_t mode) {
     SuspensionGimbalIF::shoot_mode = mode;
+}
+
+void SuspensionGimbalController::set_motor_enable(SuspensionGimbalIF::motor_id_t motor_id, bool status){
+    if (motor_id == SuspensionGimbalIF::YAW_ID){
+        SuspensionGimbalIF::yaw.enabled = status;
+    } else if (motor_id == SuspensionGimbalIF::PIT_ID){
+        SuspensionGimbalIF::pitch.enabled = status;
+    } else if (motor_id == SuspensionGimbalIF::BULLET_LOADER_ID){
+        SuspensionGimbalIF::bullet_loader.enabled = status;
+    }
 }
 
 void SuspensionGimbalController::set_target_signal() {

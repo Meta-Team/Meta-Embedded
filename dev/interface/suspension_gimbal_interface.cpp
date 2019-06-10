@@ -200,8 +200,3 @@ void SuspensionGimbalIF::process_motor_feedback(CANRxFrame const *rxmsg) {
         }
     }
 }
-
-void SuspensionGimbalIF::MotorInterface::reset_front_angle() {
-    actual_angle = 0;
-    round_count = 0;
-}

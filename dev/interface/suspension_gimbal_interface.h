@@ -66,6 +66,15 @@ public:
         float angular_velocity = 0.0f;  // instant angular velocity [degree/s], positive when counter-clockwise, negative otherwise
         int round_count = 0;  // the rounds that the gimbal turns
         bool status(){ return  enabled;}
+        int get_target_signal(){ return target_signal;}
+        /**
+         * @brief set current actual angle as the front angle
+         */
+        void reset_front_angle(){
+            actual_angle = 0;
+            round_count = 0;
+        }
+
     private:
         motor_id_t id;
 
@@ -82,14 +91,8 @@ public:
         float actual_angle_upper_bound;
         float deceleration_ratio;
 
-        /**
-         * @brief set current actual angle as the front angle
-         */
-        void reset_front_angle();
-
         friend SuspensionGimbalIF;
         friend class SuspensionGimbalController;
-        friend void main();
     };
     static MotorInterface yaw;
     static MotorInterface pitch;
