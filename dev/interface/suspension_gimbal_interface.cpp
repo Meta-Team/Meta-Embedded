@@ -109,7 +109,7 @@ bool SuspensionGimbalIF::send_gimbal_currents() {
 #endif
         txmsg.data8[4] = (uint8_t) (bullet_loader.target_signal >> 8); //upper byte
         txmsg.data8[5] = (uint8_t) bullet_loader.target_signal; // lower byte
-        LOG("%d",bullet_loader.target_signal);
+        //LOG("%d",bullet_loader.target_signal);
     } else {
         txmsg.data8[4] = txmsg.data8[5] = 0;
     }
