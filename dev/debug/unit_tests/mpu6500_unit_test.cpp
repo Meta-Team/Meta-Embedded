@@ -19,8 +19,8 @@ protected:
         MPU6500::start(HIGHPRIO - 2);
         while (!shouldTerminate()) {
             Shell::printf("w = (%.4f, %.4f, %.4f), a = (%.4f, %.4f, %.4f), temp = %.4f" SHELL_NEWLINE_STR,
-                          MPU6500::angle_speed.x, MPU6500::angle_speed.y, MPU6500::angle_speed.z,
-                          MPU6500::acceleration.x, MPU6500::acceleration.y, MPU6500::acceleration.z,
+                          MPU6500::gyro.x, MPU6500::gyro.y, MPU6500::gyro.z,
+                          MPU6500::accel.x, MPU6500::accel.y, MPU6500::accel.z,
                           MPU6500::temperature);
             sleep(TIME_MS2I(100));
         }

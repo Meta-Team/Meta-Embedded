@@ -6,9 +6,13 @@
 #include "hal.h"
 
 #include "led.h"
-#include "debug/shell/shell.h"
+#include "shell.h"
 
 #include "ahrs.h"
+
+static constexpr Matrix33 GIMBAL_AHRS_INSTALL_MATRIX = {{0.0f, 0.0f, 1.0f},
+                                                        {0.0f, 1.0f, 0.0f},
+                                                        {-1.0f, 0.0f, 0.0f}};
 
 using namespace chibios_rt;
 
@@ -19,12 +23,12 @@ protected:
         MPU6500::start(HIGHPRIO - 1);
         IST8310::start(HIGHPRIO - 2);
         sleep(TIME_MS2I(1000));
-        AHRS::start(HIGHPRIO - 3);
+        AHRS::start(GIMBAL_AHRS_INSTALL_MATRIX, HIGHPRIO - 3);
         while (!shouldTerminate()) {
             Shell::printf("!a,%.4f,%.4f,%.4f" SHELL_NEWLINE_STR,
-                          AHRS::angle[0] * 57.3f,
-                          AHRS::angle[1] * 57.3f,
-                          AHRS::angle[2] * 57.3f);
+                          AHRS::angle.x * 57.3f,
+                          AHRS::angle.y * 57.3f,
+                          AHRS::angle.z * 57.3f);
             sleep(TIME_MS2I(300));
         }
     }

@@ -7,7 +7,7 @@
 #include "math.h"
 
 Vector3D IST8310::magnet;
-matrix3 IST8310::magnet_bias;
+Matrix33 IST8310::magnet_bias;
 IST8310::IST8310UpdateThread IST8310::updateThread;
 
 /* Initialize the controller.

@@ -14,16 +14,18 @@ class AHRS {
 
 public:
 
-    static void start(tprio_t prio);
+    static void start(const Matrix33 installPosition, tprio_t prio);
 
-    static float angle[3];
+    static Vector3D angle;
 
 private:
 
+    static Matrix33 installPos;
+
     // Local storage
-    static float gyro[3]; // angular speed
-    static float accel[3]; // acceleration
-    static float mag[3]; // magnetic field
+    static Vector3D gyro;  // angular speed [rad/s]
+    static Vector3D accel; // acceleration [m/s^2]
+    static Vector3D mag;   // magnetic field [uT]
 
     static void fetch_data();
 

@@ -70,7 +70,7 @@ private:
 //    static float bias_y;
 //    static float bias_z;
 
-    static matrix3 magnet_bias;  // a matrix for accelerate bias
+    static Matrix33 magnet_bias;  // a matrix for accelerate bias
 
     static constexpr uint8_t IST8310_SAMPLE_RATE = 200;
 
