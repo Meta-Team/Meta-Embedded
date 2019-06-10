@@ -62,6 +62,7 @@ public:
 private:
 
     static unsigned static_measurement_count;
+    static time_msecs_t last_calibration_time;
 
     static void getData();
 
@@ -81,15 +82,7 @@ private:
     class UpdateThread : public chibios_rt::BaseStaticThread<512> {
         void main() final;
     };
-
     static UpdateThread updateThread;
-
-
-    class TempertureThread : public chibios_rt::BaseStaticThread<256> {
-
-        bool reached_target_temperature = false;
-
-    };
 
     /**
      * MPU6500_ACCEL_CONFIG_2, [2:0] bits
@@ -162,7 +155,7 @@ private:
     static constexpr unsigned int THREAD_UPDATE_INTERVAL = 1;  // read interval 1ms (1kHz)
 
     // If angle_speed is continuously in this range, MPU6500 is regarded as static, and calibration is performed
-    static constexpr float STATIC_RANGE = 2.0f;
+    static constexpr float STATIC_RANGE = 1.5f;
 
 };
 

@@ -29,7 +29,7 @@ protected:
                           AHRS::angle.x * 57.3f,
                           AHRS::angle.y * 57.3f,
                           AHRS::angle.z * 57.3f);
-            sleep(TIME_MS2I(300));
+            sleep(TIME_MS2I(100));
         }
     }
 } feedbackThread;

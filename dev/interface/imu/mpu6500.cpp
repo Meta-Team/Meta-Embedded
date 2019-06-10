@@ -20,12 +20,13 @@ Vector3D MPU6500::accel_orig;
 Vector3D MPU6500::accel;  // final data of acceleration
 #endif
 float MPU6500::temperature;
-time_msecs_t MPU6500::last_update_time;
+time_msecs_t MPU6500::last_update_time = 0;
 
-float MPU6500::gyro_psc;  // get the coefficient converting the raw data to degree
+float MPU6500::gyro_psc;   // get the coefficient converting the raw data to degree
 float MPU6500::accel_psc;  // get the coefficient converting the raw data to g
 
 unsigned MPU6500::static_measurement_count = 0;
+time_msecs_t MPU6500::last_calibration_time = 0;
 
 Vector3D MPU6500::gyro_bias;  // for gyro bias
 #if MPU6500_ENABLE_ACCEL_BIAS
