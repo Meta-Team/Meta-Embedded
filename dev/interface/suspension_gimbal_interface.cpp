@@ -4,7 +4,6 @@
 
 #include "suspension_gimbal_interface.h"
 #include "common_macro.h"
-#include "queue"
 
 SuspensionGimbalIF::MotorInterface SuspensionGimbalIF::yaw;
 SuspensionGimbalIF::MotorInterface SuspensionGimbalIF::pitch;
@@ -110,6 +109,7 @@ bool SuspensionGimbalIF::send_gimbal_currents() {
 #endif
         txmsg.data8[4] = (uint8_t) (bullet_loader.target_signal >> 8); //upper byte
         txmsg.data8[5] = (uint8_t) bullet_loader.target_signal; // lower byte
+        LOG("%d",bullet_loader.target_signal);
     } else {
         txmsg.data8[4] = txmsg.data8[5] = 0;
     }
@@ -183,20 +183,20 @@ void SuspensionGimbalIF::process_motor_feedback(CANRxFrame const *rxmsg) {
         motor->angular_velocity = ((int16_t) (rxmsg->data8[2] << 8 | rxmsg->data8[3])) / motor->deceleration_ratio * 6.0f;
     }else{
         // For pitch, sum angle movements for VELOCITY_SAMPLE_INTERVAL times, and calculate the average.
+        static int sample_count = 0;
         static int sample_movement_sum = 0;
-        static std::queue<int> samples;
-        static std::queue<time_msecs_t> times;
-
+        static time_msecs_t sample_time = 0;
         sample_movement_sum += angle_movement;
-        samples.push(angle_movement);
-        times.push(TIME_I2MS(chibios_rt::System::getTime()));
-        if (samples.size() >= VELOCITY_SAMPLE_INTERVAL) {
+        sample_count++;
+        if (sample_count >= VELOCITY_SAMPLE_INTERVAL) {
             // calculate the angular velocity
-            pitch.angular_velocity = sample_movement_sum * 360.0f * 1000.0f / 8192.0f /
-                                     (float) (times.back() - times.front());
-            sample_movement_sum -= samples.front();
-            samples.pop();
-            times.pop();
+            auto new_sample_time = TIME_I2MS(chibios_rt::System::getTime());
+            motor->angular_velocity = sample_movement_sum * 360.0f * 1000.0f / 8192.0f /
+                                      (float) (new_sample_time - sample_time);
+            sample_time = new_sample_time;
+
+            sample_movement_sum = 0;
+            sample_count = 0;
         }
     }
 }

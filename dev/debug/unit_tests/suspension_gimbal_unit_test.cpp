@@ -74,10 +74,11 @@ private:
 
             if (enable_bullet_loader_feedback) {
                 // Bullet loader has no current feedback
-                Shell::printf("!gp,%u,%.2f,%d" SHELL_NEWLINE_STR,
+                Shell::printf("!gp,%u,%.2f,%d,%0.2f" SHELL_NEWLINE_STR,
                               TIME_I2MS(chibios_rt::System::getTime()),
                               SuspensionGimbalIF::bullet_loader.angular_velocity,
-                              SuspensionGimbalIF::bullet_loader.get_target_signal());
+                              SuspensionGimbalIF::bullet_loader.get_target_signal(),
+                              SuspensionGimbalIF::bullet_loader.get_angular_position());
             }
 
             sleep(TIME_MS2I(gimbal_feedback_interval));
