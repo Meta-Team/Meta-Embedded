@@ -14,6 +14,10 @@ bool SuspensionGimbalController::continuous_shooting = false;
 float SuspensionGimbalController::shoot_target_angle = 0; // in incontinuous mode, bullet loader stop if shoot_target_angle has been achieved
 float SuspensionGimbalController::target_yaw_angle = 0.0f;
 float SuspensionGimbalController::target_pitch_angle = 0.0f;
+float SuspensionGimbalController::max_yaw_angle = 180.0f;
+float SuspensionGimbalController::max_pitch_angle = 30.0f;
+float SuspensionGimbalController::min_yaw_angle = -180.0f;
+float SuspensionGimbalController::min_pitch_angle = -30.0f;
 
 
 /**
@@ -61,11 +65,15 @@ void SuspensionGimbalController::set_target_signal() {
         SuspensionGimbalIF::bullet_loader.target_signal = (int16_t) BL_v_to_i.calc(SuspensionGimbalIF::bullet_loader.angular_velocity, 0);
     }
     // Set yaw voltage
+    target_yaw_angle = target_yaw_angle < max_yaw_angle ? target_yaw_angle : max_yaw_angle;
+    target_yaw_angle = target_yaw_angle > min_yaw_angle ? target_yaw_angle : min_yaw_angle;
     if (SuspensionGimbalIF::yaw.enabled)
         SuspensionGimbalIF::yaw.target_signal = (int16_t) yaw_v_to_i.calc(SuspensionGimbalIF::yaw.angular_velocity,
                 yaw_angle_to_v.calc(SuspensionGimbalIF::yaw.actual_angle, target_yaw_angle));
 
     // Set pitch voltage
+    target_pitch_angle = target_pitch_angle < max_pitch_angle ? target_pitch_angle : max_pitch_angle;
+    target_pitch_angle = target_pitch_angle > min_pitch_angle ? target_pitch_angle : min_pitch_angle;
     if (SuspensionGimbalIF::pitch.enabled)
         SuspensionGimbalIF::yaw.target_signal = (int16_t) pitch_v_to_i.calc(SuspensionGimbalIF::pitch.angular_velocity,
                 pitch_angle_to_v.calc(SuspensionGimbalIF::pitch.actual_angle, target_pitch_angle));

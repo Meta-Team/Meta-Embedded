@@ -7,6 +7,7 @@
 
 #include "pid_controller.h"
 #include "suspension_gimbal_interface.h"
+#include "math.h"
 
 class SuspensionGimbalController {
 public:
@@ -21,6 +22,10 @@ public:
     static float bullet_loader_speed; // degrees/s
     static float target_yaw_angle;
     static float target_pitch_angle;
+    static float max_yaw_angle;
+    static float max_pitch_angle;
+    static float min_yaw_angle;
+    static float min_pitch_angle;
 
     static void set_shoot_mode(SuspensionGimbalIF::shoot_mode_t mode);
 

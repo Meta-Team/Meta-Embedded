@@ -103,7 +103,7 @@ bool SuspensionGimbalIF::send_gimbal_currents() {
 
     // Fill the current of bullet loader
 
-    if (bullet_loader.enabled) {
+    if (bullet_loader.enabled && shoot_mode == SHOOT) {
 #if SUSPENSION_GIMBAL_INTERFACE_ENABLE_CLIP
         ABS_LIMIT(bullet_loader.target_signal, SUSPENSION_GIMBAL_INTERFACE_BULLET_LOADER_MAX_CURRENT);
 #endif
