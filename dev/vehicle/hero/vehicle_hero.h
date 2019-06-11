@@ -1,5 +1,5 @@
 //
-// Created by 404 on 2019-05-18.
+// Created by 666 on 2019-05-18.
 //
 
 #ifndef META_INFANTRY_VEHICLE_HERO_H
