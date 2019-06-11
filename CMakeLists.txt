@@ -152,7 +152,7 @@ add_executable(pa_gimbal
         dev/module/pid_controller.cpp
         dev/control/gimbal_calculator.cpp
         dev/interface/mpu6500.cpp
-        dev/debug/unit_tests/gimbal_pid_adjustment_program.cpp)
+        dev/debug/unit_tests/gimbal_pid_adjustment_program.cpp dev/debug/unit_tests/sentry_chassis_matlab_unit_test.cpp)
 
 
 # MPU6500: include MP6500 interface and unit test.
