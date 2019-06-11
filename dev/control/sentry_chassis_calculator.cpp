@@ -1,5 +1,6 @@
 //
 // Created by zhukerui on 2019/4/29.
+// Modified by jintengjun on 2019/6/11
 //
 
 #include "sentry_chassis_calculator.h"
@@ -55,11 +56,11 @@ void SentryChassisController::update_target_current() {
     switch (running_mode){
         case (CONST_CURRENT_MODE):
             motor[MOTOR_LEFT].target_current = motor[MOTOR_RIGHT].target_current = const_current;
-            return;
+            break;
         case (ONE_STEP_MODE):
             // If we are in the ONE_STEP_MODE
             if((motor[MOTOR_LEFT].present_position >= target_position-5 && motor[MOTOR_LEFT].present_position <= target_position+5)
-            || (motor[MOTOR_RIGHT].present_position >= target_position-5 && motor[MOTOR_RIGHT].present_position <= target_position+5)) {
+               || (motor[MOTOR_RIGHT].present_position >= target_position-5 && motor[MOTOR_RIGHT].present_position <= target_position+5)) {
                 // If the sentry is in the "stop area", we stop the sentry by simply set the target velocity to 0
                 target_velocity = 0;
             }
@@ -85,12 +86,24 @@ void SentryChassisController::update_target_current() {
     if (enable){
         if(change_speed){
             // If the change_speed is true, then the speed should change variously from time to time
-            time_msecs_t present_time = SYSTIME - start_time;
-            motor[MOTOR_RIGHT].target_current = (int)(motor_right_pid.calc(motor[MOTOR_RIGHT].present_velocity, (abs(cos(3.1415f*present_time/2000.0f)))*target_velocity));
-            motor[MOTOR_LEFT].target_current = (int)(motor_left_pid.calc(motor[MOTOR_LEFT].present_velocity, (abs(cos(3.1415f*present_time/2000.0f)))*target_velocity));
+            if(target_velocity == 0){
+                // If the target_velocity is 0, then stop immediately.
+                motor[MOTOR_RIGHT].target_current = 0;
+                motor[MOTOR_LEFT].target_current = 0;
+            }else {
+                time_msecs_t present_time = SYSTIME - start_time;
+                motor[MOTOR_RIGHT].target_current = (int) (motor_right_pid.calc(motor[MOTOR_RIGHT].present_velocity, (abs(cos(3.1415f * present_time / 2000.0f))) * target_velocity));
+                motor[MOTOR_LEFT].target_current = (int) (motor_left_pid.calc(motor[MOTOR_LEFT].present_velocity, (abs(cos(3.1415f * present_time / 2000.0f))) * target_velocity));
+            }
         }else{
-            motor[MOTOR_RIGHT].target_current = (int)(motor_right_pid.calc(motor[MOTOR_RIGHT].present_velocity, target_velocity));
-            motor[MOTOR_LEFT].target_current = (int)(motor_left_pid.calc(motor[MOTOR_LEFT].present_velocity, target_velocity));
+            if(target_velocity == 0){
+                // If the target_velocity is 0, then stop immediately.
+                motor[MOTOR_RIGHT].target_current = 0;
+                motor[MOTOR_LEFT].target_current = 0;
+            }else {
+                motor[MOTOR_RIGHT].target_current = (int) (motor_right_pid.calc(motor[MOTOR_RIGHT].present_velocity, target_velocity));
+                motor[MOTOR_LEFT].target_current = (int) (motor_left_pid.calc(motor[MOTOR_LEFT].present_velocity, target_velocity));
+            }
         }
         if(Referee::power_heat_data.chassis_power > 20) LOG("power overload: %.2f", Referee::power_heat_data.chassis_power);
     }else {
