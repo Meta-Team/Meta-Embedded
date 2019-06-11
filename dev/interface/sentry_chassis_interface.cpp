@@ -24,7 +24,7 @@ bool SentryChassis::send_currents() {
     // Fill target currents
     for (int i = 0; i < MOTOR_COUNT; i++) {
 #if SENTRY_CHASSIS_ENABLE_CLIP
-        ABS_LIMIT(motor[i].target_current, SENTRY_CHASSIS_MAX_CURRENT);
+        ABS_CROP(motor[i].target_current, SENTRY_CHASSIS_MAX_CURRENT);
 #endif
         if(i == MOTOR_LEFT){
             txmsg.data8[i * 2] = (uint8_t) ((-motor[i].target_current) >> 8);

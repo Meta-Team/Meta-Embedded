@@ -7,7 +7,7 @@
 #include "hal.h"
 
 #include "led.h"
-#include "serial_shell.h"
+#include "shell.h"
 #include "referee_interface.h"
 
 using namespace chibios_rt;
@@ -19,24 +19,24 @@ private:
         Referee::init();
         while(!shouldTerminate()) {
 
-            Shell::printf("chassis_volt = %u" SHELL_NEWLINE_STR, (unsigned int) Referee::power_heat_data.chassis_volt);
-            Shell::printf("chassis_current = %u" SHELL_NEWLINE_STR, (unsigned int) Referee::power_heat_data.chassis_current);
-            Shell::printf("chassis_power = %f" SHELL_NEWLINE_STR, Referee::power_heat_data.chassis_power);
-            Shell::printf("chassis_power_buffer = %u" SHELL_NEWLINE_STR, (unsigned int) Referee::power_heat_data.chassis_power_buffer);
-            Shell::printf("shooter_heat0 = %u" SHELL_NEWLINE_STR, (unsigned int) Referee::power_heat_data.shooter_heat0);
-            Shell::printf("shooter_heat1 = %u" SHELL_NEWLINE_STR, (unsigned int) Referee::power_heat_data.shooter_heat1);
-            Shell::printf(SHELL_NEWLINE_STR);
+            LOG("chassis_volt = %u" , (unsigned int) Referee::power_heat_data.chassis_volt);
+            LOG("chassis_current = %u" , (unsigned int) Referee::power_heat_data.chassis_current);
+            LOG("chassis_power = %f" , Referee::power_heat_data.chassis_power);
+            LOG("chassis_power_buffer = %u" , (unsigned int) Referee::power_heat_data.chassis_power_buffer);
+            LOG("shooter_heat0 = %u" , (unsigned int) Referee::power_heat_data.shooter_heat0);
+            LOG("shooter_heat1 = %u" , (unsigned int) Referee::power_heat_data.shooter_heat1);
+            LOG("");
 
-            Shell::printf("bullet_type = %u" SHELL_NEWLINE_STR, (unsigned int) Referee::shoot_data.bullet_type);
-            Shell::printf("bullet_freq = %u" SHELL_NEWLINE_STR, (unsigned int) Referee::shoot_data.bullet_freq);
-            Shell::printf("bullet_speed = %u" SHELL_NEWLINE_STR, (unsigned int) Referee::shoot_data.bullet_speed);
-            Shell::printf(SHELL_NEWLINE_STR);
+            LOG("bullet_type = %u" , (unsigned int) Referee::shoot_data.bullet_type);
+            LOG("bullet_freq = %u" , (unsigned int) Referee::shoot_data.bullet_freq);
+            LOG("bullet_speed = %u" , (unsigned int) Referee::shoot_data.bullet_speed);
+            LOG("");
 
-            Shell::printf("armor_id = %u" SHELL_NEWLINE_STR, (unsigned int) Referee::robot_hurt.armor_id);
-            Shell::printf("hurt_type = %u" SHELL_NEWLINE_STR, (unsigned int) Referee::robot_hurt.hurt_type);
-            Shell::printf(SHELL_NEWLINE_STR);
+            LOG("armor_id = %u" , (unsigned int) Referee::robot_hurt.armor_id);
+            LOG("hurt_type = %u" , (unsigned int) Referee::robot_hurt.hurt_type);
+            LOG("");
 
-            sleep(TIME_MS2I(200));
+            sleep(TIME_MS2I(2000));
         }
     }
 } refereeEchoThread;
@@ -44,6 +44,7 @@ private:
 int main() {
     halInit();
     System::init();
+    LED::all_off();
 
     // Start ChibiOS shell at high priority, so even if a thread stucks, we still have access to shell.
     Shell::start(HIGHPRIO);

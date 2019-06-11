@@ -3,7 +3,6 @@
 
 #include "ch.hpp"
 #include "hal.h"
-#include "port_to_string.h"
 
 #if defined(BOARD_RM_2017) // press to be low
 #define BUTTON_PRESS_PAL_STATUS PAL_LOW

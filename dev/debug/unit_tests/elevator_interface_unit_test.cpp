@@ -6,83 +6,87 @@
 #include "hal.h"
 
 #include "led.h"
-#include "serial_shell.h"
+#include "debug/shell/shell.h"
 #include "can_interface.h"
 #include "elevator_interface.h"
 
 using namespace chibios_rt;
 
 CANInterface can1(&CAND1);
+CANInterface can2(&CAND2);
 
-static void cmd_elevator_set_feedback(BaseSequentialStream *chp, int argc, char *argv[]) {
+/**
+ * @brief echo actual angular velocity and target current of each motor
+ * @param chp
+ * @param argc
+ * @param argv
+ */
+static void cmd_elevator_echo(BaseSequentialStream *chp, int argc, char *argv[]) {
     (void) argv;
-    if (argc != 2) {
-        shellUsage(chp, "e_set_fb index(0-3) interval[ms]");
+    if (argc != 0) {
+        shellUsage(chp, "c_echo");
+        return;
+    }
+    chprintf(chp, "accmulate_angle: FR = %d, FL = %d, BL = %d, BR = %d" SHELL_NEWLINE_STR,
+             ElevatorInterface::feedback[ElevatorInterface::FR].accmulate_angle,
+             ElevatorInterface::feedback[ElevatorInterface::FL].accmulate_angle,
+             ElevatorInterface::feedback[ElevatorInterface::BL].accmulate_angle,
+             ElevatorInterface::feedback[ElevatorInterface::BR].accmulate_angle);
+    chprintf(chp, "actual_velocity: FR = %.2f, FL = %.2f, BL = %.2f, BR = %.2f" SHELL_NEWLINE_STR,
+             ElevatorInterface::feedback[ElevatorInterface::FR].actual_velocity,
+             ElevatorInterface::feedback[ElevatorInterface::FL].actual_velocity,
+             ElevatorInterface::feedback[ElevatorInterface::BL].actual_velocity,
+             ElevatorInterface::feedback[ElevatorInterface::BR].actual_velocity);
+    chprintf(chp, "target_current: FR = %d, FL = %d, BL = %d, BR = %d" SHELL_NEWLINE_STR,
+             ElevatorInterface::target_current[ElevatorInterface::FR],
+             ElevatorInterface::target_current[ElevatorInterface::FL],
+             ElevatorInterface::target_current[ElevatorInterface::BL],
+             ElevatorInterface::target_current[ElevatorInterface::BR]);
+}
+
+/**
+ * @brief set and send target current of each motor
+ * @param chp
+ * @param argc
+ * @param argv
+ */
+static void cmd_elevator_set_target_currents(BaseSequentialStream *chp, int argc, char *argv[]) {
+    (void) argv;
+    if (argc != 4) {
+        shellUsage(chp, "c_set_current FR FL BL BR");
         return;
     }
 
-    CANTxFrame txFrame;
+    ElevatorInterface::target_current[ElevatorInterface::FR] = Shell::atoi(argv[0]);
+    ElevatorInterface::target_current[ElevatorInterface::FL] = Shell::atoi(argv[1]);
+    ElevatorInterface::target_current[ElevatorInterface::BL] = Shell::atoi(argv[2]);
+    ElevatorInterface::target_current[ElevatorInterface::BR] = Shell::atoi(argv[3]);
+    chprintf(chp, "target_current: FR = %d, FL = %d, BL = %d, BR = %d" SHELL_NEWLINE_STR,
+             ElevatorInterface::target_current[ElevatorInterface::FR],
+             ElevatorInterface::target_current[ElevatorInterface::FL],
+             ElevatorInterface::target_current[ElevatorInterface::BL],
+             ElevatorInterface::target_current[ElevatorInterface::BR]);
 
-    // Pre-fill info of txFrame
-    txFrame.IDE = CAN_IDE_STD;
-    txFrame.RTR = CAN_RTR_DATA;
-    txFrame.DLC = 0x08;
-    for (int data_index = 0; data_index < 8; data_index++) {
-        txFrame.data8[data_index] = 0x55;
-    }
-    txFrame.SID = (3 << 8 | ((unsigned) (Shell::atoi(argv[0]) + 1)) << 4 | 0xA); // index + 1 = CAN ID
-    txFrame.data8[0] = (uint8_t)(Shell::atoi(argv[1]));
-    txFrame.data8[1] = 0x00;
-    can1.send_msg(&txFrame);
-
+    ElevatorInterface::send_elevator_currents();
+    chprintf(chp, "Elevator target_current sent" SHELL_NEWLINE_STR);
 }
 
-
-
-static void cmd_elevator_set_target_position(BaseSequentialStream *chp, int argc, char *argv[]) {
-    (void) argv;
-    if (argc != 2) {
-        shellUsage(chp, "e_set front_pos[cm] back_pos[cm] positive for VEHICLE to DOWN");
-        return;
-    }
-    ElevatorInterface::apply_rear_position(Shell::atof(argv[0]));
-    ElevatorInterface::apply_front_position(Shell::atof(argv[1]));
-    chprintf(chp, "Target pos = %f, %f" SHELL_NEWLINE_STR, Shell::atof(argv[0]), Shell::atof(argv[1]));
-}
-
-// Shell commands to control the chassis
-ShellCommand elevatorInterfaceCommands[] = {
-        {"e_set", cmd_elevator_set_target_position},
-        {"e_set_fb", cmd_elevator_set_feedback},
-        {nullptr, nullptr}
+// Shell commands to control the elevator
+ShellCommand elevatorCommands[] = {
+        {"e_echo", cmd_elevator_echo},
+        {"e_set_current",    cmd_elevator_set_target_currents},
+        {nullptr,    nullptr}
 };
 
-class ElevatorThread : public BaseStaticThread<1024> {
+class GimbalThread : public BaseStaticThread<256> {
 protected:
     void main() final {
         setName("elevator");
-        ElevatorInterface::init(&can1);
         while (!shouldTerminate()) {
 
-            Shell::printf(
-                    "FR[%d]: POS = %d, V = %d, FL[%d]: POS = %d, V = %d, RL[%d]: POS = %d, V = %d, RR[%d]: POS = %d, V = %d" SHELL_NEWLINE_STR,
-                    ElevatorInterface::wheels[ElevatorInterface::FRONT_RIGHT].is_in_action(),
-                    (int) ElevatorInterface::wheels[ElevatorInterface::FRONT_RIGHT].real_position,
-                    (int) ElevatorInterface::wheels[ElevatorInterface::FRONT_RIGHT].real_velocity,
-                    ElevatorInterface::wheels[ElevatorInterface::FRONT_LEFT].is_in_action(),
-                    (int) ElevatorInterface::wheels[ElevatorInterface::FRONT_LEFT].real_position,
-                    (int) ElevatorInterface::wheels[ElevatorInterface::FRONT_LEFT].real_velocity,
-                    ElevatorInterface::wheels[ElevatorInterface::REAR_LEFT].is_in_action(),
-                    (int) ElevatorInterface::wheels[ElevatorInterface::REAR_LEFT].real_position,
-                    (int) ElevatorInterface::wheels[ElevatorInterface::REAR_LEFT].real_velocity,
-                    ElevatorInterface::wheels[ElevatorInterface::REAR_RIGHT].is_in_action(),
-                    (int) ElevatorInterface::wheels[ElevatorInterface::REAR_RIGHT].real_position,
-                    (int) ElevatorInterface::wheels[ElevatorInterface::REAR_RIGHT].real_velocity);
-            /*Shell::printf("Height: [0]%f, [1]%f, [2]%f, [3]%f" SHELL_NEWLINE_STR,
-                    ElevatorInterface::sensor_height[0], ElevatorInterface::sensor_height[1],
-                    ElevatorInterface::sensor_height[2], ElevatorInterface::sensor_height[3]);*/
+            ElevatorInterface::send_elevator_currents();
 
-            sleep(TIME_MS2I(2000));
+            sleep(TIME_MS2I(100));
         }
     }
 } elevatorThread;
@@ -91,17 +95,19 @@ protected:
 int main(void) {
     halInit();
     System::init();
+    LED::green_off();
 
     // Start ChibiOS shell at high priority,
     // so even if a thread stucks, we still have access to shell.
     Shell::start(HIGHPRIO);
-    Shell::addCommands(elevatorInterfaceCommands);
-
-    LED::green_off();
+    Shell::addCommands(elevatorCommands);
 
     can1.start(HIGHPRIO - 1);
+    can2.start(HIGHPRIO - 2);
+    ElevatorInterface::init(&can2);
 
     elevatorThread.start(NORMALPRIO);
+
     // See chconf.h for what this #define means.
 #if CH_CFG_NO_IDLE_THREAD
     // ChibiOS idle thread has been disabled,

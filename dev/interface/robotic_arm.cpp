@@ -5,13 +5,18 @@
 #include "common_macro.h"
 
 RoboticArm::clamp_status_t RoboticArm::_clamp_status = RoboticArm::CLAMP_RELAX;
-float RoboticArm::motor_accumulate_angle;
-uint16_t RoboticArm::motor_last_actual_angle_raw;
-int RoboticArm::motor_target_current;
+float RoboticArm::motor_accumulate_angle = 0;
+uint16_t RoboticArm::motor_last_actual_angle_raw = 0;
+time_msecs_t RoboticArm::motor_last_update_time = 0;
+int RoboticArm::motor_target_current = 0;
 CANInterface *RoboticArm::can = nullptr;
 
 float RoboticArm::get_motor_actual_angle() {
     return motor_accumulate_angle;
+}
+
+time_msecs_t RoboticArm::get_motor_last_update_time() {
+    return motor_last_update_time;
 }
 
 RoboticArm::clamp_status_t RoboticArm::get_clamp_status() {
@@ -20,25 +25,25 @@ RoboticArm::clamp_status_t RoboticArm::get_clamp_status() {
 
 void RoboticArm::clamp_action(RoboticArm::clamp_status_t target_status) {
     _clamp_status = target_status;
-    palWritePad(GPIOH, GPIOH_POWER1_CTRL, _clamp_status);
+    palWritePad(GPIOH, GPIOH_POWER2_CTRL, _clamp_status);
 }
 
-void RoboticArm::init(CANInterface *can_interface, uint16_t motor_front_angle_raw) {
-
-    motor_last_actual_angle_raw = motor_front_angle_raw;
+void RoboticArm::init(CANInterface *can_interface) {
 
     can = can_interface;
     can->register_callback(0x205, 0x205, process_motor_feedback);
 
-    palSetPad(GPIOH, GPIOH_POWER3_CTRL);
+    palSetPad(GPIOH, GPIOH_POWER2_CTRL);
 
-    palSetPadMode(GPIOH, GPIOH_POWER1_CTRL, PAL_MODE_OUTPUT_PUSHPULL);
-    palClearPad(GPIOH, GPIOH_POWER1_CTRL);
+    palSetPad(GPIOH, GPIOH_POWER1_CTRL);
 
 }
 
 void RoboticArm::process_motor_feedback(CANRxFrame const *rxmsg) {
+
     if (rxmsg->SID != 0x205) return;
+
+//    chSysLock();  // --- Enter Critical Zone ---
 
     uint16_t new_actual_angle_raw = rxmsg->data8[0] << 8 | rxmsg->data8[1];
 
@@ -54,6 +59,10 @@ void RoboticArm::process_motor_feedback(CANRxFrame const *rxmsg) {
     }
 
     motor_accumulate_angle = motor_accumulate_angle + angle_movement * 360.0f / 8192 / motor_decelerate_ratio;
+
+    motor_last_update_time = SYSTIME;
+
+//    chSysUnlock();  // --- Exit Critical Zone ---
 }
 
 void RoboticArm::reset_front_angle() {

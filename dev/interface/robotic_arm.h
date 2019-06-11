@@ -9,7 +9,6 @@
 #include "hal.h"
 #include "hal_pal.h"
 #include "can_interface.h"
-#include "port_to_string.h"
 
 #if defined(BOARD_RM_2018_A)
 #else
@@ -30,6 +29,12 @@ public:
      * @return accumulate angle in [degree]. Outward is negative
      */
     static float get_motor_actual_angle();
+
+    /**
+     * Get motor last update time
+     * @return
+     */
+    static time_msecs_t get_motor_last_update_time();
 
     /**
      * @brief set current angle as front angle
@@ -72,7 +77,7 @@ public:
      * @param can_interface pointer to properly started CANInterface
      * @param motor_front_angle_raw   the raw angle of motor when the robotic arm is inside
      */
-    static void init(CANInterface *can_interface, uint16_t motor_front_angle_raw = 0);
+    static void init(CANInterface *can_interface);
 
 private:
 
@@ -80,6 +85,8 @@ private:
 
     static float motor_accumulate_angle;
     static uint16_t motor_last_actual_angle_raw;
+
+    static time_msecs_t motor_last_update_time;
 
     static int motor_target_current;
 

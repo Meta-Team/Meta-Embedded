@@ -28,7 +28,7 @@
 #include <stdarg.h>
 
 #if defined(SHELL_CONFIG_FILE)
-#include "shellconf.h"
+#include "debug/shell/shellconf.h"
 #endif
 
 /**

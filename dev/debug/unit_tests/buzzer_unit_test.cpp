@@ -6,7 +6,7 @@
 #include "hal.h"
 
 #include "led.h"
-#include "serial_shell.h"
+#include "debug/shell/shell.h"
 #include "buzzer.h"
 
 using namespace chibios_rt;
@@ -15,7 +15,7 @@ using namespace chibios_rt;
 static void cmd_play(BaseSequentialStream *chp, int argc, char *argv[]) {
     (void) argv;
     if (argc != 1) {
-        shellUsage(chp, "buzzer 0-3");
+        shellUsage(chp, "buzzer 0-4");
         return;
     }
 
@@ -33,8 +33,11 @@ static void cmd_play(BaseSequentialStream *chp, int argc, char *argv[]) {
         case 3:
             Buzzer::play_sound(Buzzer::sound_orange, NORMALPRIO);
             break;
+        case 4:
+            Buzzer::play_sound(Buzzer::sound_infinty_warning, NORMALPRIO);
+            break;
         default:
-            shellUsage(chp, "buzzer 0-3");
+            shellUsage(chp, "buzzer 0-4");
     }
 
 }

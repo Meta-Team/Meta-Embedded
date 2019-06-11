@@ -54,6 +54,7 @@ public:
 
         Silent = 0,
         Finish = -1,
+        InfLoop = -2
 
     } note_t;
 
@@ -92,6 +93,7 @@ private:
          * Pointer to note_with_time_t array. It's passed into this class at play_sound()
          */
         note_with_time_t const *sound_seq;
+        note_with_time_t const *curr;
 
         BuzzerThread() : sound_seq(nullptr) {};
 
@@ -115,6 +117,10 @@ public:
     static constexpr note_with_time_t sound_startup_intel[] = {
             {Fa4H, 250}, {Fa4H, 250}, {Silent, 250}, {So5M, 250}, {Do1H, 250}, {So5M, 250}, {Re2H, 250}, {Re2H, 250},
             {Re2H, 250}, {Finish, 250}
+    };
+
+    static constexpr note_with_time_t sound_infinty_warning[] {
+            {Do1H, 250}, {Do1M, 250}, {InfLoop, 0}
     };
 
     static constexpr note_with_time_t sound_little_star[] = {

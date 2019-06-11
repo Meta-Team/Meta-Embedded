@@ -2,67 +2,68 @@
 // Created by liuzikai on 2019-01-27.
 //
 
-// Basic headers (including board definitions, so they should be at the very beginning)
+// Headers
 #include "ch.hpp"
 #include "hal.h"
 
-#if defined(ENGINEER) // defined in CMakeLists.txt.
+#include "led.h"
+#include "shell.h"
 
+#include "can_interface.h"
+
+#include "buzzer.h"
+#include "remote_interpreter.h"
+#include "robotic_arm.h"
+
+#include "chassis.h"
+#include "elevator.h"
+
+// Vehicle specific config
+#if defined(ENGINEER) // specified in CMakeLists.txt
 #include "vehicle_engineer.h"
-
 #else
 #error "main_engineer.cpp should only be used for Engineer."
 #endif
 
-#if defined(BOARD_RM_2018_A) // defined in board.h (included in hal.h)
-#define STARTUP_BUTTON_PAD GPIOB
-#define STARTUP_BUTTON_PIN_ID GPIOB_USER_BUTTON
-#define STARTUP_BUTTON_PRESS_PAL_STATUS PAL_HIGH
+// Board guard
+#if defined(BOARD_RM_2018_A) // specified in build profile
 #else
 #error "Engineer is only developed for RM board 2018 A."
 #endif
 
-// Debug headers
-#include "led.h"
-#include "serial_shell.h"
 
-// Modules and basic communication channels
-#include "can_interface.h"
-#include "chassis_common.h"
+// Threads and State Machines
+#include "thread_chassis.h"
+#include "thread_elevator.h"
+#include "thread_error_detect.hpp"
+#include "state_machine_stage_climb.h"
+#include "state_machine_bullet_fetch.h"
+#include "thread_action_trigger.hpp"
+
 
 // Interfaces
-#include "buzzer.h"
-#include "remote_interpreter.h"
-#include "chassis_interface.h"
-#include "elevator_interface.h"
-#include "robotic_arm.h"
+CANInterface can1(&CAND1);
+CANInterface can2(&CAND2);
 
-// Controllers
-#include "chassis_calculator.h"
-#include "elevator_thread.h"
-#include "robotic_arm_thread.h"
+// Threads
+ChassisThread chassisThread({CHASSIS_PID_V2I_PARAMS});
+ElevatorThread elevatorThread({ELEVATOR_PID_A2V_PARAMS}, {ELEVATOR_PID_V2I_PARAMS});
 
-/**
- * MODE TABLE:
- * ------------------------------------------------------------
- * Left  Right  Mode
- * ------------------------------------------------------------
- *  UP    *     Safe
- *  MID  DOWN   Remote - Chassis
- *  DOWN  *     PC - Chassis + Elevator + Robotic Arm
- *  -Others-    Safe
- * ------------------------------------------------------------
- * @note also update ONES doc
- */
+StageClimbStateMachine stageClimbStateMachine(chassisThread, elevatorThread);
+BulletFetchStateMachine bulletFetchStateMachine;
+
+ActionTriggerThread actionTriggerThread(elevatorThread, bulletFetchStateMachine, stageClimbStateMachine);
+
+ErrorDetectThread errorDetectThread;
 
 static void cmd_elevator_set_target_position(BaseSequentialStream *chp, int argc, char *argv[]) {
     (void) argv;
     if (argc != 2) {
-        shellUsage(chp, "e_set front_pos[cm] back_pos[cm] positive for VEHICLE to DOWN");
+        shellUsage(chp, "e_set front_pos[cm] back_pos[cm] positive for VEHICLE to UP");
         return;
     }
-    ElevatorInterface::apply_rear_position(Shell::atof(argv[0]));
-    ElevatorInterface::apply_front_position(Shell::atof(argv[1]));
+    elevatorThread.set_front_target_height(Shell::atof(argv[0]));
+    elevatorThread.set_back_target_height(Shell::atof(argv[1]));
     chprintf(chp, "Target pos = %f, %f" SHELL_NEWLINE_STR, Shell::atof(argv[0]), Shell::atof(argv[1]));
 }
 
@@ -72,269 +73,76 @@ ShellCommand elevatorInterfaceCommands[] = {
         {nullptr, nullptr}
 };
 
-
-/** Declarations **/
-
-CANInterface can1(&CAND1);
-
-/** Threads **/
-
-ElevatorThread elevatorThread;
-RoboticArmThread roboticArmThread;
-
-/**
- * @name ChassisThread
- * @brief thread to control chassis
- * @pre RemoteInterpreter start receive
- * @pre initialize ChassisInterface with CAN driver
- */
-class ChassisThread : public chibios_rt::BaseStaticThread<1024> {
-
-    static constexpr unsigned int chassis_thread_interval = 20;
-
-    /**
-     * Params for user
-     * @note also update ONES doc
-     */
-    static constexpr float PC_W_VY = -500.0f;
-    static constexpr float PC_S_VY = 500.0f;
-    static constexpr float PC_E_VX = -500.0f;
-    static constexpr float PC_Q_VX = 500.0f;
-    static constexpr float PC_A_W = -100.0f;
-    static constexpr float PC_D_W = 100.0f;
-
-    static constexpr float PC_CTRL_RATIO = 0.5f;
-
-    void main() final {
-
-        setName("chassis");
-
-        ChassisController::change_pid_params(CHASSIS_PID_V2I_PARAMS);
-
-        while (!shouldTerminate()) {
-
-            if ((Remote::rc.s1 == Remote::RC_S_MIDDLE && Remote::rc.s2 == Remote::RC_S_DOWN) ||
-                (Remote::rc.s1 == Remote::RC_S_DOWN)) {
-
-                float target_vx = 0, target_vy = 0, target_w = 0;
-
-                if (elevatorThread.get_status() == elevatorThread.STOP) {  // if elevator thread is not in action,
-
-                    // let user control the chassis
-                    if (Remote::rc.s1 == Remote::RC_S_MIDDLE && Remote::rc.s2 == Remote::RC_S_DOWN) {
-
-                        target_vx = -Remote::rc.ch2 * 1000.0f;
-                        target_vy = -Remote::rc.ch3 * 1000.0f;
-                        target_w = Remote::rc.ch0 * 180.0f;
-
-                    } else if (Remote::rc.s1 == Remote::RC_S_DOWN) {
-
-                        if (Remote::key.w) target_vy = PC_W_VY;
-                        else if (Remote::key.s) target_vy = PC_S_VY;
-                        else target_vy = 0;
-
-                        if (Remote::key.q) target_vx = PC_Q_VX;
-                        else if (Remote::key.e) target_vx = PC_E_VX;
-                        else target_vx = 0;
-
-                        if (Remote::key.a) target_w = PC_A_W;
-                        else if (Remote::key.d) target_w = PC_D_W;
-                        else target_w = 0;
-
-                        if (Remote::key.ctrl) {
-                            target_vx *= PC_CTRL_RATIO;
-                            target_vy *= PC_CTRL_RATIO;
-                            target_w *= PC_CTRL_RATIO;
-                        }
-                    } else {
-                        target_vx = target_vy = target_w = 0;
-                    }
-
-                } else {
-
-                    target_vx = target_w = 0;
-                    target_vy = elevatorThread.get_chassis_target_vy();
-
-                }
-
-
-                // Pack the actual velocity into an array
-                float measured_velocity[4];
-                for (int i = 0; i < CHASSIS_MOTOR_COUNT; i++) {
-                    measured_velocity[i] = ChassisInterface::motor[i].actual_angular_velocity;
-                }
-
-                // Perform calculation
-                ChassisController::calc(measured_velocity, target_vx, target_vy, target_w);
-
-                // Pass the target current to interface
-                for (int i = 0; i < CHASSIS_MOTOR_COUNT; i++) {
-                    ChassisInterface::motor[i].target_current = (int) ChassisController::motor[i].target_current;
-                }
-            } else {
-
-                for (int i = 0; i < CHASSIS_MOTOR_COUNT; i++) {
-                    ChassisInterface::motor[i].target_current = 0;
-                }
-
-            }
-
-            ChassisInterface::send_chassis_currents();
-            sleep(TIME_MS2I(chassis_thread_interval));
-
-        }
-    }
-} chassisThread;
-
-
-class ActionTriggerThread : public chibios_rt::BaseStaticThread<2048> {
-
-    static constexpr int action_trigger_thread_interval = 20; // [ms]
-
-    bool keyPressed = false;
-
-    void main() final {
-
-        setName("action_trigger");
-
-        while (!shouldTerminate()) {
-
-            if (Remote::rc.s1 == Remote::RC_S_DOWN) { // PC Mode
-
-                if (Remote::key.v) {                                               // elevator lift up
-                    if (!keyPressed) {
-                        LOG_USER("press V");
-                        ElevatorInterface::apply_rear_position(-20);
-                        ElevatorInterface::apply_front_position(-20);
-                        keyPressed = true;
-                    }
-                } else if (Remote::key.b) {                                        // elevator lift down
-                    if (!keyPressed) {
-                        LOG_USER("press B");
-                        ElevatorInterface::apply_rear_position(0);
-                        ElevatorInterface::apply_front_position(0);
-                        keyPressed = true;
-                    }
-                } else if (Remote::key.z) {                                        // robotic arm initial outward
-                    if (!keyPressed) {
-                        LOG_USER("press Z");
-                        keyPressed = true;
-                    }
-                    if (roboticArmThread.get_status() == roboticArmThread.STOP) {
-                        if (!roboticArmThread.is_outward()) {
-                            LOG("Trigger RA out");
-                            roboticArmThread.start_initial_outward(NORMALPRIO - 3);
-                        } else if (!keyPressed) {
-                            LOG_WARN("RA is already out");
-                            keyPressed = true;
-                        }
-                    } else if (!keyPressed) {
-                        LOG_WARN("RA is in action");
-                        keyPressed = true;
-                    }
-                } else if (Remote::key.x) {                                        // robotic arm fetch once
-                    if (!keyPressed) {
-                        LOG_USER("press X");
-                        keyPressed = true;
-                    }
-                    if (roboticArmThread.get_status() == roboticArmThread.STOP) {
-                        if (roboticArmThread.is_outward()) {
-                            LOG("Trigger RA fetch");
-                            roboticArmThread.start_one_fetch(NORMALPRIO - 3);
-                        } else if (!keyPressed) {
-                            LOG_WARN("RA is not out");
-                            keyPressed = true;
-                        }
-                    } else if (!keyPressed) {
-                        LOG_WARN("RA is in action");
-                        keyPressed = true;
-                    }
-                } else if (Remote::key.c) {                                        // robotic arm final inward
-                    if (!keyPressed) {
-                        LOG_USER("press C");
-                        keyPressed = true;
-                    }
-                    if (roboticArmThread.get_status() == roboticArmThread.STOP) {
-                        if (roboticArmThread.is_outward()) {
-                            LOG("Trigger RA in");
-                            roboticArmThread.start_final_inward(NORMALPRIO - 3);
-                        } else if (!keyPressed) {
-                            LOG_WARN("RA is not out");
-                            keyPressed = true;
-                        }
-                    } else if (!keyPressed) {
-                        LOG_WARN("RA is in action");
-                        keyPressed = true;
-                    }
-                } else if (Remote::key.g) {
-                    if (!keyPressed) {
-                        LOG_USER("press G");
-                        keyPressed = true;
-                    }
-                    if (elevatorThread.get_status() == elevatorThread.STOP) {
-                        LOG("Trigger ELE up");
-                        elevatorThread.start_up_actions(NORMALPRIO - 2);
-                    } else if (!keyPressed) {
-                        LOG_WARN("ELE is in action");
-                        keyPressed = true;
-                    }
-                } else {
-                    keyPressed = false;
-                }
-            }
-
-            sleep(TIME_MS2I(action_trigger_thread_interval));
-        }
-    }
-} actionTriggerThread;
-
 int main(void) {
 
-    /*** --------------------------- Period 1. Basic Setup --------------------------- ***/
+    /*** --------------------------- Period 0. Fundamental Setup --------------------------- ***/
 
-    /** Basic Initializations **/
     halInit();
     chibios_rt::System::init();
-    LED::green_off();
-    LED::red_off();
 
-    /** Debug Setup **/
+    /*** ---------------------- Period 1. Modules Setup and Self-Check ---------------------- ***/
+
+    LED::all_off();
+
+    /** Setup Shell */
     Shell::start(HIGHPRIO);
     Shell::addCommands(elevatorInterfaceCommands);
+    StateHandler::echoEvent(StateHandler::SHELL_START);
+    // LED 1 on now
 
-    /** Basic IO Setup **/
+    /** Setup CAN1 & CAN2 */
     can1.start(HIGHPRIO - 1);
-    Remote::start_receive();
+    can2.start(HIGHPRIO - 2);
+    chThdSleepMilliseconds(5);
+    startupCheckCAN();  // check no persistent CAN Error. Block for 100 ms
+    StateHandler::echoEvent(StateHandler::CAN_START_SUCCESSFULLY);
+    // LED 2 on now
 
-    ChassisInterface::init(&can1);
-    ElevatorInterface::init(&can1);
-    RoboticArm::init(&can1, ROBOTIC_ARM_INSIDE_ANGLE_RAW);
+    LED::led_on(3);
+    // LED 3 on now
+
+    /** Setup Remote */
+    Remote::start_receive();
+    startupCheckRemote();  // check Remote has signal. Block for 50 ms
+    StateHandler::echoEvent(StateHandler::REMOTE_START_SUCCESSFULLY);
+    // LED 4 on now
+
+    /** Setup RoboticArm */
+    RoboticArm::init(&can1);
+    chThdSleepMilliseconds(10);
+    startupCheckRoboticArmFeedback();  // check chassis motors has continuous feedback. Block for 50 ms
+    StateHandler::echoEvent(StateHandler::ROBOTIC_ARM_CONNECT);
+    // LED 5 on now
+
+    /** Setup Chassis */
+    Chassis::init(&can1, CHASSIS_WHEEL_BASE, CHASSIS_WHEEL_TREAD, CHASSIS_WHEEL_CIRCUMFERENCE);
+    chThdSleepMilliseconds(10);
+    startupCheckChassisFeedback();  // check chassis motors has continuous feedback. Block for 50 ms
+    StateHandler::echoEvent(StateHandler::CHASSIS_CONNECTED);
+    // LED 6 on now
+
+    /** Setup Elevator */
+    Elevator::init(&can2);
+    chThdSleepMilliseconds(10);
+    startupCheckElevatorFeedback();  // check chassis motors has continuous feedback. Block for 50 ms
+    StateHandler::echoEvent(StateHandler::ELEVATOR_CONNECTED);
+    // LED 7 on now
+
+    StateHandler::echoEvent(StateHandler::MAIN_MODULES_SETUP_COMPLETE);
+    // LED Green on now
+
 
     /*** ------------ Period 2. Calibration and Start Logic Control Thread ----------- ***/
 
-//    while (palReadPad(STARTUP_BUTTON_PAD, STARTUP_BUTTON_PIN_ID) != STARTUP_BUTTON_PRESS_PAL_STATUS) {
-//        // Wait for the button to be pressed
-//        LED::green_toggle();
-//        chThdSleepMilliseconds(300);
-//    }
-//    /** User has pressed the button **/
+    RoboticArm::reset_front_angle();
 
-    LED::green_on();
-
-//    RoboticArm::reset_front_angle();
-
-    /** Echo Gimbal Raws and Converted Angles **/
-    chThdSleepMilliseconds(500);
-    LOG("RA Motor: %u, %f", RoboticArm::motor_last_actual_angle_raw, RoboticArm::get_motor_actual_angle());
-
+    chassisThread.start(NORMALPRIO);
+    elevatorThread.start(NORMALPRIO - 1);
     actionTriggerThread.start(NORMALPRIO - 2);
+    errorDetectThread.start(LOWPRIO + 1);
 
-    /** Start Logic Control Thread **/
-    chassisThread.start(NORMALPRIO + 2);
-
-    /** Play the Startup Sound **/
-    Buzzer::play_sound(Buzzer::sound_startup_intel, LOWPRIO);
-
+    StateHandler::echoEvent(StateHandler::MAIN_THREAD_SETUP_COMPLETE);
+    // Now play the startup sound
 
     /*** ------------------------ Period 3. End of main thread ----------------------- ***/
 

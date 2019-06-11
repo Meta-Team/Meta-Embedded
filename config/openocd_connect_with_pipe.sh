@@ -10,4 +10,4 @@
 # ----------------------------------------------------------------
 
 cd /Users/liuzikai/Documents/RoboMaster/Meta-Infantry
-openocd -l openocd.log -c "gdb_port pipe" -f config/RM_Board_2017.cfg
+openocd -l openocd.log -c "gdb_port pipe" -f config/RM_Board_Mac.cfg
