@@ -33,13 +33,13 @@
          while (!shouldTerminate()) {
 
              bullet_full = (bool) palReadPad(GPIOB,GPIOB_PIN5); // check if bullet is full or not, automatically load. TODO: determined the PIN to use.
+             if (plate_target_angle > 360.0f && Shoot::feedback[3].actual_angle < plate_target_angle -360.0f) plate_target_angle -= 360.0f; //get the correct angle first
              if(!bullet_full){
                  if(plate_target_angle - Shoot::feedback[3].actual_angle < 3.0f) plate_target_angle += 36.0f;
              }
-             if (plate_target_angle > 360.0f && Shoot::feedback[3].actual_angle < plate_target_angle -360.0f) plate_target_angle -= 360.0f;
              Shoot::calc_plate(Shoot::feedback[3].actual_velocity, plate_target_angle);
 
-
+             if (bullet_target_angle > 360.0f && Shoot::feedback[2].actual_angle < bullet_target_angle -360.0f) bullet_target_angle -= 360.0f; //get the correct angle first
              if (!StateHandler::remoteDisconnected() && !StateHandler::gimbalSeriousErrorOccured()){
                  if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_UP){
 
@@ -109,7 +109,6 @@
                  Shoot::target_current[Shoot::BULLET] = 0;
                  Shoot::target_current[Shoot::PLATE] = 0;
              }
-             if (bullet_target_angle > 360.0f && Shoot::feedback[2].actual_angle < bullet_target_angle -360.0f) bullet_target_angle -= 360.0f;
              Shoot::calc_bullet(Shoot::feedback[2].actual_velocity, bullet_target_angle);
              sleep(TIME_MS2I(SHOOT_THREAD_INTERVAL));
          }
