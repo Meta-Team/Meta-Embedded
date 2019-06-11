@@ -219,7 +219,7 @@ add_executable(pa_elevator
         dev/module/pid_controller.hpp
         dev/interface/elevator_interface.cpp
         dev/control/elevator.cpp
-        dev/debug/unit_tests/elevator_param_adjust.cpp dev/debug/unit_tests/sentry_chassis_matlab_unit_test.cpp)
+        dev/debug/unit_tests/elevator_param_adjust.cpp)
 
 # Robotic Arm
 add_executable(ut_robotic_arm
