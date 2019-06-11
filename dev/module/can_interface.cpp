@@ -20,8 +20,7 @@ void CANInterface::ErrorFeedbackThread::main() {
         }
 
         eventflags_t flags = chEvtGetAndClearFlags(&el);
-        Shell::printf("CAN error: %u" SHELL_NEWLINE_STR, (unsigned int) flags);
-
+        StateHandler::raiseException(StateHandler::CAN_ERROR, flags);
     }
 
     chEvtUnregister(&(can_driver->rxfull_event), &el);
@@ -36,7 +35,7 @@ chibios_rt::ThreadReference CANInterface::start(tprio_t prio) {
     errorFeedbackThread.can_driver = can_driver;
     errorFeedbackThread.start(LOWPRIO);
 #endif
-    return chibios_rt::BaseStaticThread <CAN_INTERFACE_THREAD_WORK_AREA_SIZE>::start(prio);
+    return chibios_rt::BaseStaticThread<CAN_INTERFACE_THREAD_WORK_AREA_SIZE>::start(prio);
 }
 
 bool CANInterface::register_callback(uint32_t sid_lower_bound, uint32_t sid_upper_bound,
@@ -49,9 +48,11 @@ bool CANInterface::register_callback(uint32_t sid_lower_bound, uint32_t sid_uppe
 void CANInterface::main() {
 
     if (can_driver == &CAND1) {
-        setName("CAN1_Thread");
+        setName("CAN1");
+    } else if (can_driver == &CAND2) {
+        setName("CAN2");
     } else {
-        setName("CAN_Unknown_Thread");
+        setName("CAN_Unknown");
     }
 
     CANRxFrame rxmsg;
@@ -70,13 +71,13 @@ void CANInterface::main() {
 
         // Process every received message
         while (canReceive(can_driver, CAN_ANY_MAILBOX, &rxmsg, TIME_IMMEDIATE) == MSG_OK) {
-            chSysLock();
+//            chSysLock();
             for (int i = 0; i < callback_list_count; i++) {
                 if (rxmsg.SID >= callback_list[i].sid_lower_bound && rxmsg.SID <= callback_list[i].sid_upper_bound) {
                     callback_list[i].callback_func(&rxmsg);
                 }
             }
-            chSysUnlock();
+//            chSysUnlock();
         }
 
     }
@@ -85,7 +86,7 @@ void CANInterface::main() {
 }
 
 bool CANInterface::send_msg(const CANTxFrame *txmsg) {
-    if(canTransmit(can_driver, CAN_ANY_MAILBOX, txmsg, TIME_MS2I(transmit_timeout_ms)) != MSG_OK) {
+    if (canTransmit(can_driver, CAN_ANY_MAILBOX, txmsg, TIME_MS2I(transmit_timeout_ms)) != MSG_OK) {
         // TODO: show debug info for failure
         return false;
     }

@@ -13,4 +13,4 @@ else
     echo "[Notice] OpenOCD will flash, reset and halt the program, and keep running as server after writing program."
 fi
 set -x
-openocd -f RM_Board_2017.cfg -c "program ../build/meta.elf verify reset $exit_cmd"
+openocd -f RM_Board_Mac.cfg -c "program ../build/meta.elf verify reset $exit_cmd"

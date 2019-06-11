@@ -6,7 +6,7 @@
 #include "hal.h"
 
 #include "led.h"
-#include "serial_shell.h"
+#include "debug/shell/shell.h"
 
 #include "mpu6500.h"
 
@@ -16,13 +16,12 @@ class MPU6500FeedbackThread : public BaseStaticThread<1024> {
 protected:
     void main() final {
         setName("mpu6500");
-        MPU6500Controller::start(HIGHPRIO - 2);
+        MPU6500::start(HIGHPRIO - 2);
         while (!shouldTerminate()) {
-            Shell::printf("w = (%.4f, %.4f, %.4f), temp = %.4f" SHELL_NEWLINE_STR,
-                          MPU6500Controller::angle_speed.x,
-                          MPU6500Controller::angle_speed.y,
-                          MPU6500Controller::angle_speed.z,
-                          MPU6500Controller::temperature);
+            Shell::printf("w = (%.4f, %.4f, %.4f), a = (%.4f, %.4f, %.4f), temp = %.4f" SHELL_NEWLINE_STR,
+                          MPU6500::angle_speed.x, MPU6500::angle_speed.y, MPU6500::angle_speed.z,
+                          MPU6500::acceleration.x, MPU6500::acceleration.y, MPU6500::acceleration.z,
+                          MPU6500::temperature);
             sleep(TIME_MS2I(100));
         }
     }

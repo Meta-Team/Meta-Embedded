@@ -16,7 +16,8 @@
 Remote::rc_t Remote::rc;
 Remote::mouse_t Remote::mouse;
 Remote::keyboard_t Remote::key;
-char Remote::rx_buf_[Remote::RX_BUF_SIZE];
+time_msecs_t Remote::last_update_time;
+char Remote::rx_buf_[Remote::RX_FRAME_SIZE];
 constexpr UARTConfig Remote::REMOTE_UART_CONFIG;
 
 /**
@@ -24,8 +25,8 @@ constexpr UARTConfig Remote::REMOTE_UART_CONFIG;
  */
 #define LOG_PRESS_AND_RELEASE(old_val, new_val, name) { \
     if (old_val != new_val) { \
-        if (new_val) LOG_USER("press %s", name); \
-        else LOG_USER("release %s", name); \
+        if (new_val) Shell::printfI("[REMOTE] press %s", name); \
+        else Shell::printfI("[REMOTE] release %s", name); \
     } \
 }
 
@@ -34,7 +35,8 @@ constexpr UARTConfig Remote::REMOTE_UART_CONFIG;
  * @param uartp
  */
 void Remote::uart_received_callback_(UARTDriver *uartp) {
-    (void) uartp;
+
+//    chSysLockFromISR(); // --- Enter Critical Zone ---
 
     rc.ch0 = (((rx_buf_[0] | rx_buf_[1] << 8) & 0x07FF) - 1024.0f) / 660.0f;
     rc.ch1 = (((rx_buf_[1] >> 3 | rx_buf_[2] << 5) & 0x07FF) - 1024.0f) / 660.0f;
@@ -93,8 +95,12 @@ void Remote::uart_received_callback_(UARTDriver *uartp) {
 
 #endif
 
+    last_update_time = SYSTIME;
+
     // Restart the receive
-    uartStartReceive(uartp, Remote::RX_BUF_SIZE, rx_buf_);
+    uartStartReceive(uartp, RX_FRAME_SIZE, rx_buf_);
+
+//    chSysUnlockFromISR(); // --- Exit Critical Zone ---
 }
 
 /**
@@ -103,5 +109,5 @@ void Remote::uart_received_callback_(UARTDriver *uartp) {
  */
 void Remote::start_receive() {
     uartStart(&REMOTE_UART_DRIVER, &REMOTE_UART_CONFIG);
-    uartStartReceive(&REMOTE_UART_DRIVER, RX_BUF_SIZE, rx_buf_);
+    uartStartReceive(&REMOTE_UART_DRIVER, RX_FRAME_SIZE, rx_buf_);
 }

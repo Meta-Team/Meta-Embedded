@@ -6,11 +6,11 @@
 #include "hal.h"
 
 #include "led.h"
-#include "serial_shell.h"
+#include "debug/shell/shell.h"
 #include "can_interface.h"
 #include "robotic_arm.h"
 
-#include "vehicle/engineer/robotic_arm_thread.h"
+#include "vehicle/engineer/state_machine_bullet_fetch.h"
 
 #include "buzzer.h"
 
@@ -23,7 +23,7 @@
 #endif
 
 CANInterface can1(&CAND1);
-RoboticArmThread roboticArmThread;
+BulletFetchStateMachine roboticArmThread;
 
 static void cmd_robotic_clamp_action(BaseSequentialStream *chp, int argc, char *argv[]) {
     (void) argv;

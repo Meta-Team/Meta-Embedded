@@ -26,7 +26,7 @@
 #define SHELL_H
 
 #if defined(SHELL_CONFIG_FILE)
-#include "shellconf.h"
+#include "debug/shell/shellconf.h"
 #endif
 
 /*===========================================================================*/
