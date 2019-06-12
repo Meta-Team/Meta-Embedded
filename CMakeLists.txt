@@ -248,7 +248,7 @@ add_executable(ut_sentry_chassis_mat
         dev/module/pid_controller.hpp
         dev/interface/sentry_chassis_interface.cpp
         dev/control/sentry_chassis.cpp
-        dev/debug/unit_tests/sentry_chassis_matlab_unit_test.cpp
+        dev/debug/unit_tests/sentry_chassis_param_adjust.cpp
         )
 
 add_executable(ut_referee_interface

@@ -306,6 +306,7 @@ int main(void) {
     can1.start(HIGHPRIO - 1);
     SentryChassisController::init_controller(&can1);
 
+    chassisFeedbackThread.start(NORMALPRIO - 1);
     chassisThread.start(NORMALPRIO);
 
     // See chconf.h for what this #define means.
