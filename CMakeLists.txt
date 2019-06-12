@@ -163,6 +163,14 @@ add_executable(pa_hero_shoot
         dev/debug/unit_tests/hero_shoot_param_adjust.cpp)
 target_compile_definitions(pa_hero_shoot PUBLIC HERO)
 
+# Shoot
+add_executable(pa_shoot
+        dev/module/can_interface.cpp
+        dev/interface/gimbal_interface.cpp
+        dev/control/shoot.cpp
+        dev/debug/unit_tests/shoot_param_adjust.cpp
+        dev/interface/remote_interpreter.cpp)
+
 # Gimbal: include CANInterface, GimbalInterface, GimbalController, GimbalFeedbackThread and adjustment modules.
 add_executable(pa_gimbal
         dev/module/can_interface.cpp
