@@ -124,7 +124,7 @@ add_executable(HERO
         dev/interface/robotic_arm.cpp
         dev/control/chassis.cpp
         dev/control/gimbal.cpp
-        dev/control/shoot.cpp
+        dev/control/hero_shoot.cpp
         dev/vehicle/hero/main_hero.cpp)
 target_include_directories(HERO PRIVATE dev/vehicle/hero)
 target_compile_definitions(HERO PUBLIC HERO ENABLE_STATE_HANDLE)
@@ -151,7 +151,7 @@ add_executable(ut_hero_shoot
         dev/module/can_interface.cpp
         dev/interface/imu/mpu6500.cpp
         dev/interface/gimbal_interface.cpp
-        dev/control/shoot.cpp
+        dev/control/hero_shoot.cpp
         dev/debug/unit_tests/hero_shoot_unit_test.cpp)
 target_compile_definitions(ut_hero_shoot PUBLIC HERO)
 
@@ -159,7 +159,7 @@ target_compile_definitions(ut_hero_shoot PUBLIC HERO)
 add_executable(pa_hero_shoot
         dev/module/can_interface.cpp
         dev/interface/gimbal_interface.cpp
-        dev/control/shoot.cpp
+        dev/control/hero_shoot.cpp
         dev/debug/unit_tests/hero_shoot_param_adjust.cpp)
 target_compile_definitions(pa_hero_shoot PUBLIC HERO)
 

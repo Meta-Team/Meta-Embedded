@@ -17,7 +17,7 @@
 #include "remote_interpreter.h"
 
 #include "gimbal.h"
-#include "shoot.h"
+#include "hero_shoot.h"
 #include "chassis.h"
 
 #include "state_handler.h"

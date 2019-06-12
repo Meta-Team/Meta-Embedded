@@ -234,8 +234,9 @@ void GimbalInterface::process_motor_feedback(CANRxFrame const *rxmsg) {
 
             feedback[id].last_angle_raw = new_actual_angle_raw;
 
-            // Make sure that the angle movement is positive
-            if (angle_movement < -2000) angle_movement = angle_movement + 8192;
+            // Make sure that the angle movement could not change abruptly when rotating an extreme angle.
+            if (angle_movement < -4096) angle_movement = angle_movement + 8192;
+            if (angle_movement > 4096) angle_movement = angle_movement - 8192;
 
             // KEY IDEA: add the change of angle to actual angle / 36 (deceleration ratio)
             feedback[id].actual_angle += angle_movement * 10.0f / 8192;
@@ -261,9 +262,9 @@ void GimbalInterface::process_motor_feedback(CANRxFrame const *rxmsg) {
 
             feedback[id].last_angle_raw = new_actual_angle_raw;
 
-            // Make sure that the angle movement is positive
-            if (angle_movement < -2000) angle_movement = angle_movement + 8192;
-
+            // Make sure that the angle movement could not change abruptly when rotating an extreme angle.
+            if (angle_movement < -4096) angle_movement = angle_movement + 8192;
+            if (angle_movement > 4096) angle_movement = angle_movement - 8192;
 
             feedback[id].actual_angle += angle_movement * 18.9f / 8192; // deceleration ratio : 19, 360/19 = 18.947368421052632
 
@@ -272,7 +273,7 @@ void GimbalInterface::process_motor_feedback(CANRxFrame const *rxmsg) {
                 feedback[id].actual_angle -= 360.0f;
                 feedback[id].round_count++;
             }
-            if (feedback[id].actual_angle <= -360.0f) {
+            if (feedback[id].actual_angle <= 0.0f) {
                 feedback[id].actual_angle +=360.0f;
                 feedback[id].round_count--;
             }
