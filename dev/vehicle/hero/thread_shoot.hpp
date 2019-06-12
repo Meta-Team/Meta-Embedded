@@ -32,7 +32,7 @@
          Shoot::change_pid_params(GIMBAL_PID_BULLET_LOADER_A2V_PARAMS, GIMBAL_PID_BULLET_LOADER_V2I_PARAMS, GIMBAL_PID_BULLET_PLATE_A2V_PARAMS, GIMBAL_PID_BULLET_PLATE_V2I_PARAMS);
          while (!shouldTerminate()) {
 
-             bullet_full = (bool) palReadPad(GPIOB,GPIOB_PIN5); // check if bullet is full or not, automatically load. TODO: determined the PIN to use.
+             bullet_full = (bool) palReadPad(GPIOE,GPIOB_PIN54); // check if bullet is full or not, automatically load. Currently use J2 pin. TODO: determined the PIN to use.
              if (plate_target_angle > 360.0f && Shoot::feedback[3].actual_angle < plate_target_angle -360.0f) plate_target_angle -= 360.0f; //get the correct angle first
              if(!bullet_full){
                  if(plate_target_angle - Shoot::feedback[3].actual_angle < 3.0f) plate_target_angle += 36.0f;
