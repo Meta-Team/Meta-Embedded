@@ -25,6 +25,8 @@ public:
     };
 
     static bool enable;
+    static PIDController motor_right_pid;
+    static PIDController motor_left_pid;
 
     /**
      * @brief initialize the calculator class
@@ -63,6 +65,14 @@ public:
         if(change_speed) start_time = SYSTIME;
     }
 
+    static void set_maximum_velocity(float new_velocity){
+        maximum_speed = abs(new_velocity);
+    }
+
+    static float get_target_velocity(){
+        return target_velocity;
+    }
+
     /**
      * @brief change the parameters for the v_to_i PIDController
      */
@@ -72,21 +82,6 @@ public:
         motor_right_pid.clear_i_out();
         motor_left_pid.change_parameters({_kp, _ki, _kd, _i_limit, _out_limit});
         motor_left_pid.clear_i_out();
-    }
-
-    /**
-     * @brief Debug helper function. Print the PIDController parameters
-     * @param motor_id
-     */
-    static void print_pid_params(){
-        PIDControllerBase::pid_params_t right = motor_right_pid.get_parameters();
-        PIDControllerBase::pid_params_t left = motor_left_pid.get_parameters();
-        LOG("motor_right:" SHELL_NEWLINE_STR);
-        LOG("kp = %.2f ki = %.2f kd = %.2f i_limit = %.2f out_limit = %.2f" SHELL_NEWLINE_STR,
-            right.kp, right.ki, right.kd, right.i_limit, right.out_limit);
-        LOG("motor_left:" SHELL_NEWLINE_STR);
-        LOG("kp = %.2f ki = %.2f kd = %.2f i_limit = %.2f out_limit = %.2f" SHELL_NEWLINE_STR,
-            left.kp, left.ki, left.kd, left.i_limit, left.out_limit);
     }
 
     /**
@@ -123,20 +118,19 @@ private:
 
     static float target_position;
 
+    static float target_velocity_modulus;
+
     static float target_velocity;
 
     static float radius; // the range that sentry can move around the origin in the AUTO MODE
 
     static int const_current;
 
-    static PIDController motor_right_pid;
-    static PIDController motor_left_pid;
-
     /**
      * @brief the const values
      */
 
-    static float constexpr maximum_speed = 110.0f;
+    static float maximum_speed;
 
 };
 
