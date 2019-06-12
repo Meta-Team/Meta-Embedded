@@ -71,14 +71,14 @@ add_library(ChibiOS_OBJ OBJECT ${CHIBIOS_XASM_SRC} ${CHIBIOS_C_SRC} ${CHIBIOS_CP
 
 set(INFANTRY
         dev/module/pid_controller.hpp
-        dev/module/can_interface.cpp
+        dev/interface/can_interface.cpp
         dev/interface/ahrs/mpu6500.cpp
         dev/interface/gimbal_interface.cpp
         dev/interface/chassis_interface.cpp
         dev/interface/remote_interpreter.cpp
-        dev/control/gimbal.cpp
+        dev/control/gimbal_scheduler.cpp
         dev/control/shoot.cpp
-        dev/control/chassis.cpp
+        dev/control/chassis_scheduler.cpp
         dev/vehicle/infantry/main_infantry.cpp)
 
 # Main Program -- Infantry #1
@@ -99,12 +99,12 @@ target_compile_definitions(INFANTRY_FIVE PRIVATE INFANTRY INFANTRY_FIVE ENABLE_S
 # Main Program -- Engineer
 add_executable(ENGINEER
         dev/module/pid_controller.hpp
-        dev/module/can_interface.cpp
+        dev/interface/can_interface.cpp
         dev/interface/chassis_interface.cpp
         dev/interface/remote_interpreter.cpp
         dev/interface/elevator_interface.cpp
         dev/interface/robotic_arm.cpp
-        dev/control/chassis.cpp
+        dev/control/chassis_scheduler.cpp
         dev/vehicle/engineer/state_machine_stage_climb.cpp
         dev/vehicle/engineer/state_machine_bullet_fetch.cpp
         dev/vehicle/engineer/main_engineer.cpp
@@ -115,15 +115,15 @@ target_compile_definitions(ENGINEER PRIVATE ENGINEER ENABLE_STATE_HANDLE)
 # Main Program -- Hero
 add_executable(HERO
         dev/module/pid_controller.hpp
-        dev/module/can_interface.cpp
+        dev/interface/can_interface.cpp
         dev/interface/ahrs/mpu6500.cpp
         dev/interface/chassis_interface.cpp
         dev/interface/gimbal_interface.cpp
         dev/interface/remote_interpreter.cpp
         dev/interface/elevator_interface.cpp
         dev/interface/robotic_arm.cpp
-        dev/control/chassis.cpp
-        dev/control/gimbal.cpp
+        dev/control/chassis_scheduler.cpp
+        dev/control/gimbal_scheduler.cpp
         dev/control/shoot.cpp
         dev/vehicle/hero/main_hero.cpp)
 target_include_directories(HERO PRIVATE dev/vehicle/hero)
@@ -139,16 +139,16 @@ add_executable(ut_remote_interpreter
         dev/interface/remote_interpreter.cpp
         dev/debug/unit_tests/remote_interpreter_unit_test.cpp)
 
-# Gimbal Interface: include CANInterface, GimbalInterface, GimbalFeedbackThread and the unit test modules.
+# Gimbal Interface: include CANInterface, GimbalIF, GimbalFeedbackThread and the unit test modules.
 add_executable(ut_gimbal_interface
-        dev/module/can_interface.cpp
+        dev/interface/can_interface.cpp
         dev/interface/ahrs/mpu6500.cpp
         dev/interface/gimbal_interface.cpp
         dev/control/shoot.cpp
         dev/debug/unit_tests/gimbal_interface_unit_test.cpp)
 # Hero Shoot
 add_executable(ut_hero_shoot
-        dev/module/can_interface.cpp
+        dev/interface/can_interface.cpp
         dev/interface/ahrs/mpu6500.cpp
         dev/interface/gimbal_interface.cpp
         dev/control/shoot.cpp
@@ -157,18 +157,18 @@ target_compile_definitions(ut_hero_shoot PUBLIC HERO)
 
 # Hero Shoot
 add_executable(pa_hero_shoot
-        dev/module/can_interface.cpp
+        dev/interface/can_interface.cpp
         dev/interface/gimbal_interface.cpp
         dev/control/shoot.cpp
         dev/debug/unit_tests/hero_shoot_param_adjust.cpp)
 target_compile_definitions(pa_hero_shoot PUBLIC HERO)
 
-# Gimbal: include CANInterface, GimbalInterface, GimbalController, GimbalFeedbackThread and adjustment modules.
+# Gimbal: include CANInterface, GimbalIF, GimbalController, GimbalFeedbackThread and adjustment modules.
 add_executable(pa_gimbal
-        dev/module/can_interface.cpp
+        dev/interface/can_interface.cpp
         dev/interface/gimbal_interface.cpp
         dev/module/pid_controller.hpp
-        dev/control/gimbal.cpp
+        dev/control/gimbal_scheduler.cpp
         dev/control/shoot.cpp
         dev/interface/ahrs/mpu6500.cpp
         dev/debug/unit_tests/gimbal_pid_adjustment_program.cpp)
@@ -177,15 +177,37 @@ target_compile_definitions(pa_gimbal PRIVATE SHELL_NO_ECHO_MODE)
 # MPU6500: include MP6500 interface and unit test.
 add_executable(ut_mpu6500
         dev/interface/ahrs/mpu6500.cpp
-        dev/debug/unit_tests//mpu6500_unit_test.cpp)
+        dev/debug/unit_tests/mpu6500_unit_test.cpp)
+
+# IST8310
+add_executable(ut_ist8310
+        dev/interface/ahrs/mpu6500.cpp
+        dev/interface/ahrs/ist8310.cpp
+        dev/debug/unit_tests/ist8310_unit_test.cpp)
 
 # IMU: include IMU interface and unit test.
 add_executable(ut_imu
         dev/interface/ahrs/ahrs_math.hpp
         dev/interface/ahrs/mpu6500.cpp
-#        dev/interface/ahrs/ist8310.cpp
+        dev/interface/ahrs/ist8310.cpp
         dev/interface/ahrs/ahrs.cpp
-        dev/debug/unit_tests/imu_unit_test.cpp dev/interface/ahrs/ahrs_abstract.h dev/interface/ahrs/ahrs_ext.cpp dev/interface/ahrs/ahrs_ext.h dev/interface/ahrs/ahrs_lib.h dev/interface/ahrs/ahrs_lib_middleware.cpp dev/interface/ahrs/ahrs_lib_middleware.h)
+        dev/debug/unit_tests/ahrs_unit_test.cpp)
+
+# AHRS
+add_executable(ut_ahrs
+        dev/interface/ahrs/ahrs_math.hpp
+        dev/interface/ahrs/mpu6500.cpp
+        dev/interface/ahrs/ist8310.cpp
+        dev/interface/ahrs/ahrs_lib_middleware.c
+        dev/interface/ahrs/ahrs.cpp
+        dev/debug/unit_tests/ahrs_unit_test.cpp)
+target_link_libraries(ut_ahrs ${PROJECT_SOURCE_DIR}/dev/interface/ahrs/ahrs_lib.lib)
+
+# AHRSExt
+add_executable(ut_ahrs_ext
+        dev/interface/can_interface.cpp
+        dev/interface/ahrs/ahrs_ext.cpp
+        dev/debug/unit_tests/ahrs_ext_unit_test.cpp)
 
 # Buzzer: inlcude Buzzer interface and unit test.
 add_executable(ut_buzzer
@@ -194,28 +216,28 @@ add_executable(ut_buzzer
 
 # Chassis Interface: include chassis interface sources and the unit test modules.
 add_executable(ut_chassis_interface
-        dev/module/can_interface.cpp
+        dev/interface/can_interface.cpp
         dev/interface/chassis_interface.cpp
         dev/debug/unit_tests/chassis_interface_unit_test.cpp)
 
 # Chassis: include chassis interface, chassis controller and the unit test modules.
 add_executable(ut_chassis
-        dev/module/can_interface.cpp
+        dev/interface/can_interface.cpp
         dev/interface/chassis_interface.cpp
         dev/module/pid_controller.hpp
-        dev/control/chassis.cpp
+        dev/control/chassis_scheduler.cpp
         dev/debug/unit_tests/chassis_unit_test.cpp)
 target_include_directories(ut_chassis PRIVATE dev/vehicle/infantry)
 
 # Elevator Interface: include CANInterface, ElevatorInterface, and the unit test modules.
 add_executable(ut_elevator_interface
-        dev/module/can_interface.cpp
+        dev/interface/can_interface.cpp
         dev/interface/elevator_interface.cpp
         dev/debug/unit_tests/elevator_interface_unit_test.cpp)
 
 # Elevator: include CANInterface, ElevatorInterface, ElevatorController, and the unit test modules.
 add_executable(pa_elevator
-        dev/module/can_interface.cpp
+        dev/interface/can_interface.cpp
         dev/module/pid_controller.hpp
         dev/interface/elevator_interface.cpp
         dev/control/elevator.cpp
@@ -223,7 +245,7 @@ add_executable(pa_elevator
 
 # Robotic Arm
 add_executable(ut_robotic_arm
-        dev/module/can_interface.cpp
+        dev/interface/can_interface.cpp
         dev/interface/robotic_arm.cpp
         dev/vehicle/engineer/state_machine_bullet_fetch.cpp
         dev/debug/unit_tests/engineer_robotic_arm_unit_test.cpp)
@@ -236,7 +258,7 @@ add_executable(pa_skywalker
 
 # Sentry Chassis
 add_executable(ut_sentry_chassis
-        dev/module/can_interface.cpp
+        dev/interface/can_interface.cpp
         dev/module/pid_controller.hpp
         dev/interface/sentry_chassis_interface.cpp
         dev/control/sentry_chassis_skd.cpp
@@ -247,7 +269,7 @@ add_executable(ut_sentry_chassis
 
 #Sentry Chassis Matlab Test
 add_executable(ut_sentry_chassis_mat
-        dev/module/can_interface.cpp
+        dev/interface/can_interface.cpp
         dev/module/pid_controller.hpp
         dev/interface/sentry_chassis_interface.cpp
         dev/control/sentry_chassis_skd.cpp
