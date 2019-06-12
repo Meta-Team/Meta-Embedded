@@ -1,103 +1,115 @@
 //
 // Created by zhukerui on 2019/4/29.
+// Modified by jintengjun on 2019/6/11
 //
 
 #include "sentry_chassis.h"
 
 bool SentryChassisController::enable;
 SentryChassisController::sentry_mode_t SentryChassisController::running_mode;
-SentryChassisController::motor_calculator_t SentryChassisController::motor_calculator[MOTOR_COUNT];
+bool SentryChassisController::change_speed;
+time_msecs_t SentryChassisController::start_time;
+float SentryChassisController::target_position;
+float SentryChassisController::target_velocity;
+float SentryChassisController::radius;
+int SentryChassisController::const_current;
+PIDController SentryChassisController::motor_right_pid;
+PIDController SentryChassisController::motor_left_pid;
 
 
 void SentryChassisController::init_controller(CANInterface* can_interface) {
-    init(can_interface);
+    SentryChassis::init(can_interface);
+    Referee::init();
     enable = false;
     running_mode = STOP_MODE;
     clear_position();
-    motor_calculator[MOTOR_LEFT].id = MOTOR_LEFT;
-    motor_calculator[MOTOR_RIGHT].id = MOTOR_RIGHT;
+    radius = 30.0f;
+    const_current = 1000;
+    change_speed = false;
 }
 
 void SentryChassisController::clear_position() {
-    motor_calculator[MOTOR_RIGHT].reset_position();
-    motor_calculator[MOTOR_LEFT].reset_position();
+    for(int i = 0; i < MOTOR_COUNT; i++){
+        motor[i].actual_angle = 0;
+        motor[i].round_count = 0;
+        motor[i].present_position = 0;
+        motor[i].present_velocity = 0;
+    }
+    target_position = 0;
+    target_velocity = 0;
 }
 
 void SentryChassisController::set_destination(float dist) {
-    motor_calculator[MOTOR_RIGHT].set_motor_target_position(dist);
-    motor_calculator[MOTOR_LEFT].set_motor_target_position(dist);
-}
-
-void SentryChassisController::update_target_current() {
-    if(running_mode == STOP_MODE){
-        // If we are in the STOP_MODE, then the sentry now is not movable
-        motor_calculator[MOTOR_LEFT].set_motor_target_velocity(0);
-        motor_calculator[MOTOR_RIGHT].set_motor_target_velocity(0);
-    }else if(motor_calculator[MOTOR_LEFT].should_change() || motor_calculator[MOTOR_RIGHT].should_change()){
-        // If we are not in the STOP_MODE, that means now the sentry is movable
-        // If the sentry is in the "stop area"
-        if (running_mode == ONE_STEP_MODE){
-            // If we are in the ONE_STEP_MODE, we stop the sentry by simply set the target velocity to 0
-            motor_calculator[MOTOR_RIGHT].set_motor_target_velocity(0);
-            motor_calculator[MOTOR_LEFT].set_motor_target_velocity(0);
-        } else if(running_mode == AUTO_MODE){
-            // If we are in the AUTO MODE, we change the destination according to the rule we set in set_auto_destination()
-            change_auto_destination();
-        }
-    }
-    motor_calculator[MOTOR_RIGHT].set_target_current();
-    motor_calculator[MOTOR_LEFT].set_target_current();
-}
-
-void SentryChassisController::change_auto_destination() {
-    if(motor_calculator[0].position() > 0){
-        motor_calculator[MOTOR_RIGHT].set_motor_target_position(-radius);
-        motor_calculator[MOTOR_LEFT].set_motor_target_position(-radius);
-    } else{
-        motor_calculator[MOTOR_RIGHT].set_motor_target_position(radius);
-        motor_calculator[MOTOR_LEFT].set_motor_target_position(radius);
-    }
-}
-
-void SentryChassisController::motor_calculator_t::set_motor_target_position(float dist) {
     target_position = dist;
     // Every time a new target position is set, a new target velocity should be decided
-    if (target_position > present_position){
+    if (target_position > motor[MOTOR_RIGHT].present_position){
         target_velocity = maximum_speed;
-    } else if (target_position < present_position){
+    } else if (target_position < motor[MOTOR_RIGHT].present_position){
         target_velocity = - maximum_speed;
     } else{
         target_velocity = 0;
     }
 }
 
-void SentryChassisController::motor_calculator_t::print_pid_params(){
-    LOG("motor_id: %d" SHELL_NEWLINE_STR, id);
-    pid_params_t p = v_to_i.get_parameters();
-    LOG("kp = %.2f ki = %.2f kd = %.2f i_limit = %.2f out_limit = %.2f" SHELL_NEWLINE_STR,
-             p.kp, p.ki, p.kd, p.i_limit, p.out_limit);
-}
+void SentryChassisController::update_target_current() {
 
-void SentryChassisController::motor_calculator_t::set_target_current(){
+    switch (running_mode){
+        case (CONST_CURRENT_MODE):
+            if (enable) {
+                motor[MOTOR_LEFT].target_current = motor[MOTOR_RIGHT].target_current = const_current;
+            }else{
+                motor[MOTOR_LEFT].target_current = motor[MOTOR_RIGHT].target_current = 0;
+            }
+            return;
+        case (ONE_STEP_MODE):
+            // If we are in the ONE_STEP_MODE
+            if((motor[MOTOR_LEFT].present_position >= target_position-5 && motor[MOTOR_LEFT].present_position <= target_position+5)
+               || (motor[MOTOR_RIGHT].present_position >= target_position-5 && motor[MOTOR_RIGHT].present_position <= target_position+5)) {
+                // If the sentry is in the "stop area", we stop the sentry by simply set the target velocity to 0
+                target_velocity = 0;
+            }
+            break;
+        case (AUTO_MODE):
+            // If we are in the AUTO MODE
+            if((motor[MOTOR_LEFT].present_position >= radius || motor[MOTOR_LEFT].present_position <= -radius)
+               || (motor[MOTOR_RIGHT].present_position >= radius || motor[MOTOR_RIGHT].present_position <= -radius)) {
+                // If the sentry is in the "stop area", we change the destination according to the rule we set in set_auto_destination()
+                if(motor[MOTOR_RIGHT].present_position > 0){
+                    set_destination(-radius);
+                } else{
+                    set_destination(radius);
+                }
+            }
+            break;
+        case (STOP_MODE):
+        default:
+            // If we are in the STOP_MODE, then the sentry now is not movable
+            target_velocity = 0;
+    }
+    // Set the target current
     if (enable){
-        motor[id].target_current = (int)(v_to_i.calc(present_velocity, target_velocity));
+        if(change_speed){
+            // If the change_speed is true, then the speed should change variously from time to time
+            time_msecs_t present_time = SYSTIME - start_time;
+            motor[MOTOR_RIGHT].target_current = (int)(motor_right_pid.calc(motor[MOTOR_RIGHT].present_velocity, (abs(cos(3.1415f*present_time/2000.0f)))*target_velocity));
+            motor[MOTOR_LEFT].target_current = (int)(motor_left_pid.calc(motor[MOTOR_LEFT].present_velocity, (abs(cos(3.1415f*present_time/2000.0f)))*target_velocity));
+        }else{
+            motor[MOTOR_RIGHT].target_current = (int)(motor_right_pid.calc(motor[MOTOR_RIGHT].present_velocity, target_velocity));
+            motor[MOTOR_LEFT].target_current = (int)(motor_left_pid.calc(motor[MOTOR_LEFT].present_velocity, target_velocity));
+        }
+        if(Referee::power_heat_data.chassis_power > 20) LOG("power overload: %.2f", Referee::power_heat_data.chassis_power);
     }else {
-        motor[id].target_current = 0;
+        motor[MOTOR_LEFT].target_current = motor[MOTOR_RIGHT].target_current = 0;
     }
 }
 
-void SentryChassisController::motor_calculator_t::reset_position(){
-    motor[id].round_count = 0;
-    motor[id].actual_angle = 0;
-    present_position = 0;
-    target_position = 0;
-    target_velocity = 0;
-}
-
-void SentryChassisController::motor_calculator_t::update_motor_data(){
-    // Count the rounds first, like 1.5 rounds, -20.7 rounds, etc
-    // Then transform it to displacement by multiplying the displacement_per_round factor
-    present_position = (motor[id].actual_angle + 8192.0f * motor[id].round_count) / 8192.0f * displacement_per_round / chassis_motor_decelerate_ratio;
-    // The unit of actual_angular_velocity is degrees/s, so we first translate it into r/s and then multiplying by displacement_per_round factor
-    present_velocity = motor[id].actual_angular_velocity / 360.0f * displacement_per_round;
+void SentryChassisController::set_mode(SentryChassisController::sentry_mode_t target_mode, float index) {
+    running_mode = target_mode;
+    clear_position();
+    if(running_mode == AUTO_MODE){
+        radius = index;
+        set_destination(radius);
+    } else if(running_mode == CONST_CURRENT_MODE){
+        const_current = (int)index;
+    }
 }
