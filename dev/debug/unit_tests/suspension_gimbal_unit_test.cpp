@@ -7,7 +7,7 @@
 #include "hal.h"
 
 #include "led.h"
-#include "serial_shell.h"
+#include "shell.h"
 #include "can_interface.h"
 #include "suspension_gimbal_interface.h"
 #include "suspension_gimbal_controller.h"
@@ -247,11 +247,11 @@ static void cmd_gimbal_set_parameters(BaseSequentialStream *chp, int argc, char 
         return;
     }
 
-    pidController->change_parameters(Shell::atof(argv[2]),
+    pidController->change_parameters({Shell::atof(argv[2]),
                                      Shell::atof(argv[3]),
                                      Shell::atof(argv[4]),
                                      Shell::atof(argv[5]),
-                                     Shell::atof(argv[6]));
+                                     Shell::atof(argv[6])});
     SuspensionGimbalController::yaw_v_to_i.clear_i_out();
     SuspensionGimbalController::yaw_angle_to_v.clear_i_out();
     SuspensionGimbalController::pitch_v_to_i.clear_i_out();
@@ -265,13 +265,13 @@ static void cmd_gimbal_set_parameters(BaseSequentialStream *chp, int argc, char 
  * @param chp
  * @param pidController
  */
-static inline void _cmd_gimbal_echo_parameters(BaseSequentialStream *chp, PIDController *pidController) {
+static inline void _cmd_gimbal_echo_parameters(BaseSequentialStream *chp, PIDControllerBase::pid_params_t pidController) {
     chprintf(chp, "%f %f %f %f %f" SHELL_NEWLINE_STR,
-             pidController->kp,
-             pidController->ki,
-             pidController->kd,
-             pidController->i_limit,
-             pidController->out_limit);
+             pidController.kp,
+             pidController.ki,
+             pidController.kd,
+             pidController.i_limit,
+             pidController.out_limit);
 }
 
 /**
@@ -288,15 +288,15 @@ static void cmd_gimbal_echo_parameters(BaseSequentialStream *chp, int argc, char
     }
 
     chprintf(chp, "yaw angle_to_v:   ");
-    _cmd_gimbal_echo_parameters(chp, &SuspensionGimbalController::yaw_angle_to_v);
+    _cmd_gimbal_echo_parameters(chp, SuspensionGimbalController::yaw_angle_to_v.get_parameters());
     chprintf(chp, "yaw v_to_i:       ");
-    _cmd_gimbal_echo_parameters(chp, &SuspensionGimbalController::yaw_v_to_i);
+    _cmd_gimbal_echo_parameters(chp, SuspensionGimbalController::yaw_v_to_i.get_parameters());
     chprintf(chp, "pitch angle_to_v: ");
-    _cmd_gimbal_echo_parameters(chp, &SuspensionGimbalController::pitch_angle_to_v);
+    _cmd_gimbal_echo_parameters(chp, SuspensionGimbalController::pitch_angle_to_v.get_parameters());
     chprintf(chp, "pitch v_to_i:     ");
-    _cmd_gimbal_echo_parameters(chp, &SuspensionGimbalController::pitch_v_to_i);
+    _cmd_gimbal_echo_parameters(chp, SuspensionGimbalController::pitch_v_to_i.get_parameters());
     chprintf(chp, "bullet_loader v_to_i:     ");
-    _cmd_gimbal_echo_parameters(chp, &SuspensionGimbalController::BL_v_to_i);
+    _cmd_gimbal_echo_parameters(chp, SuspensionGimbalController::BL_v_to_i.get_parameters());
 }
 
 static void cmd_gimbal_continuous_shooting(BaseSequentialStream *chp, int argc, char *argv[]) {

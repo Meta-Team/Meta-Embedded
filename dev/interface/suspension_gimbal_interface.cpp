@@ -9,11 +9,13 @@ SuspensionGimbalIF::MotorInterface SuspensionGimbalIF::yaw;
 SuspensionGimbalIF::MotorInterface SuspensionGimbalIF::pitch;
 SuspensionGimbalIF::MotorInterface SuspensionGimbalIF::bullet_loader;
 CANInterface *SuspensionGimbalIF::can_ = nullptr;
-SuspensionGimbalIF::shoot_mode_t SuspensionGimbalIF::shoot_mode = OFF;
+SuspensionGimbalIF::shoot_mode_t SuspensionGimbalIF::shoot_mode;
 float SuspensionGimbalIF::shoot_duty_cycles[3] = {0.0, 0.1, 0.3};
 PWMConfig constexpr SuspensionGimbalIF::FRICTION_WHEELS_PWM_CFG;
 
 void SuspensionGimbalIF::init(CANInterface *can_interface, uint16_t yaw_front_angle_raw, uint16_t pitch_front_angle_raw) {
+    shoot_mode = OFF;
+
     yaw.id = YAW_ID;
     pitch.id = PIT_ID;
     // The reasonable angle movement of yaw and pitch are assumed to be limited in (-4096, 4096), in other word, (-180, 180) in degree
@@ -27,6 +29,9 @@ void SuspensionGimbalIF::init(CANInterface *can_interface, uint16_t yaw_front_an
 
     yaw.last_angle_raw = yaw_front_angle_raw;
     pitch.last_angle_raw = pitch_front_angle_raw;
+
+    yaw.reset_front_angle();
+    pitch.reset_front_angle();
 
     bullet_loader.id = BULLET_LOADER_ID;
     // The bullet loader are assumed to only move in positive direction, so there is no real upper limit
@@ -78,7 +83,7 @@ bool SuspensionGimbalIF::send_gimbal_currents() {
     // Fill the current of Yaw
     if (yaw.enabled) {
 #if SUSPENSION_GIMBAL_INTERFACE_ENABLE_CLIP
-        ABS_LIMIT(yaw.target_signal, SUSPENSION_YAW_MAX_VOLTAGE);
+        ABS_CROP(yaw.target_signal, SUSPENSION_YAW_MAX_VOLTAGE);
 #endif
         /** NOTICE: target current is reversed. */
         txmsg.data8[0] = (uint8_t) (-yaw.target_signal >> 8); //upper byte
@@ -91,7 +96,7 @@ bool SuspensionGimbalIF::send_gimbal_currents() {
     // Fill the current of Pitch
     if (pitch.enabled) {
 #if SUSPENSION_GIMBAL_INTERFACE_ENABLE_CLIP
-        ABS_LIMIT(pitch.target_signal, SUSPENSION_PITCH_MAX_VOLTAGE);
+        ABS_CROP(pitch.target_signal, SUSPENSION_PITCH_MAX_VOLTAGE);
 #endif
         /** NOTICE: target current is reversed. */
         txmsg.data8[2] = (uint8_t) (-pitch.target_signal >> 8); //upper byte
@@ -105,7 +110,7 @@ bool SuspensionGimbalIF::send_gimbal_currents() {
 
     if (bullet_loader.enabled && shoot_mode == SHOOT) {
 #if SUSPENSION_GIMBAL_INTERFACE_ENABLE_CLIP
-        ABS_LIMIT(bullet_loader.target_signal, SUSPENSION_GIMBAL_INTERFACE_BULLET_LOADER_MAX_CURRENT);
+        ABS_CROP(bullet_loader.target_signal, SUSPENSION_GIMBAL_INTERFACE_BULLET_LOADER_MAX_CURRENT);
 #endif
         txmsg.data8[4] = (uint8_t) (bullet_loader.target_signal >> 8); //upper byte
         txmsg.data8[5] = (uint8_t) bullet_loader.target_signal; // lower byte

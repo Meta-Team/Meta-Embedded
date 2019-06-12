@@ -5,9 +5,10 @@
 #ifndef META_INFANTRY_SUSPENSION_GIMBAL_CONTROLLER_H
 #define META_INFANTRY_SUSPENSION_GIMBAL_CONTROLLER_H
 
-#include "pid_controller.h"
+#include "pid_controller.hpp"
 #include "suspension_gimbal_interface.h"
 #include "math.h"
+#include "common_macro.h"
 
 class SuspensionGimbalController {
 public:
@@ -19,13 +20,8 @@ public:
     static PIDController pitch_angle_to_v;
     static PIDController pitch_v_to_i;
     static PIDController BL_v_to_i;
-    static float bullet_loader_speed; // degrees/s
-    static float target_yaw_angle;
-    static float target_pitch_angle;
-    static float max_yaw_angle;
-    static float max_pitch_angle;
-    static float min_yaw_angle;
-    static float min_pitch_angle;
+
+    static void set_front(SuspensionGimbalIF::motor_id_t motor_id);
 
     static void set_shoot_mode(SuspensionGimbalIF::shoot_mode_t mode);
 
@@ -44,7 +40,6 @@ public:
 private:
 
     static bool continuous_shooting;
-    static float shoot_target_angle; // in incontinuous mode, bullet loader stop if shoot_target_angle has been achieved
 
     /** Configurations **/
     static constexpr float one_bullet_step = 40.0f; // degree

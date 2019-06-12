@@ -25,6 +25,9 @@
 #define SUSPENSION_YAW_MAX_VOLTAGE 30000
 #define SUSPENSION_PITCH_MAX_VOLTAGE 29000
 #define SUSPENSION_GIMBAL_INTERFACE_BULLET_LOADER_MAX_CURRENT 3000
+#define MAX_YAW_ANGLE 170 // degree
+#define MAX_PITCH_ANGLE 40 // degree
+#define BULLET_LOADER_SPEED 40 // degree/s
 #endif
 
 /**
@@ -67,13 +70,6 @@ public:
         float get_angular_position(){
             return actual_angle + 360.0f * round_count;
         }
-        /**
-         * @brief set current actual angle as the front angle
-         */
-        void reset_front_angle(){
-            actual_angle = 0;
-            round_count = 0;
-        }
 
     private:
         motor_id_t id;
@@ -89,6 +85,7 @@ public:
         float actual_angle = 0.0f; // the actual angle [degree] of the gimbal, compared with the front
         uint16_t last_angle_raw = 0;  // the raw angle of the newest feedback, in [0, 8191]
         int round_count = 0;  // the rounds that the gimbal turns
+        float target_angle = 0;
 
         // Some const parameters for feedback processing
         int angle_movement_lower_bound;
@@ -96,6 +93,15 @@ public:
         float actual_angle_lower_bound;
         float actual_angle_upper_bound;
         float deceleration_ratio;
+
+        /**
+         * @brief set current actual angle as the front angle
+         */
+        void reset_front_angle(){
+            actual_angle = 0;
+            round_count = 0;
+            target_angle = 0;
+        }
 
         friend SuspensionGimbalIF;
         friend class SuspensionGimbalController;
