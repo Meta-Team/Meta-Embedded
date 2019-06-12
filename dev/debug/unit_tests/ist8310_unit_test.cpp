@@ -8,20 +8,23 @@
 #include "led.h"
 #include "debug/shell/shell.h"
 
-#include "mpu6500.h"
-#include "ist8310.h"
+#include "interface/ahrs/mpu6500.h"
+#include "interface/ahrs/ist8310.h"
 
 using namespace chibios_rt;
+
+MPUOnBoard mpu6500;
+ISTOnBoard ist8310;
 
 class IST8310FeedbackThread : public BaseStaticThread<1024> {
 protected:
     void main() final {
         setName("ist8310");
-        MPU6500::start(HIGHPRIO - 1);
-        IST8310::start(HIGHPRIO - 2);
+        mpu6500.start(HIGHPRIO - 1);
+        ist8310.start(HIGHPRIO - 2);
         while (!shouldTerminate()) {
             Shell::printf("%.4f, %.4f, %.4f" SHELL_NEWLINE_STR,
-                          IST8310::magnet.x, IST8310::magnet.y, IST8310::magnet.z);
+                          ist8310.magnet.x, ist8310.magnet.y, ist8310.magnet.z);
             sleep(TIME_MS2I(100));
         }
     }

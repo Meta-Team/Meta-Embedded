@@ -13,7 +13,7 @@
 #include "common_macro.h"
 
 #include "buzzer.h"
-#include "mpu6500.h"
+#include "interface/ahrs/mpu6500.h"
 #include "remote_interpreter.h"
 
 #include "gimbal_scheduler.h"

@@ -1,33 +1,8 @@
 #include "mpu6500.h"
 
 #include "led.h"
-#include "debug/shell/shell.h"
+#include "shell.h"
 #include "math.h"
-
-MPU6500::UpdateThread MPU6500::updateThread;
-
-Vector3D MPU6500::gyro_orig;
-Vector3D MPU6500::gyro;  // final data of gyro
-Vector3D MPU6500::accel_orig;
-Vector3D MPU6500::accel;  // final data of acceleration
-float MPU6500::temperature;
-time_msecs_t MPU6500::last_update_time = 0;
-
-float MPU6500::gyro_psc;   // get the coefficient converting the raw data to degree
-float MPU6500::accel_psc;  // get the coefficient converting the raw data to g
-
-uint8_t MPU6500::rx_buf[RX_BUF_SIZE];
-
-unsigned MPU6500::static_measurement_count = 0;
-time_msecs_t MPU6500::last_calibration_time = 0;
-
-Vector3D MPU6500::gyro_bias;  // for gyro bias
-#if MPU6500_ENABLE_ACCEL_BIAS
-Matrix33 MPU6500::accel_rotation;  // a rotation matrix for accelerate bias
-Vector3D MPU6500::temp_accel_bias;
-#endif
-Vector3D MPU6500::temp_gyro_bias;  // for gyro bias
-
 
 static const SPIConfig SPI5_cfg =
         {
@@ -40,7 +15,7 @@ static const SPIConfig SPI5_cfg =
                 0
         };
 
-void MPU6500::mpu6500_write_reg(uint8_t reg_addr, uint8_t value) {
+void MPUOnBoard::mpu6500_write_reg(uint8_t reg_addr, uint8_t value) {
     uint8_t tx_data[2] = {reg_addr, value};
     spiAcquireBus(&MPU6500_SPI_DRIVER);
     spiSelect(&MPU6500_SPI_DRIVER);
@@ -49,7 +24,7 @@ void MPU6500::mpu6500_write_reg(uint8_t reg_addr, uint8_t value) {
     spiReleaseBus(&MPU6500_SPI_DRIVER);
 }
 
-bool MPU6500::start(tprio_t prio) {
+void MPUOnBoard::start(tprio_t prio) {
 
     spiStart(&MPU6500_SPI_DRIVER, &SPI5_cfg);
     mpu6500_write_reg(MPU6500_PWR_MGMT_1, MPU6500_RESET);
@@ -109,73 +84,68 @@ bool MPU6500::start(tprio_t prio) {
     while(last_calibration_time == 0) {
         chThdSleepMilliseconds(1);
     }
-
-    return true;
 }
 
+void MPUOnBoard::update() {
 
-void MPU6500::UpdateThread::main() {
-    setName("mpu6500");
-    while (!shouldTerminate()) {
-
-        // Fetch data from SPI
-        uint8_t tx_data = MPU6500_ACCEL_XOUT_H | MPU6500_SPI_READ;
-        spiAcquireBus(&MPU6500_SPI_DRIVER);
-        spiSelect(&MPU6500_SPI_DRIVER);
-        spiSend(&MPU6500_SPI_DRIVER, 1, &tx_data);
-        chThdSleepMilliseconds(1);
-        spiReceive(&MPU6500_SPI_DRIVER, RX_BUF_SIZE, rx_buf);
-        spiUnselect(&MPU6500_SPI_DRIVER);
-        spiReleaseBus(&MPU6500_SPI_DRIVER);
+    // Fetch data from SPI
+    uint8_t tx_data = MPU6500_ACCEL_XOUT_H | MPU6500_SPI_READ;
+    spiAcquireBus(&MPU6500_SPI_DRIVER);
+    spiSelect(&MPU6500_SPI_DRIVER);
+    spiSend(&MPU6500_SPI_DRIVER, 1, &tx_data);
+    chThdSleepMilliseconds(1);
+    spiReceive(&MPU6500_SPI_DRIVER, RX_BUF_SIZE, rx_buf);
+    spiUnselect(&MPU6500_SPI_DRIVER);
+    spiReleaseBus(&MPU6500_SPI_DRIVER);
 
 
-        chSysLock();  /// ---------------------------------- Enter Critical Zone ----------------------------------
+    chSysLock();  /// ---------------------------------- Enter Critical Zone ----------------------------------
 
-        // Calculate new data
+    // Calculate new data
 
-        accel_orig = Vector3D((int16_t) (rx_buf[0] << 8 | rx_buf[1]),
-                              (int16_t) (rx_buf[2] << 8 | rx_buf[3]),
-                              (int16_t) (rx_buf[4] << 8 | rx_buf[5])) * accel_psc;
+    accel_orig = Vector3D((int16_t) (rx_buf[0] << 8 | rx_buf[1]),
+                          (int16_t) (rx_buf[2] << 8 | rx_buf[3]),
+                          (int16_t) (rx_buf[4] << 8 | rx_buf[5])) * accel_psc;
 
-        Vector3D new_gyro_orig = Vector3D((int16_t) (rx_buf[8] << 8 | rx_buf[9]),
-                                          (int16_t) (rx_buf[10] << 8 | rx_buf[11]),
-                                          (int16_t) (rx_buf[12] << 8 | rx_buf[13])) * gyro_psc;
+    Vector3D new_gyro_orig = Vector3D((int16_t) (rx_buf[8] << 8 | rx_buf[9]),
+                                      (int16_t) (rx_buf[10] << 8 | rx_buf[11]),
+                                      (int16_t) (rx_buf[12] << 8 | rx_buf[13])) * gyro_psc;
 
-        temperature = ((((int16_t) (rx_buf[6] << 8 | rx_buf[7])) - TEMPERATURE_BIAS) / 333.87f) + 21.0f;
+    temperature = ((((int16_t) (rx_buf[6] << 8 | rx_buf[7])) - TEMPERATURE_BIAS) / 333.87f) + 21.0f;
 
-        if (ABS_IN_RANGE(new_gyro_orig.x - gyro_orig.x, STATIC_RANGE) &&
-            ABS_IN_RANGE(new_gyro_orig.y - gyro_orig.y, STATIC_RANGE) &&
-            ABS_IN_RANGE(new_gyro_orig.z - gyro_orig.z, STATIC_RANGE)) {
-            static_measurement_count++;
-            temp_gyro_bias = temp_gyro_bias - new_gyro_orig;
+    if (ABS_IN_RANGE(new_gyro_orig.x - gyro_orig.x, STATIC_RANGE) &&
+        ABS_IN_RANGE(new_gyro_orig.y - gyro_orig.y, STATIC_RANGE) &&
+        ABS_IN_RANGE(new_gyro_orig.z - gyro_orig.z, STATIC_RANGE)) {
+        static_measurement_count++;
+        temp_gyro_bias = temp_gyro_bias - new_gyro_orig;
 #if MPU6500_ENABLE_ACCEL_BIAS
-            temp_accel_bias = temp_accel_bias + accel;
+        temp_accel_bias = temp_accel_bias + accel;
 #endif
-        } else {
-            LED::red_toggle();
-            static_measurement_count = 0;
-            temp_gyro_bias = Vector3D(0, 0, 0);
+    } else {
+        LED::red_toggle();
+        static_measurement_count = 0;
+        temp_gyro_bias = Vector3D(0, 0, 0);
 #if MPU6500_ENABLE_ACCEL_BIAS
-            temp_accel_bias = Vector3D(0, 0, 0);
+        temp_accel_bias = Vector3D(0, 0, 0);
 #endif
-        }
+    }
 
 
-        gyro_orig = new_gyro_orig;
-        gyro = gyro_orig + gyro_bias;
+    gyro_orig = new_gyro_orig;
+    gyro = gyro_orig + gyro_bias;
 #if MPU6500_ENABLE_ACCEL_BIAS
-        accel = accel_orig * accel_rotation;
+    accel = accel_orig * accel_rotation;
 #else
-        accel = accel_orig;
+    accel = accel_orig;
 #endif
 
-        last_update_time = SYSTIME;
+    last_update_time = SYSTIME;
 
-        if (static_measurement_count >= BIAS_SAMPLE_COUNT) {
-            LED::green_toggle();
-            gyro_bias = temp_gyro_bias / BIAS_SAMPLE_COUNT;
+    if (static_measurement_count >= BIAS_SAMPLE_COUNT) {
+        LED::green_toggle();
+        gyro_bias = temp_gyro_bias / BIAS_SAMPLE_COUNT;
 #if MPU6500_ENABLE_ACCEL_BIAS
-            if (last_calibration_time == 0) {
+        if (last_calibration_time == 0) {
                 // Only calibrate accel for ones
                 accel_rotation[2][0] = temp_accel_bias.x / BIAS_SAMPLE_COUNT;
                 accel_rotation[2][1] = temp_accel_bias.y / BIAS_SAMPLE_COUNT;
@@ -194,13 +164,19 @@ void MPU6500::UpdateThread::main() {
                 accel_rotation[1][2] = temp_vect.z;
             }
 #endif
-            static_measurement_count = 0;
-            temp_gyro_bias = Vector3D(0, 0, 0);
-            last_calibration_time = SYSTIME;
-        }
+        static_measurement_count = 0;
+        temp_gyro_bias = Vector3D(0, 0, 0);
+        last_calibration_time = SYSTIME;
+    }
 
-        chSysUnlock();  /// ---------------------------------- Exit Critical Zone ----------------------------------
+    chSysUnlock();  /// ---------------------------------- Exit Critical Zone ----------------------------------
+}
 
+
+void MPUOnBoard::UpdateThread::main() {
+    setName("mpu6500");
+    while (!shouldTerminate()) {
+        mpu.update();
         sleep(TIME_MS2I(THREAD_UPDATE_INTERVAL));
     }
 }

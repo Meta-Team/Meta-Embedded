@@ -54,7 +54,7 @@ include_directories(  # common include directories
         dev/debug
         dev/debug/shell
         dev/interface
-        dev/interface/imu
+        dev/interface/ahrs
         dev/module
         dev/control)
 
@@ -72,7 +72,7 @@ add_library(ChibiOS_OBJ OBJECT ${CHIBIOS_XASM_SRC} ${CHIBIOS_C_SRC} ${CHIBIOS_CP
 set(INFANTRY
         dev/module/pid_controller.hpp
         dev/interface/can_interface.cpp
-        dev/interface/imu/mpu6500.cpp
+        dev/interface/ahrs/mpu6500.cpp
         dev/interface/gimbal_interface.cpp
         dev/interface/chassis_interface.cpp
         dev/interface/remote_interpreter.cpp
@@ -116,7 +116,7 @@ target_compile_definitions(ENGINEER PRIVATE ENGINEER ENABLE_STATE_HANDLE)
 add_executable(HERO
         dev/module/pid_controller.hpp
         dev/interface/can_interface.cpp
-        dev/interface/imu/mpu6500.cpp
+        dev/interface/ahrs/mpu6500.cpp
         dev/interface/chassis_interface.cpp
         dev/interface/gimbal_interface.cpp
         dev/interface/remote_interpreter.cpp
@@ -142,14 +142,14 @@ add_executable(ut_remote_interpreter
 # Gimbal Interface: include CANInterface, GimbalIF, GimbalFeedbackThread and the unit test modules.
 add_executable(ut_gimbal_interface
         dev/interface/can_interface.cpp
-        dev/interface/imu/mpu6500.cpp
+        dev/interface/ahrs/mpu6500.cpp
         dev/interface/gimbal_interface.cpp
         dev/control/shoot.cpp
         dev/debug/unit_tests/gimbal_interface_unit_test.cpp)
 # Hero Shoot
 add_executable(ut_hero_shoot
         dev/interface/can_interface.cpp
-        dev/interface/imu/mpu6500.cpp
+        dev/interface/ahrs/mpu6500.cpp
         dev/interface/gimbal_interface.cpp
         dev/control/shoot.cpp
         dev/debug/unit_tests/hero_shoot_unit_test.cpp)
@@ -170,38 +170,44 @@ add_executable(pa_gimbal
         dev/module/pid_controller.hpp
         dev/control/gimbal_scheduler.cpp
         dev/control/shoot.cpp
-        dev/interface/imu/mpu6500.cpp
+        dev/interface/ahrs/mpu6500.cpp
         dev/debug/unit_tests/gimbal_pid_adjustment_program.cpp)
 target_compile_definitions(pa_gimbal PRIVATE SHELL_NO_ECHO_MODE)
 
 # MPU6500: include MP6500 interface and unit test.
 add_executable(ut_mpu6500
-        dev/interface/imu/mpu6500.cpp
+        dev/interface/ahrs/mpu6500.cpp
         dev/debug/unit_tests/mpu6500_unit_test.cpp)
 
 # IST8310
 add_executable(ut_ist8310
-        dev/interface/imu/mpu6500.cpp
-        dev/interface/imu/ist8310.cpp
+        dev/interface/ahrs/mpu6500.cpp
+        dev/interface/ahrs/ist8310.cpp
         dev/debug/unit_tests/ist8310_unit_test.cpp)
 
 # IMU: include IMU interface and unit test.
 add_executable(ut_imu
-        dev/interface/imu/ahrs_math.hpp
-        dev/interface/imu/mpu6500.cpp
-        dev/interface/imu/ist8310.cpp
-        dev/interface/imu/ahrs.cpp
+        dev/interface/ahrs/ahrs_math.hpp
+        dev/interface/ahrs/mpu6500.cpp
+        dev/interface/ahrs/ist8310.cpp
+        dev/interface/ahrs/ahrs.cpp
         dev/debug/unit_tests/ahrs_unit_test.cpp)
 
 # AHRS
 add_executable(ut_ahrs
-        dev/interface/imu/ahrs_math.hpp
-        dev/interface/imu/mpu6500.cpp
-        dev/interface/imu/ist8310.cpp
-        dev/interface/imu/ahrs_lib_middleware.c
-        dev/interface/imu/ahrs.cpp
+        dev/interface/ahrs/ahrs_math.hpp
+        dev/interface/ahrs/mpu6500.cpp
+        dev/interface/ahrs/ist8310.cpp
+        dev/interface/ahrs/ahrs_lib_middleware.c
+        dev/interface/ahrs/ahrs.cpp
         dev/debug/unit_tests/ahrs_unit_test.cpp)
-target_link_libraries(ut_ahrs ${PROJECT_SOURCE_DIR}/dev/interface/imu/ahrs_lib.lib)
+target_link_libraries(ut_ahrs ${PROJECT_SOURCE_DIR}/dev/interface/ahrs/ahrs_lib.lib)
+
+# AHRSExt
+add_executable(ut_ahrs_ext
+        dev/interface/can_interface.cpp
+        dev/interface/ahrs/ahrs_ext.cpp
+        dev/debug/unit_tests/ahrs_ext_unit_test.cpp)
 
 # Buzzer: inlcude Buzzer interface and unit test.
 add_executable(ut_buzzer

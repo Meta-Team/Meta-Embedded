@@ -8,28 +8,28 @@
 #include "led.h"
 #include "shell.h"
 
-#include "ahrs.h"
+#include "ahrs_ext.h"
 #include "buzzer.h"
 
 using namespace chibios_rt;
 
-static constexpr Matrix33 GIMBAL_AHRS_INSTALL_MATRIX = {{ 1.0f,  0.0f,  0.0f},
-                                                        { 0.0f,  1.0f,  0.0f},
-                                                        { 0.0f,  0.0f,  1.0f}};
-
-AHRSOnBoard ahrs;
+CANInterface can1(&CAND1);
+AHRSExt ahrs;
 
 class AHRSFeedbackThread : public BaseStaticThread<1024> {
 protected:
     void main() final {
-        setName("ahrs");
-        ahrs.start(GIMBAL_AHRS_INSTALL_MATRIX, HIGHPRIO - 2, HIGHPRIO - 3, HIGHPRIO - 1);
+        setName("ahrs_ext");
+        ahrs.start(&can1);
         Buzzer::play_sound(Buzzer::sound_startup, LOWPRIO);
         while (!shouldTerminate()) {
             Shell::printf("!a,%.4f,%.4f,%.4f" SHELL_NEWLINE_STR,
                           ahrs.angle.x,
                           ahrs.angle.y,
                           ahrs.angle.z);
+//            Shell::printf("w = (%.4f, %.4f, %.4f), a = (%.4f, %.4f, %.4f)" SHELL_NEWLINE_STR,
+//                          ahrs.gyro.x, ahrs.gyro.y, ahrs.gyro.z,
+//                          ahrs.accel.x, ahrs.accel.y, ahrs.accel.z);
             sleep(TIME_MS2I(100));
         }
     }
@@ -43,6 +43,7 @@ int main(void) {
     Shell::start(NORMALPRIO - 10);
     LED::all_off();
 
+    can1.start(HIGHPRIO);
     feedbackThread.start(NORMALPRIO);
 
     // See chconf.h for what this #define means.

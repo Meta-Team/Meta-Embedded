@@ -13,7 +13,7 @@
 #include "debug/shell/shell.h"
 
 #include "can_interface.h"
-#include "mpu6500.h"
+#include "interface/ahrs/mpu6500.h"
 
 #include "gimbal_scheduler.h"
 #include "shoot.h"

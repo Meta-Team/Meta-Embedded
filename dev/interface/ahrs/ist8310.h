@@ -8,6 +8,8 @@
 #include "ch.hpp"
 #include "hal.h"
 
+#include "ahrs_abstract.h"
+
 #include "ahrs_math.hpp"
 #include "math.h"
 
@@ -24,34 +26,44 @@
 #endif
 
 /**
- * @name IST8310
- * @brief Interface to get IST8310 data
+ * @name ISTOnBoard
+ * @brief Interface to get on-board IST8310 data
  * @pre MPU6500 has initialized (IST8310 use MPU6500 as I2C Master)
  * @usage 1. Call start() to enable IST8310 driver and updating thread
  *        2. Make use of data from IST8310, magnet, etc.
  */
-class IST8310 {
+class ISTOnBoard : public AbstractIST {
 public:
 
+    /** (From AbstractIST)
+
+    Vector3D magnet;  // Magnet data [uT]
+
+    */
+
     /**
-     * Start MPU6500 driver and the thread of data fetching
+     * Start IST8310 driver and the thread of data fetching
      * @param prio  thread priority (recommended to be high enough)
      * @return
      */
-    static bool start(tprio_t prio);
+    bool start(tprio_t prio);
 
-    /**
-     * Magnet data [uT]
-     */
-    static Vector3D magnet;
+    ISTOnBoard() : updateThread(*this) {};
 
 private:
 
+    void update();
+
     class UpdateThread : public chibios_rt::BaseStaticThread<512> {
+    public:
+        UpdateThread(ISTOnBoard& ist_) : ist(ist_) {};
+
+    private:
+        static constexpr unsigned int THREAD_UPDATE_INTERVAL = 1;  // read interval 1ms (1kHz)
+        ISTOnBoard& ist;
         void main() final;
-    };
-    static UpdateThread updateThread;
-    static constexpr unsigned int IST8310_THREAD_UPDATE_INTERVAL = 1;  // read interval 1ms (1kHz)
+    } updateThread;
+
 
     static void writeSPIReg(const uint8_t *data, size_t n);  // helper function to write register
 

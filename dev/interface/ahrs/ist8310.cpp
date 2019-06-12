@@ -4,10 +4,7 @@
 
 #include "ist8310.h"
 
-Vector3D IST8310::magnet;
-IST8310::UpdateThread IST8310::updateThread;
-
-bool IST8310::start(tprio_t prio) {
+bool ISTOnBoard::start(tprio_t prio) {
 
     palClearPad(GPIOE, GPIOE_IST8310_RST);
     chThdSleepMilliseconds(100);
@@ -50,7 +47,7 @@ bool IST8310::start(tprio_t prio) {
     return true;
 }
 
-void IST8310::writeSPIReg(const uint8_t *data, size_t n) {
+void ISTOnBoard::writeSPIReg(const uint8_t *data, size_t n) {
     spiAcquireBus(&MPU6500_SPI_DRIVER);
     spiSelect(&MPU6500_SPI_DRIVER);
     spiSend(&MPU6500_SPI_DRIVER, n, data);
@@ -59,24 +56,31 @@ void IST8310::writeSPIReg(const uint8_t *data, size_t n) {
 }
 
 
-void IST8310::UpdateThread::main() {
+void ISTOnBoard::update() {
+
+    int16_t rawData[3];
+    uint8_t data = MPU6500_EXT_SENS_DATA_00 | MPU6500_I2C_MSTR_READ;
+
+    spiAcquireBus(&MPU6500_SPI_DRIVER);
+    spiSelect(&MPU6500_SPI_DRIVER);
+    spiSend(&MPU6500_SPI_DRIVER, 1, &data);
+    spiReceive(&MPU6500_SPI_DRIVER, 6, (uint8_t *) rawData);
+    spiUnselect(&MPU6500_SPI_DRIVER);
+    spiReleaseBus(&MPU6500_SPI_DRIVER);
+
+    magnet.x = (float) rawData[0] * IST8310_PSC;
+    magnet.y = (float) rawData[1] * IST8310_PSC;
+    magnet.z = (float) rawData[2] * IST8310_PSC;
+    
+}
+
+
+void ISTOnBoard::UpdateThread::main() {
     setName("ist8310");
     while (!shouldTerminate()) {
 
-        int16_t rawData[3];
-        uint8_t data = MPU6500_EXT_SENS_DATA_00 | MPU6500_I2C_MSTR_READ;
+        ist.update();
 
-        spiAcquireBus(&MPU6500_SPI_DRIVER);
-        spiSelect(&MPU6500_SPI_DRIVER);
-        spiSend(&MPU6500_SPI_DRIVER, 1, &data);
-        spiReceive(&MPU6500_SPI_DRIVER, 6, (uint8_t *) rawData);
-        spiUnselect(&MPU6500_SPI_DRIVER);
-        spiReleaseBus(&MPU6500_SPI_DRIVER);
-
-        magnet.x = (float) rawData[0] * IST8310_PSC;
-        magnet.y = (float) rawData[1] * IST8310_PSC;
-        magnet.z = (float) rawData[2] * IST8310_PSC;
-
-        sleep(TIME_MS2I(IST8310_THREAD_UPDATE_INTERVAL));
+        sleep(TIME_MS2I(THREAD_UPDATE_INTERVAL));
     }
 }

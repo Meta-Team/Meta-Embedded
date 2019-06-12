@@ -5,6 +5,8 @@
 #include "hal.h"
 
 #include "common_macro.h"
+
+#include "ahrs_abstract.h"
 #include "ahrs_math.hpp"
 
 #include "mpu6500_reg.h"
@@ -21,78 +23,82 @@
 #define MPU6500_ENABLE_ACCEL_BIAS  FALSE
 
 /**
- * @name MPU6500
- * @brief Interface to get MPU6500 data
+ * @name MPUOnBoard
+ * @brief Interface to get on-board MPU6500 data
  * @usage 1. Call start() to enable MPU6500 driver and updating thread
  *        2. Make use of data from MPU6500, accel, etc.
  */
-class MPU6500 {
+class MPUOnBoard : public AbstractMPU {
 
 public:
+
+    /** (From AbstractMPU)
+
+    Vector3D gyro;   // Data from gyroscope [deg/s]
+    Vector3D accel;  // Data from accelerometer [m/s^2]
+
+    */
 
     /**
      * Start MPU6500 driver and the thread of data fetching
      * @param prio  thread priority (recommended to be high enough)
-     * @return
      */
-    static bool start(tprio_t prio);
-
-    /**
-     * Data from gyroscope [deg/s]
-     */
-    static Vector3D gyro;  // final data of gyro
-
-    /**
-     * Data from accelerometer [m/s^2]
-     */
-    static Vector3D accel;
+    void start(tprio_t prio);
 
     /**
      * Temperature data [C]
      */
-    static float temperature;
+    float temperature;
 
     /**
      * Last update time from system start [ms]
      */
-    static time_msecs_t last_update_time;
+    time_msecs_t last_update_time;
+
+
+    MPUOnBoard() : updateThread(*this) {};
 
 private:
 
-    static Vector3D gyro_orig;   // raw (biased) data of gyro
-    static Vector3D accel_orig;  // raw (not rotated) data from accel
+    Vector3D gyro_orig;   // raw (biased) data of gyro
+    Vector3D accel_orig;  // raw (not rotated) data from accel
 
-    static float gyro_psc;   // the coefficient converting the raw data to degree
-    static float accel_psc;  // the coefficient converting the raw data to m/s^2
+    float gyro_psc;   // the coefficient converting the raw data to degree
+    float accel_psc;  // the coefficient converting the raw data to m/s^2
 
     static constexpr size_t RX_BUF_SIZE = 0x0E;
-    static uint8_t rx_buf[RX_BUF_SIZE];
+    uint8_t rx_buf[RX_BUF_SIZE];
 
 
-    static Vector3D gyro_bias;        // averaged gyro value when "static"
-    static Vector3D temp_gyro_bias;   // temp sum of gyro for calibration
+    Vector3D gyro_bias;        // averaged gyro value when "static"
+    Vector3D temp_gyro_bias;   // temp sum of gyro for calibration
 #if MPU6500_ENABLE_ACCEL_BIAS
-    static Matrix33 accel_rotation;   // a matrix to rotate accel
-    static Vector3D temp_accel_bias;  // temp sum of accel for calibration
+    Matrix33 accel_rotation;   // a matrix to rotate accel
+    Vector3D temp_accel_bias;  // temp sum of accel for calibration
 #endif
-    static constexpr float TEMPERATURE_BIAS = 0.0f;
+    const float TEMPERATURE_BIAS = 0.0f;
 
     // If changes in x, y, z of gyro is in this range MPU6500 is regarded as "static"
-    static constexpr float STATIC_RANGE = 0.2f;
+    const float STATIC_RANGE = 0.2f;
 
-    static constexpr unsigned BIAS_SAMPLE_COUNT = 500;
+    const unsigned BIAS_SAMPLE_COUNT = 500;
     // When static_measurement_count reaches BIAS_SAMPLE_COUNT, calibration is performed.
-    static unsigned static_measurement_count;
-    static time_msecs_t last_calibration_time;
+    unsigned static_measurement_count;
+    time_msecs_t last_calibration_time;
 
-    static void mpu6500_write_reg(uint8_t reg_addr, uint8_t value);  // helper function to use SPI
-
+    void mpu6500_write_reg(uint8_t reg_addr, uint8_t value);  // helper function to use SPI
+    void update();
 
     class UpdateThread : public chibios_rt::BaseStaticThread<512> {
+    public:
+        UpdateThread(MPUOnBoard& mpu_) : mpu(mpu_) {}
+
+    private:
+        static constexpr unsigned int THREAD_UPDATE_INTERVAL = 1;  // read interval 1ms (1kHz)
+        MPUOnBoard& mpu;
         void main() final;
-    };
-    static UpdateThread updateThread;
-    static constexpr unsigned int THREAD_UPDATE_INTERVAL = 1;  // read interval 1ms (1kHz)
+    } updateThread;
+
 
     /**
      * MPU6500_ACCEL_CONFIG_2, [2:0] bits
@@ -154,9 +160,9 @@ private:
     } mpu6500_config_t;
 
     static constexpr mpu6500_config_t CONFIG = {MPU6500_GYRO_SCALE_1000,  // Gyro full scale 1000 dps (degree per second)
-                                                MPU6500_ACCEL_SCALE_2G,  // Accel full scale 8g
-                                                MPU6500_DLPF_41HZ,       // Gyro digital low-pass filter 41Hz
-                                                MPU6500_ADLPF_20HZ};     // Accel digital low-pass filter 20Hz
+                                     MPU6500_ACCEL_SCALE_2G,  // Accel full scale 8g
+                                     MPU6500_DLPF_41HZ,       // Gyro digital low-pass filter 41Hz
+                                     MPU6500_ADLPF_20HZ};     // Accel digital low-pass filter 20Hz
 };
 
 #endif

@@ -6,7 +6,7 @@
 #define META_INFANTRY_THREAD_ERROR_DETECT_HPP
 
 #include "state_handler.h"
-#include "mpu6500.h"
+#include "interface/ahrs/mpu6500.h"
 #include "remote_interpreter.h"
 #include "gimbal_scheduler.h"
 #include "chassis_scheduler.h"

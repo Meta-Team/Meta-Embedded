@@ -8,20 +8,21 @@
 #include "led.h"
 #include "debug/shell/shell.h"
 
-#include "mpu6500.h"
-
+#include "interface/ahrs/mpu6500.h"
 using namespace chibios_rt;
+
+MPUOnBoard mpu6500;
 
 class MPU6500FeedbackThread : public BaseStaticThread<1024> {
 protected:
     void main() final {
         setName("mpu6500");
-        MPU6500::start(HIGHPRIO - 2);
+        mpu6500.start(HIGHPRIO - 2);
         while (!shouldTerminate()) {
             Shell::printf("w = (%.4f, %.4f, %.4f), a = (%.4f, %.4f, %.4f), temp = %.4f" SHELL_NEWLINE_STR,
-                          MPU6500::gyro.x, MPU6500::gyro.y, MPU6500::gyro.z,
-                          MPU6500::accel.x, MPU6500::accel.y, MPU6500::accel.z,
-                          MPU6500::temperature);
+                          mpu6500.gyro.x, mpu6500.gyro.y, mpu6500.gyro.z,
+                          mpu6500.accel.x, mpu6500.accel.y, mpu6500.accel.z,
+                          mpu6500.temperature);
             sleep(TIME_MS2I(100));
         }
     }
