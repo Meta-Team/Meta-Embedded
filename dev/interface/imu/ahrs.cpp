@@ -26,6 +26,7 @@ void AHRS::fetch_data() {
     gyro = (MPU6500::gyro * installPos) * DEG2RAD;
     accel = MPU6500::accel * installPos;
     mag = IST8310::magnet;
+//    mag = Vector3D(3532, -8218, -2995);
 }
 
 void AHRS::AHRSUpdateThread::main() {

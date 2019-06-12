@@ -71,7 +71,7 @@ add_library(ChibiOS_OBJ OBJECT ${CHIBIOS_XASM_SRC} ${CHIBIOS_C_SRC} ${CHIBIOS_CP
 
 set(INFANTRY
         dev/module/pid_controller.hpp
-        dev/module/can_interface.cpp
+        dev/interface/can_interface.cpp
         dev/interface/imu/mpu6500.cpp
         dev/interface/gimbal_interface.cpp
         dev/interface/chassis_interface.cpp
@@ -99,7 +99,7 @@ target_compile_definitions(INFANTRY_FIVE PRIVATE INFANTRY INFANTRY_FIVE ENABLE_S
 # Main Program -- Engineer
 add_executable(ENGINEER
         dev/module/pid_controller.hpp
-        dev/module/can_interface.cpp
+        dev/interface/can_interface.cpp
         dev/interface/chassis_interface.cpp
         dev/interface/remote_interpreter.cpp
         dev/interface/elevator_interface.cpp
@@ -115,7 +115,7 @@ target_compile_definitions(ENGINEER PRIVATE ENGINEER ENABLE_STATE_HANDLE)
 # Main Program -- Hero
 add_executable(HERO
         dev/module/pid_controller.hpp
-        dev/module/can_interface.cpp
+        dev/interface/can_interface.cpp
         dev/interface/imu/mpu6500.cpp
         dev/interface/chassis_interface.cpp
         dev/interface/gimbal_interface.cpp
@@ -141,14 +141,14 @@ add_executable(ut_remote_interpreter
 
 # Gimbal Interface: include CANInterface, GimbalIF, GimbalFeedbackThread and the unit test modules.
 add_executable(ut_gimbal_interface
-        dev/module/can_interface.cpp
+        dev/interface/can_interface.cpp
         dev/interface/imu/mpu6500.cpp
         dev/interface/gimbal_interface.cpp
         dev/control/shoot.cpp
         dev/debug/unit_tests/gimbal_interface_unit_test.cpp)
 # Hero Shoot
 add_executable(ut_hero_shoot
-        dev/module/can_interface.cpp
+        dev/interface/can_interface.cpp
         dev/interface/imu/mpu6500.cpp
         dev/interface/gimbal_interface.cpp
         dev/control/shoot.cpp
@@ -157,7 +157,7 @@ target_compile_definitions(ut_hero_shoot PUBLIC HERO)
 
 # Hero Shoot
 add_executable(pa_hero_shoot
-        dev/module/can_interface.cpp
+        dev/interface/can_interface.cpp
         dev/interface/gimbal_interface.cpp
         dev/control/shoot.cpp
         dev/debug/unit_tests/hero_shoot_param_adjust.cpp)
@@ -165,7 +165,7 @@ target_compile_definitions(pa_hero_shoot PUBLIC HERO)
 
 # Gimbal: include CANInterface, GimbalIF, GimbalController, GimbalFeedbackThread and adjustment modules.
 add_executable(pa_gimbal
-        dev/module/can_interface.cpp
+        dev/interface/can_interface.cpp
         dev/interface/gimbal_interface.cpp
         dev/module/pid_controller.hpp
         dev/control/gimbal_scheduler.cpp
@@ -210,13 +210,13 @@ add_executable(ut_buzzer
 
 # Chassis Interface: include chassis interface sources and the unit test modules.
 add_executable(ut_chassis_interface
-        dev/module/can_interface.cpp
+        dev/interface/can_interface.cpp
         dev/interface/chassis_interface.cpp
         dev/debug/unit_tests/chassis_interface_unit_test.cpp)
 
 # Chassis: include chassis interface, chassis controller and the unit test modules.
 add_executable(ut_chassis
-        dev/module/can_interface.cpp
+        dev/interface/can_interface.cpp
         dev/interface/chassis_interface.cpp
         dev/module/pid_controller.hpp
         dev/control/chassis_scheduler.cpp
@@ -225,13 +225,13 @@ target_include_directories(ut_chassis PRIVATE dev/vehicle/infantry)
 
 # Elevator Interface: include CANInterface, ElevatorInterface, and the unit test modules.
 add_executable(ut_elevator_interface
-        dev/module/can_interface.cpp
+        dev/interface/can_interface.cpp
         dev/interface/elevator_interface.cpp
         dev/debug/unit_tests/elevator_interface_unit_test.cpp)
 
 # Elevator: include CANInterface, ElevatorInterface, ElevatorController, and the unit test modules.
 add_executable(pa_elevator
-        dev/module/can_interface.cpp
+        dev/interface/can_interface.cpp
         dev/module/pid_controller.hpp
         dev/interface/elevator_interface.cpp
         dev/control/elevator.cpp
@@ -239,7 +239,7 @@ add_executable(pa_elevator
 
 # Robotic Arm
 add_executable(ut_robotic_arm
-        dev/module/can_interface.cpp
+        dev/interface/can_interface.cpp
         dev/interface/robotic_arm.cpp
         dev/vehicle/engineer/state_machine_bullet_fetch.cpp
         dev/debug/unit_tests/engineer_robotic_arm_unit_test.cpp)
@@ -252,7 +252,7 @@ add_executable(pa_skywalker
 
 # Sentry Chassis
 add_executable(ut_sentry_chassis
-        dev/module/can_interface.cpp
+        dev/interface/can_interface.cpp
         dev/module/pid_controller.hpp
         dev/interface/sentry_chassis_interface.cpp
         dev/control/sentry_chassis.cpp
