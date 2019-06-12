@@ -283,9 +283,9 @@ int main(void) {
     while (true) {}
 #else
     // When main() quits, the main thread will somehow
-        // enter an infinite loop, so we set the priority to lowest
-        // before quitting, to let other threads run normally
-        BaseThread::setPriority(1);
+    // enter an infinite loop, so we set the priority to lowest
+    // before quitting, to let other threads run normally
+    BaseThread::setPriority(1);
 #endif
     return 0;
 }

@@ -101,12 +101,6 @@ public:
          */
         void reset_front_angle();
 
-        /**
-         * @brief get total angle from the original front angle
-         * @return the accumulate angle since last reset_front_angle
-         */
-        float get_accumulate_angle();
-
     private:
 
         uint16_t last_angle_raw = 0;  // in the range of [0, 8191]
