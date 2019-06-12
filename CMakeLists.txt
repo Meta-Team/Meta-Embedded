@@ -253,6 +253,14 @@ add_executable(ut_sentry_chassis_mat
         dev/module/CRC8.cpp
         dev/module/CRC16.cpp)
 
+#Suspension Gimbal Test
+add_executable(ut_suspension_gimbal
+        dev/module/can_interface.cpp
+        dev/module/pid_controller.hpp
+        dev/interface/suspension_gimbal_interface.cpp
+        dev/control/suspension_gimbal_controller.cpp
+        dev/debug/unit_tests/suspension_gimbal_unit_test.cpp)
+
 add_executable(ut_referee_interface
         dev/module/CRC8.cpp
         dev/module/CRC16.cpp
