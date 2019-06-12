@@ -4,7 +4,6 @@
 
 #ifndef META_INFANTRY_SENTRY_CHASSIS_CALCULATOR_H
 #define META_INFANTRY_SENTRY_CHASSIS_CALCULATOR_H
-#define SYSTIME (TIME_I2MS(chVTGetSystemTime()))
 
 #include "sentry_chassis_interface.h"
 #include "referee_interface.h"
@@ -122,8 +121,6 @@ private:
     static float target_velocity;
 
     static float radius; // the range that sentry can move around the origin in the AUTO MODE
-
-    static int const_current;
 
     /**
      * @brief the const values

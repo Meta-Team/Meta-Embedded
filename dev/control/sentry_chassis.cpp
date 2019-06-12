@@ -4,6 +4,7 @@
 //
 
 #include "sentry_chassis.h"
+#include "referee_interface.h"
 
 bool SentryChassisController::enable;
 SentryChassisController::sentry_mode_t SentryChassisController::running_mode;
@@ -12,7 +13,6 @@ time_msecs_t SentryChassisController::start_time;
 float SentryChassisController::target_position;
 float SentryChassisController::target_velocity_modulus;
 float SentryChassisController::radius;
-int SentryChassisController::const_current;
 PIDController SentryChassisController::motor_right_pid;
 PIDController SentryChassisController::motor_left_pid;
 float SentryChassisController::target_velocity;
@@ -26,7 +26,6 @@ void SentryChassisController::init_controller(CANInterface* can_interface) {
     running_mode = STOP_MODE;
     clear_position();
     radius = 30.0f;
-    const_current = 1000;
     target_velocity = 0.0f;
     change_speed = false;
     maximum_speed = 110.0f;
