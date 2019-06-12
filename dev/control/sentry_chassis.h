@@ -19,7 +19,6 @@ public:
 
     enum sentry_mode_t{
         STOP_MODE,
-        CONST_CURRENT_MODE,
         ONE_STEP_MODE,
         AUTO_MODE
     };

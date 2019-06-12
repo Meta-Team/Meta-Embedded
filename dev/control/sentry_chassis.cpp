@@ -15,8 +15,8 @@ float SentryChassisController::radius;
 int SentryChassisController::const_current;
 PIDController SentryChassisController::motor_right_pid;
 PIDController SentryChassisController::motor_left_pid;
-float SentryChassisController::target_velocity = 0.0f;
-float SentryChassisController::maximum_speed = 110.0f;
+float SentryChassisController::target_velocity;
+float SentryChassisController::maximum_speed;
 
 
 void SentryChassisController::init_controller(CANInterface* can_interface) {
@@ -27,7 +27,9 @@ void SentryChassisController::init_controller(CANInterface* can_interface) {
     clear_position();
     radius = 30.0f;
     const_current = 1000;
+    target_velocity = 0.0f;
     change_speed = false;
+    maximum_speed = 110.0f;
 }
 
 void SentryChassisController::clear_position() {
@@ -56,13 +58,6 @@ void SentryChassisController::set_destination(float dist) {
 void SentryChassisController::update_target_current() {
 
     switch (running_mode){
-        case (CONST_CURRENT_MODE):
-            if (enable) {
-                motor[MOTOR_LEFT].target_current = motor[MOTOR_RIGHT].target_current = const_current;
-            }else{
-                motor[MOTOR_LEFT].target_current = motor[MOTOR_RIGHT].target_current = 0;
-            }
-            return;
         case (ONE_STEP_MODE):
             // If we are in the ONE_STEP_MODE
             if((motor[MOTOR_LEFT].present_position >= target_position-5 && motor[MOTOR_LEFT].present_position <= target_position+5)
@@ -99,7 +94,7 @@ void SentryChassisController::update_target_current() {
         }
         motor[MOTOR_RIGHT].target_current = (int)(motor_right_pid.calc(motor[MOTOR_RIGHT].present_velocity, target_velocity));
         motor[MOTOR_LEFT].target_current = (int)(motor_left_pid.calc(motor[MOTOR_LEFT].present_velocity, target_velocity));
-        
+
         if(Referee::power_heat_data.chassis_power > 20) LOG("power overload: %.2f", Referee::power_heat_data.chassis_power);
     }else {
         motor[MOTOR_LEFT].target_current = motor[MOTOR_RIGHT].target_current = 0;
@@ -112,7 +107,5 @@ void SentryChassisController::set_mode(SentryChassisController::sentry_mode_t ta
     if(running_mode == AUTO_MODE){
         radius = index;
         set_destination(radius);
-    } else if(running_mode == CONST_CURRENT_MODE){
-        const_current = (int)index;
     }
 }
