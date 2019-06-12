@@ -312,7 +312,7 @@ int main(void) {
     can1.start(HIGHPRIO - 1);
     chThdSleepMilliseconds(10);
     GimbalInterface::init(&can1, 0, 0);
-
+    Shoot::init(40.0f);
     Remote::start_receive();
 
     shootFeedbackThread.start(NORMALPRIO - 1);
