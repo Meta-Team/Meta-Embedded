@@ -49,17 +49,10 @@ static void cmd_chassis_disable(BaseSequentialStream *chp, int argc, char *argv[
 static void cmd_chassis_set_mode(BaseSequentialStream *chp, int argc, char *argv[]){
     (void) argv;
     if (argc != 1 && argc != 2) {
-        shellUsage(chp, "c_set_mode stop_mode(0)/const_current_mode(1) current(-2000~2000)/one_step_mode(2)/auto_mode(3) radius(10~50)");
+        shellUsage(chp, "c_set_mode stop_mode(0)/one_step_mode(2)/auto_mode(3) radius(10~50)");
         return;
     }
     switch (*argv[0]){
-        case ('1'):
-            if (argc != 2){
-                shellUsage(chp, "c_set_mode const_current_mode(1) current(-2000~2000)");
-                return;
-            }
-            SentryChassisController::set_mode(SentryChassisController::CONST_CURRENT_MODE, Shell::atof(argv[1]));
-            break;
         case ('2'):
             SentryChassisController::set_mode(SentryChassisController::ONE_STEP_MODE);
             break;
@@ -147,7 +140,7 @@ static void cmd_chassis_print_pid(BaseSequentialStream *chp, int argc, char *arg
         shellUsage(chp, "c_pid");
         return;
     }
-    SentryChassisController::print_pid_params();
+    //SentryChassisController::print_pid_params();
 }
 
 /**

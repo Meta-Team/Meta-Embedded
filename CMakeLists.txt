@@ -240,7 +240,10 @@ add_executable(ut_sentry_chassis
         dev/module/pid_controller.hpp
         dev/interface/sentry_chassis_interface.cpp
         dev/control/sentry_chassis.cpp
-        dev/debug/unit_tests/sentry_chassis_unit_test.cpp)
+        dev/debug/unit_tests/sentry_chassis_unit_test.cpp
+        dev/interface/referee_interface.cpp
+        dev/module/CRC8.cpp
+        dev/module/CRC16.cpp)
 
 #Sentry Chassis Matlab Test
 add_executable(ut_sentry_chassis_mat

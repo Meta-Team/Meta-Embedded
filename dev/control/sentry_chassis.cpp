@@ -21,7 +21,7 @@ float SentryChassisController::maximum_speed;
 
 void SentryChassisController::init_controller(CANInterface* can_interface) {
     SentryChassisIF::init(can_interface);
-    Referee::init();
+    //Referee::init();
     enable = false;
     running_mode = STOP_MODE;
     clear_position();
