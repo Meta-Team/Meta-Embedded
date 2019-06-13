@@ -151,7 +151,7 @@ add_executable(ut_hero_shoot
         dev/interface/can_interface.cpp
         dev/interface/ahrs/mpu6500.cpp
         dev/interface/gimbal_interface.cpp
-        dev/control/shoot.cpp
+        dev/control/hero_shoot.cpp
         dev/debug/unit_tests/hero_shoot_unit_test.cpp)
 target_compile_definitions(ut_hero_shoot PUBLIC HERO)
 
@@ -159,11 +159,20 @@ target_compile_definitions(ut_hero_shoot PUBLIC HERO)
 add_executable(pa_hero_shoot
         dev/interface/can_interface.cpp
         dev/interface/gimbal_interface.cpp
-        dev/control/shoot.cpp
+        dev/control/hero_shoot.cpp
         dev/debug/unit_tests/hero_shoot_param_adjust.cpp)
 target_compile_definitions(pa_hero_shoot PUBLIC HERO)
 
 # Gimbal: include CANInterface, GimbalIF, GimbalController, GimbalFeedbackThread and adjustment modules.
+# Shoot
+add_executable(pa_shoot
+        dev/interface/can_interface.cpp
+        dev/interface/gimbal_interface.cpp
+        dev/control/shoot.cpp
+        dev/debug/unit_tests/shoot_param_adjust.cpp
+        dev/interface/remote_interpreter.cpp)
+
+# Gimbal: include CANInterface, GimbalInterface, GimbalController, GimbalFeedbackThread and adjustment modules.
 add_executable(pa_gimbal
         dev/interface/can_interface.cpp
         dev/interface/gimbal_interface.cpp

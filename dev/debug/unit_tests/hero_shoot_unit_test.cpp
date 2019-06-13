@@ -54,7 +54,7 @@ static void cmd_shoot_set_plate_parameters(BaseSequentialStream *chp, int argc, 
          return;
      }
 
-     Shoot::change_plate_params({Shell::atof(argv[0]),
+     Shoot::v2i_pid[1].change_parameters({Shell::atof(argv[0]),
                                  Shell::atof(argv[1]),
                                  Shell::atof(argv[2]),
                                  500.0f,
@@ -77,7 +77,7 @@ static void cmd_shoot_set_loader_parameters(BaseSequentialStream *chp, int argc,
         return;
     }
 
-    Shoot::change_pid_params({Shell::atof(argv[0]),
+    Shoot::v2i_pid[0].change_parameters({Shell::atof(argv[0]),
                               Shell::atof(argv[1]),
                               Shell::atof(argv[2]),
                               0.0f,
