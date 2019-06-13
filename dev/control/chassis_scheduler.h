@@ -6,64 +6,94 @@
 #define META_INFANTRY_CHASSIS_CONTROLLER_H
 
 #include "ch.hpp"
-#include "hal.h"
 
 #include "chassis_interface.h"
-#include "pid_controller.hpp"
+#include "gimbal_interface.h"
 
+#include "pid_controller.hpp"
+#include "math.h"
 
 /**
- * @name Chassis
- * @brief Chassis controller from high level to low level (by inheritance)
- * @note +X is right, +Y is front, +w is counter-clockwise
+ * @name ChassisSKD
+ * @note SKD stands for "scheduler"
+ * @brief Scheduler to control chassis to meet the target, including a thread to invoke PID calculation in period.
+ * @pre GimbalIF and ChassisIF have been initialized properly
+ * @usage 1. start(), load_pid_params()
+ *        2. set_mode() and set_target() as needed
+ *        3. Leave the rest of the work to this SKD
  */
-class ChassisSKD : public ChassisIF, public PIDControllerBase {
+class ChassisSKD : public ChassisBase, public PIDControllerBase {
 
 public:
 
+    enum mode_t {
+        STOP_MODE,                // zero force
+                                  // No support for chassis coordinate
+        GIMBAL_COORDINATE_MODE,   // targets use gimbal coordinates
+        PARAM_ADJUST_MODE         // for PID parameter adjustment program
+    };
+
     /**
      * Initialize ChassisInterface and this calculator
-     * @param can_interface
      * @param wheel_base
      * @param wheel_tread
      * @param wheel_circumference
+     * @param thread_prio
      */
-    static void init(CANInterface* can_interface, float wheel_base, float wheel_tread, float wheel_circumference);
+    static void start(float wheel_base, float wheel_tread, float wheel_circumference, tprio_t thread_prio);
 
     /**
-     * Change parameters of PID controller of every motor
+     * Change parameters of PID controller of every motor (shared parameters)
      * @param pid_params
      */
-    static void change_pid_params(pid_params_t pid_params);
+    static void load_pid_params(pid_params_t a2v_pid_params, pid_params_t v2i_pid_params);
 
     /**
-     * Calculate current for all chassis motors and fill target_velocity[] (in this class) and target_current[]
-     * (in ChassisInterface)
-     * @param target_vx: target velocity along the x axis with respect to the front of the chassis (mm/s)
-     * @param target_vy: target velocity along the y axis with respect to the front of the chassis (mm/s)
-     * @param target_w: target angular with respect to the front of the chassis (degree/s, negative value for clockwise)
+     * Set mode of this SKD
+     * @param skd_mode
      */
-    static void calc(float target_vx, float target_vy, float target_w);
+    static void set_mode(mode_t skd_mode);
 
     /**
-     * PID controller for each motor
-     * @note For debug use
+     * Set target values
+     * @param vx     target velocity along the x axis (right) with respect to gimbal coordinate [mm/s]
+     * @param vy     target velocity along the y axis (up) with respect to gimbal coordinate [mm/s]
+     * @param theta  target angle difference between gimbal coordinate and chassis coordinate [degree]
      */
-    static PIDController pid[MOTOR_COUNT];
+    static void set_target(float vx, float vy, float theta);
 
-    /**
-     * Target_velocity for each motor (mid value for two-ring PID)
-     * @note For debug use
-     */
-    static float target_velocity[MOTOR_COUNT];
 
 private:
+
+    // Local storage
+    static mode_t mode;
+    static float target_vx;
+    static float target_vy;
+    static float target_theta;
+
+    static PIDController a2v_pid;               // for theta control
+    static PIDController v2i_pid[MOTOR_COUNT];  // speed control for each motoe
+
+    static float target_w;                      // middle value for chassis rotation
+    static float target_velocity[MOTOR_COUNT];  // target velocity for each motor (middle value for two-ring PID)
+    static int target_current[MOTOR_COUNT];     // local storage of target current of each motor
 
     // Angular velocity (degree/s) to velocity (mm/s, based on mechanism structure)
     static float w_to_v_ratio_;
 
     // Wheel speed (mm/s) to wheel angular velocity (degree/s)
     static float v_to_wheel_angular_velocity_;
+
+    // Helper function to convert chassis velocity to velocities of each wheel and perform PID calculation once
+    static void velocity_decompose(float vx, float vy, float w);
+
+    static constexpr unsigned int SKD_THREAD_INTERVAL = 2; // PID calculation interval [ms]
+
+    class SKDThread : public chibios_rt::BaseStaticThread<512> {
+        void main() final;
+    };
+
+    static SKDThread skdThread;
 
 };
 

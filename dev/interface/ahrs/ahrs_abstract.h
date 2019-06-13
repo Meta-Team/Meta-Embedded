@@ -34,6 +34,7 @@ class AbstractAHRS : public AbstractMPU, public AbstractIST {
 public:
     /**
      * Board angle [degree]
+     * @note x - yaw, y - pitch, z - roll
      */
     Vector3D angle;
 };

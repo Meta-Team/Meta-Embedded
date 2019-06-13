@@ -4,6 +4,7 @@
 
 #include "gimbal_scheduler.h"
 
+Matrix33 GimbalSKD::gimbal_ahrs_install;
 GimbalSKD::mode_t GimbalSKD::mode = STOP_MODE;
 float GimbalSKD::target_angle[2] = {0, 0};
 float GimbalSKD::target_velocity[2] = {0, 0};
@@ -11,8 +12,17 @@ int GimbalSKD::target_current[2] = {0, 0};
 PIDController GimbalSKD::a2v_pid[2];
 PIDController GimbalSKD::v2i_pid[2];
 GimbalSKD::SKDThread GimbalSKD::skdThread;
+AbstractAHRS* GimbalSKD::gimbal_ahrs = nullptr;
 
-void GimbalSKD::start(tprio_t thread_prio) {
+void GimbalSKD::start(AbstractAHRS* gimbal_ahrs_, const Matrix33 gimbal_ahrs_install_, tprio_t thread_prio) {
+    gimbal_ahrs = gimbal_ahrs_;
+
+    for (int i = 0 ; i < 3; i++) {
+        for (int j = 0; j < 3; j++) {
+            gimbal_ahrs_install[i][j] = gimbal_ahrs_install_[i][j];
+        }
+    }
+
     skdThread.start(thread_prio);
 }
 
@@ -38,25 +48,30 @@ void GimbalSKD::SKDThread::main() {
     setName("gimbal_skd");
     while(!shouldTerminate()) {
 
-        if (mode == RELATIVE_ANGLE_MODE) {
+        // Fetch data
+        Vector3D gimbal_angle = gimbal_ahrs->angle * gimbal_ahrs_install;
+        Vector3D gimbal_gyro = gimbal_ahrs->gyro * gimbal_ahrs_install;
+
+        /* if (mode == RELATIVE_ANGLE_MODE) {
 
             // YAW
             target_velocity[YAW] = a2v_pid[YAW].calc(GimbalIF::feedback[YAW].actual_angle, target_angle[YAW]);
-            target_current[YAW] = (int) v2i_pid[YAW].calc(Gimbal_AHRS_Yaw_W - Chassis_MPU_W, target_velocity[YAW]);
+            // TODO: minus Chassis_MPU_w velocity from gimbal_gyro.x, or use yaw motor velocity
+            target_current[YAW] = (int) v2i_pid[YAW].calc(gimbal_gyro.x, target_velocity[YAW]);
 
             // PITCH
             target_velocity[PITCH] = a2v_pid[PITCH].calc(GimbalIF::feedback[PITCH].actual_angle, target_angle[PITCH]);
-            target_current[PITCH] = (int) v2i_pid[PITCH].calc(Gimbal_AHRS_Pitch_Angle, target_velocity[PITCH]);
+            target_current[PITCH] = (int) v2i_pid[PITCH].calc(gimbal_gyro.y, target_velocity[PITCH]);
 
-        } else if (mode == ABS_ANGLE_MODE) {
+        } else */ if (mode == ABS_ANGLE_MODE) {
 
             // YAW
-            target_velocity[YAW] = a2v_pid[YAW].calc(Gimbal_AHRS_Yaw_Angle, target_angle[YAW]) - Chassis_MPU_W;
-            target_current[YAW] = (int) v2i_pid[YAW].calc(GimbalIF::feedback[YAW].actual_velocity, target_velocity[YAW]);
+            target_velocity[YAW] = a2v_pid[YAW].calc(gimbal_angle.x, target_angle[YAW]);
+            target_current[YAW] = (int) v2i_pid[YAW].calc(gimbal_gyro.x, target_velocity[YAW]);
 
             // PITCH
             target_velocity[PITCH] = a2v_pid[PITCH].calc(GimbalIF::feedback[PITCH].actual_angle, target_angle[PITCH]);
-            target_current[PITCH] = (int) v2i_pid[PITCH].calc(Gimbal_AHRS_Pitch_Angle, target_velocity[PITCH]);
+            target_current[PITCH] = (int) v2i_pid[PITCH].calc(gimbal_gyro.y, target_velocity[PITCH]);
 
         } else if (mode == PARAM_ADJUST_MODE) {
 
@@ -68,7 +83,7 @@ void GimbalSKD::SKDThread::main() {
 
         }
 
-        // Send Currents
+        // Send currents
         GimbalIF::target_current[YAW] = target_current[YAW];
         GimbalIF::target_current[PITCH] = target_current[PITCH];
         GimbalIF::send_gimbal_currents();

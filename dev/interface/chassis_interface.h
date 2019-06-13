@@ -23,26 +23,32 @@
 #define CHASSIS_INTERFACE_MAX_CURRENT 5000  // mA
 #endif
 
-/**
- * @name ChassisInterface
- * @brief interface to process chassis motor feedback and send target current.
- * @pre hardware is properly set. CAN id of each motor should be the same as motor_id_t.
- * @usage 1. Call init(CANInterface *). The interface should be properly initialized.
- *        2. Control the data flow based on actual implementation
- * @note This module is designed to process feedback automatically, but not to send current automatically, to avoid
- *       unintended chassis movements.
- */
-class ChassisIF {
-
+class ChassisBase {
 public:
-
-    enum motor_id_t {  // goes in a counter-clockwise order
+    // Start at the front right, goes in CCW
+    enum motor_id_t {
         FR, // front right motor, 0
         FL, // front left motor, 1
         BL, // back left motor, 2
         BR, // back right motor, 3
         MOTOR_COUNT
     };
+};
+
+/**
+ * @name ChassisIF
+ * @note "IF" stands for "interface"
+ * @brief interface to process chassis motor feedback and send target current.
+ * @pre hardware is properly set. CAN id of each motor should be the same as motor_id_t.
+ * @usage 1. Call init(CANInterface *). The interface should be properly initialized.
+ *        2. Read feedback from variables.
+ *           Write target current to variables, then call send_chassis_currents to apply changes
+ * @note This module is designed to process feedback automatically, but not to send current automatically, to avoid
+ *       unintended chassis movements.
+ */
+class ChassisIF : public ChassisBase {
+
+public:
 
     /**
      * @brief set CAN interface for receiving and sending
