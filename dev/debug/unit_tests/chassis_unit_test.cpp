@@ -7,7 +7,7 @@
 
 #include "led.h"
 #include "debug/shell/shell.h"
-#include "chassis_scheduler.h"
+#include "scheduler/chassis_scheduler.h"
 
 #include "vehicle_infantry_three.h"
 #warning "ut_chassis is only designed for INFANTRY #3."

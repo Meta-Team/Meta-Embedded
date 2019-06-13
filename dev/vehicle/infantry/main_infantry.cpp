@@ -16,9 +16,9 @@
 #include "interface/ahrs/mpu6500.h"
 #include "remote_interpreter.h"
 
-#include "gimbal_scheduler.h"
-#include "shoot.h"
-#include "chassis_scheduler.h"
+#include "scheduler/gimbal_scheduler.h"
+#include "scheduler/shoot_scheduler.h"
+#include "scheduler/chassis_scheduler.h"
 
 #include "state_handler.h"
 

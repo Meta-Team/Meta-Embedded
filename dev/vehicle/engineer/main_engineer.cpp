@@ -15,7 +15,7 @@
 #include "remote_interpreter.h"
 #include "robotic_arm.h"
 
-#include "chassis_scheduler.h"
+#include "scheduler/chassis_scheduler.h"
 #include "elevator.h"
 
 // Vehicle specific config

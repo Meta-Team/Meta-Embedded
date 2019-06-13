@@ -46,7 +46,7 @@ set(COMMON_CPP_SRC  # common cpp sources, which are included to every tartget at
         dev/debug/shell/shell_dbg_cmd.cpp
         dev/interface/led.cpp
         dev/interface/buzzer.cpp
-        dev/control/state_handler.cpp)
+        dev/module/state_handler.cpp)
 
 include_directories(  # common include directories
         dev
@@ -76,9 +76,9 @@ set(INFANTRY
         dev/interface/gimbal_interface.cpp
         dev/interface/chassis_interface.cpp
         dev/interface/remote_interpreter.cpp
-        dev/control/gimbal_scheduler.cpp
-        dev/control/shoot.cpp
-        dev/control/chassis_scheduler.cpp
+        dev/scheduler/gimbal_scheduler.cpp
+        dev/scheduler/shoot_scheduler.cpp
+        dev/scheduler/chassis_scheduler.cpp
         dev/vehicle/infantry/main_infantry.cpp)
 
 # Main Program -- Infantry #1
@@ -104,7 +104,7 @@ add_executable(ENGINEER
         dev/interface/remote_interpreter.cpp
         dev/interface/elevator_interface.cpp
         dev/interface/robotic_arm.cpp
-        dev/control/chassis_scheduler.cpp
+        dev/scheduler/chassis_scheduler.cpp
         dev/vehicle/engineer/state_machine_stage_climb.cpp
         dev/vehicle/engineer/state_machine_bullet_fetch.cpp
         dev/vehicle/engineer/main_engineer.cpp
@@ -122,9 +122,9 @@ add_executable(HERO
         dev/interface/remote_interpreter.cpp
         dev/interface/elevator_interface.cpp
         dev/interface/robotic_arm.cpp
-        dev/control/chassis_scheduler.cpp
-        dev/control/gimbal_scheduler.cpp
-        dev/control/shoot.cpp
+        dev/scheduler/chassis_scheduler.cpp
+        dev/scheduler/gimbal_scheduler.cpp
+        dev/scheduler/shoot_scheduler.cpp
         dev/vehicle/hero/main_hero.cpp)
 target_include_directories(HERO PRIVATE dev/vehicle/hero)
 target_compile_definitions(HERO PUBLIC HERO ENABLE_STATE_HANDLE)
@@ -144,7 +144,7 @@ add_executable(ut_gimbal_interface
         dev/interface/can_interface.cpp
         dev/interface/ahrs/mpu6500.cpp
         dev/interface/gimbal_interface.cpp
-        dev/control/shoot.cpp
+        dev/scheduler/shoot_scheduler.cpp
         dev/debug/unit_tests/gimbal_interface_unit_test.cpp)
 # Hero Shoot
 add_executable(ut_hero_shoot
@@ -168,7 +168,7 @@ target_compile_definitions(pa_hero_shoot PUBLIC HERO)
 add_executable(pa_shoot
         dev/interface/can_interface.cpp
         dev/interface/gimbal_interface.cpp
-        dev/control/shoot.cpp
+        dev/scheduler/shoot_scheduler.cpp
         dev/debug/unit_tests/shoot_param_adjust.cpp
         dev/interface/remote_interpreter.cpp)
 
@@ -177,8 +177,8 @@ add_executable(pa_gimbal
         dev/interface/can_interface.cpp
         dev/interface/gimbal_interface.cpp
         dev/module/pid_controller.hpp
-        dev/control/gimbal_scheduler.cpp
-        dev/control/shoot.cpp
+        dev/scheduler/gimbal_scheduler.cpp
+        dev/scheduler/shoot_scheduler.cpp
         dev/interface/ahrs/mpu6500.cpp
         dev/debug/unit_tests/gimbal_pid_adjustment_program.cpp)
 target_compile_definitions(pa_gimbal PRIVATE SHELL_NO_ECHO_MODE)
@@ -234,7 +234,7 @@ add_executable(ut_chassis
         dev/interface/can_interface.cpp
         dev/interface/chassis_interface.cpp
         dev/module/pid_controller.hpp
-        dev/control/chassis_scheduler.cpp
+        dev/scheduler/chassis_scheduler.cpp
         dev/debug/unit_tests/chassis_unit_test.cpp)
 target_include_directories(ut_chassis PRIVATE dev/vehicle/infantry)
 
@@ -274,8 +274,8 @@ add_executable(ut_sentry_chassis
         dev/debug/unit_tests/sentry_chassis_unit_test.cpp)
 
 add_executable(ut_referee_interface
-        dev/module/CRC8.cpp
-        dev/module/CRC16.cpp
+        dev/common/CRC8.cpp
+        dev/common/CRC16.cpp
         dev/interface/referee_interface.cpp
         dev/debug/unit_tests/referee_interface_unit_test.cpp)
 

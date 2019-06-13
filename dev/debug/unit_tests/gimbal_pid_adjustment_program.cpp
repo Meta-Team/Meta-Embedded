@@ -15,8 +15,8 @@
 #include "can_interface.h"
 #include "interface/ahrs/mpu6500.h"
 
-#include "gimbal_scheduler.h"
-#include "shoot.h"
+#include "scheduler/gimbal_scheduler.h"
+#include "scheduler/shoot_scheduler.h"
 
 using namespace chibios_rt;
 

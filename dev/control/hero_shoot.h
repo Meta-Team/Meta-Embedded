@@ -62,4 +62,4 @@ private:
 };
 
 
-#endif //META_INFANTRY_SHOOT_H
+#endif //META_INFANTRY_SHOOT_SCHEDULER_H

@@ -10,7 +10,7 @@
 
 #include "can_interface.h"
 
-#include "shoot.h"
+#include "scheduler/shoot_scheduler.h"
 
 #include "remote_interpreter.h"
 

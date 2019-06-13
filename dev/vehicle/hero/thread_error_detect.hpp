@@ -8,8 +8,8 @@
 #include "state_handler.h"
 #include "interface/ahrs/mpu6500.h"
 #include "remote_interpreter.h"
-#include "gimbal_scheduler.h"
-#include "chassis_scheduler.h"
+#include "scheduler/gimbal_scheduler.h"
+#include "scheduler/chassis_scheduler.h"
 
 inline void startupCheckCAN() {
     time_msecs_t t = SYSTIME;

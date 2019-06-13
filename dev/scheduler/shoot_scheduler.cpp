@@ -2,7 +2,7 @@
 // Created by liuzikai on 2019-05-01.
 //
 
-#include "shoot.h"
+#include "shoot_scheduler.h"
 
 PIDController Shoot::v2i_pid[2];
 

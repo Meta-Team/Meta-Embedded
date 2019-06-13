@@ -17,7 +17,7 @@
 #include "remote_interpreter.h"
 
 #include "gimbal.h"
-#include "shoot.h"
+#include "scheduler/shoot_scheduler.h"
 #include "chassis.h"
 
 #include "state_handler.h"
