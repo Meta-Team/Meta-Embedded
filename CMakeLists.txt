@@ -239,7 +239,7 @@ add_executable(ut_sentry_chassis
         dev/module/can_interface.cpp
         dev/module/pid_controller.hpp
         dev/interface/sentry_chassis_interface.cpp
-        dev/control/sentry_chassis.cpp
+        dev/control/sentry_chassis_skd.cpp
         dev/debug/unit_tests/sentry_chassis_unit_test.cpp
         dev/interface/referee_interface.cpp
         dev/module/CRC8.cpp
@@ -250,7 +250,7 @@ add_executable(ut_sentry_chassis_mat
         dev/module/can_interface.cpp
         dev/module/pid_controller.hpp
         dev/interface/sentry_chassis_interface.cpp
-        dev/control/sentry_chassis.cpp
+        dev/control/sentry_chassis_skd.cpp
         dev/debug/unit_tests/sentry_chassis_param_adjust.cpp
         dev/interface/referee_interface.cpp
         dev/module/CRC8.cpp
@@ -261,7 +261,7 @@ add_executable(ut_suspension_gimbal
         dev/module/can_interface.cpp
         dev/module/pid_controller.hpp
         dev/interface/suspension_gimbal_interface.cpp
-        dev/control/suspension_gimbal_controller.cpp
+        dev/control/suspension_gimbal_skd.cpp
         dev/debug/unit_tests/suspension_gimbal_unit_test.cpp)
 
 #Sentry Remote Test

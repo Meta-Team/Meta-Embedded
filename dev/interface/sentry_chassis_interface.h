@@ -17,6 +17,7 @@
 
 #if SENTRY_CHASSIS_ENABLE_CLIP
 #define SENTRY_CHASSIS_MAX_CURRENT 5000  // mA
+#define SENTRY_CHASSIS_MOTOR_COUNT 2
 #endif
 
 /**
@@ -30,22 +31,29 @@ class SentryChassisIF {
 
 public:
 
-    static float constexpr chassis_motor_decelerate_ratio = 19.2f; // 3591/187 on the data sheet
-
     enum motor_id_t {
         MOTOR_RIGHT,
-        MOTOR_LEFT,
-        MOTOR_COUNT // = 2
+        MOTOR_LEFT
     };
 
+    static float get_position(){
+        return (motor[MOTOR_RIGHT].present_position + motor[MOTOR_LEFT].present_position)/2;
+    }
+
+    static float get_velocity(){
+        return (motor[MOTOR_RIGHT].present_velocity + motor[MOTOR_LEFT].present_velocity)/2;
+    }
+
+protected:
+
     // Structure for each motor
+
     struct motor_t {
 
         motor_id_t id;
 
         int16_t actual_rpm_raw;
         int16_t actual_current_raw;
-        uint8_t actual_temperature_raw;
 
         int16_t actual_angle = 0;
         int16_t last_angle_raw = 0; // 8192 for 360 degrees
@@ -57,6 +65,8 @@ public:
         float present_position;
         float present_velocity;
     };
+
+    static bool enable;
 
     static motor_t motor[];
 
@@ -71,9 +81,6 @@ public:
      * @param can_interface
      */
     static void init(CANInterface* can_interface);
-
-
-
 private:
 
     static CANInterface* can;
@@ -83,6 +90,8 @@ private:
     static float constexpr displacement_per_round = 17.28f;
 
     friend CANInterface;
+
+    static float constexpr chassis_motor_decelerate_ratio = 19.2f; // 3591/187 on the data sheet
 
 };
 

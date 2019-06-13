@@ -13,7 +13,7 @@
 #include "hal.h"
 #include "math.h"
 
-class SentryChassisController: public SentryChassisIF{
+class SentryChassisSKD: public SentryChassisIF{
 public:
 
     enum sentry_mode_t{
@@ -21,8 +21,6 @@ public:
         ONE_STEP_MODE,
         AUTO_MODE
     };
-
-    static bool enable;
     static PIDController motor_right_pid;
     static PIDController motor_left_pid;
 

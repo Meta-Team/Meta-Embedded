@@ -9,7 +9,7 @@
 #include "debug/shell/shell.h"
 #include "can_interface.h"
 #include "sentry_chassis_interface.h"
-#include "sentry_chassis.h"
+#include "sentry_chassis_skd.h"
 
 using namespace chibios_rt;
 
@@ -27,7 +27,7 @@ static void cmd_chassis_enable(BaseSequentialStream *chp, int argc, char *argv[]
         shellUsage(chp, "c_enable");
         return;
     }
-    SentryChassisController::enable = true;
+    SentryChassisSKD::enable = true;
 }
 
 /**
@@ -39,7 +39,7 @@ static void cmd_chassis_disable(BaseSequentialStream *chp, int argc, char *argv[
         shellUsage(chp, "c_disable");
         return;
     }
-    SentryChassisController::enable = false;
+    SentryChassisSKD::enable = false;
 }
 
 /**
@@ -54,17 +54,17 @@ static void cmd_chassis_set_mode(BaseSequentialStream *chp, int argc, char *argv
     }
     switch (*argv[0]){
         case ('2'):
-            SentryChassisController::set_mode(SentryChassisController::ONE_STEP_MODE);
+            SentryChassisSKD::set_mode(SentryChassisSKD::ONE_STEP_MODE);
             break;
         case ('3'):
             if (argc != 2) {
                 shellUsage(chp, "c_set_mode auto_mode(3) radius(10~50)");
                 return;
             }
-            SentryChassisController::set_mode(SentryChassisController::AUTO_MODE, Shell::atof(argv[1]));
+            SentryChassisSKD::set_mode(SentryChassisSKD::AUTO_MODE, Shell::atof(argv[1]));
             break;
         default:
-            SentryChassisController::set_mode(SentryChassisController::STOP_MODE);
+            SentryChassisSKD::set_mode(SentryChassisSKD::STOP_MODE);
     }
 }
 
@@ -122,7 +122,7 @@ static void cmd_chassis_set_pid(BaseSequentialStream *chp, int argc, char *argv[
         return;
     }
 
-    SentryChassisController::change_v_to_i_pid(Shell::atof(argv[0]),
+    SentryChassisSKD::change_v_to_i_pid(Shell::atof(argv[0]),
                                                Shell::atof(argv[1]),
                                                Shell::atof(argv[2]),
                                                Shell::atof(argv[3]),
@@ -140,7 +140,7 @@ static void cmd_chassis_print_pid(BaseSequentialStream *chp, int argc, char *arg
         shellUsage(chp, "c_pid");
         return;
     }
-    //SentryChassisController::print_pid_params();
+    //SentryChassisSKD::print_pid_params();
 }
 
 /**
@@ -153,7 +153,7 @@ static void cmd_chassis_set_position(BaseSequentialStream *chp, int argc, char *
         chprintf(chp, "!cpe" SHELL_NEWLINE_STR);
         return;
     }
-    SentryChassisController::set_destination(Shell::atof(argv[0]));
+    SentryChassisSKD::set_destination(Shell::atof(argv[0]));
 }
 
 /**
@@ -169,7 +169,7 @@ static void cmd_chassis_clear_position(BaseSequentialStream *chp, int argc, char
         chprintf(chp, "!cpe" SHELL_NEWLINE_STR);
         return;
     }
-    SentryChassisController::clear_position();
+    SentryChassisSKD::clear_position();
 }
 
 static void cmd_chassis_print_position(BaseSequentialStream *chp, int argc, char *argv[]){
@@ -209,7 +209,7 @@ static void cmd_chassis_set_variable_speed_mode(BaseSequentialStream *chp, int a
         chprintf(chp, "!cpe" SHELL_NEWLINE_STR);
         return;
     }
-    SentryChassisController::change_speed_mode(*argv[0]=='1');
+    SentryChassisSKD::change_speed_mode(*argv[0]=='1');
 }
 // Shell commands to control the chassis
 ShellCommand chassisCommands[] = {
@@ -236,17 +236,17 @@ protected:
         setName("chassis");
         while (!shouldTerminate()) {
             if(printPosition)
-                SentryChassisController::print_position();
+                SentryChassisSKD::print_position();
 
             if(printCurrent)
-                SentryChassisController::print_current();
+                SentryChassisSKD::print_current();
 
             if(printVelocity)
-                SentryChassisController::print_velocity();
+                SentryChassisSKD::print_velocity();
 
-            SentryChassisController::update_target_current();
+            SentryChassisSKD::update_target_current();
 
-            SentryChassisController::send_currents();
+            SentryChassisSKD::send_currents();
 
             sleep(TIME_MS2I(100));
         }
@@ -265,7 +265,7 @@ int main(void) {
     Shell::addCommands(chassisCommands);
 
     can1.start(HIGHPRIO - 1);
-    SentryChassisController::init_controller(&can1);
+    SentryChassisSKD::init_controller(&can1);
 
     chassisThread.start(NORMALPRIO);
 

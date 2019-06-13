@@ -10,7 +10,7 @@
 #include "math.h"
 #include "common_macro.h"
 
-class SuspensionGimbalController {
+class SuspensionGimbalSKD: public SuspensionGimbalIF {
 public:
     /**
      * PIDController for each motor
@@ -21,11 +21,11 @@ public:
     static PIDController pitch_v_to_i;
     static PIDController BL_v_to_i;
 
-    static void set_front(SuspensionGimbalIF::motor_id_t motor_id);
+    static void set_front(motor_id_t motor_id);
 
-    static void set_shoot_mode(SuspensionGimbalIF::shoot_mode_t mode);
+    static void set_shoot_mode(shoot_mode_t mode);
 
-    static void set_motor_enable(SuspensionGimbalIF::motor_id_t motor_id, bool status);
+    static void set_motor_enable(motor_id_t motor_id, bool status);
 
     static void start_continuous_shooting();
 
@@ -35,7 +35,7 @@ public:
 
     static void set_target_signal();
 
-    static void set_target_signal(SuspensionGimbalIF::motor_id_t motor, int signal);
+    static void set_target_signal(motor_id_t motor, int signal);
 
 private:
 

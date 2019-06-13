@@ -6,7 +6,7 @@
 #define META_INFANTRY_SUSPENSION_GIMBAL_CALCULATOR_H
 
 #include "suspension_gimbal_interface.h"
-#include "suspension_gimbal_controller.h"
+#include "suspension_gimbal_skd.h"
 #include "chassis_interface.h"
 #include "pid_controller.h"
 

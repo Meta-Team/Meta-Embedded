@@ -3,23 +3,22 @@
 // Modified by jintengjun on 2019/6/11
 //
 
-#include "sentry_chassis.h"
+#include "sentry_chassis_skd.h"
 #include "referee_interface.h"
 
-bool SentryChassisController::enable;
-SentryChassisController::sentry_mode_t SentryChassisController::running_mode;
-bool SentryChassisController::change_speed;
-time_msecs_t SentryChassisController::start_time;
-float SentryChassisController::target_position;
-float SentryChassisController::target_velocity_modulus;
-float SentryChassisController::radius;
-PIDController SentryChassisController::motor_right_pid;
-PIDController SentryChassisController::motor_left_pid;
-float SentryChassisController::target_velocity;
-float SentryChassisController::maximum_speed;
+SentryChassisSKD::sentry_mode_t SentryChassisSKD::running_mode;
+bool SentryChassisSKD::change_speed;
+time_msecs_t SentryChassisSKD::start_time;
+float SentryChassisSKD::target_position;
+float SentryChassisSKD::target_velocity_modulus;
+float SentryChassisSKD::radius;
+PIDController SentryChassisSKD::motor_right_pid;
+PIDController SentryChassisSKD::motor_left_pid;
+float SentryChassisSKD::target_velocity;
+float SentryChassisSKD::maximum_speed;
 
 
-void SentryChassisController::init_controller(CANInterface* can_interface) {
+void SentryChassisSKD::init_controller(CANInterface* can_interface) {
     SentryChassisIF::init(can_interface);
     //Referee::init();
     enable = false;
@@ -31,8 +30,8 @@ void SentryChassisController::init_controller(CANInterface* can_interface) {
     maximum_speed = 110.0f;
 }
 
-void SentryChassisController::clear_position() {
-    for(int i = 0; i < MOTOR_COUNT; i++){
+void SentryChassisSKD::clear_position() {
+    for(int i = 0; i < SENTRY_CHASSIS_MOTOR_COUNT; i++){
         motor[i].actual_angle = 0;
         motor[i].round_count = 0;
         motor[i].present_position = 0;
@@ -42,7 +41,7 @@ void SentryChassisController::clear_position() {
     target_velocity_modulus = 0;
 }
 
-void SentryChassisController::set_destination(float dist) {
+void SentryChassisSKD::set_destination(float dist) {
     target_position = dist;
     // Every time a new target position is set, a new target velocity should be decided
     if (target_position > motor[MOTOR_RIGHT].present_position){
@@ -54,7 +53,7 @@ void SentryChassisController::set_destination(float dist) {
     }
 }
 
-void SentryChassisController::update_target_current() {
+void SentryChassisSKD::update_target_current() {
 
     switch (running_mode){
         case (ONE_STEP_MODE):
@@ -100,7 +99,7 @@ void SentryChassisController::update_target_current() {
     }
 }
 
-void SentryChassisController::set_mode(SentryChassisController::sentry_mode_t target_mode, float index) {
+void SentryChassisSKD::set_mode(SentryChassisSKD::sentry_mode_t target_mode, float index) {
     running_mode = target_mode;
     clear_position();
     if(running_mode == AUTO_MODE){

@@ -41,7 +41,7 @@ Meta-Infantry
 │   ├── elevator.h
 │   ├── gimbal.cpp                      Gimbal 高层云台（步兵/英雄）控制模块
 │   ├── gimbal.h
-│   ├── sentry_chassis.cpp              SentryChassisController 高层底盘（哨兵）控制模块
+│   ├── sentry_chassis.cpp              SentryChassisSKD 高层底盘（哨兵）控制模块
 │   ├── sentry_chassis.h
 │   ├── shoot.cpp                       Shoot 高层发射机构控制模块
 │   ├── shoot.h

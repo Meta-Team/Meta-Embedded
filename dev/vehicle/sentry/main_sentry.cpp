@@ -19,8 +19,8 @@
 #include "sentry_chassis_interface.h"
 
 // Controllers
-#include "suspension_gimbal_controller.h"
-#include "sentry_chassis.h"
+#include "suspension_gimbal_skd.h"
+#include "sentry_chassis_skd.h"
 
 
 /**
@@ -66,20 +66,20 @@ class SentryThread : public chibios_rt::BaseStaticThread<1024> {
         /*** Parameters Set up***/
 
         /* Suspension Gimbal */
-        SuspensionGimbalController::yaw_v_to_i.change_parameters(GIMBAL_PID_YAW_V2I_PARAMS);
-        SuspensionGimbalController::yaw_angle_to_v.change_parameters(GIMBAL_PID_YAW_A2V_PARAMS);
-        SuspensionGimbalController::pitch_v_to_i.change_parameters(GIMBAL_PID_PITCH_V2I_PARAMS);
-        SuspensionGimbalController::pitch_angle_to_v.change_parameters(GIMBAL_PID_PITCH_A2V_PARAMS);
-        SuspensionGimbalController::BL_v_to_i.change_parameters(GIMBAL_PID_BULLET_LOADER_V2I_PARAMS);
-        SuspensionGimbalController::set_motor_enable(SuspensionGimbalIF::YAW_ID, true);
-        SuspensionGimbalController::set_motor_enable(SuspensionGimbalIF::PIT_ID, true);
-        SuspensionGimbalController::set_motor_enable(SuspensionGimbalIF::BULLET_LOADER_ID, true);
-        SuspensionGimbalController::set_shoot_mode(SuspensionGimbalIF::OFF);
+        SuspensionGimbalSKD::yaw_v_to_i.change_parameters(GIMBAL_PID_YAW_V2I_PARAMS);
+        SuspensionGimbalSKD::yaw_angle_to_v.change_parameters(GIMBAL_PID_YAW_A2V_PARAMS);
+        SuspensionGimbalSKD::pitch_v_to_i.change_parameters(GIMBAL_PID_PITCH_V2I_PARAMS);
+        SuspensionGimbalSKD::pitch_angle_to_v.change_parameters(GIMBAL_PID_PITCH_A2V_PARAMS);
+        SuspensionGimbalSKD::BL_v_to_i.change_parameters(GIMBAL_PID_BULLET_LOADER_V2I_PARAMS);
+        SuspensionGimbalSKD::set_motor_enable(SuspensionGimbalIF::YAW_ID, true);
+        SuspensionGimbalSKD::set_motor_enable(SuspensionGimbalIF::PIT_ID, true);
+        SuspensionGimbalSKD::set_motor_enable(SuspensionGimbalIF::BULLET_LOADER_ID, true);
+        SuspensionGimbalSKD::set_shoot_mode(SuspensionGimbalIF::OFF);
 
         /* Sentry Chassis */
-        SentryChassisController::motor_left_pid.change_parameters(SENTRY_CHASSIS_PID_A2V_PARAMS);
-        SentryChassisController::motor_right_pid.change_parameters(SENTRY_CHASSIS_PID_A2V_PARAMS);
-        SentryChassisController::set_mode(SentryChassisController::STOP_MODE);
+        SentryChassisSKD::motor_left_pid.change_parameters(SENTRY_CHASSIS_PID_A2V_PARAMS);
+        SentryChassisSKD::motor_right_pid.change_parameters(SENTRY_CHASSIS_PID_A2V_PARAMS);
+        SentryChassisSKD::set_mode(SentryChassisSKD::STOP_MODE);
 
         while (!shouldTerminate()) {
 
@@ -144,11 +144,11 @@ class ChassisThread : public chibios_rt::BaseStaticThread<1024> {
 
         setName("sentry_chassis");
 
-        SentryChassisController::change_v_to_i_pid(SENTRY_CHASSIS_PID_V2I_PARAMS);
-        SentryChassisController::set_mode(SentryChassisController::STOP_MODE);
+        SentryChassisSKD::change_v_to_i_pid(SENTRY_CHASSIS_PID_V2I_PARAMS);
+        SentryChassisSKD::set_mode(SentryChassisSKD::STOP_MODE);
         Remote::rc_status_t previous_state_1 = Remote::rc.s1;
         Remote::rc_status_t previous_state_2 = Remote::rc.s2;
-        SentryChassisController::enable = true;
+        SentryChassisSKD::enable = true;
 
         while (!shouldTerminate()) {
 
@@ -161,9 +161,9 @@ class ChassisThread : public chibios_rt::BaseStaticThread<1024> {
 
                     if(!(previous_state_1 == Remote::RC_S_MIDDLE && previous_state_2 == Remote::RC_S_DOWN))
                         // If it is not at the various speed mode previously, then we should set it to AUTO MODE and set the radius
-                        SentryChassisController::set_mode(SentryChassisController::AUTO_MODE, 30);
+                        SentryChassisSKD::set_mode(SentryChassisSKD::AUTO_MODE, 30);
 
-                    SentryChassisController::change_speed_mode(false);
+                    SentryChassisSKD::change_speed_mode(false);
 
                 } else if(Remote::rc.s1 == Remote::RC_S_MIDDLE && Remote::rc.s2 == Remote::RC_S_DOWN){
 
@@ -171,12 +171,12 @@ class ChassisThread : public chibios_rt::BaseStaticThread<1024> {
 
                     if(!(previous_state_1 == Remote::RC_S_MIDDLE && previous_state_2 == Remote::RC_S_MIDDLE))
                         // If it is not at the constant speed mode previously, then we should set it to AUTO MODE and set the radius
-                        SentryChassisController::set_mode(SentryChassisController::AUTO_MODE, 30);
+                        SentryChassisSKD::set_mode(SentryChassisSKD::AUTO_MODE, 30);
 
-                    SentryChassisController::change_speed_mode(true);
+                    SentryChassisSKD::change_speed_mode(true);
 
                 } else{
-                    SentryChassisController::set_mode(SentryChassisController::STOP_MODE);
+                    SentryChassisSKD::set_mode(SentryChassisSKD::STOP_MODE);
                 }
 
                 // Update the remote state
@@ -184,9 +184,9 @@ class ChassisThread : public chibios_rt::BaseStaticThread<1024> {
                 previous_state_2 = Remote::rc.s2;
             }
 
-            SentryChassisController::update_target_current();
+            SentryChassisSKD::update_target_current();
 
-            SentryChassisController::send_currents();
+            SentryChassisSKD::send_currents();
 
             sleep(TIME_MS2I(100));
 
@@ -215,7 +215,7 @@ int main(void) {
     Remote::start_receive();
 
     GimbalInterface::init(&can1, GIMBAL_YAW_FRONT_ANGLE_RAW, GIMBAL_PITCH_FRONT_ANGLE_RAW);
-    SentryChassisController::init(&can1);
+    SentryChassisSKD::init(&can1);
 
 
     /*** ------------ Period 2. Calibration and Start Logic Control Thread ----------- ***/

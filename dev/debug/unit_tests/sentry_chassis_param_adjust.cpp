@@ -9,7 +9,7 @@
 #include "debug/shell/shell.h"
 #include "can_interface.h"
 #include "sentry_chassis_interface.h"
-#include "sentry_chassis.h"
+#include "sentry_chassis_skd.h"
 
 using namespace chibios_rt;
 
@@ -42,14 +42,14 @@ private:
                 Shell::printf("!gy,%u,%.2f,%.2f,%.2f,%.2f,%d,%d" SHELL_NEWLINE_STR,
                               SYSTIME,
                               0.0f, 0.0f,
-                              SentryChassisIF::motor[SentryChassisIF::MOTOR_RIGHT].actual_angular_velocity, SentryChassisController::get_target_velocity(),
+                              SentryChassisIF::motor[SentryChassisIF::MOTOR_RIGHT].actual_angular_velocity, SentryChassisSKD::get_target_velocity(),
                               SentryChassisIF::motor[SentryChassisIF::MOTOR_RIGHT].actual_current_raw, SentryChassisIF::motor[SentryChassisIF::MOTOR_RIGHT].target_current);
             }
             if (enable_left_feedback) {
                 Shell::printf("!gp,%u,%.2f,%.2f,%.2f,%.2f,%d,%d" SHELL_NEWLINE_STR,
                               SYSTIME,
                               0.0f, 0.0f,
-                              SentryChassisIF::motor[SentryChassisIF::MOTOR_LEFT].actual_angular_velocity, SentryChassisController::get_target_velocity(),
+                              SentryChassisIF::motor[SentryChassisIF::MOTOR_LEFT].actual_angular_velocity, SentryChassisSKD::get_target_velocity(),
                               SentryChassisIF::motor[SentryChassisIF::MOTOR_LEFT].actual_current_raw, SentryChassisIF::motor[SentryChassisIF::MOTOR_RIGHT].target_current);
             }
 
@@ -69,7 +69,7 @@ static void cmd_chassis_enable(BaseSequentialStream *chp, int argc, char *argv[]
         shellUsage(chp, "g_enable left(0/1) right(0/1)");
         return;
     }
-    SentryChassisController::enable = (*argv[0] - '0') || (*argv[1] - '0');
+    SentryChassisSKD::enable = (*argv[0] - '0') || (*argv[1] - '0');
 }
 
 static void cmd_chassis_enable_feedback(BaseSequentialStream *chp, int argc, char *argv[]) {
@@ -95,9 +95,9 @@ static void cmd_set_target_velocities(BaseSequentialStream *chp, int argc, char 
         return;
     }
 
-    SentryChassisController::set_maximum_velocity(Shell::atof(argv[0]));
-    SentryChassisController::motor_right_pid.clear_i_out();
-    SentryChassisController::motor_left_pid.clear_i_out();
+    SentryChassisSKD::set_maximum_velocity(Shell::atof(argv[0]));
+    SentryChassisSKD::motor_right_pid.clear_i_out();
+    SentryChassisSKD::motor_left_pid.clear_i_out();
 }
 
 /**
@@ -112,13 +112,13 @@ static void cmd_chassis_set_mode(BaseSequentialStream *chp, int argc, char *argv
     }
     switch (*argv[0]){
         case ('1'):
-            SentryChassisController::set_mode(SentryChassisController::ONE_STEP_MODE);
+            SentryChassisSKD::set_mode(SentryChassisSKD::ONE_STEP_MODE);
             break;
         case ('2'):
-            SentryChassisController::set_mode(SentryChassisController::AUTO_MODE);
+            SentryChassisSKD::set_mode(SentryChassisSKD::AUTO_MODE);
             break;
         default:
-            SentryChassisController::set_mode(SentryChassisController::STOP_MODE);
+            SentryChassisSKD::set_mode(SentryChassisSKD::STOP_MODE);
     }
 }
 
@@ -132,13 +132,13 @@ static void cmd_chassis_set_pid(BaseSequentialStream *chp, int argc, char *argv[
         chprintf(chp, "!pe" SHELL_NEWLINE_STR);  // echo parameters error
         return;
     }
-    if (*argv[0] == '0') SentryChassisController::motor_right_pid.change_parameters({Shell::atof(argv[2]),
+    if (*argv[0] == '0') SentryChassisSKD::motor_right_pid.change_parameters({Shell::atof(argv[2]),
                                                                                      Shell::atof(argv[3]),
                                                                                      Shell::atof(argv[4]),
                                                                                      Shell::atof(argv[5]),
                                                                                      Shell::atof(argv[6])});
     else
-        SentryChassisController::motor_left_pid.change_parameters({Shell::atof(argv[2]),
+        SentryChassisSKD::motor_left_pid.change_parameters({Shell::atof(argv[2]),
                                                                     Shell::atof(argv[3]),
                                                                     Shell::atof(argv[4]),
                                                                     Shell::atof(argv[5]),
@@ -165,9 +165,9 @@ static void cmd_chassis_print_pid(BaseSequentialStream *chp, int argc, char *arg
         return;
     }
     chprintf(chp, "bullet v_to_i:       ");
-    _cmd_pid_echo_parameters(chp, SentryChassisController::motor_right_pid.get_parameters());
+    _cmd_pid_echo_parameters(chp, SentryChassisSKD::motor_right_pid.get_parameters());
     chprintf(chp, "plate v_to_i:     ");
-    _cmd_pid_echo_parameters(chp, SentryChassisController::motor_left_pid.get_parameters());
+    _cmd_pid_echo_parameters(chp, SentryChassisSKD::motor_left_pid.get_parameters());
 }
 
 /**
@@ -180,7 +180,7 @@ static void cmd_chassis_set_position(BaseSequentialStream *chp, int argc, char *
         chprintf(chp, "!cpe" SHELL_NEWLINE_STR);
         return;
     }
-    SentryChassisController::set_destination(Shell::atof(argv[0]));
+    SentryChassisSKD::set_destination(Shell::atof(argv[0]));
 }
 
 /**
@@ -196,7 +196,7 @@ static void cmd_chassis_clear_position(BaseSequentialStream *chp, int argc, char
         chprintf(chp, "!cpe" SHELL_NEWLINE_STR);
         return;
     }
-    SentryChassisController::clear_position();
+    SentryChassisSKD::clear_position();
 }
 
 static void cmd_chassis_print_position(BaseSequentialStream *chp, int argc, char *argv[]){
@@ -265,27 +265,27 @@ protected:
             if(testCurrent){
                 // In testCurrent mode, we send a constant current to the motor without processing any feedback
                 // This is a fundamental test, check how the motors respond to the given current
-                if(SentryChassisController::enable){
-                    SentryChassisController::motor[0].target_current = 1000;
-                    SentryChassisController::motor[1].target_current = 1000;
+                if(SentryChassisSKD::enable){
+                    SentryChassisSKD::motor[0].target_current = 1000;
+                    SentryChassisSKD::motor[1].target_current = 1000;
                 }else{
-                    SentryChassisController::motor[0].target_current = 0;
-                    SentryChassisController::motor[1].target_current = 0;
+                    SentryChassisSKD::motor[0].target_current = 0;
+                    SentryChassisSKD::motor[1].target_current = 0;
                 }
             }else{
 
                 if(printPosition)
-                    SentryChassisController::print_position();
+                    SentryChassisSKD::print_position();
 
                 if(printCurrent)
-                    SentryChassisController::print_current();
+                    SentryChassisSKD::print_current();
 
                 if(printVelocity)
-                    SentryChassisController::print_velocity();
+                    SentryChassisSKD::print_velocity();
 
-                SentryChassisController::update_target_current();
+                SentryChassisSKD::update_target_current();
             }
-            SentryChassisController::send_currents();
+            SentryChassisSKD::send_currents();
 
             sleep(TIME_MS2I(100));
         }
@@ -304,7 +304,7 @@ int main(void) {
     Shell::addCommands(chassisCommands);
 
     can1.start(HIGHPRIO - 1);
-    SentryChassisController::init_controller(&can1);
+    SentryChassisSKD::init_controller(&can1);
 
     chassisFeedbackThread.start(NORMALPRIO - 1);
     chassisThread.start(NORMALPRIO);

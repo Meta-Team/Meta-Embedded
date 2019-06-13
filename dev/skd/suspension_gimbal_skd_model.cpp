@@ -2,7 +2,7 @@
 // Created by zhukerui on 2019/6/8.
 //
 
-#include "suspension_gimbal_skd.h"
+#include "suspension_gimbal_skd_model.h"
 
 SuspensionGimbalSKD::mode_t SuspensionGimbalSKD::mode = STOP_MODE;
 float SuspensionGimbalSKD::target_angle[2] = {0, 0};

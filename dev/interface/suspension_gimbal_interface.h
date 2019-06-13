@@ -104,7 +104,7 @@ public:
         }
 
         friend SuspensionGimbalIF;
-        friend class SuspensionGimbalController;
+        friend class SuspensionGimbalSKD;
     };
     static MotorInterface yaw;
     static MotorInterface pitch;
@@ -128,13 +128,15 @@ public:
      */
     static bool send_gimbal_currents();
 
+protected:
+
+    static shoot_mode_t shoot_mode;
 
 private:
 
     static CANInterface *can_;
 
     friend CANInterface;
-    friend class SuspensionGimbalController;
 
     /**
      * @brief process CAN rx frame
@@ -151,8 +153,6 @@ private:
         FW_LEFT = 0,  // The left friction wheel, PI5, channel 0
         FW_RIGHT = 1  // The right friction wheel, PI6, channel 1
     };
-
-    static shoot_mode_t shoot_mode;
     static float shoot_duty_cycles[3];  // the array contains the duty cycles for different shoot modes
 
     static constexpr PWMConfig FRICTION_WHEELS_PWM_CFG = {
