@@ -41,14 +41,14 @@ private:
             if (enable_right_feedback) {
                 Shell::printf("!gy,%u,%.2f,%.2f,%.2f,%.2f,%d,%d" SHELL_NEWLINE_STR,
                               SYSTIME,
-                              0.0f, 0.0f,
+                              SentryChassisIF::motor[SentryChassisIF::MOTOR_RIGHT].present_position, SentryChassisSKD::get_target_position(),
                               SentryChassisIF::motor[SentryChassisIF::MOTOR_RIGHT].actual_angular_velocity, SentryChassisSKD::get_target_velocity(),
                               SentryChassisIF::motor[SentryChassisIF::MOTOR_RIGHT].actual_current_raw, SentryChassisIF::motor[SentryChassisIF::MOTOR_RIGHT].target_current);
             }
             if (enable_left_feedback) {
                 Shell::printf("!gp,%u,%.2f,%.2f,%.2f,%.2f,%d,%d" SHELL_NEWLINE_STR,
                               SYSTIME,
-                              0.0f, 0.0f,
+                              SentryChassisIF::motor[SentryChassisIF::MOTOR_LEFT].present_position, SentryChassisSKD::get_target_position(),
                               SentryChassisIF::motor[SentryChassisIF::MOTOR_LEFT].actual_angular_velocity, SentryChassisSKD::get_target_velocity(),
                               SentryChassisIF::motor[SentryChassisIF::MOTOR_LEFT].actual_current_raw, SentryChassisIF::motor[SentryChassisIF::MOTOR_RIGHT].target_current);
             }
@@ -96,8 +96,8 @@ static void cmd_set_target_velocities(BaseSequentialStream *chp, int argc, char 
     }
 
     SentryChassisSKD::set_maximum_velocity(Shell::atof(argv[0]));
-    SentryChassisSKD::motor_right_pid.clear_i_out();
-    SentryChassisSKD::motor_left_pid.clear_i_out();
+    SentryChassisSKD::motor_velocity_pid.clear_i_out();
+    SentryChassisSKD::motor_angle_pid.clear_i_out();
 }
 
 /**
@@ -117,6 +117,9 @@ static void cmd_chassis_set_mode(BaseSequentialStream *chp, int argc, char *argv
         case ('2'):
             SentryChassisSKD::set_mode(SentryChassisSKD::AUTO_MODE);
             break;
+        case ('3'):
+            SentryChassisSKD::set_mode(SentryChassisSKD::V_MODE);
+            break;
         default:
             SentryChassisSKD::set_mode(SentryChassisSKD::STOP_MODE);
     }
@@ -132,17 +135,17 @@ static void cmd_chassis_set_pid(BaseSequentialStream *chp, int argc, char *argv[
         chprintf(chp, "!pe" SHELL_NEWLINE_STR);  // echo parameters error
         return;
     }
-    if (*argv[0] == '0') SentryChassisSKD::motor_right_pid.change_parameters({Shell::atof(argv[2]),
+    if (*argv[1] == '0') SentryChassisSKD::motor_angle_pid.change_parameters({Shell::atof(argv[2]),
                                                                                      Shell::atof(argv[3]),
                                                                                      Shell::atof(argv[4]),
                                                                                      Shell::atof(argv[5]),
                                                                                      Shell::atof(argv[6])});
     else
-        SentryChassisSKD::motor_left_pid.change_parameters({Shell::atof(argv[2]),
-                                                                    Shell::atof(argv[3]),
-                                                                    Shell::atof(argv[4]),
-                                                                    Shell::atof(argv[5]),
-                                                                    Shell::atof(argv[6])});
+        SentryChassisSKD::motor_velocity_pid.change_parameters({Shell::atof(argv[2]),
+                                                                       Shell::atof(argv[3]),
+                                                                       Shell::atof(argv[4]),
+                                                                       Shell::atof(argv[5]),
+                                                                       Shell::atof(argv[6])});
 
 
     chprintf(chp, "!ps" SHELL_NEWLINE_STR); // echo parameters set
@@ -165,9 +168,9 @@ static void cmd_chassis_print_pid(BaseSequentialStream *chp, int argc, char *arg
         return;
     }
     chprintf(chp, "bullet v_to_i:       ");
-    _cmd_pid_echo_parameters(chp, SentryChassisSKD::motor_right_pid.get_parameters());
+    _cmd_pid_echo_parameters(chp, SentryChassisSKD::motor_angle_pid.get_parameters());
     chprintf(chp, "plate v_to_i:     ");
-    _cmd_pid_echo_parameters(chp, SentryChassisSKD::motor_left_pid.get_parameters());
+    _cmd_pid_echo_parameters(chp, SentryChassisSKD::motor_velocity_pid.get_parameters());
 }
 
 /**
@@ -181,6 +184,9 @@ static void cmd_chassis_set_position(BaseSequentialStream *chp, int argc, char *
         return;
     }
     SentryChassisSKD::set_destination(Shell::atof(argv[0]));
+    SentryChassisSKD::motor_velocity_pid.clear_i_out();
+    SentryChassisSKD::motor_angle_pid.clear_i_out();
+
 }
 
 /**

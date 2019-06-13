@@ -19,10 +19,15 @@ public:
     enum sentry_mode_t{
         STOP_MODE,
         ONE_STEP_MODE,
-        AUTO_MODE
+        AUTO_MODE,
+        V_MODE
     };
-    static PIDController motor_right_pid;
+
+    static bool enable;
+    static PIDController motor_angle_pid;
+    static PIDController motor_velocity_pid;
     static PIDController motor_left_pid;
+    static PIDController motor_right_pid;
 
     /**
      * @brief initialize the calculator class
@@ -62,11 +67,18 @@ public:
     }
 
     static void set_maximum_velocity(float new_velocity){
-        maximum_speed = abs(new_velocity);
+        maximum_speed = new_velocity;
     }
 
     static float get_target_velocity(){
         return target_velocity;
+    }
+    static float get_target_position(){
+        return target_position;
+    }
+
+    static float get_maximum_velocity(){
+        return maximum_speed;
     }
 
     /**

@@ -6,6 +6,7 @@
 #include "sentry_chassis_skd.h"
 #include "referee_interface.h"
 
+bool SentryChassisSKD::enable;
 SentryChassisSKD::sentry_mode_t SentryChassisSKD::running_mode;
 bool SentryChassisSKD::change_speed;
 time_msecs_t SentryChassisSKD::start_time;
@@ -14,13 +15,15 @@ float SentryChassisSKD::target_velocity_modulus;
 float SentryChassisSKD::radius;
 PIDController SentryChassisSKD::motor_right_pid;
 PIDController SentryChassisSKD::motor_left_pid;
+PIDController SentryChassisSKD::motor_velocity_pid;
+PIDController SentryChassisSKD::motor_angle_pid;
 float SentryChassisSKD::target_velocity;
 float SentryChassisSKD::maximum_speed;
 
 
 void SentryChassisSKD::init_controller(CANInterface* can_interface) {
     SentryChassisIF::init(can_interface);
-    //Referee::init();
+    Referee::init();
     enable = false;
     running_mode = STOP_MODE;
     clear_position();
@@ -31,7 +34,7 @@ void SentryChassisSKD::init_controller(CANInterface* can_interface) {
 }
 
 void SentryChassisSKD::clear_position() {
-    for(int i = 0; i < SENTRY_CHASSIS_MOTOR_COUNT; i++){
+    for(int i = 0; i < MOTOR_COUNT; i++){
         motor[i].actual_angle = 0;
         motor[i].round_count = 0;
         motor[i].present_position = 0;
@@ -58,10 +61,12 @@ void SentryChassisSKD::update_target_current() {
     switch (running_mode){
         case (ONE_STEP_MODE):
             // If we are in the ONE_STEP_MODE
-            if((motor[MOTOR_LEFT].present_position >= target_position-5 && motor[MOTOR_LEFT].present_position <= target_position+5)
-               || (motor[MOTOR_RIGHT].present_position >= target_position-5 && motor[MOTOR_RIGHT].present_position <= target_position+5)) {
+            if((motor[MOTOR_LEFT].present_position >= target_position-3 && motor[MOTOR_LEFT].present_position <= target_position+3)
+               || (motor[MOTOR_RIGHT].present_position >= target_position-3 && motor[MOTOR_RIGHT].present_position <= target_position+3)) {
                 // If the sentry is in the "stop area", we stop the sentry by simply set the target velocity to 0
                 target_velocity_modulus = 0;
+            } else{
+                target_velocity_modulus = (int)(motor_angle_pid.calc(motor[MOTOR_RIGHT].present_position,target_position));
             }
             break;
         case (AUTO_MODE):
@@ -75,6 +80,10 @@ void SentryChassisSKD::update_target_current() {
                     set_destination(radius);
                 }
             }
+            break;
+        case (V_MODE):
+            // this mode is for adjusting velocity pid
+            target_velocity_modulus = SentryChassisController::get_maximum_velocity();
             break;
         case (STOP_MODE):
         default:
@@ -90,8 +99,8 @@ void SentryChassisSKD::update_target_current() {
         }else{
             target_velocity = target_velocity_modulus;
         }
-        motor[MOTOR_RIGHT].target_current = (int)(motor_right_pid.calc(motor[MOTOR_RIGHT].present_velocity, target_velocity));
-        motor[MOTOR_LEFT].target_current = (int)(motor_left_pid.calc(motor[MOTOR_LEFT].present_velocity, target_velocity));
+        motor[MOTOR_RIGHT].target_current = (int)(motor_velocity_pid.calc(motor[MOTOR_RIGHT].present_velocity, target_velocity));
+        motor[MOTOR_LEFT].target_current = (int)(motor_velocity_pid.calc(motor[MOTOR_LEFT].present_velocity, target_velocity));
 
         //if(Referee::power_heat_data.chassis_power > 20) LOG("power overload: %.2f", Referee::power_heat_data.chassis_power);
     }else {

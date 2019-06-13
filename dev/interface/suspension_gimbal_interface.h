@@ -62,7 +62,7 @@ public:
     class MotorInterface {
 
     public:
-
+        motor_id_t id;
         float angular_velocity = 0.0f;  // instant angular velocity [degree/s], positive when counter-clockwise, negative otherwise
 
         bool status(){ return  enabled;}
@@ -72,7 +72,6 @@ public:
         }
 
     private:
-        motor_id_t id;
 
         bool enabled = false;  // if not enabled, 0 current will be sent in send_gimbal_currents
 

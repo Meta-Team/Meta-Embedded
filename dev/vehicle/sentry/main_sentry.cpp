@@ -77,8 +77,8 @@ class SentryThread : public chibios_rt::BaseStaticThread<1024> {
         SuspensionGimbalSKD::set_shoot_mode(SuspensionGimbalIF::OFF);
 
         /* Sentry Chassis */
-        SentryChassisSKD::motor_left_pid.change_parameters(SENTRY_CHASSIS_PID_A2V_PARAMS);
-        SentryChassisSKD::motor_right_pid.change_parameters(SENTRY_CHASSIS_PID_A2V_PARAMS);
+        SentryChassisSKD::left_v2i_pid.change_parameters(SENTRY_CHASSIS_PID_A2V_PARAMS);
+        SentryChassisSKD::right_v2i_pid.change_parameters(SENTRY_CHASSIS_PID_A2V_PARAMS);
         SentryChassisSKD::set_mode(SentryChassisSKD::STOP_MODE);
 
         while (!shouldTerminate()) {
