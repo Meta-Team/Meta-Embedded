@@ -188,22 +188,6 @@ void SuspensionGimbalIF::process_motor_feedback(CANRxFrame const *rxmsg) {
         motor->angular_velocity = ((int16_t) (rxmsg->data8[2] << 8 | rxmsg->data8[3])) / motor->deceleration_ratio * 6.0f;
     }else{
         // For pitch, sum angle movements for VELOCITY_SAMPLE_INTERVAL times, and calculate the average.
-/*        static int sample_count = 0;
-        static int sample_movement_sum = 0;
-        static time_msecs_t sample_time = 0;
-        sample_movement_sum += angle_movement;
-        sample_count++;
-        if (sample_count >= VELOCITY_SAMPLE_INTERVAL) {
-            // calculate the angular velocity
-            auto new_sample_time = TIME_I2MS(chibios_rt::System::getTime());
-            motor->angular_velocity = sample_movement_sum * 360.0f * 1000.0f / 8192.0f /
-                                      (float) (new_sample_time - sample_time);
-            sample_time = new_sample_time;
-
-            sample_movement_sum = 0;
-            sample_count = 0;
-        }
-*/
         static int movements[VELOCITY_SAMPLE_INTERVAL];
         static time_msecs_t times[VELOCITY_SAMPLE_INTERVAL];
         static int movement_sum = 0;

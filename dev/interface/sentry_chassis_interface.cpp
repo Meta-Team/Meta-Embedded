@@ -12,6 +12,12 @@ CANInterface *SentryChassisIF::can = nullptr;
 
 bool SentryChassisIF::enable;
 
+void SentryChassisIF::init(CANInterface *can_interface) {
+    enable = false;
+    can = can_interface;
+    can->register_callback(0x201, 0x202, process_feedback);
+}
+
 bool SentryChassisIF::send_currents() {
 
     if (!can) return false;
@@ -54,7 +60,7 @@ void SentryChassisIF::process_feedback(CANRxFrame const*rxmsg) {
     int motor_id = (int) (rxmsg->SID - 0x201);
 
     // Update new raw angle
-    int16_t new_actual_angle_raw = (int16_t) (rxmsg->data8[0] << 8 | rxmsg->data8[1]);
+    auto new_actual_angle_raw = (int16_t) (rxmsg->data8[0] << 8 | rxmsg->data8[1]);
     if (new_actual_angle_raw > 8191) return;
 
     // Process angular information
@@ -103,10 +109,4 @@ void SentryChassisIF::process_feedback(CANRxFrame const*rxmsg) {
     motor[motor_id].present_position = (motor[motor_id].actual_angle + 8192.0f * motor[motor_id].round_count) / 8192.0f * displacement_per_round / chassis_motor_decelerate_ratio;
     // The unit of actual_angular_velocity is degrees/s, so we first translate it into r/s and then multiplying by displacement_per_round factor
     motor[motor_id].present_velocity = motor[motor_id].actual_angular_velocity / 360.0f * displacement_per_round;
-}
-
-void SentryChassisIF::init(CANInterface *can_interface) {
-    enable = false;
-    can = can_interface;
-    can->register_callback(0x201, 0x202, process_feedback);
 }
