@@ -261,6 +261,14 @@ add_executable(ut_suspension_gimbal
         dev/control/suspension_gimbal_controller.cpp
         dev/debug/unit_tests/suspension_gimbal_unit_test.cpp)
 
+#Sentry Remote Test
+add_executable(ut_sentry_remote
+        dev/module/can_interface.cpp
+        dev/interface/suspension_gimbal_interface.cpp
+        dev/interface/sentry_chassis_interface.cpp
+        dev/vehicle/sentry/main_sentry.cpp
+        dev/interface/remote_interpreter.cpp)
+
 add_executable(ut_referee_interface
         dev/module/CRC8.cpp
         dev/module/CRC16.cpp

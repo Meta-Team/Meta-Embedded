@@ -5,11 +5,11 @@
 #include "sentry_chassis_interface.h"
 #include "common_macro.h"
 
-SentryChassis::motor_t SentryChassis::motor[SentryChassis::MOTOR_COUNT];
+SentryChassisIF::motor_t SentryChassisIF::motor[SentryChassisIF::MOTOR_COUNT];
 
-CANInterface *SentryChassis::can = nullptr;
+CANInterface *SentryChassisIF::can = nullptr;
 
-bool SentryChassis::send_currents() {
+bool SentryChassisIF::send_currents() {
 
     if (!can) return false;
 
@@ -40,7 +40,7 @@ bool SentryChassis::send_currents() {
 
 }
 
-void SentryChassis::process_feedback(CANRxFrame const*rxmsg) {
+void SentryChassisIF::process_feedback(CANRxFrame const*rxmsg) {
 
     if (rxmsg->SID > 0x202 || rxmsg->SID < 0x201) return;
 
@@ -99,7 +99,7 @@ void SentryChassis::process_feedback(CANRxFrame const*rxmsg) {
     motor[motor_id].present_velocity = motor[motor_id].actual_angular_velocity / 360.0f * displacement_per_round;
 }
 
-void SentryChassis::init(CANInterface *can_interface) {
+void SentryChassisIF::init(CANInterface *can_interface) {
     can = can_interface;
     can->register_callback(0x201, 0x202, process_feedback);
 }

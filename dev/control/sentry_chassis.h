@@ -13,7 +13,7 @@
 #include "hal.h"
 #include "math.h"
 
-class SentryChassisController: public SentryChassis{
+class SentryChassisController: public SentryChassisIF{
 public:
 
     enum sentry_mode_t{

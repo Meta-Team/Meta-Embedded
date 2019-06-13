@@ -88,7 +88,7 @@ Meta-Infantry
 │   ├── remote_interpreter.h
 │   ├── robotic_arm.cpp                 RoboticArm 低层工程机械臂接口
 │   ├── robotic_arm.h
-│   ├── sentry_chassis_interface.cpp    SentryChassis 哨兵低层底盘接口
+│   ├── sentry_chassis_interface.cpp    SentryChassisIF 哨兵低层底盘接口
 │   └── sentry_chassis_interface.h
 ├── module                              - 通用模块 -
 │   ├── CRC16.cpp                       CRC16 校验代码

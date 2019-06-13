@@ -26,7 +26,7 @@
  * @usage 1. init(CANInterface *). The interface should be properly initialized.
  *        2. control the data flow based on actual implementation
  */
-class SentryChassis {
+class SentryChassisIF {
 
 public:
 

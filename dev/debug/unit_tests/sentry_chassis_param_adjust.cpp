@@ -42,15 +42,15 @@ private:
                 Shell::printf("!gy,%u,%.2f,%.2f,%.2f,%.2f,%d,%d" SHELL_NEWLINE_STR,
                               SYSTIME,
                               0.0f, 0.0f,
-                              SentryChassis::motor[SentryChassis::MOTOR_RIGHT].actual_angular_velocity, SentryChassisController::get_target_velocity(),
-                              SentryChassis::motor[SentryChassis::MOTOR_RIGHT].actual_current_raw, SentryChassis::motor[SentryChassis::MOTOR_RIGHT].target_current);
+                              SentryChassisIF::motor[SentryChassisIF::MOTOR_RIGHT].actual_angular_velocity, SentryChassisController::get_target_velocity(),
+                              SentryChassisIF::motor[SentryChassisIF::MOTOR_RIGHT].actual_current_raw, SentryChassisIF::motor[SentryChassisIF::MOTOR_RIGHT].target_current);
             }
             if (enable_left_feedback) {
                 Shell::printf("!gp,%u,%.2f,%.2f,%.2f,%.2f,%d,%d" SHELL_NEWLINE_STR,
                               SYSTIME,
                               0.0f, 0.0f,
-                              SentryChassis::motor[SentryChassis::MOTOR_LEFT].actual_angular_velocity, SentryChassisController::get_target_velocity(),
-                              SentryChassis::motor[SentryChassis::MOTOR_LEFT].actual_current_raw, SentryChassis::motor[SentryChassis::MOTOR_RIGHT].target_current);
+                              SentryChassisIF::motor[SentryChassisIF::MOTOR_LEFT].actual_angular_velocity, SentryChassisController::get_target_velocity(),
+                              SentryChassisIF::motor[SentryChassisIF::MOTOR_LEFT].actual_current_raw, SentryChassisIF::motor[SentryChassisIF::MOTOR_RIGHT].target_current);
             }
 
             sleep(TIME_MS2I(CHASSIS_FEEDBACK_INTERVAL));

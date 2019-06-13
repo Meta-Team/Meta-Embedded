@@ -9,19 +9,19 @@
 
 // Modules and basic communication channels
 #include "can_interface.h"
-#include "chassis_common.h"
 #include "common_macro.h"
 
 // Interfaces
 #include "buzzer.h"
 #include "mpu6500.h"
 #include "remote_interpreter.h"
-#include "gimbal_interface.h"
+#include "suspension_gimbal_interface.h"
 #include "sentry_chassis_interface.h"
 
 // Controllers
-#include "gimbal_calculator.h"
-#include "sentry_chassis_calculator.h"
+#include "suspension_gimbal_controller.h"
+#include "sentry_chassis.h"
+
 
 /**
  * Mode Table:
@@ -50,7 +50,7 @@ CANInterface can1(&CAND1);
  * @pre Initialize GimbalInterface with CAN driver and set the front angles of yaw and pitch properly
  * @pre Start the thread of updating MPU6500
  */
-class GimbalThread : public chibios_rt::BaseStaticThread<1024> {
+class SentryThread : public chibios_rt::BaseStaticThread<1024> {
 
     static constexpr unsigned int GIMBAL_THREAD_INTERVAL = 10; // [ms]
 
@@ -61,23 +61,29 @@ class GimbalThread : public chibios_rt::BaseStaticThread<1024> {
     static constexpr float PC_PITCH_ANGLE_LIMITATION = 25; // maximum range (both up and down) [degree]
 
     void main() final {
-        setName("gimbal");
+        setName("sentry");
 
         /*** Parameters Set up***/
-        GimbalController::yaw.v_to_i_pid.change_parameters(GIMBAL_PID_YAW_V2I_PARAMS);
-        GimbalController::yaw.angle_to_v_pid.change_parameters(GIMBAL_PID_YAW_A2V_PARAMS);
-        GimbalController::pitch.v_to_i_pid.change_parameters(GIMBAL_PID_PITCH_V2I_PARAMS);
-        GimbalController::pitch.angle_to_v_pid.change_parameters(GIMBAL_PID_PITCH_A2V_PARAMS);
-        GimbalInterface::yaw.enabled = GimbalInterface::pitch.enabled = true;
 
-        GimbalController::bullet_loader.v_to_i_pid.change_parameters(GIMBAL_PID_BULLET_LOADER_V2I_PARAMS);
-        GimbalInterface::bullet_loader.enabled = GimbalInterface::friction_wheels.enabled = true;
+        /* Suspension Gimbal */
+        SuspensionGimbalController::yaw_v_to_i.change_parameters(GIMBAL_PID_YAW_V2I_PARAMS);
+        SuspensionGimbalController::yaw_angle_to_v.change_parameters(GIMBAL_PID_YAW_A2V_PARAMS);
+        SuspensionGimbalController::pitch_v_to_i.change_parameters(GIMBAL_PID_PITCH_V2I_PARAMS);
+        SuspensionGimbalController::pitch_angle_to_v.change_parameters(GIMBAL_PID_PITCH_A2V_PARAMS);
+        SuspensionGimbalController::BL_v_to_i.change_parameters(GIMBAL_PID_BULLET_LOADER_V2I_PARAMS);
+        SuspensionGimbalController::set_motor_enable(SuspensionGimbalIF::YAW_ID, true);
+        SuspensionGimbalController::set_motor_enable(SuspensionGimbalIF::PIT_ID, true);
+        SuspensionGimbalController::set_motor_enable(SuspensionGimbalIF::BULLET_LOADER_ID, true);
+        SuspensionGimbalController::set_shoot_mode(SuspensionGimbalIF::OFF);
+
+        /* Sentry Chassis */
+        SentryChassisController::motor_left_pid.change_parameters(SENTRY_CHASSIS_PID_A2V_PARAMS);
+        SentryChassisController::motor_right_pid.change_parameters(SENTRY_CHASSIS_PID_A2V_PARAMS);
+        SentryChassisController::set_mode(SentryChassisController::STOP_MODE);
 
         while (!shouldTerminate()) {
 
-
-
-            if (Remote::rc.s1 == Remote::RC_S_MIDDLE){
+            if (Remote::rc.s1 == Remote::S_MIDDLE){
                 // Remote - Shooting (left) + Gimbal (right)
 
                 // PID #1: target angle -> target velocity
@@ -123,7 +129,7 @@ class GimbalThread : public chibios_rt::BaseStaticThread<1024> {
             sleep(TIME_MS2I(GIMBAL_THREAD_INTERVAL));
         }
     }
-} gimbalThread;
+} sentryThread;
 
 /**
  * @name ChassisThread
