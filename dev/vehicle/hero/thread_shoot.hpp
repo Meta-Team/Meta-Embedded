@@ -26,29 +26,20 @@
          setName("shoot");
 
          bool bullet_full = false;
-         float plate_target_angle = 180;
-         float bullet_target_angle = 180;
+         float plate_target_angle = Shoot::feedback[3].actual_angle;
+         float bullet_target_angle = 180.0f;
 
          Shoot::change_pid_params(GIMBAL_PID_BULLET_LOADER_A2V_PARAMS, GIMBAL_PID_BULLET_LOADER_V2I_PARAMS, GIMBAL_PID_BULLET_PLATE_A2V_PARAMS, GIMBAL_PID_BULLET_PLATE_V2I_PARAMS);
          while (!shouldTerminate()) {
 
-             bullet_full = false;// check if bullet is full or not, automatically load. TODO: check whether the bullet is full or not.
+             bullet_full = (bool) palReadPad(GPIOE,GPIOE_PIN4); // check if bullet is full or not, automatically load. TODO: determined the PIN to use.
+             if (plate_target_angle > 360.0f && Shoot::feedback[3].actual_angle < plate_target_angle -360.0f) plate_target_angle -= 360.0f; //get the correct angle first
              if(!bullet_full){
-                 if(plate_target_angle > 360.0f && Shoot::feedback[3].actual_angle < 180.0f) {
-                     plate_target_angle -= 360.0f; // when recieve a small angle the plate could finish a round but not turn back. See Hero_shoot for more detail.
-                 }
-                 if (0.0f < plate_target_angle && plate_target_angle < 2.0f && Shoot::feedback[3].actual_angle >= 356.0f){
-                     if(plate_target_angle + 360.0f - Shoot::feedback[3].actual_angle < 2.0f){ // if the target angle is smaller than 5 degree and actual angle is near.
-                         plate_target_angle = plate_target_angle + 36.0f;
-                     }
-                 } else if (plate_target_angle - Shoot::feedback[3].actual_angle < 2.0f) { // else is near
-                     plate_target_angle = plate_target_angle + 36.0f;
-                 }
-
+                 if(plate_target_angle - Shoot::feedback[3].actual_angle < 3.0f) plate_target_angle += 36.0f;
              }
              Shoot::calc_plate(Shoot::feedback[3].actual_velocity, plate_target_angle);
 
-
+             if (bullet_target_angle > 360.0f && Shoot::feedback[2].actual_angle < bullet_target_angle -360.0f) bullet_target_angle -= 360.0f; //get the correct angle first
              if (!StateHandler::remoteDisconnected() && !StateHandler::gimbalSeriousErrorOccured()){
                  if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_UP){
 
@@ -57,21 +48,11 @@
 
                      // Bullet loader motor
                      if (Remote::rc.ch1 > 0.5) {
-                         if(bullet_target_angle > 360.0f && Shoot::feedback[2].actual_angle < 180.0f) {
-                             bullet_target_angle -= 360.0f;
-                         }
                          if (Shoot::fw_duty_cycle == 0) {
                              Shoot::set_friction_wheels(GIMBAL_PC_FRICTION_WHEEL_DUTY_CYCLE);
                              sleep(TIME_I2MS(500));
                          }
-                         if (0.0f < bullet_target_angle && bullet_target_angle < 4.0f && Shoot::feedback[2].actual_angle > 356.0f)
-                         {
-                             if(bullet_target_angle + 360.0f - Shoot::feedback[2].actual_angle < 4.0f){
-                                 bullet_target_angle += 72.0f;
-                             }
-                         } else if (bullet_target_angle - Shoot::feedback[2].actual_angle < 4.0f){
-                             bullet_target_angle += 72.0f;
-                         }
+                         if(bullet_target_angle - Shoot::feedback[2].actual_angle < 3.0f) bullet_target_angle += 72.0f;
                      }
 
                  } else if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_MIDDLE) {
@@ -85,15 +66,7 @@
                              Shoot::set_friction_wheels(GIMBAL_PC_FRICTION_WHEEL_DUTY_CYCLE);
                              sleep(TIME_I2MS(500));
                          }
-                         if (0.0f < bullet_target_angle  && bullet_target_angle < 4.0f && Shoot::feedback[2].actual_angle > 356.0f)
-                         {
-                             if(bullet_target_angle + 360.0f - Shoot::feedback[2].actual_angle < 4.0f){
-                                 bullet_target_angle += 72.0f;
-                             }
-                         } else if (bullet_target_angle - Shoot::feedback[2].actual_angle < 4.0f){
-                             bullet_target_angle += 72.0f;
-                         }
-                         if(bullet_target_angle > 360.0f) bullet_target_angle -= 360.0f;
+                         if(bullet_target_angle - Shoot::feedback[2].actual_angle < 3.0f) bullet_target_angle += 72.0f;
                      }
 
                  } else if (Remote::rc.s1 == Remote::S_DOWN) { // PC control mode
@@ -105,15 +78,7 @@
                              Shoot::set_friction_wheels(GIMBAL_PC_FRICTION_WHEEL_DUTY_CYCLE);
                              sleep(TIME_I2MS(500));
                          }
-                         if (0.0f < bullet_target_angle && bullet_target_angle < 4.0f && Shoot::feedback[2].actual_angle > 356.0f)
-                         {
-                             if(bullet_target_angle + 360.0f - Shoot::feedback[2].actual_angle < 4.0f){
-                                 bullet_target_angle += 72.0f;
-                             }
-                         } else if (bullet_target_angle - Shoot::feedback[2].actual_angle < 4.0f){
-                             bullet_target_angle += 72.0f;
-                         }
-                         if(bullet_target_angle > 360.0f) bullet_target_angle -= 360.0f;
+                         if(bullet_target_angle - Shoot::feedback[2].actual_angle < 3.0f) bullet_target_angle += 72.0f;
                      }
 
                      // Friction wheels
@@ -144,9 +109,7 @@
                  Shoot::target_current[Shoot::BULLET] = 0;
                  Shoot::target_current[Shoot::PLATE] = 0;
              }
-
              Shoot::calc_bullet(Shoot::feedback[2].actual_velocity, bullet_target_angle);
-             Shoot::calc_plate(Shoot::feedback[3].actual_velocity, plate_target_angle);
              sleep(TIME_MS2I(SHOOT_THREAD_INTERVAL));
          }
      }
