@@ -9,6 +9,8 @@ SentryChassisIF::motor_t SentryChassisIF::motor[SENTRY_CHASSIS_MOTOR_COUNT];
 
 CANInterface *SentryChassisIF::can = nullptr;
 uint16_t SentryChassisIF::present_HP;
+bool SentryChassisIF::hit_detected;
+SentryChassisIF::region_t SentryChassisIF::present_region;
 
 bool SentryChassisIF::send_currents() {
 
@@ -65,11 +67,13 @@ void SentryChassisIF::process_feedback(CANRxFrame const*rxmsg) {
     motor[motor_id].actual_current_raw = (int16_t) (rxmsg->data8[4] << 8 | rxmsg->data8[5]);
 
     // Modify the data to the same direction, let the direction of the right wheel be the correct direction, and the left wheel is on the opposite
+/*
     if (motor_id == MOTOR_LEFT){
         angle_movement = - angle_movement;
         motor[motor_id].actual_rpm_raw = - motor[motor_id].actual_rpm_raw;
         motor[motor_id].actual_current_raw = - motor[motor_id].actual_current_raw;
     }
+*/
     // Update the actual angle
     motor[motor_id].actual_angle += angle_movement;
     // modify the actual angle and update the round count when appropriate
@@ -98,9 +102,13 @@ void SentryChassisIF::process_feedback(CANRxFrame const*rxmsg) {
     // The unit of actual_angular_velocity is degrees/s, so we first translate it into r/s and then multiplying by displacement_per_round factor
     motor[motor_id].present_velocity = motor[motor_id].actual_angular_velocity / 360.0f * displacement_per_round;
 
-    if (Referee::game_robot_state.remain_HP < present_HP){
-        present_HP = Referee::game_robot_state.remain_HP;
-
+    // Update the remained HP
+    uint16_t new_present_HP = Referee::game_robot_state.remain_HP;
+    if (new_present_HP != present_HP){
+        if (new_present_HP < present_HP){
+            hit_detected = true;
+        }
+        present_HP = new_present_HP;
     }
 }
 
@@ -108,5 +116,6 @@ void SentryChassisIF::init(CANInterface *can_interface) {
     Referee::init();
     can = can_interface;
     present_HP = Referee::game_robot_state.remain_HP;
+    hit_detected = false;
     can->register_callback(0x201, 0x202, process_feedback);
 }

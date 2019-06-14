@@ -35,7 +35,7 @@ public:
 
     static uint16_t present_HP;
 
-    static float constexpr chassis_motor_decelerate_ratio = 19.2f; // 3591/187 on the data sheet
+    static bool hit_detected;
 
     enum motor_id_t {
         MOTOR_RIGHT,
@@ -47,6 +47,8 @@ public:
         STRAIGHTWAY,
         CURVE_2
     };
+
+    static region_t present_region;
 
     // Structure for each motor
     class motor_t {
@@ -106,6 +108,8 @@ private:
     static void process_feedback(CANRxFrame const*rxmsg);
 
     static float constexpr displacement_per_round = 17.28f;
+
+    static float constexpr chassis_motor_decelerate_ratio = 19.2f; // 3591/187 on the data sheet
 
     friend CANInterface;
 

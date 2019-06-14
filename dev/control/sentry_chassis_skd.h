@@ -11,6 +11,8 @@
 #define STRAIGHTWAY_RIGHT 60.0f
 #define CURVE_2_LEFT 70.0f
 #define CURVE_2_RIGHT 80.0f
+#define CRUISING_SPEED 80.0f
+#define ESCAPE_SPEED 110.0f
 
 #include "sentry_chassis_interface.h"
 #include "pid_controller.hpp"
@@ -31,8 +33,6 @@ public:
     };
 
     static bool enable;
-    static float landmarks[];
-    static region_t present_region;
     static PIDController sentry_a2v_pid;
     static PIDController right_v2i_pid;
     static PIDController left_v2i_pid;
@@ -75,7 +75,7 @@ public:
     }
 
     static void set_maximum_velocity(float new_velocity){
-        maximum_speed = abs(new_velocity);
+        maximum_speed = new_velocity;
     }
 
     static float get_target_velocity(){
@@ -118,8 +118,6 @@ private:
     static time_msecs_t start_time;
 
     static float target_position;
-
-    static float target_velocity_modulus;
 
     static float target_velocity;
 
