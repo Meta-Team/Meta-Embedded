@@ -161,7 +161,7 @@ class ChassisThread : public chibios_rt::BaseStaticThread<1024> {
 
                     if(!(previous_state_1 == Remote::RC_S_MIDDLE && previous_state_2 == Remote::RC_S_DOWN))
                         // If it is not at the various speed mode previously, then we should set it to AUTO MODE and set the radius
-                        SentryChassisSKD::set_mode(SentryChassisSKD::AUTO_MODE, 30);
+                        SentryChassisSKD::set_mode(SentryChassisSKD::SHUTTLED_MODE, 30);
 
                     SentryChassisSKD::change_speed_mode(false);
 
@@ -171,7 +171,7 @@ class ChassisThread : public chibios_rt::BaseStaticThread<1024> {
 
                     if(!(previous_state_1 == Remote::RC_S_MIDDLE && previous_state_2 == Remote::RC_S_MIDDLE))
                         // If it is not at the constant speed mode previously, then we should set it to AUTO MODE and set the radius
-                        SentryChassisSKD::set_mode(SentryChassisSKD::AUTO_MODE, 30);
+                        SentryChassisSKD::set_mode(SentryChassisSKD::SHUTTLED_MODE, 30);
 
                     SentryChassisSKD::change_speed_mode(true);
 

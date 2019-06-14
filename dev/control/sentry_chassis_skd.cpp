@@ -7,34 +7,36 @@
 #include "referee_interface.h"
 
 bool SentryChassisSKD::enable;
+float SentryChassisSKD::landmarks[6] = {CURVE_1_LEFT, CURVE_1_RIGHT,
+                                        STRAIGHTWAY_LEFT, STRAIGHTWAY_RIGHT,
+                                        CURVE_2_LEFT, CURVE_2_RIGHT};
+SentryChassisSKD::region_t SentryChassisSKD::present_region;
+PIDController SentryChassisSKD::sentry_a2v_pid;
+PIDController SentryChassisSKD::right_v2i_pid;
+PIDController SentryChassisSKD::left_v2i_pid;
 SentryChassisSKD::sentry_mode_t SentryChassisSKD::running_mode;
 bool SentryChassisSKD::change_speed;
 time_msecs_t SentryChassisSKD::start_time;
 float SentryChassisSKD::target_position;
 float SentryChassisSKD::target_velocity_modulus;
 float SentryChassisSKD::radius;
-PIDController SentryChassisSKD::motor_right_pid;
-PIDController SentryChassisSKD::motor_left_pid;
-PIDController SentryChassisSKD::motor_velocity_pid;
-PIDController SentryChassisSKD::motor_angle_pid;
 float SentryChassisSKD::target_velocity;
 float SentryChassisSKD::maximum_speed;
 
 
 void SentryChassisSKD::init_controller(CANInterface* can_interface) {
     SentryChassisIF::init(can_interface);
-    Referee::init();
     enable = false;
     running_mode = STOP_MODE;
     clear_position();
-    radius = 30.0f;
+    radius = 50.0f;
     target_velocity = 0.0f;
     change_speed = false;
     maximum_speed = 110.0f;
 }
 
 void SentryChassisSKD::clear_position() {
-    for(int i = 0; i < MOTOR_COUNT; i++){
+    for(int i = 0; i < SENTRY_CHASSIS_MOTOR_COUNT; i++){
         motor[i].actual_angle = 0;
         motor[i].round_count = 0;
         motor[i].present_position = 0;
@@ -66,10 +68,10 @@ void SentryChassisSKD::update_target_current() {
                 // If the sentry is in the "stop area", we stop the sentry by simply set the target velocity to 0
                 target_velocity_modulus = 0;
             } else{
-                target_velocity_modulus = (int)(motor_angle_pid.calc(motor[MOTOR_RIGHT].present_position,target_position));
+                target_velocity_modulus = (int)(sentry_a2v_pid.calc(get_sentry_position(),target_position));
             }
             break;
-        case (AUTO_MODE):
+        case (SHUTTLED_MODE):
             // If we are in the AUTO MODE
             if((motor[MOTOR_LEFT].present_position >= radius || motor[MOTOR_LEFT].present_position <= -radius)
                || (motor[MOTOR_RIGHT].present_position >= radius || motor[MOTOR_RIGHT].present_position <= -radius)) {
@@ -83,7 +85,14 @@ void SentryChassisSKD::update_target_current() {
             break;
         case (V_MODE):
             // this mode is for adjusting velocity pid
-            target_velocity_modulus = SentryChassisController::get_maximum_velocity();
+            target_velocity_modulus = maximum_speed;
+            break;
+        case (FINAL_AUTO_MODE):
+
+
+
+
+
             break;
         case (STOP_MODE):
         default:
@@ -99,8 +108,8 @@ void SentryChassisSKD::update_target_current() {
         }else{
             target_velocity = target_velocity_modulus;
         }
-        motor[MOTOR_RIGHT].target_current = (int)(motor_velocity_pid.calc(motor[MOTOR_RIGHT].present_velocity, target_velocity));
-        motor[MOTOR_LEFT].target_current = (int)(motor_velocity_pid.calc(motor[MOTOR_LEFT].present_velocity, target_velocity));
+        motor[MOTOR_RIGHT].target_current = (int)(right_v2i_pid.calc(motor[MOTOR_RIGHT].present_velocity, target_velocity));
+        motor[MOTOR_LEFT].target_current = (int)(left_v2i_pid.calc(motor[MOTOR_LEFT].present_velocity, target_velocity));
 
         //if(Referee::power_heat_data.chassis_power > 20) LOG("power overload: %.2f", Referee::power_heat_data.chassis_power);
     }else {
@@ -108,11 +117,13 @@ void SentryChassisSKD::update_target_current() {
     }
 }
 
-void SentryChassisSKD::set_mode(SentryChassisSKD::sentry_mode_t target_mode, float index) {
+void SentryChassisSKD::set_mode(sentry_mode_t target_mode) {
     running_mode = target_mode;
     clear_position();
-    if(running_mode == AUTO_MODE){
-        radius = index;
+    if(running_mode == SHUTTLED_MODE){
         set_destination(radius);
+    } else if (running_mode == FINAL_AUTO_MODE){
+        present_region = CURVE_1;
+        set_destination(landmarks[present_region * 2 + 1]);
     }
 }

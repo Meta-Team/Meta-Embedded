@@ -38,7 +38,7 @@ Step 2: MATLAB清空位置 ("g_fix")
 Step 3: 终端输入运动模式 ("c_set_mode")
     STOP_MODE           发送0电流
     ONE_STEP_MODE       一个指令运动一段距离后停下
-    AUTO_MODE           自动模式，哨兵以当前位置为原点在[-radus, radus]的范围内往复运动
+    SHUTTLED_MODE           自动模式，哨兵以当前位置为原点在[-radus, radus]的范围内往复运动
 
 Step 4: MATLAB启动电机 ("g_enable")
     可能两个电机分别有启动选择，但只要其中一个选择启动则两个电机均启动

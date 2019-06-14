@@ -5,8 +5,14 @@
 #ifndef META_INFANTRY_SENTRY_CHASSIS_CALCULATOR_H
 #define META_INFANTRY_SENTRY_CHASSIS_CALCULATOR_H
 
+#define CURVE_1_LEFT 30.0f
+#define CURVE_1_RIGHT 40.0f
+#define STRAIGHTWAY_LEFT 50.0f
+#define STRAIGHTWAY_RIGHT 60.0f
+#define CURVE_2_LEFT 70.0f
+#define CURVE_2_RIGHT 80.0f
+
 #include "sentry_chassis_interface.h"
-#include "referee_interface.h"
 #include "pid_controller.hpp"
 #include "can_interface.h"
 #include "ch.hpp"
@@ -19,15 +25,17 @@ public:
     enum sentry_mode_t{
         STOP_MODE,
         ONE_STEP_MODE,
-        AUTO_MODE,
-        V_MODE
+        SHUTTLED_MODE,
+        V_MODE,
+        FINAL_AUTO_MODE
     };
 
     static bool enable;
-    static PIDController motor_angle_pid;
-    static PIDController motor_velocity_pid;
-    static PIDController motor_left_pid;
-    static PIDController motor_right_pid;
+    static float landmarks[];
+    static region_t present_region;
+    static PIDController sentry_a2v_pid;
+    static PIDController right_v2i_pid;
+    static PIDController left_v2i_pid;
 
     /**
      * @brief initialize the calculator class
@@ -39,7 +47,7 @@ public:
      * @brief change the running mode if needed
      * @param target_mode
      */
-    static void set_mode(sentry_mode_t target_mode, float index = 0);
+    static void set_mode(sentry_mode_t target_mode);
 
     /**
      * @brief set the present position and target position to be the 0 point
@@ -67,7 +75,7 @@ public:
     }
 
     static void set_maximum_velocity(float new_velocity){
-        maximum_speed = new_velocity;
+        maximum_speed = abs(new_velocity);
     }
 
     static float get_target_velocity(){
@@ -75,21 +83,6 @@ public:
     }
     static float get_target_position(){
         return target_position;
-    }
-
-    static float get_maximum_velocity(){
-        return maximum_speed;
-    }
-
-    /**
-     * @brief change the parameters for the v_to_i PIDController
-     */
-    static void change_v_to_i_pid(float _kp, float _ki, float _kd, float _i_limit, float _out_limit){
-
-        motor_right_pid.change_parameters({_kp, _ki, _kd, _i_limit, _out_limit});
-        motor_right_pid.clear_i_out();
-        motor_left_pid.change_parameters({_kp, _ki, _kd, _i_limit, _out_limit});
-        motor_left_pid.clear_i_out();
     }
 
     /**

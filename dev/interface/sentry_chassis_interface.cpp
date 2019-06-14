@@ -5,9 +5,10 @@
 #include "sentry_chassis_interface.h"
 #include "common_macro.h"
 
-SentryChassisIF::motor_t SentryChassisIF::motor[SentryChassisIF::MOTOR_COUNT];
+SentryChassisIF::motor_t SentryChassisIF::motor[SENTRY_CHASSIS_MOTOR_COUNT];
 
 CANInterface *SentryChassisIF::can = nullptr;
+uint16_t SentryChassisIF::present_HP;
 
 bool SentryChassisIF::send_currents() {
 
@@ -22,7 +23,7 @@ bool SentryChassisIF::send_currents() {
     txmsg.DLC = 0x08;
 
     // Fill target currents
-    for (int i = 0; i < MOTOR_COUNT; i++) {
+    for (int i = 0; i < SENTRY_CHASSIS_MOTOR_COUNT; i++) {
 #if SENTRY_CHASSIS_ENABLE_CLIP
         ABS_CROP(motor[i].target_current, SENTRY_CHASSIS_MAX_CURRENT);
 #endif
@@ -47,7 +48,7 @@ void SentryChassisIF::process_feedback(CANRxFrame const*rxmsg) {
     int motor_id = (int) (rxmsg->SID - 0x201);
 
     // Update new raw angle
-    int16_t new_actual_angle_raw = (int16_t) (rxmsg->data8[0] << 8 | rxmsg->data8[1]);
+    auto new_actual_angle_raw = (int16_t) (rxmsg->data8[0] << 8 | rxmsg->data8[1]);
     if (new_actual_angle_raw > 8191) return;
 
     // Process angular information
@@ -62,7 +63,6 @@ void SentryChassisIF::process_feedback(CANRxFrame const*rxmsg) {
     // Update the actual data
     motor[motor_id].actual_rpm_raw = (int16_t) (rxmsg->data8[2] << 8 | rxmsg->data8[3]);
     motor[motor_id].actual_current_raw = (int16_t) (rxmsg->data8[4] << 8 | rxmsg->data8[5]);
-    motor[motor_id].actual_temperature_raw = rxmsg->data8[6];
 
     // Modify the data to the same direction, let the direction of the right wheel be the correct direction, and the left wheel is on the opposite
     if (motor_id == MOTOR_LEFT){
@@ -97,9 +97,16 @@ void SentryChassisIF::process_feedback(CANRxFrame const*rxmsg) {
     motor[motor_id].present_position = (motor[motor_id].actual_angle + 8192.0f * motor[motor_id].round_count) / 8192.0f * displacement_per_round / chassis_motor_decelerate_ratio;
     // The unit of actual_angular_velocity is degrees/s, so we first translate it into r/s and then multiplying by displacement_per_round factor
     motor[motor_id].present_velocity = motor[motor_id].actual_angular_velocity / 360.0f * displacement_per_round;
+
+    if (Referee::game_robot_state.remain_HP < present_HP){
+        present_HP = Referee::game_robot_state.remain_HP;
+
+    }
 }
 
 void SentryChassisIF::init(CANInterface *can_interface) {
+    Referee::init();
     can = can_interface;
+    present_HP = Referee::game_robot_state.remain_HP;
     can->register_callback(0x201, 0x202, process_feedback);
 }

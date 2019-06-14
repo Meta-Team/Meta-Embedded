@@ -8,6 +8,7 @@
 #include "ch.hpp"
 #include "hal.h"
 #include "can_interface.h"
+#include "referee_interface.h"
 
 /**
  * Enable clip at the moment of sending current.
@@ -18,6 +19,8 @@
 #if SENTRY_CHASSIS_ENABLE_CLIP
 #define SENTRY_CHASSIS_MAX_CURRENT 5000  // mA
 #endif
+
+#define SENTRY_CHASSIS_MOTOR_COUNT 2
 
 /**
  * @name SentryChassis
@@ -30,18 +33,31 @@ class SentryChassisIF {
 
 public:
 
+    static uint16_t present_HP;
+
     static float constexpr chassis_motor_decelerate_ratio = 19.2f; // 3591/187 on the data sheet
 
     enum motor_id_t {
         MOTOR_RIGHT,
-        MOTOR_LEFT,
-        MOTOR_COUNT // = 2
+        MOTOR_LEFT
+    };
+
+    enum region_t{
+        CURVE_1,
+        STRAIGHTWAY,
+        CURVE_2
     };
 
     // Structure for each motor
-    struct motor_t {
+    class motor_t {
+
+    public:
 
         motor_id_t id;
+        float present_position;
+        float present_velocity;
+
+    private:
 
         int16_t actual_rpm_raw;
         int16_t actual_current_raw;
@@ -53,8 +69,9 @@ public:
         int round_count = 0;
         int target_current;
 
-        float present_position;
-        float present_velocity;
+        friend class SentryChassisThread;
+        friend class SentryChassisSKD;
+        friend SentryChassisIF;
     };
 
     static motor_t motor[];
@@ -65,6 +82,15 @@ public:
      */
     static bool send_currents();
 
+    static float get_sentry_position(){
+        return (motor[MOTOR_LEFT].present_position + motor[MOTOR_RIGHT].present_position) / 2;
+    }
+
+    static float get_sentry_velocity(){
+        return (motor[MOTOR_LEFT].present_velocity + motor[MOTOR_RIGHT].present_velocity) / 2;
+    }
+
+protected:
     /**
      * @brief set CAN interface for receiving and sending
      * @param can_interface

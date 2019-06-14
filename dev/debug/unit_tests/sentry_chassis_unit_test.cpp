@@ -61,7 +61,7 @@ static void cmd_chassis_set_mode(BaseSequentialStream *chp, int argc, char *argv
                 shellUsage(chp, "c_set_mode auto_mode(3) radius(10~50)");
                 return;
             }
-            SentryChassisSKD::set_mode(SentryChassisSKD::AUTO_MODE, Shell::atof(argv[1]));
+            SentryChassisSKD::set_mode(SentryChassisSKD::SHUTTLED_MODE, Shell::atof(argv[1]));
             break;
         default:
             SentryChassisSKD::set_mode(SentryChassisSKD::STOP_MODE);
