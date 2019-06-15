@@ -10,15 +10,17 @@
 
 SentryChassisSKD::SentryChassisThread SentryChassisSKD::sentryChassisThread;
 bool SentryChassisSKD::enable;
-time_msecs_t SentryChassisSKD::evasive_time;
 PIDController SentryChassisSKD::sentry_a2v_pid;
 PIDController SentryChassisSKD::right_v2i_pid;
 PIDController SentryChassisSKD::left_v2i_pid;
+float SentryChassisSKD::maximum_speed;
+bool SentryChassisSKD::printPosition;
+bool SentryChassisSKD::printCurrent;
+bool SentryChassisSKD::printVelocity;
+time_msecs_t SentryChassisSKD::evasive_time;
 SentryChassisSKD::sentry_mode_t SentryChassisSKD::running_mode;
 float SentryChassisSKD::radius;
-float SentryChassisSKD::maximum_speed;
 
-CANInterface can1(&CAND1);
 
 /* Functions */
 
@@ -27,9 +29,10 @@ void SentryChassisSKD::init() {
     sentry_a2v_pid.change_parameters(CRUISING_PID_A2V_PARAMS);
     right_v2i_pid.change_parameters(SENTRY_CHASSIS_PID_V2I_PARAMS);
     left_v2i_pid.change_parameters(SENTRY_CHASSIS_PID_V2I_PARAMS);
+    maximum_speed = CRUISING_SPEED;
+    printPosition = printCurrent = printVelocity = false;
     running_mode = STOP_MODE;
     radius = 50.0f;
-    maximum_speed = CRUISING_SPEED;
 }
 
 void SentryChassisSKD::set_origin() {
@@ -184,11 +187,22 @@ void SentryChassisSKD::update_target_current() {
 
 void SentryChassisSKD::SentryChassisThread::main() {
 
-    SentryChassisIF::init(&can1);
+    setName("SentryChassis");
     SentryChassisSKD::init();
 
     while (!shouldTerminate()){
         update_target_current();
+
+        if(printPosition)
+            print_position();
+
+        if(printCurrent)
+            print_current();
+
+        if(printVelocity)
+            print_velocity();
+
         SentryChassisIF::send_currents();
+        sleep(TIME_MS2I(100));
     }
 }

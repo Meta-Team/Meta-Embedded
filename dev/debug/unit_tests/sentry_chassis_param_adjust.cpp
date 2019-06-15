@@ -17,12 +17,6 @@ unsigned const CHASSIS_FEEDBACK_INTERVAL = 25;
 
 bool motor_enabled[2] = {false, false};
 
-CANInterface can1(&CAND1);
-bool printPosition = false;
-bool printCurrent = false;
-bool printVelocity = false;
-bool testCurrent = false;
-
 class ChassisFeedbackThread : public chibios_rt::BaseStaticThread<1024> {
 
 public:
@@ -41,15 +35,15 @@ private:
             if (enable_right_feedback) {
                 Shell::printf("!gy,%u,%.2f,%.2f,%.2f,%.2f,%f,%d" SHELL_NEWLINE_STR,
                               SYSTIME,
-                              SentryChassisIF::motor[SentryChassisIF::MOTOR_RIGHT].motor_present_position, SentryChassisSKD::get_target_position(),
-                              SentryChassisIF::motor[SentryChassisIF::MOTOR_RIGHT].motor_present_velocity, SentryChassisSKD::get_target_velocity(),
+                              SentryChassisIF::motor[SentryChassisIF::MOTOR_RIGHT].motor_present_position, SentryChassisIF::target_position,
+                              SentryChassisIF::motor[SentryChassisIF::MOTOR_RIGHT].motor_present_velocity, SentryChassisIF::target_velocity,
                               Referee::power_heat_data.chassis_power, 20);
             }
             if (enable_left_feedback) {
                 Shell::printf("!gp,%u,%.2f,%.2f,%.2f,%.2f,%f,%d" SHELL_NEWLINE_STR,
                               SYSTIME,
-                              SentryChassisIF::motor[SentryChassisIF::MOTOR_LEFT].motor_present_position, SentryChassisSKD::get_target_position(),
-                              SentryChassisIF::motor[SentryChassisIF::MOTOR_LEFT].motor_present_velocity, SentryChassisSKD::get_target_velocity(),
+                              SentryChassisIF::motor[SentryChassisIF::MOTOR_LEFT].motor_present_position, SentryChassisIF::target_position,
+                              SentryChassisIF::motor[SentryChassisIF::MOTOR_LEFT].motor_present_velocity, SentryChassisIF::target_velocity,
                               Referee::power_heat_data.chassis_power, 20);
             }
 
@@ -218,7 +212,7 @@ static void cmd_chassis_print_position(BaseSequentialStream *chp, int argc, char
         chprintf(chp, "!cpe" SHELL_NEWLINE_STR);
         return;
     }
-    printPosition = !printPosition;
+    SentryChassisSKD::printPosition = !SentryChassisSKD::printPosition;
 }
 
 static void cmd_chassis_print_current(BaseSequentialStream *chp, int argc, char *argv[]){
@@ -228,7 +222,7 @@ static void cmd_chassis_print_current(BaseSequentialStream *chp, int argc, char 
         chprintf(chp, "!cpe" SHELL_NEWLINE_STR);
         return;
     }
-    printCurrent = !printCurrent;
+    SentryChassisSKD::printCurrent = !SentryChassisSKD::printCurrent;
 }
 
 static void cmd_chassis_print_velocity(BaseSequentialStream *chp, int argc, char *argv[]){
@@ -238,18 +232,9 @@ static void cmd_chassis_print_velocity(BaseSequentialStream *chp, int argc, char
         chprintf(chp, "!cpe" SHELL_NEWLINE_STR);
         return;
     }
-    printVelocity = !printVelocity;
+    SentryChassisSKD::printVelocity = !SentryChassisSKD::printVelocity;
 }
 
-static void cmd_chassis_test_current(BaseSequentialStream *chp, int argc, char *argv[]){
-    (void) argv;
-    if (argc != 0){
-        shellUsage(chp, "c_testC");
-        chprintf(chp, "!cpe" SHELL_NEWLINE_STR);
-        return;
-    }
-    testCurrent = !testCurrent;
-}
 // Shell commands to control the chassis
 ShellCommand chassisCommands[] = {
         {"g_enable",   cmd_chassis_enable},
@@ -263,47 +248,10 @@ ShellCommand chassisCommands[] = {
         {"c_pos", cmd_chassis_print_position},
         {"c_cur", cmd_chassis_print_current},
         {"c_v", cmd_chassis_print_velocity},
-        {"c_testc", cmd_chassis_test_current},
         {nullptr,    nullptr}
 };
 
-
-class SentryChassisThread : public BaseStaticThread<256> {
-protected:
-    void main() final {
-        setName("chassis");
-        while (!shouldTerminate()) {
-
-            if(testCurrent){
-                // In testCurrent mode, we send a constant current to the motor without processing any feedback
-                // This is a fundamental test, check how the motors respond to the given current
-                if(SentryChassisSKD::enable){
-                    SentryChassisSKD::motor[0].target_current = 1000;
-                    SentryChassisSKD::motor[1].target_current = 1000;
-                }else{
-                    SentryChassisSKD::motor[0].target_current = 0;
-                    SentryChassisSKD::motor[1].target_current = 0;
-                }
-            }else{
-
-                if(printPosition)
-                    SentryChassisSKD::print_position();
-
-                if(printCurrent)
-                    SentryChassisSKD::print_current();
-
-                if(printVelocity)
-                    SentryChassisSKD::print_velocity();
-
-                SentryChassisSKD::update_target_current();
-            }
-            SentryChassisSKD::send_currents();
-
-            sleep(TIME_MS2I(100));
-        }
-    }
-} chassisThread;
-
+CANInterface can1(&CAND1);
 
 int main(void) {
     halInit();
@@ -316,10 +264,11 @@ int main(void) {
     Shell::addCommands(chassisCommands);
 
     can1.start(HIGHPRIO - 1);
-    SentryChassisSKD::init(&can1);
+    SentryChassisIF::init(&can1);
+    SentryChassisSKD::init();
 
     chassisFeedbackThread.start(NORMALPRIO - 1);
-    chassisThread.start(NORMALPRIO);
+    SentryChassisSKD::sentryChassisThread.start(NORMALPRIO);
 
     // See chconf.h for what this #define means.
 #if CH_CFG_NO_IDLE_THREAD

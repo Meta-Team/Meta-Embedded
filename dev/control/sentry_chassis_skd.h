@@ -24,6 +24,24 @@ public:
         FINAL_AUTO_MODE
     };
 
+    class SentryChassisThread: public chibios_rt::BaseStaticThread<512>{
+        void main()final;
+    };
+
+    static SentryChassisThread sentryChassisThread;
+
+    static bool enable;
+
+    static PIDController sentry_a2v_pid;
+    static PIDController right_v2i_pid;
+    static PIDController left_v2i_pid;
+
+    static float maximum_speed;
+
+    static bool printPosition;
+    static bool printCurrent;
+    static bool printVelocity;
+
     /**
      * @brief initialize the calculator class
      * @param can_interface
@@ -46,27 +64,6 @@ public:
      * @param dist the given position, positive for right, negative for left
      */
     static void set_destination(float dist);
-
-    class SentryChassisThread: public chibios_rt::BaseStaticThread<512>{
-        void main(void)final;
-    };
-
-    static SentryChassisThread sentryChassisThread;
-
-private:
-    static bool enable;
-    static time_msecs_t evasive_time;
-    static PIDController sentry_a2v_pid;
-    static PIDController right_v2i_pid;
-    static PIDController left_v2i_pid;
-    static sentry_mode_t running_mode;
-    static float radius; // the range that sentry can move around the origin in the SHUTTLED_MODE
-    static float maximum_speed;
-
-    /**
-     * @brief use the present data and PIDController to calculate and set the target current that will be sent
-     */
-    static void update_target_current();
 
     static void set_maximum_velocity(float new_velocity){
         maximum_speed = new_velocity;
@@ -95,6 +92,16 @@ private:
         LOG("motor %d motor_present_velocity: %.2f", 0, SentryChassisIF::motor[0].motor_present_velocity);
         LOG("motor %d motor_present_velocity: %.2f", 1, SentryChassisIF::motor[1].motor_present_velocity);
     }
+
+private:
+    static time_msecs_t evasive_time;
+    static sentry_mode_t running_mode;
+    static float radius; // the range that sentry can move around the origin in the SHUTTLED_MODE
+
+    /**
+     * @brief use the present data and PIDController to calculate and set the target current that will be sent
+     */
+    static void update_target_current();
 
 };
 
