@@ -22,6 +22,10 @@
  * @usage 1. start(), load_pid_params()
  *        2. set_mode() and set_target_angle() as needed
  *        3. Leave the rest of the work to this SKD
+ * @note ABOUT COORDINATE
+ *       All components in this SKD use gimbal coordinate, including targets and PID controllers. Only when reading
+ *       from or writing to GimbalIF will coordinate transform (by multiple to install_direction_t) be performed based
+ *       on yaw_install and pitch_install
  */
 class GimbalSKD : public GimbalBase, public PIDControllerBase {
 
@@ -29,18 +33,26 @@ public:
 
     enum mode_t {
         STOP_MODE,                // zero force
-        // RELATIVE_ANGLE_MODE,   // target_angle of yaw is relative to chassis
         ABS_ANGLE_MODE,           // target_angle of yaw is relative to ground
         PARAM_ADJUST_MODE         // for PID parameter adjustment program
+    }; // no support for RELATIVE_ANGLE_MODE
+
+    enum install_direction_t {
+        POSITIVE = 1,
+        NEGATIVE = -1
     };
 
     /**
      * Start this scheduler
      * @param gimbal_ahrs_           pointer to an initialized AHRS on gimbal
      * @param gimbal_ahrs_install_   rotation matrix for gimbal AHRS
+     * @param yaw_install_           yaw motor install direction
+     * @param pitch_install_         pitch motor install direction
      * @param thread_prio            priority of PID calculating thread
      */
-    static void start(AbstractAHRS *gimbal_ahrs_, const Matrix33 gimbal_ahrs_install_, tprio_t thread_prio);
+    static void start(AbstractAHRS *gimbal_ahrs_, const Matrix33 gimbal_ahrs_install_,
+                      install_direction_t yaw_install_, install_direction_t pitch_install_,
+                      tprio_t thread_prio);
 
     /**
      * Set PID parameters of yaw and pitch
@@ -71,6 +83,8 @@ private:
 
     static AbstractAHRS *gimbal_ahrs;
     static Matrix33 gimbal_ahrs_install;
+    static install_direction_t yaw_install;
+    static install_direction_t pitch_install;
 
     // local storage
     static mode_t mode;
@@ -90,13 +104,6 @@ private:
     };
 
     static SKDThread skdThread;
-
-
-    friend void cmd_gimbal_set_parameters(BaseSequentialStream *chp, int argc, char *argv[]);
-    friend void cmd_gimbal_echo_parameters(BaseSequentialStream *chp, int argc, char *argv[]);
-    friend class GimbalDebugThread;
-    friend void _cmd_gimbal_clear_i_out();
-
 };
 
 

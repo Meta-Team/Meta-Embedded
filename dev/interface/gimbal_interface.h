@@ -28,23 +28,9 @@
 
 
 /**
- * Enable velocity calculation from feedback angle (using derivative.)
+ * @name GimbalBase
+ * @brief provide shared index enum to gimbal-related class
  */
-#define GIMBAL_INTERFACE_ENABLE_VELOCITY_CALCULATION  TRUE
-
-/**
- * Enable clip at the moment of sending current.
- * Only for safety. There is NO signal for clipping. Be sure to eliminate it if more current is needed.
- */
-#define GIMBAL_INTERFACE_ENABLE_CLIP  FALSE
-
-#if GIMBAL_INTERFACE_ENABLE_CLIP
-#define GIMBAL_INTERFACE_MAX_CURRENT 5000
-#define GIMBAL_INTERFACE_BULLET_LOADER_MAX_CURRENT 5000
-#define GIMBAL_INTERFACE_BULLET_PLATE_MAX_CURRENT 5000
-#endif
-
-
 class GimbalBase {
 public:
     enum motor_id_t {
@@ -69,7 +55,28 @@ public:
  *           Write target current / duty cycle to variables, then call send_gimbal_currents to apply changes
  * @note This module is designed to process feedback automatically, but not to send current automatically, to avoid
  *       unintended gimbal movements.
+ * @note About coordinate: all components in this module use original coordinate of EACH motor. DO NOT directly add
+ *       negative sign to code in this module.
  */
+
+
+/**
+ * OPTION: Enable velocity calculation from feedback angle (using derivative.)
+ */
+#define GIMBAL_INTERFACE_ENABLE_VELOCITY_CALCULATION  TRUE
+
+/**
+ * OPTION: Enable clip at the moment of sending current.
+ * @note Only for safety. There is NO signal for clipping. Be sure to eliminate it if more current is needed.
+ */
+#define GIMBAL_INTERFACE_ENABLE_CLIP  FALSE
+
+#if GIMBAL_INTERFACE_ENABLE_CLIP
+#define GIMBAL_INTERFACE_MAX_CURRENT 5000
+#define GIMBAL_INTERFACE_BULLET_LOADER_MAX_CURRENT 5000
+#define GIMBAL_INTERFACE_BULLET_PLATE_MAX_CURRENT 5000
+#endif
+
 class GimbalIF : public GimbalBase {
 
 public:
@@ -105,12 +112,12 @@ public:
         time_msecs_t last_update_time = 0;
 
         /**
-         * @brief set current actual angle as the front angle
+         * Set current actual angle as the front angle
          */
         void reset_front_angle();
 
         /**
-         * @brief get total angle from the original front angle
+         * Get total angle from the original front angle
          * @return the accumulate angle since last reset_front_angle
          */
         float get_accumulate_angle();
@@ -168,6 +175,15 @@ private:
     enum friction_wheel_channel_t {
         FW_LEFT = 0,  // The left  friction wheel, PI5, channel 0
         FW_RIGHT = 1  // The right friction wheel, PI6, channel 1
+    };
+
+    enum motor_type_t {
+        RM6623,
+        M2006,
+        M3508,
+        GM6020,
+        RM3510,
+        MOTOR_TYPE_COUNT
     };
 
 };
