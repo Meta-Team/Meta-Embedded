@@ -5,14 +5,16 @@
 #ifndef META_INFANTRY_SENTRY_CHASSIS_CALCULATOR_H
 #define META_INFANTRY_SENTRY_CHASSIS_CALCULATOR_H
 
-#define CURVE_1_LEFT 30.0f
-#define CURVE_1_RIGHT 40.0f
-#define STRAIGHTWAY_LEFT 50.0f
-#define STRAIGHTWAY_RIGHT 60.0f
-#define CURVE_2_LEFT 70.0f
-#define CURVE_2_RIGHT 80.0f
+#define CURVE_1_RIGHT 30.0f
+#define CURVE_1_LEFT 40.0f
+#define STRAIGHTWAY_RIGHT 50.0f
+#define STRAIGHTWAY_LEFT 60.0f
+#define CURVE_2_RIGHT 70.0f
+#define CURVE_2_LEFT 80.0f
 #define CRUISING_SPEED 80.0f
 #define ESCAPE_SPEED 110.0f
+#define CRUISING_A2V_PID_PARAMS {20, 0, 0, 0, CRUISING_SPEED}
+#define ESCAPE_A2V_PID_PARAMS {20, 0, 0, 0, ESCAPE_SPEED}
 
 #include "sentry_chassis_interface.h"
 #include "pid_controller.hpp"
@@ -61,18 +63,9 @@ public:
     static void set_destination(float dist);
 
     /**
- * @brief use the present data and PIDController to calculate and set the target current that will be sent
- */
-    static void update_target_current();
-
-    /**
-     * @brief set the speed mode
-     * @param mode true for varying_speed mode, false for const_speed mode
+     * @brief use the present data and PIDController to calculate and set the target current that will be sent
      */
-    static void change_speed_mode(bool mode){
-        change_speed = mode;
-        if(change_speed) start_time = SYSTIME;
-    }
+    static void update_target_current();
 
     static void set_maximum_velocity(float new_velocity){
         maximum_speed = new_velocity;

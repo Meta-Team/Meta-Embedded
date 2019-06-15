@@ -10,6 +10,7 @@ SentryChassisIF::motor_t SentryChassisIF::motor[SENTRY_CHASSIS_MOTOR_COUNT];
 CANInterface *SentryChassisIF::can = nullptr;
 uint16_t SentryChassisIF::present_HP;
 bool SentryChassisIF::hit_detected;
+bool SentryChassisIF::escaping;
 SentryChassisIF::region_t SentryChassisIF::present_region;
 
 bool SentryChassisIF::send_currents() {
@@ -117,5 +118,7 @@ void SentryChassisIF::init(CANInterface *can_interface) {
     can = can_interface;
     present_HP = Referee::game_robot_state.remain_HP;
     hit_detected = false;
+    escaping = false;
+    present_region = ORIGIN;
     can->register_callback(0x201, 0x202, process_feedback);
 }

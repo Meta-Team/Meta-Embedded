@@ -33,9 +33,11 @@ class SentryChassisIF {
 
 public:
 
-    static uint16_t present_HP;
+    static uint16_t present_HP; // This is specially for FINAL_AUTO_MODE, indicating the present remained HP
 
-    static bool hit_detected;
+    static bool hit_detected; // This is specially for FINAL_AUTO_MODE, indicating whether sentry is hit
+
+    static bool escaping; // This is specially for FINAL_AUTO_MODE，indicating whether sentry is escaping or not
 
     enum motor_id_t {
         MOTOR_RIGHT,
@@ -43,12 +45,13 @@ public:
     };
 
     enum region_t{
+        ORIGIN,
         CURVE_1,
         STRAIGHTWAY,
         CURVE_2
     };
 
-    static region_t present_region;
+    static region_t present_region; // This is specially for FINAL_AUTO_MODE, indicating the rough region in which sentry is limited
 
     // Structure for each motor
     class motor_t {
