@@ -169,7 +169,7 @@ static void cmd_chassis_clear_position(BaseSequentialStream *chp, int argc, char
         chprintf(chp, "!cpe" SHELL_NEWLINE_STR);
         return;
     }
-    SentryChassisSKD::clear_position();
+    SentryChassisSKD::set_origin();
 }
 
 static void cmd_chassis_print_position(BaseSequentialStream *chp, int argc, char *argv[]){
@@ -265,7 +265,7 @@ int main(void) {
     Shell::addCommands(chassisCommands);
 
     can1.start(HIGHPRIO - 1);
-    SentryChassisSKD::init_controller(&can1);
+    SentryChassisSKD::init(&can1);
 
     chassisThread.start(NORMALPRIO);
 

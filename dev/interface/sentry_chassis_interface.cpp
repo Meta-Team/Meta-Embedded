@@ -5,13 +5,34 @@
 #include "sentry_chassis_interface.h"
 #include "common_macro.h"
 
-SentryChassisIF::motor_t SentryChassisIF::motor[SENTRY_CHASSIS_MOTOR_COUNT];
+/* Parameters */
 
-CANInterface *SentryChassisIF::can = nullptr;
+float SentryChassisIF::present_position;
+float SentryChassisIF::present_velocity;
+float SentryChassisIF::target_position;
+float SentryChassisIF::target_velocity;
+region_t SentryChassisIF::present_region;
 uint16_t SentryChassisIF::present_HP;
 bool SentryChassisIF::hit_detected;
 bool SentryChassisIF::escaping;
-SentryChassisIF::region_t SentryChassisIF::present_region;
+SentryChassisIF::motor_t SentryChassisIF::motor[SENTRY_CHASSIS_MOTOR_COUNT];
+CANInterface *SentryChassisIF::can;
+
+/* Functions */
+
+void SentryChassisIF::init(CANInterface *can_interface) {
+    Referee::init();
+    present_position = present_velocity = target_position = target_velocity = 0;
+    present_region = STRAIGHTWAY;
+    present_HP = Referee::game_robot_state.remain_HP;
+    hit_detected = false;
+    escaping = false;
+    motor[MOTOR_LEFT].clear_position();
+    motor[MOTOR_RIGHT].clear_position();
+    can = can_interface;
+
+    can->register_callback(0x201, 0x202, process_feedback);
+}
 
 bool SentryChassisIF::send_currents() {
 
@@ -59,7 +80,7 @@ void SentryChassisIF::process_feedback(CANRxFrame const*rxmsg) {
         angle_movement -= 8192;
     }
     // Update the actual data
-    motor[motor_id].actual_rpm_raw = (int16_t) (rxmsg->data8[2] << 8 | rxmsg->data8[3]);
+    auto actual_rpm_raw = (int16_t) (rxmsg->data8[2] << 8 | rxmsg->data8[3]);
     motor[motor_id].actual_current_raw = (int16_t) (rxmsg->data8[4] << 8 | rxmsg->data8[5]);
 
     // Update the actual angle
@@ -80,15 +101,18 @@ void SentryChassisIF::process_feedback(CANRxFrame const*rxmsg) {
 
     // See the meaning of the motor decelerate ratio
     motor[motor_id].actual_angular_velocity =
-            motor[motor_id].actual_rpm_raw / chassis_motor_decelerate_ratio * 360.0f / 60.0f;
+            actual_rpm_raw / chassis_motor_decelerate_ratio * 360.0f / 60.0f;
 
     // Update the position and velocity
 
     // Count the rounds first, like 1.5 rounds, -20.7 rounds, etc
     // Then transform it to displacement by multiplying the displacement_per_round factor
-    motor[motor_id].present_position = (motor[motor_id].actual_angle + 8192.0f * motor[motor_id].round_count) / 8192.0f * displacement_per_round / chassis_motor_decelerate_ratio;
+    motor[motor_id].motor_present_position = (motor[motor_id].actual_angle + 8192.0f * motor[motor_id].round_count) / 8192.0f * displacement_per_round / chassis_motor_decelerate_ratio;
     // The unit of actual_angular_velocity is degrees/s, so we first translate it into r/s and then multiplying by displacement_per_round factor
-    motor[motor_id].present_velocity = motor[motor_id].actual_angular_velocity / 360.0f * displacement_per_round;
+    motor[motor_id].motor_present_velocity = motor[motor_id].actual_angular_velocity / 360.0f * displacement_per_round;
+
+    present_position = (motor[MOTOR_RIGHT].motor_present_position + motor[MOTOR_LEFT].motor_present_position)/2;
+    present_velocity = (motor[MOTOR_RIGHT].motor_present_velocity + motor[MOTOR_LEFT].motor_present_velocity)/2;
 
     // Update the remained HP
     uint16_t new_present_HP = Referee::game_robot_state.remain_HP;
@@ -98,14 +122,4 @@ void SentryChassisIF::process_feedback(CANRxFrame const*rxmsg) {
         }
         present_HP = new_present_HP;
     }
-}
-
-void SentryChassisIF::init(CANInterface *can_interface) {
-    Referee::init();
-    can = can_interface;
-    present_HP = Referee::game_robot_state.remain_HP;
-    hit_detected = false;
-    escaping = false;
-    present_region = STRAIGHTWAY;
-    can->register_callback(0x201, 0x202, process_feedback);
 }

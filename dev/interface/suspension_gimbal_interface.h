@@ -104,6 +104,7 @@ public:
 
         friend SuspensionGimbalIF;
         friend class SuspensionGimbalSKD;
+        friend int main(void);
     };
     static MotorInterface yaw;
     static MotorInterface pitch;

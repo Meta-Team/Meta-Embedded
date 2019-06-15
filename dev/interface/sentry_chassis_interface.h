@@ -1,5 +1,6 @@
 //
 // Created by liuzikai on 2019-04-12.
+// Modified by zhukerui and jintengjun
 //
 
 #ifndef META_INFANTRY_SENTRY_CHASSIS_H
@@ -22,6 +23,12 @@
 
 #define SENTRY_CHASSIS_MOTOR_COUNT 2
 
+enum region_t{
+    CURVE_1,
+    STRAIGHTWAY,
+    CURVE_2
+};
+
 /**
  * @name SentryChassis
  * @brief interface to process chassis motor feedback and send target current.
@@ -33,73 +40,64 @@ class SentryChassisIF {
 
 public:
 
+    enum motor_id_t {
+        MOTOR_RIGHT,
+        MOTOR_LEFT
+    };
+
+    static float present_position;
+
+    static float present_velocity;
+
+    static float target_position;
+
+    static float target_velocity;
+
+    static region_t present_region; // This is specially for FINAL_AUTO_MODE, indicating the rough region in which sentry is limited
+
     static uint16_t present_HP; // This is specially for FINAL_AUTO_MODE, indicating the present remained HP
 
     static bool hit_detected; // This is specially for FINAL_AUTO_MODE, indicating whether sentry is hit
 
     static bool escaping; // This is specially for FINAL_AUTO_MODE，indicating whether sentry is escaping or not
 
-    enum motor_id_t {
-        MOTOR_RIGHT,
-        MOTOR_LEFT
-    };
-
-    enum region_t{
-        CURVE_1,
-        STRAIGHTWAY,
-        CURVE_2
-    };
-
-    static region_t present_region; // This is specially for FINAL_AUTO_MODE, indicating the rough region in which sentry is limited
-
     // Structure for each motor
-    class motor_t {
-
-    public:
+    struct motor_t {
 
         motor_id_t id;
-        float present_position;
-        float present_velocity;
+        float motor_present_position;
+        float motor_present_velocity;
+        int16_t actual_current_raw;
+        int16_t target_current;
 
     private:
-
-        int16_t actual_rpm_raw;
-        int16_t actual_current_raw;
-
         int16_t actual_angle = 0;
+        int16_t round_count = 0;
         int16_t last_angle_raw = 0; // 8192 for 360 degrees
-
         float actual_angular_velocity; // degree/s
-        int round_count = 0;
-        int target_current;
 
-        friend class SentryChassisThread;
-        friend class SentryChassisSKD;
+        void clear_position(){
+            motor_present_velocity = motor_present_position = 0;
+            actual_angle = round_count = target_current = 0;
+        }
+
         friend SentryChassisIF;
+        friend class SentryChassisSKD;
     };
 
     static motor_t motor[];
+
+    /**
+     * @brief set CAN interface for receiving and sending
+     * @param can_interface
+     */
+    static void init(CANInterface* can_interface);
 
     /**
      * @brief send all target currents
      * @return
      */
     static bool send_currents();
-
-    static float get_sentry_position(){
-        return (motor[MOTOR_LEFT].present_position + motor[MOTOR_RIGHT].present_position) / 2;
-    }
-
-    static float get_sentry_velocity(){
-        return (motor[MOTOR_LEFT].present_velocity + motor[MOTOR_RIGHT].present_velocity) / 2;
-    }
-
-protected:
-    /**
-     * @brief set CAN interface for receiving and sending
-     * @param can_interface
-     */
-    static void init(CANInterface* can_interface);
 
 
 

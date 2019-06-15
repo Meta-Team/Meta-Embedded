@@ -41,15 +41,15 @@ private:
             if (enable_right_feedback) {
                 Shell::printf("!gy,%u,%.2f,%.2f,%.2f,%.2f,%f,%d" SHELL_NEWLINE_STR,
                               SYSTIME,
-                              SentryChassisIF::motor[SentryChassisIF::MOTOR_RIGHT].present_position, SentryChassisSKD::get_target_position(),
-                              SentryChassisIF::motor[SentryChassisIF::MOTOR_RIGHT].present_velocity, SentryChassisSKD::get_target_velocity(),
+                              SentryChassisIF::motor[SentryChassisIF::MOTOR_RIGHT].motor_present_position, SentryChassisSKD::get_target_position(),
+                              SentryChassisIF::motor[SentryChassisIF::MOTOR_RIGHT].motor_present_velocity, SentryChassisSKD::get_target_velocity(),
                               Referee::power_heat_data.chassis_power, 20);
             }
             if (enable_left_feedback) {
                 Shell::printf("!gp,%u,%.2f,%.2f,%.2f,%.2f,%f,%d" SHELL_NEWLINE_STR,
                               SYSTIME,
-                              SentryChassisIF::motor[SentryChassisIF::MOTOR_LEFT].present_position, SentryChassisSKD::get_target_position(),
-                              SentryChassisIF::motor[SentryChassisIF::MOTOR_LEFT].present_velocity, SentryChassisSKD::get_target_velocity(),
+                              SentryChassisIF::motor[SentryChassisIF::MOTOR_LEFT].motor_present_position, SentryChassisSKD::get_target_position(),
+                              SentryChassisIF::motor[SentryChassisIF::MOTOR_LEFT].motor_present_velocity, SentryChassisSKD::get_target_velocity(),
                               Referee::power_heat_data.chassis_power, 20);
             }
 
@@ -208,7 +208,7 @@ static void cmd_chassis_clear_position(BaseSequentialStream *chp, int argc, char
         chprintf(chp, "!cpe" SHELL_NEWLINE_STR);
         return;
     }
-    SentryChassisSKD::clear_position();
+    SentryChassisSKD::set_origin();
 }
 
 static void cmd_chassis_print_position(BaseSequentialStream *chp, int argc, char *argv[]){
@@ -316,7 +316,7 @@ int main(void) {
     Shell::addCommands(chassisCommands);
 
     can1.start(HIGHPRIO - 1);
-    SentryChassisSKD::init_controller(&can1);
+    SentryChassisSKD::init(&can1);
 
     chassisFeedbackThread.start(NORMALPRIO - 1);
     chassisThread.start(NORMALPRIO);

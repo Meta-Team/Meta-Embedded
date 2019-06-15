@@ -77,122 +77,26 @@ class SentryThread : public chibios_rt::BaseStaticThread<1024> {
         SuspensionGimbalSKD::set_shoot_mode(SuspensionGimbalIF::OFF);
 
         /* Sentry Chassis */
-        SentryChassisSKD::left_v2i_pid.change_parameters(SENTRY_CHASSIS_PID_A2V_PARAMS);
-        SentryChassisSKD::right_v2i_pid.change_parameters(SENTRY_CHASSIS_PID_A2V_PARAMS);
+        SentryChassisSKD::sentry_a2v_pid.change_parameters(SENTRY_CHASSIS_PID_A2V_PARAMS);
+        SentryChassisSKD::left_v2i_pid.change_parameters(SENTRY_CHASSIS_PID_V2I_PARAMS);
+        SentryChassisSKD::right_v2i_pid.change_parameters(SENTRY_CHASSIS_PID_V2I_PARAMS);
         SentryChassisSKD::set_mode(SentryChassisSKD::STOP_MODE);
 
         while (!shouldTerminate()) {
 
-            if (Remote::rc.s1 == Remote::S_MIDDLE){
-                // Remote - Shooting (left) + Gimbal (right)
+            if (Remote::rc.s1 == Remote::S_UP) {
 
-                // PID #1: target angle -> target velocity
-                float yaw_target_velocity = GimbalController::yaw.angle_to_v(GimbalInterface::yaw.actual_angle,
-                                                                             -Remote::rc.ch0 * 60);
-                float pitch_target_velocity = GimbalController::pitch.angle_to_v(GimbalInterface::pitch.actual_angle,
-                                                                                 Remote::rc.ch1 * 20);
-                // PID #2: target velocity -> target current
-                GimbalInterface::yaw.target_current = (int) GimbalController::yaw.v_to_i(
-                        GIMBAL_YAW_ACTUAL_VELOCITY, yaw_target_velocity);
-                GimbalInterface::pitch.target_current = (int) GimbalController::pitch.v_to_i(
-                        GIMBAL_PITCH_ACTUAL_VELOCITY, pitch_target_velocity);
-
-            } else{
-                GimbalInterface::yaw.target_current = GimbalInterface::pitch.target_current = 0;
             }
 
             // Bullet loader part
-            GimbalController::bullet_loader.update_accumulation_angle(
-                    GimbalInterface::bullet_loader.actual_angle + GimbalInterface::bullet_loader.round_count * 360.0f);
 
-            if (Remote::rc.s1 == Remote::RC_S_MIDDLE && Remote::rc.s2 == Remote::RC_S_UP){
-                GimbalInterface::friction_wheels.duty_cycle = GIMBAL_REMOTE_FRICTION_WHEEL_DUTY_CYCLE;
-                if (Remote::rc.ch3 < 0.1) {
-                    if (!GimbalController::bullet_loader.get_shooting_status()) {
-                        GimbalController::bullet_loader.start_continuous_shooting();
-                    }
 
-                    GimbalInterface::bullet_loader.target_current = (int) GimbalController::bullet_loader.get_target_current(
-                            GimbalInterface::bullet_loader.angular_velocity, Remote::rc.ch3 * 360);
-                } else {
-                    if (GimbalController::bullet_loader.get_shooting_status()) {
-                        GimbalController::bullet_loader.stop_shooting();
-                    }
-                }
-            } else{
-                GimbalInterface::friction_wheels.duty_cycle = 0;
-                GimbalInterface::bullet_loader.target_current = 0;
-            }
-
-            GimbalInterface::send_gimbal_currents();
+            SuspensionGimbalIF::send_gimbal_currents();
 
             sleep(TIME_MS2I(GIMBAL_THREAD_INTERVAL));
         }
     }
 } sentryThread;
-
-/**
- * @name ChassisThread
- * @brief thread to control chassis
- * @pre RemoteInterpreter start receive
- * @pre initialize ChassisInterface with CAN driver
- */
-class ChassisThread : public chibios_rt::BaseStaticThread<1024> {
-
-
-    void main() final {
-
-        setName("sentry_chassis");
-
-        SentryChassisSKD::change_v_to_i_pid(SENTRY_CHASSIS_PID_V2I_PARAMS);
-        SentryChassisSKD::set_mode(SentryChassisSKD::STOP_MODE);
-        Remote::rc_status_t previous_state_1 = Remote::rc.s1;
-        Remote::rc_status_t previous_state_2 = Remote::rc.s2;
-        SentryChassisSKD::enable = true;
-
-        while (!shouldTerminate()) {
-
-            if(previous_state_1 != Remote::rc.s1 || previous_state_2 != Remote::rc.s2){
-                // If the remote state is changed, then we change the mode accordingly
-
-                if(Remote::rc.s1 == Remote::RC_S_MIDDLE && Remote::rc.s2 == Remote::RC_S_MIDDLE){
-
-                    // If it is changed to Remote - Constant speed mode
-
-                    if(!(previous_state_1 == Remote::RC_S_MIDDLE && previous_state_2 == Remote::RC_S_DOWN))
-                        // If it is not at the various speed mode previously, then we should set it to AUTO MODE and set the radius
-                        SentryChassisSKD::set_mode(SentryChassisSKD::SHUTTLED_MODE, 30);
-
-                    SentryChassisSKD::change_speed_mode(false);
-
-                } else if(Remote::rc.s1 == Remote::RC_S_MIDDLE && Remote::rc.s2 == Remote::RC_S_DOWN){
-
-                    // If it is changed to Remote - Various speed mode
-
-                    if(!(previous_state_1 == Remote::RC_S_MIDDLE && previous_state_2 == Remote::RC_S_MIDDLE))
-                        // If it is not at the constant speed mode previously, then we should set it to AUTO MODE and set the radius
-                        SentryChassisSKD::set_mode(SentryChassisSKD::SHUTTLED_MODE, 30);
-
-                    SentryChassisSKD::change_speed_mode(true);
-
-                } else{
-                    SentryChassisSKD::set_mode(SentryChassisSKD::STOP_MODE);
-                }
-
-                // Update the remote state
-                previous_state_1 = Remote::rc.s1;
-                previous_state_2 = Remote::rc.s2;
-            }
-
-            SentryChassisSKD::update_target_current();
-
-            SentryChassisSKD::send_currents();
-
-            sleep(TIME_MS2I(100));
-
-        }
-    }
-} chassisThread;
 
 
 int main(void) {
@@ -211,41 +115,32 @@ int main(void) {
 
     /** Basic IO Setup **/
     can1.start(HIGHPRIO - 1);
-    MPU6500Controller::start(HIGHPRIO - 2);
+    //MPU6500Controller::start(HIGHPRIO - 2);
     Remote::start_receive();
 
-    GimbalInterface::init(&can1, GIMBAL_YAW_FRONT_ANGLE_RAW, GIMBAL_PITCH_FRONT_ANGLE_RAW);
+    SuspensionGimbalIF::init(&can1, GIMBAL_YAW_FRONT_ANGLE_RAW, GIMBAL_PITCH_FRONT_ANGLE_RAW);
     SentryChassisSKD::init(&can1);
 
 
     /*** ------------ Period 2. Calibration and Start Logic Control Thread ----------- ***/
 
-//    while (palReadPad(STARTUP_BUTTON_PAD, STARTUP_BUTTON_PIN_ID) != STARTUP_BUTTON_PRESS_PAL_STATUS) {
-//        // Wait for the button to be pressed
-//        LED::green_toggle();
-//        chThdSleepMilliseconds(300);
-//    }
-//    /** User has pressed the button **/
 
     LED::green_on();
 
-//    /** Gimbal Calibration **/
-//    GimbalInterface::yaw.reset_front_angle();
-//    GimbalInterface::pitch.reset_front_angle();
-
     // Start the red spot
+    /*
     palSetPadMode(GPIOG, GPIOG_PIN13, PAL_MODE_OUTPUT_PUSHPULL);
     palSetPad(GPIOG, GPIOG_PIN13);
+     */
 
     /** Echo Gimbal Raws and Converted Angles **/
     chThdSleepMilliseconds(500);
     LOG("Gimbal Yaw: %u, %f, Pitch: %u, %f",
-        GimbalInterface::yaw.last_angle_raw, GimbalInterface::yaw.actual_angle,
-        GimbalInterface::pitch.last_angle_raw, GimbalInterface::pitch.actual_angle);
+        SuspensionGimbalIF::yaw.last_angle_raw, SuspensionGimbalIF::yaw.actual_angle,
+        SuspensionGimbalIF::pitch.last_angle_raw, SuspensionGimbalIF::pitch.actual_angle);
 
     /** Start Logic Control Thread **/
-    gimbalThread.start(NORMALPRIO);
-    chassisThread.start(NORMALPRIO - 1);
+    sentryThread.start(NORMALPRIO);
 
     /** Play the Startup Sound **/
     Buzzer::play_sound(Buzzer::sound_startup_intel, LOWPRIO);
