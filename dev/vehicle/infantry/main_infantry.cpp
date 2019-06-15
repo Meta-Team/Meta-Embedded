@@ -122,13 +122,13 @@ class GimbalThread : public chibios_rt::BaseStaticThread<1024> {
         setName("gimbal");
 
         /*** Parameters Set up***/
-        GimbalController::yaw.v_to_i_pid.change_parameters(GIMBAL_PID_YAW_V2I_PARAMS);
-        GimbalController::yaw.angle_to_v_pid.change_parameters(GIMBAL_PID_YAW_A2V_PARAMS);
-        GimbalController::pitch.v_to_i_pid.change_parameters(GIMBAL_PID_PITCH_V2I_PARAMS);
-        GimbalController::pitch.angle_to_v_pid.change_parameters(GIMBAL_PID_PITCH_A2V_PARAMS);
+        GimbalController::yaw.v_to_i_pid.change_parameters(GIMBAL_YAW_V2I_PID_PARAMS);
+        GimbalController::yaw.angle_to_v_pid.change_parameters(GIMBAL_YAW_A2V_PID_PARAMS);
+        GimbalController::pitch.v_to_i_pid.change_parameters(GIMBAL_PITCH_V2I_PID_PARAMS);
+        GimbalController::pitch.angle_to_v_pid.change_parameters(GIMBAL_PITCH_A2V_PID_PARAMS);
         GimbalInterface::yaw.enabled = GimbalInterface::pitch.enabled = true;
 
-        GimbalController::bullet_loader.v_to_i_pid.change_parameters(GIMBAL_PID_BULLET_LOADER_V2I_PARAMS);
+        GimbalController::bullet_loader.v_to_i_pid.change_parameters(GIMBAL_BL_V2I_PID_PARAMS);
         GimbalInterface::bullet_loader.enabled = GimbalInterface::friction_wheels.enabled = true;
 
         while (!shouldTerminate()) {

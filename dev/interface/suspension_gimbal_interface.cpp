@@ -5,49 +5,38 @@
 #include "suspension_gimbal_interface.h"
 #include "common_macro.h"
 
+shoot_mode_t SuspensionGimbalIF::shoot_mode;
 SuspensionGimbalIF::MotorInterface SuspensionGimbalIF::yaw;
 SuspensionGimbalIF::MotorInterface SuspensionGimbalIF::pitch;
 SuspensionGimbalIF::MotorInterface SuspensionGimbalIF::bullet_loader;
-CANInterface *SuspensionGimbalIF::can_ = nullptr;
-SuspensionGimbalIF::shoot_mode_t SuspensionGimbalIF::shoot_mode;
 float SuspensionGimbalIF::shoot_duty_cycles[3] = {0.0, 0.1, 0.3};
-PWMConfig constexpr SuspensionGimbalIF::FRICTION_WHEELS_PWM_CFG;
+CANInterface *SuspensionGimbalIF::can_;
+AHRSExt *SuspensionGimbalIF::ahrs_;
 
-void SuspensionGimbalIF::init(CANInterface *can_interface, AHRSExt *ahrsExt, uint16_t yaw_front_angle_raw, uint16_t pitch_front_angle_raw) {
-    ahrs_ = ahrsExt;
+void SuspensionGimbalIF::init(CANInterface *can_interface, AHRSExt *ahrsExt, float yaw_front_angle_raw, float pitch_front_angle_raw) {
     shoot_mode = OFF;
-
-    yaw.id = YAW_ID;
-    pitch.id = PIT_ID;
     // The reasonable angle movement of yaw and pitch are assumed to be limited in (-4096, 4096), in other word, (-180, 180) in degree
     // The actual angle of yaw and pitch are scaled to be in [-180, 180) in degree
 
-    yaw.angle_movement_lower_bound = pitch.angle_movement_lower_bound = -4096;
-    yaw.angle_movement_upper_bound = pitch.angle_movement_upper_bound = 4096;
-    yaw.actual_angle_lower_bound = pitch.actual_angle_lower_bound = -180.0f;
-    yaw.actual_angle_upper_bound = pitch.actual_angle_upper_bound = 180.0f;
-    yaw.deceleration_ratio = pitch.deceleration_ratio = 1.0f;
+    yaw.initializer(YAW_ID, -4096, 4096, -180.0f, 180.0f, 1.0f);
+    pitch.initializer(PIT_ID, -4096, 4096, -180.0f, 180.0f, 1.0f);
 
-    yaw.last_angle_raw = yaw_front_angle_raw;
-    pitch.last_angle_raw = pitch_front_angle_raw;
-
-    yaw.reset_front_angle();
-    pitch.reset_front_angle();
-
-    bullet_loader.id = BULLET_LOADER_ID;
     // The bullet loader are assumed to only move in positive direction, so there is no real upper limit
     // The angle_movement_lower_bound here is to debug the mild turn back due to the unexpected vibration
 
-    bullet_loader.angle_movement_lower_bound = -1000;
-    bullet_loader.angle_movement_upper_bound = 8193;
-    bullet_loader.actual_angle_lower_bound = 0.0f;
-    bullet_loader.actual_angle_upper_bound = 360.0f;
-    bullet_loader.deceleration_ratio = 36.0f;
+    bullet_loader.initializer(BULLET_LOADER_ID, -1000, 8193, 0.0f, 360.0f, 36.0f);
 
+    yaw.last_angle = yaw_front_angle_raw;
+    pitch.last_angle = pitch_front_angle_raw;
+
+    yaw.reset_front_angle();
+    pitch.reset_front_angle();
     bullet_loader.reset_front_angle();
 
     can_ = can_interface;
     can_->register_callback(0x205, 0x207, process_motor_feedback);
+
+    ahrs_ = ahrsExt;
 
     pwmStart(FRICTION_WHEEL_PWM_DRIVER, &FRICTION_WHEELS_PWM_CFG);
 
@@ -150,34 +139,35 @@ void SuspensionGimbalIF::process_motor_feedback(CANRxFrame const *rxmsg) {
         motor = &bullet_loader;
     }
     // Get the present absolute angle value by combining the data into a temporary variable
-    uint16_t new_actual_angle_raw = 0;
+    float new_actual_angle;
+
     if (rxmsg->SID==0x206) {
-        new_actual_angle_raw = (uint16_t)ahrs_->angle.y;
+        new_actual_angle = ahrs_->angle.y;
     } else if (rxmsg->SID == 0x205) {
-        new_actual_angle_raw = (uint16_t)ahrs_->angle.z;
+        new_actual_angle = ahrs_->angle.z;
     } else {
-        new_actual_angle_raw = (rxmsg->data8[0] << 8 | rxmsg->data8[1]);
+        new_actual_angle = (rxmsg->data8[0] << 8 | rxmsg->data8[1]) * 360.0f / motor->deceleration_ratio / 8192.0f;
     }
 
-    // Check whether this new raw angle is valid
-    if (new_actual_angle_raw > 8191) {
+    // Check whether this new angle is valid
+    if (new_actual_angle > 360.0f) {
         return;
     }
 
-    // Calculate the angle movement in raw data
-    int angle_movement = (int) new_actual_angle_raw - (int) motor->last_angle_raw;
+    // Calculate the angle movement
+    float angle_movement = new_actual_angle - motor->last_angle;
 
-    // update the last_angle_raw
-    motor->last_angle_raw = new_actual_angle_raw;
+    // update the last_angle
+    motor->last_angle = new_actual_angle;
 
-    // If angle_movement is too extreme between two samples, we grant that it's caused by moving over the 0(8192) point.
+    // For angle movement, we take the smaller curve as the real movement
     if (angle_movement < motor->angle_movement_lower_bound) {
-        angle_movement += 8192;
+        angle_movement += 360.0f;
     } else if (angle_movement > motor->angle_movement_upper_bound) {
-        angle_movement -= 8192;
+        angle_movement -= 360.0f;
     }
     // the key idea is to add the change of angle to actual angle.
-    motor->actual_angle = motor->actual_angle + angle_movement * 360.0f / motor->deceleration_ratio / 8192;
+    motor->actual_angle = motor->actual_angle + angle_movement;
 
     // modify the actual angle and update the round count when appropriate
     if (motor->actual_angle >= motor->actual_angle_upper_bound) {
@@ -189,6 +179,8 @@ void SuspensionGimbalIF::process_motor_feedback(CANRxFrame const *rxmsg) {
         motor->round_count--;//round count decreases 1
     }
 
+    motor->angular_position = motor->actual_angle + motor->round_count * 360.0f;
+
     // Calculate the angular velocity
     if(rxmsg->SID == 0x205 || rxmsg->SID == 0x207) {
         // For yaw or bullet_loader, get the velocity directly
@@ -196,9 +188,9 @@ void SuspensionGimbalIF::process_motor_feedback(CANRxFrame const *rxmsg) {
         motor->angular_velocity = ((int16_t) (rxmsg->data8[2] << 8 | rxmsg->data8[3])) / motor->deceleration_ratio * 6.0f;
     }else{
         // For pitch, sum angle movements for VELOCITY_SAMPLE_INTERVAL times, and calculate the average.
-        static int movements[VELOCITY_SAMPLE_INTERVAL];
+        static float movements[VELOCITY_SAMPLE_INTERVAL];
         static time_msecs_t times[VELOCITY_SAMPLE_INTERVAL];
-        static int movement_sum = 0;
+        static float movement_sum = 0;
         static int sample_count = 0;
         static int index = 0;
         movements[index] = angle_movement;
@@ -206,7 +198,7 @@ void SuspensionGimbalIF::process_motor_feedback(CANRxFrame const *rxmsg) {
         movement_sum += angle_movement;
         sample_count++;
         if (sample_count >= VELOCITY_SAMPLE_INTERVAL){
-            motor->angular_velocity = movement_sum * 360.0f * 1000.0f / 8192.0f / (float)(times[index] - times[(index + 1) % VELOCITY_SAMPLE_INTERVAL]);
+            motor->angular_velocity = movement_sum * 1000.0f / (float)(times[index] - times[(index + 1) % VELOCITY_SAMPLE_INTERVAL]);
             // Update the next index
             index = (index + 1) % VELOCITY_SAMPLE_INTERVAL;
             movement_sum -= movements[index];

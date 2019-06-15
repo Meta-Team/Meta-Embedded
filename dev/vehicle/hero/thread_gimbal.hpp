@@ -29,10 +29,10 @@
 
          setName("gimbal");
 
-         Gimbal::change_pid_params(GIMBAL_PID_YAW_A2V_PARAMS,
-                                   GIMBAL_PID_YAW_V2I_PARAMS,
-                                   GIMBAL_PID_PITCH_A2V_PARAMS,
-                                   GIMBAL_PID_PITCH_V2I_PARAMS);
+         Gimbal::change_pid_params(GIMBAL_YAW_A2V_PID_PARAMS,
+                                   GIMBAL_YAW_V2I_PID_PARAMS,
+                                   GIMBAL_PITCH_A2V_PID_PARAMS,
+                                   GIMBAL_PITCH_V2I_PID_PARAMS);
 
          while(!shouldTerminate()) {
 

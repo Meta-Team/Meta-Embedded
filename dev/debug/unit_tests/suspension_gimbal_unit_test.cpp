@@ -173,11 +173,11 @@ static void cmd_gimbal_set_target_velocities(BaseSequentialStream *chp, int argc
     yaw_target_velocity = Shell::atof(argv[0]);
     pitch_target_velocity = Shell::atof(argv[1]);
 
-    SuspensionGimbalSKD::yaw_v_to_i.clear_i_out();
-    SuspensionGimbalSKD::yaw_angle_to_v.clear_i_out();
-    SuspensionGimbalSKD::pitch_v_to_i.clear_i_out();
-    SuspensionGimbalSKD::pitch_angle_to_v.clear_i_out();
-    SuspensionGimbalSKD::BL_v_to_i.clear_i_out();
+    SuspensionGimbalSKD::yaw_v2i_pid.clear_i_out();
+    SuspensionGimbalSKD::yaw_a2v_pid.clear_i_out();
+    SuspensionGimbalSKD::pitch_v2i_pid.clear_i_out();
+    SuspensionGimbalSKD::pitch_a2v_pid.clear_i_out();
+    SuspensionGimbalSKD::BL_v2i_pid.clear_i_out();
 
     enable_angle_to_v_pid = false;
 }
@@ -202,11 +202,11 @@ static void cmd_gimbal_set_target_angle(BaseSequentialStream *chp, int argc, cha
 
     target_pitch_angle = Shell::atof(argv[1]);
 
-    SuspensionGimbalSKD::yaw_v_to_i.clear_i_out();
-    SuspensionGimbalSKD::yaw_angle_to_v.clear_i_out();
-    SuspensionGimbalSKD::pitch_v_to_i.clear_i_out();
-    SuspensionGimbalSKD::pitch_angle_to_v.clear_i_out();
-    SuspensionGimbalSKD::BL_v_to_i.clear_i_out();
+    SuspensionGimbalSKD::yaw_v2i_pid.clear_i_out();
+    SuspensionGimbalSKD::yaw_a2v_pid.clear_i_out();
+    SuspensionGimbalSKD::pitch_v2i_pid.clear_i_out();
+    SuspensionGimbalSKD::pitch_a2v_pid.clear_i_out();
+    SuspensionGimbalSKD::BL_v2i_pid.clear_i_out();
 
     enable_angle_to_v_pid = true;
 }
@@ -227,11 +227,11 @@ static void cmd_gimbal_set_parameters(BaseSequentialStream *chp, int argc, char 
     }
 
     PIDController *pidController = nullptr;
-    if (*argv[0] == '0' && *argv[1] == '0') pidController = &SuspensionGimbalSKD::yaw_angle_to_v;
-    else if (*argv[0] == '0' && *argv[1] == '1') pidController = &SuspensionGimbalSKD::yaw_v_to_i;
-    else if (*argv[0] == '1' && *argv[1] == '0') pidController = &SuspensionGimbalSKD::pitch_angle_to_v;
-    else if (*argv[0] == '1' && *argv[1] == '1') pidController = &SuspensionGimbalSKD::pitch_v_to_i;
-    else if (*argv[0] == '2' && *argv[1] == '1') pidController = &SuspensionGimbalSKD::BL_v_to_i;
+    if (*argv[0] == '0' && *argv[1] == '0') pidController = &SuspensionGimbalSKD::yaw_a2v_pid;
+    else if (*argv[0] == '0' && *argv[1] == '1') pidController = &SuspensionGimbalSKD::yaw_v2i_pid;
+    else if (*argv[0] == '1' && *argv[1] == '0') pidController = &SuspensionGimbalSKD::pitch_a2v_pid;
+    else if (*argv[0] == '1' && *argv[1] == '1') pidController = &SuspensionGimbalSKD::pitch_v2i_pid;
+    else if (*argv[0] == '2' && *argv[1] == '1') pidController = &SuspensionGimbalSKD::BL_v2i_pid;
     else {
         chprintf(chp, "!pe" SHELL_NEWLINE_STR);  // echo parameters error
         return;
@@ -242,11 +242,11 @@ static void cmd_gimbal_set_parameters(BaseSequentialStream *chp, int argc, char 
                                      Shell::atof(argv[4]),
                                      Shell::atof(argv[5]),
                                      Shell::atof(argv[6])});
-    SuspensionGimbalSKD::yaw_v_to_i.clear_i_out();
-    SuspensionGimbalSKD::yaw_angle_to_v.clear_i_out();
-    SuspensionGimbalSKD::pitch_v_to_i.clear_i_out();
-    SuspensionGimbalSKD::pitch_angle_to_v.clear_i_out();
-    SuspensionGimbalSKD::BL_v_to_i.clear_i_out();
+    SuspensionGimbalSKD::yaw_v2i_pid.clear_i_out();
+    SuspensionGimbalSKD::yaw_a2v_pid.clear_i_out();
+    SuspensionGimbalSKD::pitch_v2i_pid.clear_i_out();
+    SuspensionGimbalSKD::pitch_a2v_pid.clear_i_out();
+    SuspensionGimbalSKD::BL_v2i_pid.clear_i_out();
     chprintf(chp, "!ps" SHELL_NEWLINE_STR); // echo parameters set
 }
 
@@ -278,15 +278,15 @@ static void cmd_gimbal_echo_parameters(BaseSequentialStream *chp, int argc, char
     }
 
     chprintf(chp, "yaw angle_to_v:   ");
-    _cmd_gimbal_echo_parameters(chp, SuspensionGimbalSKD::yaw_angle_to_v.get_parameters());
+    _cmd_gimbal_echo_parameters(chp, SuspensionGimbalSKD::yaw_a2v_pid.get_parameters());
     chprintf(chp, "yaw v_to_i:       ");
-    _cmd_gimbal_echo_parameters(chp, SuspensionGimbalSKD::yaw_v_to_i.get_parameters());
+    _cmd_gimbal_echo_parameters(chp, SuspensionGimbalSKD::yaw_v2i_pid.get_parameters());
     chprintf(chp, "pitch angle_to_v: ");
-    _cmd_gimbal_echo_parameters(chp, SuspensionGimbalSKD::pitch_angle_to_v.get_parameters());
+    _cmd_gimbal_echo_parameters(chp, SuspensionGimbalSKD::pitch_a2v_pid.get_parameters());
     chprintf(chp, "pitch v_to_i:     ");
-    _cmd_gimbal_echo_parameters(chp, SuspensionGimbalSKD::pitch_v_to_i.get_parameters());
+    _cmd_gimbal_echo_parameters(chp, SuspensionGimbalSKD::pitch_v2i_pid.get_parameters());
     chprintf(chp, "bullet_loader v_to_i:     ");
-    _cmd_gimbal_echo_parameters(chp, SuspensionGimbalSKD::BL_v_to_i.get_parameters());
+    _cmd_gimbal_echo_parameters(chp, SuspensionGimbalSKD::BL_v2i_pid.get_parameters());
 }
 
 static void cmd_gimbal_continuous_shooting(BaseSequentialStream *chp, int argc, char *argv[]) {
@@ -360,19 +360,19 @@ protected:
                 } else{
                     if (SuspensionGimbalIF::yaw.status()) {
                         SuspensionGimbalSKD::set_target_signal(SuspensionGimbalIF::YAW_ID,
-                                                                      (int) SuspensionGimbalSKD::yaw_v_to_i.calc(
+                                                                      (int) SuspensionGimbalSKD::yaw_v2i_pid.calc(
                                                                               SuspensionGimbalIF::yaw.angular_velocity,
                                                                               yaw_target_velocity));
                     }
                     if (SuspensionGimbalIF::pitch.status()) {
                         SuspensionGimbalSKD::set_target_signal(SuspensionGimbalIF::PIT_ID,
-                                                                      (int) SuspensionGimbalSKD::pitch_v_to_i.calc(
+                                                                      (int) SuspensionGimbalSKD::pitch_v2i_pid.calc(
                                                                               SuspensionGimbalIF::pitch.angular_velocity,
                                                                               pitch_target_velocity));
                     }
                     if (SuspensionGimbalIF::bullet_loader.status()) {
                         SuspensionGimbalSKD::set_target_signal(SuspensionGimbalIF::BULLET_LOADER_ID,
-                                                                      (int) SuspensionGimbalSKD::BL_v_to_i.calc(
+                                                                      (int) SuspensionGimbalSKD::BL_v2i_pid.calc(
                                                                               SuspensionGimbalIF::bullet_loader.angular_velocity,
                                                                               BULLET_LOADER_SPEED));
                     }

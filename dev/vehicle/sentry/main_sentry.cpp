@@ -40,6 +40,7 @@
  */
 
 CANInterface can1(&CAND1);
+AHRSExt ahrsExt;
 
 /** Threads **/
 
@@ -66,18 +67,18 @@ class SentryThread : public chibios_rt::BaseStaticThread<1024> {
         /*** Parameters Set up***/
 
         /* Suspension Gimbal */
-        SuspensionGimbalSKD::yaw_v_to_i.change_parameters(GIMBAL_PID_YAW_V2I_PARAMS);
-        SuspensionGimbalSKD::yaw_angle_to_v.change_parameters(GIMBAL_PID_YAW_A2V_PARAMS);
-        SuspensionGimbalSKD::pitch_v_to_i.change_parameters(GIMBAL_PID_PITCH_V2I_PARAMS);
-        SuspensionGimbalSKD::pitch_angle_to_v.change_parameters(GIMBAL_PID_PITCH_A2V_PARAMS);
-        SuspensionGimbalSKD::BL_v_to_i.change_parameters(GIMBAL_PID_BULLET_LOADER_V2I_PARAMS);
+        SuspensionGimbalSKD::yaw_v2i_pid.change_parameters(GIMBAL_YAW_V2I_PID_PARAMS);
+        SuspensionGimbalSKD::yaw_a2v_pid.change_parameters(GIMBAL_YAW_A2V_PID_PARAMS);
+        SuspensionGimbalSKD::pitch_v2i_pid.change_parameters(GIMBAL_PITCH_V2I_PID_PARAMS);
+        SuspensionGimbalSKD::pitch_a2v_pid.change_parameters(GIMBAL_PITCH_A2V_PID_PARAMS);
+        SuspensionGimbalSKD::BL_v2i_pid.change_parameters(GIMBAL_BL_V2I_PID_PARAMS);
         SuspensionGimbalSKD::set_motor_enable(SuspensionGimbalIF::YAW_ID, true);
         SuspensionGimbalSKD::set_motor_enable(SuspensionGimbalIF::PIT_ID, true);
         SuspensionGimbalSKD::set_motor_enable(SuspensionGimbalIF::BULLET_LOADER_ID, true);
-        SuspensionGimbalSKD::set_shoot_mode(SuspensionGimbalIF::OFF);
+        SuspensionGimbalSKD::set_shoot_mode(OFF);
 
         /* Sentry Chassis */
-        SentryChassisSKD::sentry_a2v_pid.change_parameters(SENTRY_CHASSIS_PID_A2V_PARAMS);
+        SentryChassisSKD::sentry_a2v_pid.change_parameters(CRUISING_PID_A2V_PARAMS);
         SentryChassisSKD::left_v2i_pid.change_parameters(SENTRY_CHASSIS_PID_V2I_PARAMS);
         SentryChassisSKD::right_v2i_pid.change_parameters(SENTRY_CHASSIS_PID_V2I_PARAMS);
         SentryChassisSKD::set_mode(SentryChassisSKD::STOP_MODE);
@@ -118,8 +119,8 @@ int main(void) {
     //MPU6500Controller::start(HIGHPRIO - 2);
     Remote::start_receive();
 
-    SuspensionGimbalIF::init(&can1, GIMBAL_YAW_FRONT_ANGLE_RAW, GIMBAL_PITCH_FRONT_ANGLE_RAW);
-    SentryChassisSKD::init(&can1);
+    SuspensionGimbalIF::init(&can1, &ahrsExt, GIMBAL_YAW_FRONT_ANGLE_RAW, GIMBAL_PITCH_FRONT_ANGLE_RAW);
+    SentryChassisSKD::init();
 
 
     /*** ------------ Period 2. Calibration and Start Logic Control Thread ----------- ***/
@@ -136,8 +137,8 @@ int main(void) {
     /** Echo Gimbal Raws and Converted Angles **/
     chThdSleepMilliseconds(500);
     LOG("Gimbal Yaw: %u, %f, Pitch: %u, %f",
-        SuspensionGimbalIF::yaw.last_angle_raw, SuspensionGimbalIF::yaw.actual_angle,
-        SuspensionGimbalIF::pitch.last_angle_raw, SuspensionGimbalIF::pitch.actual_angle);
+        SuspensionGimbalIF::yaw.last_angle, SuspensionGimbalIF::yaw.actual_angle,
+        SuspensionGimbalIF::pitch.last_angle, SuspensionGimbalIF::pitch.actual_angle);
 
     /** Start Logic Control Thread **/
     sentryThread.start(NORMALPRIO);

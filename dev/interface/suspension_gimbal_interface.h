@@ -41,6 +41,13 @@
  *        2. Read feedback from variables.
  *           Write target voltage / target current / duty cycle to variables, then call send_gimbal_currents.
  */
+
+typedef enum {
+    OFF = 0,
+    AWAIT = 1,
+    SHOOT = 2,
+} shoot_mode_t;
+
 class SuspensionGimbalIF {
 
 public:
@@ -51,26 +58,30 @@ public:
         BULLET_LOADER_ID = 2
     } motor_id_t;
 
-    typedef enum {
-        OFF = 0,
-        AWAIT = 1,
-        SHOOT = 2,
-    } shoot_mode_t;
+    static shoot_mode_t shoot_mode;
 
     /**
      * Interface for each motor, which is used for yaw, pitch and bullet loader motors
      */
-    class MotorInterface {
+    struct MotorInterface {
 
-    public:
         motor_id_t id;
-        float angular_velocity = 0.0f;  // instant angular velocity [degree/s], positive when counter-clockwise, negative otherwise
 
         bool enabled = false;  // if not enabled, 0 current will be sent in send_gimbal_currents
-        // +: clockwise, -: counter-clockwise
-        int target_signal = 0;  // the current/voltage that we want the motor to have
-        float get_angular_position(){
-            return actual_angle + 360.0f * round_count;
+
+        float angular_velocity = 0.0f;  // [degree/s]
+
+        float angular_position; // [degree]
+
+        int16_t target_signal = 0;  // the current/voltage that we want the motor to have
+
+        void initializer(motor_id_t id_, float movement_LB, float movement_UB, float angle_LB, float angle_UB, float DR){
+            id = id_;
+            angle_movement_lower_bound = movement_LB;
+            angle_movement_upper_bound = movement_UB;
+            actual_angle_lower_bound = angle_LB;
+            actual_angle_upper_bound = angle_UB;
+            deceleration_ratio = DR;
         }
 
     private:
@@ -78,13 +89,13 @@ public:
          * Normalized Angle and Rounds
          */
         float actual_angle = 0.0f; // the actual angle [degree] of the gimbal, compared with the front
-        uint16_t last_angle_raw = 0;  // the raw angle of the newest feedback, in [0, 8191]
+        float last_angle = 0.0f;  // the raw angle of the newest feedback, in [0, 8191]
         int round_count = 0;  // the rounds that the gimbal turns
         float target_angle = 0;
 
         // Some const parameters for feedback processing
-        int angle_movement_lower_bound;
-        int angle_movement_upper_bound;
+        float angle_movement_lower_bound;
+        float angle_movement_upper_bound;
         float actual_angle_lower_bound;
         float actual_angle_upper_bound;
         float deceleration_ratio;
@@ -100,15 +111,10 @@ public:
 
         friend SuspensionGimbalIF;
         friend class SuspensionGimbalSKD;
-        friend int main(void);
     };
     static MotorInterface yaw;
     static MotorInterface pitch;
     static MotorInterface bullet_loader;
-
-    static shoot_mode_t shoot_status(){
-        return  shoot_mode;
-    }
 
     /**
      * @brief set the CAN interface, start PWM driver and set the PID
@@ -116,7 +122,7 @@ public:
      * @param yaw_front_angle_raw   raw angle of yaw when gimbal points straight forward, depending on installation.
      * @param pitch_front_angle_raw   raw angle of pitch when gimbal points straight forward, depending on installation.
      */
-    static void init(CANInterface *can_interface, AHRSExt *ahrsExt, uint16_t yaw_front_angle_raw = 0, uint16_t pitch_front_angle_raw = 0);
+    static void init(CANInterface *can_interface, AHRSExt *ahrsExt, float yaw_front_angle_raw = 0, float pitch_front_angle_raw = 0);
 
     /**
      * @brief send target_current of each motor
@@ -124,13 +130,17 @@ public:
      */
     static bool send_gimbal_currents();
 
-protected:
-
-    static shoot_mode_t shoot_mode;
-
 private:
 
+    enum friction_wheel_channel_t {
+        FW_LEFT = 0,  // The left friction wheel, PI5, channel 0
+        FW_RIGHT = 1  // The right friction wheel, PI6, channel 1
+    };
+
+    static float shoot_duty_cycles[3];  // the array contains the duty cycles for different shoot modes
+
     static CANInterface *can_;
+
     static AHRSExt *ahrs_;
 
     friend CANInterface;
@@ -145,12 +155,6 @@ private:
     static constexpr int VELOCITY_SAMPLE_INTERVAL = 50;
 
     static constexpr PWMDriver *FRICTION_WHEEL_PWM_DRIVER = &PWMD8;
-
-    enum friction_wheel_channel_t {
-        FW_LEFT = 0,  // The left friction wheel, PI5, channel 0
-        FW_RIGHT = 1  // The right friction wheel, PI6, channel 1
-    };
-    static float shoot_duty_cycles[3];  // the array contains the duty cycles for different shoot modes
 
     static constexpr PWMConfig FRICTION_WHEELS_PWM_CFG = {
             50000,   // frequency

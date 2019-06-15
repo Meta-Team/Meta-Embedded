@@ -24,7 +24,7 @@
 
          setName("shoot");
 
-         Shoot::change_pid_params(GIMBAL_PID_BULLET_LOADER_V2I_PARAMS, GIMBAL_PID_BULLET_PLATE_V2I_PARAMS);
+         Shoot::change_pid_params(GIMBAL_BL_V2I_PID_PARAMS, GIMBAL_PID_BULLET_PLATE_V2I_PARAMS);
          while (!shouldTerminate()) {
 
 
