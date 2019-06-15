@@ -30,13 +30,8 @@ bool SentryChassisIF::send_currents() {
 #if SENTRY_CHASSIS_ENABLE_CLIP
         ABS_CROP(motor[i].target_current, SENTRY_CHASSIS_MAX_CURRENT);
 #endif
-        if(i == MOTOR_LEFT){
-            txmsg.data8[i * 2] = (uint8_t) ((-motor[i].target_current) >> 8);
-            txmsg.data8[i * 2 + 1] = (uint8_t) (-motor[i].target_current);
-        } else{
-            txmsg.data8[i * 2] = (uint8_t) ((motor[i].target_current) >> 8);
-            txmsg.data8[i * 2 + 1] = (uint8_t) (motor[i].target_current);
-        }
+        txmsg.data8[i * 2] = (uint8_t) ((motor[i].target_current) >> 8);
+        txmsg.data8[i * 2 + 1] = (uint8_t) (motor[i].target_current);
     }
 
     can->send_msg(&txmsg);
@@ -67,14 +62,6 @@ void SentryChassisIF::process_feedback(CANRxFrame const*rxmsg) {
     motor[motor_id].actual_rpm_raw = (int16_t) (rxmsg->data8[2] << 8 | rxmsg->data8[3]);
     motor[motor_id].actual_current_raw = (int16_t) (rxmsg->data8[4] << 8 | rxmsg->data8[5]);
 
-    // Modify the data to the same direction, let the direction of the right wheel be the correct direction, and the left wheel is on the opposite
-/*
-    if (motor_id == MOTOR_LEFT){
-        angle_movement = - angle_movement;
-        motor[motor_id].actual_rpm_raw = - motor[motor_id].actual_rpm_raw;
-        motor[motor_id].actual_current_raw = - motor[motor_id].actual_current_raw;
-    }
-*/
     // Update the actual angle
     motor[motor_id].actual_angle += angle_movement;
     // modify the actual angle and update the round count when appropriate
@@ -119,6 +106,6 @@ void SentryChassisIF::init(CANInterface *can_interface) {
     present_HP = Referee::game_robot_state.remain_HP;
     hit_detected = false;
     escaping = false;
-    present_region = ORIGIN;
+    present_region = STRAIGHTWAY;
     can->register_callback(0x201, 0x202, process_feedback);
 }
