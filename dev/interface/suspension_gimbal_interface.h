@@ -7,6 +7,7 @@
 #include "ch.hpp"
 #include "hal.h"
 #include "can_interface.h"
+#include "ahrs_ext.h"
 
 /* Board Guard */
 #if defined(BOARD_RM_2018_A)
@@ -65,19 +66,14 @@ public:
         motor_id_t id;
         float angular_velocity = 0.0f;  // instant angular velocity [degree/s], positive when counter-clockwise, negative otherwise
 
-        bool status(){ return  enabled;}
-        int get_target_signal(){ return target_signal;}
+        bool enabled = false;  // if not enabled, 0 current will be sent in send_gimbal_currents
+        // +: clockwise, -: counter-clockwise
+        int target_signal = 0;  // the current/voltage that we want the motor to have
         float get_angular_position(){
             return actual_angle + 360.0f * round_count;
         }
 
     private:
-
-        bool enabled = false;  // if not enabled, 0 current will be sent in send_gimbal_currents
-
-        // +: clockwise, -: counter-clockwise
-        int target_signal = 0;  // the current/voltage that we want the motor to have
-
         /**
          * Normalized Angle and Rounds
          */
@@ -120,7 +116,7 @@ public:
      * @param yaw_front_angle_raw   raw angle of yaw when gimbal points straight forward, depending on installation.
      * @param pitch_front_angle_raw   raw angle of pitch when gimbal points straight forward, depending on installation.
      */
-    static void init(CANInterface *can_interface, uint16_t yaw_front_angle_raw = 0, uint16_t pitch_front_angle_raw = 0);
+    static void init(CANInterface *can_interface, AHRSExt *ahrsExt, uint16_t yaw_front_angle_raw = 0, uint16_t pitch_front_angle_raw = 0);
 
     /**
      * @brief send target_current of each motor
@@ -135,6 +131,7 @@ protected:
 private:
 
     static CANInterface *can_;
+    static AHRSExt *ahrs_;
 
     friend CANInterface;
 

@@ -13,7 +13,8 @@ SuspensionGimbalIF::shoot_mode_t SuspensionGimbalIF::shoot_mode;
 float SuspensionGimbalIF::shoot_duty_cycles[3] = {0.0, 0.1, 0.3};
 PWMConfig constexpr SuspensionGimbalIF::FRICTION_WHEELS_PWM_CFG;
 
-void SuspensionGimbalIF::init(CANInterface *can_interface, uint16_t yaw_front_angle_raw, uint16_t pitch_front_angle_raw) {
+void SuspensionGimbalIF::init(CANInterface *can_interface, AHRSExt *ahrsExt, uint16_t yaw_front_angle_raw, uint16_t pitch_front_angle_raw) {
+    ahrs_ = ahrsExt;
     shoot_mode = OFF;
 
     yaw.id = YAW_ID;
@@ -149,7 +150,14 @@ void SuspensionGimbalIF::process_motor_feedback(CANRxFrame const *rxmsg) {
         motor = &bullet_loader;
     }
     // Get the present absolute angle value by combining the data into a temporary variable
-    uint16_t new_actual_angle_raw = (rxmsg->data8[0] << 8 | rxmsg->data8[1]);
+    uint16_t new_actual_angle_raw = 0;
+    if (rxmsg->SID==0x206) {
+        new_actual_angle_raw = (uint16_t)ahrs_->angle.y;
+    } else if (rxmsg->SID == 0x205) {
+        new_actual_angle_raw = (uint16_t)ahrs_->angle.z;
+    } else {
+        new_actual_angle_raw = (rxmsg->data8[0] << 8 | rxmsg->data8[1]);
+    }
 
     // Check whether this new raw angle is valid
     if (new_actual_angle_raw > 8191) {
