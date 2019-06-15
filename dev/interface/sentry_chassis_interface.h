@@ -45,7 +45,6 @@ public:
     };
 
     enum region_t{
-        ORIGIN,
         CURVE_1,
         STRAIGHTWAY,
         CURVE_2

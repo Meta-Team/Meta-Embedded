@@ -35,6 +35,7 @@ public:
     };
 
     static bool enable;
+    static time_msecs_t evasive_time;
     static PIDController sentry_a2v_pid;
     static PIDController right_v2i_pid;
     static PIDController left_v2i_pid;
@@ -105,10 +106,6 @@ public:
 private:
 
     static sentry_mode_t running_mode;
-
-    static bool change_speed;
-
-    static time_msecs_t start_time;
 
     static float target_position;
 
