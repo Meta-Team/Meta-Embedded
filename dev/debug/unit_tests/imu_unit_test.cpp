@@ -15,7 +15,7 @@ using namespace chibios_rt;
 class AHRSFeedbackThread : public BaseStaticThread<1024> {
 protected:
     void main() final {
-        setName("imu");
+        setName("ahrs");
         MPU6500::start(HIGHPRIO - 1);
         AHRS::init(HIGHPRIO - 2);
         while (!shouldTerminate()) {
