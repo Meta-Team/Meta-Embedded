@@ -85,18 +85,20 @@
                              Shoot::set_friction_wheels(GIMBAL_PC_FRICTION_WHEEL_DUTY_CYCLE);
                              sleep(TIME_I2MS(500));
                          }
-                         if (loaded_bullet[0] == FALSE){ // here we may need more methods to check.
-                             // Though the algorithm designed this,
-                             // it could be more safer to have a new sensor.
-                             bullet_target_angle += 144.0f;
-                             loaded_bullet[0] = loaded_bullet[2];
-                             loaded_bullet[1] = TRUE;
-                             loaded_bullet[2] = TRUE;
-                         } else {
-                             bullet_target_angle += 72.0f;
-                             loaded_bullet[0] = loaded_bullet [1];
-                             loaded_bullet[1] = loaded_bullet [2];
-                             loaded_bullet[2] = FALSE;
+                         if(bullet_target_angle - Shoot::feedback[2].actual_angle < 3.0f) {
+                             if (loaded_bullet[0] == FALSE){ // here we may need more methods to check.
+                                 // Though the algorithm designed this,
+                                 // it could be more safer to have a new sensor.
+                                 bullet_target_angle += 144.0f;
+                                 loaded_bullet[0] = loaded_bullet[2];
+                                 loaded_bullet[1] = TRUE;
+                                 loaded_bullet[2] = TRUE;
+                             } else {
+                                 bullet_target_angle += 72.0f;
+                                 loaded_bullet[0] = loaded_bullet [1];
+                                 loaded_bullet[1] = loaded_bullet [2];
+                                 loaded_bullet[2] = FALSE;
+                             }
                          }
                      }
 
@@ -138,19 +140,20 @@
                              Shoot::set_friction_wheels(GIMBAL_PC_FRICTION_WHEEL_DUTY_CYCLE);
                              sleep(TIME_I2MS(500));
                          }
-
-                         if (loaded_bullet[0] == FALSE){ // here we may need more methods to check.
-                             // Though the algorithm designed this,
-                             // it could be more safer to have a new sensor.
-                             bullet_target_angle += 144.0f;
-                             loaded_bullet[0] = loaded_bullet[2];
-                             loaded_bullet[1] = TRUE;
-                             loaded_bullet[2] = TRUE;
-                         } else {
-                             bullet_target_angle += 72.0f;
-                             loaded_bullet[0] = loaded_bullet [1];
-                             loaded_bullet[1] = loaded_bullet [2];
-                             loaded_bullet[2] = FALSE;
+                         if(bullet_target_angle - Shoot::feedback[2].actual_angle < 3.0f) {
+                             if (loaded_bullet[0] == FALSE){ // here we may need more methods to check.
+                                 // Though the algorithm designed this,
+                                 // it could be more safer to have a new sensor.
+                                 bullet_target_angle += 144.0f;
+                                 loaded_bullet[0] = loaded_bullet[2];
+                                 loaded_bullet[1] = TRUE;
+                                 loaded_bullet[2] = TRUE;
+                             } else {
+                                 bullet_target_angle += 72.0f;
+                                 loaded_bullet[0] = loaded_bullet [1];
+                                 loaded_bullet[1] = loaded_bullet [2];
+                                 loaded_bullet[2] = FALSE;
+                             }
                          }
                      }
 
