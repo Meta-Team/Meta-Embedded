@@ -75,6 +75,8 @@ public:
 
         int16_t target_signal = 0;  // the current/voltage that we want the motor to have
 
+        float last_angle = 0.0f;  // the raw angle of the newest feedback, in [0, 360]
+
         void initializer(motor_id_t id_, float movement_LB, float movement_UB, float angle_LB, float angle_UB, float DR){
             id = id_;
             angle_movement_lower_bound = movement_LB;
@@ -89,7 +91,6 @@ public:
          * Normalized Angle and Rounds
          */
         float actual_angle = 0.0f; // the actual angle [degree] of the gimbal, compared with the front
-        float last_angle = 0.0f;  // the raw angle of the newest feedback, in [0, 8191]
         int round_count = 0;  // the rounds that the gimbal turns
         float target_angle = 0;
 

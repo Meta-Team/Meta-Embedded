@@ -53,15 +53,15 @@ private:
             if (enable_yaw_feedback) {
                 Shell::printf("!gy,%u,%.2f,%.2f,%.2f,%.2f,%d" SHELL_NEWLINE_STR,
                               TIME_I2MS(chibios_rt::System::getTime()),
-                              SuspensionGimbalIF::yaw.get_angular_position(), target_yaw_angle,
-                              SuspensionGimbalIF::yaw.angular_velocity, yaw_target_velocity,SuspensionGimbalIF::yaw.get_target_signal());
+                              SuspensionGimbalIF::yaw.angular_position, target_yaw_angle,
+                              SuspensionGimbalIF::yaw.angular_velocity, yaw_target_velocity,SuspensionGimbalIF::yaw.target_signal);
             }
 
             if (enable_pitch_feedback) {
                 Shell::printf("!gp,%u,%.2f,%.2f,%.2f,%.2f,%d" SHELL_NEWLINE_STR,
                               TIME_I2MS(chibios_rt::System::getTime()),
-                              SuspensionGimbalIF::pitch.get_angular_position(), target_pitch_angle,
-                              SuspensionGimbalIF::pitch.angular_velocity, pitch_target_velocity,SuspensionGimbalIF::pitch.get_target_signal());
+                              SuspensionGimbalIF::pitch.angular_position, target_pitch_angle,
+                              SuspensionGimbalIF::pitch.angular_velocity, pitch_target_velocity,SuspensionGimbalIF::pitch.target_signal);
             }
 
             if (enable_bullet_loader_feedback) {
@@ -69,8 +69,8 @@ private:
                 Shell::printf("!gp,%u,%.2f,%d,%0.2f" SHELL_NEWLINE_STR,
                               TIME_I2MS(chibios_rt::System::getTime()),
                               SuspensionGimbalIF::bullet_loader.angular_velocity,
-                              SuspensionGimbalIF::bullet_loader.get_target_signal(),
-                              SuspensionGimbalIF::bullet_loader.get_angular_position());
+                              SuspensionGimbalIF::bullet_loader.target_signal,
+                              SuspensionGimbalIF::bullet_loader.angular_position);
             }
 
             sleep(TIME_MS2I(gimbal_feedback_interval));
@@ -81,6 +81,7 @@ private:
 } gimbalFeedbackThread;
 
 CANInterface can1(&CAND1);
+AHRSExt ahrsExt;
 
 
 /**
@@ -115,9 +116,9 @@ static void cmd_gimbal_enable_fw(BaseSequentialStream *chp, int argc, char *argv
     }
 
     if(*argv[0] - '0'){
-        SuspensionGimbalSKD::set_shoot_mode(SuspensionGimbalIF::AWAIT);
+        SuspensionGimbalSKD::set_shoot_mode(AWAIT);
     } else{
-        SuspensionGimbalSKD::set_shoot_mode(SuspensionGimbalIF::OFF);
+        SuspensionGimbalSKD::set_shoot_mode(OFF);
     }
 
 }
@@ -352,27 +353,27 @@ protected:
     void main() final {
         setName("gimbal");
         while (!shouldTerminate()) {
-            if (SuspensionGimbalIF::yaw.status() || SuspensionGimbalIF::pitch.status() ||
-                    SuspensionGimbalIF::bullet_loader.status()) {
+            if (SuspensionGimbalIF::yaw.enabled || SuspensionGimbalIF::pitch.enabled ||
+                    SuspensionGimbalIF::bullet_loader.enabled) {
                 // Calculate target signal
                 if (enable_angle_to_v_pid){
-                    SuspensionGimbalSKD::set_target_signal();
+                    //SuspensionGimbalSKD::set_target_signal();
                 } else{
-                    if (SuspensionGimbalIF::yaw.status()) {
+                    if (SuspensionGimbalIF::yaw.enabled) {
                         SuspensionGimbalSKD::set_target_signal(SuspensionGimbalIF::YAW_ID,
-                                                                      (int) SuspensionGimbalSKD::yaw_v2i_pid.calc(
+                                                                      (int16_t) SuspensionGimbalSKD::yaw_v2i_pid.calc(
                                                                               SuspensionGimbalIF::yaw.angular_velocity,
                                                                               yaw_target_velocity));
                     }
-                    if (SuspensionGimbalIF::pitch.status()) {
+                    if (SuspensionGimbalIF::pitch.enabled) {
                         SuspensionGimbalSKD::set_target_signal(SuspensionGimbalIF::PIT_ID,
-                                                                      (int) SuspensionGimbalSKD::pitch_v2i_pid.calc(
+                                                                      (int16_t) SuspensionGimbalSKD::pitch_v2i_pid.calc(
                                                                               SuspensionGimbalIF::pitch.angular_velocity,
                                                                               pitch_target_velocity));
                     }
-                    if (SuspensionGimbalIF::bullet_loader.status()) {
+                    if (SuspensionGimbalIF::bullet_loader.enabled) {
                         SuspensionGimbalSKD::set_target_signal(SuspensionGimbalIF::BULLET_LOADER_ID,
-                                                                      (int) SuspensionGimbalSKD::BL_v2i_pid.calc(
+                                                                      (int16_t) SuspensionGimbalSKD::BL_v2i_pid.calc(
                                                                               SuspensionGimbalIF::bullet_loader.angular_velocity,
                                                                               BULLET_LOADER_SPEED));
                     }
@@ -406,7 +407,7 @@ int main(void) {
 
     can1.start(HIGHPRIO - 1);
 
-    SuspensionGimbalIF::init(&can1);
+    SuspensionGimbalIF::init(&can1,&ahrsExt,0,0);
 
     gimbalThread.start(HIGHPRIO - 2);
 

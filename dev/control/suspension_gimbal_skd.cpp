@@ -24,6 +24,11 @@ void SuspensionGimbalSKD::init() {
     pitch_v2i_pid.change_parameters(GIMBAL_PITCH_V2I_PID_PARAMS);
     BL_v2i_pid.change_parameters(GIMBAL_BL_V2I_PID_PARAMS);
     continuous_shooting = false;
+
+    set_motor_enable(SuspensionGimbalIF::YAW_ID, false);
+    set_motor_enable(SuspensionGimbalIF::PIT_ID, false);
+    set_motor_enable(SuspensionGimbalIF::BULLET_LOADER_ID, false);
+    set_shoot_mode(OFF);
 }
 
 void SuspensionGimbalSKD::start_continuous_shooting() {
@@ -99,6 +104,7 @@ void SuspensionGimbalSKD::SuspensionGimbalThread::main() {
     setName("SentryGimbal");
     SuspensionGimbalSKD::init();
     while (!shouldTerminate()){
-
+        set_target_signal();
+        SuspensionGimbalIF::send_gimbal_currents();
     }
 }

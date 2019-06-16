@@ -74,109 +74,111 @@ void SentryChassisSKD::set_destination(float dist) {
 }
 
 void SentryChassisSKD::update_target_current() {
-
-    float sentry_present_position = SentryChassisIF::present_position;
-
-    switch (running_mode){
-        case (ONE_STEP_MODE):
-            // If we are in the ONE_STEP_MODE
-            if(sentry_present_position >= SentryChassisIF::target_position-3 && sentry_present_position <= SentryChassisIF::target_position+3) {
-                // If the sentry is in the "stop area", we stop the sentry by simply set the target velocity to 0
-                SentryChassisIF::target_velocity = 0;
-            } else{
-                SentryChassisIF::target_velocity = sentry_a2v_pid.calc(sentry_present_position,SentryChassisIF::target_position);
-            }
-            break;
-        case (SHUTTLED_MODE):
-            // If we are in the AUTO MODE
-            if(sentry_present_position >= radius-3 || sentry_present_position <= -radius+3) {
-                // If the sentry is in the "stop area", we change the destination according to the rule we set in set_auto_destination()
-                if(sentry_present_position > 0){
-                    set_destination(-radius);
-                } else{
-                    set_destination(radius);
-                }
-            }
-            break;
-        case (V_MODE):
-            // this mode is for adjusting velocity pid
-            SentryChassisIF::target_velocity = maximum_speed;
-            break;
-        case (FINAL_AUTO_MODE):
-            if (SentryChassisIF::hit_detected && !SentryChassisIF::escaping){
-                // If hit is detected but the sentry is not escaping, then it is the first time the hit is detected
-                SentryChassisIF::escaping = true; // Set the sentry to be escaping mode
-                sentry_a2v_pid.change_parameters(ESCAPE_PID_A2V_PARAMS); // Reset the PID to adept to the new speed mode
-                sentry_a2v_pid.clear_i_out();
-
-                if (SentryChassisIF::present_region == STRAIGHTWAY){
-                    // In the STRAIGHTWAY, sentry may go to CURVE_1 or CURVE_2, it depends on its present velocity direction
-                    if (SentryChassisIF::present_velocity > 0) set_destination(CURVE_2_LEFT);
-                    else set_destination(CURVE_1_RIGHT);
-                } else if (SentryChassisIF::present_region == CURVE_1){
-                    set_destination(CURVE_2_LEFT);
-                } else if (SentryChassisIF::present_region == CURVE_2){
-                    set_destination(CURVE_1_RIGHT);
-                }
-            } else if (SentryChassisIF::escaping){
-                // If the sentry is escaping and reaches a side of the curve, reset its position_region and a2v PID
-                if (sentry_present_position > CURVE_2_LEFT - 3 || sentry_present_position < CURVE_1_RIGHT + 3){
-                    SentryChassisIF::escaping = false;
-                    SentryChassisIF::hit_detected = false;
-                    sentry_a2v_pid.change_parameters(CRUISING_PID_A2V_PARAMS);
-                    sentry_a2v_pid.clear_i_out();
-                    evasive_time = SYSTIME;
-                    if (sentry_present_position > CURVE_2_LEFT - 3){
-                        SentryChassisIF::present_region = CURVE_2;
-                        set_destination(CURVE_2_RIGHT);
-                    } else{
-                        SentryChassisIF::present_region = CURVE_1;
-                        set_destination(CURVE_1_LEFT);
-                    }
-                }
-                // If the sentry doesn't reach a terminal, then it just keep moving
-            } else if (!SentryChassisIF::hit_detected && !SentryChassisIF::escaping) {
-                // The same principle of moving as SHUTTLE_MODE
-                if (SentryChassisIF::present_region == CURVE_1) {
-                    if (sentry_present_position > CURVE_1_LEFT - 3) {
-                        if (SYSTIME - evasive_time > 20000) {
-                            // If the sentry hasn't been hit for 20s, then it should move back to STRAIGHTWAY
-                            set_destination(STRAIGHTWAY_LEFT);
-                            SentryChassisIF::present_region = STRAIGHTWAY;
-                        } else {
-                            set_destination(CURVE_1_RIGHT);
-                        }
-                    } else if (sentry_present_position < CURVE_1_RIGHT + 3) {
-                        set_destination(CURVE_1_LEFT);
-                    }
-                } else if (SentryChassisIF::present_region == CURVE_2) {
-                    if (sentry_present_position < CURVE_2_RIGHT + 3) {
-                        if (SYSTIME - evasive_time > 20000) {
-                            set_destination(STRAIGHTWAY_RIGHT);
-                            SentryChassisIF::present_region = STRAIGHTWAY;
-                        } else {
-                            set_destination(CURVE_2_LEFT);
-                        }
-                    } else if (sentry_present_position > CURVE_2_LEFT - 3) {
-                        set_destination(CURVE_2_RIGHT);
-                    }
-                } else {
-                    if (sentry_present_position < STRAIGHTWAY_RIGHT + 3) {
-                        set_destination(STRAIGHTWAY_LEFT);
-                    } else if (sentry_present_position > STRAIGHTWAY_LEFT - 3) {
-                        set_destination(STRAIGHTWAY_RIGHT);
-                    }
-                }
-            }
-            SentryChassisIF::target_velocity = sentry_a2v_pid.calc(sentry_present_position, SentryChassisIF::target_position);
-            break;
-        case (STOP_MODE):
-        default:
-            // If we are in the STOP_MODE, then the sentry now is not movable
-            SentryChassisIF::target_velocity = 0;
-    }
-    // Set the target current
     if (enable){
+        float sentry_present_position = SentryChassisIF::present_position;
+
+        switch (running_mode) {
+            case (ONE_STEP_MODE):
+                // If we are in the ONE_STEP_MODE
+                if (sentry_present_position >= SentryChassisIF::target_position - 3 &&
+                    sentry_present_position <= SentryChassisIF::target_position + 3) {
+                    // If the sentry is in the "stop area", we stop the sentry by simply set the target velocity to 0
+                    SentryChassisIF::target_velocity = 0;
+                } else {
+                    SentryChassisIF::target_velocity = sentry_a2v_pid.calc(sentry_present_position,
+                                                                           SentryChassisIF::target_position);
+                }
+                break;
+            case (SHUTTLED_MODE):
+                // If we are in the AUTO MODE
+                if (sentry_present_position >= radius - 3 || sentry_present_position <= -radius + 3) {
+                    // If the sentry is in the "stop area", we change the destination according to the rule we set in set_auto_destination()
+                    if (sentry_present_position > 0) {
+                        set_destination(-radius);
+                    } else {
+                        set_destination(radius);
+                    }
+                }
+                break;
+            case (V_MODE):
+                // this mode is for adjusting velocity pid
+                SentryChassisIF::target_velocity = maximum_speed;
+                break;
+            case (FINAL_AUTO_MODE):
+                if (SentryChassisIF::hit_detected && !SentryChassisIF::escaping) {
+                    // If hit is detected but the sentry is not escaping, then it is the first time the hit is detected
+                    SentryChassisIF::escaping = true; // Set the sentry to be escaping mode
+                    sentry_a2v_pid.change_parameters(ESCAPE_PID_A2V_PARAMS); // Reset the PID to adept to the new speed mode
+                    sentry_a2v_pid.clear_i_out();
+
+                    if (SentryChassisIF::present_region == STRAIGHTWAY) {
+                        // In the STRAIGHTWAY, sentry may go to CURVE_1 or CURVE_2, it depends on its present velocity direction
+                        if (SentryChassisIF::present_velocity > 0) set_destination(CURVE_2_LEFT);
+                        else set_destination(CURVE_1_RIGHT);
+                    } else if (SentryChassisIF::present_region == CURVE_1) {
+                        set_destination(CURVE_2_LEFT);
+                    } else if (SentryChassisIF::present_region == CURVE_2) {
+                        set_destination(CURVE_1_RIGHT);
+                    }
+                } else if (SentryChassisIF::escaping) {
+                    // If the sentry is escaping and reaches a side of the curve, reset its position_region and a2v PID
+                    if (sentry_present_position > CURVE_2_LEFT - 3 || sentry_present_position < CURVE_1_RIGHT + 3) {
+                        SentryChassisIF::escaping = false;
+                        SentryChassisIF::hit_detected = false;
+                        sentry_a2v_pid.change_parameters(CRUISING_PID_A2V_PARAMS);
+                        sentry_a2v_pid.clear_i_out();
+                        evasive_time = SYSTIME;
+                        if (sentry_present_position > CURVE_2_LEFT - 3) {
+                            SentryChassisIF::present_region = CURVE_2;
+                            set_destination(CURVE_2_RIGHT);
+                        } else {
+                            SentryChassisIF::present_region = CURVE_1;
+                            set_destination(CURVE_1_LEFT);
+                        }
+                    }
+                    // If the sentry doesn't reach a terminal, then it just keep moving
+                } else if (!SentryChassisIF::hit_detected && !SentryChassisIF::escaping) {
+                    // The same principle of moving as SHUTTLE_MODE
+                    if (SentryChassisIF::present_region == CURVE_1) {
+                        if (sentry_present_position > CURVE_1_LEFT - 3) {
+                            if (SYSTIME - evasive_time > 20000) {
+                                // If the sentry hasn't been hit for 20s, then it should move back to STRAIGHTWAY
+                                set_destination(STRAIGHTWAY_LEFT);
+                                SentryChassisIF::present_region = STRAIGHTWAY;
+                            } else {
+                                set_destination(CURVE_1_RIGHT);
+                            }
+                        } else if (sentry_present_position < CURVE_1_RIGHT + 3) {
+                            set_destination(CURVE_1_LEFT);
+                        }
+                    } else if (SentryChassisIF::present_region == CURVE_2) {
+                        if (sentry_present_position < CURVE_2_RIGHT + 3) {
+                            if (SYSTIME - evasive_time > 20000) {
+                                set_destination(STRAIGHTWAY_RIGHT);
+                                SentryChassisIF::present_region = STRAIGHTWAY;
+                            } else {
+                                set_destination(CURVE_2_LEFT);
+                            }
+                        } else if (sentry_present_position > CURVE_2_LEFT - 3) {
+                            set_destination(CURVE_2_RIGHT);
+                        }
+                    } else {
+                        if (sentry_present_position < STRAIGHTWAY_RIGHT + 3) {
+                            set_destination(STRAIGHTWAY_LEFT);
+                        } else if (sentry_present_position > STRAIGHTWAY_LEFT - 3) {
+                            set_destination(STRAIGHTWAY_RIGHT);
+                        }
+                    }
+                }
+                SentryChassisIF::target_velocity = sentry_a2v_pid.calc(sentry_present_position,
+                                                                       SentryChassisIF::target_position);
+                break;
+            case (STOP_MODE):
+            default:
+                // If we are in the STOP_MODE, then the sentry now is not movable
+                SentryChassisIF::target_velocity = 0;
+        }
+        // Set the target current
         SentryChassisIF::motor[0].target_current = (int16_t)(right_v2i_pid.calc(SentryChassisIF::motor[0].motor_present_velocity, SentryChassisIF::target_velocity));
         SentryChassisIF::motor[1].target_current = (int16_t)(left_v2i_pid.calc(SentryChassisIF::motor[1].motor_present_velocity, SentryChassisIF::target_velocity));
 

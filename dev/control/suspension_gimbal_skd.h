@@ -24,6 +24,7 @@ public:
     class SuspensionGimbalThread: public chibios_rt::BaseStaticThread<512>{
         void main() final;
     };
+
     static SuspensionGimbalThread suspensionGimbalThread;
 
     static void init();
@@ -40,13 +41,13 @@ public:
 
     static void start_incontinuous_shooting(int bullet_num);
 
-    static void set_target_signal();
-
     static void set_target_signal(SuspensionGimbalIF::motor_id_t motor, int16_t signal);
 
 private:
 
     static bool continuous_shooting;
+
+    static void set_target_signal();
 
     /** Configurations **/
     static constexpr float one_bullet_step = 40.0f; // degree

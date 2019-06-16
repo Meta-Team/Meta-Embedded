@@ -55,44 +55,75 @@ class SentryThread : public chibios_rt::BaseStaticThread<1024> {
 
     static constexpr unsigned int GIMBAL_THREAD_INTERVAL = 10; // [ms]
 
-    static constexpr float PC_YAW_SPEED_RATIO = 54000; // rotation speed when mouse moves at the fastest limit [degree/s]
-    static constexpr float PC_YAW_ANGLE_LIMITATION = 60; // maximum range (both CW and CCW) [degree]
-
-    static constexpr float PC_PITCH_SPEED_RATIO = 12000; // rotation speed when mouse moves at the fastest limit [degree/s]
-    static constexpr float PC_PITCH_ANGLE_LIMITATION = 25; // maximum range (both up and down) [degree]
-
     void main() final {
         setName("sentry");
 
         /*** Parameters Set up***/
+        SuspensionGimbalIF::init(&can1, &ahrsExt, GIMBAL_YAW_FRONT_ANGLE_RAW, GIMBAL_PITCH_FRONT_ANGLE_RAW);
+        SentryChassisIF::init(&can1);
+        SuspensionGimbalSKD::suspensionGimbalThread.start(HIGHPRIO - 2);
+        SentryChassisSKD::sentryChassisThread.start(HIGHPRIO - 3);
 
-        /* Suspension Gimbal */
-        SuspensionGimbalSKD::yaw_v2i_pid.change_parameters(GIMBAL_YAW_V2I_PID_PARAMS);
-        SuspensionGimbalSKD::yaw_a2v_pid.change_parameters(GIMBAL_YAW_A2V_PID_PARAMS);
-        SuspensionGimbalSKD::pitch_v2i_pid.change_parameters(GIMBAL_PITCH_V2I_PID_PARAMS);
-        SuspensionGimbalSKD::pitch_a2v_pid.change_parameters(GIMBAL_PITCH_A2V_PID_PARAMS);
-        SuspensionGimbalSKD::BL_v2i_pid.change_parameters(GIMBAL_BL_V2I_PID_PARAMS);
-        SuspensionGimbalSKD::set_motor_enable(SuspensionGimbalIF::YAW_ID, true);
-        SuspensionGimbalSKD::set_motor_enable(SuspensionGimbalIF::PIT_ID, true);
-        SuspensionGimbalSKD::set_motor_enable(SuspensionGimbalIF::BULLET_LOADER_ID, true);
-        SuspensionGimbalSKD::set_shoot_mode(OFF);
-
-        /* Sentry Chassis */
-        SentryChassisSKD::sentry_a2v_pid.change_parameters(CRUISING_PID_A2V_PARAMS);
-        SentryChassisSKD::left_v2i_pid.change_parameters(SENTRY_CHASSIS_PID_V2I_PARAMS);
-        SentryChassisSKD::right_v2i_pid.change_parameters(SENTRY_CHASSIS_PID_V2I_PARAMS);
-        SentryChassisSKD::set_mode(SentryChassisSKD::STOP_MODE);
-
+        Remote::rc_status_t s1_present_state = Remote::S_UP, s2_present_state = Remote::S_UP;
         while (!shouldTerminate()) {
 
-            if (Remote::rc.s1 == Remote::S_UP) {
+            if (s1_present_state != Remote::rc.s1 || s2_present_state != Remote::rc.s2){
+                // If the state of remote controller is changed, then we change the state/mode of the SKDs
+                s1_present_state = Remote::rc.s1;
+                s2_present_state = Remote::rc.s2;
+
+                switch (s1_present_state) {
+
+                    case Remote::S_UP :
+
+                        SentryChassisSKD::enable = false;
+
+                        switch (s2_present_state){
+
+                            case Remote::S_UP :
+                                SuspensionGimbalSKD::set_motor_enable(SuspensionGimbalIF::YAW_ID, false);
+                                SuspensionGimbalSKD::set_motor_enable(SuspensionGimbalIF::PIT_ID, false);
+                                SuspensionGimbalSKD::set_motor_enable(SuspensionGimbalIF::BULLET_LOADER_ID, false);
+                                SuspensionGimbalSKD::set_shoot_mode(OFF);
+                                break;
+                            case Remote::S_MIDDLE :
+                                break;
+                            case Remote::S_DOWN :
+                                break;
+                        }
+
+                        break;
+
+                    case Remote::S_MIDDLE :
+
+                        SentryChassisSKD::enable = true;
+
+                        switch (s2_present_state){
+                            case Remote::S_UP :
+                                break;
+                            case Remote::S_MIDDLE :
+                                break;
+                            case Remote::S_DOWN :
+                                break;
+                        }
+                        break;
+                    case Remote::S_DOWN :
+
+                        switch (s2_present_state){
+                            case Remote::S_UP :
+                                break;
+                            case Remote::S_MIDDLE :
+                                break;
+                            case Remote::S_DOWN :
+                                break;
+                        }
+
+                        break;
+
+                }
 
             }
 
-            // Bullet loader part
-
-
-            SuspensionGimbalIF::send_gimbal_currents();
 
             sleep(TIME_MS2I(GIMBAL_THREAD_INTERVAL));
         }
@@ -119,9 +150,6 @@ int main(void) {
     //MPU6500Controller::start(HIGHPRIO - 2);
     Remote::start_receive();
 
-    SuspensionGimbalIF::init(&can1, &ahrsExt, GIMBAL_YAW_FRONT_ANGLE_RAW, GIMBAL_PITCH_FRONT_ANGLE_RAW);
-    SentryChassisSKD::init();
-
 
     /*** ------------ Period 2. Calibration and Start Logic Control Thread ----------- ***/
 
@@ -134,14 +162,14 @@ int main(void) {
     palSetPad(GPIOG, GPIOG_PIN13);
      */
 
+    /** Start Logic Control Thread **/
+    sentryThread.start(NORMALPRIO);
+
     /** Echo Gimbal Raws and Converted Angles **/
     chThdSleepMilliseconds(500);
     LOG("Gimbal Yaw: %u, %f, Pitch: %u, %f",
-        SuspensionGimbalIF::yaw.last_angle, SuspensionGimbalIF::yaw.actual_angle,
-        SuspensionGimbalIF::pitch.last_angle, SuspensionGimbalIF::pitch.actual_angle);
-
-    /** Start Logic Control Thread **/
-    sentryThread.start(NORMALPRIO);
+        SuspensionGimbalIF::yaw.last_angle, SuspensionGimbalIF::yaw.angular_position,
+        SuspensionGimbalIF::pitch.last_angle, SuspensionGimbalIF::pitch.angular_position);
 
     /** Play the Startup Sound **/
     Buzzer::play_sound(Buzzer::sound_startup_intel, LOWPRIO);
