@@ -88,10 +88,6 @@ void SentryChassisSKD::set_mode(sentry_mode_t target_mode) {
 
 void SentryChassisSKD::set_destination(float dist) {
     SentryChassisIF::target_position = dist;
-
-    sentry_a2v_pid.clear_i_out();
-    right_v2i_pid.clear_i_out();
-    left_v2i_pid.clear_i_out();
 }
 
 void SentryChassisSKD::update_target_current() {

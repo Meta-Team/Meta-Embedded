@@ -67,6 +67,8 @@ class SentryThread : public chibios_rt::BaseStaticThread<1024> {
         Remote::rc_status_t s1_present_state = Remote::S_UP, s2_present_state = Remote::S_UP;
         while (!shouldTerminate()) {
 
+            /** Setting State **/
+
             if (s1_present_state != Remote::rc.s1 || s2_present_state != Remote::rc.s2){
                 // If the state of remote controller is changed, then we change the state/mode of the SKDs
                 s1_present_state = Remote::rc.s1;
@@ -104,10 +106,10 @@ class SentryThread : public chibios_rt::BaseStaticThread<1024> {
 
                         switch (s2_present_state){
                             case Remote::S_UP :
-                                SentryChassisSKD::set_mode(SentryChassisSKD::SHUTTLED_MODE);
+                                SentryChassisSKD::set_mode(SentryChassisSKD::ONE_STEP_MODE);
                                 break;
                             case Remote::S_MIDDLE :
-                                SentryChassisSKD::turn_off();
+                                SentryChassisSKD::set_mode(SentryChassisSKD::SHUTTLED_MODE);
                                 break;
                             case Remote::S_DOWN :
                                 SentryChassisSKD::turn_off();
@@ -131,6 +133,11 @@ class SentryThread : public chibios_rt::BaseStaticThread<1024> {
 
             }
 
+            /** Update Movement Request **/
+
+            if (s1_present_state == Remote::S_MIDDLE && s2_present_state == Remote::S_UP){
+                SentryChassisSKD::set_destination(SentryChassisIF::present_position + Remote::rc.ch0);
+            }
 
             sleep(TIME_MS2I(GIMBAL_THREAD_INTERVAL));
         }
