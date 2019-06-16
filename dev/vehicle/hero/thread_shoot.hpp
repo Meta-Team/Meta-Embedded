@@ -25,21 +25,50 @@
 
          setName("shoot");
 
-         bool bullet_full = false;
+         //bool bullet_full = false;
+
          float plate_target_angle = Shoot::feedback[3].actual_angle;
          float bullet_target_angle = 180.0f;
-
+         bool loader_stop[3] = {TRUE, TRUE, TRUE};
+         bool plate_stop[3] = {TRUE, TRUE, TRUE};
+         bool loaded_bullet[3] = {FALSE,FALSE,FALSE};
          Shoot::change_pid_params(GIMBAL_PID_BULLET_LOADER_A2V_PARAMS, GIMBAL_PID_BULLET_LOADER_V2I_PARAMS, GIMBAL_PID_BULLET_PLATE_A2V_PARAMS, GIMBAL_PID_BULLET_PLATE_V2I_PARAMS);
+
          while (!shouldTerminate()) {
 
-             bullet_full = (bool) palReadPad(GPIOE,GPIOE_PIN4); // check if bullet is full or not, automatically load. TODO: determined the PIN to use.
-             if (plate_target_angle > 360.0f && Shoot::feedback[3].actual_angle < plate_target_angle -360.0f) plate_target_angle -= 360.0f; //get the correct angle first
-             if(!bullet_full){
-                 if(plate_target_angle - Shoot::feedback[3].actual_angle < 3.0f) plate_target_angle += 36.0f;
+             loaded_bullet[2] = (bool) palReadPad(GPIOE,GPIOE_PIN4); // check if the last bullet place is full or not.
+
+             // get the correct angle
+             if (plate_target_angle > 360.0f && Shoot::feedback[3].actual_angle < plate_target_angle -360.0f) plate_target_angle -= 360.0f;
+             if (bullet_target_angle > 360.0f && Shoot::feedback[2].actual_angle < bullet_target_angle -360.0f) bullet_target_angle -= 360.0f;
+
+             // check if the loader is moving. Three variables sequence increase the latter system's stability.
+             loader_stop[0] = loader_stop [1];
+             loader_stop[1] = loader_stop [2];
+             loader_stop[2] = (bullet_target_angle - Shoot::feedback[2].actual_angle < 5.0f);
+             // Maybe checking the angle is more reliable than checking the velocity.
+             // Because when start the velocity could be small too.
+
+             //same as above
+             plate_stop[0] = plate_stop [1];
+             plate_stop[1] = plate_stop [2];
+             plate_stop[2] = (plate_target_angle - Shoot::feedback[3].actual_angle < 2.0f);
+
+             // If the loader is stopped and the last place of bullet loader is not full.
+             if (plate_stop[0] == TRUE && plate_stop[1] ==TRUE && plate_stop[2] == TRUE && loaded_bullet[2]==FALSE) {
+                 plate_target_angle += 36.0f;
              }
+             // If the loader is stopped and the first place of bullet loader is not full, automatically load.
+             if (loader_stop[0] == TRUE && loader_stop[1] == TRUE && loader_stop[2] == TRUE && loaded_bullet[0]==FALSE && loaded_bullet[1] == TRUE) {
+                 bullet_target_angle += 72.0f;
+                 loaded_bullet[0] = loaded_bullet[1];
+                 loaded_bullet[1] = loaded_bullet[2];
+                 loaded_bullet[2] = FALSE;
+             }
+
              Shoot::calc_plate(Shoot::feedback[3].actual_velocity, plate_target_angle);
 
-             if (bullet_target_angle > 360.0f && Shoot::feedback[2].actual_angle < bullet_target_angle -360.0f) bullet_target_angle -= 360.0f; //get the correct angle first
+
              if (!StateHandler::remoteDisconnected() && !StateHandler::gimbalSeriousErrorOccured()){
                  if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_UP){
 
