@@ -13,6 +13,25 @@
  * @pre GimbalThread starts
  */
 
+
+/**
+ * @brief The Simple graph of the loaded bullet[4]
+ *
+ *          addition[3]        _
+ *          __________        | |
+ *          \         \       | |
+ *           \         \    __| |__
+ *            \ last[2] \  /       \
+ *             \  ________/         \_______
+ *              \ |_______           _______|--------------|
+ *               \ second \  ____   /                      |
+ *                \  [1]  / /[0] \ \                       |
+ *                 \     / /first \ \  Launch!             |
+ *                  \___/_/________\_\_____________________|
+ *                      \       /
+ *                      |_______|
+ */
+
  class ShootThread : public chibios_rt::BaseStaticThread<1024>{
 
      static constexpr unsigned int SHOOT_THREAD_INTERVAL = 5; // PID calculation interval [ms]
