@@ -57,11 +57,13 @@
              plate_stop[2] = (plate_target_angle - Shoot::feedback[3].actual_angle < 2.0f);
 
              // If the loader is stopped and the last place of bullet loader is not full.
-             if (plate_stop[0] == TRUE && plate_stop[1] ==TRUE && plate_stop[2] == TRUE && loaded_bullet[2]==FALSE) {
+             // When first bullet place is empty, there should have 2 bullets to make it full.
+             if (plate_stop[0] == TRUE && plate_stop[1] == TRUE && plate_stop[2] == TRUE
+                                    && (loaded_bullet[2]== FALSE)||(loaded_bullet[0] == FALSE)) {
                  plate_target_angle += 36.0f;
              }
              // If the loader is stopped and the first place of bullet loader is not full, automatically load.
-             if (loader_stop[0] == TRUE && loader_stop[1] == TRUE && loader_stop[2] == TRUE && loaded_bullet[0]==FALSE && loaded_bullet[1] == TRUE) {
+             if (loader_stop[0] == TRUE && loader_stop[1] == TRUE && loader_stop[2] == TRUE && loaded_bullet[0]==FALSE && loaded_bullet[2] == TRUE) {
                  bullet_target_angle += 72.0f;
                  loaded_bullet[0] = loaded_bullet[1];
                  loaded_bullet[1] = loaded_bullet[2];
@@ -83,7 +85,19 @@
                              Shoot::set_friction_wheels(GIMBAL_PC_FRICTION_WHEEL_DUTY_CYCLE);
                              sleep(TIME_I2MS(500));
                          }
-                         if(bullet_target_angle - Shoot::feedback[2].actual_angle < 3.0f) bullet_target_angle += 72.0f;
+                         if (loaded_bullet[0] == FALSE){ // here we may need more methods to check.
+                             // Though the algorithm designed this,
+                             // it could be more safer to have a new sensor.
+                             bullet_target_angle += 144.0f;
+                             loaded_bullet[0] = loaded_bullet[2];
+                             loaded_bullet[1] = TRUE;
+                             loaded_bullet[2] = TRUE;
+                         } else {
+                             bullet_target_angle += 72.0f;
+                             loaded_bullet[0] = loaded_bullet [1];
+                             loaded_bullet[1] = loaded_bullet [2];
+                             loaded_bullet[2] = FALSE;
+                         }
                      }
 
                  } else if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_MIDDLE) {
@@ -97,7 +111,22 @@
                              Shoot::set_friction_wheels(GIMBAL_PC_FRICTION_WHEEL_DUTY_CYCLE);
                              sleep(TIME_I2MS(500));
                          }
-                         if(bullet_target_angle - Shoot::feedback[2].actual_angle < 3.0f) bullet_target_angle += 72.0f;
+                         if(bullet_target_angle - Shoot::feedback[2].actual_angle < 3.0f) {
+                             if (loaded_bullet[0] == FALSE){ // here we may need more methods to check.
+                                                             // Though the algorithm designed this,
+                                                             // it could be more safer to have a new sensor.
+                                 bullet_target_angle += 144.0f;
+                                 loaded_bullet[0] = loaded_bullet[2];
+                                 loaded_bullet[1] = TRUE;
+                                 loaded_bullet[2] = TRUE;
+                             } else {
+                                 bullet_target_angle += 72.0f;
+                                 loaded_bullet[0] = loaded_bullet [1];
+                                 loaded_bullet[1] = loaded_bullet [2];
+                                 loaded_bullet[2] = FALSE;
+                             }
+                         }
+
                      }
 
                  } else if (Remote::rc.s1 == Remote::S_DOWN) { // PC control mode
@@ -109,7 +138,20 @@
                              Shoot::set_friction_wheels(GIMBAL_PC_FRICTION_WHEEL_DUTY_CYCLE);
                              sleep(TIME_I2MS(500));
                          }
-                         if(bullet_target_angle - Shoot::feedback[2].actual_angle < 3.0f) bullet_target_angle += 72.0f;
+
+                         if (loaded_bullet[0] == FALSE){ // here we may need more methods to check.
+                             // Though the algorithm designed this,
+                             // it could be more safer to have a new sensor.
+                             bullet_target_angle += 144.0f;
+                             loaded_bullet[0] = loaded_bullet[2];
+                             loaded_bullet[1] = TRUE;
+                             loaded_bullet[2] = TRUE;
+                         } else {
+                             bullet_target_angle += 72.0f;
+                             loaded_bullet[0] = loaded_bullet [1];
+                             loaded_bullet[1] = loaded_bullet [2];
+                             loaded_bullet[2] = FALSE;
+                         }
                      }
 
                      // Friction wheels
