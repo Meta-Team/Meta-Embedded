@@ -93,19 +93,13 @@ public:
      */
     static void init(CANInterface* can_interface);
 
-    /**
-     * @brief send all target currents
-     * @return
-     */
-    static bool send_currents();
-
-
-
 private:
 
     static CANInterface* can;
 
     static void process_feedback(CANRxFrame const*rxmsg);
+
+    static bool send_currents();
 
     static float constexpr displacement_per_round = 17.28f;
 
@@ -113,6 +107,7 @@ private:
 
     friend CANInterface;
 
+    friend class SentryChassisSKD;
 };
 
 

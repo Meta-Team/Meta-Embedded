@@ -76,7 +76,7 @@ class SentryThread : public chibios_rt::BaseStaticThread<1024> {
 
                     case Remote::S_UP :
 
-                        SentryChassisSKD::enable = false;
+                        SentryChassisSKD::turn_off();
 
                         switch (s2_present_state){
 
@@ -96,10 +96,15 @@ class SentryThread : public chibios_rt::BaseStaticThread<1024> {
 
                     case Remote::S_MIDDLE :
 
-                        SentryChassisSKD::enable = true;
+                        SentryChassisSKD::turn_on();
+                        SuspensionGimbalSKD::set_motor_enable(SuspensionGimbalIF::YAW_ID, false);
+                        SuspensionGimbalSKD::set_motor_enable(SuspensionGimbalIF::PIT_ID, false);
+                        SuspensionGimbalSKD::set_motor_enable(SuspensionGimbalIF::BULLET_LOADER_ID, false);
+                        SuspensionGimbalSKD::set_shoot_mode(OFF);
 
                         switch (s2_present_state){
                             case Remote::S_UP :
+                                SentryChassisSKD::set_mode(SentryChassisSKD::SHUTTLED_MODE);
                                 break;
                             case Remote::S_MIDDLE :
                                 break;

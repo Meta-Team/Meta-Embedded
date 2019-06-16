@@ -30,33 +30,24 @@ public:
 
     static SentryChassisThread sentryChassisThread;
 
-    static bool enable;
-
-    static PIDController sentry_a2v_pid;
-    static PIDController right_v2i_pid;
-    static PIDController left_v2i_pid;
-
-    static float maximum_speed;
-
     static bool printPosition;
     static bool printCurrent;
     static bool printVelocity;
 
-    /**
-     * @brief initialize the calculator class
-     * @param can_interface
-     */
+private:
     static void init();
 
-    /**
-     * @brief set the present position and target position to be the 0 point
-     */
+public:
+    static void turn_on();
+
+    static void turn_off();
+
+    static void set_pid(bool change_a2v, PIDControllerBase::pid_params_t new_params);
+
+    static void print_pid(bool print_a2v);
+
     static void set_origin();
 
-    /**
-     * @brief change the running mode if needed
-     * @param target_mode
-     */
     static void set_mode(sentry_mode_t target_mode);
 
     /**
@@ -66,7 +57,8 @@ public:
     static void set_destination(float dist);
 
     static void set_maximum_velocity(float new_velocity){
-        maximum_speed = new_velocity;
+        SentryChassisIF::target_velocity = new_velocity;
+        set_pid(true, {SENTRY_CHASSIS_PID_A2V_KP, SENTRY_CHASSIS_PID_A2V_KI, SENTRY_CHASSIS_PID_A2V_KD, SENTRY_CHASSIS_PID_A2V_I_LIMIT, new_velocity});
     }
 
     /**
@@ -94,6 +86,10 @@ public:
     }
 
 private:
+    static bool enable;
+    static PIDController sentry_a2v_pid;
+    static PIDController right_v2i_pid;
+    static PIDController left_v2i_pid;
     static time_msecs_t evasive_time;
     static sentry_mode_t running_mode;
     static float radius; // the range that sentry can move around the origin in the SHUTTLED_MODE

@@ -63,7 +63,11 @@ static void cmd_chassis_enable(BaseSequentialStream *chp, int argc, char *argv[]
         shellUsage(chp, "g_enable left(0/1) right(0/1)");
         return;
     }
-    SentryChassisSKD::enable = (*argv[0] - '0') || (*argv[1] - '0');
+    if ((*argv[0] - '0') || (*argv[1] - '0')){
+        SentryChassisSKD::turn_on();
+    } else{
+        SentryChassisSKD::turn_off();
+    }
 }
 
 static void cmd_chassis_enable_feedback(BaseSequentialStream *chp, int argc, char *argv[]) {
@@ -90,9 +94,6 @@ static void cmd_set_target_velocities(BaseSequentialStream *chp, int argc, char 
     }
 
     SentryChassisSKD::set_maximum_velocity(Shell::atof(argv[0]));
-    SentryChassisSKD::sentry_a2v_pid.clear_i_out();
-    SentryChassisSKD::right_v2i_pid.clear_i_out();
-    SentryChassisSKD::left_v2i_pid.clear_i_out();
 }
 
 /**
@@ -140,21 +141,10 @@ static void cmd_chassis_set_pid(BaseSequentialStream *chp, int argc, char *argv[
                                                   Shell::atof(argv[5]),
                                                   Shell::atof(argv[6])};
 
-    if (*argv[1] == '0') {
-        SentryChassisSKD::sentry_a2v_pid.change_parameters(pid_params);
-    } else {
-        SentryChassisSKD::right_v2i_pid.change_parameters(pid_params);
-        SentryChassisSKD::left_v2i_pid.change_parameters(pid_params);
-    }
+
+    SentryChassisSKD::set_pid(*argv[1] == '0', pid_params);
 
     chprintf(chp, "!ps" SHELL_NEWLINE_STR); // echo parameters set
-}
-
-/**
- * @brief helper function for cmd_chassis_print_pid()
- */
-static inline void _cmd_pid_echo_parameters(BaseSequentialStream *chp, PIDControllerBase::pid_params_t p) {
-    chprintf(chp, "%f %f %f %f %f" SHELL_NEWLINE_STR, p.kp, p.ki, p.kd, p.i_limit, p.out_limit);
 }
 
 /**
@@ -167,9 +157,9 @@ static void cmd_chassis_print_pid(BaseSequentialStream *chp, int argc, char *arg
         return;
     }
     chprintf(chp, "bullet v_to_i:       ");
-    _cmd_pid_echo_parameters(chp, SentryChassisSKD::sentry_a2v_pid.get_parameters());
+    SentryChassisSKD::print_pid(true);
     chprintf(chp, "plate v_to_i:     ");
-    _cmd_pid_echo_parameters(chp, SentryChassisSKD::right_v2i_pid.get_parameters());
+    SentryChassisSKD::print_pid(false);
 }
 
 /**
@@ -183,9 +173,6 @@ static void cmd_chassis_set_position(BaseSequentialStream *chp, int argc, char *
         return;
     }
     SentryChassisSKD::set_destination(Shell::atof(argv[0]));
-    SentryChassisSKD::sentry_a2v_pid.clear_i_out();
-    SentryChassisSKD::right_v2i_pid.clear_i_out();
-    SentryChassisSKD::left_v2i_pid.clear_i_out();
 
 }
 
@@ -265,10 +252,8 @@ int main(void) {
 
     can1.start(HIGHPRIO - 1);
     SentryChassisIF::init(&can1);
-    SentryChassisSKD::init();
-
-    chassisFeedbackThread.start(NORMALPRIO - 1);
     SentryChassisSKD::sentryChassisThread.start(NORMALPRIO);
+    chassisFeedbackThread.start(NORMALPRIO - 1);
 
     // See chconf.h for what this #define means.
 #if CH_CFG_NO_IDLE_THREAD

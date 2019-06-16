@@ -13,7 +13,6 @@ bool SentryChassisSKD::enable;
 PIDController SentryChassisSKD::sentry_a2v_pid;
 PIDController SentryChassisSKD::right_v2i_pid;
 PIDController SentryChassisSKD::left_v2i_pid;
-float SentryChassisSKD::maximum_speed;
 bool SentryChassisSKD::printPosition;
 bool SentryChassisSKD::printCurrent;
 bool SentryChassisSKD::printVelocity;
@@ -26,13 +25,42 @@ float SentryChassisSKD::radius;
 
 void SentryChassisSKD::init() {
     enable = false;
-    sentry_a2v_pid.change_parameters(CRUISING_PID_A2V_PARAMS);
-    right_v2i_pid.change_parameters(SENTRY_CHASSIS_PID_V2I_PARAMS);
-    left_v2i_pid.change_parameters(SENTRY_CHASSIS_PID_V2I_PARAMS);
-    maximum_speed = CRUISING_SPEED;
+    set_pid(true, CRUISING_PID_A2V_PARAMS);
+    set_pid(false, SENTRY_CHASSIS_PID_V2I_PARAMS);
     printPosition = printCurrent = printVelocity = false;
     running_mode = STOP_MODE;
     radius = 50.0f;
+}
+
+void SentryChassisSKD::turn_on(){
+    enable = true;
+}
+
+void SentryChassisSKD::turn_off(){
+    enable = false;
+}
+
+void SentryChassisSKD::set_pid(bool change_a2v, PIDControllerBase::pid_params_t new_params){
+    if (change_a2v) {
+        sentry_a2v_pid.change_parameters(new_params);
+        sentry_a2v_pid.clear_i_out();
+    } else{
+        left_v2i_pid.change_parameters(new_params);
+        right_v2i_pid.change_parameters(new_params);
+        left_v2i_pid.clear_i_out();
+        right_v2i_pid.clear_i_out();
+    }
+}
+
+void SentryChassisSKD::print_pid(bool print_a2v){
+    if (print_a2v){
+        PIDControllerBase::pid_params_t to_print = sentry_a2v_pid.get_parameters();
+        LOG("%f %f %f %f %f", to_print.kp, to_print.ki, to_print.kd, to_print.i_limit, to_print.out_limit);
+    } else{
+        PIDControllerBase::pid_params_t to_print = right_v2i_pid.get_parameters();
+        LOG("%f %f %f %f %f", to_print.kp, to_print.ki, to_print.kd, to_print.i_limit, to_print.out_limit);
+    }
+
 }
 
 void SentryChassisSKD::set_origin() {
@@ -60,21 +88,15 @@ void SentryChassisSKD::set_mode(sentry_mode_t target_mode) {
 
 void SentryChassisSKD::set_destination(float dist) {
     SentryChassisIF::target_position = dist;
-    if (running_mode != FINAL_AUTO_MODE){
-        // Every time a new target position is set, a new target velocity should be decided
-        if (SentryChassisIF::target_position > SentryChassisIF::motor[SentryChassisIF::MOTOR_RIGHT].motor_present_position){
-            SentryChassisIF::target_velocity = maximum_speed;
-        } else if (SentryChassisIF::target_position < SentryChassisIF::motor[SentryChassisIF::MOTOR_RIGHT].motor_present_position){
-            SentryChassisIF::target_velocity = - maximum_speed;
-        } else{
-            SentryChassisIF::target_velocity = 0;
-        }
-    }
-    // If it is the FINAL_AUTO_MODE, then the target velocity will be calculated automatically by PIDs
+
+    sentry_a2v_pid.clear_i_out();
+    right_v2i_pid.clear_i_out();
+    left_v2i_pid.clear_i_out();
 }
 
 void SentryChassisSKD::update_target_current() {
     if (enable){
+
         float sentry_present_position = SentryChassisIF::present_position;
 
         switch (running_mode) {
@@ -90,7 +112,7 @@ void SentryChassisSKD::update_target_current() {
                 }
                 break;
             case (SHUTTLED_MODE):
-                // If we are in the AUTO MODE
+                // If we are in the SHUTTLED_MODE
                 if (sentry_present_position >= radius - 3 || sentry_present_position <= -radius + 3) {
                     // If the sentry is in the "stop area", we change the destination according to the rule we set in set_auto_destination()
                     if (sentry_present_position > 0) {
@@ -99,10 +121,12 @@ void SentryChassisSKD::update_target_current() {
                         set_destination(radius);
                     }
                 }
+                SentryChassisIF::target_velocity = sentry_a2v_pid.calc(sentry_present_position,
+                                                                       SentryChassisIF::target_position);
                 break;
             case (V_MODE):
                 // this mode is for adjusting velocity pid
-                SentryChassisIF::target_velocity = maximum_speed;
+                // The target velocity is given by user, here we do no calculation to target velocity
                 break;
             case (FINAL_AUTO_MODE):
                 if (SentryChassisIF::hit_detected && !SentryChassisIF::escaping) {
@@ -170,8 +194,7 @@ void SentryChassisSKD::update_target_current() {
                         }
                     }
                 }
-                SentryChassisIF::target_velocity = sentry_a2v_pid.calc(sentry_present_position,
-                                                                       SentryChassisIF::target_position);
+                SentryChassisIF::target_velocity = sentry_a2v_pid.calc(sentry_present_position, SentryChassisIF::target_position);
                 break;
             case (STOP_MODE):
             default:
