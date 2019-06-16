@@ -107,13 +107,15 @@ class SentryThread : public chibios_rt::BaseStaticThread<1024> {
                                 SentryChassisSKD::set_mode(SentryChassisSKD::SHUTTLED_MODE);
                                 break;
                             case Remote::S_MIDDLE :
+                                SentryChassisSKD::turn_off();
                                 break;
                             case Remote::S_DOWN :
+                                SentryChassisSKD::turn_off();
                                 break;
                         }
                         break;
                     case Remote::S_DOWN :
-
+                        SentryChassisSKD::turn_off();
                         switch (s2_present_state){
                             case Remote::S_UP :
                                 break;
