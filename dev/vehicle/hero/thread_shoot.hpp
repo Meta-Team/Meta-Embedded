@@ -58,8 +58,7 @@
 
              // If the loader is stopped and the last place of bullet loader is not full.
              // When first bullet place is empty, there should have 2 bullets to make it full.
-             if (plate_stop[0] == TRUE && plate_stop[1] == TRUE && plate_stop[2] == TRUE
-                                    && (loaded_bullet[2]== FALSE)||(loaded_bullet[0] == FALSE)) {
+             if (plate_stop[0] == TRUE && plate_stop[1] == TRUE && plate_stop[2] == TRUE && (loaded_bullet[2]== FALSE || loaded_bullet[0] == FALSE)) {
                  plate_target_angle += 36.0f;
              }
              // If the loader is stopped and the first place of bullet loader is not full, automatically load.
