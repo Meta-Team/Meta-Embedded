@@ -8,7 +8,7 @@
 #include "ch.hpp"
 #include "hal.h"
 #include "led.h"
-#include "debug/shell/shell.h"
+#include "shell.h"
 
 #include "state_handler.h"
 
@@ -64,6 +64,11 @@ public:
      * @return whether the message has been sent successfully
      */
     bool send_msg(const CANTxFrame *txmsg);
+
+    /**
+     * Event source to broadcast CAN error message
+     */
+    EVENTSOURCE_DECL(error_event_src);
 
 private:
 #if (CAN_INTERFACE_ENABLE_ERROR_FEEDBACK_THREAD == TRUE)

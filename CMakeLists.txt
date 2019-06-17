@@ -38,7 +38,20 @@ set(CMAKE_VERBOSE_MAKEFILE OFF)  # Enable this if you want to see verbose log
 
 include(os/ch.cmake)  # add files and directories from ChibiOS
 
-set(COMMON_CPP_SRC  # common cpp sources, which are included to every tartget at post configuration below
+include_directories(  # common include directories
+        dev
+        dev/common
+        dev/debug
+        dev/debug/shell
+        dev/interface
+        dev/interface/ahrs
+        dev/module
+        dev/scheduler
+        dev/logic
+        # TODO: elimiate control directory
+        dev/control)
+
+set(COMMON_SRC  # common cpp sources, which are included to every tartget at post configuration below
         dev/debug/shell/shell_base.c
         dev/debug/shell/shell_base_cmd.c
         dev/debug/shell/printf.c
@@ -48,15 +61,22 @@ set(COMMON_CPP_SRC  # common cpp sources, which are included to every tartget at
         dev/interface/buzzer.cpp
         dev/module/state_handler.cpp)
 
-include_directories(  # common include directories
-        dev
-        dev/common
-        dev/debug
-        dev/debug/shell
-        dev/interface
-        dev/interface/ahrs
-        dev/module
-        dev/control)
+set(AHRS_SRC
+        dev/interface/ahrs/ahrs.cpp
+        dev/interface/ahrs/ahrs_ext.cpp
+        dev/interface/ahrs/ahrs_lib_middleware.c
+        dev/interface/ahrs/ist8310.cpp
+        dev/interface/ahrs/mpu6500.cpp)
+
+set(GIMBAL_SHOOT_SRC
+        dev/interface/gimbal_interface.cpp
+        dev/scheduler/gimbal_scheduler.cpp
+        dev/scheduler/shoot_scheduler.cpp)
+
+set(CHASSIS_SRC
+        dev/interface/chassis_interface.cpp
+        dev/scheduler/chassis_scheduler.cpp
+        dev/logic/chassis_logic.cpp)
 
 include_directories(dev/board/${BOARD_NAME})  # include board configs
 
@@ -72,13 +92,10 @@ add_library(ChibiOS_OBJ OBJECT ${CHIBIOS_XASM_SRC} ${CHIBIOS_C_SRC} ${CHIBIOS_CP
 set(INFANTRY
         dev/module/pid_controller.hpp
         dev/interface/can_interface.cpp
-        dev/interface/ahrs/mpu6500.cpp
-        dev/interface/gimbal_interface.cpp
-        dev/interface/chassis_interface.cpp
         dev/interface/remote_interpreter.cpp
-        dev/scheduler/gimbal_scheduler.cpp
-        dev/scheduler/shoot_scheduler.cpp
-        dev/scheduler/chassis_scheduler.cpp
+        ${AHRS_SRC}
+        ${GIMBAL_SHOOT_SRC}
+        ${CHASSIS_SRC}
         dev/vehicle/infantry/main_infantry.cpp)
 
 # Main Program -- Infantry #1
@@ -292,7 +309,7 @@ get_directory_property(TARGER_LIST BUILDSYSTEM_TARGETS)
 foreach (target ${TARGER_LIST})
     if (NOT ${target} STREQUAL "ChibiOS_OBJ")  # OBJECT library doesn't have PRE_BUILD or POST_BUILD
         # Add ChibiOS files and commom sources
-        target_sources(${target} PRIVATE $<TARGET_OBJECTS:ChibiOS_OBJ> ${COMMON_CPP_SRC})
+        target_sources(${target} PRIVATE $<TARGET_OBJECTS:ChibiOS_OBJ> ${COMMON_SRC})
 
         # Echo target dev board before link
         add_custom_command(TARGET ${target} PRE_BUILD

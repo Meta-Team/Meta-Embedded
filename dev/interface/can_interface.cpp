@@ -20,7 +20,7 @@ void CANInterface::ErrorFeedbackThread::main() {
         }
 
         eventflags_t flags = chEvtGetAndClearFlags(&el);
-        StateHandler::raiseException(StateHandler::CAN_ERROR, flags);
+//        StateHandler::raiseException(StateHandler::CAN_ERROR, flags);
     }
 
     chEvtUnregister(&(can_driver->rxfull_event), &el);
