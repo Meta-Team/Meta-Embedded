@@ -26,9 +26,11 @@
 #define SUSPENSION_YAW_MAX_VOLTAGE 30000
 #define SUSPENSION_PITCH_MAX_VOLTAGE 29000
 #define SUSPENSION_GIMBAL_INTERFACE_BULLET_LOADER_MAX_CURRENT 3000
-#define MAX_YAW_ANGLE 170 // degree
-#define MAX_PITCH_ANGLE 40 // degree
-#define BULLET_LOADER_SPEED 40 // degree/s
+#define MAX_YAW_ANGLE 170.0f // degree
+#define MIN_YAW_ANGLE -170.0f
+#define MAX_PITCH_ANGLE 20.0f // degree
+#define MIN_PITCH_ANGLE -85.0f
+#define BULLET_LOADER_SPEED 360.0f // degree/s
 #endif
 
 /**

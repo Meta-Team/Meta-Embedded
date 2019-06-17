@@ -51,7 +51,7 @@ AHRSExt ahrsExt;
  * @pre Initialize GimbalInterface with CAN driver and set the front angles of yaw and pitch properly
  * @pre Start the thread of updating MPU6500
  */
-class SentryThread : public chibios_rt::BaseStaticThread<1024> {
+class SentryThread : public chibios_rt::BaseStaticThread<512> {
 
     static constexpr unsigned int GIMBAL_THREAD_INTERVAL = 10; // [ms]
 
@@ -63,7 +63,7 @@ class SentryThread : public chibios_rt::BaseStaticThread<1024> {
         SentryChassisIF::init(&can1);
         SuspensionGimbalSKD::suspensionGimbalThread.start(HIGHPRIO - 2);
         SentryChassisSKD::sentryChassisThread.start(HIGHPRIO - 3);
-
+        
         Remote::rc_status_t s1_present_state = Remote::S_UP, s2_present_state = Remote::S_UP;
         while (!shouldTerminate()) {
 
@@ -73,6 +73,7 @@ class SentryThread : public chibios_rt::BaseStaticThread<1024> {
                 // If the state of remote controller is changed, then we change the state/mode of the SKDs
                 s1_present_state = Remote::rc.s1;
                 s2_present_state = Remote::rc.s2;
+                LOG("I HAVE CHANGED");
 
                 switch (s1_present_state) {
 
@@ -89,8 +90,16 @@ class SentryThread : public chibios_rt::BaseStaticThread<1024> {
                                 SuspensionGimbalSKD::set_shoot_mode(OFF);
                                 break;
                             case Remote::S_MIDDLE :
+                                SuspensionGimbalSKD::set_motor_enable(SuspensionGimbalIF::YAW_ID, true);
+                                SuspensionGimbalSKD::set_motor_enable(SuspensionGimbalIF::PIT_ID, true);
+                                SuspensionGimbalSKD::set_motor_enable(SuspensionGimbalIF::BULLET_LOADER_ID, true);
+                                SuspensionGimbalSKD::set_shoot_mode(AWAIT);
                                 break;
                             case Remote::S_DOWN :
+                                SuspensionGimbalSKD::set_motor_enable(SuspensionGimbalIF::YAW_ID, true);
+                                SuspensionGimbalSKD::set_motor_enable(SuspensionGimbalIF::PIT_ID, true);
+                                SuspensionGimbalSKD::set_motor_enable(SuspensionGimbalIF::BULLET_LOADER_ID, true);
+                                SuspensionGimbalSKD::set_shoot_mode(AWAIT);
                                 break;
                         }
 
@@ -134,9 +143,16 @@ class SentryThread : public chibios_rt::BaseStaticThread<1024> {
             }
 
             /** Update Movement Request **/
-
-            if (s1_present_state == Remote::S_MIDDLE && s2_present_state == Remote::S_UP){
-                SentryChassisSKD::set_destination(SentryChassisIF::present_position + Remote::rc.ch0);
+            if (s1_present_state == Remote::S_UP && s2_present_state == Remote::S_MIDDLE){
+                SuspensionGimbalSKD::set_motor_angle(SuspensionGimbalIF::YAW_ID, Remote::rc.ch2 * 170.0f);
+                SuspensionGimbalSKD::set_motor_angle(SuspensionGimbalIF::PIT_ID, Remote::rc.ch3 * 20);
+                if (Remote::rc.ch0 > 0.5f){
+                    SuspensionGimbalSKD::start_continuous_shooting();
+                } else{
+                    SuspensionGimbalSKD::stop_continuous_shooting();
+                }
+            } else if (s1_present_state == Remote::S_MIDDLE && s2_present_state == Remote::S_UP){
+                SentryChassisSKD::set_destination(SentryChassisIF::target_position + Remote::rc.ch0);
             }
 
             sleep(TIME_MS2I(GIMBAL_THREAD_INTERVAL));
@@ -169,12 +185,6 @@ int main(void) {
 
 
     LED::green_on();
-
-    // Start the red spot
-    /*
-    palSetPadMode(GPIOG, GPIOG_PIN13, PAL_MODE_OUTPUT_PUSHPULL);
-    palSetPad(GPIOG, GPIOG_PIN13);
-     */
 
     /** Start Logic Control Thread **/
     sentryThread.start(NORMALPRIO);

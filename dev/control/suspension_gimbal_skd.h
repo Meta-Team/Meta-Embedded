@@ -31,6 +31,8 @@ public:
 
     static void set_front(SuspensionGimbalIF::motor_id_t motor_id);
 
+    static void set_motor_angle(SuspensionGimbalIF::motor_id_t motor_id, float target);
+
     static void set_shoot_mode(shoot_mode_t mode);
 
     static void set_motor_enable(SuspensionGimbalIF::motor_id_t motor_id, bool status);

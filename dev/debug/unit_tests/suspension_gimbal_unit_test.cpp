@@ -198,16 +198,10 @@ static void cmd_gimbal_set_target_angle(BaseSequentialStream *chp, int argc, cha
     if(fix_front){
         shellUsage(chp, "now is at the 'fix front mode' and the yaw won't be changed according to your command");
     }else{
-        target_yaw_angle = Shell::atof(argv[0]);
+        SuspensionGimbalSKD::set_motor_angle(SuspensionGimbalIF::YAW_ID, Shell::atof(argv[0]));
     }
 
-    target_pitch_angle = Shell::atof(argv[1]);
-
-    SuspensionGimbalSKD::yaw_v2i_pid.clear_i_out();
-    SuspensionGimbalSKD::yaw_a2v_pid.clear_i_out();
-    SuspensionGimbalSKD::pitch_v2i_pid.clear_i_out();
-    SuspensionGimbalSKD::pitch_a2v_pid.clear_i_out();
-    SuspensionGimbalSKD::BL_v2i_pid.clear_i_out();
+    SuspensionGimbalSKD::set_motor_angle(SuspensionGimbalIF::PIT_ID, Shell::atof(argv[1]));
 
     enable_angle_to_v_pid = true;
 }

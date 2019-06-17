@@ -12,6 +12,7 @@ SuspensionGimbalIF::MotorInterface SuspensionGimbalIF::bullet_loader;
 float SuspensionGimbalIF::shoot_duty_cycles[3] = {0.0, 0.1, 0.3};
 CANInterface *SuspensionGimbalIF::can_;
 AHRSExt *SuspensionGimbalIF::ahrs_;
+PWMConfig constexpr SuspensionGimbalIF::FRICTION_WHEELS_PWM_CFG;
 
 void SuspensionGimbalIF::init(CANInterface *can_interface, AHRSExt *ahrsExt, float yaw_front_angle_raw, float pitch_front_angle_raw) {
     shoot_mode = OFF;
@@ -197,12 +198,13 @@ void SuspensionGimbalIF::process_motor_feedback(CANRxFrame const *rxmsg) {
         times[index] = TIME_I2MS(chibios_rt::System::getTime());
         movement_sum += angle_movement;
         sample_count++;
+        int next = (index + 1) % VELOCITY_SAMPLE_INTERVAL;
         if (sample_count >= VELOCITY_SAMPLE_INTERVAL){
-            motor->angular_velocity = movement_sum * 1000.0f / (float)(times[index] - times[(index + 1) % VELOCITY_SAMPLE_INTERVAL]);
+            motor->angular_velocity = movement_sum * 1000.0f / (float)(times[index] - times[next]);
             // Update the next index
-            index = (index + 1) % VELOCITY_SAMPLE_INTERVAL;
-            movement_sum -= movements[index];
+            movement_sum -= movements[next];
             sample_count--;
         }
+        index = next;
     }
 }

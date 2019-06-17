@@ -269,8 +269,14 @@ add_executable(ut_sentry_remote
         dev/module/can_interface.cpp
         dev/interface/suspension_gimbal_interface.cpp
         dev/interface/sentry_chassis_interface.cpp
+        dev/control/sentry_chassis_skd.cpp
+        dev/control/suspension_gimbal_skd.cpp
         dev/vehicle/sentry/main_sentry.cpp
-        dev/interface/remote_interpreter.cpp)
+        dev/interface/remote_interpreter.cpp
+        dev/interface/referee_interface.cpp
+        dev/interface/ahrs/ahrs_ext.cpp
+        dev/module/CRC8.cpp
+        dev/module/CRC16.cpp)
 
 add_executable(ut_referee_interface
         dev/module/CRC8.cpp
