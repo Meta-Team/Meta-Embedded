@@ -19,7 +19,7 @@
 
 /** Initial Gimbal Angle Raw **/
 #define GIMBAL_YAW_FRONT_ANGLE_RAW 5372
-#define GIMBAL_PITCH_FRONT_ANGLE_RAW 4700
+#define GIMBAL_PITCH_FRONT_ANGLE_RAW 4475
 
 /** Gimbal Motor PID Params **/
 #define GIMBAL_PID_YAW_V2I_KP 40.0f
