@@ -63,7 +63,7 @@ class SentryThread : public chibios_rt::BaseStaticThread<512> {
         SentryChassisIF::init(&can1);
         SuspensionGimbalSKD::suspensionGimbalThread.start(HIGHPRIO - 2);
         SentryChassisSKD::sentryChassisThread.start(HIGHPRIO - 3);
-        
+
         Remote::rc_status_t s1_present_state = Remote::S_UP, s2_present_state = Remote::S_UP;
         while (!shouldTerminate()) {
 
