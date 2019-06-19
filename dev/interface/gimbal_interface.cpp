@@ -28,6 +28,12 @@ const PWMConfig FRICTION_WHEELS_PWM_CFG = {
 
 void GimbalInterface::init(CANInterface *can_interface, uint16_t yaw_front_angle_raw, uint16_t pitch_front_angle_raw) {
 
+#if defined(BOARD_RM_2018_A)
+    // Enable power of bullet loader motor
+    palSetPadMode(GPIOH, GPIOH_POWER1_CTRL, PAL_MODE_OUTPUT_PUSHPULL);
+    palSetPad(GPIOH, GPIOH_POWER1_CTRL);
+#endif
+
     feedback[YAW].id = YAW;
     feedback[YAW].last_angle_raw = yaw_front_angle_raw;
 
@@ -35,19 +41,15 @@ void GimbalInterface::init(CANInterface *can_interface, uint16_t yaw_front_angle
     feedback[PITCH].last_angle_raw = pitch_front_angle_raw;
 
     feedback[BULLET].id = BULLET;
-    feedback[BULLET].reset_front_angle();
+    feedback[BULLET].last_angle_raw = 4096.0f;
 
     feedback[PLATE].id = PLATE;
-    feedback[PLATE].reset_front_angle();
+    feedback[PLATE].last_angle_raw = 4096.0f;
 
     can_ = can_interface;
     can_->register_callback(0x205, 0x208, process_motor_feedback);
 
-#if defined(BOARD_RM_2018_A)
-    // Enable power of bullet loader motor
-    palSetPadMode(GPIOH, GPIOH_POWER1_CTRL, PAL_MODE_OUTPUT_PUSHPULL);
-    palSetPad(GPIOH, GPIOH_POWER1_CTRL);
-#endif
+
 
 
     // Enable PWM and perform initialization on friction wheels
@@ -242,11 +244,11 @@ void GimbalInterface::process_motor_feedback(CANRxFrame const *rxmsg) {
             feedback[id].actual_angle += angle_movement * 10.0f / 8192;
 
             // If the actual_angle is greater than 180(-180) then it turns a round in CCW(CW) direction
-            if (feedback[id].actual_angle >= 360.0f) {
+            if (feedback[id].actual_angle >= 180.0f) {
                 feedback[id].actual_angle -= 360.0f;
                 feedback[id].round_count++;
             }
-            if (feedback[id].actual_angle < 0.0f) {
+            if (feedback[id].actual_angle < -180.0f) {
                 feedback[id].actual_angle += 360.0f;
                 feedback[id].round_count--;
             }
@@ -269,11 +271,11 @@ void GimbalInterface::process_motor_feedback(CANRxFrame const *rxmsg) {
             feedback[id].actual_angle += angle_movement * 18.9f / 8192; // deceleration ratio : 19, 360/19 = 18.947368421052632
 
             // IF the actual angle is beyond (-180,180)
-            if (feedback[id].actual_angle >= 360.0f) {
+            if (feedback[id].actual_angle >= 180.0f) {
                 feedback[id].actual_angle -= 360.0f;
                 feedback[id].round_count++;
             }
-            if (feedback[id].actual_angle <= 0.0f) {
+            if (feedback[id].actual_angle <= -180.0f) {
                 feedback[id].actual_angle +=360.0f;
                 feedback[id].round_count--;
             }

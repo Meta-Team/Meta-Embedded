@@ -41,18 +41,20 @@
 
      bool pc_right_pressed = false; // local variable to control one click of right button of mouse
 
+     //bool bullet_full = false;
+
+     float plate_target_angle = 0.0f;
+     float bullet_target_angle = 0.0f;
+
+     bool loader_stop[3] = {TRUE, TRUE, TRUE};
+     bool plate_stop[3] = {TRUE, TRUE, TRUE};
+     bool loaded_bullet[4] = {FALSE,FALSE,FALSE,FALSE};
+
+
      void main() final {
 
          setName("shoot");
 
-         //bool bullet_full = false;
-
-         float plate_target_angle = Shoot::feedback[3].actual_angle;
-         float bullet_target_angle = 180.0f;
-
-         bool loader_stop[3] = {TRUE, TRUE, TRUE};
-         bool plate_stop[3] = {TRUE, TRUE, TRUE};
-         bool loaded_bullet[4] = {FALSE,FALSE,FALSE,FALSE};
 
          Shoot::change_pid_params(GIMBAL_PID_BULLET_LOADER_A2V_PARAMS, GIMBAL_PID_BULLET_LOADER_V2I_PARAMS, GIMBAL_PID_BULLET_PLATE_A2V_PARAMS, GIMBAL_PID_BULLET_PLATE_V2I_PARAMS);
 
@@ -61,8 +63,8 @@
              loaded_bullet[2] = (bool) palReadPad(GPIOE,GPIOE_PIN4); // check if the last bullet place is full or not.
 
              // get the correct angle
-             if (plate_target_angle > 360.0f && Shoot::feedback[3].actual_angle < plate_target_angle -360.0f) plate_target_angle -= 360.0f;
-             if (bullet_target_angle > 360.0f && Shoot::feedback[2].actual_angle < bullet_target_angle -360.0f) bullet_target_angle -= 360.0f;
+             if (plate_target_angle > 180.0f && Shoot::feedback[3].actual_angle < plate_target_angle -360.0f) plate_target_angle -= 360.0f;
+             if (bullet_target_angle > 180.0f && Shoot::feedback[2].actual_angle < bullet_target_angle -360.0f) bullet_target_angle -= 360.0f;
 
              // check if the loader is moving. Three variables sequence increase the latter system's stability.
              loader_stop[0] = loader_stop [1];
