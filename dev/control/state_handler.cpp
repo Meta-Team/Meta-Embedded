@@ -88,7 +88,7 @@ void StateHandler::handleException(StateHandler::Exceptions exception, bool from
             }
             break;
 #endif
-#ifdef STATE_HANDLER_ENABLE_CHASSIS
+#ifdef STATE_HANDLER_ENABLE_GIMBAL
         case BULLET_LOADER_STUCK:
             if (!bulletLoaderStuck_) {
                 bulletLoaderStuck_ = true;
