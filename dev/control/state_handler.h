@@ -143,6 +143,7 @@ public:
 #ifdef STATE_HANDLER_ENABLE_GIMBAL
     static bool gimbalSeriousErrorOccured() { return gimbalSeriousErrorOccured_; }
     static bool bulletLoaderStuck() { return bulletLoaderStuck_; }
+    static void bulletLoaderSmooth() { bulletLoaderStuck_ = false; }
 #endif
 #if defined(HERO)
     static bool bulletPlateStuck() { return  bulletPlateStuck_; }

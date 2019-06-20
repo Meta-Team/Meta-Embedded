@@ -14,6 +14,7 @@
  */
 
 
+
 /**
  * @brief The Simple graph of the loaded bullet[4]
  *
@@ -32,7 +33,10 @@
  *                            |_______|
  *
  */
-
+static float plate_target_angle = 0.0f;
+static float bullet_target_angle = 0.0f;
+static bool startHandleStuck = false;
+static float stuck_angle;
  class ShootThread : public chibios_rt::BaseStaticThread<1024>{
 
      static constexpr unsigned int SHOOT_THREAD_INTERVAL = 5; // PID calculation interval [ms]
@@ -43,9 +47,6 @@
 
      //bool bullet_full = false;
 
-     float plate_target_angle = 0.0f;
-     float bullet_target_angle = 0.0f;
-
      bool loader_stop[3] = {TRUE, TRUE, TRUE};
      bool plate_stop[3] = {TRUE, TRUE, TRUE};
      bool loaded_bullet[4] = {FALSE,FALSE,FALSE,FALSE};
@@ -54,7 +55,6 @@
      void main() final {
 
          setName("shoot");
-
 
          Shoot::change_pid_params(GIMBAL_PID_BULLET_LOADER_A2V_PARAMS, GIMBAL_PID_BULLET_LOADER_V2I_PARAMS, GIMBAL_PID_BULLET_PLATE_A2V_PARAMS, GIMBAL_PID_BULLET_PLATE_V2I_PARAMS);
 
@@ -66,11 +66,11 @@
              if (plate_target_angle > 180.0f && Shoot::feedback[3].actual_angle < plate_target_angle -360.0f) plate_target_angle -= 360.0f;
              if (bullet_target_angle > 180.0f && Shoot::feedback[2].actual_angle < bullet_target_angle -360.0f) bullet_target_angle -= 360.0f;
 
-             while(StateHandler::bulletPlateStuck()) //When bullet loader is stuck.
-             {
-                 float stuck_angle;
-                 stuck_angle = Shoot::feedback[2].actual_angle - 1.0f; // when stuck, bullet loader will rotate back with a constant speed.
-                 Shoot::calc_bullet(Shoot::feedback[2].actual_velocity, stuck_angle);
+             //When bullet loader is stuck. The stuck fix loop will be terminated when it has turned more than 10 degrees back.
+             while(StateHandler::bulletLoaderStuck() && (stuck_angle - Shoot::feedback[2].actual_angle < 10.0f || stuck_angle + 360.0f - Shoot::feedback[2].actual_angle < 10.0f)){
+                 float stuck_target_angle;
+                 stuck_target_angle = Shoot::feedback[2].actual_angle - 1.0f; // when stuck, bullet loader will rotate back with a constant speed.
+                 Shoot::calc_bullet(Shoot::feedback[2].actual_velocity, stuck_target_angle);
                  sleep(TIME_MS2I(SHOOT_THREAD_INTERVAL));
              }
 
