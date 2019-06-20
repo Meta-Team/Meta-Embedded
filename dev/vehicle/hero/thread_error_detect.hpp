@@ -132,8 +132,9 @@ class ErrorDetectThread : public chibios_rt::BaseStaticThread<1024> {
                 }
             }
 
-            if(Shoot::feedback[2].actual_velocity < 1.0 && Shoot::feedback[2].actual_current > )
-
+//            if (Shoot::feedback[2].actual_velocity < 1.0 && Shoot::feedback[2].actual_current > ) {
+//                StateHandler::raiseException(StateHandler::BULLET_LOADER_STUCK);
+//            } TODO: Determine if bullet loader is stuck.
             sleep(TIME_MS2I(ERROR_DETECT_THREAD_INTERVAL));
         }
 
