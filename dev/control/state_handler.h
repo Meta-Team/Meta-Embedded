@@ -94,6 +94,9 @@ public:
         ,GIMBAL_DISCONNECTED
         ,BULLET_LOADER_STUCK
 #endif
+#if defined(HERO)
+        ,BULLET_PLATE_STUCK
+#endif
 #ifdef STATE_HANDLER_ENABLE_CHASSIS
         ,CHASSIS_DISCONNECTED
 #endif
@@ -139,6 +142,10 @@ public:
 
 #ifdef STATE_HANDLER_ENABLE_GIMBAL
     static bool gimbalSeriousErrorOccured() { return gimbalSeriousErrorOccured_; }
+    static bool bulletLoaderStuck() { return bulletLoaderStuck_; }
+#endif
+#if defined(HERO)
+    static bool bulletPlateStuck() { return  bulletPlateStuck_; }
 #endif
 #ifdef STATE_HANDLER_ENABLE_CHASSIS
     static bool chassisSeriousErrorOccured() { return chassisSeriousErrorOccured_; }
@@ -174,6 +181,10 @@ private:
     static bool remoteDisconnected_;
 #ifdef STATE_HANDLER_ENABLE_GIMBAL
     static bool gimbalSeriousErrorOccured_;
+    static bool bulletLoaderStuck_;
+#endif
+#ifdef HERO
+    static bool bulletPlateStuck_;
 #endif
 #ifdef STATE_HANDLER_ENABLE_CHASSIS
     static bool chassisSeriousErrorOccured_;
