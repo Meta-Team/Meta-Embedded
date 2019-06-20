@@ -125,7 +125,7 @@ int main(void){
     /** Start Threads **/
     gimbalThread.start(NORMALPRIO);
     //chassisThread.start(NORMALPRIO - 1);
-    shootThread.start(NORMALPRIO - 1);
+    shootThread.start(NORMALPRIO - 2);
     errorDetectThread.start(LOWPRIO + 1);
 
     StateHandler::echoEvent(StateHandler::MAIN_THREAD_SETUP_COMPLETE);
