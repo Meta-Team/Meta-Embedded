@@ -19,6 +19,9 @@
  * @note This module should only set upon debug module, but NOT any higher level module. Events or Exceptions should be
  *       be reported by threads (although may through module code), instead of being fetched by this module.
  */
+#ifndef ENABLE_STATE_HANDLE
+#define ENABLE_STATE_HANDLE
+#endif
 
 #if defined(INFANTRY) || defined(HERO)
 #define STATE_HANDLER_ENABLE_MPU6500
@@ -143,6 +146,7 @@ public:
 #ifdef STATE_HANDLER_ENABLE_GIMBAL
     static bool gimbalSeriousErrorOccured() { return gimbalSeriousErrorOccured_; }
     static bool bulletLoaderStuck() { return bulletLoaderStuck_; }
+    static void bulletLoaderSmooth() { bulletLoaderStuck_ = false; }
 #endif
 #if defined(HERO)
     static bool bulletPlateStuck() { return  bulletPlateStuck_; }
@@ -158,6 +162,7 @@ public:
 #endif
 
 #endif
+
 
 private:
 

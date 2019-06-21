@@ -33,6 +33,8 @@
  *
  */
 
+ static float bullet_stuck_angle;
+
  class ShootThread : public chibios_rt::BaseStaticThread<1024>{
 
      static constexpr unsigned int SHOOT_THREAD_INTERVAL = 5; // PID calculation interval [ms]
@@ -66,13 +68,16 @@
              if (plate_target_angle > 180.0f && Shoot::feedback[3].actual_angle < plate_target_angle -360.0f) plate_target_angle -= 360.0f;
              if (bullet_target_angle > 180.0f && Shoot::feedback[2].actual_angle < bullet_target_angle -360.0f) bullet_target_angle -= 360.0f;
 
-             while(StateHandler::bulletPlateStuck()) //When bullet loader is stuck.
+             while(StateHandler::bulletLoaderStuck()) //When bullet loader is stuck.
              {
-                 float stuck_angle;
-                 stuck_angle = Shoot::feedback[2].actual_angle - 1.0f; // when stuck, bullet loader will rotate back with a constant speed.
-                 Shoot::calc_bullet(Shoot::feedback[2].actual_velocity, stuck_angle);
+                 float stuck_target_angle;
+                 stuck_target_angle = Shoot::feedback[2].actual_angle - 1.0f; // when stuck, bullet loader will rotate back with a constant speed.
+                 if(stuck_target_angle < -180.0f && Shoot::feedback[2].actual_angle - 360.0f) bullet_stuck_angle += 360.0f;
+                 Shoot::calc_bullet(Shoot::feedback[2].actual_velocity, stuck_target_angle);
                  sleep(TIME_MS2I(SHOOT_THREAD_INTERVAL));
              }
+             StateHandler::bulletLoaderSmooth();
+
 
              // check if the loader is moving. Three variables sequence increase the latter system's stability.
              loader_stop[0] = loader_stop [1];
