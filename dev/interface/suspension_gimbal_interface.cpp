@@ -9,6 +9,7 @@ shoot_mode_t SuspensionGimbalIF::shoot_mode;
 SuspensionGimbalIF::MotorInterface SuspensionGimbalIF::yaw;
 SuspensionGimbalIF::MotorInterface SuspensionGimbalIF::pitch;
 SuspensionGimbalIF::MotorInterface SuspensionGimbalIF::bullet_loader;
+float SuspensionGimbalIF::pitchFront;
 float SuspensionGimbalIF::shoot_duty_cycles[3] = {0.0, 0.1, 0.3};
 CANInterface *SuspensionGimbalIF::can_;
 AHRSExt *SuspensionGimbalIF::ahrs_;
@@ -19,13 +20,13 @@ void SuspensionGimbalIF::init(CANInterface *can_interface, AHRSExt *ahrsExt, flo
     // The reasonable angle movement of yaw and pitch are assumed to be limited in (-4096, 4096), in other word, (-180, 180) in degree
     // The actual angle of yaw and pitch are scaled to be in [-180, 180) in degree
 
-    yaw.initializer(YAW_ID, -4096, 4096, -180.0f, 180.0f, 1.0f);
-    pitch.initializer(PIT_ID, -4096, 4096, -180.0f, 180.0f, 1.0f);
+    yaw.initializer(YAW_ID, -4096, 4096, 1.0f);
+    pitch.initializer(PIT_ID, -4096, 4096, 1.0f);
 
     // The bullet loader are assumed to only move in positive direction, so there is no real upper limit
     // The angle_movement_lower_bound here is to debug the mild turn back due to the unexpected vibration
 
-    bullet_loader.initializer(BULLET_LOADER_ID, -1000, 8193, 0.0f, 360.0f, 36.0f);
+    bullet_loader.initializer(BULLET_LOADER_ID, -1000, 8193, 36.0f);
 
     yaw.last_angle = yaw_front_angle_raw;
     pitch.last_angle = pitch_front_angle_raw;
@@ -38,6 +39,8 @@ void SuspensionGimbalIF::init(CANInterface *can_interface, AHRSExt *ahrsExt, flo
     can_->register_callback(0x205, 0x207, process_motor_feedback);
 
     ahrs_ = ahrsExt;
+
+    pitchFront = ahrs_->angle.z;
 
     pwmStart(FRICTION_WHEEL_PWM_DRIVER, &FRICTION_WHEELS_PWM_CFG);
 
@@ -135,20 +138,14 @@ void SuspensionGimbalIF::process_motor_feedback(CANRxFrame const *rxmsg) {
     if(rxmsg->SID == 0x205){
         motor = &yaw;
     }else if(rxmsg->SID == 0x206){
-        motor = &pitch;
+        pitch.angular_position = ahrs_->angle.z - pitchFront;
+        pitch.angular_velocity = ahrs_->gyro.y;
+        return;
     } else{
         motor = &bullet_loader;
     }
     // Get the present absolute angle value by combining the data into a temporary variable
-    float new_actual_angle;
-
-    if (rxmsg->SID==0x206) {
-        new_actual_angle = ahrs_->angle.y;
-    } else if (rxmsg->SID == 0x205) {
-        new_actual_angle = ahrs_->angle.z;
-    } else {
-        new_actual_angle = (rxmsg->data8[0] << 8 | rxmsg->data8[1]) * 360.0f / motor->deceleration_ratio / 8192.0f;
-    }
+    float new_actual_angle = (rxmsg->data8[0] << 8 | rxmsg->data8[1]) * 360.0f / motor->deceleration_ratio / 8192.0f;
 
     // Check whether this new angle is valid
     if (new_actual_angle > 360.0f) {
@@ -168,43 +165,10 @@ void SuspensionGimbalIF::process_motor_feedback(CANRxFrame const *rxmsg) {
         angle_movement -= 360.0f;
     }
     // the key idea is to add the change of angle to actual angle.
-    motor->actual_angle = motor->actual_angle + angle_movement;
-
-    // modify the actual angle and update the round count when appropriate
-    if (motor->actual_angle >= motor->actual_angle_upper_bound) {
-        motor->actual_angle -= 360.0f;
-        motor->round_count++;//round count increases 1
-    }
-    if (motor->actual_angle < motor->actual_angle_lower_bound) {
-        motor->actual_angle += 360.0f;
-        motor->round_count--;//round count decreases 1
-    }
-
-    motor->angular_position = motor->actual_angle + motor->round_count * 360.0f;
+    motor->angular_position = motor->angular_position + angle_movement;
 
     // Calculate the angular velocity
-    if(rxmsg->SID == 0x205 || rxmsg->SID == 0x207) {
-        // For yaw or bullet_loader, get the velocity directly
-        // Get the angular velocity: feedback / deceleration ratio * 6.0f (360 degrees per round per 60 seconds)
-        motor->angular_velocity = ((int16_t) (rxmsg->data8[2] << 8 | rxmsg->data8[3])) / motor->deceleration_ratio * 6.0f;
-    }else{
-        // For pitch, sum angle movements for VELOCITY_SAMPLE_INTERVAL times, and calculate the average.
-        static float movements[VELOCITY_SAMPLE_INTERVAL];
-        static time_msecs_t times[VELOCITY_SAMPLE_INTERVAL];
-        static float movement_sum = 0;
-        static int sample_count = 0;
-        static int index = 0;
-        movements[index] = angle_movement;
-        times[index] = TIME_I2MS(chibios_rt::System::getTime());
-        movement_sum += angle_movement;
-        sample_count++;
-        int next = (index + 1) % VELOCITY_SAMPLE_INTERVAL;
-        if (sample_count >= VELOCITY_SAMPLE_INTERVAL){
-            motor->angular_velocity = movement_sum * 1000.0f / (float)(times[index] - times[next]);
-            // Update the next index
-            movement_sum -= movements[next];
-            sample_count--;
-        }
-        index = next;
-    }
+    // For yaw or bullet_loader, get the velocity directly
+    // Get the angular velocity: feedback / deceleration ratio * 6.0f (360 degrees per round per 60 seconds)
+    motor->angular_velocity = ((int16_t) (rxmsg->data8[2] << 8 | rxmsg->data8[3])) / motor->deceleration_ratio * 6.0f;
 }

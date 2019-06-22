@@ -33,7 +33,10 @@ void SuspensionGimbalSKD::init() {
 
 void SuspensionGimbalSKD::set_front(SuspensionGimbalIF::motor_id_t motor_id) {
     if (motor_id == SuspensionGimbalIF::YAW_ID) SuspensionGimbalIF::yaw.reset_front_angle();
-    else if (motor_id == SuspensionGimbalIF::PIT_ID) SuspensionGimbalIF::pitch.reset_front_angle();
+    else if (motor_id == SuspensionGimbalIF::PIT_ID) {
+        SuspensionGimbalIF::pitch.reset_front_angle();
+        SuspensionGimbalIF::pitchFront = SuspensionGimbalIF::ahrs_->angle.z;
+    }
     else if (motor_id == SuspensionGimbalIF::BULLET_LOADER_ID) SuspensionGimbalIF::bullet_loader.reset_front_angle();
 }
 
@@ -62,12 +65,12 @@ void SuspensionGimbalSKD::start_continuous_shooting() {
 }
 
 void SuspensionGimbalSKD::stop_continuous_shooting() {
+    SuspensionGimbalIF::bullet_loader.angular_position = 0;
     set_shoot_mode(AWAIT);
 }
 
 void SuspensionGimbalSKD::start_incontinuous_shooting(int bullet_num) {
-    SuspensionGimbalIF::bullet_loader.round_count = 0;
-    SuspensionGimbalIF::bullet_loader.target_angle = one_bullet_step * bullet_num + SuspensionGimbalIF::bullet_loader.actual_angle;
+    SuspensionGimbalIF::bullet_loader.target_angle = one_bullet_step * bullet_num + SuspensionGimbalIF::bullet_loader.angular_position;
     continuous_shooting = false;
     set_shoot_mode(SHOOT);
 }

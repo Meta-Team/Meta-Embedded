@@ -73,7 +73,6 @@ class SentryThread : public chibios_rt::BaseStaticThread<512> {
                 // If the state of remote controller is changed, then we change the state/mode of the SKDs
                 s1_present_state = Remote::rc.s1;
                 s2_present_state = Remote::rc.s2;
-                LOG("I HAVE CHANGED");
 
                 switch (s1_present_state) {
 
@@ -94,12 +93,18 @@ class SentryThread : public chibios_rt::BaseStaticThread<512> {
                                 SuspensionGimbalSKD::set_motor_enable(SuspensionGimbalIF::PIT_ID, true);
                                 SuspensionGimbalSKD::set_motor_enable(SuspensionGimbalIF::BULLET_LOADER_ID, true);
                                 SuspensionGimbalSKD::set_shoot_mode(AWAIT);
+                                SuspensionGimbalSKD::set_front(SuspensionGimbalIF::YAW_ID);
+                                SuspensionGimbalSKD::set_front(SuspensionGimbalIF::PIT_ID);
+                                SuspensionGimbalSKD::set_front(SuspensionGimbalIF::BULLET_LOADER_ID);
                                 break;
                             case Remote::S_DOWN :
                                 SuspensionGimbalSKD::set_motor_enable(SuspensionGimbalIF::YAW_ID, true);
                                 SuspensionGimbalSKD::set_motor_enable(SuspensionGimbalIF::PIT_ID, true);
                                 SuspensionGimbalSKD::set_motor_enable(SuspensionGimbalIF::BULLET_LOADER_ID, true);
                                 SuspensionGimbalSKD::set_shoot_mode(AWAIT);
+                                SuspensionGimbalSKD::set_front(SuspensionGimbalIF::YAW_ID);
+                                SuspensionGimbalSKD::set_front(SuspensionGimbalIF::PIT_ID);
+                                SuspensionGimbalSKD::set_front(SuspensionGimbalIF::BULLET_LOADER_ID);
                                 break;
                         }
 
@@ -145,7 +150,7 @@ class SentryThread : public chibios_rt::BaseStaticThread<512> {
             /** Update Movement Request **/
             if (s1_present_state == Remote::S_UP && s2_present_state == Remote::S_MIDDLE){
                 SuspensionGimbalSKD::set_motor_angle(SuspensionGimbalIF::YAW_ID, Remote::rc.ch2 * 170.0f);
-                SuspensionGimbalSKD::set_motor_angle(SuspensionGimbalIF::PIT_ID, Remote::rc.ch3 * 20);
+                SuspensionGimbalSKD::set_motor_angle(SuspensionGimbalIF::PIT_ID, Remote::rc.ch3 * 40);
                 if (Remote::rc.ch0 > 0.5f){
                     SuspensionGimbalSKD::start_continuous_shooting();
                 } else{

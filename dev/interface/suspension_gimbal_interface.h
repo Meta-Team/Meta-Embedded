@@ -8,6 +8,7 @@
 #include "hal.h"
 #include "can_interface.h"
 #include "ahrs_ext.h"
+#include "ahrs_math.hpp"
 
 /* Board Guard */
 #if defined(BOARD_RM_2018_A)
@@ -28,7 +29,7 @@
 #define SUSPENSION_GIMBAL_INTERFACE_BULLET_LOADER_MAX_CURRENT 3000
 #define MAX_YAW_ANGLE 170.0f // degree
 #define MIN_YAW_ANGLE -170.0f
-#define MAX_PITCH_ANGLE 20.0f // degree
+#define MAX_PITCH_ANGLE 40.0f // degree
 #define MIN_PITCH_ANGLE -85.0f
 #define BULLET_LOADER_SPEED 360.0f // degree/s
 #endif
@@ -79,12 +80,10 @@ public:
 
         float last_angle = 0.0f;  // the raw angle of the newest feedback, in [0, 360]
 
-        void initializer(motor_id_t id_, float movement_LB, float movement_UB, float angle_LB, float angle_UB, float DR){
+        void initializer(motor_id_t id_, float movement_LB, float movement_UB, float DR){
             id = id_;
             angle_movement_lower_bound = movement_LB;
             angle_movement_upper_bound = movement_UB;
-            actual_angle_lower_bound = angle_LB;
-            actual_angle_upper_bound = angle_UB;
             deceleration_ratio = DR;
         }
 
@@ -92,23 +91,18 @@ public:
         /**
          * Normalized Angle and Rounds
          */
-        float actual_angle = 0.0f; // the actual angle [degree] of the gimbal, compared with the front
-        int round_count = 0;  // the rounds that the gimbal turns
         float target_angle = 0;
 
         // Some const parameters for feedback processing
         float angle_movement_lower_bound;
         float angle_movement_upper_bound;
-        float actual_angle_lower_bound;
-        float actual_angle_upper_bound;
         float deceleration_ratio;
 
         /**
          * @brief set current actual angle as the front angle
          */
         void reset_front_angle(){
-            actual_angle = 0;
-            round_count = 0;
+            angular_position = 0;
             target_angle = 0;
         }
 
@@ -140,6 +134,8 @@ private:
         FW_RIGHT = 1  // The right friction wheel, PI6, channel 1
     };
 
+    static float pitchFront;
+
     static float shoot_duty_cycles[3];  // the array contains the duty cycles for different shoot modes
 
     static CANInterface *can_;
@@ -147,6 +143,7 @@ private:
     static AHRSExt *ahrs_;
 
     friend CANInterface;
+    friend class SuspensionGimbalSKD;
 
     /**
      * @brief process CAN rx frame
