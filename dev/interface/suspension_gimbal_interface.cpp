@@ -20,13 +20,13 @@ void SuspensionGimbalIF::init(CANInterface *can_interface, AHRSExt *ahrsExt, flo
     // The reasonable angle movement of yaw and pitch are assumed to be limited in (-4096, 4096), in other word, (-180, 180) in degree
     // The actual angle of yaw and pitch are scaled to be in [-180, 180) in degree
 
-    yaw.initializer(YAW_ID, -4096, 4096, 1.0f);
-    pitch.initializer(PIT_ID, -4096, 4096, 1.0f);
+    yaw.initializer(YAW_ID, -180.0f, 180.0f, 1.0f);
+    pitch.initializer(PIT_ID, -180.0f, 180.0f, 1.0f);
 
     // The bullet loader are assumed to only move in positive direction, so there is no real upper limit
     // The angle_movement_lower_bound here is to debug the mild turn back due to the unexpected vibration
 
-    bullet_loader.initializer(BULLET_LOADER_ID, -1000, 8193, 36.0f);
+    bullet_loader.initializer(BULLET_LOADER_ID, -1000, 400.0f, 36.0f);
 
     yaw.last_angle = yaw_front_angle_raw;
     pitch.last_angle = pitch_front_angle_raw;
@@ -39,6 +39,7 @@ void SuspensionGimbalIF::init(CANInterface *can_interface, AHRSExt *ahrsExt, flo
     can_->register_callback(0x205, 0x207, process_motor_feedback);
 
     ahrs_ = ahrsExt;
+    ahrs_->start(can_);
 
     pitchFront = ahrs_->angle.z;
 
@@ -79,9 +80,8 @@ bool SuspensionGimbalIF::send_gimbal_currents() {
 #if SUSPENSION_GIMBAL_INTERFACE_ENABLE_CLIP
         ABS_CROP(yaw.target_signal, SUSPENSION_YAW_MAX_VOLTAGE);
 #endif
-        /** NOTICE: target current is reversed. */
-        txmsg.data8[0] = (uint8_t) (-yaw.target_signal >> 8); //upper byte
-        txmsg.data8[1] = (uint8_t) -yaw.target_signal; // lower byte
+        txmsg.data8[0] = (uint8_t) (yaw.target_signal >> 8); //upper byte
+        txmsg.data8[1] = (uint8_t) yaw.target_signal; // lower byte
 
     } else {
         txmsg.data8[0] = txmsg.data8[1] = 0;
@@ -93,8 +93,8 @@ bool SuspensionGimbalIF::send_gimbal_currents() {
         ABS_CROP(pitch.target_signal, SUSPENSION_PITCH_MAX_VOLTAGE);
 #endif
         /** NOTICE: target current is reversed. */
-        txmsg.data8[2] = (uint8_t) (-pitch.target_signal >> 8); //upper byte
-        txmsg.data8[3] = (uint8_t) -pitch.target_signal; // lower byte
+        txmsg.data8[2] = (uint8_t) (pitch.target_signal >> 8); //upper byte
+        txmsg.data8[3] = (uint8_t) pitch.target_signal; // lower byte
 
     } else {
         txmsg.data8[2] = txmsg.data8[3] = 0;
@@ -138,8 +138,8 @@ void SuspensionGimbalIF::process_motor_feedback(CANRxFrame const *rxmsg) {
     if(rxmsg->SID == 0x205){
         motor = &yaw;
     }else if(rxmsg->SID == 0x206){
-        pitch.angular_position = ahrs_->angle.z - pitchFront;
-        pitch.angular_velocity = ahrs_->gyro.y;
+        pitch.angular_position = -(ahrs_->angle.z - pitchFront);
+        pitch.angular_velocity = -ahrs_->gyro.y;
         return;
     } else{
         motor = &bullet_loader;

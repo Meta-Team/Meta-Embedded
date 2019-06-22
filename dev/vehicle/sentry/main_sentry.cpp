@@ -148,14 +148,17 @@ class SentryThread : public chibios_rt::BaseStaticThread<512> {
             }
 
             /** Update Movement Request **/
-            if (s1_present_state == Remote::S_UP && s2_present_state == Remote::S_MIDDLE){
-                SuspensionGimbalSKD::set_motor_angle(SuspensionGimbalIF::YAW_ID, Remote::rc.ch2 * 170.0f);
+            if (s1_present_state == Remote::S_UP && s2_present_state == Remote::S_UP){
+                LOG("%.2f, %.2f", SuspensionGimbalIF::yaw.angular_position, SuspensionGimbalIF::pitch.angular_position);
+            } else if (s1_present_state == Remote::S_UP && s2_present_state == Remote::S_MIDDLE){
+                SuspensionGimbalSKD::set_motor_angle(SuspensionGimbalIF::YAW_ID, Remote::rc.ch2 * 100.0f);
                 SuspensionGimbalSKD::set_motor_angle(SuspensionGimbalIF::PIT_ID, Remote::rc.ch3 * 40);
                 if (Remote::rc.ch0 > 0.5f){
                     SuspensionGimbalSKD::start_continuous_shooting();
                 } else{
                     SuspensionGimbalSKD::stop_continuous_shooting();
                 }
+                LOG("%.2f, %.2f", Remote::rc.ch2 * 170.0f, Remote::rc.ch3 * 40.0f);
             } else if (s1_present_state == Remote::S_MIDDLE && s2_present_state == Remote::S_UP){
                 SentryChassisSKD::set_destination(SentryChassisIF::target_position + Remote::rc.ch0);
             }
