@@ -10,9 +10,6 @@ bool StateHandler::remoteDisconnected_ = false;
 bool StateHandler::gimbalSeriousErrorOccured_ = false;
 bool StateHandler::bulletLoaderStuck_ = false;
 #endif
-#if defined(HERO)
-bool StateHandler::bulletPlateStuck_ = false;
-#endif
 #ifdef STATE_HANDLER_ENABLE_CHASSIS
 bool StateHandler::chassisSeriousErrorOccured_ = false;
 #endif
@@ -90,19 +87,7 @@ void StateHandler::handleException(StateHandler::Exceptions exception, bool from
         case BULLET_LOADER_STUCK:
             if (!bulletLoaderStuck_) {
                 bulletLoaderStuck_ = true;
-                if (!fromISR) {
-                    LOG_ERR("BULLET LOADER STUCK!");
-                }
-            }
-            break;
-#endif
-#if defined(HERO)
-        case BULLET_PLATE_STUCK:
-            if (!bulletPlateStuck_) {
-                bulletPlateStuck_ = true;
-                if (!fromISR) {
-                    LOG_ERR("BULLET PLATE STUCK!");
-                }
+                // Stuck is not a serious error. Just handle it.
             }
             break;
 #endif

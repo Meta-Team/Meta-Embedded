@@ -104,10 +104,9 @@ inline void startupCheckChassisFeedback() {
 class ErrorDetectThread : public chibios_rt::BaseStaticThread<1024> {
 
     static constexpr unsigned ERROR_DETECT_THREAD_INTERVAL = 50; // [ms]
-    bool LoaderStuck = false;
 
     void main() final {
-        int stuck_count = 0;
+
         setName("detect");
 
         while (!shouldTerminate()) {
@@ -132,15 +131,8 @@ class ErrorDetectThread : public chibios_rt::BaseStaticThread<1024> {
                 }
             }
 
-            if (Shoot::feedback[2].actual_velocity < 1.0 && Shoot::feedback[2].actual_current > 2500) {
-                stuck_count++;
-            } else {
-                stuck_count = 0;
-            }
-            if(stuck_count > 5){
-                StateHandler::raiseException(StateHandler::BULLET_LOADER_STUCK);
-                bullet_stuck_angle = Shoot::feedback[2].actual_angle;
-            }
+            if (runtime > 130) StateHandler::raiseException(StateHandler::BULLET_LOADER_STUCK);
+            //if (runtime > 40 && Shoot::feedback[2].actual_current > 700) StateHandler::raiseException(StateHandler::BULLET_LOADER_STUCK);
             sleep(TIME_MS2I(ERROR_DETECT_THREAD_INTERVAL));
         }
 
