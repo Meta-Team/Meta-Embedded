@@ -4,6 +4,15 @@
 // Receiving function is written by Qian Cheng
 //
 
+/**
+ * @file    chassis_interface.h
+ * @brief   Interface to interact with low level driver of chassis, including processing chassis motor feedback and
+ *          sending target currents.
+ *
+ * @addtogroup chassis
+ * @{
+ */
+
 #ifndef META_INFANTRY_CHASSIS_INTERFACE_H
 #define META_INFANTRY_CHASSIS_INTERFACE_H
 
@@ -38,8 +47,8 @@ public:
 /**
  * @name ChassisIF
  * @note "IF" stands for "interface"
- * @brief interface to process chassis motor feedback and send target current.
- * @pre hardware is properly set. CAN id of each motor should be the same as motor_id_t.
+ * @brief Interface to process chassis motor feedback and send target current.
+ * @pre Hardware is properly set. CAN id of each motor should be the same as motor_id_t.
  * @usage 1. Call init(CANInterface *). The interface should be properly initialized.
  *        2. Read feedback from variables.
  *           Write target current to variables, then call send_chassis_currents to apply changes
@@ -110,3 +119,5 @@ private:
 
 
 #endif //META_INFANTRY_CHASSIS_INTERFACE_H
+
+/** @} */

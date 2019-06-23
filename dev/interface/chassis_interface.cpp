@@ -2,6 +2,15 @@
 // Created by liuzikai on 2019-01-12.
 //
 
+/**
+ * @file    chassis_interface.cpp
+ * @brief   Interface to interact with low level driver of chassis, including processing chassis motor feedback and
+ *          sending target currents.
+ *
+ * @addtogroup chassis
+ * @{
+ */
+
 #include "chassis_interface.h"
 
 ChassisIF::motor_feedback_t ChassisIF::feedback[MOTOR_COUNT];
@@ -66,3 +75,5 @@ void ChassisIF::init(CANInterface *can_interface) {
         target_current[i] = 0;
     }
 }
+
+/** @} */

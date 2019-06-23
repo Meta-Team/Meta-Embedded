@@ -27,8 +27,7 @@
  * @file    printf.c
  * @brief   Revised mini printf-like functionality from ChibiOS Shell.
  *
- * @addtogroup chprintf
- * @{
+ * @addtogroup shell
  */
 
 #include "hal.h"

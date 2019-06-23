@@ -2,6 +2,14 @@
 // Rebuild by liuzikai
 //
 
+/**
+ * @file    chassis_scheduler.h
+ * @brief   Scheduler to control chassis to meet the target, including a thread to invoke PID calculation in period.
+ *
+ * @addtogroup chassis
+ * @{
+ */
+
 #ifndef META_INFANTRY_CHASSIS_CONTROLLER_H
 #define META_INFANTRY_CHASSIS_CONTROLLER_H
 
@@ -98,3 +106,5 @@ private:
 };
 
 #endif //PROJECT_CHASSIS_CONTROLLER_H
+
+/** @} */

@@ -2,6 +2,14 @@
 // Created by Administrator on 2019/1/11 0011.
 //
 
+/**
+ * @file    chassis_scheduler.cpp
+ * @brief   Scheduler to control chassis to meet the target, including a thread to invoke PID calculation in period.
+ *
+ * @addtogroup chassis
+ * @{
+ */
+
 #include "chassis_scheduler.h"
 
 ChassisSKD::mode_t ChassisSKD::mode = STOP_MODE;
@@ -102,3 +110,5 @@ void ChassisSKD::SKDThread::main() {
         sleep(TIME_MS2I(SKD_THREAD_INTERVAL));
     }
 }
+
+/** @} */
