@@ -32,34 +32,19 @@ void Elevator::calc_motor_(motor_id_t motor) {
     calc_v2i_(motor, feedback[motor].actual_velocity, target_velocity[motor]);
 }
 
-void Elevator::calc_front(float height) {
-    target_angle[FL] = target_angle[FR] = height * ANGLE_HEIGHT_RATIO;
-    calc_motor_(FL);
-    calc_motor_(FR);
+void Elevator::calc(float height) {
+    target_angle[L] = target_angle[R] = height * ANGLE_HEIGHT_RATIO;
+    calc_motor_(L);
+    calc_motor_(R);
 }
 
-void Elevator::calc_back(float height) {
-    target_angle[BL] = target_angle[BR] = height * ANGLE_HEIGHT_RATIO;
-    calc_motor_(BL);
-    calc_motor_(BR);
-}
-
-float Elevator::get_front_height() {
-    float fl_height = feedback[FL].accmulate_angle / ANGLE_HEIGHT_RATIO;
-    float fr_height = feedback[FR].accmulate_angle / ANGLE_HEIGHT_RATIO;
-    if (!ABS_IN_RANGE(fl_height - fr_height, UNBALANCE_LIMIT)) {
+float Elevator::get_height() {
+    float l_height = feedback[L].accmulate_angle / ANGLE_HEIGHT_RATIO;
+    float r_height = feedback[R].accmulate_angle / ANGLE_HEIGHT_RATIO;
+    if (!ABS_IN_RANGE(l_height - r_height, UNBALANCE_LIMIT)) {
         StateHandler::raiseException(StateHandler::ELEVATOR_UNBALANCE);
     }
-    return (fl_height + fr_height) / 2;
-}
-
-float Elevator::get_back_height() {
-    float bl_height = feedback[BL].accmulate_angle / ANGLE_HEIGHT_RATIO;
-    float br_height = feedback[BR].accmulate_angle / ANGLE_HEIGHT_RATIO;
-    if (!ABS_IN_RANGE(bl_height - br_height, UNBALANCE_LIMIT)) {
-        StateHandler::raiseException(StateHandler::ELEVATOR_UNBALANCE);
-    }
-    return (bl_height + br_height) / 2;
+    return (l_height + r_height) / 2;
 }
 
 bool Elevator::motor_reach_target(motor_id_t motor) {

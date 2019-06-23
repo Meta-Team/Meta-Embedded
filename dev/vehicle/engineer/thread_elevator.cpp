@@ -4,12 +4,8 @@
 
 #include "thread_elevator.h"
 
-void ElevatorThread::set_front_target_height(float front_target_height) {
-    front_target_height_ = front_target_height;
-}
-
-void ElevatorThread::set_back_target_height(float back_target_height) {
-    back_target_height_ = back_target_height;
+void ElevatorThread::set_target_height(float target_height_) {
+    target_height = target_height_;
 }
 
 
@@ -21,8 +17,7 @@ void ElevatorThread::main() {
 
     while (!shouldTerminate()) {
 
-        Elevator::calc_front(front_target_height_);
-        Elevator::calc_back(back_target_height_);
+        Elevator::calc(target_height);
 
         Elevator::send_elevator_currents();
 

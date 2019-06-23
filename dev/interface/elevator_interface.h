@@ -25,10 +25,8 @@ class ElevatorInterface {
 public:
 
     enum motor_id_t {  // goes in a counter-clockwise order
-        FR, // front right motor, 0
-        FL, // front left motor, 1
-        BL, // back left motor, 2
-        BR, // back right motor, 3
+        R, // right motor, 0
+        L, // left motor, 1
         MOTOR_COUNT
     };
 

@@ -22,13 +22,9 @@ public:
 
     static void change_pid_params(pid_params_t a2v_params, pid_params_t v2i_params);
 
-    static void calc_front(float height);
+    static void calc(float height);
 
-    static void calc_back(float height);
-
-    static float get_front_height();
-
-    static float get_back_height();
+    static float get_height();
 
     static bool motor_reach_target(motor_id_t motor);
 

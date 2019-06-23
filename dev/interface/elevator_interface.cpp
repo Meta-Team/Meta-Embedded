@@ -69,7 +69,8 @@ void ElevatorInterface::process_elevator_feedback(CANRxFrame const *rxmsg) {
 
 void ElevatorInterface::init(CANInterface *can_interface) {
     can = can_interface;
-    can->register_callback(0x205, 0x208, process_elevator_feedback);
+    //can->register_callback(0x205, 0x208, process_elevator_feedback);
+    //TODO: determine the number of motors
     for (int i = 0; i < MOTOR_COUNT; i++) {
         feedback[i].id = (motor_id_t) i;
         feedback[i].last_update_time = 0;

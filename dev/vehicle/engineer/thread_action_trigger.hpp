@@ -45,10 +45,83 @@ private:
         palClearPad(GPIOH, GPIOH_POWER4_CTRL);
         while (!shouldTerminate()) {
 
-            if (Remote::rc.s1 == Remote::S_DOWN) { // PC Mode
+            if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_MIDDLE) {
+                if (Remote::rc.ch1 == 1.0) {
+                    LOG_USER("GETHERE!");
+                    if (!keyPressed) {
+                        LOG_USER("click Z");
+                        if (bulletFetchStateMachine.get_current_action() == bulletFetchStateMachine.STOP) {
+                            LOG("Trigger RA out");
+                            bulletFetchStateMachine.start_initial_outward(NORMALPRIO - 3);
+                        } else {
+                            LOG_WARN("RA in action");
+
+                        }
+                    }
+                }
+                else if (Remote::rc.ch1<-0.5) {
+                    if (!keyPressed) {
+                        LOG_USER("click C");
+                        if (bulletFetchStateMachine.get_current_action() == bulletFetchStateMachine.STOP) {
+                            if (bulletFetchStateMachine.is_outward()) {
+                                LOG("Trigger RA in");
+                                bulletFetchStateMachine.start_final_inward(NORMALPRIO - 3);
+                            } else {
+                                LOG_WARN("RA in not outward");
+                            }
+                        } else {
+                            LOG_WARN("RA in action");
+                        }
+                        keyPressed = true;
+                    }
+                }
+                else if (Remote::rc.ch3>0.5) {
+                    elevatorThread.set_front_target_height(20);
+                    elevatorThread.set_back_target_height(20);
+                    keyPressed = true;
+                }
+                else if (Remote::rc.ch3<-0.5) {
+                    elevatorThread.set_front_target_height(0);
+                    elevatorThread.set_back_target_height(0);
+                    keyPressed = true;
+                }
+                else if (Remote::rc.ch0<-0.5) {
+                    if (!keyPressed) {
+                        LOG_USER("click X");
+                        if (bulletFetchStateMachine.get_current_action() == bulletFetchStateMachine.STOP) {
+                            if (bulletFetchStateMachine.is_outward()) {
+                                LOG("Trigger RA fetch");
+                                bulletFetchStateMachine.start_one_fetch(NORMALPRIO - 3);
+                            } else {
+                                LOG_WARN("RA in not outward");
+                            }
+                        } else {
+                            LOG_WARN("RA in action");
+                        }
+                        keyPressed = true;
+                    }
+                }
+                else if (Remote::rc.ch2<-0.5) {
+                    if (!keyPressed) {
+                        LOG_USER("click F");
+                        keyPressed = true;
+                        if (box_door_status == HIGH) {
+                            LOG("BD change to LOW");
+                            box_door_status = LOW;
+                            palClearPad(GPIOH, GPIOH_POWER3_CTRL);
+                        } else {
+                            LOG("BD change to HIGH");
+                            box_door_status = HIGH;
+                            palSetPad(GPIOH, GPIOH_POWER3_CTRL);
+                        }
+                    }
+                }
+                else {keyPressed = false;}
+            }
+            else if (Remote::rc.s1 == Remote::S_DOWN) { // PC Mode
 
                 if (Remote::key.v) {                                               // elevator lift up
-                    if (!keyPressed) {
+                    if  (!keyPressed) {
                         LOG_USER("click V");
                         elevatorThread.set_front_target_height(20);
                         elevatorThread.set_back_target_height(20);
@@ -59,11 +132,10 @@ private:
                         LOG_USER("click B");
                         elevatorThread.set_front_target_height(0);
                         elevatorThread.set_back_target_height(0);
-                        keyPressed = true;}
-                    keyPressed = true;
+                        keyPressed = true;
                     }
                 } else if (Remote::key.z) {// robotic arm initial outward
-                LOG_USER("GETHERE!");
+                    LOG_USER("GETHERE!");
                     if (!keyPressed) {
                         LOG_USER("click Z");
                         if (bulletFetchStateMachine.get_current_action() == bulletFetchStateMachine.STOP) {
@@ -72,6 +144,7 @@ private:
                         } else {
                             LOG_WARN("RA in action");
 
+                        }
                     }
                 } else if (Remote::key.x) {                                        // robotic arm fetch once
                     if (!keyPressed) {
@@ -130,8 +203,7 @@ private:
                             palSetPad(GPIOH, GPIOH_POWER3_CTRL);
                         }
                     }
-                }
-                else {
+                } else {
                     keyPressed = false;
                 }
             }
@@ -140,5 +212,6 @@ private:
         }
     }
 };
+
 
 #endif //META_INFANTRY_THREAD_ACTION_TRIGGER_HPP

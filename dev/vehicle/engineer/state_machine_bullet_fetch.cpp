@@ -34,11 +34,9 @@ bool BulletFetchStateMachine::start_final_inward(tprio_t prio) {
 void BulletFetchStateMachine::main() {
 
     setName("robotic_arm");
-
     if (action_ == STOP) {
         // Do nothing
     } else if (action_ == INITIAL_OUTWARD) {
-
         // Step 1. Rotate outwards
         RoboticArm::set_motor_target_current(-2500);
         while (RoboticArm::get_motor_actual_angle() > -65) {
@@ -69,6 +67,8 @@ void BulletFetchStateMachine::main() {
 
     } else if (action_ == FETCH_ONCE) {
 
+        RoboticArm::clamp_action(RoboticArm::CLAMP_RELAX);
+        sleep(TIME_MS2I(1000));
         // Step 1. Drawer goes outwards
         palSetPad(GPIOH, GPIOH_POWER4_CTRL);
         sleep(TIME_MS2I(2000));
@@ -82,7 +82,7 @@ void BulletFetchStateMachine::main() {
         sleep(TIME_MS2I(2000));
 
         // Step 4.1. Rotate inwards
-        RoboticArm::set_motor_target_current(10000);
+        RoboticArm::set_motor_target_current(12000);
         while (RoboticArm::get_motor_actual_angle() < -67) {
             RoboticArm::send_motor_target_current();
             sleep(TIME_MS2I(motor_action_interval));
