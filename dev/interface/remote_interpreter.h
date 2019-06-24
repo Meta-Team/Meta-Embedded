@@ -64,6 +64,11 @@ public:
         rc_status_t s2;
     } rc_t;
 
+    enum mouse_button_t {
+        MOUSE_LEFT,
+        MOUSE_RIGHT
+    };
+
     typedef struct {
         float x; // speed at x axis. Normalized: -1.0 (fastest leftward) - 1.0 (fastest rightward)
         float y; // speed at y axis. Normalized: -1.0 (fastest upward)   - 1.0 (fastest downward)
@@ -71,6 +76,26 @@ public:
         bool press_left;
         bool press_right;
     } mouse_t;
+
+    enum key_t {
+        KEY_W,
+        KEY_S,
+        KEY_A,
+        KEY_D,
+        KEY_SHIFT,
+        KEY_CTRL,
+        KEY_Q,
+        KEY_E,
+        KEY_R,
+        KEY_F,
+        KEY_G,
+        KEY_Z,
+        KEY_X,
+        KEY_C,
+        KEY_V,
+        KEY_B,
+        KEY_COUNT
+    };
 
     typedef union {
         struct {
@@ -94,8 +119,6 @@ public:
         uint16_t key_code_; // hold key code raw data, for internal use
     } keyboard_t;
 
-
-
     static rc_t rc;
     static mouse_t mouse;
     static keyboard_t key;
@@ -104,12 +127,15 @@ public:
 
 #if REMOTE_USE_EVENTS
 
-    event_source_t e
+    static event_source_t s_change_event;
+
+    static event_source_t mouse_press_event;
+    static event_source_t mouse_release_event;
+
+    static event_source_t key_press_event;
+    static event_source_t key_release_event;
 
 #endif
-
-
-
 
 
 private:
