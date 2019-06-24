@@ -26,7 +26,7 @@
  * Enable clip at the moment of sending current.
  * Only for safety. There is NO signal for clipping. Be sure to eliminate it if more current is needed.
  */
-#define CHASSIS_INTERFACE_ENABLE_CLIP                  FALSE
+#define CHASSIS_INTERFACE_ENABLE_CLIP   FALSE
 
 #if CHASSIS_INTERFACE_ENABLE_CLIP
 #define CHASSIS_INTERFACE_MAX_CURRENT 5000  // mA
@@ -60,8 +60,8 @@ class ChassisIF : public ChassisBase {
 public:
 
     /**
-     * @brief set CAN interface for receiving and sending
-     * @param can_interface
+     * Set CAN interface for receiving and sending
+     * @param can_interface   initialized CANInterface for yaw, pitch and bullet_loader motor
      */
     static void init(CANInterface* can_interface);
 
@@ -82,17 +82,17 @@ public:
     };
 
     /**
-     * @brief interface for each chassis motor
+     * Interface for each chassis motor
      */
     static motor_feedback_t feedback[];
 
     /**
-     * @brief target current array in the order defined in motor_id_t
+     * Target current array in the order defined in motor_id_t
      */
     static int target_current[MOTOR_COUNT];
 
     /**
-     * @brief send all target currents
+     * Send all target currents
      * @return
      */
     static bool send_chassis_currents();
@@ -102,7 +102,7 @@ private:
     static CANInterface* can;
 
     /**
-     * @brief callback function for CANInterface to process motor feedback
+     * Callback function for CANInterface to process motor feedback
      * @param rxmsg
      */
     static void process_chassis_feedback(CANRxFrame const*rxmsg);

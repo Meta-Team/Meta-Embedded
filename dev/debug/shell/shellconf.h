@@ -1,3 +1,11 @@
+/**
+ * @file    shellconf.h
+ * @brief   Configuration for ChibiOS shell.
+ *
+ * @addtogroup config
+ * @{
+ */
+
 #ifndef SHELLCONF_H
 #define SHELLCONF_H
 
@@ -27,3 +35,5 @@
 #define SHELL_MAX_ARGUMENTS                 10
 
 #endif
+
+/** @} */

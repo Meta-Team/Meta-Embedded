@@ -2,8 +2,15 @@
 using namespace chibios_rt;
 
 /**
- * cmd_hello: hello world again.
- * It's a demonstration of how to write a function for the shell.
+ * @file    shell_dbg_cmd.cpp
+ * @brief   Our debug commands for shell.
+ *
+ * @addtogroup shell
+ * @{
+ */
+
+/**
+ * A demonstration of how to write a function for the shell.
  */
 static void cmd_hello(BaseSequentialStream *chp, int argc, char *argv[]) {
     (void)argv;
@@ -77,8 +84,8 @@ static void cmd_show_thread_stats(BaseSequentialStream *chp, int argc, char *arg
 
 /**
  * List of available shell commands.
- * Must be at the bottom of file, otherwise it won't find the functions.
- * {NULL, NULL} is a marker of end of list and mustn't be removed.
+ * @note Must be at the bottom of file, otherwise it won't find the functions.
+ * @note {NULL, NULL} is a marker of end of list and mustn't be removed.
  */
 ShellCommand shell_debug_commands[3] = {
     {"hello", cmd_hello},

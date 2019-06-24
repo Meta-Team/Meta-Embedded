@@ -1,3 +1,11 @@
+/**
+ * @file    shell.h
+ * @brief   Serial shell interface and debug macros.
+ *
+ * @addtogroup shell
+ * @{
+ */
+
 #include "shell.h"
 
 using namespace chibios_rt;
@@ -17,10 +25,7 @@ Shell::ShellISRTxThread Shell::isrTxThread;
 #endif
 
 
-/**
- * The working area for the shell rx thread
- */
-THD_WORKING_AREA(wa, SHELL_RX_WORKAREA_SIZE);
+THD_WORKING_AREA(wa, SHELL_RX_WORKAREA_SIZE);  // the working area for the shell rx thread
 
 
 /**
@@ -152,4 +157,6 @@ float Shell::atof(const char *s) {
         }
     };
     return rez * sign;
-};
+}
+
+/** @} */

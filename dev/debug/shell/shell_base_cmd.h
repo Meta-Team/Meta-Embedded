@@ -18,7 +18,7 @@
  * @file    shell_cmd.h
  * @brief   Simple CLI shell common commands header.
  *
- * @addtogroup SHELL
+ * @addtogroup shell_chibios
  * @{
  */
 

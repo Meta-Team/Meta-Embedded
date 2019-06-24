@@ -115,7 +115,7 @@ int main(void) {
     // Start ChibiOS shell at high priority, so even if a thread stucks, we still have access to shell.
     Shell::start(HIGHPRIO);
 
-    Remote::start_receive();
+    Remote::start();
     chThdSleepMilliseconds(1000);
 
     skywalkerAdjustThread.start(NORMALPRIO + 1);

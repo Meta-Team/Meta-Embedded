@@ -43,10 +43,10 @@ public:
 
     /**
      * Initialize ChassisInterface and this calculator
-     * @param wheel_base
-     * @param wheel_tread
-     * @param wheel_circumference
-     * @param thread_prio
+     * @param wheel_base            Distance between front axle and the back axle [mm]
+     * @param wheel_tread           Distance between left and right wheels [mm]
+     * @param wheel_circumference   Circumference of wheels [mm]
+     * @param thread_prio           Priority of PID calculation thread
      */
     static void start(float wheel_base, float wheel_tread, float wheel_circumference, tprio_t thread_prio);
 
@@ -64,9 +64,9 @@ public:
 
     /**
      * Set target values
-     * @param vx     target velocity along the x axis (right) with respect to gimbal coordinate [mm/s]
-     * @param vy     target velocity along the y axis (up) with respect to gimbal coordinate [mm/s]
-     * @param theta  target angle difference between gimbal coordinate and chassis coordinate [degree]
+     * @param vx     Target velocity along the x axis (right) with respect to gimbal coordinate [mm/s]
+     * @param vy     Target velocity along the y axis (up) with respect to gimbal coordinate [mm/s]
+     * @param theta  Target angle difference between gimbal coordinate and chassis coordinate [degree]
      */
     static void set_target(float vx, float vy, float theta);
 

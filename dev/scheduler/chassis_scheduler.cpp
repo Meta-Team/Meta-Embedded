@@ -78,7 +78,7 @@ void ChassisSKD::velocity_decompose(float vx, float vy, float w) {
 }
 
 void ChassisSKD::SKDThread::main() {
-    setName("chassis_skd");
+    setName("ChassisSKD");
     while (!shouldTerminate()) {
 
         if (mode == GIMBAL_COORDINATE_MODE) {

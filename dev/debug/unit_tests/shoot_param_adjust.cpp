@@ -313,7 +313,7 @@ int main(void) {
     chThdSleepMilliseconds(10);
     GimbalInterface::init(&can1, 0, 0);
     Shoot::init(40.0f);
-    Remote::start_receive();
+    Remote::start();
 
     shootFeedbackThread.start(NORMALPRIO - 1);
     shootThread.start(NORMALPRIO);

@@ -30,20 +30,16 @@ constexpr UARTConfig Remote::REMOTE_UART_CONFIG;
     } \
 }
 
-/**
- * @brief callback function when the buffer is filled
- * @param uartp
- */
 void Remote::uart_received_callback_(UARTDriver *uartp) {
 
-//    chSysLockFromISR(); // --- Enter Critical Zone ---
+    chSysLockFromISR();  /// ---------------------------------- Enter Critical Zone ----------------------------------
 
     rc.ch0 = (((rx_buf_[0] | rx_buf_[1] << 8) & 0x07FF) - 1024.0f) / 660.0f;
     rc.ch1 = (((rx_buf_[1] >> 3 | rx_buf_[2] << 5) & 0x07FF) - 1024.0f) / 660.0f;
     rc.ch2 = (((rx_buf_[2] >> 6 | rx_buf_[3] << 2 | rx_buf_[4] << 10) & 0x07FF) - 1024.0f) / 660.0f;
     rc.ch3 = (((rx_buf_[4] >> 1 | rx_buf_[5] << 7) & 0x07FF) - 1024.0f) / 660.0f;
 
-#if REMOTE_ENABLE_USER_LOG
+#if REMOTE_USE_EVENTS
 
     rc_t rc_;
     rc_.s1 = (rc_status_t) ((rx_buf_[5] >> 6) & 0x0003);
@@ -60,7 +56,7 @@ void Remote::uart_received_callback_(UARTDriver *uartp) {
     mouse = mouse_;
 
     keyboard_t key_;
-    key_._key_code = static_cast<uint16_t>(rx_buf_[14] | rx_buf_[15] << 8);
+    key_.key_code_ = static_cast<uint16_t>(rx_buf_[14] | rx_buf_[15] << 8);
     LOG_PRESS_AND_RELEASE(key.w, key_.w, "W");
     LOG_PRESS_AND_RELEASE(key.s, key_.s, "S");
     LOG_PRESS_AND_RELEASE(key.a, key_.a, "A");
@@ -91,7 +87,7 @@ void Remote::uart_received_callback_(UARTDriver *uartp) {
     mouse.press_left = (bool) rx_buf_[12];
     mouse.press_right = (bool) rx_buf_[13];
 
-    key._key_code = static_cast<uint16_t>(rx_buf_[14] | rx_buf_[15] << 8);
+    key.key_code_ = static_cast<uint16_t>(rx_buf_[14] | rx_buf_[15] << 8);
 
 #endif
 
@@ -100,14 +96,10 @@ void Remote::uart_received_callback_(UARTDriver *uartp) {
     // Restart the receive
     uartStartReceive(uartp, RX_FRAME_SIZE, rx_buf_);
 
-//    chSysUnlockFromISR(); // --- Exit Critical Zone ---
+    chSysUnlockFromISR();  /// ---------------------------------- Exit Critical Zone ----------------------------------
 }
 
-/**
- * @brief Initialize a remote interpreter instance and return its pointer.
- * @return the pointer of remote interpreter.
- */
-void Remote::start_receive() {
+void Remote::start() {
     uartStart(&REMOTE_UART_DRIVER, &REMOTE_UART_CONFIG);
     uartStartReceive(&REMOTE_UART_DRIVER, RX_FRAME_SIZE, rx_buf_);
 }

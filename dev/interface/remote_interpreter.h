@@ -36,7 +36,7 @@
 #error "Remote interpreter has not been defined for selected board"
 #endif
 
-#define REMOTE_ENABLE_USER_LOG     FALSE
+#define REMOTE_USE_EVENTS   TRUE
 
 /**
  * @name Remote
@@ -47,6 +47,8 @@ class Remote {
 
 public:
 
+    static void start();
+
     enum rc_status_t {
         S_UP = 1,
         S_DOWN = 2,
@@ -54,18 +56,18 @@ public:
     };
 
     typedef struct {
-        float ch0; // right horizontal, normalized: -1.0(leftmost) - 1.0(rightmost)
-        float ch1; // right vertical, normalized: -1.0(downmost) - 1.0(upmost)
-        float ch2; // left horizontal, normalized: -1.0(leftmost) - 1.0(rightmost)
-        float ch3; // left vertical, normalized: -1.0(downmost) - 1.0(upmost)
+        float ch0; // right horizontal, normalized: -1.0 (leftmost) - 1.0 (rightmost)
+        float ch1; // right vertical,   normalized: -1.0 (downmost) - 1.0 (upmost)
+        float ch2; // left horizontal,  normalized: -1.0 (leftmost) - 1.0 (rightmost)
+        float ch3; // left vertical,    normalized: -1.0 (downmost) - 1.0 (upmost)
         rc_status_t s1;
         rc_status_t s2;
     } rc_t;
 
     typedef struct {
-        float x; // speed at x axis. Normalized: -1.0(fastest leftward) - 1.0(fastest rightward)
-        float y; // speed at y axis. Normalized: -1.0(fastest upward) - 1.0(fastest downward)
-        float z; // speed at z axis (unknown). Normalized: -1.0 - 1.0
+        float x; // speed at x axis. Normalized: -1.0 (fastest leftward) - 1.0 (fastest rightward)
+        float y; // speed at y axis. Normalized: -1.0 (fastest upward)   - 1.0 (fastest downward)
+        float z; // speed at z axis. Normalized: -1.0 - 1.0 (unknown)
         bool press_left;
         bool press_right;
     } mouse_t;
@@ -89,10 +91,10 @@ public:
             bool v:1;
             bool b:1;
         };
-        uint16_t _key_code; // hold key code data, for internal use
+        uint16_t key_code_; // hold key code raw data, for internal use
     } keyboard_t;
 
-    /** Interface variables **/
+
 
     static rc_t rc;
     static mouse_t mouse;
@@ -100,9 +102,15 @@ public:
 
     static time_msecs_t last_update_time;
 
-    /** Interface functions **/
+#if REMOTE_USE_EVENTS
 
-    static void start_receive();
+    event_source_t e
+
+#endif
+
+
+
+
 
 private:
 

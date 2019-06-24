@@ -86,7 +86,7 @@ int main(void){
 
 
     /** Setup Remote */
-    Remote::start_receive();
+    Remote::start();
     startupCheckRemote();  // check Remote has signal. Block for 50 ms
     StateHandler::echoEvent(StateHandler::REMOTE_START_SUCCESSFULLY);
     // LED 4 on now

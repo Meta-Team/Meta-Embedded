@@ -3,8 +3,13 @@
 //
 
 /**
- * This file contain interface for serial shell and some macros for debug.
+ * @file    shell.h
+ * @brief   Serial shell interface and debug macros.
+ *
+ * @addtogroup shell
+ * @{
  */
+
 
 #ifndef META_INFANTRY_SHELL_H
 #define META_INFANTRY_SHELL_H
@@ -27,7 +32,7 @@
 #error "Shell has not been defined for selected board"
 #endif
 
-#define SHELL_ENABLE_ISR_FIFO TRUE
+#define SHELL_ENABLE_ISR_FIFO FALSE
 #define SHELL_MAX_COMMAND_COUNT 20
 #define SHELL_RX_WORKAREA_SIZE 1024
 #define SHELL_ISR_TX_WORKAREA_SIZE 256
@@ -45,12 +50,12 @@
 
 
 /**
- * @name Shell
- * @brief a serial shell interface using SD6 (UART6) as serial port.
- * @pre pins are configured properly in board.h, and driver are configured properly in halconf.h
- * @usage 1. Call start() with given thread priority
- *        2. Call addCommands() to add custom command to shell
- *           Call printf() and other helper function
+ * @name    Shell
+ * @brief   A serial shell interface using SD6 (UART6) as serial port.
+ * @pre     Pins are configured properly in board.h, and driver are configured properly in halconf.h
+ * @usage   1. Call start() with given thread priority
+ *          2. Call addCommands() to add custom command to shell
+ *             Call printf() and other helper function
  */
 class Shell {
 
@@ -59,32 +64,32 @@ public:
     static bool enabled;  // whether the shell thread has started
 
     /**
-     * @brief start the shell thread
-     * @param prio priority
-     * @return if the shell thread has already started return false
+     * Start the shell thread
+     * @param prio   Priority
+     * @return If the shell thread has already started, return false
      */
     static bool start(tprio_t prio);
 
     /**
-     * @brief add shell commands
-     * @param command_list NULL-terminate command lsit
-     * @return if one or more commands can't be added because the maximum command count has been reached, return false
+     * Add shell commands
+     * @param command_list   NULL-terminate command lsit
+     * @return If one or more commands can't be added because the maximum command count has been reached, return false
      */
     static bool addCommands(ShellCommand *command_list);
 
     /**
-     * @brief printf through shell
+     * Print with format through shell
      * @param fmt
      * @param ...
-     * @return the number of bytes that has been printed
-     * @note api, can only be called from normal thread state
+     * @return The number of bytes that has been printed
+     * @note API, can only be called from normal thread state
      */
     static int printf(const char *fmt, ...);
 
 
 #if SHELL_ENABLE_ISR_FIFO
     /**
-     * @brief printf through shell
+     * Print with format printf through shell
      * @param fmt
      * @param ...
      * @return the number of bytes that has been printed
@@ -94,18 +99,18 @@ public:
 #endif
 
     /**
-     * @brief convert string to signed integer
-     * @param s        the string to be converted
-     * @return the integer
-     * @note NO ERROR CHECK
+     * Convert string to signed integer
+     * @param s   The string to be converted
+     * @return The integer
+     * @warning NO ERROR CHECK
      */
     static int atoi(const char *s);
 
     /**
-     * @brief convert string to float
-     * @param s        the string to be converted
-     * @return the float
-     * @note NO ERROR CHECK
+     * Convert string to float
+     * @param s        The string to be converted
+     * @return The float
+     * @warning NO ERROR CHECK
      */
     static float atof(const char *s);
 
@@ -117,7 +122,7 @@ private:
      * Config of the shell.
      * First parameter is the Serial port.
      * Second parameter is the list of commands, provided in serial_shell_commands.hpp
-     * NOTICE: can't put it as a temporary variable in the start function
+     * @note DO NOT put it as a temporary variable in the start() function
      */
     static ShellConfig shellConfig;
 
@@ -148,7 +153,6 @@ private:
 
 };
 
-#define SHELL_PRINTF(...) Shell::printf(__VA_ARGS__);
-//#define SHELL_PRINTF(...)
-
 #endif
+
+/** @} */

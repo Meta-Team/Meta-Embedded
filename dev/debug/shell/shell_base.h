@@ -18,7 +18,7 @@
  * @file    shell_base.h
  * @brief   Revised CLI shell header from ChibiOS Shell.
  *
- * @addtogroup SHELL
+ * @addtogroup shell_chibios
  * @{
  */
 

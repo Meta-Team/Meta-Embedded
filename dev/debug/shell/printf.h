@@ -18,7 +18,8 @@
  * @file    chprintf.h
  * @brief   Revised mini printf-like functionality from ChibiOS Shell.
  *
- * @addtogroup shell
+ * @addtogroup shell_chibios
+ * @{
  */
 
 #ifndef PRINTF_H

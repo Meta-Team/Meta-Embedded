@@ -20,9 +20,9 @@
 
 /**
  * @file    shell.c
- * @brief   Simple CLI shell code.
+ * @brief   Revised CLI shell header from ChibiOS Shell.
  *
- * @addtogroup SHELL
+ * @addtogroup shell_chibios
  * @{
  */
 

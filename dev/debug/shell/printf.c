@@ -1,7 +1,3 @@
-//
-// Created by liuzikai on 2019-05-25.
-//
-
 /*
     ChibiOS - Copyright (C) 2006..2018 Giovanni Di Sirio
 
@@ -27,7 +23,8 @@
  * @file    printf.c
  * @brief   Revised mini printf-like functionality from ChibiOS Shell.
  *
- * @addtogroup shell
+ * @addtogroup shell_chibios
+ * @{
  */
 
 #include "hal.h"
