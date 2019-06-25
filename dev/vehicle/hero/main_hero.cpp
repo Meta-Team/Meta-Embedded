@@ -102,10 +102,10 @@ int main(void){
 
 
     /** Setup Chassis */
-    //Chassis::init(&can1, CHASSIS_WHEEL_BASE, CHASSIS_WHEEL_TREAD, CHASSIS_WHEEL_CIRCUMFERENCE);
-    //chThdSleepMilliseconds(10);
-    //startupCheckChassisFeedback();  // check chassis motors has continuous feedback. Block for 50 ms
-    //StateHandler::echoEvent(StateHandler::CHASSIS_CONNECTED);
+    Chassis::init(&can1, CHASSIS_WHEEL_BASE, CHASSIS_WHEEL_TREAD, CHASSIS_WHEEL_CIRCUMFERENCE);
+    chThdSleepMilliseconds(10);
+    startupCheckChassisFeedback();  // check chassis motors has continuous feedback. Block for 50 ms
+    StateHandler::echoEvent(StateHandler::CHASSIS_CONNECTED);
     // LED 6 on now
 
     /** Setup Red Spot Laser*/
@@ -124,7 +124,7 @@ int main(void){
 
     /** Start Threads **/
     gimbalThread.start(NORMALPRIO);
-    //chassisThread.start(NORMALPRIO - 1);
+    chassisThread.start(NORMALPRIO - 1);
     shootThread.start(NORMALPRIO - 2);
     errorDetectThread.start(LOWPRIO + 1);
 
