@@ -139,6 +139,8 @@ public:
 
 #ifdef STATE_HANDLER_ENABLE_GIMBAL
     static bool gimbalSeriousErrorOccured() { return gimbalSeriousErrorOccured_; }
+    static bool bulletLoaderStuck() { return bulletLoaderStuck_; }
+    static void bulletLoaderSmooth() { bulletLoaderStuck_ = false; }
 #endif
 #ifdef STATE_HANDLER_ENABLE_CHASSIS
     static bool chassisSeriousErrorOccured() { return chassisSeriousErrorOccured_; }
@@ -174,6 +176,7 @@ private:
     static bool remoteDisconnected_;
 #ifdef STATE_HANDLER_ENABLE_GIMBAL
     static bool gimbalSeriousErrorOccured_;
+    static bool bulletLoaderStuck_;
 #endif
 #ifdef STATE_HANDLER_ENABLE_CHASSIS
     static bool chassisSeriousErrorOccured_;

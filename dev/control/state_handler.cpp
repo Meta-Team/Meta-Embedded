@@ -8,6 +8,7 @@ bool StateHandler::canErrorOccured_ = false;
 bool StateHandler::remoteDisconnected_ = false;
 #ifdef STATE_HANDLER_ENABLE_GIMBAL
 bool StateHandler::gimbalSeriousErrorOccured_ = false;
+bool StateHandler::bulletLoaderStuck_ = false;
 #endif
 #ifdef STATE_HANDLER_ENABLE_CHASSIS
 bool StateHandler::chassisSeriousErrorOccured_ = false;
@@ -81,6 +82,12 @@ void StateHandler::handleException(StateHandler::Exceptions exception, bool from
                 if (!fromISR) {
                     LOG_ERR("GIMBAL MOTOR %d DISCONNECTED!", va_arg(args, int));
                 }
+            }
+            break;
+        case BULLET_LOADER_STUCK:
+            if (!bulletLoaderStuck_) {
+                bulletLoaderStuck_ = true;
+                // Stuck is not a serious error. Just handle it.
             }
             break;
 #endif

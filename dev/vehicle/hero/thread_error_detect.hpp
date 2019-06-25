@@ -111,26 +111,28 @@ class ErrorDetectThread : public chibios_rt::BaseStaticThread<1024> {
 
         while (!shouldTerminate()) {
 
-//            if (SYSTIME - MPU6500::last_update_time > 10) {
-//                StateHandler::raiseException(StateHandler::MPU6500_DISCONNECTED);
-//            }
-//
-//            if (SYSTIME - Remote::last_update_time > 30) {
-//                StateHandler::raiseException(StateHandler::REMOTE_DISCONNECTED);
-//            }
-//
-//            for (unsigned i = 0; i < Gimbal::MOTOR_COUNT; i++) {
-//                if (SYSTIME - Gimbal::feedback[i].last_update_time > 5) {
-//                    StateHandler::raiseException(StateHandler::GIMBAL_DISCONNECTED, i);
-//                }
-//            }
-//
-//            for (unsigned i = 0; i < Chassis::MOTOR_COUNT; i++) {
-//                if (SYSTIME - Chassis::feedback[i].last_update_time > 5) {
-//                    StateHandler::raiseException(StateHandler::CHASSIS_DISCONNECTED, i);
-//                }
-//            }
+            if (SYSTIME - MPU6500::last_update_time > 10) {
+                StateHandler::raiseException(StateHandler::MPU6500_DISCONNECTED);
+            }
 
+            if (SYSTIME - Remote::last_update_time > 30) {
+                StateHandler::raiseException(StateHandler::REMOTE_DISCONNECTED);
+            }
+
+            for (unsigned i = 0; i < Gimbal::MOTOR_COUNT; i++) {
+                if (SYSTIME - Gimbal::feedback[i].last_update_time > 5) {
+                    StateHandler::raiseException(StateHandler::GIMBAL_DISCONNECTED, i);
+                }
+            }
+
+            for (unsigned i = 0; i < Chassis::MOTOR_COUNT; i++) {
+                if (SYSTIME - Chassis::feedback[i].last_update_time > 5) {
+                    StateHandler::raiseException(StateHandler::CHASSIS_DISCONNECTED, i);
+                }
+            }
+
+            if (runtime > 130) StateHandler::raiseException(StateHandler::BULLET_LOADER_STUCK);
+            //if (runtime > 40 && Shoot::feedback[2].actual_current > 700) StateHandler::raiseException(StateHandler::BULLET_LOADER_STUCK);
             sleep(TIME_MS2I(ERROR_DETECT_THREAD_INTERVAL));
         }
 

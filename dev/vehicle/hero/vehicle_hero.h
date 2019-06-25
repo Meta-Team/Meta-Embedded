@@ -14,12 +14,13 @@
 #define SHOOT_DEGREE_PER_BULLER_PLATE 36.0f           // rotation degree of bullet plate for each bullet
 
 /** Shooting Mechanism User Preference **/
+
 #define GIMBAL_REMOTE_FRICTION_WHEEL_DUTY_CYCLE 0.5
 #define GIMBAL_PC_FRICTION_WHEEL_DUTY_CYCLE 0.5
 
 /** Initial Gimbal Angle Raw **/
 #define GIMBAL_YAW_FRONT_ANGLE_RAW 5372
-#define GIMBAL_PITCH_FRONT_ANGLE_RAW 4128
+#define GIMBAL_PITCH_FRONT_ANGLE_RAW 4475
 
 /** Gimbal Motor PID Params **/
 #define GIMBAL_PID_YAW_V2I_KP 40.0f
