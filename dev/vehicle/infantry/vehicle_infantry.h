@@ -73,5 +73,20 @@
 #define CHASSIS_PID_V2I_PARAMS \
     {CHASSIS_PID_V2I_KP, CHASSIS_PID_V2I_KI, CHASSIS_PID_V2I_KD, \
     CHASSIS_PID_V2I_I_LIMIT, CHASSIS_PID_V2I_OUT_LIMIT}
-
+    
+/// AHRS Installation Config
+static constexpr Matrix33 GIMBAL_AHRS_INSTALL_MATRIX = {{ 1.0f,  0.0f,  0.0f},
+                                                        { 0.0f,  1.0f,  0.0f},
+                                                        { 0.0f,  0.0f,  1.0f}};
+    
+/// Thread Priority List
+#define THREAD_SHELL_PRIO (NORMALPRIO - 10)
+#define THREAD_CAN1_PRIO (HIGHPRIO - 1)
+#define THREAD_MPU_PRIO (HIGHPRIO - 2)
+#define THREAD_IST_PRIO (HIGHPRIO - 3)
+#define THREAD_AHRS_PRIO (HIGHPRIO - 4)
+#define THREAD_GIMBAL_SKD_PRIO (NORMALPRIO + 2)
+#define THREAD_CHASSIS_SKD_PRIO (NORMALPRIO + 1)
+#define THREAD_CHASSIS_LG_DODGE_PRIO (NORMALPRIO - 1)
+    
 #endif //META_INFANTRY_VEHICLE_INFANTRY_H

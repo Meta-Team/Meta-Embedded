@@ -139,7 +139,7 @@ void MPUOnBoard::update() {
     accel = accel_orig;
 #endif
 
-    last_update_time = SYSTIME;
+    mpu_update_time = SYSTIME;
 
     if (static_measurement_count >= BIAS_SAMPLE_COUNT) {
         LED::green_toggle();

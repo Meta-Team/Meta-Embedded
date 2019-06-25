@@ -122,7 +122,7 @@ void StateHandler::handleEvent(StateHandler::Events event, bool fromISR, ...) {
 
     switch (event) {
         case SHELL_START:
-            LED::led_on(1);
+
             break;
         case CAN_START_SUCCESSFULLY:
             LED::led_on(2);

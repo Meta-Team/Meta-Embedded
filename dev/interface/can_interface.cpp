@@ -19,11 +19,11 @@ void CANInterface::ErrorFeedbackThread::main() {
             continue;
         }
 
-        eventflags_t flags = chEvtGetAndClearFlags(&el);
-//        StateHandler::raiseException(StateHandler::CAN_ERROR, flags);
+//        eventflags_t flags = chEvtGetAndClearFlags(&el);
+        last_error_time = SYSTIME;
     }
 
-    chEvtUnregister(&(can_driver->rxfull_event), &el);
+    chEvtUnregister(&(can_driver->error_event), &el);
 }
 
 #endif
@@ -40,7 +40,7 @@ chibios_rt::ThreadReference CANInterface::start(tprio_t prio) {
 
 bool CANInterface::register_callback(uint32_t sid_lower_bound, uint32_t sid_upper_bound,
                                      CANInterface::can_callback_func callback_func) {
-    if (callback_list_count >= maximum_registration_count) return false;
+    if (callback_list_count >= MAXIMUM_REGISTRATION_COUNT) return false;
     callback_list[callback_list_count++] = {sid_lower_bound, sid_upper_bound, callback_func};
     return true;
 }
@@ -86,7 +86,7 @@ void CANInterface::main() {
 }
 
 bool CANInterface::send_msg(const CANTxFrame *txmsg) {
-    if (canTransmit(can_driver, CAN_ANY_MAILBOX, txmsg, TIME_MS2I(transmit_timeout_ms)) != MSG_OK) {
+    if (canTransmit(can_driver, CAN_ANY_MAILBOX, txmsg, TIME_MS2I(TRANSMIT_TIMEOUT_MS)) != MSG_OK) {
         // TODO: show debug info for failure
         return false;
     }

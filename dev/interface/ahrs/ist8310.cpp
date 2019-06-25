@@ -71,6 +71,8 @@ void ISTOnBoard::update() {
     magnet.x = (float) rawData[0] * IST8310_PSC;
     magnet.y = (float) rawData[1] * IST8310_PSC;
     magnet.z = (float) rawData[2] * IST8310_PSC;
+
+    ist_update_time = SYSTIME;
     
 }
 

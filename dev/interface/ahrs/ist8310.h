@@ -7,9 +7,9 @@
 
 #include "ch.hpp"
 #include "hal.h"
+#include "common_macro.h"
 
 #include "ahrs_abstract.h"
-
 #include "ahrs_math.hpp"
 #include "math.h"
 
@@ -38,6 +38,7 @@ public:
     /** (From AbstractIST)
 
     Vector3D magnet;  // Magnet data [uT]
+    time_msecs_t ist_update_time = 0;  // Last update time from system start [ms]
 
     */
 

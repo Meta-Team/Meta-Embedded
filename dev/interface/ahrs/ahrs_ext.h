@@ -27,12 +27,15 @@ public:
      (From AbstractMPU)
      Vector3D gyro;   // Data from gyroscope [deg/s]
      Vector3D accel;  // Data from accelerometer [m/s^2]
+     time_msecs_t mpu_update_time = 0;  // Last update time from system start [ms]
 
      (From AbstractIST)
      Vector3D magnet;  // Magnet data [uT]
+     time_msecs_t ist_update_time = 0;  // Last update time from system start [ms]
 
      (From AbstractAHRS)
      Vector3D angle;
+     time_msecs_t ahrs_update_time = 0;  // Last update time from system start [ms]
 
     */
 
@@ -41,8 +44,6 @@ public:
      * @param can_interface initialized yaw, pitch and bullet_loader motor
      */
     void start(CANInterface *can_interface);
-
-    time_msecs_t last_update_time;
 
     AHRSExt() { inst = this; };
 

@@ -18,7 +18,6 @@
 
 #include "common_macro.h"
 #include "debug/shell/shell.h"
-#include "state_handler.h"
 
 #if defined(BOARD_RM_2018_A)
 // PB7 USART1_RX (alternate 7)
@@ -36,7 +35,7 @@
 #error "Remote interpreter has not been defined for selected board"
 #endif
 
-#define REMOTE_USE_EVENTS   TRUE
+#define REMOTE_USE_EVENTS   FALSE
 
 /**
  * @name Remote

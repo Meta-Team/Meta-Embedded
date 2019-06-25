@@ -7,20 +7,19 @@
 #include "hal.h"
 
 #include "led.h"
-#include "debug/shell/shell.h"
-
-#include "can_interface.h"
+#include "buzzer.h"
 #include "common_macro.h"
 
-#include "buzzer.h"
-#include "interface/ahrs/mpu6500.h"
+#include "shell.h"
+#include "can_interface.h"
+#include "ahrs.h"
 #include "remote_interpreter.h"
 
-#include "scheduler/gimbal_scheduler.h"
-#include "scheduler/shoot_scheduler.h"
-#include "scheduler/chassis_scheduler.h"
+#include "chassis_interface.h"
+#include "chassis_scheduler.h"
+#include "chassis_logic.h"
 
-#include "state_handler.h"
+#include "inspector.h"
 
 // Vehicle specific config
 #if defined(INFANTRY_THREE)                                                 /** Infantry #3 **/
@@ -36,23 +35,15 @@
 // Board guard
 #if defined(BOARD_RM_2018_A)
 #else
-#error "RoboticArm interface is only developed for RM board 2018 A."
+#error "Infantry supports only RM Board 2018 A currently"
 #endif
 
-// Threads code
-#include "thread_gimbal.hpp"
-#include "thread_shoot.hpp"
-#include "thread_chassis.hpp"
-#include "thread_error_detect.hpp"
 
-// Interfaces
 CANInterface can1(&CAND1);
+AHRSOnBoard ahrs;
 
-// Threads
-GimbalThread gimbalThread;
-ShootThread shootThread;
-ChassisThread chassisThread;
-ErrorDetectThread errorDetectThread;
+
+
 
 
 int main(void) {
@@ -64,33 +55,30 @@ int main(void) {
 
     /*** ---------------------- Period 1. Modules Setup and Self-Check ---------------------- ***/
 
+    Inspector::init()
     LED::all_off();
 
-    /** Setup Shell */
-    Shell::start(HIGHPRIO);
-    StateHandler::echoEvent(StateHandler::SHELL_START);
-    // LED 1 on now
+    /// Setup Shell
+    Shell::start(THREAD_SHELL_PRIO);
+    LED::led_on(1);  // LED 1 on now
 
-    /** Setup CAN1 */
-    can1.start(HIGHPRIO - 1);
+    /// Setup CAN1
+    can1.start(THREAD_CAN1_PRIO);
     chThdSleepMilliseconds(5);
-    startupCheckCAN();  // check no persistent CAN Error. Block for 100 ms
-    StateHandler::echoEvent(StateHandler::CAN_START_SUCCESSFULLY);
-    // LED 2 on now
+    Inspector::startup_check_can();  // check no persistent CAN Error. Block for 100 ms
+    LED::led_on(2);  // LED 2 on now
 
+    /// Setup On-Board AHRS
+    ahrs.start(GIMBAL_AHRS_INSTALL_MATRIX, THREAD_MPU_PRIO, THREAD_IST_PRIO, THREAD_AHRS_PRIO);
+    chThdSleepMilliseconds(5);
+    Inspector::startup_check_mpu();  // check MPU6500 has signal. Block for 20 ms
+    Inspector::startup_check_ist();  // check IST8310 has signal. Block for 20 ms
+    LED::led_on(3);  // LED 3 on now
 
-    /** Setup MPU6500 */
-    MPU6500::start(HIGHPRIO - 2);
-    startupCheckMPU6500();  // check MPU6500 has signal. Block for 10 ms
-    StateHandler::echoEvent(StateHandler::MPU6500_START_SUCCESSFULLY);
-    // LED 3 on now
-
-
-    /** Setup Remote */
+    /// Setup Remote
     Remote::start();
-    startupCheckRemote();  // check Remote has signal. Block for 50 ms
-    StateHandler::echoEvent(StateHandler::REMOTE_START_SUCCESSFULLY);
-    // LED 4 on now
+    Inspector::startup_check_remote();  // check Remote has signal. Block for 50 ms
+    LED::led_on(4);  // LED 4 on now
 
 
     /** Setup Gimbal and Shoot */
@@ -102,12 +90,11 @@ int main(void) {
     // LED 5 on now
 
 
-    /** Setup Chassis */
-    Chassis::init(&can1, CHASSIS_WHEEL_BASE, CHASSIS_WHEEL_TREAD, CHASSIS_WHEEL_CIRCUMFERENCE);
+    /// Setup ChassisIF
+    ChassisIF::init(&can1);
     chThdSleepMilliseconds(10);
-    startupCheckChassisFeedback();  // check chassis motors has continuous feedback. Block for 50 ms
-    StateHandler::echoEvent(StateHandler::CHASSIS_CONNECTED);
-    // LED 6 on now
+    Inspector::startup_check_chassis_feedback();  // check chassis motors has continuous feedback. Block for 20 ms
+    LED::led_on(6);  // LED 6 on now
 
 
     /** Setup Red Spot Laser*/
@@ -125,6 +112,11 @@ int main(void) {
         Gimbal::feedback[Gimbal::PITCH].last_angle_raw, Gimbal::feedback[Gimbal::PITCH].actual_angle);
 
     /** Start Threads **/
+
+    ChassisSKD::start(CHASSIS_WHEEL_BASE, CHASSIS_WHEEL_TREAD, CHASSIS_WHEEL_CIRCUMFERENCE, THREAD_CHASSIS_SKD_PRIO);
+    ChassisLG::init(THREAD_CHASSIS_LG_DODGE_PRIO);
+
+
     gimbalThread.start(NORMALPRIO);
     chassisThread.start(NORMALPRIO - 1);
     shootThread.start(NORMALPRIO - 2);

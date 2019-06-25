@@ -96,7 +96,7 @@ set(INFANTRY
         ${AHRS_SRC}
         ${GIMBAL_SHOOT_SRC}
         ${CHASSIS_SRC}
-        dev/vehicle/infantry/main_infantry.cpp)
+        dev/vehicle/infantry/main_infantry.cpp dev/vehicle/infantry/user.cpp dev/vehicle/infantry/user.h dev/vehicle/infantry/inspector.cpp dev/vehicle/infantry/inspector.h)
 
 # Main Program -- Infantry #1
 add_executable(INFANTRY_THREE ${INFANTRY})

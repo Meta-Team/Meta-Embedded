@@ -32,6 +32,8 @@ void AHRSOnBoard::update() {
 
     get_angle(q, &angle.x, &angle.y, &angle.z);
     angle = angle * RAD2DEG;
+
+    ahrs_update_time = SYSTIME;
 }
 
 void AHRSOnBoard::UpdateThread::main() {

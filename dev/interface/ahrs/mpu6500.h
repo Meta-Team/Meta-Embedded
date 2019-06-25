@@ -36,6 +36,7 @@ public:
 
     Vector3D gyro;   // Data from gyroscope [deg/s]
     Vector3D accel;  // Data from accelerometer [m/s^2]
+    time_msecs_t mpu_update_time = 0;  // Last update time from system start [ms]
 
     */
 
@@ -49,11 +50,6 @@ public:
      * Temperature data [C]
      */
     float temperature;
-
-    /**
-     * Last update time from system start [ms]
-     */
-    time_msecs_t last_update_time;
 
 
     MPUOnBoard() : updateThread(*this) {};

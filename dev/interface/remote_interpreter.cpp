@@ -18,25 +18,17 @@ Remote::mouse_t Remote::mouse;
 Remote::keyboard_t Remote::key;
 time_msecs_t Remote::last_update_time;
 
+#if REMOTE_USE_EVENTS
 // See macro EVENTSOURCE_DECL() for initialization style
 event_source_t Remote::s_change_event = {(event_listener_t *)(&Remote::s_change_event)};
 event_source_t Remote::mouse_press_event = {(event_listener_t *)(&Remote::mouse_press_event)};
 event_source_t Remote::mouse_release_event = {(event_listener_t *)(&Remote::mouse_release_event)};
 event_source_t Remote::key_press_event = {(event_listener_t *)(&Remote::key_press_event)};
 event_source_t Remote::key_release_event = {(event_listener_t *)(&Remote::key_release_event)};
+#endif
 
 char Remote::rx_buf_[Remote::RX_FRAME_SIZE];
 constexpr UARTConfig Remote::REMOTE_UART_CONFIG;
-
-/**
- * Helper macro to log user behavior
- */
-#define LOG_PRESS_AND_RELEASE(old_val, new_val, name) { \
-    if (old_val != new_val) { \
-        if (new_val) Shell::printfI("[REMOTE] press %s", name); \
-        else Shell::printfI("[REMOTE] release %s", name); \
-    } \
-}
 
 void Remote::uart_received_callback_(UARTDriver *uartp) {
 
@@ -121,7 +113,7 @@ void Remote::uart_received_callback_(UARTDriver *uartp) {
 
     uint32_t diff_key_code = key_code_ ^ key.key_code_;
     chEvtBroadcastFlagsI(&key_press_event, key_code_ & diff_key_code);
-    chEvtBroadcastFlagsI(&mouse_release_event, key.key_code_ & diff_key_code);
+    chEvtBroadcastFlagsI(&key_release_event, key.key_code_ & diff_key_code);
 
 #endif
 

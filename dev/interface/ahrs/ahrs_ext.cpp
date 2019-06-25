@@ -52,7 +52,7 @@ void AHRSExt::update(CANRxFrame const *rxmsg) {
         gyro = gyro_orig + gyro_bias;
         accel = accel_orig;
 
-        last_update_time = SYSTIME;
+        mpu_update_time = ist_update_time = ahrs_update_time = SYSTIME;
 
         if (static_measurement_count >= BIAS_SAMPLE_COUNT) {
             LED::green_toggle();
