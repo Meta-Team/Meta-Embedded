@@ -47,13 +47,11 @@
 
      bool pc_right_pressed = false; // local variable to control one click of right button of mouse
 
-     float plate_target_angle = 0.0f;
+     float plate_target_angle = 10.0f;
      float bullet_target_angle = 0.0f;
 
 
      bool loaded_bullet[4] = {FALSE,FALSE,FALSE,FALSE};
-
-     float loader_stuck_target_angle;
 
      void main() final {
 
