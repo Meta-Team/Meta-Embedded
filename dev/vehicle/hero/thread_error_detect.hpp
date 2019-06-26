@@ -134,9 +134,6 @@ class ErrorDetectThread : public chibios_rt::BaseStaticThread<1024> {
                 }
             }
 
-            //if (runtime > 130) StateHandler::raiseException(StateHandler::BULLET_LOADER_STUCK);
-            //if (runtime > 40 && Shoot::feedback[2].actual_current > 700) StateHandler::raiseException(StateHandler::BULLET_LOADER_STUCK);
-
             // update 3 frames of angle.
             loader_angle_sequence[0] = loader_angle_sequence[1];
             loader_angle_sequence[1] = loader_angle_sequence[2];
@@ -144,6 +141,9 @@ class ErrorDetectThread : public chibios_rt::BaseStaticThread<1024> {
             loader_angle_sequence[3] = loader_angle_sequence[4];
             loader_angle_sequence[4] = Shoot::feedback[2].actual_angle;
 
+            // Maybe could add plate stuck logic. However... the logic could be hard to judge...
+            // Because when add a lot of bullets, the situation could be very similar with the stuck condition...
+            // It may need extra factors to judge.
             plate_angle_sequence[0] = plate_angle_sequence[1];
             plate_angle_sequence[1] = plate_angle_sequence[2];
             plate_angle_sequence[2] = Shoot::feedback[3].actual_angle;
