@@ -15,6 +15,12 @@
 #include "ahrs.h"
 #include "remote_interpreter.h"
 
+#include "gimbal_interface.h"
+#include "gimbal_scheduler.h"
+#include "shoot_scheduler.h"
+#include "gimbal_logic.h"
+#include "shoot_logic.h"
+
 #include "chassis_interface.h"
 #include "chassis_scheduler.h"
 #include "chassis_logic.h"
@@ -27,7 +33,9 @@
 #elif defined(INFANTRY_FOUR)                                                /** Infantry #4 **/
 #include "vehicle_infantry_four.h"
 #elif defined(INFANTRY_FIVE)                                                /** Infantry #5 **/
+
 #include "vehicle_infantry_five.h"
+
 #else
 #error "main_infantry.cpp should only be used for Infantry #3, #4, #5."
 #endif
@@ -43,9 +51,6 @@ CANInterface can1(&CAND1);
 AHRSOnBoard ahrs;
 
 
-
-
-
 int main(void) {
 
     /*** --------------------------- Period 0. Fundamental Setup --------------------------- ***/
@@ -53,8 +58,11 @@ int main(void) {
     halInit();
     chibios_rt::System::init();
 
+
+
     /*** ---------------------- Period 1. Modules Setup and Self-Check ---------------------- ***/
 
+    /// Preparation of Period 1
     Inspector::init()
     LED::all_off();
 
@@ -81,13 +89,11 @@ int main(void) {
     LED::led_on(4);  // LED 4 on now
 
 
-    /** Setup Gimbal and Shoot */
-    Gimbal::init(&can1, GIMBAL_YAW_FRONT_ANGLE_RAW, GIMBAL_PITCH_FRONT_ANGLE_RAW);
-    Shoot::init(SHOOT_DEGREE_PER_BULLER);
+    /// Setup GimbalIF (for Gimbal and Shoot)
+    GimbalIF::init(&can1, GIMBAL_YAW_FRONT_ANGLE_RAW, GIMBAL_PITCH_FRONT_ANGLE_RAW);
     chThdSleepMilliseconds(10);
-    startupCheckGimbalFeedback(); // check gimbal motors has continuous feedback. Block for 50 ms
-    StateHandler::echoEvent(StateHandler::GIMBAL_CONNECTED);
-    // LED 5 on now
+    Inspector::startup_check_gimbal_feedback(); // check gimbal motors has continuous feedback. Block for 20 ms
+    LED::led_on(5);  // LED 5 on now
 
 
     /// Setup ChassisIF
@@ -97,33 +103,47 @@ int main(void) {
     LED::led_on(6);  // LED 6 on now
 
 
-    /** Setup Red Spot Laser*/
+    /// Setup Red Spot Laser
     palSetPad(GPIOG, GPIOG_RED_SPOT_LASER);  // enable the red spot laser
 
 
-    StateHandler::echoEvent(StateHandler::MAIN_MODULES_SETUP_COMPLETE);
-    // LED Green on now
+    LED::green_on(); // LED Green on now
+
+
 
     /*** ------------ Period 2. Calibration and Start Logic Control Thread ----------- ***/
 
-    /** Echo Gimbal Raws and Converted Angles **/
+    /// Echo Gimbal Raws and Converted Angles
     LOG("Gimbal Yaw: %u, %f, Pitch: %u, %f",
-        Gimbal::feedback[Gimbal::YAW].last_angle_raw, Gimbal::feedback[Gimbal::YAW].actual_angle,
-        Gimbal::feedback[Gimbal::PITCH].last_angle_raw, Gimbal::feedback[Gimbal::PITCH].actual_angle);
+        GimbalIF::feedback[GimbalIF::YAW].last_angle_raw, GimbalIF::feedback[GimbalIF::YAW].actual_angle,
+        GimbalIF::feedback[GimbalIF::PITCH].last_angle_raw, GimbalIF::feedback[GimbalIF::PITCH].actual_angle);
 
-    /** Start Threads **/
+    /// Start SKDs
+    GimbalSKD::start(&ahrs, GIMBAL_AHRS_INSTALL_MATRIX,
+                     GIMBAL_YAW_INSTALL_DIRECTION, GIMBAL_PITCH_INSTALL_DIRECTION, THREAD_GIMBAL_SKD_PRIO);
+    GimbalSKD::load_pid_params(GIMBAL_PID_YAW_A2V_PARAMS, GIMBAL_PID_YAW_V2I_PARAMS,
+                               GIMBAL_PID_PITCH_A2V_PARAMS, GIMBAL_PID_PITCH_V2I_PARAMS);
+
+    ShootSKD::start(SHOOT_BULLET_INSTALL_DIRECTION, ShootSKD::POSITIVE /* of no use */, THREAD_SHOOT_SKD_PRIO);
+    ShootSKD::load_pid_params(SHOOT_PID_BULLET_LOADER_A2V_PARAMS, SHOOT_PID_BULLET_LOADER_V2I_PARAMS,
+                              {0, 0, 0, 0, 0} /* of no use */, {0, 0, 0, 0, 0} /* of no use */);
 
     ChassisSKD::start(CHASSIS_WHEEL_BASE, CHASSIS_WHEEL_TREAD, CHASSIS_WHEEL_CIRCUMFERENCE, THREAD_CHASSIS_SKD_PRIO);
+    ChassisSKD::load_pid_params(CHASSIS_PID_THETA2V_PARAMS, CHASSIS_PID_V2I_PARAMS);
+
+    /// Start LGs
+    // GimbalLG does not need initialization
+    ShootLG::init(SHOOT_DEGREE_PER_BULLER, THREAD_SHOOT_LG_STUCK_DETECT_PRIO);
     ChassisLG::init(THREAD_CHASSIS_LG_DODGE_PRIO);
 
 
-    gimbalThread.start(NORMALPRIO);
-    chassisThread.start(NORMALPRIO - 1);
-    shootThread.start(NORMALPRIO - 2);
-    errorDetectThread.start(LOWPRIO + 1);
+    /// Start Inspector and User Threads
 
-    StateHandler::echoEvent(StateHandler::MAIN_THREAD_SETUP_COMPLETE);
-    // Now play the startup sound
+
+    /// Complete Period 2
+    Buzzer::play_sound(Buzzer::sound_startup_intel, THREAD_BUZZER_PRIO);  // Now play the startup sound
+
+
 
     /*** ------------------------ Period 3. End of main thread ----------------------- ***/
 

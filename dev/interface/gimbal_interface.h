@@ -120,7 +120,7 @@ public:
          * Get total angle from the original front angle
          * @return the accumulate angle since last reset_front_angle
          */
-        float accumulate_angle();
+        float accumulated_angle();
 
     private:
 

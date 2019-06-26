@@ -11,6 +11,7 @@
 #include "ahrs_abstract.h"
 #include "remote_interpreter.h"
 #include "chassis_interface.h"
+#include "gimbal_interface.h"
 
 class Inspector {
 

@@ -52,10 +52,11 @@ public:
     static void start(float wheel_base, float wheel_tread, float wheel_circumference, tprio_t thread_prio);
 
     /**
-     * Change parameters of PID controller of every motor (shared parameters)
-     * @param pid_params
+     * Change PID parameters of PID controller
+     * @param theta2v_pid_params   Theta (see set_target()) to chassis rotation PID parameters
+     * @param v2i_pid_params       Velocity to current parameters of every motor (shared parameters)
      */
-    static void load_pid_params(pid_params_t a2v_pid_params, pid_params_t v2i_pid_params);
+    static void load_pid_params(pid_params_t theta2v_pid_params, pid_params_t v2i_pid_params);
 
     /**
      * Set mode of this SKD

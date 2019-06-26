@@ -67,3 +67,23 @@ void Inspector::startup_check_chassis_feedback() {
         chThdSleepMilliseconds(5);
     }
 }
+
+void Inspector::startup_check_gimbal_feedback() {
+    // TODO: echo to user which motor lose connection
+    time_msecs_t t = SYSTIME;
+    while (SYSTIME - t < 20) {
+        if (SYSTIME - GimbalIF::feedback[GimbalIF::YAW].last_update_time > 5) {
+            // No feedback in last 5 ms (normal 1 ms)
+            t = SYSTIME;  // reset the counter
+        }
+        if (SYSTIME - GimbalIF::feedback[GimbalIF::PITCH].last_update_time > 5) {
+            // No feedback in last 5 ms (normal 1 ms)
+            t = SYSTIME;  // reset the counter
+        }
+        if (SYSTIME - GimbalIF::feedback[GimbalIF::BULLET].last_update_time > 5) {
+            // No feedback in last 5 ms (normal 1 ms)
+            t = SYSTIME;  // reset the counter
+        }
+        chThdSleepMilliseconds(5);
+    }
+}

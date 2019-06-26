@@ -12,23 +12,7 @@ inline void startupCheckRemote() {
 }
 
 inline void startupCheckGimbalFeedback() {
-    // TODO: echo to user which motor lose connection
-    time_msecs_t t = SYSTIME;
-    while (SYSTIME - t < 50) {
-        if (SYSTIME - Gimbal::feedback[Gimbal::YAW].last_update_time > 3) {
-            // No feedback in last 3 ms (normal 1 ms)
-            t = SYSTIME;  // reset the counter
-        }
-        if (SYSTIME - Gimbal::feedback[Gimbal::PITCH].last_update_time > 3) {
-            // No feedback in last 3 ms (normal 1 ms)
-            t = SYSTIME;  // reset the counter
-        }
-        if (SYSTIME - Gimbal::feedback[Gimbal::BULLET].last_update_time > 3) {
-            // No feedback in last 3 ms (normal 1 ms)
-            t = SYSTIME;  // reset the counter
-        }
-        chThdSleepMilliseconds(3);
-    }
+
 }
 
 /**

@@ -73,11 +73,11 @@ float ShootSKD::get_plate_actual_velocity() {
 }
 
 float ShootSKD::get_loader_accumulated_angle() {
-    return GimbalIF::feedback[GimbalIF::BULLET].accumulate_angle() * install_position[0];
+    return GimbalIF::feedback[GimbalIF::BULLET].accumulated_angle() * install_position[0];
 }
 
 float ShootSKD::get_plate_accumulated_angle() {
-    return GimbalIF::feedback[GimbalIF::PLATE].accumulate_angle() * install_position[1];
+    return GimbalIF::feedback[GimbalIF::PLATE].accumulated_angle() * install_position[1];
 }
 
 void ShootSKD::reset_loader_accumulated_angle() {
@@ -96,7 +96,7 @@ void ShootSKD::SKDThread::main() {
 
             // PID calculation
             for (size_t i = 0; i < 2; i++) {
-                target_velocity[i] = a2v_pid->calc(GimbalIF::feedback[2 + i].accumulate_angle() * install_position[i],
+                target_velocity[i] = a2v_pid->calc(GimbalIF::feedback[2 + i].accumulated_angle() * install_position[i],
                                                    target_angle[i]);
                 target_current[i] = (int) v2i_pid->calc(
                         GimbalIF::feedback[2 + i].actual_velocity * install_position[i],

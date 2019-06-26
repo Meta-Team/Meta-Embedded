@@ -61,6 +61,9 @@ void ShootLG::StuckDetectorThread::main() {
             LOG_WARN("Bullet loader stuck");
             ShootSKD::set_loader_target(ShootSKD::get_loader_accumulated_angle() - STUCK_REVERSE_ANGLE);
             sleep(TIME_MS2I(STUCK_REVERSE_TIME));
+            if (shooter_state == STOP) {  // if shooter is stopped during the pausing time, terminate the process.
+                continue;
+            }
             ShootSKD::set_loader_target(shoot_target_number * angle_per_bullet);  // recover original target
             shooter_state = SHOOTING;
 
