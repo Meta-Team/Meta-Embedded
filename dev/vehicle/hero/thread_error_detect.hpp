@@ -10,6 +10,7 @@
 #include "remote_interpreter.h"
 #include "gimbal.h"
 #include "chassis.h"
+#include <math.h>
 
 inline void startupCheckCAN() {
     time_msecs_t t = SYSTIME;
@@ -108,6 +109,8 @@ class ErrorDetectThread : public chibios_rt::BaseStaticThread<1024> {
     void main() final {
 
         setName("detect");
+        float loader_angle_sequence[5];
+        float plate_angle_sequence[5];
 
         while (!shouldTerminate()) {
 
@@ -131,8 +134,26 @@ class ErrorDetectThread : public chibios_rt::BaseStaticThread<1024> {
                 }
             }
 
-            if (runtime > 130) StateHandler::raiseException(StateHandler::BULLET_LOADER_STUCK);
-            //if (runtime > 40 && Shoot::feedback[2].actual_current > 700) StateHandler::raiseException(StateHandler::BULLET_LOADER_STUCK);
+            // update 3 frames of angle.
+            loader_angle_sequence[0] = loader_angle_sequence[1];
+            loader_angle_sequence[1] = loader_angle_sequence[2];
+            loader_angle_sequence[2] = loader_angle_sequence[3];
+            loader_angle_sequence[3] = loader_angle_sequence[4];
+            loader_angle_sequence[4] = Shoot::feedback[2].actual_angle;
+
+            // Maybe could add plate stuck logic. However... the logic could be hard to judge...
+            // Because when add a lot of bullets, the situation could be very similar with the stuck condition...
+            // It may need extra factors to judge.
+            plate_angle_sequence[0] = plate_angle_sequence[1];
+            plate_angle_sequence[1] = plate_angle_sequence[2];
+            plate_angle_sequence[2] = Shoot::feedback[3].actual_angle;
+
+            // if the the target angle has sent for several times and the loader do not respond in 0.15 second, then the program regard the loader has stuck.
+            if(!loader_stop[2] && (fabs(loader_angle_sequence[0] - loader_angle_sequence[1]) < 0.3f && fabs(loader_angle_sequence[1] - loader_angle_sequence[2]) < 0.3f && fabs(loader_angle_sequence[2] - loader_angle_sequence[3]) < 0.3f && fabs(loader_angle_sequence[3] - loader_angle_sequence[4]) < 0.3f )){
+                StateHandler::raiseException(StateHandler::BULLET_LOADER_STUCK);
+            }
+
+
             sleep(TIME_MS2I(ERROR_DETECT_THREAD_INTERVAL));
         }
 

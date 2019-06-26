@@ -35,7 +35,8 @@
  *
  */
 
- static int runtime = 0;
+ static bool loader_stop[3] = {TRUE, TRUE, TRUE};
+ static bool plate_stop[3] = {TRUE, TRUE, TRUE};
 //static float Loader_handle_stuck_target_angle;
 
  class ShootThread : public chibios_rt::BaseStaticThread<1024>{
@@ -46,14 +47,11 @@
 
      bool pc_right_pressed = false; // local variable to control one click of right button of mouse
 
-     float plate_target_angle = 0.0f;
+     float plate_target_angle = 10.0f;
      float bullet_target_angle = 0.0f;
 
-     bool loader_stop[3] = {TRUE, TRUE, TRUE};
-     bool plate_stop[3] = {TRUE, TRUE, TRUE};
-     bool loaded_bullet[4] = {FALSE,FALSE,FALSE,FALSE};
 
-     float loader_stuck_target_angle;
+     bool loaded_bullet[4] = {FALSE,FALSE,FALSE,FALSE};
 
      void main() final {
 
@@ -76,6 +74,7 @@
              loader_stop[0] = loader_stop [1];
              loader_stop[1] = loader_stop [2];
              loader_stop[2] = fabs(bullet_target_angle - Shoot::feedback[2].actual_angle) < 5.0f || fabs(bullet_target_angle + 360.0f - Shoot::feedback[2].actual_angle) < 5.0f || fabs(bullet_target_angle - 360.0f - Shoot::feedback[2].actual_angle) < 5.0f;
+
              // Maybe checking the angle is more reliable than checking the velocity.
              // Because when start the velocity could be small too.
 
@@ -83,13 +82,6 @@
              plate_stop[0] = plate_stop [1];
              plate_stop[1] = plate_stop [2];
              plate_stop[2] = (plate_target_angle - Shoot::feedback[3].actual_angle)< 2.0f;
-
-             /*** Record the runtime for each time. Runtime is used for detect stuck. ***/
-             if(loader_stop[2] == FALSE){
-                 runtime++;
-             } else {
-                 runtime = 0;
-             }
 
              /*** The bullet plate logic ***/
              // If the loader is stopped and the last place of bullet loader is not full.
@@ -233,20 +225,15 @@
              // If stucked, the target angle would change.
              // If not, the target angle would stayed the same.
              if(StateHandler::bulletLoaderStuck()){
-                 loader_stuck_target_angle = Shoot::feedback[2].actual_angle - 20.0f;
-                 StateHandler::bulletLoaderSmooth();
-                 Shell::printf("Fucking Stuck!\n");
-                 while(!loader_stop[2])
+                 int count = 0;
+                 while(count < 20)
                  {
-                     if (loader_stuck_target_angle < -180.0f && Shoot::feedback[2].actual_angle > loader_stuck_target_angle + 360.0f - 3.0f) loader_stuck_target_angle += 360.0f;
-                     loader_stop[0] = loader_stop [1];
-                     loader_stop[1] = loader_stop [2];
-                     loader_stop[2] = fabs(loader_stuck_target_angle - Shoot::feedback[2].actual_angle) < 2.0f || fabs(loader_stuck_target_angle + 360.0f - Shoot::feedback[2].actual_angle) < 2.0f || fabs(loader_stuck_target_angle - 360.0f - Shoot::feedback[2].actual_angle) < 2.0f;
-                     Shoot::calc_bullet(Shoot::feedback[2].actual_velocity, loader_stuck_target_angle);
+                     Shoot::target_current[Shoot::BULLET] = -1000; // Just let it role back. So no need to use PID and reach a fixed angle.
                      Shoot::target_current[Shoot::PLATE] = 0;
+                     count++;
                      sleep(TIME_MS2I(SHOOT_THREAD_INTERVAL));
                  }
-                 runtime = 0;
+                 StateHandler::bulletLoaderSmooth();
              }
              Shoot::calc_bullet(Shoot::feedback[2].actual_velocity, bullet_target_angle);
 
