@@ -36,6 +36,8 @@
  */
 
  static int runtime = 0;
+ static bool loader_stop[3] = {TRUE, TRUE, TRUE};
+ static bool plate_stop[3] = {TRUE, TRUE, TRUE};
 //static float Loader_handle_stuck_target_angle;
 
  class ShootThread : public chibios_rt::BaseStaticThread<1024>{
@@ -49,8 +51,7 @@
      float plate_target_angle = 0.0f;
      float bullet_target_angle = 0.0f;
 
-     bool loader_stop[3] = {TRUE, TRUE, TRUE};
-     bool plate_stop[3] = {TRUE, TRUE, TRUE};
+
      bool loaded_bullet[4] = {FALSE,FALSE,FALSE,FALSE};
 
      float loader_stuck_target_angle;
@@ -76,6 +77,7 @@
              loader_stop[0] = loader_stop [1];
              loader_stop[1] = loader_stop [2];
              loader_stop[2] = fabs(bullet_target_angle - Shoot::feedback[2].actual_angle) < 5.0f || fabs(bullet_target_angle + 360.0f - Shoot::feedback[2].actual_angle) < 5.0f || fabs(bullet_target_angle - 360.0f - Shoot::feedback[2].actual_angle) < 5.0f;
+
              // Maybe checking the angle is more reliable than checking the velocity.
              // Because when start the velocity could be small too.
 
