@@ -4,7 +4,7 @@
 
 #include "chassis_logic.h"
 
-ChassisLG::action_t ChassisLG::action;
+ChassisLG::action_t ChassisLG::action = STOP_MODE;
 float ChassisLG::target_vx;
 float ChassisLG::target_vy;
 float ChassisLG::target_theta;
@@ -22,9 +22,13 @@ ChassisLG::action_t ChassisLG::get_action() {
 
 void ChassisLG::set_action(ChassisLG::action_t value) {
     action = value;
-    if (action == FOLLOW_MODE) {
+    if (action == STOP_MODE) {
+        ChassisSKD::set_mode(ChassisSKD::STOP_MODE);
+    } else if (action == FOLLOW_MODE) {
+        ChassisSKD::set_mode(ChassisSKD::GIMBAL_COORDINATE_MODE);
         apply_target();
     } else if (action == DODGE_MODE) {
+        ChassisSKD::set_mode(ChassisSKD::GIMBAL_COORDINATE_MODE);
         target_theta = DODGE_MODE_THETA;
         if (!dodgeModeSwitchThread.started) {
             dodgeModeSwitchThread.start(dodge_thread_prio);

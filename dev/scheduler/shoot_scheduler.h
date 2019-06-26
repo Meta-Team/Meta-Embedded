@@ -52,7 +52,7 @@ public:
                                 pid_params_t plate_a2v_params, pid_params_t plate_v2i_params);
 
     /**
-     * Set buller loader target angle
+     * Set bullet loader target angle
      * @param loader_target_angle
      */
     static void set_loader_target(float loader_target_angle);

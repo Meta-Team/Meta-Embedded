@@ -72,6 +72,12 @@ public:
     static void set_mode(mode_t skd_mode);
 
     /**
+     * Get mode of this SKD
+     * @return Current mode
+     */
+    static mode_t get_mode();
+
+    /**
      * Set target angles
      * @param yaw_target_angle    yaw   target angle on ground coordinate [deg]
      * @param pitch_target_angle  pitch target angle on ground coordinate [deg]

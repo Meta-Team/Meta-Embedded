@@ -45,6 +45,10 @@ void GimbalSKD::set_mode(GimbalSKD::mode_t skd_mode) {
     mode = skd_mode;
 }
 
+GimbalSKD::mode_t GimbalSKD::get_mode() {
+    return mode;
+}
+
 void GimbalSKD::set_target_angle(float yaw_target_angle, float pitch_target_angle) {
     target_angle[YAW] = yaw_target_angle;
     target_angle[PITCH] = pitch_target_angle;

@@ -82,10 +82,10 @@ class GimbalIF : public GimbalBase {
 public:
 
     /**
-     * @brief Initialize the gimbal
-     * @param can_interface           initialized CANInterface for yaw, pitch and bullet_loader motor
-     * @param yaw_front_angle_raw     raw angle of yaw when gimbal points straight forward, depending on installation.
-     * @param pitch_front_angle_raw   raw angle of pitch when gimbal points straight forward, depending on installation.
+     * Initialize GimbalIF. Angles of bullet loader and bullet plate will be reset.
+     * @param can_interface           Initialized CANInterface for yaw, pitch and bullet_loader motor
+     * @param yaw_front_angle_raw     Raw angle of yaw when gimbal points straight forward, depending on installation.
+     * @param pitch_front_angle_raw   Raw angle of pitch when gimbal points straight forward, depending on installation.
      */
     static void init(CANInterface *can_interface, uint16_t yaw_front_angle_raw, uint16_t pitch_front_angle_raw);
 
@@ -139,24 +139,24 @@ public:
     };
 
     /**
-     * @brief Motor feedback structure
+     * Motor feedback structure
      */
     static motor_feedback_t feedback[MOTOR_COUNT];
 
 
     /**
-     * @brief target current array in the order defined in motor_id_t
+     * Target current array in the order defined in motor_id_t
      */
     static int target_current[MOTOR_COUNT];
 
     /**
-     * @brief friction_wheels duty cycle
+     * Friction wheels duty cycle
      */
     static float fw_duty_cycle;
 
     /**
-     * @brief send target_current of each motor
-     * @return whether currents are sent successfully
+     * Send target_current of each motor
+     * @return Whether currents are sent successfully
      */
     static void send_gimbal_currents();
 

@@ -23,6 +23,7 @@ public:
     static void init(tprio_t dodge_thread_prio_);
 
     enum action_t {
+        STOP_MODE,
         FOLLOW_MODE,
         DODGE_MODE
     };
