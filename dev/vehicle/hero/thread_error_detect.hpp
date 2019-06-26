@@ -109,8 +109,8 @@ class ErrorDetectThread : public chibios_rt::BaseStaticThread<1024> {
     void main() final {
 
         setName("detect");
-        float loader_angle_sequence[3];
-        float plate_angle_sequence[3];
+        float loader_angle_sequence[5];
+        float plate_angle_sequence[5];
 
         while (!shouldTerminate()) {
 
@@ -140,14 +140,16 @@ class ErrorDetectThread : public chibios_rt::BaseStaticThread<1024> {
             // update 3 frames of angle.
             loader_angle_sequence[0] = loader_angle_sequence[1];
             loader_angle_sequence[1] = loader_angle_sequence[2];
-            loader_angle_sequence[2] = Shoot::feedback[2].actual_angle;
+            loader_angle_sequence[2] = loader_angle_sequence[3];
+            loader_angle_sequence[3] = loader_angle_sequence[4];
+            loader_angle_sequence[4] = Shoot::feedback[2].actual_angle;
 
             plate_angle_sequence[0] = plate_angle_sequence[1];
             plate_angle_sequence[1] = plate_angle_sequence[2];
             plate_angle_sequence[2] = Shoot::feedback[3].actual_angle;
 
             // if the the target angle has sent for several times and the loader do not respond in 0.15 second, then the program regard the loader has stuck.
-            if(!loader_stop[2] && (fabs(loader_angle_sequence[0] - loader_angle_sequence[1]) < 2.0f && fabs(loader_angle_sequence[1] - loader_angle_sequence[2]) < 2.0f)){
+            if(!loader_stop[2] && (fabs(loader_angle_sequence[0] - loader_angle_sequence[1]) < 0.3f && fabs(loader_angle_sequence[1] - loader_angle_sequence[2]) < 0.3f && fabs(loader_angle_sequence[2] - loader_angle_sequence[3]) < 0.3f && fabs(loader_angle_sequence[3] - loader_angle_sequence[4]) < 0.3f )){
                 StateHandler::raiseException(StateHandler::BULLET_LOADER_STUCK);
             }
 

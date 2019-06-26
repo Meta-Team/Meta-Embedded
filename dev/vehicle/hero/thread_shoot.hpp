@@ -238,6 +238,15 @@
                  loader_stuck_target_angle = Shoot::feedback[2].actual_angle - 20.0f;
                  StateHandler::bulletLoaderSmooth();
                  Shell::printf("Fucking Stuck!\n");
+                 int count = 0;
+                 while(count < 20)
+                 {
+                     Shoot::target_current[Shoot::BULLET] = -1000;
+                     Shoot::target_current[Shoot::PLATE] = 0;
+                     count++;
+                     sleep(TIME_MS2I(SHOOT_THREAD_INTERVAL));
+                 }
+                 /***
                  while(!loader_stop[2])
                  {
                      if (loader_stuck_target_angle < -180.0f && Shoot::feedback[2].actual_angle > loader_stuck_target_angle + 360.0f - 3.0f) loader_stuck_target_angle += 360.0f;
@@ -248,6 +257,7 @@
                      Shoot::target_current[Shoot::PLATE] = 0;
                      sleep(TIME_MS2I(SHOOT_THREAD_INTERVAL));
                  }
+                 ***/
                  runtime = 0;
              }
              Shoot::calc_bullet(Shoot::feedback[2].actual_velocity, bullet_target_angle);
