@@ -288,6 +288,6 @@ void GimbalIF::motor_feedback_t::reset_front_angle() {
     round_count = 0;
 }
 
-float GimbalIF::motor_feedback_t::get_accumulate_angle() {
+float GimbalIF::motor_feedback_t::accumulate_angle() {
     return actual_angle + round_count * 360.0f;
 }

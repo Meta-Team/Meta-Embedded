@@ -28,6 +28,13 @@ class ShootSKD : public GimbalBase, public PIDControllerBase {
 
 public:
 
+    enum mode_t {
+        FORCED_STOP_MODE,        // zero force (Still taking control of ChassisIF. External writing to target currents
+                                 // will leads to conflicts.)
+        LIMITED_SHOOTING_MODE,   // using angle control to shoot specific number of bullet
+        REVERSE_TURNING_MODE
+    };
+
     enum install_direction_t {
         POSITIVE = 1,
         NEGATIVE = -1
@@ -52,27 +59,65 @@ public:
                                 pid_params_t plate_a2v_params, pid_params_t plate_v2i_params);
 
     /**
-     * Set bullet loader target angle
-     * @param loader_target_angle
+     * Set mode of this SKD
+     * @param skd_mode
+     */
+    static void set_mode(mode_t skd_mode);
+
+    /**
+     * Get mode of this SKD
+     * @return Current mode
+     */
+    static mode_t get_mode();
+
+    /**
+     * Set bullet loader target angle in LIMITED_SHOOTING_MODE
+     * @param loader_target_angle   Bullet loader target ACCUMULATED angle [positive, degree]
      */
     static void set_loader_target(float loader_target_angle);
 
     /**
-     * Set bullet plate target angle
-     * @param plate_target_angle
+     * Set bullet plate target angle in LIMITED_SHOOTING_MODE
+     * @param plate_target_angle   Bullet plate target ACCUMULATED angle [positive, degree]
      */
     static void set_plate_target(float plate_target_angle);
 
     /**
-     * Set friction wheel duty cycle
-     * @param duty_cycle from 0 to 1
+     * Set friction wheel duty cycle in LIMITED_SHOOTING_MODE or REVERSE_TURNING_MODE
+     * @param duty_cycle  Friction wheel duty cycle, from 0 to 1.0
      */
     static void set_friction_wheels(float duty_cycle);
+
+    /**
+     * Get bullet loader target current calculated in this SKD
+     * @return Bullet loader target current [positive for normal shooting]
+     */
+    static int get_loader_target_current();
+
+    /**
+     * Get bullet plate target current calculated in this SKD
+     * @return Bullet plate target current [positive for normal shooting]
+     */
+    static int get_plate_target_current();
+
+    /**
+     * Get bullet loader actual velocity
+     * @return Bullet loader actual velocity [positive for normal shooting]
+     */
+    static float get_loader_actual_velocity();
+
+    /**
+     * Get bullet plate actual velocity
+     * @return Bullet plate actual velocity [positive for normal shooting]
+     */
+    static float get_plate_actual_velocity();
 
 
 private:
 
     static install_direction_t install_position[2];
+
+    static mode_t mode;
 
     static float target_angle[2];
     static float target_velocity[2];

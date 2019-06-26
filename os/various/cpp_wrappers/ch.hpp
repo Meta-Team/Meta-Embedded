@@ -919,7 +919,7 @@ namespace chibios_rt {
      *
      * @api
      */
-    virtual void main(void) = 0;
+    virtual void main() = 0;
 
     /**
      * @brief   Creates and starts a system thread.

@@ -59,7 +59,8 @@ set(COMMON_SRC  # common cpp sources, which are included to every tartget at pos
         dev/debug/shell/shell_dbg_cmd.cpp
         dev/interface/led.cpp
         dev/interface/buzzer.cpp
-        dev/module/state_handler.cpp)
+#        dev/module/state_handler.cpp
+        )
 
 set(AHRS_SRC
         dev/interface/ahrs/ahrs.cpp
@@ -71,7 +72,9 @@ set(AHRS_SRC
 set(GIMBAL_SHOOT_SRC
         dev/interface/gimbal_interface.cpp
         dev/scheduler/gimbal_scheduler.cpp
-        dev/scheduler/shoot_scheduler.cpp)
+        dev/scheduler/shoot_scheduler.cpp
+        dev/logic/gimbal_logic.cpp
+        dev/logic/shoot_logic.cpp)
 
 set(CHASSIS_SRC
         dev/interface/chassis_interface.cpp

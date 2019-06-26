@@ -12,7 +12,7 @@
 
 #include "chassis_scheduler.h"
 
-ChassisSKD::mode_t ChassisSKD::mode = STOP_MODE;
+ChassisSKD::mode_t ChassisSKD::mode = FORCED_STOP_MODE;
 
 float ChassisSKD::target_vx;
 float ChassisSKD::target_vy;
@@ -93,7 +93,7 @@ void ChassisSKD::SKDThread::main() {
 
             // TODO: write code for PID parameter adjustment mode
 
-        } else if (mode == STOP_MODE) {
+        } else if (mode == FORCED_STOP_MODE) {
 
             for (int &i : ChassisIF::target_current) {
                 i = 0;

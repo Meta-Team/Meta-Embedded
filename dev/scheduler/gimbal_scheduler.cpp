@@ -5,7 +5,7 @@
 #include "gimbal_scheduler.h"
 
 Matrix33 GimbalSKD::gimbal_ahrs_install;
-GimbalSKD::mode_t GimbalSKD::mode = STOP_MODE;
+GimbalSKD::mode_t GimbalSKD::mode = FORCED_STOP_MODE;
 GimbalSKD::install_direction_t GimbalSKD::yaw_install;
 GimbalSKD::install_direction_t GimbalSKD::pitch_install;
 float GimbalSKD::target_angle[2] = {0, 0};
@@ -88,7 +88,7 @@ void GimbalSKD::SKDThread::main() {
 
             // TODO: write code for PID parameter adjustment mode
 
-        } else if (mode == STOP_MODE) {
+        } else if (mode == FORCED_STOP_MODE) {
 
             target_current[YAW] = target_current[PITCH] = 0;
 
