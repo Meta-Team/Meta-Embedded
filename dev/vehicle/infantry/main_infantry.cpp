@@ -107,6 +107,7 @@ int main(void) {
     palSetPad(GPIOG, GPIOG_RED_SPOT_LASER);  // enable the red spot laser
 
 
+    /// Complete Period 1
     LED::green_on(); // LED Green on now
 
 

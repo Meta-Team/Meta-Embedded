@@ -17,7 +17,9 @@ class Inspector {
 
 public:
 
-    static void init(CANInterface *can1_, AbstractAHRS *ahrs_, tprio_t thread_prio);
+    static void init(CANInterface *can1_, AbstractAHRS *ahrs_);
+
+    static void start_inspection(tprio_t thread_prio);
 
     static void startup_check_can();
     static void startup_check_mpu();
@@ -31,6 +33,12 @@ private:
 
     static AbstractAHRS *ahrs;
     static CANInterface *can1;
+
+    class InspectorThread : public chibios_rt::BaseStaticThread<512> {
+        void main();
+    };
+
+    static InspectorThread inspectorThread;
 
 };
 
