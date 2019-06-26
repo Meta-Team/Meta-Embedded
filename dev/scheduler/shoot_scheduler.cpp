@@ -6,7 +6,7 @@
 
 ShootSKD::install_direction_t ShootSKD::install_position[2];
 
-ShootSKD::mode_t ShootSKD::mode = FORCED_STOP_MODE;
+ShootSKD::mode_t ShootSKD::mode = FORCED_RELAX_MODE;
 
 float ShootSKD::target_angle[2] = {0, 0};
 float ShootSKD::target_velocity[2] = {0, 0};
@@ -72,6 +72,22 @@ float ShootSKD::get_plate_actual_velocity() {
     return GimbalIF::feedback[GimbalIF::PLATE].actual_velocity * install_position[1];
 }
 
+float ShootSKD::get_loader_accumulated_angle() {
+    return GimbalIF::feedback[GimbalIF::BULLET].accumulate_angle() * install_position[0];
+}
+
+float ShootSKD::get_plate_accumulated_angle() {
+    return GimbalIF::feedback[GimbalIF::PLATE].accumulate_angle() * install_position[1];
+}
+
+void ShootSKD::reset_loader_accumulated_angle() {
+    GimbalIF::feedback[GimbalIF::BULLET].reset_front_angle();
+}
+
+void ShootSKD::reset_plate_accumulated_angle() {
+    GimbalIF::feedback[GimbalIF::PLATE].reset_front_angle();
+}
+
 void ShootSKD::SKDThread::main() {
     setName("shoot_skd");
     while (!shouldTerminate()) {
@@ -90,13 +106,7 @@ void ShootSKD::SKDThread::main() {
 
             GimbalIF::fw_duty_cycle = target_fw;
 
-        } else if (mode == REVERSE_TURNING_MODE) {
-
-            GimbalIF::target_current[GimbalIF::BULLET] =
-            GimbalIF::target_current[GimbalIF::PLATE] =
-            GimbalIF::fw_duty_cycle = target_fw;
-
-        } else if (mode == FORCED_STOP_MODE) {
+        } else if (mode == FORCED_RELAX_MODE) {
 
             GimbalIF::target_current[GimbalIF::BULLET] = GimbalIF::target_current[GimbalIF::PLATE] = 0;
             GimbalIF::fw_duty_cycle = 0;

@@ -29,10 +29,9 @@ class ShootSKD : public GimbalBase, public PIDControllerBase {
 public:
 
     enum mode_t {
-        FORCED_STOP_MODE,        // zero force (Still taking control of ChassisIF. External writing to target currents
-                                 // will leads to conflicts.)
-        LIMITED_SHOOTING_MODE,   // using angle control to shoot specific number of bullet
-        REVERSE_TURNING_MODE
+        FORCED_RELAX_MODE,       // zero force (Still taking control of ChassisIF. External writing to target currents
+                                // will leads to conflicts.)
+        LIMITED_SHOOTING_MODE   // using angle control to shoot specific number of bullet
     };
 
     enum install_direction_t {
@@ -112,6 +111,27 @@ public:
      */
     static float get_plate_actual_velocity();
 
+    /**
+     * Get bullet loader accumulated angle
+     * @return Bullet loader accumulated angle [positive for normal shooting, degree]
+     */
+    static float get_loader_accumulated_angle();
+
+    /**
+     * Get bullet plate accumulated angle
+     * @return Bullet plate accumulated angle [positive for normal shooting, degree]
+     */
+    static float get_plate_accumulated_angle();
+
+    /**
+     * Reset accumulated angle of bullet loader to 0
+     */
+    static void reset_loader_accumulated_angle();
+
+    /**
+     * Reset accumulated angle of bullet plate to 0
+     */
+    static void reset_plate_accumulated_angle();
 
 private:
 

@@ -35,7 +35,7 @@ class ChassisSKD : public ChassisBase, public PIDControllerBase {
 public:
 
     enum mode_t {
-        FORCED_STOP_MODE,         // zero force (Still taking control of ChassisIF. External writing to target currents
+        FORCED_RELAX_MODE,         // zero force (Still taking control of ChassisIF. External writing to target currents
                                   // will leads to conflicts.)
                                   // NO SUPPORT FOR CHASSIS COORDINATE
         GIMBAL_COORDINATE_MODE,   // targets use gimbal coordinates
