@@ -22,10 +22,16 @@ public:
     static int get_bullet_count();
 
     /**
-     * Set friction wheel duty cycle in LIMITED_SHOOTING_MODE or REVERSE_TURNING_MODE
-     * @param duty_cycle  Friction wheel duty cycle, from 0 to 1.0
+     * Set friction wheels duty cycle in LIMITED_SHOOTING_MODE or REVERSE_TURNING_MODE
+     * @param duty_cycle  Friction wheels duty cycle, from 0 to 1.0
      */
     static void set_friction_wheels(float duty_cycle);
+
+    /**
+     * Get friction wheels duty cycle
+     * @return Friction wheels duty cycle, from 0 to 1.0
+     */
+    static float get_friction_wheels_duty_cycle();
 
     enum shooter_state_t {
         STOP,

@@ -31,6 +31,10 @@ void ShootLG::set_friction_wheels(float duty_cycle) {
     ShootSKD::set_friction_wheels(duty_cycle);
 }
 
+float ShootLG::get_friction_wheels_duty_cycle() {
+    return ShootSKD::get_friction_wheels_duty_cycle();
+}
+
 ShootLG::shooter_state_t ShootLG::get_shooter_state() {
     return shooter_state;
 }

@@ -23,3 +23,7 @@ void GimbalLG::set_action(GimbalLG::action_t value) {
 void GimbalLG::set_target(float yaw_target_angle, float pitch_target_angle) {
     GimbalSKD::set_target_angle(yaw_target_angle, pitch_target_angle);
 }
+
+float GimbalLG::get_accumulated_angle(GimbalBase::motor_id_t motor) {
+    return GimbalSKD::get_accumulated_angle(motor);
+}

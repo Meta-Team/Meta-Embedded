@@ -56,6 +56,10 @@ void ShootSKD::set_friction_wheels(float duty_cycle) {
     target_fw = duty_cycle;
 }
 
+float ShootSKD::get_friction_wheels_duty_cycle() {
+    return target_fw;
+}
+
 int ShootSKD::get_loader_target_current() {
     return target_current[0];
 }

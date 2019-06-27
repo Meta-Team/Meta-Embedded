@@ -82,10 +82,16 @@ public:
     static void set_plate_target(float plate_target_angle);
 
     /**
-     * Set friction wheel duty cycle in LIMITED_SHOOTING_MODE or REVERSE_TURNING_MODE
-     * @param duty_cycle  Friction wheel duty cycle, from 0 to 1.0
+     * Set friction wheels duty cycle in LIMITED_SHOOTING_MODE or REVERSE_TURNING_MODE
+     * @param duty_cycle  Friction wheels duty cycle, from 0 to 1.0
      */
     static void set_friction_wheels(float duty_cycle);
+
+    /**
+     * Get friction wheels duty cycle
+     * @return Friction wheels duty cycle, from 0 to 1.0
+     */
+    static float get_friction_wheels_duty_cycle();
 
     /**
      * Get bullet loader target current calculated in this SKD

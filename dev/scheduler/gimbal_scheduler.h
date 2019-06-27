@@ -80,15 +80,15 @@ public:
 
     /**
      * Set target angles
-     * @param yaw_target_angle    yaw   target ACCUMULATED angle on ground coordinate [degree]
-     * @param pitch_target_angle  pitch target ACCUMULATED angle on ground coordinate [degree]
+     * @param yaw_target_angle    Yaw   target ACCUMULATED angle on ground coordinate [degree]
+     * @param pitch_target_angle  Pitch target ACCUMULATED angle on ground coordinate [degree]
      */
     static void set_target_angle(float yaw_target_angle, float pitch_target_angle);
 
     /**
      * Get accumulated angle maintained by this SKD
      * @param motor   YAW or PITCH
-     * @return accumulated angle
+     * @return Accumulated angle
      */
     static float get_accumulated_angle(motor_id_t motor);
 
