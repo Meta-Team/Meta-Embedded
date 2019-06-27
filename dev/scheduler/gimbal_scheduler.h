@@ -80,11 +80,17 @@ public:
 
     /**
      * Set target angles
-     * @param yaw_target_angle    yaw   target angle on ground coordinate [deg]
-     * @param pitch_target_angle  pitch target angle on ground coordinate [deg]
+     * @param yaw_target_angle    yaw   target ACCUMULATED angle on ground coordinate [degree]
+     * @param pitch_target_angle  pitch target ACCUMULATED angle on ground coordinate [degree]
      */
     static void set_target_angle(float yaw_target_angle, float pitch_target_angle);
 
+    /**
+     * Get accumulated angle maintained by this SKD
+     * @param motor   YAW or PITCH
+     * @return accumulated angle
+     */
+    static float get_accumulated_angle(motor_id_t motor);
 
 private:
 
@@ -96,6 +102,10 @@ private:
     // local storage
     static mode_t mode;
     static float target_angle[2];
+
+    static float last_angle[2];
+    static float accumulated_angle[2];
+    static constexpr float MOVEMENT_THRESHOLD = 200;  // [degree]
 
     static float target_velocity[2];  // calculated target velocity, middle values
     static int target_current[2];     // local storage

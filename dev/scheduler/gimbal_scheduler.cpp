@@ -29,6 +29,11 @@ void GimbalSKD::start(AbstractAHRS *gimbal_ahrs_, const Matrix33 gimbal_ahrs_ins
         }
     }
 
+    // Initialize accumulated angle
+    Vector3D gimbal_angle = gimbal_ahrs->angle * gimbal_ahrs_install;
+    accumulated_angle[YAW] = gimbal_angle.x;
+    accumulated_angle[PITCH] = gimbal_angle.y;
+
     skdThread.start(thread_prio);
 }
 
@@ -62,6 +67,24 @@ void GimbalSKD::SKDThread::main() {
         Vector3D gimbal_angle = gimbal_ahrs->angle * gimbal_ahrs_install;
         Vector3D gimbal_gyro = gimbal_ahrs->gyro * gimbal_ahrs_install;
 
+        float angle_movement[2] = {gimbal_angle.x - last_angle[YAW],
+                                   gimbal_angle.y - last_angle[PITCH]};
+        for (int i = YAW; i <= PITCH; i++) {
+
+            /**
+             * Deal with cases crossing 0 point
+             * For example,
+             * 1. new = 179, last = -179, movement = 358, should be corrected to 358 - 360 = -2
+             * 2. new = -179, last = 179, movement = -358, should be corrected to -358 + 360 = 2
+             * 200 (-200) is a threshold that is large enough that it's normally impossible to move in 1 ms
+             */
+            if (angle_movement[i] < -200) angle_movement[i] += 360;
+            if (angle_movement[i] > 200) angle_movement[i] -= 360;
+
+            // Use increment to calculate accumulated angles
+            accumulated_angle[i] += angle_movement[i];
+        }
+
         /* if (mode == RELATIVE_ANGLE_MODE) {
 
             // YAW
@@ -76,7 +99,7 @@ void GimbalSKD::SKDThread::main() {
         } else */ if (mode == ABS_ANGLE_MODE) {
 
             // YAW
-            target_velocity[YAW] = a2v_pid[YAW].calc(gimbal_angle.x, target_angle[YAW]);
+            target_velocity[YAW] = a2v_pid[YAW].calc(accumulated_angle[YAW], target_angle[YAW]);
             target_current[YAW] = (int) v2i_pid[YAW].calc(gimbal_gyro.x, target_velocity[YAW]);
 
             // PITCH
@@ -101,4 +124,10 @@ void GimbalSKD::SKDThread::main() {
 
         sleep(TIME_MS2I(SKD_THREAD_INTERVAL));
     }
+}
+
+float GimbalSKD::get_accumulated_angle(GimbalBase::motor_id_t motor) {
+    if (motor == YAW) return accumulated_angle[YAW];
+    if (motor == PITCH) return accumulated_angle[PITCH];
+    return 0;
 }
