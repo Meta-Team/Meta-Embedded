@@ -2,6 +2,15 @@
 // Created by liuzikai on 2019-06-26.
 //
 
+/**
+ * @file    shoot_logic.cpp
+ * @brief   Logic-level module to control shooter. Support number-controlling shooting.
+ *
+ * @addtogroup shoot
+ * @{
+ */
+
+
 #include "shoot_logic.h"
 
 float ShootLG::angle_per_bullet = 0;
@@ -55,7 +64,7 @@ void ShootLG::stop() {
 }
 
 void ShootLG::StuckDetectorThread::main() {
-    setName("SH_Stuck");
+    setName("Shoot_Stuck");
     while (!shouldTerminate()) {
         if (shooter_state == SHOOTING &&
             ShootSKD::get_loader_target_current() > STUCK_THRESHOLD_CURRENT &&
@@ -75,3 +84,5 @@ void ShootLG::StuckDetectorThread::main() {
         sleep(TIME_MS2I(STUCK_DETECTOR_THREAD_INTERVAL));
     }
 }
+
+/** @} */

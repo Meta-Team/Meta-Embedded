@@ -61,7 +61,7 @@ public:
 
     /**
      * Set CAN interface for receiving and sending
-     * @param can_interface   initialized CANInterface for yaw, pitch and bullet_loader motor
+     * @param can_interface   Initialized CANInterface for chassis motors
      */
     static void init(CANInterface* can_interface);
 
@@ -93,7 +93,7 @@ public:
 
     /**
      * Send all target currents
-     * @return
+     * @return Whether sending succeeded or not
      */
     static bool send_chassis_currents();
 
@@ -111,9 +111,7 @@ private:
 
 private:
 
-    /** Configurations **/
-
-    static float constexpr chassis_motor_decelerate_ratio = 19.2f; // 3591/187 on the data sheet
+    static float constexpr CHASSIS_MOTOR_DECELERATE_RATIO = 19.2f; // 3591/187 on the data sheet
 
 };
 

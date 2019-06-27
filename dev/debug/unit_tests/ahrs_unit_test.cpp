@@ -22,7 +22,7 @@ AHRSOnBoard ahrs;
 class AHRSFeedbackThread : public BaseStaticThread<1024> {
 protected:
     void main() final {
-        setName("ahrs");
+        setName("AHRS");
         ahrs.start(GIMBAL_AHRS_INSTALL_MATRIX, HIGHPRIO - 2, HIGHPRIO - 3, HIGHPRIO - 1);
         Buzzer::play_sound(Buzzer::sound_startup, LOWPRIO);
         while (!shouldTerminate()) {

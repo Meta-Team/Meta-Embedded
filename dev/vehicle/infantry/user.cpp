@@ -118,7 +118,7 @@ void User::UserThread::main() {
                 }
 
                 if (pc_z_pressed != Remote::key.z) {  // key z is pressed or released
-
+                    // TODO: echo status to user
                     if (ShootLG::get_friction_wheels_duty_cycle() > 0) {
                         ShootLG::set_friction_wheels(0);
                     } else {

@@ -1,3 +1,11 @@
+/**
+ * @file    led.h
+ * @brief   Interface to operate on-board LEDs.
+ *
+ * @addtogroup LED
+ * @{
+ */
+
 #ifndef META_INFANTRY_LED_H
 #define META_INFANTRY_LED_H
 
@@ -21,45 +29,76 @@
 /**
  * @name LED
  * @brief LED Controller
- * @note RM Board 2018 has additional 8 green LED
+ * @note RM Board 2018 has additional 8 green LEDs
  */
 class LED {
 
 public:
 
+    /**
+     * Turn off green LED
+     */
     static void green_off() {
         LED_PAD_OFF(GPIOF, GPIOF_LED_GREEN);
     }
 
+    /**
+     * Turn on green LED
+     */
     static void green_on() {
         LED_PAD_ON(GPIOF, GPIOF_LED_GREEN);
     }
 
+    /**
+     * Toggle green LED
+     */
     static void green_toggle() {
         palTogglePad(GPIOF, GPIOF_LED_GREEN);
     }
 
+    /**
+     * Turn off red LED
+     */
     static void red_off() {
         LED_PAD_OFF(GPIOE, GPIOE_LED_RED);
     }
 
+    /**
+     * Turn on red LED
+     */
     static void red_on() {
         LED_PAD_ON(GPIOE, GPIOE_LED_RED);
     }
 
+    /**
+     * Toggle red LED
+     */
     static void red_toggle() {
         palTogglePad(GPIOE, GPIOE_LED_RED);
     }
 
 #if defined(BOARD_RM_2018_A)
+
+    /**
+     * Turn on indexed green LED on RM Board 2018 A
+     * @param i   LED index
+     */
     static void led_on(unsigned i) {
         if (i >= 1 && i <= 8) LED_PAD_ON(GPIOG, i);
     }
 
+    /**
+     * Turn off indexed green LED on RM Board 2018 A
+     * @param i   LED index
+     */
     static void led_off(unsigned i) {
         if (i >= 1 && i <= 8) LED_PAD_OFF(GPIOG, i);
     }
 
+    /**
+     * Toggle indexed green LED on RM Board 2018 A
+     * @param i   LED index
+     */
     static void led_toggle(unsigned i) {
         if (i >= 1 && i <= 8) palTogglePad(GPIOG, i);
     }
@@ -71,6 +110,9 @@ public:
     static void led_toggle(unsigned i) {}
 #endif
 
+    /**
+     * Turn off all LEDs
+     */
     static void all_off() {
         green_off();
         red_off();
@@ -85,8 +127,10 @@ public:
 
 extern "C" {
 #include "chconf.h"
-// LED_RED_ON and LED_GREEN_OFF when halt.
+// Perform action when ChibiOS halts.
 void set_led_when_halt(void);
 }
 
 #endif
+
+/** @} */

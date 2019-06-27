@@ -4,6 +4,14 @@
 // open source project iRM_Embedded_2017.
 //
 
+/**
+ * @file    buzzer.h
+ * @brief   Interface to control buzzer to alert or to play sounds, including some pre-install sounds.
+ *
+ * @addtogroup buzzer
+ * @{
+ */
+
 #ifndef META_INFANTRY_BUZZER_H
 #define META_INFANTRY_BUZZER_H
 
@@ -11,7 +19,6 @@
 #include "hal.h"
 
 // NOTICE: buzzer pin is all CH1 for current support boards. Otherwise, buzzer.cpp needs revision.
-
 #if defined(BOARD_RM_2018_A)
 // RM_BOARD_2018_A: PH6 TIM12 CH1
 #define BUZZER_PWM_DRIVER PWMD12
@@ -59,7 +66,7 @@ public:
     } note_t;
 
     /**
-     * @brief structure that represent a note lasting for some time
+     * Structure that represent a note lasting for some time
      *
      * @note a sound for buzzer is an array of note_with_time_t, ending with {Finish(-1), *}. To play the sound, use
      *       play_sound(). There are some preset sounds at the bottom of this class definition.
@@ -75,17 +82,30 @@ public:
     };
 
     /**
-     * @brief play a sound
-     * @param sound  an array of note_with_time_t, ending with {Finish(-1), *}
-     * @param prio   priority of the buzzer thread
+     * Play a sound
+     * @param sound  An array of note_with_time_t, ending with {Finish(-1), *}
+     * @param prio   Priority of the buzzer thread
      */
     static void play_sound(const note_with_time_t sound[], tprio_t prio);
 
-private:
+    /**
+     * Enable continuous alert
+     */
+    static void alert_on();
 
     /**
-     * @brief the buzzer thread to play sound
+     * Disable continuous alert
      */
+    static void alert_off();
+
+    /**
+     * Return the status of continuous alert
+     * @return The status of continuous alert
+     */
+    static bool alerting();
+
+private:
+
     class BuzzerThread : public chibios_rt::BaseStaticThread<512> {
     public:
 
@@ -104,6 +124,24 @@ private:
 
     static BuzzerThread buzzerThread;
 
+    // PWM configuration for buzzer
+    static constexpr PWMConfig pwm_config = {
+            1000000,
+            1000000, // Default note: 1Hz
+            nullptr,
+            {
+                    {PWM_OUTPUT_ACTIVE_HIGH, nullptr},  // it's all CH1 for current support boards
+                    {PWM_OUTPUT_DISABLED, nullptr},
+                    {PWM_OUTPUT_DISABLED, nullptr},
+                    {PWM_OUTPUT_DISABLED, nullptr}
+            },
+            0,
+            0
+    };
+
+    static bool alerting_;
+    static constexpr int ALERT_NOTE = Do1M;  // continuous alert note
+
 public:
 
     static constexpr note_with_time_t sound_alert[] = {
@@ -119,7 +157,7 @@ public:
             {Re2H, 250}, {Finish, 250}
     };
 
-    static constexpr note_with_time_t sound_infinty_warning[] {
+    static constexpr note_with_time_t sound_infinity_warning[] {
             {Do1H, 250}, {Do1M, 250}, {InfLoop, 0}
     };
 
@@ -210,3 +248,5 @@ public:
 
 
 #endif //META_INFANTRY_BUZZER_H
+
+/** @} */

@@ -3,6 +3,14 @@
 // Inspired by ChibiStudio template code.
 //
 
+/**
+ * @file    remote_interpreter.cpp
+ * @brief   Module to receive date from DR16 receiver and interpret data to specific formats
+ *
+ * @addtogroup remote
+ * @{
+ */
+
 #include "remote_interpreter.h"
 
 /**
@@ -11,7 +19,6 @@
  *  Alt mode: 7 (UART1).
  *  Speed: 100000
  **/
-
 
 Remote::rc_t Remote::rc;
 Remote::mouse_t Remote::mouse;
@@ -140,3 +147,5 @@ void Remote::start() {
     uartStart(&REMOTE_UART_DRIVER, &REMOTE_UART_CONFIG);
     uartStartReceive(&REMOTE_UART_DRIVER, RX_FRAME_SIZE, rx_buf_);
 }
+
+/** @} */

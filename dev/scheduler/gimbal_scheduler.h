@@ -2,6 +2,14 @@
 // Created by liuzikai on 2019-01-05.
 //
 
+/**
+ * @file    gimbal_scheduler.h
+ * @brief   Scheduler to control gimbal to meet the target, including a thread to invoke PID calculation in period.
+ *
+ * @addtogroup gimbal
+ * @{
+ */
+
 #ifndef META_INFANTRY_GIMBAL_CONTROLLER_H
 #define META_INFANTRY_GIMBAL_CONTROLLER_H
 
@@ -33,9 +41,9 @@ public:
 
     enum mode_t {
         FORCED_RELAX_MODE,   // zero force (Still taking control of ChassisIF. External writing to target currents
-                            // will leads to conflicts.)
-        ABS_ANGLE_MODE,     // target_angle of yaw is relative to ground
-        PARAM_ADJUST_MODE   // for PID parameter adjustment program
+                             // will leads to conflicts.)
+        ABS_ANGLE_MODE,      // target_angle of yaw is relative to ground
+        PARAM_ADJUST_MODE    // for PID parameter adjustment program
     }; // no support for RELATIVE_ANGLE_MODE
 
     enum install_direction_t {
@@ -45,11 +53,11 @@ public:
 
     /**
      * Start this scheduler
-     * @param gimbal_ahrs_           pointer to an initialized AHRS on gimbal
-     * @param gimbal_ahrs_install_   rotation matrix for gimbal AHRS
-     * @param yaw_install_           yaw motor install direction
-     * @param pitch_install_         pitch motor install direction
-     * @param thread_prio            priority of PID calculating thread
+     * @param gimbal_ahrs_           Pointer to an initialized AHRS on gimbal
+     * @param gimbal_ahrs_install_   Rotation matrix for gimbal AHRS
+     * @param yaw_install_           Yaw motor install direction
+     * @param pitch_install_         Pitch motor install direction
+     * @param thread_prio            Priority of PID calculating thread
      */
     static void start(AbstractAHRS *gimbal_ahrs_, const Matrix33 gimbal_ahrs_install_,
                       install_direction_t yaw_install_, install_direction_t pitch_install_,
@@ -80,7 +88,7 @@ public:
 
     /**
      * Set target angles
-     * @param yaw_target_angle    Yaw   target ACCUMULATED angle on ground coordinate [degree]
+     * @param yaw_target_angle    Yaw target ACCUMULATED angle on ground coordinate [degree]
      * @param pitch_target_angle  Pitch target ACCUMULATED angle on ground coordinate [degree]
      */
     static void set_target_angle(float yaw_target_angle, float pitch_target_angle);
@@ -103,9 +111,8 @@ private:
     static mode_t mode;
     static float target_angle[2];
 
-    static float last_angle[2];
-    static float accumulated_angle[2];
-    static constexpr float MOVEMENT_THRESHOLD = 200;  // [degree]
+    static float last_angle[2];  // last angle data of yaw and pitch from AHRS
+    static float accumulated_angle[2];  // accumulated angle of yaw and pitch, since the start of this SKD
 
     static float target_velocity[2];  // calculated target velocity, middle values
     static int target_current[2];     // local storage
@@ -125,3 +132,5 @@ private:
 
 
 #endif //META_INFANTRY_GIMBAL_CONTROLLER_H
+
+/** @} */

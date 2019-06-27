@@ -7,6 +7,8 @@
 
 #include "ch.hpp"
 
+#include "buzzer.h"
+
 #include "can_interface.h"
 #include "ahrs_abstract.h"
 #include "remote_interpreter.h"

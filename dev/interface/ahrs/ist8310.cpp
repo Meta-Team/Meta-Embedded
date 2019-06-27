@@ -78,7 +78,7 @@ void ISTOnBoard::update() {
 
 
 void ISTOnBoard::UpdateThread::main() {
-    setName("ist8310");
+    setName("IST8310");
     while (!shouldTerminate()) {
 
         ist.update();

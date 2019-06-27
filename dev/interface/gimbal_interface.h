@@ -5,11 +5,12 @@
 //
 
 /**
- * This file contains Gimbal Interface module.
+ * @file    gimbal_interface.h
+ * @brief   Interface to interact with low level driver of gimbal, including processing chassis motor feedback and
+ *          sending target currents.
  *
- * @note This interface support both RM6623 and GM6020 motor, if their CAN ID and field number are configured properly.
- *       For example, when RM6623 has motor ID 5, and GM6020 has motor ID 1, they both receive 0x1FF field 1 and
- *       send feedback of 0x205.
+ * @addtogroup gimbal
+ * @{
  */
 
 #ifndef META_INFANTRY_GIMBAL_INTERFACE_H
@@ -19,7 +20,7 @@
 #include "hal.h"
 #include "can_interface.h"
 
-/* Board Guard */
+/// Board Guard
 #if defined(BOARD_RM_2018_A)
 #elif defined(BOARD_RM_2017)
 #else
@@ -57,6 +58,9 @@ public:
  *       unintended gimbal movements.
  * @note About coordinate: all components in this module use original coordinate of EACH motor. DO NOT directly add
  *       negative sign to code in this module.
+ * @note This interface support both RM6623 and GM6020 motor, if their CAN ID and field number are configured properly.
+ *       For example, when RM6623 has motor ID 5, and GM6020 has motor ID 1, they both receive 0x1FF field 1 and
+ *       send feedback of 0x205.
  */
 
 
@@ -106,9 +110,12 @@ public:
 #if GIMBAL_INTERFACE_ENABLE_VELOCITY_CALCULATION
         float actual_velocity = 0.0f;  // [degree/s]
 #endif
-        int actual_current = 0;
+        int actual_current = 0;  // [mA]
         int round_count = 0;
 
+        /**
+         * Last update time since system started
+         */
         time_msecs_t last_update_time = 0;
 
         /**
@@ -165,7 +172,7 @@ private:
 
     static CANInterface *can_;
 
-    static void process_motor_feedback(CANRxFrame const *rxmsg);
+    static void process_motor_feedback(CANRxFrame const *rxmsg);  // callback function
     friend CANInterface;
 
 #if GIMBAL_INTERFACE_ENABLE_VELOCITY_CALCULATION
@@ -190,3 +197,5 @@ private:
 
 
 #endif //META_INFANTRY_GIMBAL_INTERFACE_H
+
+/** @} */

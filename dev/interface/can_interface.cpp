@@ -2,6 +2,15 @@
 // Created by liuzikai on 2018-12-29.
 //
 
+
+/**
+ * @file    can_interface.cpp
+ * @brief   CAN interface to receive, distribute and send message.
+ *
+ * @addtogroup CANInterface
+ * @{
+ */
+
 #include "can_interface.h"
 
 #if (CAN_INTERFACE_ENABLE_ERROR_FEEDBACK_THREAD == TRUE)
@@ -72,7 +81,7 @@ void CANInterface::main() {
         // Process every received message
         while (canReceive(can_driver, CAN_ANY_MAILBOX, &rxmsg, TIME_IMMEDIATE) == MSG_OK) {
 //            chSysLock();
-            for (int i = 0; i < callback_list_count; i++) {
+            for (unsigned i = 0; i < callback_list_count; i++) {
                 if (rxmsg.SID >= callback_list[i].sid_lower_bound && rxmsg.SID <= callback_list[i].sid_upper_bound) {
                     callback_list[i].callback_func(&rxmsg);
                 }
@@ -93,3 +102,4 @@ bool CANInterface::send_msg(const CANTxFrame *txmsg) {
     return true;
 }
 
+/** @} */

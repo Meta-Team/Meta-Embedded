@@ -2,8 +2,16 @@
 // Created by liuzikai on 2018-12-29.
 //
 
-#ifndef META_INFANTRY_CAN_H
-#define META_INFANTRY_CAN_H
+/**
+ * @file    can_interface.h
+ * @brief   CAN interface to receive, distribute and send message.
+ *
+ * @addtogroup CANInterface
+ * @{
+ */
+
+#ifndef META_INFANTRY_CAN_INTERFACE_H
+#define META_INFANTRY_CAN_INTERFACE_H
 
 #include "ch.hpp"
 #include "hal.h"
@@ -23,18 +31,19 @@
 #define CAN_INTERFACE_THREAD_WORK_AREA_SIZE   512  // also used in cpp, do not delete
 
 /**
- * @brief CAN driver to receive message and send message
- * @pre CAN pins are configurated properly in board.h
- * @usage 1. create an instance with specific CAN driver
- *        2. call start() to start the CAN driver and receive thread
- *        3. register callback functions
+ * CAN interface to receive, distribute and send message
+ * @pre CAN pins are configured properly in board.h
+ * @usage 1. Create an instance with specific CAN driver
+ *        2. Call start() to start the CAN driver and receive thread
+ *        3. Register callback functions, waiting for callback
+ *        4. Invoke send_msg() to send message through given CAN driver
  */
 class CANInterface : public chibios_rt::BaseStaticThread<CAN_INTERFACE_THREAD_WORK_AREA_SIZE> {
 public:
 
     /**
-     * @brief initialize a can interface
-     * @param driver pointer to can driver
+     * Initialize a can interface
+     * @param driver   Pointer to CAN driver such as &CAND1
      */
     CANInterface(CANDriver *driver) :
             can_driver(driver), callback_list_count(0)
@@ -44,28 +53,31 @@ public:
     {}
 
     /**
-     * @brief start the CAN driver and the receive thread
-     * @param prio
-     * @return the same as start() of thread
+     * Start the CAN driver and the receiving thread
+     * @param prio   Thread priority of the receiving thread
+     * @return A reference to the created thread
      */
     chibios_rt::ThreadReference start(tprio_t prio);
 
 
-    typedef void (*can_callback_func)(CANRxFrame const *rxmsg); // type of callback function
+    /**
+     * Type of callback function
+     */
+    typedef void (*can_callback_func)(CANRxFrame const *rxmsg);
 
     /**
-     * @brief register a callback
-     * @param sid_lower_bound minimal SID (inclusive)
-     * @param sid_upper_bound maximum SID (inclusive)
-     * @param callback_func
-     * @return register success or not
+     * Register a callback. Message with SID in the given range will be distributed to the given callback function
+     * @param sid_lower_bound   Minimal SID (inclusive)
+     * @param sid_upper_bound   Maximum SID (inclusive)
+     * @param callback_func     The function to callback
+     * @return Whether registering succeeded or not
      */
     bool register_callback(uint32_t sid_lower_bound, uint32_t sid_upper_bound, can_callback_func callback_func);
 
     /**
-     * @brief send a frame
-     * @param txmsg The frame to be sent
-     * @return whether the message has been sent successfully
+     * Send a frame
+     * @param txmsg   The frame to be sent
+     * @return Whether the message has been sent successfully
      */
     bool send_msg(const CANTxFrame *txmsg);
 
@@ -78,7 +90,6 @@ private:
 
     CANDriver *can_driver;
 
-
     static constexpr unsigned MAXIMUM_REGISTRATION_COUNT = 20;
 
     struct callback_resignation_t {
@@ -87,7 +98,7 @@ private:
         can_callback_func callback_func;
     } callback_list[MAXIMUM_REGISTRATION_COUNT];
 
-    int callback_list_count;
+    unsigned callback_list_count;
 
 
 #if (CAN_INTERFACE_ENABLE_ERROR_FEEDBACK_THREAD == TRUE)
@@ -102,9 +113,8 @@ private:
     public:
         ErrorFeedbackThread(CANDriver *can_driver_, time_msecs_t &last_error_time_) :
                 can_driver(can_driver_), last_error_time(last_error_time_) {}
-
-    private:
         CANDriver *can_driver;
+    private:
         time_msecs_t &last_error_time;
 
         void main() final;
@@ -122,9 +132,8 @@ private:
     };
     static constexpr unsigned TRANSMIT_TIMEOUT_MS = 10;
 
-
-    void main();  // the thread main function
+    void main() final;
 };
 
 
-#endif //META_INFANTRY_CAN_H
+#endif //META_INFANTRY_CAN_INTERFACE_H

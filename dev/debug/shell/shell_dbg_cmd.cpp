@@ -72,7 +72,7 @@ static void cmd_show_thread_stats(BaseSequentialStream *chp, int argc, char *arg
 
         unsigned long free_stack = (p - stklimit_p) * sizeof(uint32_t);
 
-        chprintf(chp, "%11s %10lu %10lu %10lu %8lu  %3u%%  %10lu" SHELL_NEWLINE_STR,
+        chprintf(chp, "%15s %10lu %10lu %10lu %8lu  %3u%%  %10lu" SHELL_NEWLINE_STR,
                  thd->name, thd->stats.best, (unsigned long)(thd->stats.cumulative / thd->stats.n),
                  thd->stats.worst, thd->stats.n, (unsigned int)(100 * thd->stats.cumulative / sum),
                  free_stack);

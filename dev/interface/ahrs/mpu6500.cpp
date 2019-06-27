@@ -174,7 +174,7 @@ void MPUOnBoard::update() {
 
 
 void MPUOnBoard::UpdateThread::main() {
-    setName("mpu6500");
+    setName("MPU6500");
     while (!shouldTerminate()) {
         mpu.update();
         sleep(TIME_MS2I(THREAD_UPDATE_INTERVAL));

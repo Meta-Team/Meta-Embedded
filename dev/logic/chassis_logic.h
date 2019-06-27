@@ -4,7 +4,7 @@
 
 /**
  * @file    chassis_logic.h
- * @brief   Generate target values for ChassisSKD.
+ * @brief   Generate target values for ChassisSKD. Support follow-gimbal mode and dodge mode.
  *
  * @addtogroup chassis
  * @{
@@ -16,20 +16,40 @@
 #include "ch.hpp"
 #include "chassis_scheduler.h"
 
+/**
+ * @name ChassisLG
+ * @note LG stands for "logic"
+ * @brief Logic-level module to generate target values for ChassisSKD. Support follow-gimbal mode and dodge mode.
+ * @pre ChassisSKD has started properly
+ * @usage 1. Invoke init()
+ *        2. Invoke set_action() and set_target() to control chassis
+ */
 class ChassisLG {
 
 public:
 
+    /**
+     * Initialize this module
+     * @param dodge_thread_prio_   Thread priority for dodge thread
+     */
     static void init(tprio_t dodge_thread_prio_);
 
     enum action_t {
-        STOP_MODE,
+        FORCED_RELAX_MODE,
         FOLLOW_MODE,
         DODGE_MODE
     };
 
+    /**
+     * Get current action of chassis
+     * @return   Current action
+     */
     static action_t get_action();
 
+    /**
+     * Set action of chassis
+     * @param value   Action to be applied
+     */
     static void set_action(action_t value);
 
     /**

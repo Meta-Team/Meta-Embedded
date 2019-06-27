@@ -36,10 +36,10 @@ public:
 
     enum mode_t {
         FORCED_RELAX_MODE,         // zero force (Still taking control of ChassisIF. External writing to target currents
-                                  // will leads to conflicts.)
-                                  // NO SUPPORT FOR CHASSIS COORDINATE
-        GIMBAL_COORDINATE_MODE,   // targets use gimbal coordinates
-        PARAM_ADJUST_MODE         // for PID parameter adjustment program
+                                   // will leads to conflicts.)
+                                   // NO SUPPORT FOR CHASSIS COORDINATE
+        GIMBAL_COORDINATE_MODE,    // targets use gimbal coordinates
+        PARAM_ADJUST_MODE          // for PID parameter adjustment program
     };
 
     /**

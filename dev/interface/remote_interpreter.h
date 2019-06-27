@@ -3,11 +3,11 @@
 //
 
 /**
- * This file contains Remote Interpreter
- * @brief Remote Interpreter is an interface between remote side and other
- *        components. It handles data flow from the DR16 receiver, and
- *        interprets data to specific format for other program components
- *        which need remote control data.
+ * @file    remote_interpreter.h
+ * @brief   Module to receive date from DR16 receiver and interpret data to specific formats
+ *
+ * @addtogroup remote
+ * @{
  */
 
 #ifndef META_INFANTRY_REMOTE_INTERPRETER_H
@@ -40,13 +40,19 @@
 
 /**
  * @name Remote
- * @brief This class holds interpreted remote data.
- * @pre DBUS pin is configured properly in board.h
+ * @brief Module to receive date from DR16 receiver and interpret data to specific formats
+ * @pre DBUS pins is configured properly in board.h
+ * @note See DR16 document for components in this module
+ * @usage 1. Invoke start()
+ *        2. Use data in this module
  */
 class Remote {
 
 public:
 
+    /**
+     * Start remote interpreter
+     */
     static void start();
 
     enum rc_status_t {
@@ -166,3 +172,5 @@ private:
 };
 
 #endif //META_INFANTRY_REMOTE_INTERPRETER_H
+
+/** @} */

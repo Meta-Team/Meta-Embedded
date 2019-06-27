@@ -2,9 +2,17 @@
 // Created by liuzikai on 2019-06-15.
 //
 
+/**
+ * @file    chassis_logic.cpp
+ * @brief   Generate target values for ChassisSKD. Support follow-gimbal mode and dodge mode.
+ *
+ * @addtogroup chassis
+ * @{
+ */
+
 #include "chassis_logic.h"
 
-ChassisLG::action_t ChassisLG::action = STOP_MODE;
+ChassisLG::action_t ChassisLG::action = FORCED_RELAX_MODE;
 float ChassisLG::target_vx;
 float ChassisLG::target_vy;
 float ChassisLG::target_theta;
@@ -22,8 +30,8 @@ ChassisLG::action_t ChassisLG::get_action() {
 
 void ChassisLG::set_action(ChassisLG::action_t value) {
     action = value;
-    if (action == STOP_MODE) {
-        ChassisSKD::set_mode(ChassisSKD::STOP_MODE);
+    if (action == FORCED_RELAX_MODE) {
+        ChassisSKD::set_mode(ChassisSKD::FORCED_RELAX_MODE);
     } else if (action == FOLLOW_MODE) {
         ChassisSKD::set_mode(ChassisSKD::GIMBAL_COORDINATE_MODE);
         apply_target();
@@ -52,7 +60,7 @@ void ChassisLG::apply_target() {
 
 void ChassisLG::DodgeModeSwitchThread::main() {
     started = true;
-    setName("CH_Dodge");
+    setName("Chassis_Dodge");
     while(!shouldTerminate()) {
 
         if (action != DODGE_MODE) {
@@ -67,3 +75,5 @@ void ChassisLG::DodgeModeSwitchThread::main() {
         sleep(TIME_MS2I(DODGE_MODE_SWITCH_INTERVAL));
     }
 }
+
+/** @} */

@@ -4,6 +4,15 @@
 // Feng Chuhao wrote code about sending gimbal currents.
 //
 
+/**
+ * @file    gimbal_interface.cpp
+ * @brief   Interface to interact with low level driver of gimbal, including processing chassis motor feedback and
+ *          sending target currents.
+ *
+ * @addtogroup gimbal
+ * @{
+ */
+
 #include "gimbal_interface.h"
 #include "common_macro.h"
 
@@ -291,3 +300,5 @@ void GimbalIF::motor_feedback_t::reset_front_angle() {
 float GimbalIF::motor_feedback_t::accumulated_angle() {
     return actual_angle + round_count * 360.0f;
 }
+
+/** @} */

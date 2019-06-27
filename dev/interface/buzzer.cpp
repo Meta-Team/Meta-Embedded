@@ -2,15 +2,24 @@
 // Created by liuzikai on 2019-02-09.
 //
 
+/**
+ * @file    buzzer.cpp
+ * @brief   Interface to control buzzer to alert or to play sounds, including some pre-install sounds.
+ *
+ * @addtogroup buzzer
+ * @{
+ */
+
 #include "buzzer.h"
-#include "debug/shell/shell.h"
 
 constexpr Buzzer::note_with_time_t Buzzer::sound_alert[];
 constexpr Buzzer::note_with_time_t Buzzer::sound_startup[];
 constexpr Buzzer::note_with_time_t Buzzer::sound_startup_intel[];
-constexpr Buzzer::note_with_time_t Buzzer::sound_infinty_warning[];
+constexpr Buzzer::note_with_time_t Buzzer::sound_infinity_warning[];
 constexpr Buzzer::note_with_time_t Buzzer::sound_little_star[];
 constexpr Buzzer::note_with_time_t Buzzer::sound_orange[];
+constexpr PWMConfig Buzzer::pwm_config;
+bool Buzzer::alerting_ = false;
 
 Buzzer::BuzzerThread Buzzer::buzzerThread;
 
@@ -20,7 +29,7 @@ void Buzzer::play_sound(const note_with_time_t sound[], tprio_t prio) {
 }
 
 void Buzzer::BuzzerThread::main(void) {
-    setName("buzzer");
+    setName("Buzzer");
 
     if (sound_seq != nullptr) {
 
@@ -28,7 +37,7 @@ void Buzzer::BuzzerThread::main(void) {
         /**
          * @note actual PWM frequency = PWM TIM clock frequency/ ((stm32_tim_t.PSC + 1) * (stm32_tim_t.ARR + 1).
          *
-         *       At pwmStart():
+         *       At pwmStart(): (see pwm_config)
          *          stm32_tim_t.PSC is set as (PWM TIM clock / PWMConfig.frequency) - 1 (hal_pwm_lld.c:560)
          *          stm32_tim_t.ARR is set to PWMConfig.period - 1; (hal_pwm_lld.c:565)
          *
@@ -41,20 +50,9 @@ void Buzzer::BuzzerThread::main(void) {
          */
 
         // Activate PWM driver
-        PWMConfig pwm_config = {
-                1000000,
-                1000000, // Default note: 1Hz
-                nullptr,
-                {
-                        {PWM_OUTPUT_ACTIVE_HIGH, nullptr},  // it's all CH1 for current support boards
-                        {PWM_OUTPUT_DISABLED, nullptr},
-                        {PWM_OUTPUT_DISABLED, nullptr},
-                        {PWM_OUTPUT_DISABLED, nullptr}
-                },
-                0,
-                0
-        };
         pwmStart(&BUZZER_PWM_DRIVER, &pwm_config);
+
+        alerting_ = false;
 
         curr = sound_seq;
         while (curr->note != Finish) {
@@ -77,3 +75,21 @@ void Buzzer::BuzzerThread::main(void) {
         pwmStop(&BUZZER_PWM_DRIVER);
     }
 }
+
+void Buzzer::alert_on() {
+    alerting_ = true;
+    pwmStart(&BUZZER_PWM_DRIVER, &pwm_config);
+    pwmChangePeriod(&BUZZER_PWM_DRIVER, 1000000 / (unsigned long) ALERT_NOTE);
+    pwmEnableChannel(&BUZZER_PWM_DRIVER, 0, PWM_PERCENTAGE_TO_WIDTH(&BUZZER_PWM_DRIVER, 5000)); // 50%
+}
+
+void Buzzer::alert_off() {
+    pwmStop(&BUZZER_PWM_DRIVER);
+    alerting_ = false;
+}
+
+bool Buzzer::alerting() {
+    return alerting_;
+}
+
+/** @} */

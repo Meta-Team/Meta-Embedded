@@ -37,7 +37,7 @@ void AHRSOnBoard::update() {
 }
 
 void AHRSOnBoard::UpdateThread::main() {
-    setName("ahrs");
+    setName("AHRS");
     while (!shouldTerminate()) {
         ahrs.update();
         sleep(TIME_MS2I(CALCULATION_INTERVAL));

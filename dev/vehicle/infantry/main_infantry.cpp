@@ -2,7 +2,7 @@
 // Created by liuzikai on 2019-01-27.
 //
 
-// Headers
+/// Headers
 #include "ch.hpp"
 #include "hal.h"
 
@@ -26,32 +26,31 @@
 #include "chassis_logic.h"
 
 #include "inspector.h"
+#include "user.h"
 
-// Vehicle specific config
+/// Vehicle Specific Configurations
 #if defined(INFANTRY_THREE)                                                 /** Infantry #3 **/
 #include "vehicle_infantry_three.h"
 #elif defined(INFANTRY_FOUR)                                                /** Infantry #4 **/
 #include "vehicle_infantry_four.h"
 #elif defined(INFANTRY_FIVE)                                                /** Infantry #5 **/
-
 #include "vehicle_infantry_five.h"
-
 #else
 #error "main_infantry.cpp should only be used for Infantry #3, #4, #5."
 #endif
 
-// Board guard
+/// Board Guard
 #if defined(BOARD_RM_2018_A)
 #else
 #error "Infantry supports only RM Board 2018 A currently"
 #endif
 
-
+/// Instances
 CANInterface can1(&CAND1);
 AHRSOnBoard ahrs;
 
 
-int main(void) {
+int main() {
 
     /*** --------------------------- Period 0. Fundamental Setup --------------------------- ***/
 
@@ -140,7 +139,7 @@ int main(void) {
 
     /// Start Inspector and User Threads
     Inspector::start_inspection(THREAD_INSPECTOR_PRIO);
-    User;
+    User::start(THREAD_USER_PRIO);
 
     /// Complete Period 2
     Buzzer::play_sound(Buzzer::sound_startup_intel, THREAD_BUZZER_PRIO);  // Now play the startup sound

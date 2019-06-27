@@ -5,20 +5,53 @@
 #ifndef META_INFANTRY_SHOOT_LOGIC_H
 #define META_INFANTRY_SHOOT_LOGIC_H
 
+/**
+ * @file    shoot_logic.h
+ * @brief   Logic-level module to control shooter. Support number-controlling shooting.
+ *
+ * @addtogroup shoot
+ * @{
+ */
+
 #include "ch.hpp"
 #include "shell.h"
 #include "shoot_scheduler.h"
 
+/**
+ * @name ShootLG
+ * @note LG stands for "logic"
+ * @brief Logic-level module to control shooter. Support number-controlling shooting.
+ * @pre ShootSKD has started properly
+ * @usage 1. Invoke init()
+ *        2. Invoke set_action() and set_target() to control gimbal
+ */
 class ShootLG {
 
 public:
 
+    /**
+     * Initialize this module
+     * @param angle_per_bullet_            Angle for bullet loader to rotate to fill one bullet [degree]
+     * @param stuck_detector_thread_prio   Thread priority for stuck detector thread
+     */
     static void init(float angle_per_bullet_, tprio_t stuck_detector_thread_prio);
 
+    /**
+     * Add bullet to internal bullet counter
+     * @param number_of_bullet   Number of bullets to added
+     */
     static void increment_bullet(int number_of_bullet);
 
+    /**
+     * Set value of internal bullet counter
+     * @param number_of_bullet   Value of bullets
+     */
     static void set_bullet_count(int number_of_bullet);
 
+    /**
+     * Return the value of internal bullet counter
+     * @return Number of remaining bullet
+     */
     static int get_bullet_count();
 
     /**
@@ -39,10 +72,21 @@ public:
         STUCK
     };
 
+    /**
+     * Get current shooter state
+     * @return Current shooter state
+     */
     static shooter_state_t get_shooter_state();
 
+    /**
+     * Shoot bullets. Will change shooter state.
+     * @param number_of_bullet   Number of bullet to shoot.
+     */
     static void shoot(int number_of_bullet);
 
+    /**
+     * Stop shooting. Will change shooter state.
+     */
     static void stop();
 
 private:
@@ -71,5 +115,6 @@ private:
 
 };
 
-
 #endif //META_INFANTRY_SHOOT_LOGIC_H
+
+/** @} */

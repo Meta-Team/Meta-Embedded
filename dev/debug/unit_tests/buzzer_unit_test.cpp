@@ -34,7 +34,7 @@ static void cmd_play(BaseSequentialStream *chp, int argc, char *argv[]) {
             Buzzer::play_sound(Buzzer::sound_orange, NORMALPRIO);
             break;
         case 4:
-            Buzzer::play_sound(Buzzer::sound_infinty_warning, NORMALPRIO);
+            Buzzer::play_sound(Buzzer::sound_infinity_warning, NORMALPRIO);
             break;
         default:
             shellUsage(chp, "buzzer 0-4");

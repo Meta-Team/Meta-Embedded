@@ -149,8 +149,22 @@ void Inspector::InspectorThread::main() {
     while (!shouldTerminate()) {
 
         remote_failure_ = (SYSTIME - Remote::last_update_time > 30);
+        if (remote_failure_) LED::led_off(4);
+        else LED::led_on(4);
+
         gimbal_failure_ = check_gimbal_failure();
+        if (gimbal_failure_) LED::led_off(5);
+        else LED::led_on(5);
+
         chassis_failure_ = check_chassis_failure();
+        if (chassis_failure_) LED::led_off(6);
+        else LED::led_on(6);
+
+        if (remote_failure_ || gimbal_failure_ || chassis_failure_) {
+            if (!Buzzer::alerting())  Buzzer::alert_on();
+        } else {
+            if (Buzzer::alerting())  Buzzer::alert_off();
+        }
 
         sleep(TIME_MS2I(INSPECTOR_THREAD_INTERVAL));
     }

@@ -2,6 +2,14 @@
 // Created by liuzikai on 2019-05-01.
 //
 
+/**
+ * @file    shoot_scheduler.h
+ * @brief   Scheduler to control shooter to meet the target, including a thread to invoke PID calculation in period.
+ *
+ * @addtogroup shoot
+ * @{
+ */
+
 #ifndef META_INFANTRY_SHOOT_SCHEDULER_H
 #define META_INFANTRY_SHOOT_SCHEDULER_H
 
@@ -23,6 +31,8 @@
  *       All components in this SKD use gimbal coordinate, including targets and PID controllers. Only when reading
  *       from or writing to GimbalIF will coordinate transform (by multiple to install_direction_t) be performed based
  *       on yaw_install and pitch_install
+ * @note To avoid ShootLG (logic level) to access GimbalIF (interface level) over scheduler level, this module provides
+ *       lots of by-pass function to access GimbalIF, with coordinate changes
  */
 class ShootSKD : public GimbalBase, public PIDControllerBase {
 
@@ -30,8 +40,8 @@ public:
 
     enum mode_t {
         FORCED_RELAX_MODE,       // zero force (Still taking control of ChassisIF. External writing to target currents
-                                // will leads to conflicts.)
-        LIMITED_SHOOTING_MODE   // using angle control to shoot specific number of bullet
+                                 // will leads to conflicts.)
+        LIMITED_SHOOTING_MODE    // using angle control to shoot specific number of bullet
     };
 
     enum install_direction_t {
@@ -162,5 +172,6 @@ private:
     static SKDThread skdThread;
 };
 
-
 #endif //META_INFANTRY_SHOOT_SCHEDULER_H
+
+/** @} */

@@ -16,7 +16,7 @@ MPUOnBoard mpu6500;
 class MPU6500FeedbackThread : public BaseStaticThread<1024> {
 protected:
     void main() final {
-        setName("mpu6500");
+        setName("MPU6500");
         mpu6500.start(HIGHPRIO - 2);
         while (!shouldTerminate()) {
             Shell::printf("w = (%.4f, %.4f, %.4f), a = (%.4f, %.4f, %.4f), temp = %.4f" SHELL_NEWLINE_STR,

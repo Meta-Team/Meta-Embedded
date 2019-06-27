@@ -1,7 +1,15 @@
 //
 // Created by liuzikai on 2018/7/16.
-// NOTICE: this file is needed to avoid multiple definitions of set_led_when_halt()
 //
+
+/**
+ * @file    led.cpp
+ * @brief   Interface to operate on-board LEDs.
+ * @note    This file is needed to avoid multiple definitions of set_led_when_halt()
+ *
+ * @addtogroup LED
+ * @{
+ */
 
 #include "led.h"
 
@@ -41,3 +49,5 @@ void set_led_when_halt(void) {
     pwmEnableChannel(&BUZZER_PWM_DRIVER, 0, PWM_PERCENTAGE_TO_WIDTH(&BUZZER_PWM_DRIVER, 5000)); // 50%
 }
 }
+
+/** @} */

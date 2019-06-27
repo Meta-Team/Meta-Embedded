@@ -2,6 +2,14 @@
 // Created by liuzikai on 2019-01-05.
 //
 
+/**
+ * @file    gimbal_scheduler.cpp
+ * @brief   Scheduler to control gimbal to meet the target, including a thread to invoke PID calculation in period.
+ *
+ * @addtogroup gimbal
+ * @{
+ */
+
 #include "gimbal_scheduler.h"
 
 Matrix33 GimbalSKD::gimbal_ahrs_install;
@@ -131,3 +139,5 @@ float GimbalSKD::get_accumulated_angle(GimbalBase::motor_id_t motor) {
     if (motor == PITCH) return accumulated_angle[PITCH];
     return 0;
 }
+
+/** @} */

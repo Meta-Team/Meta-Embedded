@@ -2,6 +2,14 @@
 // Created by liuzikai on 2019-05-01.
 //
 
+/**
+ * @file    shoot_scheduler.cpp
+ * @brief   Scheduler to control shooter to meet the target, including a thread to invoke PID calculation in period.
+ *
+ * @addtogroup shoot
+ * @{
+ */
+
 #include "shoot_scheduler.h"
 
 ShootSKD::install_direction_t ShootSKD::install_position[2];
@@ -123,3 +131,4 @@ void ShootSKD::SKDThread::main() {
     }
 }
 
+/** @} */
