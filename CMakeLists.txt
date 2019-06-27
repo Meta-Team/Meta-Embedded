@@ -63,8 +63,8 @@ set(COMMON_SRC  # common cpp sources, which are included to every tartget at pos
         )
 
 set(AHRS_SRC
+        dev/interface/ahrs/ahrs_math.hpp
         dev/interface/ahrs/ahrs.cpp
-        dev/interface/ahrs/ahrs_ext.cpp
         dev/interface/ahrs/ahrs_lib_middleware.c
         dev/interface/ahrs/ist8310.cpp
         dev/interface/ahrs/mpu6500.cpp)
@@ -99,22 +99,27 @@ set(INFANTRY
         ${AHRS_SRC}
         ${GIMBAL_SHOOT_SRC}
         ${CHASSIS_SRC}
-        dev/vehicle/infantry/main_infantry.cpp dev/vehicle/infantry/user.cpp dev/vehicle/infantry/user.h dev/vehicle/infantry/inspector.cpp dev/vehicle/infantry/inspector.h)
+        dev/vehicle/infantry/inspector.cpp
+        dev/vehicle/infantry/user.cpp
+        dev/vehicle/infantry/main_infantry.cpp )
 
 # Main Program -- Infantry #1
 add_executable(INFANTRY_THREE ${INFANTRY})
 target_include_directories(INFANTRY_THREE PRIVATE dev/vehicle/infantry)
 target_compile_definitions(INFANTRY_THREE PRIVATE INFANTRY INFANTRY_THREE ENABLE_STATE_HANDLE)
+target_link_libraries(INFANTRY_THREE ${PROJECT_SOURCE_DIR}/dev/interface/ahrs/ahrs_lib.lib)
 
 # Main Program -- Infantry #4
 add_executable(INFANTRY_FOUR ${INFANTRY})
 target_include_directories(INFANTRY_FOUR PRIVATE dev/vehicle/infantry)
 target_compile_definitions(INFANTRY_FOUR PRIVATE INFANTRY INFANTRY_FOUR ENABLE_STATE_HANDLE)
+target_link_libraries(INFANTRY_FOUR ${PROJECT_SOURCE_DIR}/dev/interface/ahrs/ahrs_lib.lib)
 
 # Main Program -- Infantry #5
 add_executable(INFANTRY_FIVE ${INFANTRY})
 target_include_directories(INFANTRY_FIVE PRIVATE dev/vehicle/infantry)
 target_compile_definitions(INFANTRY_FIVE PRIVATE INFANTRY INFANTRY_FIVE ENABLE_STATE_HANDLE)
+target_link_libraries(INFANTRY_FIVE ${PROJECT_SOURCE_DIR}/dev/interface/ahrs/ahrs_lib.lib)
 
 # Main Program -- Engineer
 add_executable(ENGINEER

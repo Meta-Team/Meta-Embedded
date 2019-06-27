@@ -64,12 +64,12 @@ void User::UserThread::main() {
 
             } else {
                 /// Safe Mode
-                GimbalLG::set_action(GimbalLG::STOP_MODE);
+                GimbalLG::set_action(GimbalLG::FORCED_RELAX_MODE);
             }
 
         } else {  // Inspector::remote_failure() || Inspector::gimbal_failure()
             /// Safe Mode
-            GimbalLG::set_action(GimbalLG::STOP_MODE);
+            GimbalLG::set_action(GimbalLG::FORCED_RELAX_MODE);
         }
 
 
@@ -163,7 +163,7 @@ void User::UserThread::main() {
 
                 /// PC control mode
 
-                if (ChassisLG::get_action() == ChassisLG::STOP_MODE) {
+                if (ChassisLG::get_action() == ChassisLG::FORCED_RELAX_MODE) {
                     // Enter PC Mode from other mode, re-enable ChassisLG
                     ChassisLG::set_action(ChassisLG::FOLLOW_MODE);
                 }
@@ -197,12 +197,12 @@ void User::UserThread::main() {
 
             } else {
                 /// Safe Mode
-                ChassisLG::set_action(ChassisLG::STOP_MODE);
+                ChassisLG::set_action(ChassisLG::FORCED_RELAX_MODE);
             }
 
         } else {  // Inspector::remote_failure() || Inspector::chassis_failure()
             /// Safe Mode
-            ChassisLG::set_action(ChassisLG::STOP_MODE);
+            ChassisLG::set_action(ChassisLG::FORCED_RELAX_MODE);
         }
 
 

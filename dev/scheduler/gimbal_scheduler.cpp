@@ -19,6 +19,8 @@ GimbalSKD::install_direction_t GimbalSKD::pitch_install;
 float GimbalSKD::target_angle[2] = {0, 0};
 float GimbalSKD::target_velocity[2] = {0, 0};
 int GimbalSKD::target_current[2] = {0, 0};
+float GimbalSKD::last_angle[2] = {0, 0};
+float GimbalSKD::accumulated_angle[2] = {0, 0};
 PIDController GimbalSKD::a2v_pid[2];
 PIDController GimbalSKD::v2i_pid[2];
 GimbalSKD::SKDThread GimbalSKD::skdThread;

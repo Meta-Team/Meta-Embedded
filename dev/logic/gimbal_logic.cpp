@@ -18,6 +18,7 @@ GimbalLG::action_t GimbalLG::get_action() {
     } else if (GimbalSKD::get_mode() == GimbalSKD::ABS_ANGLE_MODE) {
         return ABS_ANGLE_MODE;
     }
+    return FORCED_RELAX_MODE;  // to avoid warning
 }
 
 void GimbalLG::set_action(GimbalLG::action_t value) {
