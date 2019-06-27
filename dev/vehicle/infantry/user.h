@@ -38,6 +38,7 @@ private:
     static constexpr unsigned USER_THREAD_INTERVAL = 7;  // [ms]
 
     class UserThread : public chibios_rt::BaseStaticThread<512> {
+        bool chassis_x_pressed = false;
         void main() final;
     };
 

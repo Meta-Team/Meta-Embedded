@@ -12,71 +12,71 @@ void User::start(tprio_t prio) {
 
 void User::UserThread::main() {
     setName("User");
-    while(!shouldTerminate()) {
+    while (!shouldTerminate()) {
 
         /// Chassis
         if (!Inspector::remote_failure() && !Inspector::chassis_failure()) {
 
             if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_UP) {
 
-                Chassis::calc(0,
-                              -Remote::rc.ch3 * COMMON_VY,
-                              Remote::rc.ch2 * COMMON_W);
+                // Remote - Chassis Move + Chassis Follow
                 ChassisLG::set_action(ChassisLG::FOLLOW_MODE);
+                ChassisLG::set_target(Remote::rc.ch2 * CHASSIS_COMMON_VX,  // Both use right as positive direction
+                                      Remote::rc.ch3 * CHASSIS_COMMON_VX   // Both use up    as positive direction
+                );
 
+            } else if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_MIDDLE) {
 
-            } else if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_DOWN) {
+                // Remote - Chassis Move + Chassis Dodge
+                ChassisLG::set_action(ChassisLG::DODGE_MODE);
+                ChassisLG::set_target(Remote::rc.ch2 * CHASSIS_COMMON_VX,  // Both use right as positive direction
+                                      Remote::rc.ch3 * CHASSIS_COMMON_VX   // Both use up    as positive direction
+                );
+            } else if (Remote::rc.s1 == Remote::S_DOWN) {
 
-                Chassis::calc(-Remote::rc.ch2 * COMMON_VX,
-                              -Remote::rc.ch3 * COMMON_VY,
-                              Remote::rc.ch0 * COMMON_W);
+                // PC control mode
 
-            } else if (Remote::rc.s1 == Remote::S_DOWN) { // PC control mode
+                if (ChassisLG::get_action() == ChassisLG::STOP_MODE) {
+                    // Enter PC Mode from other mode, re-enable ChassisLG
+                    ChassisLG::set_action(ChassisLG::FOLLOW_MODE);
+                }
 
-                // Determine target velocities
+                if (chassis_x_pressed != Remote::key.x) {  // key x is pressed or released
+                    if (Remote::key.x) {  // enter dodge mode
+                        ChassisLG::set_action(ChassisLG::DODGE_MODE);
+                    } else {  // exit dodge mode
+                        ChassisLG::set_action(ChassisLG::FOLLOW_MODE);
+                    }
+                    chassis_x_pressed = Remote::key.x;
+                }
 
-                float target_vx, target_vy, target_w;
+                float target_vx, target_vy;
 
-                /** NOTICE: here the minus sign make it incoherent with the initial definition of chassis coordinate */
-
-                if (Remote::key.w) target_vy = -COMMON_VY;
-                else if (Remote::key.s) target_vy = COMMON_VY;
+                if (Remote::key.w) target_vy = CHASSIS_COMMON_VY;
+                else if (Remote::key.s) target_vy = -CHASSIS_COMMON_VY;
                 else target_vy = 0;
 
-                if (Remote::key.q) target_vx = -COMMON_VX;
-                else if (Remote::key.e) target_vx = COMMON_VX;
+                if (Remote::key.d) target_vx = CHASSIS_COMMON_VY;
+                else if (Remote::key.a) target_vx = -CHASSIS_COMMON_VY;
                 else target_vx = 0;
 
-                if (Remote::key.a) target_w = -COMMON_W;
-                else if (Remote::key.d) target_w = COMMON_W;
-                else target_w = 0;
-
                 if (Remote::key.ctrl) {
-                    target_vx *= PC_CTRL_RATIO;
-                    target_vy *= PC_CTRL_RATIO;
-                    target_w *= PC_CTRL_RATIO;
+                    target_vx *= CHASSIS_PC_CTRL_RATIO;
+                    target_vy *= CHASSIS_PC_CTRL_RATIO;
                 }
 
-                Chassis::calc(target_vx, target_vy, target_w);
+                ChassisLG::set_target(target_vx, target_vy);
 
             } else {
-
-                for (int i = 0; i < Chassis::MOTOR_COUNT; i++) {
-                    Chassis::target_current[i] = 0;
-                }
-
+                // Safe Mode
+                ChassisLG::set_action(ChassisLG::STOP_MODE);
             }
 
-        } else {  // StateHandler::remoteDisconnected() || StateHandler::gimbalSeriousErrorOccured()
-
-            for (int i = 0; i < Chassis::MOTOR_COUNT; i++) {
-                Chassis::target_current[i] = 0;
-            }
-
+        } else {  // Inspector::remote_failure() || Inspector::chassis_failure()
+            // Safe Mode
+            ChassisLG::set_action(ChassisLG::STOP_MODE);
         }
-        Chassis::send_chassis_currents();
 
-        sleep(TIME_MS2I(chassis_thread_interval));
 
         /// Final
         sleep(TIME_MS2I(USER_THREAD_INTERVAL));
