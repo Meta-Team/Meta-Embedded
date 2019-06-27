@@ -17,11 +17,12 @@ class RemoteFeedbackThread : public chibios_rt::BaseStaticThread <512> {
     void main() final {
         setName("remote_fb");
         while(!shouldTerminate()) {
-            Shell::printf("ch0 ch1 ch2 ch3 s1 s2 mouse_x mouse_y mouse_z L R" SHELL_NEWLINE_STR);
-            Shell::printf("%3d %3d %3d %3d %2d %2d %7d %7d %7d %1d %1d" SHELL_NEWLINE_STR,
+            Shell::printf("ch0 ch1 ch2 ch3 s1 s2 sw mouse_x mouse_y mouse_z L R" SHELL_NEWLINE_STR);
+            Shell::printf("%3d %3d %3d %3d %2d %2d %3d %7d %7d %7d %1d %1d" SHELL_NEWLINE_STR,
                           (int) (Remote::rc.ch0 * 100), (int) (Remote::rc.ch1 * 100),
                           (int) (Remote::rc.ch2 * 100), (int) (Remote::rc.ch3 * 100),
                           Remote::rc.s1, Remote::rc.s2,
+                          (int) (Remote::rc.wheel * 100),
                           Remote::mouse.x, Remote::mouse.y, Remote::mouse.z,
                           Remote::mouse.press_left, Remote::mouse.press_right);
             Shell::printf(SHELL_NEWLINE_STR);

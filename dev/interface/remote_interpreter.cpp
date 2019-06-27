@@ -34,7 +34,7 @@ void Remote::uart_received_callback_(UARTDriver *uartp) {
 
     chSysLockFromISR();  /// ---------------------------------- Enter Critical Zone ----------------------------------
 
-    // RC
+    /// RC
 
     rc.ch0 = (((rx_buf_[0] | rx_buf_[1] << 8) & 0x07FF) - 1024.0f) / 660.0f;
     rc.ch1 = (((rx_buf_[1] >> 3 | rx_buf_[2] << 5) & 0x07FF) - 1024.0f) / 660.0f;
@@ -55,8 +55,10 @@ void Remote::uart_received_callback_(UARTDriver *uartp) {
     rc.s1 = s1;
     rc.s2 = s2;
 
+    rc.wheel = ((((int16_t) rx_buf_[16] | ((int16_t) rx_buf_[17] << 8)) & 0x07FF) - 1024.0f) / 2048.0f;
 
-    // Mouse
+
+    /// Mouse
 
     mouse.x = ((int16_t) (rx_buf_[6] | rx_buf_[7] << 8)) / 32767.0f;
     mouse.y = ((int16_t) (rx_buf_[8] | rx_buf_[9] << 8)) / 32767.0f;

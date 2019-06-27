@@ -63,7 +63,7 @@ int main(void) {
     /*** ---------------------- Period 1. Modules Setup and Self-Check ---------------------- ***/
 
     /// Preparation of Period 1
-    Inspector::init()
+    Inspector::init(&can1, &ahrs);
     LED::all_off();
 
     /// Setup Shell
@@ -139,24 +139,23 @@ int main(void) {
 
 
     /// Start Inspector and User Threads
-
+    Inspector::start_inspection(THREAD_INSPECTOR_PRIO);
+    User;
 
     /// Complete Period 2
     Buzzer::play_sound(Buzzer::sound_startup_intel, THREAD_BUZZER_PRIO);  // Now play the startup sound
 
 
-
     /*** ------------------------ Period 3. End of main thread ----------------------- ***/
 
     // Entering empty loop with low priority
-
 #if CH_CFG_NO_IDLE_THREAD  // See chconf.h for what this #define means.
     // ChibiOS idle thread has been disabled, main() should implement infinite loop
     while (true) {}
 #else
     // When vehicle() quits, the vehicle thread will somehow enter an infinite loop, so we set the
     // priority to lowest before quitting, to let other threads run normally
-    chibios_rt::BaseThread::setPriority(1);
+    chibios_rt::BaseThread::setPriority(THREAD_IDEAL_PRIO);
 #endif
     return 0;
 }

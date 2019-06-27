@@ -35,7 +35,8 @@
 #error "Remote interpreter has not been defined for selected board"
 #endif
 
-#define REMOTE_USE_EVENTS   TRUE
+// TODO: event functions are not tested yet
+#define REMOTE_USE_EVENTS   FALSE
 
 /**
  * @name Remote
@@ -55,12 +56,14 @@ public:
     };
 
     typedef struct {
-        float ch0; // right horizontal, normalized: -1.0 (leftmost) - 1.0 (rightmost)
-        float ch1; // right vertical,   normalized: -1.0 (downmost) - 1.0 (upmost)
-        float ch2; // left horizontal,  normalized: -1.0 (leftmost) - 1.0 (rightmost)
-        float ch3; // left vertical,    normalized: -1.0 (downmost) - 1.0 (upmost)
+        float ch0;  // right horizontal, normalized: -1.0 (leftmost) - 1.0 (rightmost)
+        float ch1;  // right vertical,   normalized: -1.0 (downmost) - 1.0 (upmost)
+        float ch2;  // left horizontal,  normalized: -1.0 (leftmost) - 1.0 (rightmost)
+        float ch3;  // left vertical,    normalized: -1.0 (downmost) - 1.0 (upmost)
         rc_status_t s1;
         rc_status_t s2;
+        // TODO: determine direction of scrolling wheel
+        float wheel;  // scrolling wheel, normalized: -1.0(???) - 1.0 (???)
     } rc_t;
 
     enum mouse_button_t {
@@ -69,9 +72,9 @@ public:
     };
 
     typedef struct {
-        float x; // speed at x axis. Normalized: -1.0 (fastest leftward) - 1.0 (fastest rightward)
-        float y; // speed at y axis. Normalized: -1.0 (fastest upward)   - 1.0 (fastest downward)
-        float z; // speed at z axis. Normalized: -1.0 - 1.0 (unknown)
+        float x;  // speed at x axis. Normalized: -1.0 (fastest leftward) - 1.0 (fastest rightward)
+        float y;  // speed at y axis. Normalized: -1.0 (fastest upward)   - 1.0 (fastest downward)
+        float z;  // speed at z axis. Normalized: -1.0 - 1.0 (unknown)
         bool press_left;
         bool press_right;
     } mouse_t;
