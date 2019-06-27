@@ -74,8 +74,10 @@ void Remote::uart_received_callback_(UARTDriver *uartp) {
     uint32_t new_mouse_code =       press_left << MOUSE_LEFT |       press_right << MOUSE_RIGHT;
     uint32_t old_mouse_code = mouse.press_left << MOUSE_LEFT | mouse.press_right << MOUSE_RIGHT;
     uint32_t diff_mouse_code = new_mouse_code ^ old_mouse_code;
-    chEvtBroadcastFlagsI(&mouse_press_event, new_mouse_code & diff_mouse_code);
-    chEvtBroadcastFlagsI(&mouse_release_event, old_mouse_code & diff_mouse_code);
+    if (diff_mouse_code) {
+        chEvtBroadcastFlagsI(&mouse_press_event, new_mouse_code & diff_mouse_code);
+        chEvtBroadcastFlagsI(&mouse_release_event, old_mouse_code & diff_mouse_code);
+    }
 
 #endif
 
@@ -112,8 +114,10 @@ void Remote::uart_received_callback_(UARTDriver *uartp) {
      */
 
     uint32_t diff_key_code = key_code_ ^ key.key_code_;
-    chEvtBroadcastFlagsI(&key_press_event, key_code_ & diff_key_code);
-    chEvtBroadcastFlagsI(&key_release_event, key.key_code_ & diff_key_code);
+    if (diff_key_code) {
+        chEvtBroadcastFlagsI(&key_press_event, key_code_ & diff_key_code);
+        chEvtBroadcastFlagsI(&key_release_event, key.key_code_ & diff_key_code);
+    }
 
 #endif
 
@@ -125,7 +129,7 @@ void Remote::uart_received_callback_(UARTDriver *uartp) {
     last_update_time = SYSTIME;
 
     // Restart the receive
-    uartStartReceive(uartp, RX_FRAME_SIZE, rx_buf_);
+    uartStartReceiveI(uartp, RX_FRAME_SIZE, rx_buf_);
 
     chSysUnlockFromISR();  /// ---------------------------------- Exit Critical Zone ----------------------------------
 }

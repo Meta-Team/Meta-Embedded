@@ -4,6 +4,24 @@
 
 #include "inspector.h"
 
+AbstractAHRS *Inspector::ahrs = nullptr;
+CANInterface *Inspector::can1 = nullptr;
+
+bool Inspector::gimbal_failure_ = false;
+bool Inspector::chassis_failure_ = false;
+bool Inspector::remote_failure_ = false;
+
+Inspector::InspectorThread Inspector::inspectorThread;
+
+void Inspector::init(CANInterface *can1_, AbstractAHRS *ahrs_) {
+    can1 = can1_;
+    ahrs = ahrs_;
+}
+
+void Inspector::start_inspection(tprio_t thread_prio) {
+    inspectorThread.start(thread_prio);
+}
+
 void Inspector::startup_check_can() {
     time_msecs_t t = SYSTIME;
     while (SYSTIME - t < 100) {
@@ -85,5 +103,55 @@ void Inspector::startup_check_gimbal_feedback() {
             t = SYSTIME;  // reset the counter
         }
         chThdSleepMilliseconds(5);
+    }
+}
+
+bool Inspector::gimbal_failure() {
+    return gimbal_failure_;
+}
+
+bool Inspector::chassis_failure() {
+    return chassis_failure_;
+}
+
+bool Inspector::remote_failure() {
+    return remote_failure_;
+}
+
+bool Inspector::check_gimbal_failure() {
+    bool ret = false;
+    for (auto & i : GimbalIF::feedback) {
+        if (SYSTIME - i.last_update_time > 20) {
+            if (!gimbal_failure_) {  // avoid repeating printing
+                LOG_ERR("Gimbal motor %u offline");
+                ret = true;
+            }
+        }
+    }
+    return ret;
+}
+
+bool Inspector::check_chassis_failure() {
+    bool ret = false;
+    for (unsigned i = 0; i < ChassisIF::MOTOR_COUNT; i++) {
+        if (SYSTIME - ChassisIF::feedback[i].last_update_time > 20) {
+            if (!chassis_failure_) {  // avoid repeating printing
+                LOG_ERR("Chassis motor %u offline");
+                ret = true;
+            }
+        }
+    }
+    return ret;
+}
+
+void Inspector::InspectorThread::main() {
+    setName("Inspector");
+    while (!shouldTerminate()) {
+
+        remote_failure_ = (SYSTIME - Remote::last_update_time > 30);
+        gimbal_failure_ = check_gimbal_failure();
+        chassis_failure_ = check_chassis_failure();
+
+        sleep(TIME_MS2I(INSPECTOR_THREAD_INTERVAL));
     }
 }

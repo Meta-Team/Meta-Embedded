@@ -28,11 +28,23 @@ public:
     static void startup_check_gimbal_feedback();
     static void startup_check_chassis_feedback();
 
+    static bool gimbal_failure();
+    static bool chassis_failure();
+    static bool remote_failure();
 
 private:
 
     static AbstractAHRS *ahrs;
     static CANInterface *can1;
+
+    static bool gimbal_failure_;
+    static bool chassis_failure_;
+    static bool remote_failure_;
+
+    static bool check_gimbal_failure();
+    static bool check_chassis_failure();
+
+    static constexpr unsigned INSPECTOR_THREAD_INTERVAL = 20;  // [ms]
 
     class InspectorThread : public chibios_rt::BaseStaticThread<512> {
         void main();

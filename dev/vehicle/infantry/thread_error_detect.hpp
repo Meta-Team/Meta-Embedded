@@ -5,16 +5,6 @@
 #ifndef META_INFANTRY_THREAD_ERROR_DETECT_HPP
 #define META_INFANTRY_THREAD_ERROR_DETECT_HPP
 
-
-
-inline void startupCheckRemote() {
-
-}
-
-inline void startupCheckGimbalFeedback() {
-
-}
-
 /**
  * @name ErrorDetectThread
  * @brief Thread to detect error

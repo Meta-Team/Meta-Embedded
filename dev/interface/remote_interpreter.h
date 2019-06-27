@@ -35,7 +35,7 @@
 #error "Remote interpreter has not been defined for selected board"
 #endif
 
-#define REMOTE_USE_EVENTS   FALSE
+#define REMOTE_USE_EVENTS   TRUE
 
 /**
  * @name Remote
