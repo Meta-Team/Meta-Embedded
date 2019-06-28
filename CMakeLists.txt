@@ -280,7 +280,7 @@ add_executable(ut_sentry_chassis_mat
 
 #Suspension Gimbal Test
 add_executable(ut_suspension_gimbal
-        dev/module/can_interface.cpp
+        dev/interface/can_interface.cpp
         dev/module/pid_controller.hpp
         dev/interface/suspension_gimbal_interface.cpp
         dev/control/suspension_gimbal_skd.cpp
@@ -288,7 +288,7 @@ add_executable(ut_suspension_gimbal
 
 #Sentry Remote Test
 add_executable(ut_sentry_remote
-        dev/module/can_interface.cpp
+        dev/interface/can_interface.cpp
         dev/interface/suspension_gimbal_interface.cpp
         dev/interface/sentry_chassis_interface.cpp
         dev/control/sentry_chassis_skd.cpp
