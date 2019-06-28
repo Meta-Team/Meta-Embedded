@@ -113,7 +113,6 @@ void SuspensionGimbalSKD::SuspensionGimbalThread::main() {
     SuspensionGimbalSKD::init();
     while (!shouldTerminate()){
         set_target_signal();
-        SuspensionGimbalIF::send_gimbal_currents();
         sleep(TIME_MS2I(10));
     }
 }

@@ -64,7 +64,6 @@ void SuspensionGimbalIF::init(CANInterface *can_interface, AHRSExt *ahrsExt, flo
 }
 
 bool SuspensionGimbalIF::send_gimbal_currents() {
-
     if (!can_) return false;
 
     CANTxFrame txmsg;
@@ -122,7 +121,7 @@ bool SuspensionGimbalIF::send_gimbal_currents() {
                      PWM_PERCENTAGE_TO_WIDTH(FRICTION_WHEEL_PWM_DRIVER, shoot_duty_cycles[shoot_mode] * 500 + 500));
     pwmEnableChannel(FRICTION_WHEEL_PWM_DRIVER, FW_RIGHT,
                      PWM_PERCENTAGE_TO_WIDTH(FRICTION_WHEEL_PWM_DRIVER, shoot_duty_cycles[shoot_mode] * 500 + 500));
-
+LOG("%.2f", shoot_duty_cycles[shoot_mode]);
     return true;
 }
 

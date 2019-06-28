@@ -57,7 +57,6 @@ class SentryThread : public chibios_rt::BaseStaticThread<512> {
 
     void main() final {
         setName("sentry");
-
         /*** Parameters Set up***/
         SuspensionGimbalIF::init(&can1, &ahrsExt, GIMBAL_YAW_FRONT_ANGLE_RAW, GIMBAL_PITCH_FRONT_ANGLE_RAW);
         SentryChassisIF::init(&can1);
@@ -146,7 +145,6 @@ class SentryThread : public chibios_rt::BaseStaticThread<512> {
                 }
 
             }
-
             /** Update Movement Request **/
             if (s1_present_state == Remote::S_UP && s2_present_state == Remote::S_UP){
                 LOG("%.2f, %.2f", SuspensionGimbalIF::yaw.angular_position, SuspensionGimbalIF::pitch.angular_position);
@@ -162,7 +160,6 @@ class SentryThread : public chibios_rt::BaseStaticThread<512> {
             } else if (s1_present_state == Remote::S_MIDDLE && s2_present_state == Remote::S_UP){
                 SentryChassisSKD::set_destination(SentryChassisIF::target_position + Remote::rc.ch0);
             }
-
             sleep(TIME_MS2I(GIMBAL_THREAD_INTERVAL));
         }
     }
@@ -185,7 +182,6 @@ int main(void) {
 
     /** Basic IO Setup **/
     can1.start(HIGHPRIO - 1);
-    //MPU6500Controller::start(HIGHPRIO - 2);
     Remote::start_receive();
 
 
@@ -193,10 +189,9 @@ int main(void) {
 
 
     LED::green_on();
-
     /** Start Logic Control Thread **/
+    chThdSleepMilliseconds(500);
     sentryThread.start(NORMALPRIO);
-
     /** Echo Gimbal Raws and Converted Angles **/
     chThdSleepMilliseconds(500);
     LOG("Gimbal Yaw: %u, %f, Pitch: %u, %f",
