@@ -23,13 +23,17 @@ class AHRSOnBoard : public AbstractAHRS, public MPUOnBoard, public ISTOnBoard {
 public:
 
     /**
+
      (From AbstractMPU)
      Vector3D gyro;   // Data from gyroscope [deg/s]
      Vector3D accel;  // Data from accelerometer [m/s^2]
+
      (From AbstractIST)
      Vector3D magnet;  // Magnet data [uT]
+
      (From AbstractAHRS)
      Vector3D angle;
+
     */
 
     /**

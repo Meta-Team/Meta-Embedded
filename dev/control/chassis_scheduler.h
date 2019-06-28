@@ -17,7 +17,7 @@
  * @brief Chassis controller from high level to low level (by inheritance)
  * @note +X is right, +Y is front, +w is counter-clockwise
  */
-class Chassis : public ChassisInterface, public PIDControllerBase {
+class ChassisSKD : public ChassisIF, public PIDControllerBase {
 
 public:
 

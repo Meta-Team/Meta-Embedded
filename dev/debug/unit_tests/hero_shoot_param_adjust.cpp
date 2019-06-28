@@ -20,7 +20,7 @@
 
 using namespace chibios_rt;
 
-// Duplicate of motor_id_t in GimbalInterface to reduce code
+// Duplicate of motor_id_t in GimbalIF to reduce code
 unsigned const BULLET = Shoot::BULLET;
 unsigned const PLATE = Shoot::PLATE;
 
@@ -109,7 +109,7 @@ static void cmd_shoot_enable_fw(BaseSequentialStream *chp, int argc, char *argv[
     } else {
         Shoot::set_friction_wheels(0);
     }
-    GimbalInterface::send_gimbal_currents();
+    GimbalIF::send_gimbal_currents();
 }
 
 /**
@@ -302,7 +302,7 @@ protected:
             if (!motor_enabled[1]) Shoot::target_current[PLATE] = 0;
 
             // Send currents
-            GimbalInterface::send_gimbal_currents();
+            GimbalIF::send_gimbal_currents();
 
             sleep(TIME_MS2I(SHOOT_THREAD_INTERVAL));
         }
@@ -320,7 +320,7 @@ int main(void) {
 
     can1.start(HIGHPRIO - 1);
     chThdSleepMilliseconds(10);
-    GimbalInterface::init(&can1, 0, 0);
+    GimbalIF::init(&can1, 0, 0);
 
     shootFeedbackThread.start(NORMALPRIO - 1);
     shootThread.start(NORMALPRIO);

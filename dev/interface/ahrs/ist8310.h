@@ -36,7 +36,9 @@ class ISTOnBoard : public AbstractIST {
 public:
 
     /** (From AbstractIST)
+
     Vector3D magnet;  // Magnet data [uT]
+
     */
 
     /**

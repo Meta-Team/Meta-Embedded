@@ -33,8 +33,10 @@ class MPUOnBoard : public AbstractMPU {
 public:
 
     /** (From AbstractMPU)
+
     Vector3D gyro;   // Data from gyroscope [deg/s]
     Vector3D accel;  // Data from accelerometer [m/s^2]
+
     */
 
     /**
@@ -158,9 +160,9 @@ private:
     } mpu6500_config_t;
 
     static constexpr mpu6500_config_t CONFIG = {MPU6500_GYRO_SCALE_1000,  // Gyro full scale 1000 dps (degree per second)
-                                                MPU6500_ACCEL_SCALE_2G,  // Accel full scale 8g
-                                                MPU6500_DLPF_41HZ,       // Gyro digital low-pass filter 41Hz
-                                                MPU6500_ADLPF_20HZ};     // Accel digital low-pass filter 20Hz
+                                     MPU6500_ACCEL_SCALE_2G,  // Accel full scale 8g
+                                     MPU6500_DLPF_41HZ,       // Gyro digital low-pass filter 41Hz
+                                     MPU6500_ADLPF_20HZ};     // Accel digital low-pass filter 20Hz
 };
 
 #endif

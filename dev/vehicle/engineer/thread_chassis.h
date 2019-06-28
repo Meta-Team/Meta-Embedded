@@ -9,7 +9,7 @@
 #include "hal.h"
 
 #include "remote_interpreter.h"
-#include "chassis.h"
+#include "chassis_scheduler.h"
 
 /**
  * @name ChassisThread

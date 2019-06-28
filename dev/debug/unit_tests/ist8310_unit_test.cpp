@@ -1,5 +1,5 @@
 //
-// Created by liuzikai on 2019-01-15.
+// Created by liuzikai on 2019-06-07.
 //
 
 #include "ch.hpp"
@@ -9,20 +9,22 @@
 #include "debug/shell/shell.h"
 
 #include "interface/ahrs/mpu6500.h"
+#include "interface/ahrs/ist8310.h"
+
 using namespace chibios_rt;
 
 MPUOnBoard mpu6500;
+ISTOnBoard ist8310;
 
-class MPU6500FeedbackThread : public BaseStaticThread<1024> {
+class IST8310FeedbackThread : public BaseStaticThread<1024> {
 protected:
     void main() final {
-        setName("mpu6500");
-        mpu6500.start(HIGHPRIO - 2);
+        setName("ist8310");
+        mpu6500.start(HIGHPRIO - 1);
+        ist8310.start(HIGHPRIO - 2);
         while (!shouldTerminate()) {
-            Shell::printf("w = (%.4f, %.4f, %.4f), a = (%.4f, %.4f, %.4f), temp = %.4f" SHELL_NEWLINE_STR,
-                          mpu6500.gyro.x, mpu6500.gyro.y, mpu6500.gyro.z,
-                          mpu6500.accel.x, mpu6500.accel.y, mpu6500.accel.z,
-                          mpu6500.temperature);
+            Shell::printf("%.4f, %.4f, %.4f" SHELL_NEWLINE_STR,
+                          ist8310.magnet.x, ist8310.magnet.y, ist8310.magnet.z);
             sleep(TIME_MS2I(100));
         }
     }

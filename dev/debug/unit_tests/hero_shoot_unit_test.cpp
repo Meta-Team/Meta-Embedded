@@ -130,7 +130,7 @@ int main(void) {
     can1.start(HIGHPRIO - 1);
 
     // TODO: find a better way to handle this initialization
-    GimbalInterface::init(&can1, 0, 0);
+    GimbalIF::init(&can1, 0, 0);
     /** NOTICE: minus sign has been added here */
     Shoot::init(-72.0f, -36.0f);
 

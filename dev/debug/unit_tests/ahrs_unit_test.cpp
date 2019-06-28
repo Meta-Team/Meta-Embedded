@@ -6,23 +6,30 @@
 #include "hal.h"
 
 #include "led.h"
-#include "debug/shell/shell.h"
+#include "shell.h"
 
 #include "ahrs.h"
+#include "buzzer.h"
 
 using namespace chibios_rt;
+
+static constexpr Matrix33 GIMBAL_AHRS_INSTALL_MATRIX = {{ 1.0f,  0.0f,  0.0f},
+                                                        { 0.0f,  1.0f,  0.0f},
+                                                        { 0.0f,  0.0f,  1.0f}};
+
+AHRSOnBoard ahrs;
 
 class AHRSFeedbackThread : public BaseStaticThread<1024> {
 protected:
     void main() final {
         setName("ahrs");
-        MPU6500::start(HIGHPRIO - 1);
-        AHRS::init(HIGHPRIO - 2);
+        ahrs.start(GIMBAL_AHRS_INSTALL_MATRIX, HIGHPRIO - 2, HIGHPRIO - 3, HIGHPRIO - 1);
+        Buzzer::play_sound(Buzzer::sound_startup, LOWPRIO);
         while (!shouldTerminate()) {
-            Shell::printf("(%.4f, %.4f, %.4f)" SHELL_NEWLINE_STR,
-                          AHRS::angle.x,
-                          AHRS::angle.y,
-                          AHRS::angle.z);
+            Shell::printf("!a,%.4f,%.4f,%.4f" SHELL_NEWLINE_STR,
+                          ahrs.angle.x,
+                          ahrs.angle.y,
+                          ahrs.angle.z);
             sleep(TIME_MS2I(100));
         }
     }
@@ -33,7 +40,7 @@ int main(void) {
     halInit();
     System::init();
 
-    Shell::start(HIGHPRIO);
+    Shell::start(NORMALPRIO - 10);
     LED::all_off();
 
     feedbackThread.start(NORMALPRIO);

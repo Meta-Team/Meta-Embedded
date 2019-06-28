@@ -28,15 +28,15 @@ static void cmd_chassis_echo(BaseSequentialStream *chp, int argc, char *argv[]) 
     }
 
 //    chprintf(chp, "actual_velocity: FR = %.2f, FL = %.2f, BL = %.2f, BR = %.2f" SHELL_NEWLINE_STR,
-//             ChassisInterface::feedback[ChassisInterface::FR].actual_velocity,
-//             ChassisInterface::feedback[ChassisInterface::FL].actual_velocity,
-//             ChassisInterface::feedback[ChassisInterface::BL].actual_velocity,
-//             ChassisInterface::feedback[ChassisInterface::BR].actual_velocity);
+//             ChassisIF::feedback[ChassisIF::FR].actual_velocity,
+//             ChassisIF::feedback[ChassisIF::FL].actual_velocity,
+//             ChassisIF::feedback[ChassisIF::BL].actual_velocity,
+//             ChassisIF::feedback[ChassisIF::BR].actual_velocity);
 //    chprintf(chp, "target_current: FR = %d, FL = %d, BL = %d, BR = %d" SHELL_NEWLINE_STR,
-//             ChassisInterface::target_current[ChassisInterface::FR],
-//             ChassisInterface::target_current[ChassisInterface::FL],
-//             ChassisInterface::target_current[ChassisInterface::BL],
-//             ChassisInterface::target_current[ChassisInterface::BR]);
+//             ChassisIF::target_current[ChassisIF::FR],
+//             ChassisIF::target_current[ChassisIF::FL],
+//             ChassisIF::target_current[ChassisIF::BL],
+//             ChassisIF::target_current[ChassisIF::BR]);
 }
 
 /**
@@ -52,17 +52,17 @@ static void cmd_chassis_set_target_currents(BaseSequentialStream *chp, int argc,
         return;
     }
 
-    ChassisInterface::target_current[ChassisInterface::FR] = Shell::atoi(argv[0]);
-    ChassisInterface::target_current[ChassisInterface::FL] = Shell::atoi(argv[1]);
-    ChassisInterface::target_current[ChassisInterface::BL] = Shell::atoi(argv[2]);
-    ChassisInterface::target_current[ChassisInterface::BR] = Shell::atoi(argv[3]);
+    ChassisIF::target_current[ChassisIF::FR] = Shell::atoi(argv[0]);
+    ChassisIF::target_current[ChassisIF::FL] = Shell::atoi(argv[1]);
+    ChassisIF::target_current[ChassisIF::BL] = Shell::atoi(argv[2]);
+    ChassisIF::target_current[ChassisIF::BR] = Shell::atoi(argv[3]);
     chprintf(chp, "target_current: FR = %d, FL = %d, BL = %d, BR = %d" SHELL_NEWLINE_STR,
-             ChassisInterface::target_current[ChassisInterface::FR],
-             ChassisInterface::target_current[ChassisInterface::FL],
-             ChassisInterface::target_current[ChassisInterface::BL],
-             ChassisInterface::target_current[ChassisInterface::BR]);
+             ChassisIF::target_current[ChassisIF::FR],
+             ChassisIF::target_current[ChassisIF::FL],
+             ChassisIF::target_current[ChassisIF::BL],
+             ChassisIF::target_current[ChassisIF::BR]);
 
-    ChassisInterface::send_chassis_currents();
+    ChassisIF::send_chassis_currents();
     chprintf(chp, "Chassis target_current sent" SHELL_NEWLINE_STR);
 }
 
@@ -79,7 +79,7 @@ protected:
         setName("chassis");
         while (!shouldTerminate()) {
 
-            ChassisInterface::send_chassis_currents();
+            ChassisIF::send_chassis_currents();
 
             sleep(TIME_MS2I(100));
         }
@@ -98,7 +98,7 @@ int main(void) {
     Shell::addCommands(chassisCommands);
 
     can1.start(HIGHPRIO - 1);
-    ChassisInterface::init(&can1);
+    ChassisIF::init(&can1);
 
     chassisThread.start(NORMALPRIO);
 

@@ -23,7 +23,7 @@
 #if defined(BOARD_RM_2018_A)
 #elif defined(BOARD_RM_2017)
 #else
-#error "GimbalInterface has not been defined for selected board"
+#error "GimbalIF has not been defined for selected board"
 #endif
 
 
@@ -44,20 +44,9 @@
 #define GIMBAL_INTERFACE_BULLET_PLATE_MAX_CURRENT 5000
 #endif
 
-/**
- * @name GimbalInterface
- * @brief Interface to process feedback from gimbal and send control signals, including Yaw, Pitch, Bullet Loader
- *        (using CAN) and friction wheels (by PWM).
- * @pre Hardware is connected properly (see ONES doc)
- * @pre PWM pins are set properly in board.h (I5 - alt 3, I6 - alt 3)
- * @usage 1. Call init(CANInterface *). The interface should be properly initialized.
- *        2. Read feedback from variables.
- *           Write target current / duty cycle to variables, then call send_gimbal_currents to apply
- */
-class GimbalInterface {
 
+class GimbalBase {
 public:
-
     enum motor_id_t {
         YAW = 0,
         PITCH = 1,
@@ -65,6 +54,22 @@ public:
         PLATE = 3,
         MOTOR_COUNT = 4
     };
+};
+
+
+/**
+ * @name GimbalInterface
+ * @brief Interface to interact with Yaw, Pitch, Bullet Loader (using CAN) and friction wheels (by PWM). Maintain the
+ *        feedback info and provide method to send control signal
+ * @pre Hardware is connected properly (see ONES doc)
+ * @pre PWM pins are set properly in board.h (I5 - alt 3, I6 - alt 3)
+ * @usage 1. Call init(CANInterface *). The interface should be properly initialized.
+ *        2. Read feedback from variables.
+ *           Write target current / duty cycle to variables, then call send_gimbal_currents to apply
+ */
+class GimbalIF : public GimbalBase {
+
+public:
 
     /**
      * @brief Initialize the gimbal
@@ -112,7 +117,7 @@ public:
         int sample_movement_sum = 0;
 #endif
 
-        friend GimbalInterface;
+        friend GimbalIF;
         friend int main();
 
     };

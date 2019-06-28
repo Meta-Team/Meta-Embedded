@@ -32,7 +32,7 @@
  * @note This module is designed to process feedback automatically, but not to send current automatically, to avoid
  *       unintended chassis movements.
  */
-class ChassisInterface {
+class ChassisIF {
 
 public:
 

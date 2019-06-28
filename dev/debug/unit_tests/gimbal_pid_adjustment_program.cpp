@@ -13,14 +13,14 @@
 #include "debug/shell/shell.h"
 
 #include "can_interface.h"
-#include "mpu6500.h"
+#include "interface/ahrs/mpu6500.h"
 
-#include "gimbal.h"
+#include "gimbal_scheduler.h"
 #include "shoot.h"
 
 using namespace chibios_rt;
 
-// Duplicate of motor_id_t in GimbalInterface to reduce code
+// Duplicate of motor_id_t in GimbalIF to reduce code
 unsigned const YAW = Gimbal::YAW;
 unsigned const PITCH = Gimbal::PITCH;
 
@@ -44,14 +44,14 @@ bool enable_a2v_pid = false;
 float target_angle[2] = {0.0, 0.0};
 float target_v[2] = {0.0, 0.0};
 
-// Raw angle of yaw and pitch when GimbalInterface points straight forward.
+// Raw angle of yaw and pitch when GimbalIF points straight forward.
 //   Note: the program will echo the raw angles of yaw and pitch as the program starts
 #define GIMBAL_YAW_FRONT_ANGLE_RAW 5372
 #define GIMBAL_PITCH_FRONT_ANGLE_RAW 4128
 
 // Depends on the install direction of the board
-#define GIMBAL_YAW_ACTUAL_VELOCITY (-MPU6500::angle_speed.z)
-#define GIMBAL_PITCH_ACTUAL_VELOCITY (MPU6500::angle_speed.x)
+#define GIMBAL_YAW_ACTUAL_VELOCITY (-MPU6500::gyro.z)
+#define GIMBAL_PITCH_ACTUAL_VELOCITY (MPU6500::gyro.x)
 
 CANInterface can1(&CAND1);
 
@@ -357,7 +357,7 @@ protected:
             if (!motor_enabled[PITCH]) Gimbal::target_current[PITCH] = 0;
 
             // Send currents
-            GimbalInterface::send_gimbal_currents();
+            GimbalIF::send_gimbal_currents();
 
             sleep(TIME_MS2I(GIMBAL_THREAD_INTERVAL));
         }
