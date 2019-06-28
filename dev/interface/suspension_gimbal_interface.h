@@ -7,8 +7,6 @@
 #include "ch.hpp"
 #include "hal.h"
 #include "can_interface.h"
-#include "ahrs_ext.h"
-#include "ahrs_math.hpp"
 
 /* Board Guard */
 #if defined(BOARD_RM_2018_A)
@@ -119,7 +117,7 @@ public:
      * @param yaw_front_angle_raw   raw angle of yaw when gimbal points straight forward, depending on installation.
      * @param pitch_front_angle_raw   raw angle of pitch when gimbal points straight forward, depending on installation.
      */
-    static void init(CANInterface *can_interface, AHRSExt *ahrsExt, float yaw_front_angle_raw = 0, float pitch_front_angle_raw = 0);
+    static void init(CANInterface *can_interface, float yaw_front_angle_raw = 0, float pitch_front_angle_raw = 0);
 
     /**
      * @brief send target_current of each motor
@@ -134,13 +132,9 @@ private:
         FW_RIGHT = 1  // The right friction wheel, PI6, channel 1
     };
 
-    static float pitchFront;
-
     static float shoot_duty_cycles[3];  // the array contains the duty cycles for different shoot modes
 
     static CANInterface *can_;
-
-    static AHRSExt *ahrs_;
 
     friend CANInterface;
     friend class SuspensionGimbalSKD;

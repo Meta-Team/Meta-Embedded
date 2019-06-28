@@ -57,11 +57,6 @@ class SentryThread : public chibios_rt::BaseStaticThread<512> {
 
     void main() final {
         setName("sentry");
-        /*** Parameters Set up***/
-        SuspensionGimbalIF::init(&can1, &ahrsExt, GIMBAL_YAW_FRONT_ANGLE_RAW, GIMBAL_PITCH_FRONT_ANGLE_RAW);
-        SentryChassisIF::init(&can1);
-        SuspensionGimbalSKD::suspensionGimbalThread.start(HIGHPRIO - 2);
-        SentryChassisSKD::sentryChassisThread.start(HIGHPRIO - 3);
 
         Remote::rc_status_t s1_present_state = Remote::S_UP, s2_present_state = Remote::S_UP;
         while (!shouldTerminate()) {
@@ -88,6 +83,7 @@ class SentryThread : public chibios_rt::BaseStaticThread<512> {
                                 SuspensionGimbalSKD::set_shoot_mode(OFF);
                                 break;
                             case Remote::S_MIDDLE :
+                                LED::led_toggle(7);
                                 SuspensionGimbalSKD::set_motor_enable(SuspensionGimbalIF::YAW_ID, true);
                                 SuspensionGimbalSKD::set_motor_enable(SuspensionGimbalIF::PIT_ID, true);
                                 SuspensionGimbalSKD::set_motor_enable(SuspensionGimbalIF::BULLET_LOADER_ID, true);
@@ -187,6 +183,13 @@ int main(void) {
 
     /*** ------------ Period 2. Calibration and Start Logic Control Thread ----------- ***/
 
+    /*** Parameters Set up***/
+    ahrsExt.start(&can1);
+    SuspensionGimbalIF::init(&can1, GIMBAL_YAW_FRONT_ANGLE_RAW, GIMBAL_PITCH_FRONT_ANGLE_RAW);
+    SentryChassisIF::init(&can1);
+    SuspensionGimbalSKD::init(&ahrsExt);
+    SuspensionGimbalSKD::suspensionGimbalThread.start(HIGHPRIO - 2);
+    SentryChassisSKD::sentryChassisThread.start(HIGHPRIO - 3);
 
     LED::green_on();
     /** Start Logic Control Thread **/

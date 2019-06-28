@@ -10,8 +10,8 @@
 
 // Raw angle of yaw and pitch when gimbal points straight forward.
 //   Note: the program will echo the raw angles of yaw and pitch as the program starts
-#define GIMBAL_YAW_FRONT_ANGLE_RAW 0.0f//119.7f
-#define GIMBAL_PITCH_FRONT_ANGLE_RAW 0.0f//0.7f
+#define GIMBAL_YAW_FRONT_ANGLE_RAW -95.8f//119.7f
+#define GIMBAL_PITCH_FRONT_ANGLE_RAW 90.0f//0.7f
 
 /** Gimbal Motor PID Params **/
 

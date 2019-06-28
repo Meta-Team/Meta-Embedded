@@ -9,6 +9,7 @@
 #include "suspension_gimbal_interface.h"
 #include "vehicle/sentry/vehicle_sentry.h"
 #include "common_macro.h"
+#include "ahrs_ext.h"
 
 class SuspensionGimbalSKD{
 public:
@@ -21,13 +22,15 @@ public:
     static PIDController pitch_v2i_pid;
     static PIDController BL_v2i_pid;
 
+    static float pitchFront;
+
     class SuspensionGimbalThread: public chibios_rt::BaseStaticThread<512>{
         void main() final;
     };
 
     static SuspensionGimbalThread suspensionGimbalThread;
 
-    static void init();
+    static void init(AHRSExt* ahrs);
 
     static void set_front(SuspensionGimbalIF::motor_id_t motor_id);
 
@@ -48,6 +51,8 @@ public:
 private:
 
     static bool continuous_shooting;
+
+    static AHRSExt* ahrs_;
 
     static void set_target_signal();
 

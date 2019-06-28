@@ -9,6 +9,8 @@ PIDController SuspensionGimbalSKD::yaw_v2i_pid;
 PIDController SuspensionGimbalSKD::pitch_a2v_pid;
 PIDController SuspensionGimbalSKD::pitch_v2i_pid;
 PIDController SuspensionGimbalSKD::BL_v2i_pid;
+float SuspensionGimbalSKD::pitchFront;
+AHRSExt* SuspensionGimbalSKD::ahrs_;
 SuspensionGimbalSKD::SuspensionGimbalThread SuspensionGimbalSKD::suspensionGimbalThread;
 bool SuspensionGimbalSKD::continuous_shooting;
 
@@ -17,12 +19,14 @@ bool SuspensionGimbalSKD::continuous_shooting;
  * Public Functions
  */
 
-void SuspensionGimbalSKD::init() {
+void SuspensionGimbalSKD::init(AHRSExt* ahrs) {
     yaw_a2v_pid.change_parameters(GIMBAL_YAW_A2V_PID_PARAMS);
     yaw_v2i_pid.change_parameters(GIMBAL_YAW_V2I_PID_PARAMS);
     pitch_a2v_pid.change_parameters(GIMBAL_PITCH_A2V_PID_PARAMS);
     pitch_v2i_pid.change_parameters(GIMBAL_PITCH_V2I_PID_PARAMS);
     BL_v2i_pid.change_parameters(GIMBAL_BL_V2I_PID_PARAMS);
+    ahrs_ = ahrs;
+    pitchFront = ahrs_->angle.z;
     continuous_shooting = false;
 
     set_motor_enable(SuspensionGimbalIF::YAW_ID, false);
@@ -35,7 +39,7 @@ void SuspensionGimbalSKD::set_front(SuspensionGimbalIF::motor_id_t motor_id) {
     if (motor_id == SuspensionGimbalIF::YAW_ID) SuspensionGimbalIF::yaw.reset_front_angle();
     else if (motor_id == SuspensionGimbalIF::PIT_ID) {
         SuspensionGimbalIF::pitch.reset_front_angle();
-        SuspensionGimbalIF::pitchFront = SuspensionGimbalIF::ahrs_->angle.z;
+        pitchFront = ahrs_->angle.z;
     }
     else if (motor_id == SuspensionGimbalIF::BULLET_LOADER_ID) SuspensionGimbalIF::bullet_loader.reset_front_angle();
 }
@@ -94,8 +98,8 @@ void SuspensionGimbalSKD::set_target_signal() {
     // Set pitch voltage
     VAL_CROP(SuspensionGimbalIF::pitch.target_angle, MAX_PITCH_ANGLE, MIN_PITCH_ANGLE);
     if (SuspensionGimbalIF::pitch.enabled)
-        SuspensionGimbalIF::pitch.target_signal = (int16_t) pitch_v2i_pid.calc(SuspensionGimbalIF::pitch.angular_velocity,
-                pitch_a2v_pid.calc(SuspensionGimbalIF::pitch.angular_position, SuspensionGimbalIF::pitch.target_angle));
+        SuspensionGimbalIF::pitch.target_signal = (int16_t) pitch_v2i_pid.calc( - ahrs_->gyro.y,
+                pitch_a2v_pid.calc(ahrs_->angle.z - pitchFront, SuspensionGimbalIF::pitch.target_angle));
 }
 
 void SuspensionGimbalSKD::set_target_signal(SuspensionGimbalIF::motor_id_t motor, int16_t signal){
@@ -110,9 +114,9 @@ void SuspensionGimbalSKD::set_target_signal(SuspensionGimbalIF::motor_id_t motor
 
 void SuspensionGimbalSKD::SuspensionGimbalThread::main() {
     setName("SentryGimbal");
-    SuspensionGimbalSKD::init();
     while (!shouldTerminate()){
         set_target_signal();
+        SuspensionGimbalIF::send_gimbal_currents();
         sleep(TIME_MS2I(10));
     }
 }

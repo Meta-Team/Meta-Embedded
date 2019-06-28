@@ -9,13 +9,11 @@ shoot_mode_t SuspensionGimbalIF::shoot_mode;
 SuspensionGimbalIF::MotorInterface SuspensionGimbalIF::yaw;
 SuspensionGimbalIF::MotorInterface SuspensionGimbalIF::pitch;
 SuspensionGimbalIF::MotorInterface SuspensionGimbalIF::bullet_loader;
-float SuspensionGimbalIF::pitchFront;
 float SuspensionGimbalIF::shoot_duty_cycles[3] = {0.0, 0.1, 0.3};
 CANInterface *SuspensionGimbalIF::can_;
-AHRSExt *SuspensionGimbalIF::ahrs_;
 PWMConfig constexpr SuspensionGimbalIF::FRICTION_WHEELS_PWM_CFG;
 
-void SuspensionGimbalIF::init(CANInterface *can_interface, AHRSExt *ahrsExt, float yaw_front_angle_raw, float pitch_front_angle_raw) {
+void SuspensionGimbalIF::init(CANInterface *can_interface, float yaw_front_angle_raw, float pitch_front_angle_raw) {
     shoot_mode = OFF;
     // The reasonable angle movement of yaw and pitch are assumed to be limited in (-4096, 4096), in other word, (-180, 180) in degree
     // The actual angle of yaw and pitch are scaled to be in [-180, 180) in degree
@@ -31,17 +29,10 @@ void SuspensionGimbalIF::init(CANInterface *can_interface, AHRSExt *ahrsExt, flo
     yaw.last_angle = yaw_front_angle_raw;
     pitch.last_angle = pitch_front_angle_raw;
 
-    yaw.reset_front_angle();
-    pitch.reset_front_angle();
     bullet_loader.reset_front_angle();
 
     can_ = can_interface;
     can_->register_callback(0x205, 0x207, process_motor_feedback);
-
-    ahrs_ = ahrsExt;
-    ahrs_->start(can_);
-
-    pitchFront = ahrs_->angle.z;
 
     pwmStart(FRICTION_WHEEL_PWM_DRIVER, &FRICTION_WHEELS_PWM_CFG);
 
@@ -121,7 +112,6 @@ bool SuspensionGimbalIF::send_gimbal_currents() {
                      PWM_PERCENTAGE_TO_WIDTH(FRICTION_WHEEL_PWM_DRIVER, shoot_duty_cycles[shoot_mode] * 500 + 500));
     pwmEnableChannel(FRICTION_WHEEL_PWM_DRIVER, FW_RIGHT,
                      PWM_PERCENTAGE_TO_WIDTH(FRICTION_WHEEL_PWM_DRIVER, shoot_duty_cycles[shoot_mode] * 500 + 500));
-LOG("%.2f", shoot_duty_cycles[shoot_mode]);
     return true;
 }
 
@@ -135,12 +125,13 @@ void SuspensionGimbalIF::process_motor_feedback(CANRxFrame const *rxmsg) {
 
     MotorInterface* motor;
     if(rxmsg->SID == 0x205){
+        LED::led_toggle(1);
         motor = &yaw;
     }else if(rxmsg->SID == 0x206){
-        pitch.angular_position = -(ahrs_->angle.z - pitchFront);
-        pitch.angular_velocity = -ahrs_->gyro.y;
-        return;
+        LED::led_toggle(2);
+        motor = &pitch;
     } else{
+        LED::led_toggle(3);
         motor = &bullet_loader;
     }
     // Get the present absolute angle value by combining the data into a temporary variable
@@ -169,5 +160,27 @@ void SuspensionGimbalIF::process_motor_feedback(CANRxFrame const *rxmsg) {
     // Calculate the angular velocity
     // For yaw or bullet_loader, get the velocity directly
     // Get the angular velocity: feedback / deceleration ratio * 6.0f (360 degrees per round per 60 seconds)
-    motor->angular_velocity = ((int16_t) (rxmsg->data8[2] << 8 | rxmsg->data8[3])) / motor->deceleration_ratio * 6.0f;
+    if (rxmsg->SID != 0x206) {
+        motor->angular_velocity =
+                ((int16_t) (rxmsg->data8[2] << 8 | rxmsg->data8[3])) / motor->deceleration_ratio * 6.0f;
+    } else{
+        // For pitch, sum angle movements for VELOCITY_SAMPLE_INTERVAL times, and calculate the average.
+        static float movements[VELOCITY_SAMPLE_INTERVAL];
+        static time_msecs_t times[VELOCITY_SAMPLE_INTERVAL];
+        static float movement_sum = 0;
+        static int sample_count = 0;
+        static int index = 0;
+        movements[index] = angle_movement;
+        times[index] = TIME_I2MS(chibios_rt::System::getTime());
+        movement_sum += angle_movement;
+        sample_count++;
+        int next = (index + 1) % VELOCITY_SAMPLE_INTERVAL;
+        if (sample_count >= VELOCITY_SAMPLE_INTERVAL){
+            motor->angular_velocity = movement_sum * 1000.0f / (float)(times[index] - times[next]);
+            // Update the next index
+            movement_sum -= movements[next];
+            sample_count--;
+        }
+        index = next;
+    }
 }
