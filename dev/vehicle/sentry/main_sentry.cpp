@@ -159,7 +159,7 @@ class SentryThread : public chibios_rt::BaseStaticThread<512> {
                 if (escaping){
 
                 } else{
-                    
+
                 }
             }
             sleep(TIME_MS2I(GIMBAL_THREAD_INTERVAL));

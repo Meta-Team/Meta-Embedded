@@ -6,9 +6,9 @@
 #define META_INFANTRY_SENTRY_CHASSIS_CALCULATOR_H
 
 #include "sentry_chassis_interface.h"
+#include "suspension_gimbal_interface.h"
 #include "pid_controller.hpp"
 #include "can_interface.h"
-#include "referee_interface.h"
 #include "vehicle/sentry/vehicle_sentry.h"
 #include "ch.hpp"
 #include "hal.h"
@@ -64,11 +64,24 @@ public:
     static void set_terminals(float leftTerminal, float rightTerminal){
         left_terminal = leftTerminal;
         right_terminal = rightTerminal;
+        if (left_terminal == CURVE_1_LEFT) SentryChassisIF::present_region = CURVE_1;
+        else if (left_terminal == CURVE_2_LEFT) SentryChassisIF::present_region = CURVE_2;
+        else SentryChassisIF::present_region = STRAIGHTWAY;
     }
 
     static void start_escaping(){
         sentry_a2v_pid.change_parameters(ESCAPE_PID_A2V_PARAMS);
         sentry_a2v_pid.clear_i_out();
+        if (SentryChassisIF::present_region == STRAIGHTWAY){
+            if (SentryChassisIF::present_velocity > 0) set_terminals(CURVE_2_LEFT, CURVE_2_RIGHT);
+            else if (SentryChassisIF::present_velocity < 0) set_terminals(CURVE_1_LEFT, CURVE_1_RIGHT);
+            else {
+                if (SentryChassisIF::present_position < STRAIGHTWAY_MIDDLE) set_terminals(CURVE_1_LEFT, CURVE_1_RIGHT);
+                else set_terminals(CURVE_2_LEFT, CURVE_2_RIGHT);
+            }
+        }
+        else if (SentryChassisIF::present_region == CURVE_1) set_terminals(CURVE_2_LEFT, CURVE_2_RIGHT);
+        else if (SentryChassisIF::present_region == CURVE_2) set_terminals(CURVE_1_LEFT, CURVE_1_RIGHT);
     }
 
     static void stop_escaping(){
@@ -102,6 +115,7 @@ public:
 
 private:
     static bool enable;
+    static bool POM; // power optimized mode
     static PIDController sentry_a2v_pid;
     static PIDController right_v2i_pid;
     static PIDController left_v2i_pid;
