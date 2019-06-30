@@ -12,21 +12,14 @@ float SentryChassisIF::present_velocity;
 float SentryChassisIF::target_position;
 float SentryChassisIF::target_velocity;
 region_t SentryChassisIF::present_region;
-uint16_t SentryChassisIF::present_HP;
-bool SentryChassisIF::hit_detected;
-bool SentryChassisIF::escaping;
 SentryChassisIF::motor_t SentryChassisIF::motor[SENTRY_CHASSIS_MOTOR_COUNT];
 CANInterface *SentryChassisIF::can;
 
 /* Functions */
 
 void SentryChassisIF::init(CANInterface *can_interface) {
-    Referee::init();
     present_position = present_velocity = target_position = target_velocity = 0;
     present_region = STRAIGHTWAY;
-    present_HP = Referee::game_robot_state.remain_HP;
-    hit_detected = false;
-    escaping = false;
     motor[MOTOR_LEFT].clear_position();
     motor[MOTOR_RIGHT].clear_position();
     can = can_interface;
@@ -113,13 +106,4 @@ void SentryChassisIF::process_feedback(CANRxFrame const*rxmsg) {
 
     present_position = (motor[MOTOR_RIGHT].motor_present_position + motor[MOTOR_LEFT].motor_present_position)/2;
     present_velocity = (motor[MOTOR_RIGHT].motor_present_velocity + motor[MOTOR_LEFT].motor_present_velocity)/2;
-
-    // Update the remained HP
-    uint16_t new_present_HP = Referee::game_robot_state.remain_HP;
-    if (new_present_HP != present_HP){
-        if (new_present_HP < present_HP){
-            hit_detected = true;
-        }
-        present_HP = new_present_HP;
-    }
 }

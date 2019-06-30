@@ -61,6 +61,21 @@ public:
         set_pid(true, {SENTRY_CHASSIS_PID_A2V_KP, SENTRY_CHASSIS_PID_A2V_KI, SENTRY_CHASSIS_PID_A2V_KD, SENTRY_CHASSIS_PID_A2V_I_LIMIT, new_velocity});
     }
 
+    static void set_terminals(float leftTerminal, float rightTerminal){
+        left_terminal = leftTerminal;
+        right_terminal = rightTerminal;
+    }
+
+    static void start_escaping(){
+        sentry_a2v_pid.change_parameters(ESCAPE_PID_A2V_PARAMS);
+        sentry_a2v_pid.clear_i_out();
+    }
+
+    static void stop_escaping(){
+        sentry_a2v_pid.change_parameters(CRUISING_PID_A2V_PARAMS);
+        sentry_a2v_pid.clear_i_out();
+    }
+
     /**
      * @brief Debug helper function. Print the present position in cm
      */
@@ -90,9 +105,10 @@ private:
     static PIDController sentry_a2v_pid;
     static PIDController right_v2i_pid;
     static PIDController left_v2i_pid;
-    static time_msecs_t evasive_time;
     static sentry_mode_t running_mode;
     static float radius; // the range that sentry can move around the origin in the SHUTTLED_MODE
+    static float left_terminal;
+    static float right_terminal;
 
     /**
      * @brief use the present data and PIDController to calculate and set the target current that will be sent

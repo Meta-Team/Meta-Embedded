@@ -57,7 +57,7 @@ class SentryThread : public chibios_rt::BaseStaticThread<512> {
 
     void main() final {
         setName("sentry");
-
+        bool escaping = false;
         Remote::rc_status_t s1_present_state = Remote::S_UP, s2_present_state = Remote::S_UP;
         while (!shouldTerminate()) {
 
@@ -126,18 +126,18 @@ class SentryThread : public chibios_rt::BaseStaticThread<512> {
                         }
                         break;
                     case Remote::S_DOWN :
-                        SentryChassisSKD::turn_off();
+                        SentryChassisSKD::turn_on();
                         switch (s2_present_state){
                             case Remote::S_UP :
+                                SentryChassisSKD::set_mode(SentryChassisSKD::STOP_MODE);
                                 break;
                             case Remote::S_MIDDLE :
-                                break;
                             case Remote::S_DOWN :
+                                escaping = true;
+                                SentryChassisSKD::start_escaping();
                                 break;
                         }
-
                         break;
-
                 }
 
             }
@@ -155,6 +155,12 @@ class SentryThread : public chibios_rt::BaseStaticThread<512> {
                 LOG("%.2f, %.2f", Remote::rc.ch2 * 170.0f, Remote::rc.ch3 * 40.0f);
             } else if (s1_present_state == Remote::S_MIDDLE && s2_present_state == Remote::S_UP){
                 SentryChassisSKD::set_destination(SentryChassisIF::target_position + Remote::rc.ch0);
+            } else if (s1_present_state == Remote::S_DOWN && (s2_present_state == Remote::S_MIDDLE || s2_present_state == Remote::S_DOWN)){
+                if (escaping){
+
+                } else{
+                    
+                }
             }
             sleep(TIME_MS2I(GIMBAL_THREAD_INTERVAL));
         }
