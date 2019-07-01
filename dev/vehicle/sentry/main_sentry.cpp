@@ -126,7 +126,11 @@ class SentryThread : public chibios_rt::BaseStaticThread<512> {
                         }
                         break;
                     case Remote::S_DOWN :
-                        SentryChassisSKD::turn_on();
+                        SentryChassisSKD::turn_off();
+                        SuspensionGimbalSKD::set_motor_enable(SuspensionGimbalIF::YAW_ID, false);
+                        SuspensionGimbalSKD::set_motor_enable(SuspensionGimbalIF::PIT_ID, false);
+                        SuspensionGimbalSKD::set_motor_enable(SuspensionGimbalIF::BULLET_LOADER_ID, false);
+                        SuspensionGimbalSKD::set_shoot_mode(OFF);
                         switch (s2_present_state){
                             case Remote::S_UP :
                                 SentryChassisSKD::set_mode(SentryChassisSKD::STOP_MODE);
@@ -162,7 +166,7 @@ class SentryThread : public chibios_rt::BaseStaticThread<512> {
 
                 /// FINAL_AUTO_MODE
                 // if not escaping but under attacked, go into escape mode
-                if ( !escaping && (Remote::rc.ch2>=0.5 && Remote::rc.ch2<=-0.5) ) {
+                if ( !escaping && (Remote::rc.ch2>=0.5 || Remote::rc.ch2<=-0.5) ) {
                     escaping = true;
                     SentryChassisSKD::start_escaping();
                 }
@@ -170,28 +174,13 @@ class SentryThread : public chibios_rt::BaseStaticThread<512> {
                 // if already in the escape mode, finish this escaping process
                 else if ( escaping ) {
                     // determine the current region and decide whether to stop escaping
-                    region_t curr_region;
-                    if ( SentryChassisIF::present_position >= CURVE_1_LEFT && SentryChassisIF::present_position <= CURVE_1_RIGHT )
-                        curr_region = CURVE_1;
-                    else if ( SentryChassisIF::present_position >= CURVE_2_LEFT && SentryChassisIF::present_position <= CURVE_2_RIGHT )
-                        curr_region = CURVE_2;
-                    else if ( SentryChassisIF::present_position >= STRAIGHTWAY_LEFT && SentryChassisIF::present_position <= STRAIGHTWAY_RIGHT )
-                        curr_region = STRAIGHTWAY;
 
-                    if ( SentryChassisIF::present_region == curr_region ) {
+                    if ( SentryChassisIF::present_position < SentryChassisSKD::right_terminal && SentryChassisIF::present_position > SentryChassisSKD::left_terminal ) {
                         escaping = false;
                         SentryChassisSKD::stop_escaping();
                     }
                 }
 
-            }
-
-            else if (s1_present_state == Remote::S_DOWN && (s2_present_state == Remote::S_MIDDLE || s2_present_state == Remote::S_DOWN)){
-                if (escaping){
-
-                } else{
-
-                }
             }
             sleep(TIME_MS2I(GIMBAL_THREAD_INTERVAL));
         }

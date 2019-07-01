@@ -36,6 +36,9 @@ public:
     static bool printCurrent;
     static bool printVelocity;
 
+    static float left_terminal;
+    static float right_terminal;
+
 private:
     static void init();
 
@@ -44,7 +47,7 @@ public:
 
     static void turn_off();
 
-    static void set_pid(bool change_a2v, PIDControllerBase::pid_params_t new_params);
+    static void set_pid(int pid_id, PIDControllerBase::pid_params_t new_params);
 
     static void print_pid(bool print_a2v);
 
@@ -105,14 +108,13 @@ public:
 
 private:
     static bool enable;
-    static bool POM; // power optimized mode
-    static PIDController sentry_calcv_pid;
+    static bool POM;
+    static PIDController sentry_a2v_pid;
+    static PIDController sentry_POM_pid;
     static PIDController right_v2i_pid;
     static PIDController left_v2i_pid;
     static sentry_mode_t running_mode;
     static float radius; // the range that sentry can move around the origin in the SHUTTLED_MODE
-    static float left_terminal;
-    static float right_terminal;
 
     /**
      * @brief use the present data and PIDController to calculate and set the target current that will be sent

@@ -81,7 +81,6 @@ private:
 } gimbalFeedbackThread;
 
 CANInterface can1(&CAND1);
-AHRSExt ahrsExt;
 
 
 /**
@@ -401,7 +400,7 @@ int main(void) {
 
     can1.start(HIGHPRIO - 1);
 
-    SuspensionGimbalIF::init(&can1,&ahrsExt,0,0);
+    SuspensionGimbalIF::init(&can1,0,0);
 
     gimbalThread.start(HIGHPRIO - 2);
 

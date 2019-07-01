@@ -1,6 +1,7 @@
 //
 // Created by zhukerui on 2019/4/29.
 // Modified by jintengjun on 2019/6/11
+// Modified by Laixinyi on 2019/7/1
 //
 
 #include "sentry_chassis_skd.h"
@@ -16,7 +17,8 @@ bool SentryChassisSKD::printVelocity;
 
 bool SentryChassisSKD::enable;
 bool SentryChassisSKD::POM;
-PIDController SentryChassisSKD::sentry_calcv_pid;
+PIDController SentryChassisSKD::sentry_a2v_pid;
+PIDController SentryChassisSKD::sentry_POM_pid;
 PIDController SentryChassisSKD::right_v2i_pid;
 PIDController SentryChassisSKD::left_v2i_pid;
 SentryChassisSKD::sentry_mode_t SentryChassisSKD::running_mode;
@@ -29,8 +31,10 @@ float SentryChassisSKD::right_terminal;
 
 void SentryChassisSKD::init() {
     enable = false;
-    set_pid(true, CRUISING_PID_A2V_PARAMS);
-    set_pid(false, SENTRY_CHASSIS_PID_V2I_PARAMS);
+    POM = false;
+    set_pid(2, POM_PID_P2V_PARAMS);
+    set_pid(1, CRUISING_PID_A2V_PARAMS);
+    set_pid(0, SENTRY_CHASSIS_PID_V2I_PARAMS);
     printPosition = printCurrent = printVelocity = false;
     running_mode = STOP_MODE;
     radius = 50.0f;
@@ -44,21 +48,24 @@ void SentryChassisSKD::turn_off(){
     enable = false;
 }
 
-void SentryChassisSKD::set_pid(bool change_a2v, PIDControllerBase::pid_params_t new_params){
-    if (change_a2v) {
-        sentry_calcv_pid.change_parameters(new_params);
-        sentry_calcv_pid.clear_i_out();
-    } else{
+void SentryChassisSKD::set_pid(int pid_id, PIDControllerBase::pid_params_t new_params){
+    if (pid_id == 0){
         left_v2i_pid.change_parameters(new_params);
         right_v2i_pid.change_parameters(new_params);
         left_v2i_pid.clear_i_out();
         right_v2i_pid.clear_i_out();
+    }else if (pid_id == 1) {
+        sentry_a2v_pid.change_parameters(new_params);
+        sentry_a2v_pid.clear_i_out();
+    } else if (pid_id == 2){
+        sentry_POM_pid.change_parameters(new_params);
+        sentry_POM_pid.clear_i_out();
     }
 }
 
 void SentryChassisSKD::print_pid(bool print_a2v){
     if (print_a2v){
-        PIDControllerBase::pid_params_t to_print = sentry_calcv_pid.get_parameters();
+        PIDControllerBase::pid_params_t to_print = sentry_a2v_pid.get_parameters();
         LOG("%f %f %f %f %f", to_print.kp, to_print.ki, to_print.kd, to_print.i_limit, to_print.out_limit);
     } else{
         PIDControllerBase::pid_params_t to_print = right_v2i_pid.get_parameters();
@@ -83,8 +90,8 @@ void SentryChassisSKD::set_mode(sentry_mode_t target_mode) {
         set_destination(radius);
     } else if (running_mode == FINAL_AUTO_MODE){
         SentryChassisIF::present_region = STRAIGHTWAY;
-        sentry_calcv_pid.change_parameters(CRUISING_PID_A2V_PARAMS);
-        sentry_calcv_pid.clear_i_out();
+        POM = false; // If the parameters of POM is figured out, set this to be TRUE
+        sentry_POM_pid.clear_i_out();
         set_terminals(STRAIGHTWAY_LEFT, STRAIGHTWAY_RIGHT);
     }
 }
@@ -95,7 +102,7 @@ void SentryChassisSKD::set_destination(float dist) {
 
 void SentryChassisSKD::set_maximum_velocity(float new_velocity){
     SentryChassisIF::target_velocity = new_velocity;
-    set_pid(true, {SENTRY_CHASSIS_PID_A2V_KP, SENTRY_CHASSIS_PID_A2V_KI, SENTRY_CHASSIS_PID_A2V_KD, SENTRY_CHASSIS_PID_A2V_I_LIMIT, new_velocity});
+    set_pid(1, {SENTRY_CHASSIS_PID_A2V_KP, SENTRY_CHASSIS_PID_A2V_KI, SENTRY_CHASSIS_PID_A2V_KD, SENTRY_CHASSIS_PID_A2V_I_LIMIT, new_velocity});
 }
 
 /** set target terminals and set "present region" to the target region */
@@ -110,8 +117,7 @@ void SentryChassisSKD::set_terminals(float leftTerminal, float rightTerminal){
 /** Power Optimized Mode. */
 void SentryChassisSKD::startPOM() {
     POM = true;
-    sentry_calcv_pid.change_parameters(POM_PID_P2V_PARAMS);
-    sentry_calcv_pid.clear_i_out();
+    sentry_POM_pid.clear_i_out();
 }
 
 /** When enemies are spotted or the sentry is being attacked, start escaping using POM */
@@ -131,8 +137,7 @@ void SentryChassisSKD::start_escaping(){
 /** When finishing the previous escaping process, exit POM, prepare for cruising */
 void SentryChassisSKD::stop_escaping(){
     POM = false;
-    sentry_calcv_pid.change_parameters(CRUISING_PID_A2V_PARAMS);
-    sentry_calcv_pid.clear_i_out();
+    sentry_a2v_pid.clear_i_out();
 }
 
 void SentryChassisSKD::update_target_current() {
@@ -148,7 +153,7 @@ void SentryChassisSKD::update_target_current() {
                     // If the sentry is in the "stop area", we stop the sentry by simply set the target velocity to 0
                     SentryChassisIF::target_velocity = 0;
                 } else {
-                    SentryChassisIF::target_velocity = sentry_calcv_pid.calc(sentry_present_position,
+                    SentryChassisIF::target_velocity = sentry_a2v_pid.calc(sentry_present_position,
                                                                            SentryChassisIF::target_position);
                 }
                 break;
@@ -156,7 +161,7 @@ void SentryChassisSKD::update_target_current() {
                 // If we are in the SHUTTLED_MODE
                 if (sentry_present_position > radius - 3) set_destination(-radius);
                 else if (sentry_present_position < -radius + 3) set_destination(radius);
-                SentryChassisIF::target_velocity = sentry_calcv_pid.calc(sentry_present_position,
+                SentryChassisIF::target_velocity = sentry_a2v_pid.calc(sentry_present_position,
                                                                        SentryChassisIF::target_position);
                 break;
             case (V_MODE):
@@ -167,12 +172,18 @@ void SentryChassisSKD::update_target_current() {
                 // If we are in the FINAL_AUTO_MODE
                 if (sentry_present_position > right_terminal - 3) set_destination(left_terminal);
                 else if (sentry_present_position < left_terminal + 3) set_destination(right_terminal);
-
-                if (false) { /// POM : use referee data to calculate for POM mode
-                    float delta_velocity = sentry_calcv_pid.calc(Referee::power_heat_data.chassis_power, 20);
-                    SentryChassisIF::target_velocity = delta_velocity + SentryChassisIF::present_velocity;
+                POM = false; // Delete this line if referee works
+                if (POM) {
+                    float delta_velocity = sentry_a2v_pid.calc(Referee::power_heat_data.chassis_power, 20);
+                    if (SentryChassisIF::target_position > sentry_present_position)
+                        // If target position is greater than the present position, then we consider it as a negative direction accelerate
+                        SentryChassisIF::target_velocity = SentryChassisIF::present_velocity - delta_velocity;
+                    else if (SentryChassisIF::target_position < sentry_present_position)
+                        // If target position is greater than the present position, then we consider it as a negative direction accelerate
+                        SentryChassisIF::target_velocity = SentryChassisIF::present_velocity + delta_velocity;
+                        // If target position is the same as present position, then we can not decide and do nothing
                 } else {
-                    SentryChassisIF::target_velocity = sentry_calcv_pid.calc(sentry_present_position, SentryChassisIF::target_position);
+                    SentryChassisIF::target_velocity = sentry_a2v_pid.calc(sentry_present_position, SentryChassisIF::target_position);
                 }
                 break;
             case (STOP_MODE):
