@@ -13,9 +13,9 @@
 #define SHOOT_DEGREE_PER_BULLER 40.0f  // rotation degree of bullet loader for each bullet
 
 /// AHRS Installation Configuration
-static constexpr Matrix33 GIMBAL_AHRS_INSTALL_MATRIX = {{ 1.0f,  0.0f,  0.0f},
-                                                        { 0.0f,  1.0f,  0.0f},
-                                                        { 0.0f,  0.0f,  1.0f}};
+static constexpr Matrix33 GIMBAL_AHRS_INSTALL_MATRIX = {{ 0.0f,  0.0f,  1.0f},
+                                                        { 1.0f,  0.0f,  0.0f},
+                                                        { 0.0f,  1.0f,  0.0f}};
 
 /// Gimbal and Shoot PID Parameters
 #define GIMBAL_PID_YAW_A2V_KP 5.3f

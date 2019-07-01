@@ -13,9 +13,9 @@
 
 using namespace chibios_rt;
 
-static constexpr Matrix33 GIMBAL_AHRS_INSTALL_MATRIX = {{ 1.0f,  0.0f,  0.0f},
-                                                        { 0.0f,  1.0f,  0.0f},
-                                                        { 0.0f,  0.0f,  1.0f}};
+static constexpr Matrix33 GIMBAL_AHRS_INSTALL_MATRIX = {{ 0.0f,  0.0f,  1.0f},
+                                                        { 1.0f,  0.0f,  0.0f},
+                                                        { 0.0f,  1.0f,  0.0f}};
 
 AHRSOnBoard ahrs;
 
