@@ -5,6 +5,7 @@
 #ifndef META_INFANTRY_SENTRY_CHASSIS_CALCULATOR_H
 #define META_INFANTRY_SENTRY_CHASSIS_CALCULATOR_H
 
+#include "remote_interpreter.h"
 #include "sentry_chassis_interface.h"
 #include "suspension_gimbal_interface.h"
 #include "pid_controller.hpp"
@@ -69,24 +70,33 @@ public:
         else SentryChassisIF::present_region = STRAIGHTWAY;
     }
 
+    /**
+     * Power Optimized Mode, used to accelerate or decelerate quickly, make the fullest use of the power restriction.
+     */
+    static void startPOM() {
+        POM = true;
+        sentry_calcv_pid.change_parameters(POM_PID_A2V_PARAMS);
+        sentry_calcv_pid.clear_i_out();
+    }
+
     static void start_escaping(){
-        sentry_a2v_pid.change_parameters(ESCAPE_PID_A2V_PARAMS);
-        sentry_a2v_pid.clear_i_out();
+        startPOM();
         if (SentryChassisIF::present_region == STRAIGHTWAY){
-            if (SentryChassisIF::present_velocity > 0) set_terminals(CURVE_2_LEFT, CURVE_2_RIGHT);
-            else if (SentryChassisIF::present_velocity < 0) set_terminals(CURVE_1_LEFT, CURVE_1_RIGHT);
-            else {
-                if (SentryChassisIF::present_position < STRAIGHTWAY_MIDDLE) set_terminals(CURVE_1_LEFT, CURVE_1_RIGHT);
-                else set_terminals(CURVE_2_LEFT, CURVE_2_RIGHT);
-            }
+
+            // if we see an enemy on the left, go right
+            // if (SuspensionGimbalIF::yaw.angular_position > 0) set_terminals(CURVE_2_LEFT, CURVE_2_RIGHT);
+            if (Remote::rc.ch2 < 0) set_terminals(CURVE_2_LEFT, CURVE_2_RIGHT);
+            // if we see an enemy on the right, go left
+            else set_terminals(CURVE_1_LEFT, CURVE_1_RIGHT);
         }
-        else if (SentryChassisIF::present_region == CURVE_1) set_terminals(CURVE_2_LEFT, CURVE_2_RIGHT);
-        else if (SentryChassisIF::present_region == CURVE_2) set_terminals(CURVE_1_LEFT, CURVE_1_RIGHT);
+        else if (SentryChassisIF::present_region == CURVE_1) set_terminals(STRAIGHTWAY_LEFT, STRAIGHTWAY_RIGHT);
+        else if (SentryChassisIF::present_region == CURVE_2) set_terminals(STRAIGHTWAY_LEFT, STRAIGHTWAY_RIGHT);
     }
 
     static void stop_escaping(){
-        sentry_a2v_pid.change_parameters(CRUISING_PID_A2V_PARAMS);
-        sentry_a2v_pid.clear_i_out();
+        POM = false;
+        sentry_calcv_pid.change_parameters(CRUISING_PID_A2V_PARAMS);
+        sentry_calcv_pid.clear_i_out();
     }
 
     /**
@@ -116,7 +126,7 @@ public:
 private:
     static bool enable;
     static bool POM; // power optimized mode
-    static PIDController sentry_a2v_pid;
+    static PIDController sentry_calcv_pid;
     static PIDController right_v2i_pid;
     static PIDController left_v2i_pid;
     static sentry_mode_t running_mode;

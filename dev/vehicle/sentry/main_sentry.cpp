@@ -33,7 +33,7 @@
  *  UP    DOWN  Auto - Chassis safe; gimbal auto controlling
  *  MID   UP    Remote - Chassis remote controlling, constant speed mode; gimbal fix
  *  MID   MID   Remote - Constant speed mode
- *  MID   DOWN  Remote - Various speed mode
+ *  MID   DOWN  Remote - Various speed mode, used to test the final auto mode
  *  DOWN  *     Auto (temporarily this can't be achieved, so just left it be the Safe mode)
  *  -Others-    Safe
  * ------------------------------------------------------------
@@ -118,10 +118,12 @@ class SentryThread : public chibios_rt::BaseStaticThread<512> {
                                 SentryChassisSKD::set_mode(SentryChassisSKD::ONE_STEP_MODE);
                                 break;
                             case Remote::S_MIDDLE :
+                                /// MIDDLE-MIDDLE: test the final auto mode, safe now, cruising
                                 SentryChassisSKD::set_mode(SentryChassisSKD::SHUTTLED_MODE);
                                 break;
                             case Remote::S_DOWN :
-                                SentryChassisSKD::turn_off();
+                                /// MIDDLE-DOWN: test the final auto mode, enemy spotted or being hit
+                                SentryChassisSKD::set_mode(SentryChassisSKD::FINAL_AUTO_MODE);
                                 break;
                         }
                         break;
@@ -141,6 +143,8 @@ class SentryThread : public chibios_rt::BaseStaticThread<512> {
                 }
 
             }
+
+
             /** Update Movement Request **/
             if (s1_present_state == Remote::S_UP && s2_present_state == Remote::S_UP){
                 LOG("%.2f, %.2f", SuspensionGimbalIF::yaw.angular_position, SuspensionGimbalIF::pitch.angular_position);
@@ -155,7 +159,16 @@ class SentryThread : public chibios_rt::BaseStaticThread<512> {
                 LOG("%.2f, %.2f", Remote::rc.ch2 * 170.0f, Remote::rc.ch3 * 40.0f);
             } else if (s1_present_state == Remote::S_MIDDLE && s2_present_state == Remote::S_UP){
                 SentryChassisSKD::set_destination(SentryChassisIF::target_position + Remote::rc.ch0);
-            } else if (s1_present_state == Remote::S_DOWN && (s2_present_state == Remote::S_MIDDLE || s2_present_state == Remote::S_DOWN)){
+            } else if (s1_present_state == Remote::S_MIDDLE && s2_present_state == Remote::S_MIDDLE){
+                if (escaping) SentryChassisSKD::stop_escaping();
+                escaping = false;
+            } else if (s1_present_state == Remote::S_MIDDLE && s2_present_state == Remote::S_DOWN){
+                escaping = true;
+                SentryChassisSKD::start_escaping();
+            }
+
+
+            else if (s1_present_state == Remote::S_DOWN && (s2_present_state == Remote::S_MIDDLE || s2_present_state == Remote::S_DOWN)){
                 if (escaping){
 
                 } else{

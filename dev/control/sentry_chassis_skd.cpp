@@ -6,11 +6,12 @@
 #include "sentry_chassis_skd.h"
 
 
-/* Parameters*/
+/* Parameters */
 
 SentryChassisSKD::SentryChassisThread SentryChassisSKD::sentryChassisThread;
 bool SentryChassisSKD::enable;
-PIDController SentryChassisSKD::sentry_a2v_pid;
+bool SentryChassisSKD::POM;
+PIDController SentryChassisSKD::sentry_calcv_pid;
 PIDController SentryChassisSKD::right_v2i_pid;
 PIDController SentryChassisSKD::left_v2i_pid;
 bool SentryChassisSKD::printPosition;
@@ -43,8 +44,8 @@ void SentryChassisSKD::turn_off(){
 
 void SentryChassisSKD::set_pid(bool change_a2v, PIDControllerBase::pid_params_t new_params){
     if (change_a2v) {
-        sentry_a2v_pid.change_parameters(new_params);
-        sentry_a2v_pid.clear_i_out();
+        sentry_calcv_pid.change_parameters(new_params);
+        sentry_calcv_pid.clear_i_out();
     } else{
         left_v2i_pid.change_parameters(new_params);
         right_v2i_pid.change_parameters(new_params);
@@ -55,13 +56,12 @@ void SentryChassisSKD::set_pid(bool change_a2v, PIDControllerBase::pid_params_t 
 
 void SentryChassisSKD::print_pid(bool print_a2v){
     if (print_a2v){
-        PIDControllerBase::pid_params_t to_print = sentry_a2v_pid.get_parameters();
+        PIDControllerBase::pid_params_t to_print = sentry_calcv_pid.get_parameters();
         LOG("%f %f %f %f %f", to_print.kp, to_print.ki, to_print.kd, to_print.i_limit, to_print.out_limit);
     } else{
         PIDControllerBase::pid_params_t to_print = right_v2i_pid.get_parameters();
         LOG("%f %f %f %f %f", to_print.kp, to_print.ki, to_print.kd, to_print.i_limit, to_print.out_limit);
     }
-
 }
 
 void SentryChassisSKD::set_origin() {
@@ -80,8 +80,8 @@ void SentryChassisSKD::set_mode(sentry_mode_t target_mode) {
         set_destination(radius);
     } else if (running_mode == FINAL_AUTO_MODE){
         SentryChassisIF::present_region = STRAIGHTWAY;
-        sentry_a2v_pid.change_parameters(CRUISING_PID_A2V_PARAMS);
-        sentry_a2v_pid.clear_i_out();
+        sentry_calcv_pid.change_parameters(CRUISING_PID_A2V_PARAMS);
+        sentry_calcv_pid.clear_i_out();
         set_terminals(STRAIGHTWAY_LEFT, STRAIGHTWAY_RIGHT);
     }
 }
@@ -103,7 +103,7 @@ void SentryChassisSKD::update_target_current() {
                     // If the sentry is in the "stop area", we stop the sentry by simply set the target velocity to 0
                     SentryChassisIF::target_velocity = 0;
                 } else {
-                    SentryChassisIF::target_velocity = sentry_a2v_pid.calc(sentry_present_position,
+                    SentryChassisIF::target_velocity = sentry_calcv_pid.calc(sentry_present_position,
                                                                            SentryChassisIF::target_position);
                 }
                 break;
@@ -111,7 +111,7 @@ void SentryChassisSKD::update_target_current() {
                 // If we are in the SHUTTLED_MODE
                 if (sentry_present_position > radius - 3) set_destination(-radius);
                 else if (sentry_present_position < -radius + 3) set_destination(radius);
-                SentryChassisIF::target_velocity = sentry_a2v_pid.calc(sentry_present_position,
+                SentryChassisIF::target_velocity = sentry_calcv_pid.calc(sentry_present_position,
                                                                        SentryChassisIF::target_position);
                 break;
             case (V_MODE):
@@ -122,7 +122,7 @@ void SentryChassisSKD::update_target_current() {
                 // If we are in the FINAL_AUTO_MODE
                 if (sentry_present_position > right_terminal - 3) set_destination(left_terminal);
                 else if (sentry_present_position < left_terminal + 3) set_destination(right_terminal);
-                SentryChassisIF::target_velocity = sentry_a2v_pid.calc(sentry_present_position, SentryChassisIF::target_position);
+                SentryChassisIF::target_velocity = sentry_calcv_pid.calc(sentry_present_position, SentryChassisIF::target_position);
                 break;
             case (STOP_MODE):
             default:
