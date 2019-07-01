@@ -10,7 +10,7 @@
 
 // Raw angle of yaw and pitch when gimbal points straight forward.
 //   Note: the program will echo the raw angles of yaw and pitch as the program starts
-#define GIMBAL_YAW_FRONT_ANGLE_RAW -95.8f//119.7f
+#define GIMBAL_YAW_FRONT_ANGLE_RAW (-95.8f)//119.7f
 #define GIMBAL_PITCH_FRONT_ANGLE_RAW 90.0f//0.7f
 
 /** Gimbal Motor PID Params **/
@@ -72,13 +72,12 @@
     {SENTRY_CHASSIS_PID_V2I_KP, SENTRY_CHASSIS_PID_V2I_KI, SENTRY_CHASSIS_PID_V2I_KD, \
     SENTRY_CHASSIS_PID_V2I_I_LIMIT, SENTRY_CHASSIS_PID_V2I_OUT_LIMIT}
 
-#define CURVE_1_RIGHT 30.0f
-#define CURVE_1_LEFT 40.0f
-#define STRAIGHTWAY_RIGHT 50.0f
-#define STRAIGHTWAY_MIDDLE 55.0f
-#define STRAIGHTWAY_LEFT 60.0f
-#define CURVE_2_RIGHT 70.0f
-#define CURVE_2_LEFT 80.0f
+#define CURVE_1_LEFT 30.0f
+#define CURVE_1_RIGHT 40.0f
+#define STRAIGHTWAY_LEFT 50.0f
+#define STRAIGHTWAY_RIGHT 60.0f
+#define CURVE_2_LEFT 70.0f
+#define CURVE_2_RIGHT 80.0f
 
 #define SENTRY_CHASSIS_PID_A2V_KP 2.95f
 #define SENTRY_CHASSIS_PID_A2V_KI 0.0f
@@ -92,7 +91,7 @@
     SENTRY_CHASSIS_PID_A2V_I_LIMIT, CRUISING_SPEED}
 
     // TODO:
-#define POM_PID_A2V_PARAMS \
+#define POM_PID_P2V_PARAMS \
     {SENTRY_CHASSIS_PID_A2V_KP, SENTRY_CHASSIS_PID_A2V_KI, SENTRY_CHASSIS_PID_A2V_KD, \
     SENTRY_CHASSIS_PID_A2V_I_LIMIT, CRUISING_SPEED}
 

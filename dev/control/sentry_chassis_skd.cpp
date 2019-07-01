@@ -9,14 +9,16 @@
 /* Parameters */
 
 SentryChassisSKD::SentryChassisThread SentryChassisSKD::sentryChassisThread;
+
+bool SentryChassisSKD::printPosition;
+bool SentryChassisSKD::printCurrent;
+bool SentryChassisSKD::printVelocity;
+
 bool SentryChassisSKD::enable;
 bool SentryChassisSKD::POM;
 PIDController SentryChassisSKD::sentry_calcv_pid;
 PIDController SentryChassisSKD::right_v2i_pid;
 PIDController SentryChassisSKD::left_v2i_pid;
-bool SentryChassisSKD::printPosition;
-bool SentryChassisSKD::printCurrent;
-bool SentryChassisSKD::printVelocity;
 SentryChassisSKD::sentry_mode_t SentryChassisSKD::running_mode;
 float SentryChassisSKD::radius;
 float SentryChassisSKD::left_terminal;
@@ -64,6 +66,7 @@ void SentryChassisSKD::print_pid(bool print_a2v){
     }
 }
 
+/** set all to zero: position and velocity for chassis and motors */
 void SentryChassisSKD::set_origin() {
     SentryChassisIF::motor[0].clear_position();
     SentryChassisIF::motor[1].clear_position();
@@ -88,6 +91,48 @@ void SentryChassisSKD::set_mode(sentry_mode_t target_mode) {
 
 void SentryChassisSKD::set_destination(float dist) {
     SentryChassisIF::target_position = dist;
+}
+
+void SentryChassisSKD::set_maximum_velocity(float new_velocity){
+    SentryChassisIF::target_velocity = new_velocity;
+    set_pid(true, {SENTRY_CHASSIS_PID_A2V_KP, SENTRY_CHASSIS_PID_A2V_KI, SENTRY_CHASSIS_PID_A2V_KD, SENTRY_CHASSIS_PID_A2V_I_LIMIT, new_velocity});
+}
+
+/** set target terminals and set "present region" to the target region */
+void SentryChassisSKD::set_terminals(float leftTerminal, float rightTerminal){
+    left_terminal = leftTerminal;
+    right_terminal = rightTerminal;
+    if (left_terminal == CURVE_1_LEFT) SentryChassisIF::present_region = CURVE_1;
+    else if (left_terminal == CURVE_2_LEFT) SentryChassisIF::present_region = CURVE_2;
+    else SentryChassisIF::present_region = STRAIGHTWAY;
+}
+
+/** Power Optimized Mode. */
+void SentryChassisSKD::startPOM() {
+    POM = true;
+    sentry_calcv_pid.change_parameters(POM_PID_P2V_PARAMS);
+    sentry_calcv_pid.clear_i_out();
+}
+
+/** When enemies are spotted or the sentry is being attacked, start escaping using POM */
+void SentryChassisSKD::start_escaping(){
+    startPOM();
+    if (SentryChassisIF::present_region == STRAIGHTWAY){
+        // if we see an enemy on the left, go right
+        // if (SuspensionGimbalIF::yaw.angular_position > 0) set_terminals(CURVE_2_LEFT, CURVE_2_RIGHT);
+        if (Remote::rc.ch2 < 0) set_terminals(CURVE_2_LEFT, CURVE_2_RIGHT);
+        // if we see an enemy on the right, go left
+        else set_terminals(CURVE_1_LEFT, CURVE_1_RIGHT);
+    }
+    else if (SentryChassisIF::present_region == CURVE_1) set_terminals(STRAIGHTWAY_LEFT, STRAIGHTWAY_RIGHT);
+    else if (SentryChassisIF::present_region == CURVE_2) set_terminals(STRAIGHTWAY_LEFT, STRAIGHTWAY_RIGHT);
+}
+
+/** When finishing the previous escaping process, exit POM, prepare for cruising */
+void SentryChassisSKD::stop_escaping(){
+    POM = false;
+    sentry_calcv_pid.change_parameters(CRUISING_PID_A2V_PARAMS);
+    sentry_calcv_pid.clear_i_out();
 }
 
 void SentryChassisSKD::update_target_current() {
@@ -122,7 +167,13 @@ void SentryChassisSKD::update_target_current() {
                 // If we are in the FINAL_AUTO_MODE
                 if (sentry_present_position > right_terminal - 3) set_destination(left_terminal);
                 else if (sentry_present_position < left_terminal + 3) set_destination(right_terminal);
-                SentryChassisIF::target_velocity = sentry_calcv_pid.calc(sentry_present_position, SentryChassisIF::target_position);
+
+                if (false) { /// POM : use referee data to calculate for POM mode
+                    float delta_velocity = sentry_calcv_pid.calc(Referee::power_heat_data.chassis_power, 20);
+                    SentryChassisIF::target_velocity = delta_velocity + SentryChassisIF::present_velocity;
+                } else {
+                    SentryChassisIF::target_velocity = sentry_calcv_pid.calc(sentry_present_position, SentryChassisIF::target_position);
+                }
                 break;
             case (STOP_MODE):
             default:

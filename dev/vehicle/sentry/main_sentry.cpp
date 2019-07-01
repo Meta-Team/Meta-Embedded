@@ -118,11 +118,9 @@ class SentryThread : public chibios_rt::BaseStaticThread<512> {
                                 SentryChassisSKD::set_mode(SentryChassisSKD::ONE_STEP_MODE);
                                 break;
                             case Remote::S_MIDDLE :
-                                /// MIDDLE-MIDDLE: test the final auto mode, safe now, cruising
                                 SentryChassisSKD::set_mode(SentryChassisSKD::SHUTTLED_MODE);
                                 break;
                             case Remote::S_DOWN :
-                                /// MIDDLE-DOWN: test the final auto mode, enemy spotted or being hit
                                 SentryChassisSKD::set_mode(SentryChassisSKD::FINAL_AUTO_MODE);
                                 break;
                         }
@@ -159,14 +157,34 @@ class SentryThread : public chibios_rt::BaseStaticThread<512> {
                 LOG("%.2f, %.2f", Remote::rc.ch2 * 170.0f, Remote::rc.ch3 * 40.0f);
             } else if (s1_present_state == Remote::S_MIDDLE && s2_present_state == Remote::S_UP){
                 SentryChassisSKD::set_destination(SentryChassisIF::target_position + Remote::rc.ch0);
-            } else if (s1_present_state == Remote::S_MIDDLE && s2_present_state == Remote::S_MIDDLE){
-                if (escaping) SentryChassisSKD::stop_escaping();
-                escaping = false;
-            } else if (s1_present_state == Remote::S_MIDDLE && s2_present_state == Remote::S_DOWN){
-                escaping = true;
-                SentryChassisSKD::start_escaping();
-            }
 
+            } else if (s1_present_state == Remote::S_MIDDLE && s2_present_state == Remote::S_DOWN){
+
+                /// FINAL_AUTO_MODE
+                // if not escaping but under attacked, go into escape mode
+                if ( !escaping && (Remote::rc.ch2>=0.5 && Remote::rc.ch2<=-0.5) ) {
+                    escaping = true;
+                    SentryChassisSKD::start_escaping();
+                }
+
+                // if already in the escape mode, finish this escaping process
+                else if ( escaping ) {
+                    // determine the current region and decide whether to stop escaping
+                    region_t curr_region;
+                    if ( SentryChassisIF::present_position >= CURVE_1_LEFT && SentryChassisIF::present_position <= CURVE_1_RIGHT )
+                        curr_region = CURVE_1;
+                    else if ( SentryChassisIF::present_position >= CURVE_2_LEFT && SentryChassisIF::present_position <= CURVE_2_RIGHT )
+                        curr_region = CURVE_2;
+                    else if ( SentryChassisIF::present_position >= STRAIGHTWAY_LEFT && SentryChassisIF::present_position <= STRAIGHTWAY_RIGHT )
+                        curr_region = STRAIGHTWAY;
+
+                    if ( SentryChassisIF::present_region == curr_region ) {
+                        escaping = false;
+                        SentryChassisSKD::stop_escaping();
+                    }
+                }
+
+            }
 
             else if (s1_present_state == Remote::S_DOWN && (s2_present_state == Remote::S_MIDDLE || s2_present_state == Remote::S_DOWN)){
                 if (escaping){

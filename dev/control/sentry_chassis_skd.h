@@ -6,6 +6,7 @@
 #define META_INFANTRY_SENTRY_CHASSIS_CALCULATOR_H
 
 #include "remote_interpreter.h"
+#include "referee_interface.h"
 #include "sentry_chassis_interface.h"
 #include "suspension_gimbal_interface.h"
 #include "pid_controller.hpp"
@@ -47,6 +48,7 @@ public:
 
     static void print_pid(bool print_a2v);
 
+    /** set all to zero: position and velocity for chassis and motors */
     static void set_origin();
 
     static void set_mode(sentry_mode_t target_mode);
@@ -57,47 +59,25 @@ public:
      */
     static void set_destination(float dist);
 
-    static void set_maximum_velocity(float new_velocity){
-        SentryChassisIF::target_velocity = new_velocity;
-        set_pid(true, {SENTRY_CHASSIS_PID_A2V_KP, SENTRY_CHASSIS_PID_A2V_KI, SENTRY_CHASSIS_PID_A2V_KD, SENTRY_CHASSIS_PID_A2V_I_LIMIT, new_velocity});
-    }
+    static void set_maximum_velocity(float new_velocity);
 
-    static void set_terminals(float leftTerminal, float rightTerminal){
-        left_terminal = leftTerminal;
-        right_terminal = rightTerminal;
-        if (left_terminal == CURVE_1_LEFT) SentryChassisIF::present_region = CURVE_1;
-        else if (left_terminal == CURVE_2_LEFT) SentryChassisIF::present_region = CURVE_2;
-        else SentryChassisIF::present_region = STRAIGHTWAY;
-    }
+    /** set target terminals (right and left), and set "present region" to the target region */
+    static void set_terminals(float leftTerminal, float rightTerminal);
+
+    /** Power Optimized Mode, used to accelerate or decelerate quickly, make the fullest use of the power restriction. */
+    static void startPOM();
 
     /**
-     * Power Optimized Mode, used to accelerate or decelerate quickly, make the fullest use of the power restriction.
+     * @pre Enemies are spotted or the sentry is being attacked
+     * Escape to the next region that is far away from the enemy, using power optimized mode.
      */
-    static void startPOM() {
-        POM = true;
-        sentry_calcv_pid.change_parameters(POM_PID_A2V_PARAMS);
-        sentry_calcv_pid.clear_i_out();
-    }
+    static void start_escaping();
 
-    static void start_escaping(){
-        startPOM();
-        if (SentryChassisIF::present_region == STRAIGHTWAY){
-
-            // if we see an enemy on the left, go right
-            // if (SuspensionGimbalIF::yaw.angular_position > 0) set_terminals(CURVE_2_LEFT, CURVE_2_RIGHT);
-            if (Remote::rc.ch2 < 0) set_terminals(CURVE_2_LEFT, CURVE_2_RIGHT);
-            // if we see an enemy on the right, go left
-            else set_terminals(CURVE_1_LEFT, CURVE_1_RIGHT);
-        }
-        else if (SentryChassisIF::present_region == CURVE_1) set_terminals(STRAIGHTWAY_LEFT, STRAIGHTWAY_RIGHT);
-        else if (SentryChassisIF::present_region == CURVE_2) set_terminals(STRAIGHTWAY_LEFT, STRAIGHTWAY_RIGHT);
-    }
-
-    static void stop_escaping(){
-        POM = false;
-        sentry_calcv_pid.change_parameters(CRUISING_PID_A2V_PARAMS);
-        sentry_calcv_pid.clear_i_out();
-    }
+    /**
+     * @pre Finish the previous escaping process (arrive at the target region)
+     * Exit POM. Prepare for Cruising.
+     */
+    static void stop_escaping();
 
     /**
      * @brief Debug helper function. Print the present position in cm
