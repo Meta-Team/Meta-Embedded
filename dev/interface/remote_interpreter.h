@@ -68,8 +68,7 @@ public:
         float ch3;  // left vertical,    normalized: -1.0 (downmost) - 1.0 (upmost)
         rc_status_t s1;
         rc_status_t s2;
-        // TODO: determine direction of scrolling wheel
-        float wheel;  // scrolling wheel, normalized: -1.0(???) - 1.0 (???)
+        float wheel;  // scrolling wheel, normalized: -1.0 (upmost) - 1.0 (downmost)
     } rc_t;
 
     enum mouse_button_t {

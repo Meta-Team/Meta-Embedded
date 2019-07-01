@@ -62,7 +62,7 @@ void Remote::uart_received_callback_(UARTDriver *uartp) {
     rc.s1 = s1;
     rc.s2 = s2;
 
-    rc.wheel = ((((int16_t) rx_buf_[16] | ((int16_t) rx_buf_[17] << 8)) & 0x07FF) - 1024.0f) / 2048.0f;
+    rc.wheel = ((((int16_t) rx_buf_[16] | ((int16_t) rx_buf_[17] << 8)) & 0x07FF) - 1024.0f) / 660.0f;
 
 
     /// Mouse
