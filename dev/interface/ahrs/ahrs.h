@@ -54,12 +54,12 @@ public:
 
     /**
      * Start MPUOnBoard, ISTOnBoard and AHRS update thread
-     * @param installPosition  3x3 Matrix maps gyro and accel to desired coordinate system
+     * @param mpuRotationMatrix  3x3 Matrix maps gyro and accel to desired coordinate system
      * @param mpuPrio   priority of MPU updating thread
      * @param istPrio   priority of IST updating thread
      * @param ahrsPrio  priority of AHRS updating thread
      */
-    void start(const Matrix33 installPosition, tprio_t mpuPrio, tprio_t istPrio, tprio_t ahrsPrio);
+    void start(const Matrix33 mpuRotationMatrix, tprio_t mpuPrio, tprio_t istPrio, tprio_t ahrsPrio);
 
     /**
      * Get data from gyroscope (rotated with installPosition)

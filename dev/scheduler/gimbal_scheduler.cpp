@@ -77,14 +77,11 @@ void GimbalSKD::SKDThread::main() {
     while (!shouldTerminate()) {
 
         // Fetch data
-        Vector3D ahrs_angle = gimbal_ahrs->angle * gimbal_ahrs_install;
-        Vector3D ahrs_gyro = gimbal_ahrs->gyro * gimbal_ahrs_install;
+        Vector3D ahrs_angle = gimbal_ahrs->get_angle() * gimbal_ahrs_install;
+        Vector3D ahrs_gyro = gimbal_ahrs->get_gyro() * gimbal_ahrs_install;
 
         // TODO: document calculations here
-        float angle[2] = {ahrs_angle.x * cosf(GimbalIF::feedback[PITCH].actual_angle) +
-                          ahrs_angle.z * sinf(GimbalIF::feedback[PITCH].actual_angle),
-                          ahrs_angle.y};
-
+        float angle[2] = {ahrs_angle.x, ahrs_angle.y};
         float velocity[2] = {ahrs_gyro.x * cosf(GimbalIF::feedback[PITCH].actual_angle) +
                              ahrs_gyro.z * sinf(GimbalIF::feedback[PITCH].actual_angle),
                              ahrs_gyro.y};

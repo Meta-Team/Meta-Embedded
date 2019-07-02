@@ -119,7 +119,7 @@ int main() {
         GimbalIF::feedback[GimbalIF::PITCH].last_angle_raw, GimbalIF::feedback[GimbalIF::PITCH].actual_angle);
 
     /// Start SKDs
-    GimbalSKD::start(&ahrs, GIMBAL_AHRS_INSTALL_MATRIX,
+    GimbalSKD::start(&ahrs, AHRS_MATRIX,
                      GIMBAL_YAW_INSTALL_DIRECTION, GIMBAL_PITCH_INSTALL_DIRECTION, THREAD_GIMBAL_SKD_PRIO);
     GimbalSKD::load_pid_params(GIMBAL_PID_YAW_A2V_PARAMS, GIMBAL_PID_YAW_V2I_PARAMS,
                                GIMBAL_PID_PITCH_A2V_PARAMS, GIMBAL_PID_PITCH_V2I_PARAMS);

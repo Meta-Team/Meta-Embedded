@@ -19,7 +19,7 @@ public:
     Vector3D(float a[3]):x(a[0]), y(a[1]), z(a[2]) {};
 
 
-    friend const Vector3D operator*(Vector3D a, Matrix33 b) {
+    friend const Vector3D operator*(Vector3D a, const Matrix33 b) {
         Vector3D converted;
         converted.x = b[0][0] * a.x + b[0][1] * a.y + b[0][2] * a.z;
         converted.y = b[1][0] * a.x + b[1][1] * a.y + b[1][2] * a.z;

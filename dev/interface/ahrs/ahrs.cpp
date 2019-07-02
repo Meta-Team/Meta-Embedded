@@ -1,11 +1,11 @@
 #include "ahrs.h"
 
 
-void AHRSOnBoard::start(const Matrix33 installPosition, tprio_t mpuPrio, tprio_t istPrio, tprio_t ahrsPrio) {
+void AHRSOnBoard::start(const Matrix33 mpuRotationMatrix, tprio_t mpuPrio, tprio_t istPrio, tprio_t ahrsPrio) {
 
     for (int i = 0; i < 3; i++) {
         for (int j = 0; j < 3; j++) {
-            installPos[i][j] = installPosition[i][j];
+            installPos[i][j] = mpuRotationMatrix[i][j];
         }
     }
 
@@ -25,7 +25,7 @@ Vector3D AHRSOnBoard::get_gyro() {
 }
 
 Vector3D AHRSOnBoard::get_accel() {
-    return MPUOnBoard::accel * installPos;
+    return MPUOnBoard::get_accel() * installPos;
 }
 
 void AHRSOnBoard::fetch_data() {
