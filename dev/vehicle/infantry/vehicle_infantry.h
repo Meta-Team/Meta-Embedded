@@ -6,20 +6,24 @@
 #ifndef META_INFANTRY_VEHICLE_INFANTRY_H
 #define META_INFANTRY_VEHICLE_INFANTRY_H
 
+/// AHRS Configurations
+static constexpr Matrix33 ON_BOARD_AHRS_MATRIX = {{0.0f, 0.0f, 1.0f},
+                                                  {1.0f, 0.0f, 0.0f},
+                                                  {0.0f, 1.0f, 0.0f}};
+
+#define MPU6500_STORED_GYRO_BIAS {0.0f, 0.0f, 0.0f}
+
+
 /// Gimbal and Shoot Installation Configurations
 #define GIMBAL_YAW_INSTALL_DIRECTION    (GimbalSKD::POSITIVE)
 #define GIMBAL_PITCH_INSTALL_DIRECTION  (GimbalSKD::POSITIVE)
 #define SHOOT_BULLET_INSTALL_DIRECTION (ShootSKD::POSITIVE)
 #define SHOOT_DEGREE_PER_BULLER 40.0f  // rotation degree of bullet loader for each bullet
 
-/// AHRS Installation Configuration
-static constexpr Matrix33 ON_BOARD_AHRS_MATRIX = {{0.0f, 0.0f, 1.0f},
-                                                  {1.0f, 0.0f, 0.0f},
-                                                  {0.0f, 1.0f, 0.0f}};
-
 static constexpr Matrix33 GIMBAL_AHRS_INSTALL_MATRIX = {{1.0f, 0.0f, 0.0f},
                                                         {0.0f, 1.0f, 0.0f},
                                                         {0.0f, 0.0f, 1.0f}};
+
 
 /// Gimbal and Shoot PID Parameters
 #define GIMBAL_PID_YAW_A2V_KP 5.3f

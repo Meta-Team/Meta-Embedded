@@ -23,6 +23,7 @@ class AHRSFeedbackThread : public BaseStaticThread<1024> {
 protected:
     void main() final {
         setName("AHRS");
+        // TODO: try initialization here
         ahrs.start(GIMBAL_AHRS_INSTALL_MATRIX, HIGHPRIO - 2, HIGHPRIO - 3, HIGHPRIO - 1);
         Buzzer::play_sound(Buzzer::sound_startup, LOWPRIO);
         while (!shouldTerminate()) {
@@ -35,12 +36,32 @@ protected:
     }
 } feedbackThread;
 
+
+void cmd_echo_gyro_bias(BaseSequentialStream *chp, int argc, char *argv[]) {
+    (void) argv;
+    if (argc != 0) {
+        shellUsage(chp, "echo_bias");
+        return;
+    }
+
+    chprintf(chp, "gyro_bias.x = %f" SHELL_NEWLINE_STR, ahrs.gyro_bias.x);
+    chprintf(chp, "gyro_bias.y = %f" SHELL_NEWLINE_STR, ahrs.gyro_bias.x);
+    chprintf(chp, "gyro_bias.z = %f" SHELL_NEWLINE_STR, ahrs.gyro_bias.x);
+}
+
+
+ShellCommand ahrsShellCommands[] = {
+        {"echo_bias", cmd_echo_gyro_bias},
+        {nullptr, nullptr}
+};
+
 int main(void) {
 
     halInit();
     System::init();
 
     Shell::start(NORMALPRIO - 10);
+    Shell::addCommands(ahrsShellCommands);
     LED::all_off();
 
     feedbackThread.start(NORMALPRIO);

@@ -18,7 +18,7 @@
  * @usage 1. Call start() to enable MPUOnBoard, ISTOnBoard and AHRS updating thread
  *        2. Make use of data, angle, etc.
  */
-class AHRSOnBoard : public AbstractAHRS, public MPUOnBoard, public ISTOnBoard {
+class AHRSOnBoard : virtual public AbstractAHRS, public MPUOnBoard, public ISTOnBoard {
 
 public:
 

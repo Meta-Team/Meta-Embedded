@@ -25,7 +25,8 @@
 /**
  * @name MPUOnBoard
  * @brief Interface to get on-board MPU6500 data
- * @usage 1. Call start() to enable MPU6500 driver and updating thread
+ * @usage 1. Call start() to enable MPU6500 driver and updating thread. You can call load_calibration_data() BEFORE
+ *           to skip initial calibration and use external calibration data
  *        2. Make use of data from MPU6500, accel, etc.
  */
 class MPUOnBoard : virtual public AbstractMPU {
@@ -49,6 +50,7 @@ public:
     /**
      * Load external calibration data
      * @param gyro_bias_   Gyro bias value
+     * @note To skip initial calibration at start(), call this function BEFORE start()
      */
     void load_calibration_data(Vector3D gyro_bias_);
 
@@ -166,6 +168,8 @@ private:
                                      MPU6500_ACCEL_SCALE_2G,  // Accel full scale 8g
                                      MPU6500_DLPF_41HZ,       // Gyro digital low-pass filter 41Hz
                                      MPU6500_ADLPF_20HZ};     // Accel digital low-pass filter 20Hz
+
+    friend void cmd_echo_gyro_bias(BaseSequentialStream *chp, int argc, char *argv[]);
 };
 
 #endif
