@@ -78,9 +78,8 @@ int main() {
     /// Setup On-Board AHRS
     ahrs.start(ON_BOARD_AHRS_MATRIX, THREAD_MPU_PRIO, THREAD_IST_PRIO, THREAD_AHRS_PRIO);
     chThdSleepMilliseconds(5);
-    // FIXME: inherent problem
-//    Inspector::startup_check_mpu();  // check MPU6500 has signal. Block for 20 ms
-//    Inspector::startup_check_ist();  // check IST8310 has signal. Block for 20 ms
+    Inspector::startup_check_mpu();  // check MPU6500 has signal. Block for 20 ms
+    Inspector::startup_check_ist();  // check IST8310 has signal. Block for 20 ms
     LED::led_on(3);  // LED 3 on now
 
     /// Setup Remote

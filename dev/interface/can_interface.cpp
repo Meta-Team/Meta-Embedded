@@ -74,19 +74,17 @@ void CANInterface::main() {
 
         // Wait until a event occurs, or timeout
         if (waitAnyEventTimeout(ALL_EVENTS, TIME_MS2I(100)) == 0) {
-            // TODO: maybe here is the place to detect lost of signal
+            // Do nothing. Lost of signal will be handled externally for each component
             continue;
         }
 
         // Process every received message
         while (canReceive(can_driver, CAN_ANY_MAILBOX, &rxmsg, TIME_IMMEDIATE) == MSG_OK) {
-//            chSysLock();
             for (unsigned i = 0; i < callback_list_count; i++) {
                 if (rxmsg.SID >= callback_list[i].sid_lower_bound && rxmsg.SID <= callback_list[i].sid_upper_bound) {
                     callback_list[i].callback_func(&rxmsg);
                 }
             }
-//            chSysUnlock();
         }
 
     }

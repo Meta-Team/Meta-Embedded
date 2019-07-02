@@ -86,6 +86,11 @@ void MPUOnBoard::start(tprio_t prio) {
     }
 }
 
+void MPUOnBoard::load_calibration_data(Vector3D gyro_bias_) {
+    gyro_bias = gyro_bias_;
+    last_calibration_time = SYSTIME;
+}
+
 void MPUOnBoard::update() {
 
     // Fetch data from SPI
@@ -101,7 +106,7 @@ void MPUOnBoard::update() {
 
     chSysLock();  /// ---------------------------------- Enter Critical Zone ----------------------------------
 
-    // Calculate new data
+    /// Decode data
 
     accel_orig = Vector3D((int16_t) (rx_buf[0] << 8 | rx_buf[1]),
                           (int16_t) (rx_buf[2] << 8 | rx_buf[3]),
@@ -113,16 +118,18 @@ void MPUOnBoard::update() {
 
     temperature = ((((int16_t) (rx_buf[6] << 8 | rx_buf[7])) - TEMPERATURE_BIAS) / 333.87f) + 21.0f;
 
+    /// Gyro Calibration sampling
+
     if (ABS_IN_RANGE(new_gyro_orig.x - gyro_orig.x, STATIC_RANGE) &&
         ABS_IN_RANGE(new_gyro_orig.y - gyro_orig.y, STATIC_RANGE) &&
-        ABS_IN_RANGE(new_gyro_orig.z - gyro_orig.z, STATIC_RANGE)) {
+        ABS_IN_RANGE(new_gyro_orig.z - gyro_orig.z, STATIC_RANGE)) {  // MPU6500 static
         static_measurement_count++;
         temp_gyro_bias = temp_gyro_bias - new_gyro_orig;
 #if MPU6500_ENABLE_ACCEL_BIAS
         temp_accel_bias = temp_accel_bias + accel;
 #endif
-    } else {
-        LED::red_toggle();
+    } else {  // MPU6500 moves
+        LED::led_toggle(8);
         static_measurement_count = 0;
         temp_gyro_bias = Vector3D(0, 0, 0);
 #if MPU6500_ENABLE_ACCEL_BIAS
@@ -130,6 +137,7 @@ void MPUOnBoard::update() {
 #endif
     }
 
+    /// Bias data
 
     gyro_orig = new_gyro_orig;
     gyro = gyro_orig + gyro_bias;
@@ -139,10 +147,15 @@ void MPUOnBoard::update() {
     accel = accel_orig;
 #endif
 
+    /// Update info
+
     mpu_update_time = SYSTIME;
 
+
+    /// Perform gyro re-bias
+
     if (static_measurement_count >= BIAS_SAMPLE_COUNT) {
-        LED::green_toggle();
+        LED::led_toggle(7);
         gyro_bias = temp_gyro_bias / BIAS_SAMPLE_COUNT;
 #if MPU6500_ENABLE_ACCEL_BIAS
         if (last_calibration_time == 0) {

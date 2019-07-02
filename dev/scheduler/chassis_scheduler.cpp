@@ -89,10 +89,6 @@ void ChassisSKD::SKDThread::main() {
                                target_vx * sinf(theta) + target_vy * cosf(theta),
                                target_w);
 
-        } else if (mode == PARAM_ADJUST_MODE) {
-
-            // TODO: write code for PID parameter adjustment mode
-
         } else if (mode == FORCED_RELAX_MODE) {
 
             for (size_t i = 0; i < MOTOR_COUNT; i++) {

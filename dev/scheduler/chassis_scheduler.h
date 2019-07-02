@@ -39,7 +39,6 @@ public:
                                    // will leads to conflicts.)
                                    // NO SUPPORT FOR CHASSIS COORDINATE
         GIMBAL_COORDINATE_MODE,    // targets use gimbal coordinates
-        PARAM_ADJUST_MODE          // for PID parameter adjustment program
     };
 
     /**

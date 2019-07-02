@@ -40,7 +40,8 @@ public:
     time_msecs_t ist_update_time = 0;
 };
 
-class AbstractAHRS : public AbstractMPU, public AbstractIST {
+// TODO: document virtual keyword here
+class AbstractAHRS : virtual public AbstractMPU, virtual public AbstractIST {
 public:
     /**
      * Board angle [degree]

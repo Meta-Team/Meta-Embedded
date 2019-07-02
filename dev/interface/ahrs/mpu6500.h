@@ -28,7 +28,7 @@
  * @usage 1. Call start() to enable MPU6500 driver and updating thread
  *        2. Make use of data from MPU6500, accel, etc.
  */
-class MPUOnBoard : public AbstractMPU {
+class MPUOnBoard : virtual public AbstractMPU {
 
 public:
 
@@ -42,9 +42,15 @@ public:
 
     /**
      * Start MPU6500 driver and the thread of data fetching
-     * @param prio  thread priority (recommended to be high enough)
+     * @param prio  Thread priority (recommended to be high enough)
      */
     void start(tprio_t prio);
+
+    /**
+     * Load external calibration data
+     * @param gyro_bias_   Gyro bias value
+     */
+    void load_calibration_data(Vector3D gyro_bias_);
 
     /**
      * Temperature data [C]

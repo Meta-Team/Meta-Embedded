@@ -40,9 +40,12 @@ void GimbalSKD::start(AbstractAHRS *gimbal_ahrs_, const Matrix33 gimbal_ahrs_ins
     }
 
     // Initialize last_angle, to use current pointing direction as startup direction
-    Vector3D gimbal_angle = gimbal_ahrs->angle * gimbal_ahrs_install;
-    last_angle[YAW] = gimbal_angle.x;
-    last_angle[PITCH] = gimbal_angle.y;
+    Vector3D ahrs_angle = gimbal_ahrs->angle * gimbal_ahrs_install;
+    // TODO: document calculations here
+    last_angle[YAW] = ahrs_angle.x * cosf(GimbalIF::feedback[PITCH].actual_angle) +
+                      ahrs_angle.z * sinf(GimbalIF::feedback[PITCH].actual_angle);
+    last_angle[PITCH] = ahrs_angle.y;
+
 
     skdThread.start(thread_prio);
 }
@@ -74,15 +77,22 @@ void GimbalSKD::SKDThread::main() {
     while (!shouldTerminate()) {
 
         // Fetch data
-        Vector3D gimbal_angle = gimbal_ahrs->angle * gimbal_ahrs_install;
-        Vector3D gimbal_gyro = gimbal_ahrs->gyro * gimbal_ahrs_install;
+        Vector3D ahrs_angle = gimbal_ahrs->angle * gimbal_ahrs_install;
+        Vector3D ahrs_gyro = gimbal_ahrs->gyro * gimbal_ahrs_install;
 
-        float angle_movement[2] = {gimbal_angle.x - last_angle[YAW],
-                                   gimbal_angle.y - last_angle[PITCH]};
-        last_angle[YAW] = gimbal_angle.x;
-        last_angle[PITCH] = gimbal_angle.y;
+        // TODO: document calculations here
+        float angle[2] = {ahrs_angle.x * cosf(GimbalIF::feedback[PITCH].actual_angle) +
+                          ahrs_angle.z * sinf(GimbalIF::feedback[PITCH].actual_angle),
+                          ahrs_angle.y};
+
+        float velocity[2] = {ahrs_gyro.x * cosf(GimbalIF::feedback[PITCH].actual_angle) +
+                             ahrs_gyro.z * sinf(GimbalIF::feedback[PITCH].actual_angle),
+                             ahrs_gyro.y};
 
         for (int i = YAW; i <= PITCH; i++) {
+
+            float angle_movement = angle[i] - last_angle[i];
+            last_angle[i] = angle[i];
 
             /**
              * Deal with cases crossing 0 point
@@ -91,27 +101,23 @@ void GimbalSKD::SKDThread::main() {
              * 2. new = -179, last = 179, movement = -358, should be corrected to -358 + 360 = 2
              * 200 (-200) is a threshold that is large enough that it's normally impossible to move in 1 ms
              */
-            if (angle_movement[i] < -200) angle_movement[i] += 360;
-            if (angle_movement[i] > 200) angle_movement[i] -= 360;
+            if (angle_movement < -200) angle_movement += 360;
+            if (angle_movement > 200) angle_movement -= 360;
 
             // Use increment to calculate accumulated angles
-            accumulated_angle[i] += angle_movement[i];
+            accumulated_angle[i] += angle_movement;
         }
 
         if (mode == ABS_ANGLE_MODE) {
 
             // YAW
             target_velocity[YAW] = a2v_pid[YAW].calc(accumulated_angle[YAW], target_angle[YAW]);
-            target_current[YAW] = (int) v2i_pid[YAW].calc(gimbal_gyro.x, target_velocity[YAW]);
+            target_current[YAW] = (int) v2i_pid[YAW].calc(velocity[YAW], target_velocity[YAW]);
 
             // PITCH
             target_velocity[PITCH] = a2v_pid[PITCH].calc(GimbalIF::feedback[PITCH].actual_angle * pitch_install,
                                                          target_angle[PITCH]);
-            target_current[PITCH] = (int) v2i_pid[PITCH].calc(gimbal_gyro.y, target_velocity[PITCH]);
-
-        } else if (mode == PARAM_ADJUST_MODE) {
-
-            // TODO: write code for PID parameter adjustment mode
+            target_current[PITCH] = (int) v2i_pid[PITCH].calc(velocity[PITCH], target_velocity[PITCH]);
 
         } else if (mode == FORCED_RELAX_MODE) {
 

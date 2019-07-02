@@ -20,6 +20,7 @@
 #include "ahrs_abstract.h"
 
 #include "pid_controller.hpp"
+#include "math.h"
 
 
 /**
@@ -43,7 +44,6 @@ public:
         FORCED_RELAX_MODE,   // zero force (Still taking control of ChassisIF. External writing to target currents
                              // will leads to conflicts.)
         ABS_ANGLE_MODE,      // target_angle of yaw is relative to ground
-        PARAM_ADJUST_MODE    // for PID parameter adjustment program
     }; // no support for RELATIVE_ANGLE_MODE
 
     enum install_direction_t {

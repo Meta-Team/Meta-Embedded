@@ -91,7 +91,7 @@ void Referee::uart_rx_callback(UARTDriver *uartp) {
 //                        Shell::printfI("[0x0206] data_length = %u" SHELL_NEWLINE_STR, frame_header.data_length);
                         memcpy(&robot_hurt, rx_buf + FRAME_HEADER_SIZE + CMD_ID_SIZE, sizeof(robot_hurt));
                     default:
-                        // FIXME: temporarily disabled since not all ID has been implemented
+                        // Disabled since not all ID has been implemented
                         // LOG_ERR("[REFEREE] Unknown cmd_id %u", cmd_id);
                         break;
                 }

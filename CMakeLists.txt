@@ -48,7 +48,7 @@ include_directories(  # common include directories
         dev/module
         dev/scheduler
         dev/logic
-        # TODO: elimiate control directory
+        # TODO: elimiate control directory someday
         dev/control)
 
 set(COMMON_SRC  # common cpp sources, which are included to every tartget at post configuration below

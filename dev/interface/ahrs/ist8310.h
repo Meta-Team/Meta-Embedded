@@ -32,7 +32,7 @@
  * @usage 1. Call start() to enable IST8310 driver and updating thread
  *        2. Make use of data from IST8310, magnet, etc.
  */
-class ISTOnBoard : public AbstractIST {
+class ISTOnBoard : virtual public AbstractIST {
 public:
 
     /** (From AbstractIST)
