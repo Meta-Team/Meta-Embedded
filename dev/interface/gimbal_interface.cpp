@@ -85,16 +85,24 @@ void GimbalIF::send_gimbal_currents() {
 #if GIMBAL_INTERFACE_ENABLE_CLIP
     ABS_CROP(target_current[YAW], GIMBAL_INTERFACE_MAX_CURRENT);
 #endif
-    txmsg.data8[0] = (uint8_t) (target_current[YAW] >> 8); // upper byte
-    txmsg.data8[1] = (uint8_t) target_current[YAW];       // lower byte
+    /**
+     * @note Viewing from the top of 6623, angle use CCW as positive direction, while current use CW as positive
+     *       direction. In order to unified coordinate system, minus sign is applied here.
+     */
+    txmsg.data8[0] = (uint8_t) (-target_current[YAW] >> 8); // upper byte
+    txmsg.data8[1] = (uint8_t) -target_current[YAW];        // lower byte
 
 
     // Fill the current of Pitch
 #if GIMBAL_INTERFACE_ENABLE_CLIP
     ABS_CROP(target_current[PITCH], GIMBAL_INTERFACE_MAX_CURRENT);
 #endif
-    txmsg.data8[2] = (uint8_t) (target_current[PITCH] >> 8); // upper byte
-    txmsg.data8[3] = (uint8_t) target_current[PITCH];       // lower byte
+    /**
+     * @note Viewing from the top of 6623, angle use CCW as positive direction, while current use CW as positive
+     *       direction. In order to unified coordinate system, minus sign is applied here.
+     */
+    txmsg.data8[2] = (uint8_t) (-target_current[PITCH] >> 8); // upper byte
+    txmsg.data8[3] = (uint8_t) -target_current[PITCH];        // lower byte
 
 
     // Fill the current of bullet loader
@@ -147,42 +155,8 @@ void GimbalIF::process_motor_feedback(CANRxFrame const *rxmsg) {
     int angle_movement = (int) new_actual_angle_raw - (int) feedback[id].last_angle_raw;
 
     switch (id) {
-        case 0:  // Yaw
-
-            feedback[id].last_angle_raw = new_actual_angle_raw;
-
-            // If angle_movement is too extreme between two samples,
-            // we grant that it's caused by moving over the 0(8192) point.
-            if (angle_movement < -4096) {
-                angle_movement += 8192;
-            } else if (angle_movement > 4096) {
-                angle_movement -= 8192;
-            }
-
-            // KEY IDEA: add the change of angle to actual angle
-            feedback[id].actual_angle += angle_movement * 360.0f / 8192;
-
-            // If the actual_angle is greater than 180(-180) then it turns a round in CCW(CW) direction
-            if (feedback[id].actual_angle >= 180.0f) {
-                feedback[id].actual_angle -= 360.0f;
-                feedback[id].round_count++;
-            }
-            if (feedback[id].actual_angle < -180.0f) {
-                feedback[id].actual_angle += 360.0f;
-                feedback[id].round_count--;
-            }
-
-#if GIMBAL_INTERFACE_ENABLE_VELOCITY_CALCULATION
-//            feedback[id].actual_velocity = (float) (rxmsg->data8[2] << 8 | rxmsg->data8[3]) * 60.0f;  // rpm -> degree/s
-#endif
-
-            feedback[id].actual_current = (int16_t) (rxmsg->data8[4] << 8 | rxmsg->data8[5]);
-
-            feedback[id].last_update_time = SYSTIME;
-
-            break;
-
-        case 1:  // Pitch
+        case 0:  // YAW, RM6623
+        case 1:  // PITCH, RM6623
 
             feedback[id].last_angle_raw = new_actual_angle_raw;
 
@@ -232,7 +206,7 @@ void GimbalIF::process_motor_feedback(CANRxFrame const *rxmsg) {
 
             break;
 
-        case 2:  // Bullet Loader
+        case 2:  // BULLET, M2006
 
             feedback[id].last_angle_raw = new_actual_angle_raw;
 
@@ -260,7 +234,7 @@ void GimbalIF::process_motor_feedback(CANRxFrame const *rxmsg) {
 
             break;
 
-        case 3:   // PLATE
+        case 3:   // PLATE, M3508
 
             feedback[id].last_angle_raw = new_actual_angle_raw;
 
@@ -285,6 +259,7 @@ void GimbalIF::process_motor_feedback(CANRxFrame const *rxmsg) {
             feedback[id].last_update_time = SYSTIME;
 
             break;
+
         default:
 
             break;

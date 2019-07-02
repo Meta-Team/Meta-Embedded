@@ -66,6 +66,7 @@ void ShootLG::stop() {
 void ShootLG::StuckDetectorThread::main() {
     setName("Shoot_Stuck");
     while (!shouldTerminate()) {
+
         if (shooter_state == SHOOTING &&
             ShootSKD::get_loader_target_current() > STUCK_THRESHOLD_CURRENT &&
             ShootSKD::get_loader_actual_velocity() < STUCK_THRESHOLD_VELOCITY) {
@@ -81,6 +82,7 @@ void ShootLG::StuckDetectorThread::main() {
             shooter_state = SHOOTING;
 
         }
+
         sleep(TIME_MS2I(STUCK_DETECTOR_THREAD_INTERVAL));
     }
 }

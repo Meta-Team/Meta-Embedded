@@ -63,23 +63,26 @@ void Inspector::startup_check_remote() {
 }
 
 void Inspector::startup_check_chassis_feedback() {
-    // TODO: echo to user which motor lose connection
     time_msecs_t t = SYSTIME;
     while (SYSTIME - t < 20) {
         if (SYSTIME - ChassisIF::feedback[ChassisIF::FR].last_update_time > 5) {
             // No feedback in last 5 ms (normal 1 ms)
+            LOG_ERR("Startup - Chassis FR offline.");
             t = SYSTIME;  // reset the counter
         }
         if (SYSTIME - ChassisIF::feedback[ChassisIF::FL].last_update_time > 5) {
             // No feedback in last 5 ms (normal 1 ms)
+            LOG_ERR("Startup - Chassis FL offline.");
             t = SYSTIME;  // reset the counter
         }
         if (SYSTIME - ChassisIF::feedback[ChassisIF::BL].last_update_time > 5) {
             // No feedback in last 5 ms (normal 1 ms)
+            LOG_ERR("Startup - Chassis BL offline.");
             t = SYSTIME;  // reset the counter
         }
         if (SYSTIME - ChassisIF::feedback[ChassisIF::BR].last_update_time > 5) {
             // No feedback in last 5 ms (normal 1 ms)
+            LOG_ERR("Startup - Chassis BR offline.");
             t = SYSTIME;  // reset the counter
         }
         chThdSleepMilliseconds(5);
@@ -87,19 +90,21 @@ void Inspector::startup_check_chassis_feedback() {
 }
 
 void Inspector::startup_check_gimbal_feedback() {
-    // TODO: echo to user which motor lose connection
     time_msecs_t t = SYSTIME;
     while (SYSTIME - t < 20) {
         if (SYSTIME - GimbalIF::feedback[GimbalIF::YAW].last_update_time > 5) {
             // No feedback in last 5 ms (normal 1 ms)
+            LOG_ERR("Startup - Gimbal Yaw offline.");
             t = SYSTIME;  // reset the counter
         }
         if (SYSTIME - GimbalIF::feedback[GimbalIF::PITCH].last_update_time > 5) {
             // No feedback in last 5 ms (normal 1 ms)
+            LOG_ERR("Startup - Gimbal Pitch offline.");
             t = SYSTIME;  // reset the counter
         }
         if (SYSTIME - GimbalIF::feedback[GimbalIF::BULLET].last_update_time > 5) {
             // No feedback in last 5 ms (normal 1 ms)
+            LOG_ERR("Startup - Gimbal Bullet offline.");
             t = SYSTIME;  // reset the counter
         }
         chThdSleepMilliseconds(5);
@@ -120,8 +125,8 @@ bool Inspector::remote_failure() {
 
 bool Inspector::check_gimbal_failure() {
     bool ret = false;
-    for (auto & i : GimbalIF::feedback) {
-        if (SYSTIME - i.last_update_time > 20) {
+    for (unsigned i = 0 ; i < 3; i++) {
+        if (SYSTIME - GimbalIF::feedback[i].last_update_time > 20) {
             if (!gimbal_failure_) {  // avoid repeating printing
                 LOG_ERR("Gimbal motor %u offline");
                 ret = true;
@@ -136,7 +141,7 @@ bool Inspector::check_chassis_failure() {
     for (unsigned i = 0; i < ChassisIF::MOTOR_COUNT; i++) {
         if (SYSTIME - ChassisIF::feedback[i].last_update_time > 20) {
             if (!chassis_failure_) {  // avoid repeating printing
-                LOG_ERR("Chassis motor %u offline");
+                LOG_ERR("Chassis motor %u offline", i);
                 ret = true;
             }
         }

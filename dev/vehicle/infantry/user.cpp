@@ -26,13 +26,12 @@ void User::UserThread::main() {
                 GimbalLG::set_action(GimbalLG::ABS_ANGLE_MODE);
 
 
-                float yaw_target = GimbalLG::get_accumulated_angle(GimbalLG::YAW) +
-                                   -Remote::rc.ch0 * (GIMBAL_RC_YAW_MAX_SPEED * USER_THREAD_INTERVAL / 1000.0f);
+                float yaw_target = -Remote::rc.ch0 * (GIMBAL_RC_YAW_MAX_SPEED * USER_THREAD_INTERVAL / 1000.0f);
                 // ch0 use right as positive direction, while GimbalLG use CCW (left) as positive direction
 
                 float pitch_target;
                 if (Remote::rc.ch1 > 0) pitch_target = Remote::rc.ch1 * GIMBAL_PITCH_MAX_ANGLE;
-                else pitch_target = Remote::rc.ch1 * GIMBAL_PITCH_MIN_ANGLE;
+                else pitch_target = -Remote::rc.ch1 * GIMBAL_PITCH_MIN_ANGLE;  // GIMBAL_PITCH_MIN_ANGLE is negative
                 // ch1 use up as positive direction, while GimbalLG also use up as positive direction
 
 

@@ -95,15 +95,15 @@ void ChassisSKD::SKDThread::main() {
 
         } else if (mode == FORCED_RELAX_MODE) {
 
-            for (int &i : ChassisIF::target_current) {
-                i = 0;
+            for (size_t i = 0; i < MOTOR_COUNT; i++) {
+                target_current[i] = 0;
             }
 
         }
 
         // Send currents
         for (size_t i = 0; i < MOTOR_COUNT; i++) {
-            GimbalIF::target_current[i] = target_current[i];
+            ChassisIF::target_current[i] = target_current[i];
         }
         ChassisIF::send_chassis_currents();
 

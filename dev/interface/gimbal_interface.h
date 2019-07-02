@@ -101,15 +101,22 @@ public:
         motor_id_t id;
 
         /**
-         * Normalized Angle and Rounds
-         *  Using the front angle_raw as reference.
-         *  Range: -180.0 (clockwise) to 180.0 (counter-clockwise)
+         * Normalized angle
+         * @note Viewing from TOP of 6623/2006 motor. 180 <--CCW-- front_angle_raw --CW--> -180
          */
-
         float actual_angle = 0.0f;     // [degree]
 #if GIMBAL_INTERFACE_ENABLE_VELOCITY_CALCULATION
+
+        /**
+         * Velocity
+         * @note Viewing from TOP of 6623/2006 motor. Positive for CCW. Negative for CW.
+         */
         float actual_velocity = 0.0f;  // [degree/s]
 #endif
+        /**
+         * Actual current
+         * @note Direction is UNKNOWN yet. In reality, it vibrates significantly, and it's not useful for now.
+         */
         int actual_current = 0;  // [mA]
         int round_count = 0;
 
@@ -125,7 +132,7 @@ public:
 
         /**
          * Get total angle from the original front angle
-         * @return the accumulate angle since last reset_front_angle
+         * @return Accumulated angle since last reset_front_angle [degree, positive for CCW viewing from top]
          */
         float accumulated_angle();
 
@@ -134,13 +141,14 @@ public:
         uint16_t last_angle_raw = 0;  // in the range of [0, 8191]
 
 #if GIMBAL_INTERFACE_ENABLE_VELOCITY_CALCULATION
-        // Variable for velocity sampling
+        // Variables for velocity sampling
         time_msecs_t sample_time_stamp = 0;
         int sample_count = 0;
         int sample_movement_sum = 0;
 #endif
 
         friend GimbalIF;
+
         friend int main();
 
     };
@@ -182,15 +190,6 @@ private:
     enum friction_wheel_channel_t {
         FW_LEFT = 0,  // The left  friction wheel, PI5, channel 0
         FW_RIGHT = 1  // The right friction wheel, PI6, channel 1
-    };
-
-    enum motor_type_t {
-        RM6623,
-        M2006,
-        M3508,
-        GM6020,
-        RM3510,
-        MOTOR_TYPE_COUNT
     };
 
 };

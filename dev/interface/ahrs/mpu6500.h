@@ -77,10 +77,11 @@ private:
     // If changes in x, y, z of gyro is in this range MPU6500 is regarded as "static"
     const float STATIC_RANGE = 0.2f;
 
-    const unsigned BIAS_SAMPLE_COUNT = 500;
+    const unsigned BIAS_SAMPLE_COUNT = 200;
     // When static_measurement_count reaches BIAS_SAMPLE_COUNT, calibration is performed.
     unsigned static_measurement_count;
-    time_msecs_t last_calibration_time;
+
+    time_msecs_t last_calibration_time = 0;
 
     void mpu6500_write_reg(uint8_t reg_addr, uint8_t value);  // helper function to use SPI
     void update();

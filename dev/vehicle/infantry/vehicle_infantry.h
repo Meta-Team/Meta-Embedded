@@ -8,14 +8,18 @@
 
 /// Gimbal and Shoot Installation Configurations
 #define GIMBAL_YAW_INSTALL_DIRECTION    (GimbalSKD::POSITIVE)
-#define GIMBAL_PITCH_INSTALL_DIRECTION  (GimbalSKD::NEGATIVE)
-#define SHOOT_BULLET_INSTALL_DIRECTION (ShootSKD::NEGATIVE)
+#define GIMBAL_PITCH_INSTALL_DIRECTION  (GimbalSKD::POSITIVE)
+#define SHOOT_BULLET_INSTALL_DIRECTION (ShootSKD::POSITIVE)
 #define SHOOT_DEGREE_PER_BULLER 40.0f  // rotation degree of bullet loader for each bullet
 
 /// AHRS Installation Configuration
-static constexpr Matrix33 GIMBAL_AHRS_INSTALL_MATRIX = {{ 0.0f,  0.0f,  1.0f},
-                                                        { 1.0f,  0.0f,  0.0f},
-                                                        { 0.0f,  1.0f,  0.0f}};
+static constexpr Matrix33 ON_BOARD_AHRS_MATRIX = {{0.0f, 0.0f, 1.0f},
+                                                  {1.0f, 0.0f, 0.0f},
+                                                  {0.0f, 1.0f, 0.0f}};
+
+static constexpr Matrix33 GIMBAL_AHRS_INSTALL_MATRIX = {{1.0f, 0.0f, 0.0f},
+                                                        {0.0f, 1.0f, 0.0f},
+                                                        {0.0f, 0.0f, 1.0f}};
 
 /// Gimbal and Shoot PID Parameters
 #define GIMBAL_PID_YAW_A2V_KP 5.3f
@@ -55,7 +59,7 @@ static constexpr Matrix33 GIMBAL_AHRS_INSTALL_MATRIX = {{ 0.0f,  0.0f,  1.0f},
     GIMBAL_PID_PITCH_V2I_I_LIMIT, GIMBAL_PID_PITCH_V2I_OUT_LIMIT}
 
 // TODO: select a better params
-#define SHOOT_PID_BULLET_LOADER_A2V_KP 2.0f
+#define SHOOT_PID_BULLET_LOADER_A2V_KP 0.0f
 #define SHOOT_PID_BULLET_LOADER_A2V_KI 0.0f
 #define SHOOT_PID_BULLET_LOADER_A2V_KD 0.0f
 #define SHOOT_PID_BULLET_LOADER_A2V_I_LIMIT 0.0f
@@ -99,7 +103,7 @@ static constexpr Matrix33 GIMBAL_AHRS_INSTALL_MATRIX = {{ 0.0f,  0.0f,  1.0f},
 #define CHASSIS_PID_THETA2V_PARAMS \
     {CHASSIS_PID_THETA2V_KP, CHASSIS_PID_THETA2V_KI, CHASSIS_PID_THETA2V_KD, \
     CHASSIS_PID_THETA2V_I_LIMIT, CHASSIS_PID_THETA2V_OUT_LIMIT}
-    
+
 /// Thread Priority List
 #define THREAD_CAN1_PRIO                    (HIGHPRIO - 1)
 #define THREAD_MPU_PRIO                     (HIGHPRIO - 2)
@@ -115,5 +119,5 @@ static constexpr Matrix33 GIMBAL_AHRS_INSTALL_MATRIX = {{ 0.0f,  0.0f,  1.0f},
 #define THREAD_SHELL_PRIO                   (LOWPRIO + 10)
 #define THREAD_BUZZER_PRIO                  (LOWPRIO + 1)
 #define THREAD_IDEAL_PRIO                   (LOWPRIO)
-    
+
 #endif //META_INFANTRY_VEHICLE_INFANTRY_H
