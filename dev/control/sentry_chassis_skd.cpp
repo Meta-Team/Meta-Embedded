@@ -15,7 +15,7 @@ bool SentryChassisSKD::printPosition;
 bool SentryChassisSKD::printCurrent;
 bool SentryChassisSKD::printVelocity;
 
-unsigned last_attack_time;
+unsigned SentryChassisSKD::last_attack_time;
 bool SentryChassisSKD::randomMode;
 
 bool SentryChassisSKD::enable;
