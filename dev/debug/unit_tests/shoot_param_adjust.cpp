@@ -91,7 +91,7 @@ static void cmd_shoot_enable_fw(BaseSequentialStream *chp, int argc, char *argv[
         return;
     }
     if (*argv[0] == '1') {
-        Shoot::set_friction_wheels(0.1);
+        Shoot::set_friction_wheels(0.15);
     } else {
         Shoot::set_friction_wheels(0);
     }
@@ -225,7 +225,7 @@ void cmd_shoot_echo_parameters(BaseSequentialStream *chp, int argc, char *argv[]
     }
 
     chprintf(chp, "bullet v_to_i:       ");
-    _cmd_shoot_echo_parameters(chp, Shoot::v2i_pid[BULLET].get_parameters());
+    _cmd_shoot_echo_parameters(chp, Shoot::v2i_pid[0].get_parameters());
 }
 
 // Command lists for shoot controller test and adjustments
