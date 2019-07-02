@@ -41,7 +41,7 @@
  */
 
 CANInterface can1(&CAND1);
-AHRSExt ahrsExt;
+//AHRSExt ahrsExt;
 
 /** Threads **/
 
@@ -135,14 +135,10 @@ class SentryThread : public chibios_rt::BaseStaticThread<512> {
                         SuspensionGimbalSKD::set_shoot_mode(OFF);
                         switch (s2_present_state){
                             case Remote::S_UP :
-                                SentryChassisSKD::set_mode(SentryChassisSKD::STOP_MODE);
                                 break;
                             case Remote::S_MIDDLE :
                                 break;
-
                             case Remote::S_DOWN :
-                                SentryChassisSKD::turn_on();
-                                SentryChassisSKD::set_mode(SentryChassisSKD::FINAL_AUTO_MODE);
                                 break;
                         }
                         break;

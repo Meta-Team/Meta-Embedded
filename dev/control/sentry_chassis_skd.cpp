@@ -138,7 +138,6 @@ void SentryChassisSKD::start_escaping(){
     last_attack_time = SYSTIME;
     if (!randomMode){
         randomMode = true;
-        startPOM();
         update_terminal();
     }
 }
