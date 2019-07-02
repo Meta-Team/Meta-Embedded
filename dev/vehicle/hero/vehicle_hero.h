@@ -10,7 +10,7 @@
 #define CHASSIS_WHEEL_TREAD 472.76f                     // distance between left and right wheels [mm]
 #define CHASSIS_WHEEL_CIRCUMFERENCE 478.0f             // [mm]
 
-#define SHOOT_DEGREE_PER_BULLER 72.0f                 // rotation degree of bullet loader for each bullet
+#define SHOOT_DEGREE_PER_BULLET 72.0f                 // rotation degree of bullet loader for each bullet
 #define SHOOT_DEGREE_PER_BULLER_PLATE 36.0f           // rotation degree of bullet plate for each bullet
 
 /** Shooting Mechanism User Preference **/

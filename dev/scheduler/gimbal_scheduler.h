@@ -54,14 +54,15 @@ public:
     /**
      * Start this scheduler
      * @param gimbal_ahrs_           Pointer to an initialized AHRS on gimbal
-     * @param gimbal_ahrs_install_   Rotation matrix for gimbal AHRS
+     * @param ahrs_angle_rotation_   Rotation matrix for AHRS angle
+     * @param ahrs_gyro_rotation_    Rotation matrix for AHRS gyro
      * @param yaw_install_           Yaw motor install direction
      * @param pitch_install_         Pitch motor install direction
      * @param thread_prio            Priority of PID calculating thread
      */
-    static void start(AbstractAHRS *gimbal_ahrs_, const Matrix33 gimbal_ahrs_install_,
-                      install_direction_t yaw_install_, install_direction_t pitch_install_,
-                      tprio_t thread_prio);
+    static void
+    start(AbstractAHRS *gimbal_ahrs_, const Matrix33 ahrs_angle_rotation_, const Matrix33 ahrs_gyro_rotation_,
+          install_direction_t yaw_install_, install_direction_t pitch_install_, tprio_t thread_prio);
 
     /**
      * Set PID parameters of yaw and pitch
@@ -103,7 +104,8 @@ public:
 private:
 
     static AbstractAHRS *gimbal_ahrs;
-    static Matrix33 gimbal_ahrs_install;
+    static Matrix33 ahrs_angle_rotation;
+    static Matrix33 ahrs_gyro_rotation;
     static install_direction_t yaw_install;
     static install_direction_t pitch_install;
 

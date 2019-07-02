@@ -16,12 +16,16 @@ static constexpr Matrix33 ON_BOARD_AHRS_MATRIX = {{0.0f, 0.0f, 1.0f},
 #define GIMBAL_YAW_INSTALL_DIRECTION    (GimbalSKD::POSITIVE)
 #define GIMBAL_PITCH_INSTALL_DIRECTION  (GimbalSKD::POSITIVE)
 #define SHOOT_BULLET_INSTALL_DIRECTION (ShootSKD::POSITIVE)
-#define SHOOT_DEGREE_PER_BULLER 40.0f  // rotation degree of bullet loader for each bullet
+#define SHOOT_DEGREE_PER_BULLET 40.0f  // rotation degree of bullet loader for each bullet
 
-static constexpr Matrix33 AHRS_MATRIX = {{1.0f, 0.0f, 0.0f},
-                                                        {0.0f, 1.0f, 0.0f},
-                                                        {0.0f, 0.0f, 1.0f}};
+static constexpr Matrix33 GIMBAL_ANGLE_INSTALLATION_MATRIX = {{1.0f, 0.0f, 0.0f},
+                                                              {0.0f, 1.0f, 0.0f},
+                                                              {0.0f, 0.0f, -1.0f}};
 
+
+static constexpr Matrix33 GIMBAL_GYRO_INSTALLATION_MATRIX = {{0.0f,  -1.0f, 0.0f},
+                                                             {0.0f,  0.0f,  1.0f},
+                                                             {-1.0f, 0.0f,  0.0f}};
 
 /// Gimbal and Shoot PID Parameters
 #define GIMBAL_PID_YAW_A2V_KP 5.3f
@@ -61,7 +65,7 @@ static constexpr Matrix33 AHRS_MATRIX = {{1.0f, 0.0f, 0.0f},
     GIMBAL_PID_PITCH_V2I_I_LIMIT, GIMBAL_PID_PITCH_V2I_OUT_LIMIT}
 
 // TODO: select a better params
-#define SHOOT_PID_BULLET_LOADER_A2V_KP 0.0f
+#define SHOOT_PID_BULLET_LOADER_A2V_KP 10.0f
 #define SHOOT_PID_BULLET_LOADER_A2V_KI 0.0f
 #define SHOOT_PID_BULLET_LOADER_A2V_KD 0.0f
 #define SHOOT_PID_BULLET_LOADER_A2V_I_LIMIT 0.0f
@@ -97,11 +101,11 @@ static constexpr Matrix33 AHRS_MATRIX = {{1.0f, 0.0f, 0.0f},
     {CHASSIS_PID_V2I_KP, CHASSIS_PID_V2I_KI, CHASSIS_PID_V2I_KD, \
     CHASSIS_PID_V2I_I_LIMIT, CHASSIS_PID_V2I_OUT_LIMIT}
 
-#define CHASSIS_PID_THETA2V_KP 1.0f
+#define CHASSIS_PID_THETA2V_KP 100.0f  // almost infinity, so output = out_limit
 #define CHASSIS_PID_THETA2V_KI 0.0f
 #define CHASSIS_PID_THETA2V_KD 0.0f
 #define CHASSIS_PID_THETA2V_I_LIMIT 0.0f
-#define CHASSIS_PID_THETA2V_OUT_LIMIT 150.0f
+#define CHASSIS_PID_THETA2V_OUT_LIMIT 270.0f
 #define CHASSIS_PID_THETA2V_PARAMS \
     {CHASSIS_PID_THETA2V_KP, CHASSIS_PID_THETA2V_KI, CHASSIS_PID_THETA2V_KD, \
     CHASSIS_PID_THETA2V_I_LIMIT, CHASSIS_PID_THETA2V_OUT_LIMIT}

@@ -57,7 +57,9 @@ int main() {
     halInit();
     chibios_rt::System::init();
 
-
+    // Enable power of bullet loader motor
+    palSetPadMode(GPIOH, GPIOH_POWER1_CTRL, PAL_MODE_OUTPUT_PUSHPULL);
+    palSetPad(GPIOH, GPIOH_POWER1_CTRL);
 
     /*** ---------------------- Period 1. Modules Setup and Self-Check ---------------------- ***/
 
@@ -76,6 +78,7 @@ int main() {
     LED::led_on(2);  // LED 2 on now
 
     /// Setup On-Board AHRS
+    ahrs.load_calibration_data(MPU6500_STORED_GYRO_BIAS);
     ahrs.start(ON_BOARD_AHRS_MATRIX, THREAD_MPU_PRIO, THREAD_IST_PRIO, THREAD_AHRS_PRIO);
     chThdSleepMilliseconds(5);
     Inspector::startup_check_mpu();  // check MPU6500 has signal. Block for 20 ms
@@ -119,7 +122,7 @@ int main() {
         GimbalIF::feedback[GimbalIF::PITCH].last_angle_raw, GimbalIF::feedback[GimbalIF::PITCH].actual_angle);
 
     /// Start SKDs
-    GimbalSKD::start(&ahrs, AHRS_MATRIX,
+    GimbalSKD::start(&ahrs, GIMBAL_ANGLE_INSTALLATION_MATRIX, GIMBAL_GYRO_INSTALLATION_MATRIX,
                      GIMBAL_YAW_INSTALL_DIRECTION, GIMBAL_PITCH_INSTALL_DIRECTION, THREAD_GIMBAL_SKD_PRIO);
     GimbalSKD::load_pid_params(GIMBAL_PID_YAW_A2V_PARAMS, GIMBAL_PID_YAW_V2I_PARAMS,
                                GIMBAL_PID_PITCH_A2V_PARAMS, GIMBAL_PID_PITCH_V2I_PARAMS);
@@ -133,7 +136,7 @@ int main() {
 
     /// Start LGs
     // GimbalLG does not need initialization
-    ShootLG::init(SHOOT_DEGREE_PER_BULLER, THREAD_SHOOT_LG_STUCK_DETECT_PRIO);
+    ShootLG::init(SHOOT_DEGREE_PER_BULLET, THREAD_SHOOT_LG_STUCK_DETECT_PRIO);
     ChassisLG::init(THREAD_CHASSIS_LG_DODGE_PRIO);
 
 

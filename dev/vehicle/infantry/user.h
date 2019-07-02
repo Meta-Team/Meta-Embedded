@@ -24,11 +24,11 @@ public:
 private:
 
     /// Gimbal Parameters
-    static constexpr float GIMBAL_RC_YAW_MAX_SPEED = 30;  // [degree/s]
+    static constexpr float GIMBAL_RC_YAW_MAX_SPEED = 120;  // [degree/s]
     static constexpr float GIMBAL_PC_YAW_SENSITIVITY = 54000;     // rotation speed when mouse moves fastest [degree/s]
 
     static constexpr float GIMBAL_PC_PITCH_SENSITIVITY = 12000;   // rotation speed when mouse moves fastest [degree/s]
-    static constexpr float GIMBAL_PITCH_MIN_ANGLE = -20; // down range for pitch [degree]
+    static constexpr float GIMBAL_PITCH_MIN_ANGLE = -10; // down range for pitch [degree]
     static constexpr float GIMBAL_PITCH_MAX_ANGLE = 45; //  up range for pitch [degree]
 
     /// Shoot Parameters
@@ -48,6 +48,8 @@ private:
     static constexpr unsigned USER_THREAD_INTERVAL = 7;  // [ms]
 
     class UserThread : public chibios_rt::BaseStaticThread<512> {
+        float gimbal_rc_yaw_target_angle = 0;
+        float gimbal_pc_yaw_target_angle = 0;
         float gimbal_pc_pitch_target_angle = 0;
         bool pc_x_pressed = false;
         bool pc_z_pressed = false;

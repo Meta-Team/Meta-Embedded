@@ -26,7 +26,7 @@ void User::UserThread::main() {
                 GimbalLG::set_action(GimbalLG::ABS_ANGLE_MODE);
 
 
-                float yaw_target = -Remote::rc.ch0 * (GIMBAL_RC_YAW_MAX_SPEED * USER_THREAD_INTERVAL / 1000.0f);
+                gimbal_rc_yaw_target_angle += -Remote::rc.ch0 * (GIMBAL_RC_YAW_MAX_SPEED * USER_THREAD_INTERVAL / 1000.0f);
                 // ch0 use right as positive direction, while GimbalLG use CCW (left) as positive direction
 
                 float pitch_target;
@@ -35,7 +35,7 @@ void User::UserThread::main() {
                 // ch1 use up as positive direction, while GimbalLG also use up as positive direction
 
 
-                GimbalLG::set_target(yaw_target, pitch_target);
+                GimbalLG::set_target(gimbal_rc_yaw_target_angle, pitch_target);
 
             } else if (Remote::rc.s1 == Remote::S_DOWN) {
 
@@ -44,7 +44,7 @@ void User::UserThread::main() {
                 GimbalLG::set_action(GimbalLG::ABS_ANGLE_MODE);
 
 
-                float yaw_target = GimbalLG::get_accumulated_angle(GimbalLG::YAW) +
+                gimbal_pc_yaw_target_angle +=
                                    -Remote::mouse.x * (GIMBAL_PC_YAW_SENSITIVITY * USER_THREAD_INTERVAL / 1000.0f);
                 // mouse.x use right as positive direction, while GimbalLG use CCW (left) as positive direction
 
@@ -59,7 +59,7 @@ void User::UserThread::main() {
                     gimbal_pc_pitch_target_angle = GIMBAL_PITCH_MAX_ANGLE;
 
 
-                GimbalLG::set_target(yaw_target, gimbal_pc_pitch_target_angle);
+                GimbalLG::set_target(gimbal_pc_yaw_target_angle, gimbal_pc_pitch_target_angle);
 
             } else {
                 /// Safe Mode
@@ -80,12 +80,11 @@ void User::UserThread::main() {
 
                 /// Remote - Shoot with Scrolling Wheel
 
-                // TODO: revise conditions here
-                if (Remote::rc.wheel < -0.5) {
+                if (Remote::rc.wheel < -0.5) {  // down
                     if (ShootLG::get_shooter_state() == ShootLG::STOP) {
                         ShootLG::shoot(SHOOT_LAUNCH_LEFT_COUNT);
                     }
-                } else if (Remote::rc.wheel > 0.5) {
+                } else if (Remote::rc.wheel > 0.5) {  // up
                     if (ShootLG::get_shooter_state() == ShootLG::STOP) {
                         ShootLG::shoot(SHOOT_LAUNCH_RIGHT_COUNT);
                     }

@@ -71,6 +71,11 @@ public:
      */
     static void set_target(float vx, float vy, float theta);
 
+    /**
+     * Get actual angle difference between gimbal coordinate and chassis coordinate [degree]
+     * @return Theta value
+     */
+    static float get_actual_theta();
 
 private:
 

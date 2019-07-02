@@ -57,36 +57,40 @@ void ChassisSKD::set_target(float vx, float vy, float theta) {
     target_theta = theta;
 }
 
+float ChassisSKD::get_actual_theta() {
+    return GimbalIF::feedback[GimbalIF::YAW].actual_angle;
+}
+
 void ChassisSKD::velocity_decompose(float vx, float vy, float w) {
 
-    // FR, -vx, +vy, +w
-    // FL, -vx, -vy, +w, since the motor is installed in the opposite direction
-    // BL, +vx, -vy, +w, since the motor is installed in the opposite direction
-    // BR, +vx, +vy, +w
+    // FR, +vx, -vy, +w
+    // FL, +vx, +vy, +w, since the motor is installed in the opposite direction
+    // BL, -vx, +vy, +w, since the motor is installed in the opposite direction
+    // BR, -vx, -vy, +w
 
-    target_velocity[FR] = (-vx + vy + w * w_to_v_ratio_) * v_to_wheel_angular_velocity_;
+    target_velocity[FR] = (+vx - vy + w * w_to_v_ratio_) * v_to_wheel_angular_velocity_;
     target_current[FR] = (int) v2i_pid[FR].calc(ChassisIF::feedback[FR].actual_velocity, target_velocity[FR]);
 
-    target_velocity[FL] = (-vx - vy + w * w_to_v_ratio_) * v_to_wheel_angular_velocity_;
+    target_velocity[FL] = (+vx + vy + w * w_to_v_ratio_) * v_to_wheel_angular_velocity_;
     target_current[FL] = (int) v2i_pid[FL].calc(ChassisIF::feedback[FL].actual_velocity, target_velocity[FL]);
 
-    target_velocity[BL] = (+vx - vy + w * w_to_v_ratio_) * v_to_wheel_angular_velocity_;
+    target_velocity[BL] = (-vx + vy + w * w_to_v_ratio_) * v_to_wheel_angular_velocity_;
     target_current[BL] = (int) v2i_pid[BL].calc(ChassisIF::feedback[BL].actual_velocity, target_velocity[BL]);
 
-    target_velocity[BR] = (+vx + vy + w * w_to_v_ratio_) * v_to_wheel_angular_velocity_;
+    target_velocity[BR] = (-vx - vy + w * w_to_v_ratio_) * v_to_wheel_angular_velocity_;
     target_current[BR] = (int) v2i_pid[BR].calc(ChassisIF::feedback[BR].actual_velocity, target_velocity[BR]);
 }
 
 void ChassisSKD::SKDThread::main() {
-    setName("ChassisSKD");
+    setName("Chassis_SKD");
     while (!shouldTerminate()) {
 
         if (mode == GIMBAL_COORDINATE_MODE) {
 
-            float theta = GimbalIF::feedback[GimbalIF::YAW].actual_angle;
+            float theta = get_actual_theta();
             target_w = a2v_pid.calc(theta, target_theta);
-            velocity_decompose(target_vx * cosf(theta) - target_vy * sinf(theta),
-                               target_vx * sinf(theta) + target_vy * cosf(theta),
+            velocity_decompose(target_vx * cosf(theta / 180.0f * M_PI) - target_vy * sinf(theta / 180.0f * M_PI),
+                               target_vx * sinf(theta / 180.0f * M_PI) + target_vy * cosf(theta / 180.0f * M_PI),
                                target_w);
 
         } else if (mode == FORCED_RELAX_MODE) {

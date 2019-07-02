@@ -35,7 +35,7 @@ void Inspector::startup_check_can() {
 void Inspector::startup_check_mpu() {
     time_msecs_t t = SYSTIME;
     while (SYSTIME - t < 20) {
-        if (SYSTIME - ahrs->mpu_update_time > 5) {  // No signal in last 5 ms (normal interval 1 ms for on-board MPU)
+        if (SYSTIME - ahrs->get_mpu_update_time() > 5) {  // No signal in last 5 ms (normal interval 1 ms for on-board MPU)
             t = SYSTIME;  // reset the counter
         }
         chThdSleepMilliseconds(5);
@@ -45,7 +45,7 @@ void Inspector::startup_check_mpu() {
 void Inspector::startup_check_ist() {
     time_msecs_t t = SYSTIME;
     while (SYSTIME - t < 20) {
-        if (SYSTIME - ahrs->ist_update_time > 5) {  // No signal in last 5 ms (normal interval 1 ms for on-board MPU)
+        if (SYSTIME - ahrs->get_ist_update_time() > 5) {  // No signal in last 5 ms (normal interval 1 ms for on-board MPU)
             t = SYSTIME;  // reset the counter
         }
         chThdSleepMilliseconds(5);

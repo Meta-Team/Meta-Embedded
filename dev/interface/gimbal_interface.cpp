@@ -52,13 +52,6 @@ void GimbalIF::init(CANInterface *can_interface, uint16_t yaw_front_angle_raw, u
     can_ = can_interface;
     can_->register_callback(0x205, 0x208, process_motor_feedback);
 
-#if defined(BOARD_RM_2018_A)
-    // Enable power of bullet loader motor
-    palSetPadMode(GPIOH, GPIOH_POWER1_CTRL, PAL_MODE_OUTPUT_PUSHPULL);
-    palSetPad(GPIOH, GPIOH_POWER1_CTRL);
-#endif
-
-
     // Enable PWM and perform initialization on friction wheels
 
     pwmStart(&PWMD8, &FRICTION_WHEELS_PWM_CFG);

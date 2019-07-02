@@ -29,6 +29,8 @@ ChassisLG::action_t ChassisLG::get_action() {
 }
 
 void ChassisLG::set_action(ChassisLG::action_t value) {
+    if (value == action) return;  // avoid repeating setting target_theta, etc.
+
     action = value;
     if (action == FORCED_RELAX_MODE) {
         ChassisSKD::set_mode(ChassisSKD::FORCED_RELAX_MODE);
@@ -69,7 +71,14 @@ void ChassisLG::DodgeModeSwitchThread::main() {
             continue;
         }
 
-        target_theta = -target_theta;
+        if (!ABS_IN_RANGE(ChassisSKD::get_actual_theta() - (-target_theta), 20)) {
+            target_theta = -target_theta;
+        }
+        /**
+         * If next target_theta is too close to current theta (may due to gimbal rotation), do not switch target to
+         * create large difference to avoid pause
+         */
+
         apply_target();
 
         sleep(TIME_MS2I(DODGE_MODE_SWITCH_INTERVAL));
