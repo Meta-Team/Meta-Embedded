@@ -15,22 +15,30 @@ void AHRSOnBoard::start(const Matrix33 installPosition, tprio_t mpuPrio, tprio_t
     chThdSleepMilliseconds(100);
 
     fetch_data();
-    AHRS_init(q, (const fp32 *) &accel_, (const fp32 *) &mag_);
+    ::AHRS_init(q, (const fp32 *) &accel_, (const fp32 *) &mag_);
 
     updateThread.start(ahrsPrio);
 }
 
+Vector3D AHRSOnBoard::get_gyro() {
+    return MPUOnBoard::get_gyro() * installPos;
+}
+
+Vector3D AHRSOnBoard::get_accel() {
+    return MPUOnBoard::accel * installPos;
+}
+
 void AHRSOnBoard::fetch_data() {
-    gyro_ = (MPUOnBoard::gyro * installPos) * DEG2RAD;
-    accel_ = MPUOnBoard::accel * installPos;
-    mag_ = ISTOnBoard::magnet;
+    gyro_ = get_gyro() * DEG2RAD;
+    accel_ = get_accel();
+    mag_ = ISTOnBoard::get_magnet();
 }
 
 void AHRSOnBoard::update() {
     fetch_data();
-    AHRS_update(q, 0.001f, (const fp32 *) &gyro_, (const fp32 *) &accel_, (const fp32 *) &mag_);
+    ::AHRS_update(q, 0.001f, (const fp32 *) &gyro_, (const fp32 *) &accel_, (const fp32 *) &mag_);
 
-    get_angle(q, &angle.x, &angle.y, &angle.z);
+    ::get_angle(q, &angle.x, &angle.y, &angle.z);
     angle = angle * RAD2DEG;
 }
 

@@ -24,9 +24,9 @@ protected:
         Buzzer::play_sound(Buzzer::sound_startup, LOWPRIO);
         while (!shouldTerminate()) {
             Shell::printf("!a,%.4f,%.4f,%.4f" SHELL_NEWLINE_STR,
-                          ahrs.angle.x,
-                          ahrs.angle.y,
-                          ahrs.angle.z);
+                          ahrs.get_angle().x,
+                          ahrs.get_angle().y,
+                          ahrs.get_angle().z);
 //            Shell::printf("w = (%.4f, %.4f, %.4f), a = (%.4f, %.4f, %.4f)" SHELL_NEWLINE_STR,
 //                          ahrs.gyro.x, ahrs.gyro.y, ahrs.gyro.z,
 //                          ahrs.accel.x, ahrs.accel.y, ahrs.accel.z);

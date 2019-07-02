@@ -35,8 +35,13 @@
 class ISTOnBoard : public AbstractIST {
 public:
 
-    /** (From AbstractIST)
+    /* (From AbstractIST)
 
+    (public)
+    Vector3D get_magnet();  // get magnet data [uT]
+    time_msecs_t get_ist_update_time(); // get last update time from system start [ms]
+
+    (protected)
     Vector3D magnet;  // Magnet data [uT]
 
     */

@@ -22,8 +22,24 @@ class AHRSExt : public AbstractAHRS {
 
 public:
 
-    /**
+    /*
 
+     (public)
+     (From AbstractAHRS)
+     Vector3D get_angle();  // get board angle [degree]
+     time_msecs_t get_ahrs_update_time();  // get last update time from system start [ms]
+
+     (From AbstractMPU)
+     Override get_gyro(), get_accel() since rotation is needed
+     time_msecs_t get_mpu_update_time();  // get last update time from system start [ms]
+
+
+     (From AbstractIST)
+     Vector3D get_magnet();  // get magnet data [uT]
+     time_msecs_t get_ist_update_time();  // get last update time from system start [ms]
+
+
+     (protected)
      (From AbstractMPU)
      Vector3D gyro;   // Data from gyroscope [deg/s]
      Vector3D accel;  // Data from accelerometer [m/s^2]
