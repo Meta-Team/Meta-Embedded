@@ -167,42 +167,10 @@ class SentryThread : public chibios_rt::BaseStaticThread<512> {
                 SentryChassisSKD::set_destination(SentryChassisIF::target_position + Remote::rc.ch0);
 
             } else if (s1_present_state == Remote::S_MIDDLE && s2_present_state == Remote::S_DOWN){
-
-                /// FINAL_AUTO_MODE, escape from enemies
-                /*
-                // if not escaping but under attack, go into escape mode, use to gimbal data when gimbal is connected
-                bool under_attack = Remote::rc.ch2>=0.5 || Remote::rc.ch2<=-0.5;
-                if ( !escaping && under_attack ) {
-                    escaping = true;
-                    SentryChassisSKD::start_escaping();
-                }
-
-                // if already in the escape mode, finish this escaping process
-                else if ( escaping ) {
-                    // determine the current region and decide whether to stop escaping
-                    if ( SentryChassisIF::present_position < SentryChassisSKD::right_terminal && SentryChassisIF::present_position > SentryChassisSKD::left_terminal ) {
-                        escaping = false;
-                        SentryChassisSKD::stop_escaping();
-                    }
-                } */
-
-            } else if (s1_present_state == Remote::S_DOWN && s2_present_state == Remote::S_DOWN){
-
                 /// FINAL_AUTO_MODE, random escape
                 // if not escaping but under attack, go into escape mode, use to gimbal data when gimbal is connected
                 under_attack = Remote::rc.ch2>=0.5 || Remote::rc.ch2<=-0.5;
-                if ( under_attack ) {
-                    SentryChassisSKD::last_attack_time = SYSTIME;
-                    // escaping = true;
-                    SentryChassisSKD::start_escaping();
-                }
-                // if we are not under attack for more than 10 seconds, return to cruising
-                else {
-                    if ( SentryChassisSKD::randomMode && (SYSTIME - SentryChassisSKD::last_attack_time >= 10000) )
-                    SentryChassisSKD::stop_escaping();
-                    // escaping = false;
-                }
-
+                if ( under_attack ) SentryChassisSKD::start_escaping();
             }
             sleep(TIME_MS2I(GIMBAL_THREAD_INTERVAL));
         }

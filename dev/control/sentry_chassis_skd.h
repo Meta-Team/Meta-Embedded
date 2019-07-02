@@ -84,6 +84,29 @@ public:
      */
     static void start_escaping();
 
+    static void update_terminal(){
+        if (randomMode){
+            float dest = terminals[SYSTIME % 6]; // get a random index between 0 and 5 and decide the next terminal accordingly
+
+            if (dest == next_terminal) {
+                next_terminal = prev_terminal;
+                prev_terminal = dest;
+            } else {
+                prev_terminal = next_terminal;
+                next_terminal = dest;
+            }
+        } else {
+            if (next_terminal == LEFT_END){
+                prev_terminal = next_terminal;
+                next_terminal = RIGHT_END;
+            } else {
+                prev_terminal = next_terminal;
+                next_terminal = LEFT_END;
+            }
+        }
+        startPOM();
+    }
+
     /**
      * @pre Finish the previous escaping process (arrive at the target region)
      * Exit POM. Prepare for Cruising.
@@ -117,6 +140,7 @@ public:
 private:
     static bool enable;
     static bool POM;
+    static float terminals[];
     static PIDController sentry_a2v_pid;
     static PIDController sentry_POM_pid;
     static PIDController right_v2i_pid;
