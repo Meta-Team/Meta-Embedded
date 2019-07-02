@@ -33,8 +33,14 @@ class MPUOnBoard : virtual public AbstractMPU {
 
 public:
 
-    /** (From AbstractMPU)
+    /* (From AbstractMPU)
 
+    (public)
+    Vector3D get_gyro();  // get data from gyroscope [deg/s]
+    Vector3D get_accel();  // get data from accelerometer [m/s^2]
+    time_msecs_t get_mpu_update_time();  // get last update time from system start [ms]
+
+    (protected)
     Vector3D gyro;   // Data from gyroscope [deg/s]
     Vector3D accel;  // Data from accelerometer [m/s^2]
     time_msecs_t mpu_update_time = 0;  // Last update time from system start [ms]

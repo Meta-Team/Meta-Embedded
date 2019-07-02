@@ -27,10 +27,14 @@ protected:
         ahrs.start(GIMBAL_AHRS_INSTALL_MATRIX, HIGHPRIO - 2, HIGHPRIO - 3, HIGHPRIO - 1);
         Buzzer::play_sound(Buzzer::sound_startup, LOWPRIO);
         while (!shouldTerminate()) {
-            Shell::printf("!a,%.4f,%.4f,%.4f" SHELL_NEWLINE_STR,
-                          ahrs.angle.x,
-                          ahrs.angle.y,
-                          ahrs.angle.z);
+//            Shell::printf("!a,%.4f,%.4f,%.4f" SHELL_NEWLINE_STR,
+//                          ahrs.angle.x,
+//                          ahrs.angle.y,
+//                          ahrs.angle.z);
+            Shell::printf("gyro ,%.4f,%.4f,%.4f" SHELL_NEWLINE_STR,
+                          ahrs.get_gyro().x,
+                          ahrs.get_gyro().y,
+                          ahrs.get_gyro().z);
             sleep(TIME_MS2I(100));
         }
     }
