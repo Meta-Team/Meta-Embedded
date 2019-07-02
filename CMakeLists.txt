@@ -150,7 +150,7 @@ add_executable(HERO
         dev/scheduler/chassis_scheduler.cpp
         dev/scheduler/gimbal_scheduler.cpp
         dev/scheduler/shoot_scheduler.cpp
-        dev/vehicle/hero/main_hero.cpp)
+        dev/vehicle/hero/main_)
 target_include_directories(HERO PRIVATE dev/vehicle/hero)
 target_compile_definitions(HERO PUBLIC HERO ENABLE_STATE_HANDLE)
 
