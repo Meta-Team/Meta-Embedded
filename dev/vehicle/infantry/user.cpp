@@ -80,11 +80,11 @@ void User::UserThread::main() {
 
                 /// Remote - Shoot with Scrolling Wheel
 
-                if (Remote::rc.wheel < -0.5) {  // down
+                if (Remote::rc.wheel > 0.5) {  // down
                     if (ShootLG::get_shooter_state() == ShootLG::STOP) {
                         ShootLG::shoot(SHOOT_LAUNCH_LEFT_COUNT);
                     }
-                } else if (Remote::rc.wheel > 0.5) {  // up
+                } else if (Remote::rc.wheel < -0.5) {  // up
                     if (ShootLG::get_shooter_state() == ShootLG::STOP) {
                         ShootLG::shoot(SHOOT_LAUNCH_RIGHT_COUNT);
                     }

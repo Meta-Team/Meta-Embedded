@@ -111,9 +111,8 @@ void GimbalSKD::SKDThread::main() {
             target_velocity[YAW] = a2v_pid[YAW].calc(accumulated_angle[YAW], target_angle[YAW]);
             target_current[YAW] = (int) v2i_pid[YAW].calc(velocity[YAW], target_velocity[YAW]);
 
-            // PITCH, use Motor feedback angle and AHRS velocity
-            target_velocity[PITCH] = a2v_pid[PITCH].calc(GimbalIF::feedback[PITCH].actual_angle * pitch_install,
-                                                         target_angle[PITCH]);
+            // PITCH, use AHRS feedback angle and AHRS velocity
+            target_velocity[PITCH] = a2v_pid[PITCH].calc(angle[PITCH], target_angle[PITCH]);
             target_current[PITCH] = (int) v2i_pid[PITCH].calc(velocity[PITCH], target_velocity[PITCH]);
 
         } else if (mode == FORCED_RELAX_MODE) {

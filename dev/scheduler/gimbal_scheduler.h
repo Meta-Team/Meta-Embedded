@@ -32,9 +32,9 @@
  *        2. set_mode() and set_target_angle() as needed
  *        3. Leave the rest of the work to this SKD
  * @note ABOUT COORDINATE
- *       All components in this SKD use gimbal coordinate, including targets and PID controllers. Only when reading
- *       from or writing to GimbalIF will coordinate transform (by multiple to install_direction_t) be performed based
- *       on yaw_install and pitch_install
+ *       All components in this SKD use gimbal coordinate (Yaw: CCW as positive, Pitch: Up as positive), including
+ *       targets and PID controllers. Only when reading from or writing to GimbalIF will coordinate transform
+ *       (by multiple to install_direction_t) be performed based on yaw_install and pitch_install
  */
 class GimbalSKD : public GimbalBase, public PIDControllerBase {
 

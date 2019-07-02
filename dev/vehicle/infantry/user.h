@@ -24,7 +24,7 @@ public:
 private:
 
     /// Gimbal Parameters
-    static constexpr float GIMBAL_RC_YAW_MAX_SPEED = 120;  // [degree/s]
+    static constexpr float GIMBAL_RC_YAW_MAX_SPEED = 90;  // [degree/s]
     static constexpr float GIMBAL_PC_YAW_SENSITIVITY = 54000;     // rotation speed when mouse moves fastest [degree/s]
 
     static constexpr float GIMBAL_PC_PITCH_SENSITIVITY = 12000;   // rotation speed when mouse moves fastest [degree/s]
