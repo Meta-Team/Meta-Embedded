@@ -36,8 +36,14 @@ public:
     static bool printCurrent;
     static bool printVelocity;
 
-    static float left_terminal;
-    static float right_terminal;
+    static unsigned last_attack_time;
+    static bool randomMode;
+
+//    static float left_terminal;
+//    static float right_terminal;
+
+    static float prev_terminal;
+    static float next_terminal;
 
 private:
     static void init();
@@ -65,10 +71,12 @@ public:
     static void set_maximum_velocity(float new_velocity);
 
     /** set target terminals (right and left), and set "present region" to the target region */
-    static void set_terminals(float leftTerminal, float rightTerminal);
+//    static void set_terminals(float leftTerminal, float rightTerminal);
 
     /** Power Optimized Mode, used to accelerate or decelerate quickly, make the fullest use of the power restriction. */
     static void startPOM();
+
+    static void stopPOM();
 
     /**
      * @pre Enemies are spotted or the sentry is being attacked

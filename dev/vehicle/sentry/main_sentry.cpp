@@ -34,7 +34,8 @@
  *  MID   UP    Remote - Chassis remote controlling, constant speed mode; gimbal fix
  *  MID   MID   Remote - Constant speed mode
  *  MID   DOWN  Remote - Various speed mode, used to test the final auto mode
- *  DOWN  *     Auto (temporarily this can't be achieved, so just left it be the Safe mode)
+ *  DOWN  UP/MID Auto (temporarily this can't be achieved, so just left it be the Safe mode)
+ *  DOWN  DOWN  Final Auto Mode, Random walk.
  *  -Others-    Safe
  * ------------------------------------------------------------
  */
@@ -57,7 +58,8 @@ class SentryThread : public chibios_rt::BaseStaticThread<512> {
 
     void main() final {
         setName("sentry");
-        bool escaping = false;
+        // bool escaping = false;
+        bool under_attack;
         Remote::rc_status_t s1_present_state = Remote::S_UP, s2_present_state = Remote::S_UP;
         while (!shouldTerminate()) {
 
@@ -136,9 +138,11 @@ class SentryThread : public chibios_rt::BaseStaticThread<512> {
                                 SentryChassisSKD::set_mode(SentryChassisSKD::STOP_MODE);
                                 break;
                             case Remote::S_MIDDLE :
+                                break;
+
                             case Remote::S_DOWN :
-                                escaping = true;
-                                SentryChassisSKD::start_escaping();
+                                SentryChassisSKD::turn_on();
+                                SentryChassisSKD::set_mode(SentryChassisSKD::FINAL_AUTO_MODE);
                                 break;
                         }
                         break;
@@ -164,9 +168,11 @@ class SentryThread : public chibios_rt::BaseStaticThread<512> {
 
             } else if (s1_present_state == Remote::S_MIDDLE && s2_present_state == Remote::S_DOWN){
 
-                /// FINAL_AUTO_MODE
-                // if not escaping but under attacked, go into escape mode
-                if ( !escaping && (Remote::rc.ch2>=0.5 || Remote::rc.ch2<=-0.5) ) {
+                /// FINAL_AUTO_MODE, escape from enemies
+                /*
+                // if not escaping but under attack, go into escape mode, use to gimbal data when gimbal is connected
+                bool under_attack = Remote::rc.ch2>=0.5 || Remote::rc.ch2<=-0.5;
+                if ( !escaping && under_attack ) {
                     escaping = true;
                     SentryChassisSKD::start_escaping();
                 }
@@ -174,11 +180,27 @@ class SentryThread : public chibios_rt::BaseStaticThread<512> {
                 // if already in the escape mode, finish this escaping process
                 else if ( escaping ) {
                     // determine the current region and decide whether to stop escaping
-
                     if ( SentryChassisIF::present_position < SentryChassisSKD::right_terminal && SentryChassisIF::present_position > SentryChassisSKD::left_terminal ) {
                         escaping = false;
                         SentryChassisSKD::stop_escaping();
                     }
+                } */
+
+            } else if (s1_present_state == Remote::S_DOWN && s2_present_state == Remote::S_DOWN){
+
+                /// FINAL_AUTO_MODE, random escape
+                // if not escaping but under attack, go into escape mode, use to gimbal data when gimbal is connected
+                under_attack = Remote::rc.ch2>=0.5 || Remote::rc.ch2<=-0.5;
+                if ( under_attack ) {
+                    SentryChassisSKD::last_attack_time = SYSTIME;
+                    // escaping = true;
+                    SentryChassisSKD::start_escaping();
+                }
+                // if we are not under attack for more than 10 seconds, return to cruising
+                else {
+                    if ( SentryChassisSKD::randomMode && (SYSTIME - SentryChassisSKD::last_attack_time >= 10000) )
+                    SentryChassisSKD::stop_escaping();
+                    // escaping = false;
                 }
 
             }
@@ -210,11 +232,11 @@ int main(void) {
     /*** ------------ Period 2. Calibration and Start Logic Control Thread ----------- ***/
 
     /*** Parameters Set up***/
-    ahrsExt.start(&can1);
-    SuspensionGimbalIF::init(&can1, GIMBAL_YAW_FRONT_ANGLE_RAW, GIMBAL_PITCH_FRONT_ANGLE_RAW);
+    // ahrsExt.start(&can1);
+    // SuspensionGimbalIF::init(&can1, GIMBAL_YAW_FRONT_ANGLE_RAW, GIMBAL_PITCH_FRONT_ANGLE_RAW);
     SentryChassisIF::init(&can1);
-    SuspensionGimbalSKD::init(&ahrsExt);
-    SuspensionGimbalSKD::suspensionGimbalThread.start(HIGHPRIO - 2);
+    // SuspensionGimbalSKD::init(&ahrsExt);
+    // SuspensionGimbalSKD::suspensionGimbalThread.start(HIGHPRIO - 2);
     SentryChassisSKD::sentryChassisThread.start(HIGHPRIO - 3);
 
     LED::green_on();
@@ -223,10 +245,10 @@ int main(void) {
     sentryThread.start(NORMALPRIO);
     /** Echo Gimbal Raws and Converted Angles **/
     chThdSleepMilliseconds(500);
-    LOG("Gimbal Yaw: %u, %f, Pitch: %u, %f",
+    /*LOG("Gimbal Yaw: %u, %f, Pitch: %u, %f",
         SuspensionGimbalIF::yaw.last_angle, SuspensionGimbalIF::yaw.angular_position,
         SuspensionGimbalIF::pitch.last_angle, SuspensionGimbalIF::pitch.angular_position);
-
+    */
     /** Play the Startup Sound **/
     Buzzer::play_sound(Buzzer::sound_startup_intel, LOWPRIO);
 
