@@ -183,7 +183,7 @@ void SentryChassisSKD::update_target_current() {
                 break;
             case (FINAL_AUTO_MODE):
                 // If we are in the FINAL_AUTO_MODE
-                if ( randomMode && SYSTIME - last_attack_time > 10000) stop_escaping();
+                if ( randomMode && SYSTIME - last_attack_time > 60000) stop_escaping();
 
                 if (sentry_present_position > next_terminal - 3 && sentry_present_position < next_terminal + 3) update_terminal();
 

@@ -161,7 +161,7 @@ class SentryThread : public chibios_rt::BaseStaticThread<512> {
                 LOG("%.2f, %.2f", Remote::rc.ch2 * 170.0f, Remote::rc.ch3 * 40.0f);
             } else if (s1_present_state == Remote::S_MIDDLE && s2_present_state == Remote::S_UP){
                 SentryChassisSKD::set_destination(SentryChassisIF::target_position + Remote::rc.ch0);
-
+                LOG("%.2f", SentryChassisIF::present_position);
             } else if (s1_present_state == Remote::S_MIDDLE && s2_present_state == Remote::S_DOWN){
                 /// FINAL_AUTO_MODE, random escape
                 // if not escaping but under attack, go into escape mode, use to gimbal data when gimbal is connected
