@@ -190,7 +190,7 @@ int main(void) {
 
     /** Basic IO Setup **/
     can1.start(HIGHPRIO - 1);
-    Remote::start_receive();
+    //Remote::start_receive();
 
 
     /*** ------------ Period 2. Calibration and Start Logic Control Thread ----------- ***/
