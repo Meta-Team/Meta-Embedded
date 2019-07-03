@@ -25,7 +25,7 @@ private:
 
     /// Gimbal Parameters
     static constexpr float GIMBAL_RC_YAW_MAX_SPEED = 90;  // [degree/s]
-    static constexpr float GIMBAL_PC_YAW_SENSITIVITY = 54000;     // rotation speed when mouse moves fastest [degree/s]
+    static constexpr float GIMBAL_PC_YAW_SENSITIVITY[2] = {20000, 54000};     // rotation speed when mouse moves fastest [degree/s]
 
     static constexpr float GIMBAL_PC_PITCH_SENSITIVITY = 12000;   // rotation speed when mouse moves fastest [degree/s]
     static constexpr float GIMBAL_PITCH_MIN_ANGLE = -10; // down range for pitch [degree]
@@ -51,8 +51,15 @@ private:
         float gimbal_rc_yaw_target_angle = 0;
         float gimbal_pc_yaw_target_angle = 0;
         float gimbal_pc_pitch_target_angle = 0;
-        bool pc_x_pressed = false;
+        unsigned gimbal_pc_yaw_sensitivity_level = 1;
+
         bool pc_z_pressed = false;
+        bool pc_x_pressed = false;
+        bool pc_c_pressed = false;
+        bool pc_v_pressed = false;
+        bool pc_b_pressed = false;
+
+
         bool pc_mouse_left_pressed = false;
         bool pc_mouse_right_pressed = false;
         void main() final;
