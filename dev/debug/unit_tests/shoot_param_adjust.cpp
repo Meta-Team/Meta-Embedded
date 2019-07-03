@@ -249,7 +249,7 @@ protected:
         setName("shoot");
 
         // TODO: load default parameters here
-        Shoot::change_pid_params({20.0f, 0.0f, 0.0f, 1000.0f, 3000.0f});
+        Shoot::change_pid_params({25.0f, 0.7f, 0.0f, 3000.0f, 4000.0f});
 
         while (!shouldTerminate()) {
 
@@ -284,7 +284,7 @@ protected:
 
             } else if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_MIDDLE) {
                 // TODO: revise shoot speed and friction wheel speed by Remote here
-                Shoot::calc(Remote::rc.ch3 * 10);
+                Shoot::calc(Remote::rc.ch3 * 15);
                 Shoot::set_friction_wheels(0.2);
             } else {
                 Shoot::target_current[BULLET] = 0;
@@ -313,7 +313,7 @@ int main(void) {
     chThdSleepMilliseconds(10);
     GimbalInterface::init(&can1, 0, 0);
     Shoot::init(40.0f);
-    Remote::start_receive();
+    Remote::start();
 
     shootFeedbackThread.start(NORMALPRIO - 1);
     shootThread.start(NORMALPRIO);
