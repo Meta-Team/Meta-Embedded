@@ -153,20 +153,16 @@ private:
 
     static const int RX_FRAME_SIZE = 18;
 
+    /**
+     * Helper function to resynchronize UART receive to avoid receive starting from the middle of a frame
+     * @note DO NOT call this function in lock state
+     */
+    static void uart_synchronize();
+
     friend void uartStart(UARTDriver *uartp, const UARTConfig *config);
     friend void uartStartReceive(UARTDriver *uartp, size_t n, void *rxbuf);
 
-    static constexpr UARTConfig REMOTE_UART_CONFIG = {
-            nullptr,
-            nullptr,
-            uart_received_callback_, // callback function when the buffer is filled
-            nullptr,
-            nullptr,
-            100000, // speed
-            USART_CR1_PCE,
-            0,
-            0,
-    };
+    static UARTConfig REMOTE_UART_CONFIG;
 
 };
 
