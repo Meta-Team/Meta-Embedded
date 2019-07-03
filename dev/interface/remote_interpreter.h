@@ -144,23 +144,28 @@ public:
 
 #endif
 
+    /**
+     * Function to resynchronize UART receive to avoid receive starting from the middle of a frame
+     * @note DO NOT call this function in lock state
+     */
+    static void uart_synchronize();
 
 private:
 
-    static void uart_received_callback_(UARTDriver *uartp); // call back function when data is completely retrieved
+    /**
+     * Call back function when a frame is completely retrieved
+     * @param uartp   Pointer to UART driver
+     * @note DO NOT use printf, LOG, etc. in this function since it's an ISR callback.
+     */
+    static void uart_received_callback_(UARTDriver *uartp);
 
     static char rx_buf_[]; // store buf data retrieved from UART
 
     static const int RX_FRAME_SIZE = 18;
 
-    /**
-     * Helper function to resynchronize UART receive to avoid receive starting from the middle of a frame
-     * @note DO NOT call this function in lock state
-     */
-    static void uart_synchronize();
-
     friend void uartStart(UARTDriver *uartp, const UARTConfig *config);
     friend void uartStartReceive(UARTDriver *uartp, size_t n, void *rxbuf);
+    friend class Inspector;
 
     static UARTConfig REMOTE_UART_CONFIG;
 

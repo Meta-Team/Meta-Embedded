@@ -17,7 +17,7 @@ void User::UserThread::main() {
 
         /*** ---------------------------------- Gimbal --------------------------------- ***/
 
-        if (!Inspector::remote_failure() && !Inspector::gimbal_failure()) {
+        if (!Inspector::remote_failure() && !Inspector::chassis_failure() && !Inspector::gimbal_failure()) {
 
             if ((Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_UP) ||
                 (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_MIDDLE)) {
@@ -82,7 +82,7 @@ void User::UserThread::main() {
                 GimbalLG::set_action(GimbalLG::FORCED_RELAX_MODE);
             }
 
-        } else {  // Inspector::remote_failure() || Inspector::gimbal_failure()
+        } else {  // Inspector::remote_failure() || Inspector::chassis_failure() || Inspector::gimbal_failure()
             /// Safe Mode
             GimbalLG::set_action(GimbalLG::FORCED_RELAX_MODE);
         }
@@ -90,7 +90,7 @@ void User::UserThread::main() {
 
         /*** ---------------------------------- Shoot --------------------------------- ***/
 
-        if (!Inspector::remote_failure() && !Inspector::gimbal_failure()) {
+        if (!Inspector::remote_failure() && !Inspector::chassis_failure() && !Inspector::gimbal_failure()) {
             if ((Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_UP) ||
                 (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_MIDDLE)) {
 
@@ -152,7 +152,7 @@ void User::UserThread::main() {
                 ShootLG::set_friction_wheels(0);
             }
 
-        } else {  // Inspector::remote_failure() || Inspector::gimbal_failure()
+        } else {  // Inspector::remote_failure() || Inspector::chassis_failure() || Inspector::gimbal_failure()
             /// Safe Mode
             ShootLG::stop();
             ShootLG::set_friction_wheels(0);
@@ -160,7 +160,7 @@ void User::UserThread::main() {
 
         /*** ---------------------------------- Chassis --------------------------------- ***/
 
-        if (!Inspector::remote_failure() && !Inspector::chassis_failure()) {
+        if (!Inspector::remote_failure() && !Inspector::chassis_failure() && !Inspector::gimbal_failure()) {
 
             if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_UP) {
 
@@ -220,7 +220,7 @@ void User::UserThread::main() {
                 ChassisLG::set_action(ChassisLG::FORCED_RELAX_MODE);
             }
 
-        } else {  // Inspector::remote_failure() || Inspector::chassis_failure()
+        } else {  // Inspector::remote_failure() || Inspector::chassis_failure() || Inspector::gimbal_failure()
             /// Safe Mode
             ChassisLG::set_action(ChassisLG::FORCED_RELAX_MODE);
         }

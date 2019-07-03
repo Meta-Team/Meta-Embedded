@@ -155,16 +155,6 @@ void Remote::uart_received_callback_(UARTDriver *uartp) {
     uartStartReceiveI(uartp, RX_FRAME_SIZE, rx_buf_);
 
     chSysUnlockFromISR();  /// ---------------------------------- Exit Critical Zone ----------------------------------
-
-    // Error check
-    if (!ABS_IN_RANGE(rc.ch0, 1.1) || !ABS_IN_RANGE(rc.ch1, 1.1) ||
-        !ABS_IN_RANGE(rc.ch2, 1.1) || !ABS_IN_RANGE(rc.ch3, 1.1) ||
-        !(rc.s1 >= 1 && rc.s1 <= 3) || !(rc.s2 >= 1 && rc.s2 <= 3) ||
-        !ABS_IN_RANGE(mouse.x, 1.1) || !ABS_IN_RANGE(mouse.y, 1.1) || !ABS_IN_RANGE(mouse.z, 1.1) ||
-        rx_buf_[12] > 1 || rx_buf_[13] > 1) {
-
-        uart_synchronize();
-    }
 }
 
 void Remote::uart_synchronize() {
