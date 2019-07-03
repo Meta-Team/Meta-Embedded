@@ -9,7 +9,6 @@
 #include "ch.hpp"
 #include "hal.h"
 #include "can_interface.h"
-#include "referee_interface.h"
 
 /**
  * Enable clip at the moment of sending current.
@@ -54,12 +53,6 @@ public:
     static float target_velocity;
 
     static region_t present_region; // This is specially for FINAL_AUTO_MODE, indicating the rough region in which sentry is limited
-
-    static uint16_t present_HP; // This is specially for FINAL_AUTO_MODE, indicating the present remained HP
-
-    static bool hit_detected; // This is specially for FINAL_AUTO_MODE, indicating whether sentry is hit
-
-    static bool escaping; // This is specially for FINAL_AUTO_MODE，indicating whether sentry is escaping or not
 
     // Structure for each motor
     struct motor_t {

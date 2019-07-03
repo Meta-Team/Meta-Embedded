@@ -5,10 +5,12 @@
 #ifndef META_INFANTRY_SENTRY_CHASSIS_CALCULATOR_H
 #define META_INFANTRY_SENTRY_CHASSIS_CALCULATOR_H
 
+#include "remote_interpreter.h"
+#include "referee_interface.h"
 #include "sentry_chassis_interface.h"
+#include "suspension_gimbal_interface.h"
 #include "pid_controller.hpp"
 #include "can_interface.h"
-#include "referee_interface.h"
 #include "vehicle/sentry/vehicle_sentry.h"
 #include "ch.hpp"
 #include "hal.h"
@@ -34,6 +36,15 @@ public:
     static bool printCurrent;
     static bool printVelocity;
 
+    static unsigned last_attack_time;
+    static bool randomMode;
+
+//    static float left_terminal;
+//    static float right_terminal;
+
+    static float prev_terminal;
+    static float next_terminal;
+
 private:
     static void init();
 
@@ -42,10 +53,11 @@ public:
 
     static void turn_off();
 
-    static void set_pid(bool change_a2v, PIDControllerBase::pid_params_t new_params);
+    static void set_pid(int pid_id, PIDControllerBase::pid_params_t new_params);
 
     static void print_pid(bool print_a2v);
 
+    /** set all to zero: position and velocity for chassis and motors */
     static void set_origin();
 
     static void set_mode(sentry_mode_t target_mode);
@@ -56,10 +68,50 @@ public:
      */
     static void set_destination(float dist);
 
-    static void set_maximum_velocity(float new_velocity){
-        SentryChassisIF::target_velocity = new_velocity;
-        set_pid(true, {SENTRY_CHASSIS_PID_A2V_KP, SENTRY_CHASSIS_PID_A2V_KI, SENTRY_CHASSIS_PID_A2V_KD, SENTRY_CHASSIS_PID_A2V_I_LIMIT, new_velocity});
+    static void set_maximum_velocity(float new_velocity);
+
+    /** set target terminals (right and left), and set "present region" to the target region */
+//    static void set_terminals(float leftTerminal, float rightTerminal);
+
+    /** Power Optimized Mode, used to accelerate or decelerate quickly, make the fullest use of the power restriction. */
+    static void startPOM();
+
+    static void stopPOM();
+
+    /**
+     * @pre Enemies are spotted or the sentry is being attacked
+     * Escape to the next region that is far away from the enemy, using power optimized mode.
+     */
+    static void start_escaping();
+
+    static void update_terminal(){
+        if (randomMode){
+            float dest = terminals[SYSTIME % 6]; // get a random index between 0 and 5 and decide the next terminal accordingly
+
+            if (dest == next_terminal) {
+                next_terminal = prev_terminal;
+                prev_terminal = dest;
+            } else {
+                prev_terminal = next_terminal;
+                next_terminal = dest;
+            }
+        } else {
+            if (next_terminal == LEFT_END){
+                prev_terminal = next_terminal;
+                next_terminal = RIGHT_END;
+            } else {
+                prev_terminal = next_terminal;
+                next_terminal = LEFT_END;
+            }
+        }
+        startPOM();
     }
+
+    /**
+     * @pre Finish the previous escaping process (arrive at the target region)
+     * Exit POM. Prepare for Cruising.
+     */
+    static void stop_escaping();
 
     /**
      * @brief Debug helper function. Print the present position in cm
@@ -87,10 +139,12 @@ public:
 
 private:
     static bool enable;
+    static bool POM;
+    static float terminals[];
     static PIDController sentry_a2v_pid;
+    static PIDController sentry_POM_pid;
     static PIDController right_v2i_pid;
     static PIDController left_v2i_pid;
-    static time_msecs_t evasive_time;
     static sentry_mode_t running_mode;
     static float radius; // the range that sentry can move around the origin in the SHUTTLED_MODE
 

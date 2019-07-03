@@ -33,8 +33,9 @@
  *  UP    DOWN  Auto - Chassis safe; gimbal auto controlling
  *  MID   UP    Remote - Chassis remote controlling, constant speed mode; gimbal fix
  *  MID   MID   Remote - Constant speed mode
- *  MID   DOWN  Remote - Various speed mode
- *  DOWN  *     Auto (temporarily this can't be achieved, so just left it be the Safe mode)
+ *  MID   DOWN  Remote - Various speed mode, used to test the final auto mode
+ *  DOWN  UP/MID Auto (temporarily this can't be achieved, so just left it be the Safe mode)
+ *  DOWN  DOWN  Final Auto Mode, Random walk.
  *  -Others-    Safe
  * ------------------------------------------------------------
  */
@@ -57,7 +58,8 @@ class SentryThread : public chibios_rt::BaseStaticThread<512> {
 
     void main() final {
         setName("sentry");
-
+        // bool escaping = false;
+        bool under_attack;
         Remote::rc_status_t s1_present_state = Remote::S_UP, s2_present_state = Remote::S_UP;
         while (!shouldTerminate()) {
 
@@ -121,26 +123,34 @@ class SentryThread : public chibios_rt::BaseStaticThread<512> {
                                 SentryChassisSKD::set_mode(SentryChassisSKD::SHUTTLED_MODE);
                                 break;
                             case Remote::S_DOWN :
-                                SentryChassisSKD::turn_off();
+                                SentryChassisSKD::set_mode(SentryChassisSKD::FINAL_AUTO_MODE);
                                 break;
                         }
                         break;
                     case Remote::S_DOWN :
                         SentryChassisSKD::turn_off();
+                        SuspensionGimbalSKD::set_motor_enable(SuspensionGimbalIF::YAW_ID, false);
+                        SuspensionGimbalSKD::set_motor_enable(SuspensionGimbalIF::PIT_ID, false);
+                        SuspensionGimbalSKD::set_motor_enable(SuspensionGimbalIF::BULLET_LOADER_ID, false);
+                        SuspensionGimbalSKD::set_shoot_mode(OFF);
                         switch (s2_present_state){
                             case Remote::S_UP :
+                                SentryChassisSKD::set_mode(SentryChassisSKD::STOP_MODE);
                                 break;
                             case Remote::S_MIDDLE :
                                 break;
+
                             case Remote::S_DOWN :
+                                SentryChassisSKD::turn_on();
+                                SentryChassisSKD::set_mode(SentryChassisSKD::FINAL_AUTO_MODE);
                                 break;
                         }
-
                         break;
-
                 }
 
             }
+
+
             /** Update Movement Request **/
             if (s1_present_state == Remote::S_UP && s2_present_state == Remote::S_UP){
                 LOG("%.2f, %.2f", SuspensionGimbalIF::yaw.angular_position, SuspensionGimbalIF::pitch.angular_position);
@@ -155,6 +165,12 @@ class SentryThread : public chibios_rt::BaseStaticThread<512> {
                 LOG("%.2f, %.2f", Remote::rc.ch2 * 170.0f, Remote::rc.ch3 * 40.0f);
             } else if (s1_present_state == Remote::S_MIDDLE && s2_present_state == Remote::S_UP){
                 SentryChassisSKD::set_destination(SentryChassisIF::target_position + Remote::rc.ch0);
+
+            } else if (s1_present_state == Remote::S_MIDDLE && s2_present_state == Remote::S_DOWN){
+                /// FINAL_AUTO_MODE, random escape
+                // if not escaping but under attack, go into escape mode, use to gimbal data when gimbal is connected
+                under_attack = Remote::rc.ch2>=0.5 || Remote::rc.ch2<=-0.5;
+                if ( under_attack ) SentryChassisSKD::start_escaping();
             }
             sleep(TIME_MS2I(GIMBAL_THREAD_INTERVAL));
         }
@@ -184,11 +200,11 @@ int main(void) {
     /*** ------------ Period 2. Calibration and Start Logic Control Thread ----------- ***/
 
     /*** Parameters Set up***/
-    ahrsExt.start(&can1);
-    SuspensionGimbalIF::init(&can1, GIMBAL_YAW_FRONT_ANGLE_RAW, GIMBAL_PITCH_FRONT_ANGLE_RAW);
+    // ahrsExt.start(&can1);
+    // SuspensionGimbalIF::init(&can1, GIMBAL_YAW_FRONT_ANGLE_RAW, GIMBAL_PITCH_FRONT_ANGLE_RAW);
     SentryChassisIF::init(&can1);
-    SuspensionGimbalSKD::init(&ahrsExt);
-    SuspensionGimbalSKD::suspensionGimbalThread.start(HIGHPRIO - 2);
+    // SuspensionGimbalSKD::init(&ahrsExt);
+    // SuspensionGimbalSKD::suspensionGimbalThread.start(HIGHPRIO - 2);
     SentryChassisSKD::sentryChassisThread.start(HIGHPRIO - 3);
 
     LED::green_on();
@@ -197,10 +213,10 @@ int main(void) {
     sentryThread.start(NORMALPRIO);
     /** Echo Gimbal Raws and Converted Angles **/
     chThdSleepMilliseconds(500);
-    LOG("Gimbal Yaw: %u, %f, Pitch: %u, %f",
+    /*LOG("Gimbal Yaw: %u, %f, Pitch: %u, %f",
         SuspensionGimbalIF::yaw.last_angle, SuspensionGimbalIF::yaw.angular_position,
         SuspensionGimbalIF::pitch.last_angle, SuspensionGimbalIF::pitch.angular_position);
-
+    */
     /** Play the Startup Sound **/
     Buzzer::play_sound(Buzzer::sound_startup_intel, LOWPRIO);
 
