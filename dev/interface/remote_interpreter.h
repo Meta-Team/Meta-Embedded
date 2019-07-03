@@ -3,11 +3,11 @@
 //
 
 /**
- * This file contains Remote Interpreter
- * @brief Remote Interpreter is an interface between remote side and other
- *        components. It handles data flow from the DR16 receiver, and
- *        interprets data to specific format for other program components
- *        which need remote control data.
+ * @file    remote_interpreter.h
+ * @brief   Module to receive date from DR16 receiver and interpret data to specific formats
+ *
+ * @addtogroup remote
+ * @{
  */
 
 #ifndef META_INFANTRY_REMOTE_INTERPRETER_H
@@ -18,7 +18,6 @@
 
 #include "common_macro.h"
 #include "debug/shell/shell.h"
-#include "state_handler.h"
 
 #if defined(BOARD_RM_2018_A)
 // PB7 USART1_RX (alternate 7)
@@ -36,16 +35,25 @@
 #error "Remote interpreter has not been defined for selected board"
 #endif
 
-#define REMOTE_ENABLE_USER_LOG     FALSE
+// TODO: event functions are not tested yet
+#define REMOTE_USE_EVENTS   FALSE
 
 /**
  * @name Remote
- * @brief This class holds interpreted remote data.
- * @pre DBUS pin is configured properly in board.h
+ * @brief Module to receive date from DR16 receiver and interpret data to specific formats
+ * @pre DBUS pins is configured properly in board.h
+ * @note See DR16 document for components in this module
+ * @usage 1. Invoke start()
+ *        2. Use data in this module
  */
 class Remote {
 
 public:
+
+    /**
+     * Start remote interpreter
+     */
+    static void start();
 
     enum rc_status_t {
         S_UP = 1,
@@ -54,21 +62,47 @@ public:
     };
 
     typedef struct {
-        float ch0; // right horizontal, normalized: -1.0(leftmost) - 1.0(rightmost)
-        float ch1; // right vertical, normalized: -1.0(downmost) - 1.0(upmost)
-        float ch2; // left horizontal, normalized: -1.0(leftmost) - 1.0(rightmost)
-        float ch3; // left vertical, normalized: -1.0(downmost) - 1.0(upmost)
+        float ch0;  // right horizontal, normalized: -1.0 (leftmost) - 1.0 (rightmost)
+        float ch1;  // right vertical,   normalized: -1.0 (downmost) - 1.0 (upmost)
+        float ch2;  // left horizontal,  normalized: -1.0 (leftmost) - 1.0 (rightmost)
+        float ch3;  // left vertical,    normalized: -1.0 (downmost) - 1.0 (upmost)
         rc_status_t s1;
         rc_status_t s2;
+        float wheel;  // scrolling wheel, normalized: -1.0 (upmost) - 1.0 (downmost)
     } rc_t;
 
+    enum mouse_button_t {
+        MOUSE_LEFT,
+        MOUSE_RIGHT
+    };
+
     typedef struct {
-        float x; // speed at x axis. Normalized: -1.0(fastest leftward) - 1.0(fastest rightward)
-        float y; // speed at y axis. Normalized: -1.0(fastest upward) - 1.0(fastest downward)
-        float z; // speed at z axis (unknown). Normalized: -1.0 - 1.0
+        float x;  // speed at x axis. Normalized: -1.0 (fastest leftward) - 1.0 (fastest rightward)
+        float y;  // speed at y axis. Normalized: -1.0 (fastest upward)   - 1.0 (fastest downward)
+        float z;  // speed at z axis. Normalized: -1.0 - 1.0 (unknown)
         bool press_left;
         bool press_right;
     } mouse_t;
+
+    enum key_t {
+        KEY_W,
+        KEY_S,
+        KEY_A,
+        KEY_D,
+        KEY_SHIFT,
+        KEY_CTRL,
+        KEY_Q,
+        KEY_E,
+        KEY_R,
+        KEY_F,
+        KEY_G,
+        KEY_Z,
+        KEY_X,
+        KEY_C,
+        KEY_V,
+        KEY_B,
+        KEY_COUNT
+    };
 
     typedef union {
         struct {
@@ -89,10 +123,8 @@ public:
             bool v:1;
             bool b:1;
         };
-        uint16_t _key_code; // hold key code data, for internal use
+        uint16_t key_code_; // hold key code raw data, for internal use
     } keyboard_t;
-
-    /** Interface variables **/
 
     static rc_t rc;
     static mouse_t mouse;
@@ -100,13 +132,32 @@ public:
 
     static time_msecs_t last_update_time;
 
-    /** Interface functions **/
+#if REMOTE_USE_EVENTS
 
-    static void start_receive();
+    static event_source_t s_change_event;
+
+    static event_source_t mouse_press_event;
+    static event_source_t mouse_release_event;
+
+    static event_source_t key_press_event;
+    static event_source_t key_release_event;
+
+#endif
+
+    /**
+     * Function to resynchronize UART receive to avoid receive starting from the middle of a frame
+     * @note DO NOT call this function in lock state
+     */
+    static void uart_synchronize();
 
 private:
 
-    static void uart_received_callback_(UARTDriver *uartp); // call back function when data is completely retrieved
+    /**
+     * Call back function when a frame is completely retrieved
+     * @param uartp   Pointer to UART driver
+     * @note DO NOT use printf, LOG, etc. in this function since it's an ISR callback.
+     */
+    static void uart_received_callback_(UARTDriver *uartp);
 
     static char rx_buf_[]; // store buf data retrieved from UART
 
@@ -114,19 +165,12 @@ private:
 
     friend void uartStart(UARTDriver *uartp, const UARTConfig *config);
     friend void uartStartReceive(UARTDriver *uartp, size_t n, void *rxbuf);
+    friend class Inspector;
 
-    static constexpr UARTConfig REMOTE_UART_CONFIG = {
-            nullptr,
-            nullptr,
-            uart_received_callback_, // callback function when the buffer is filled
-            nullptr,
-            nullptr,
-            100000, // speed
-            USART_CR1_PCE,
-            0,
-            0,
-    };
+    static UARTConfig REMOTE_UART_CONFIG;
 
 };
 
 #endif //META_INFANTRY_REMOTE_INTERPRETER_H
+
+/** @} */

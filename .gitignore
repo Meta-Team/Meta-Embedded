@@ -36,6 +36,7 @@ build/
 cmake-build-*/
 .idea/
 .metadata/
+html/
 
 .DS_Store
 openocd.log
