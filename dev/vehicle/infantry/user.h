@@ -10,7 +10,7 @@
 #include "remote_interpreter.h"
 
 #include "gimbal_logic.h"
-#include "shoot_logic.h"
+#include "infantry_shoot_logic.h"
 #include "chassis_logic.h"
 
 #include "inspector.h"

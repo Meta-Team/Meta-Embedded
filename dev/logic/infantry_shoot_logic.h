@@ -2,11 +2,11 @@
 // Created by liuzikai on 2019-06-26.
 //
 
-#ifndef META_INFANTRY_SHOOT_LOGIC_H
-#define META_INFANTRY_SHOOT_LOGIC_H
+#ifndef META_INFANTRY_INFANTRY_SHOOT_LOGIC_H
+#define META_INFANTRY_INFANTRY_SHOOT_LOGIC_H
 
 /**
- * @file    shoot_logic.h
+ * @file    infantry_shoot_logic.h
  * @brief   Logic-level module to control shooter. Support number-controlling shooting.
  *
  * @addtogroup shoot
@@ -115,6 +115,6 @@ private:
 
 };
 
-#endif //META_INFANTRY_SHOOT_LOGIC_H
+#endif //META_INFANTRY_INFANTRY_SHOOT_LOGIC_H
 
 /** @} */

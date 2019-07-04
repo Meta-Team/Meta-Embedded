@@ -69,12 +69,19 @@ set(AHRS_SRC
         dev/interface/ahrs/ist8310.cpp
         dev/interface/ahrs/mpu6500.cpp)
 
-set(GIMBAL_SHOOT_SRC
+set(INFANTRY_SHOOT_SRC
         dev/interface/gimbal_interface.cpp
         dev/scheduler/gimbal_scheduler.cpp
         dev/scheduler/shoot_scheduler.cpp
         dev/logic/gimbal_logic.cpp
-        dev/logic/shoot_logic.cpp)
+        dev/logic/infantry_shoot_logic.cpp)
+
+set(HERO_SHOOT_SRC
+        dev/interface/gimbal_interface.cpp
+        dev/scheduler/gimbal_scheduler.cpp
+        dev/scheduler/shoot_scheduler.cpp
+        dev/logic/gimbal_logic.cpp
+        dev/logic/hero_shoot_logic.cpp)
 
 set(CHASSIS_SRC
         dev/interface/chassis_interface.cpp
@@ -97,7 +104,7 @@ set(INFANTRY
         dev/interface/can_interface.cpp
         dev/interface/remote_interpreter.cpp
         ${AHRS_SRC}
-        ${GIMBAL_SHOOT_SRC}
+        ${INFANTRY_SHOOT_SRC}
         ${CHASSIS_SRC}
         dev/vehicle/infantry/inspector.cpp
         dev/vehicle/infantry/user.cpp
@@ -141,16 +148,11 @@ target_compile_definitions(ENGINEER PRIVATE ENGINEER ENABLE_STATE_HANDLE)
 add_executable(HERO
         dev/module/pid_controller.hpp
         dev/interface/can_interface.cpp
-        dev/interface/ahrs/mpu6500.cpp
-        dev/interface/chassis_interface.cpp
-        dev/interface/gimbal_interface.cpp
         dev/interface/remote_interpreter.cpp
-        dev/interface/elevator_interface.cpp
-        dev/interface/robotic_arm.cpp
-        dev/scheduler/chassis_scheduler.cpp
-        dev/scheduler/gimbal_scheduler.cpp
-        dev/scheduler/shoot_scheduler.cpp
-        dev/vehicle/hero/main_)
+        ${AHRS_SRC}
+        ${HERO_SHOOT_SRC}
+        ${CHASSIS_SRC}
+        dev/vehicle/hero/main_hero.cpp)
 target_include_directories(HERO PRIVATE dev/vehicle/hero)
 target_compile_definitions(HERO PUBLIC HERO ENABLE_STATE_HANDLE)
 

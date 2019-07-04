@@ -11,7 +11,7 @@
  */
 
 
-#include "shoot_logic.h"
+#include "infantry_shoot_logic.h"
 
 float ShootLG::angle_per_bullet = 0;
 int ShootLG::bullet_count = 0;
