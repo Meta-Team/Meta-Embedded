@@ -125,7 +125,7 @@ add_executable(HERO
         dev/control/chassis_scheduler.cpp
         dev/control/gimbal_scheduler.cpp
         dev/control/shoot.cpp
-        dev/vehicle/hero/main_hero.cpp)
+        dev/vehicle/hero/main_hero.cpp dev/interface/)
 target_include_directories(HERO PRIVATE dev/vehicle/hero)
 target_compile_definitions(HERO PUBLIC HERO ENABLE_STATE_HANDLE)
 
@@ -306,6 +306,11 @@ add_executable(ut_referee_interface
         dev/interface/referee_interface.cpp
         dev/debug/unit_tests/referee_interface_unit_test.cpp)
 
+add_executable(ut_vision_port
+        dev/module/CRC8.cpp
+        dev/module/CRC16.cpp
+        dev/interface/vision_port.cpp
+        dev/debug/unit_tests/vision_port_unit_test.cpp)
 # Template Unit Test
 add_executable(ut_template
         dev/debug/unit_tests/unit_test_template.cpp)
