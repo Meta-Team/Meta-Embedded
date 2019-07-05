@@ -2,8 +2,8 @@
 // Created by liuzikai on 2019-06-25.
 //
 
-#ifndef META_INFANTRY_INSPECTOR_H
-#define META_INFANTRY_INSPECTOR_H
+#ifndef META_HERO_INSPECTOR_H
+#define META_HERO_INSPECTOR_H
 
 #include "ch.hpp"
 
@@ -58,4 +58,4 @@ private:
 };
 
 
-#endif //META_INFANTRY_INSPECTOR_H
+#endif //META_HERO_INSPECTOR_H
