@@ -108,7 +108,7 @@ void HeroShootLG::AutomateThread::main() {
         loaded_bullet[2] = (bool) palReadPad(GPIOE, GPIOE_PIN4);
 
         // When loaded_bullet[2] is true and the another
-        if(loaded_bullet[2]== true && (bool) palReadPad(GPIOE, GPIOE_PIN5)) {
+        if(loaded_bullet[2] && (bool) palReadPad(GPIOE, GPIOE_PIN5)) {
             loaded_bullet[3] = true;
         }
 
@@ -127,13 +127,13 @@ void HeroShootLG::AutomateThread::main() {
         }
 
         // loader load automatically.
-        if(loaded_bullet[0] == false && loaded_bullet[2] == true && loaderState == STOP) {
+        if(!loaded_bullet[0]  && loaded_bullet[2] && loaderState == STOP) {
             loaderState = LOADING;
             loader_target_angle += loader_angle_per_bullet;
             ShootSKD::set_loader_target(loader_target_angle);
             loaded_bullet[0] = loaded_bullet[1];
             loaded_bullet[1] = loaded_bullet[2];
-            if(loaded_bullet[3] == true){
+            if(loaded_bullet[3]){
                 loaded_bullet[2] = loaded_bullet[3];
                 loaded_bullet[3] = false;
             }
@@ -141,8 +141,8 @@ void HeroShootLG::AutomateThread::main() {
         }
 
         // Plate load automatically.
-        if( plateState == STOP && (loaded_bullet[2] == false && loaded_bullet[3] == false) &&
-            (loaded_bullet[0] == true && loaded_bullet[1] == false && loaded_bullet[2] == true && loaded_bullet[3] == false)) {
+        if( plateState == STOP && (!loaded_bullet[2] && !loaded_bullet[3]) &&
+            (loaded_bullet[0] && !loaded_bullet[1] && loaded_bullet[2] && !loaded_bullet[3])) {
             plateState = LOADING;
             plate_target_angle += plate_angle_per_bullet;
             ShootSKD::set_plate_target(plate_target_angle);
