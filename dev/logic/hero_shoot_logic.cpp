@@ -17,6 +17,17 @@ void HeroShootLG::init(float loader_angle_per_bullet_, float plate_angle_per_bul
 void HeroShootLG::shoot() {
 
 }
+
+void HeroShootLG::ForceStop() {
+    ShootSKD::set_mode(ShootSKD::FORCED_RELAX_MODE);
+
+    load_bullet_count = 0;
+    ShootSKD::reset_loader_accumulated_angle();
+    ShootSKD::reset_plate_accumulated_angle();
+    loader_target_angle = plate_target_angle = 0;
+
+    plateState = FORCESTOP;
+}
 void HeroShootLG::StuckDetectorThread::main() {
     setName("Stuck_Detector");
     while(!shouldTerminate()) {
@@ -24,14 +35,19 @@ void HeroShootLG::StuckDetectorThread::main() {
            ShootSKD::get_loader_target_current() > LOADER_STUCK_THRESHOLD_CURRENT &&
            ShootSKD::get_loader_actual_velocity() < LOADER_STUCK_THRESHOLD_VELOCITY){
             loaderState = STUCK;
-
+            ShootSKD::set_loader_target(ShootSKD::get_loader_accumulated_angle() - 10.0f);
         }
         if(plateState == LOADING &&
            ShootSKD::get_plate_target_current() > PLATE_STUCK_THRESHOLD_CURRENT &&
            ShootSKD::get_plate_actual_velocity() < PLATE_STUCK_THRESHOLD_VELOCITY &&
            load_bullet_count == 0) {
             plateState = STUCK;
+            ShootSKD::set_plate_target(ShootSKD::get_plate_accumulated_angle() - 10.0f);
         }
+        if(loaderState == STUCK || plateState == STUCK){
+            sleep(TIME_MS2I(STUCK_REVERSE_TIME));
+        }
+        sleep(TIME_MS2I(STUCK_DETECTOR_THREAD_INTERVAL));
     }
 }
 // Used for handle the plate motion as well as load logic.
@@ -39,8 +55,21 @@ void HeroShootLG::AutomateThread::main() {
     setName("Automation");
 
     while(!shouldTerminate()) {
-        // update the actual angle.
+        bool plate_top_status = (bool) palReadPad(GPIOE, GPIOE_PIN5);
+    }
 
+    // Update the loader status (LOADING OR STOP)
+    if(loader_target_angle - ShootSKD::get_loader_accumulated_angle() > 2.0f && loaderState != STUCK) {
+        loaderState = LOADING;
+    } else if (loader_target_angle - ShootSKD::get_loader_accumulated_angle() < 2.0f && loaderState != STUCK){
+        loaderState = STOP;
+    }
+
+    // Update the plate status (LOADING OR STOP)
+    if(plate_target_angle - ShootSKD::get_plate_accumulated_angle() > 2.0f && plateState != STUCK) {
+        plateState = LOADING;
+    } else if (plate_target_angle - ShootSKD::get_plate_accumulated_angle() < 2.0f && plateState!= STUCK) {
+        plateState = STOP;
     }
 
 }

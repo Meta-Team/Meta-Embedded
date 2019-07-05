@@ -23,6 +23,8 @@ public:
     static void init(float loader_angle_per_bullet_, float plate_angle_per_bullet_, tprio_t stuck_detector_thread_prio, tprio_t automatic_thread_prio);
 
     static void shoot();
+
+    static void ForceStop();
     /**
  * Set friction wheels duty cycle in LIMITED_SHOOTING_MODE or REVERSE_TURNING_MODE
  * @param duty_cycle  Friction wheels duty cycle, from 0 to 1.0
@@ -38,7 +40,8 @@ public:
     enum loader_state_t{
         LOADING,
         STOP,
-        STUCK
+        STUCK,
+        FORCESTOP,
     };
 
     static loader_state_t loaderState;
@@ -49,7 +52,12 @@ private:
     static int load_bullet_count;
 
     static int loader_angle_per_bullet;
+    static float loader_target_angle;
     static int plate_angle_per_bullet;
+    static float plate_target_angle;
+
+    static int loader_runtime;
+    static int plate_runtime;
 
     static bool loaded_bullet[4];
 
@@ -60,6 +68,9 @@ private:
     class AutomateThread : public chibios_rt::BaseStaticThread<512> {
         void main() final;
     };
+
+    static constexpr unsigned STUCK_DETECTOR_THREAD_INTERVAL = 10;
+    static constexpr unsigned STUCK_REVERSE_TIME = 250;
 
     static constexpr int LOADER_STUCK_THRESHOLD_CURRENT = 1500;
     static constexpr int LOADER_STUCK_THRESHOLD_VELOCITY = 2;
