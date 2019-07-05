@@ -15,7 +15,32 @@ void HeroShootLG::init(float loader_angle_per_bullet_, float plate_angle_per_bul
     automation.start(automatic_thread_prio);
 }
 void HeroShootLG::shoot() {
+    if(loaderState == STOP) {
+        if(loaded_bullet[0] && loaded_bullet[1]){
 
+            loader_target_angle += loader_angle_per_bullet;
+            ShootSKD::set_loader_target(loader_target_angle);
+            loaderState = LOADING;
+
+            // update the status
+            loaded_bullet[0] == loaded_bullet[1];
+            loaded_bullet[1] == loaded_bullet[2];
+            loaded_bullet[2] == loaded_bullet[3];
+            loaded_bullet[3] == false;
+
+        } else if(loaded_bullet[0] && !loaded_bullet[1]) {
+
+            loader_target_angle += ( 2 * loader_angle_per_bullet);
+            ShootSKD::set_loader_target(loader_target_angle);
+            loaderState = LOADING;
+
+            // update the status
+            loaded_bullet[0] == loaded_bullet[2];
+            loaded_bullet[1] == loaded_bullet[3];
+            loaded_bullet[3] == false;
+
+        }
+    }
 }
 
 void HeroShootLG::ForceStop() {
@@ -25,7 +50,6 @@ void HeroShootLG::ForceStop() {
     ShootSKD::reset_loader_accumulated_angle();
     ShootSKD::reset_plate_accumulated_angle();
     loader_target_angle = plate_target_angle = 0;
-
     plateState = FORCESTOP;
 }
 void HeroShootLG::StuckDetectorThread::main() {
@@ -103,6 +127,7 @@ void HeroShootLG::AutomateThread::main() {
             // No need to update the sequence. The special situation has already been considered.
         }
 
+        sleep(TIME_MS2I(AUTOMATION_THREAD_INTERVAL));
     }
 
 }
