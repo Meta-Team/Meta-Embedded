@@ -5,14 +5,25 @@
 #include "hero_shoot_logic.h"
 
 void HeroShootLG::init(float loader_angle_per_bullet_, float plate_angle_per_bullet_, tprio_t stuck_detector_thread_prio, tprio_t automatic_thread_prio) {
+
+    // initialize the parameter.
     loader_angle_per_bullet = loader_angle_per_bullet_;
     plate_angle_per_bullet = plate_angle_per_bullet_;
-    // clear the bullet.
 
+    // reset the target angle.
+    loader_target_angle = 0.0f;
+    plate_target_angle = 0.0f;
+
+    // clear the bullet angle
+    ShootSKD::reset_loader_accumulated_angle();
+    ShootSKD::reset_plate_accumulated_angle();
+
+    // clear the bullet
     loaded_bullet[0] = loaded_bullet[1] = loaded_bullet[2] = loaded_bullet[3] = false;
 
     stuckDetector.start(stuck_detector_thread_prio);
     automation.start(automatic_thread_prio);
+
 }
 void HeroShootLG::shoot() {
     if(loaderState == STOP) {
