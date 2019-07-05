@@ -51,9 +51,9 @@ private:
 
     static int load_bullet_count;
 
-    static int loader_angle_per_bullet;
+    static float loader_angle_per_bullet;
     static float loader_target_angle;
-    static int plate_angle_per_bullet;
+    static float plate_angle_per_bullet;
     static float plate_target_angle;
 
     // Another Idea: Check whether the motor is stuck based on the motor response time.

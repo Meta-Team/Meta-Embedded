@@ -152,6 +152,8 @@ add_executable(HERO
         ${AHRS_SRC}
         ${HERO_SHOOT_SRC}
         ${CHASSIS_SRC}
+        dev/vehicle/hero/inspector.cpp
+        dev/vehicle/hero/user.cpp
         dev/vehicle/hero/main_hero.cpp)
 target_include_directories(HERO PRIVATE dev/vehicle/hero)
 target_compile_definitions(HERO PUBLIC HERO ENABLE_STATE_HANDLE)

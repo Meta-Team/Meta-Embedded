@@ -4,22 +4,27 @@
 
 #include "hero_shoot_logic.h"
 
+float HeroShootLG::loader_angle_per_bullet = 0.0f;
+float HeroShootLG::plate_angle_per_bullet = 0.0f;
+float HeroShootLG::loader_target_angle = 0.0f;
+float HeroShootLG::plate_target_angle = 0.0f;
+bool HeroShootLG::loaded_bullet[4] = {false, false, false, false};
+int HeroShootLG::load_bullet_count = 0;
+HeroShootLG::loader_state_t HeroShootLG::loaderState = STOP;
+HeroShootLG::loader_state_t HeroShootLG::plateState = STOP;
+
+HeroShootLG::AutomateThread HeroShootLG::automation;
+HeroShootLG::StuckDetectorThread HeroShootLG::stuckDetector;
+
 void HeroShootLG::init(float loader_angle_per_bullet_, float plate_angle_per_bullet_, tprio_t stuck_detector_thread_prio, tprio_t automatic_thread_prio) {
 
     // initialize the parameter.
     loader_angle_per_bullet = loader_angle_per_bullet_;
     plate_angle_per_bullet = plate_angle_per_bullet_;
 
-    // reset the target angle.
-    loader_target_angle = 0.0f;
-    plate_target_angle = 0.0f;
-
     // clear the bullet angle
     ShootSKD::reset_loader_accumulated_angle();
     ShootSKD::reset_plate_accumulated_angle();
-
-    // clear the bullet
-    loaded_bullet[0] = loaded_bullet[1] = loaded_bullet[2] = loaded_bullet[3] = false;
 
     stuckDetector.start(stuck_detector_thread_prio);
     automation.start(automatic_thread_prio);
@@ -34,10 +39,10 @@ void HeroShootLG::shoot() {
             loaderState = LOADING;
 
             // update the status
-            loaded_bullet[0] == loaded_bullet[1];
-            loaded_bullet[1] == loaded_bullet[2];
-            loaded_bullet[2] == loaded_bullet[3];
-            loaded_bullet[3] == false;
+            loaded_bullet[0] = loaded_bullet[1];
+            loaded_bullet[1] = loaded_bullet[2];
+            loaded_bullet[2] = loaded_bullet[3];
+            loaded_bullet[3] = false;
 
         } else if(loaded_bullet[0] && !loaded_bullet[1]) {
 
@@ -46,12 +51,18 @@ void HeroShootLG::shoot() {
             loaderState = LOADING;
 
             // update the status
-            loaded_bullet[0] == loaded_bullet[2];
-            loaded_bullet[1] == loaded_bullet[3];
-            loaded_bullet[3] == false;
+            loaded_bullet[0] = loaded_bullet[2];
+            loaded_bullet[1] = loaded_bullet[3];
+            loaded_bullet[3] = false;
 
         }
     }
+}
+void HeroShootLG::set_friction_wheels(float duty_cycle) {
+    ShootSKD::set_friction_wheels(duty_cycle);
+}
+float HeroShootLG::get_friction_wheels_duty_cycle() {
+    return ShootSKD::get_friction_wheels_duty_cycle();
 }
 
 void HeroShootLG::ForceStop() {
@@ -81,8 +92,8 @@ void HeroShootLG::StuckDetectorThread::main() {
         }
         if(loaderState == STUCK || plateState == STUCK){
             sleep(TIME_MS2I(STUCK_REVERSE_TIME));
-            loaderState == LOADING;
-            plateState == LOADING;
+            loaderState = LOADING;
+            plateState = LOADING;
         }
         sleep(TIME_MS2I(STUCK_DETECTOR_THREAD_INTERVAL));
     }
@@ -98,7 +109,7 @@ void HeroShootLG::AutomateThread::main() {
 
         // When loaded_bullet[2] is true and the another
         if(loaded_bullet[2]== true && (bool) palReadPad(GPIOE, GPIOE_PIN5)) {
-            loaded_bullet[3] == true;
+            loaded_bullet[3] = true;
         }
 
         // Update the loader status (LOADING OR STOP)
@@ -117,7 +128,7 @@ void HeroShootLG::AutomateThread::main() {
 
         // loader load automatically.
         if(loaded_bullet[0] == false && loaded_bullet[2] == true && loaderState == STOP) {
-            loaderState == LOADING;
+            loaderState = LOADING;
             loader_target_angle += loader_angle_per_bullet;
             ShootSKD::set_loader_target(loader_target_angle);
             loaded_bullet[0] = loaded_bullet[1];
@@ -132,7 +143,7 @@ void HeroShootLG::AutomateThread::main() {
         // Plate load automatically.
         if( plateState == STOP && (loaded_bullet[2] == false && loaded_bullet[3] == false) &&
             (loaded_bullet[0] == true && loaded_bullet[1] == false && loaded_bullet[2] == true && loaded_bullet[3] == false)) {
-            plateState == LOADING;
+            plateState = LOADING;
             plate_target_angle += plate_angle_per_bullet;
             ShootSKD::set_plate_target(plate_target_angle);
             // No need to update the sequence. The special situation has already been considered.
