@@ -13,9 +13,9 @@
 
 using namespace chibios_rt;
 
-static constexpr Matrix33 AHRS_MATRIX = {{0.0f, 0.0f, 1.0f},
-                                         {1.0f, 0.0f, 0.0f},
-                                         {0.0f, 1.0f, 0.0f}};
+static constexpr Matrix33 AHRS_MATRIX = {{1.0f, 0.0f, 0.0f},
+                                         {0.0f, 1.0f, 0.0f},
+                                         {0.0f, 0.0f, 1.0f}};
 
 
 static constexpr Matrix33 ANGLE_INSTALLATION_MATRIX = {{1.0f, 0.0f, 0.0f},
@@ -23,9 +23,9 @@ static constexpr Matrix33 ANGLE_INSTALLATION_MATRIX = {{1.0f, 0.0f, 0.0f},
                                                        {0.0f, 0.0f, -1.0f}};
 
 
-static constexpr Matrix33 GYRO_INSTALLATION_MATRIX = {{0.0f,  -1.0f, 0.0f},
-                                                      {0.0f,  0.0f,  1.0f},
-                                                      {-1.0f, 0.0f,  0.0f}};
+static constexpr Matrix33 GYRO_INSTALLATION_MATRIX = {{ 0.0f,  0.0f, 1.0f},
+                                                      { 0.0f,  1.0f, 0.0f},
+                                                      {-1.0f, 0.0f, 0.0f}};
 
 //static constexpr Matrix33 GYRO_INSTALLATION_MATRIX = {{-1.0f, 0.0f, 0.0f},
 //                                                      {0.0f, 0.0f, -1.0f},
@@ -37,7 +37,7 @@ class AHRSFeedbackThread : public BaseStaticThread<1024> {
 protected:
     void main() final {
         setName("AHRS");
-        ahrs.load_calibration_data({0.682773649f, -0.682926177f, -0.257317185f});
+//        ahrs.load_calibration_data({0.682773649f, -0.682926177f, -0.257317185f});
         ahrs.start(AHRS_MATRIX, HIGHPRIO - 2, HIGHPRIO - 3, HIGHPRIO - 1);
         Buzzer::play_sound(Buzzer::sound_startup, LOWPRIO);
         while (!shouldTerminate()) {
@@ -51,11 +51,11 @@ protected:
 //                          gyro.x,
 //                          gyro.y,
 //                          gyro.z);
-            Shell::printf("gyro.x = %.2f, gyro.z = %.2f, angle.y = %.2f ,ans = %.2f" SHELL_NEWLINE_STR,
-                          gyro.x,
-                          gyro.z,
-                          angle.y,
-                          gyro.x * cosf(angle.y / 180.0f * M_PI) + gyro.z * sinf(angle.y / 180.0f * M_PI));
+//            Shell::printf("gyro.x = %.2f, gyro.z = %.2f, angle.y = %.2f ,ans = %.2f" SHELL_NEWLINE_STR,
+//                          gyro.x,
+//                          gyro.z,
+//                          angle.y,
+//                          gyro.x * cosf(angle.y / 180.0f * M_PI) + gyro.z * sinf(angle.y / 180.0f * M_PI));
             sleep(TIME_MS2I(100));
         }
     }

@@ -8,9 +8,9 @@
 #define META_INFANTRY_VEHICLE_INFANTRY_H
 
 /// AHRS Configurations
-static constexpr Matrix33 ON_BOARD_AHRS_MATRIX = {{0.0f, 0.0f, 1.0f},
-                                                  {1.0f, 0.0f, 0.0f},
-                                                  {0.0f, 1.0f, 0.0f}};
+static constexpr Matrix33 ON_BOARD_AHRS_MATRIX = {{1.0f, 0.0f, 0.0f},
+                                                  {0.0f, 1.0f, 0.0f},
+                                                  {0.0f, 0.0f, 1.0f}};
 // Raw angle of yaw and pitch when gimbal points straight forward.
 //   Note: the program will echo the raw angles of yaw and pitch as the program starts
 #define GIMBAL_YAW_FRONT_ANGLE_RAW 6772
@@ -21,7 +21,7 @@ static constexpr Matrix33 ON_BOARD_AHRS_MATRIX = {{0.0f, 0.0f, 1.0f},
 
 #define LOADER_SHOOT_DEGREE_PER_BULLET 72.0f
 #define PLATE_SHOOT_DEGREE_PER_BULLET 36.0f
-#define MPU6500_STORED_GYRO_BIAS {0.682773649f, -0.682926177f, -0.257317185f}
+#define MPU6500_STORED_GYRO_BIAS {-0.631951332, 0.030548788, 0.723660469}
 
 
 /// Gimbal and Shoot Installation Configurations
@@ -34,9 +34,9 @@ static constexpr Matrix33 GIMBAL_ANGLE_INSTALLATION_MATRIX = {{1.0f, 0.0f, 0.0f}
                                                               {0.0f, 0.0f, -1.0f}};
 
 
-static constexpr Matrix33 GIMBAL_GYRO_INSTALLATION_MATRIX = {{0.0f,  -1.0f, 0.0f},
-                                                             {0.0f,  0.0f,  1.0f},
-                                                             {-1.0f, 0.0f,  0.0f}};
+static constexpr Matrix33 GIMBAL_GYRO_INSTALLATION_MATRIX = {{ 0.0f,  0.0f, 1.0f},
+                                                             { 0.0f,  1.0f, 0.0f},
+                                                             {-1.0f, 0.0f, 0.0f}};
 
 /// Gimbal and Shoot PID Parameters
 #define GIMBAL_PID_YAW_A2V_KP 4.4f
