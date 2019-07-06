@@ -9,12 +9,11 @@
 #include "debug/shell/shell.h"
 #include "scheduler/chassis_scheduler.h"
 
-#include "vehicle_infantry_three.h"
-#warning "ut_chassis is only designed for INFANTRY #3."
+#include "vehicle/hero/vehicle_hero.h"
 
 using namespace chibios_rt;
 
-CANInterface can1(&CAND1);
+CANInterface can2(&CAND2);
 
 float target_vx = 0.0f; // [mm/s]
 float target_vy = 0.0f; // [mm/s]
@@ -103,7 +102,7 @@ private:
         while (!shouldTerminate()) {
             Shell::printf("!cv,%u,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f" SHELL_NEWLINE_STR,
                           TIME_I2MS(chibios_rt::System::getTime()),
-                          Chassis::feedback[0].actual_velocity,
+                          ;
                           Chassis::target_velocity[0],
                           Chassis::feedback[1].actual_velocity,
                           Chassis::target_velocity[1],
@@ -116,40 +115,6 @@ private:
     }
 } chassisFeedbackThread;
 
-class ChassisThread : public BaseStaticThread<1024> {
-protected:
-    void main() final {
-        setName("chassis");
-        while (!shouldTerminate()) {
-
-            if (target_vx != 0.0f || target_vy != 0.0f || target_w != 0.0f) {
-
-                if (SYSTIME >= test_end_time) {
-
-                    target_vx = target_vy = target_w = 0.0f;
-
-                    for (int i = 0; i < Chassis::MOTOR_COUNT; i++) {
-                        Chassis::target_current[i] = 0;
-                    }
-
-                    Shell::printf("!ce" SHELL_NEWLINE_STR);
-
-                } else {
-
-                    // Perform calculation
-                    Chassis::calc(target_vx, target_vy, target_w);
-
-                }
-            }
-
-            Chassis::send_chassis_currents();
-
-            sleep(TIME_MS2I(CHASSIS_THREAD_INTERVAL));
-        }
-    }
-} chassisThread;
-
-
 int main(void) {
     
     halInit();
@@ -159,11 +124,12 @@ int main(void) {
     Shell::start(HIGHPRIO);
     Shell::addCommands(chassisCommands);
 
-    can1.start(HIGHPRIO - 1);
-    Chassis::init(&can1, CHASSIS_WHEEL_BASE, CHASSIS_WHEEL_TREAD, CHASSIS_WHEEL_CIRCUMFERENCE);
+    can2.start(HIGHPRIO - 1);
 
     chassisFeedbackThread.start(NORMALPRIO - 1);
-    chassisThread.start(NORMALPRIO);
+
+    ChassisIF::init();
+    ChassisScheduler.start(CHASSIS_WHEEL_BASE, CHASSIS_WHEEL_TREAD, CHASSIS_WHEEL_CIRCUMFERENCE, NORMALPRIO);
 
     // See chconf.h for what this #define means.
 #if CH_CFG_NO_IDLE_THREAD
