@@ -10,11 +10,10 @@
 #include "string.h"
 #include "led.h"
 
-VisionPort::frame_header_t VisionPort::frame_header;
-uint16_t VisionPort::cmd_id;
+VisionPort::package_t VisionPort::pak;
 VisionPort::rx_status_t VisionPort::rx_status;
-uint8_t VisionPort::rx_buf[RX_BUF_SIZE];
-VisionPort::enemy_information_data_t VisionPort::enemy_info;
+
+VisionPort::enemy_info_t VisionPort::enemy_info;
 
 const UARTConfig VisionPort::UART_CONFIG = {
         nullptr,
@@ -34,44 +33,49 @@ void VisionPort::init() {
 
     // Wait for starting byte
     rx_status = WAIT_STARTING_BYTE;
-    uartStartReceive(UART_DRIVER, FRAME_SOF_SIZE, rx_buf);
+    uartStartReceive(UART_DRIVER, FRAME_SOF_SIZE, &pak);
 }
 
 void VisionPort::uart_rx_callback(UARTDriver *uartp) {
+
+//    LED::red_toggle();
     (void) uartp;
 
     chSysLockFromISR();
+
     // Handle received data and transfer status properly
+
+    uint8_t* pak_uint8 = (uint8_t *)&pak;
+
     switch (rx_status) {
 
         case WAIT_STARTING_BYTE:
-            LED::green_toggle();
-            if (rx_buf[0] == 0xA5) {
+//            LED::green_toggle();
+            if (pak_uint8[0] == 0xA5) {
                 rx_status = WAIT_REMAINING_HEADER;
             } // else, keep waiting for SOF
-            Shell::printfI("[VisionPort] %x" SHELL_NEWLINE_STR, (unsigned) rx_buf[0]);
+//            Shell::printfI("[VisionPort] %x" SHELL_NEWLINE_STR, (unsigned) rx_buf[0]);
             break;
 
         case WAIT_REMAINING_HEADER:
 
-            if (Verify_CRC8_Check_Sum((uint8_t *) rx_buf, FRAME_HEADER_SIZE)) {
-                memcpy(&frame_header, rx_buf, FRAME_HEADER_SIZE);
-                memcpy(&cmd_id, rx_buf + FRAME_HEADER_SIZE, CMD_ID_SIZE);
+            if (Verify_CRC8_Check_Sum(pak_uint8, FRAME_HEADER_SIZE)) {
                 rx_status = WAIT_CMD_ID_DATA_TAIL; // go to next status
             } else {
-                Shell::printfI("[VisionPort] Invalid frameHeader!" SHELL_NEWLINE_STR);
+//                Shell::printfI("[VisionPort] Invalid frameHeader!" SHELL_NEWLINE_STR);
                 rx_status = WAIT_STARTING_BYTE;
             }
             break;
 
         case WAIT_CMD_ID_DATA_TAIL:
 
-            if (Verify_CRC16_Check_Sum((uint8_t *) &rx_buf,
-                                       FRAME_HEADER_SIZE + CMD_ID_SIZE + frame_header.data_length + FRAME_TAIL_SIZE)) {
+            if (Verify_CRC16_Check_Sum(pak_uint8,
+                                       FRAME_HEADER_SIZE + CMD_ID_SIZE + pak.header.data_length + FRAME_TAIL_SIZE)) {
 
-                switch (cmd_id) {
-                    case 0x0201:
-                        memcpy(&enemy_info, rx_buf + FRAME_HEADER_SIZE + CMD_ID_SIZE, sizeof(enemy_information_data_t));
+                switch (pak.cmd_id) {
+                    case 0xff01:
+                        enemy_info = pak.enemy_info_;
+                        LED::green_toggle();
                         break;
                     default:
                         // FIXME: temporarily disabled since not all ID has been implemented
@@ -79,7 +83,7 @@ void VisionPort::uart_rx_callback(UARTDriver *uartp) {
                         break;
                 }
             } else {
-                Shell::printfI("[VisionPort] Invalid data of type %u!" SHELL_NEWLINE_STR, cmd_id);
+//                Shell::printfI("[VisionPort] Invalid data of type %u!" SHELL_NEWLINE_STR, cmd_id);
             }
 
             rx_status = WAIT_STARTING_BYTE;
@@ -89,13 +93,13 @@ void VisionPort::uart_rx_callback(UARTDriver *uartp) {
 
     switch (rx_status) {
         case WAIT_STARTING_BYTE:
-            uartStartReceiveI(uartp, FRAME_SOF_SIZE, rx_buf);
+            uartStartReceiveI(uartp, FRAME_SOF_SIZE, pak_uint8);
             break;
         case WAIT_REMAINING_HEADER:
-            uartStartReceiveI(uartp, FRAME_HEADER_SIZE - FRAME_SOF_SIZE, rx_buf + FRAME_SOF_SIZE);
+            uartStartReceiveI(uartp, FRAME_HEADER_SIZE - FRAME_SOF_SIZE, pak_uint8 + FRAME_SOF_SIZE);
             break;
         case WAIT_CMD_ID_DATA_TAIL:
-            uartStartReceiveI(uartp, CMD_ID_SIZE + frame_header.data_length + FRAME_TAIL_SIZE, rx_buf + FRAME_HEADER_SIZE);
+            uartStartReceiveI(uartp, CMD_ID_SIZE + pak.header.data_length + FRAME_TAIL_SIZE, pak_uint8 + FRAME_HEADER_SIZE);
             break;
     }
 

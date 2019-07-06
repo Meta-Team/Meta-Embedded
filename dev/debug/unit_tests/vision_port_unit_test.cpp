@@ -15,8 +15,8 @@ class VisionPortEchoThread: public chibios_rt::BaseStaticThread<512>{
         setName("vision_port");
         VisionPort::init();
         while (!shouldTerminate()){
-            LOG("Enemy_spot: %d  YAW: %.2f  PIT: %.2f  dist: %.2f",
-                    VisionPort::enemy_info.enemy_spotted, VisionPort::enemy_info.yaw_angle, VisionPort::enemy_info.pitch_angle, VisionPort::enemy_info.distance);
+            LOG("YAW: %.2f  PIT: %.2f  dist: %.2f",
+                    VisionPort::enemy_info.yaw_angle, VisionPort::enemy_info.pitch_angle, VisionPort::enemy_info.distance);
             sleep(TIME_MS2I(1000));
         }
     }
@@ -42,7 +42,7 @@ int main(void) {
     chThdSleepMilliseconds(500);
 
     /** Play the Startup Sound **/
-    Buzzer::play_sound(Buzzer::sound_startup_intel, LOWPRIO);
+//    Buzzer::play_sound(Buzzer::sound_startup_intel, LOWPRIO);
 
 
     /*** ------------------------ Period 3. End of main thread ----------------------- ***/
