@@ -1,6 +1,7 @@
 //
 // Created by liuzikai on 2019-04-22.
-// This file contains common parameters for infantry
+// Edited by Qian Chen & Mo Kanya on 2019-07-05
+// This file contains common parameters for hero
 //
 
 #ifndef META_INFANTRY_VEHICLE_INFANTRY_H
