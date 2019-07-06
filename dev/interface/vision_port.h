@@ -35,6 +35,10 @@ public:
 
     static void init();
 
+    static void send_gimbal(float yaw, float pitch);
+
+    static void send_enemy_color(bool is_blue);
+
 private:
 
     __PACKED_STRUCT frame_header_t {
@@ -44,11 +48,22 @@ private:
         uint8_t crc8;
     };
 
+    __PACKED_STRUCT gimbal_current_t {
+        float yaw;
+        float pitch;
+    };
+
+    __PACKED_STRUCT enemy_color_t {
+        uint8_t enemy_color;  // RED = 0, BLUE = 1
+    };
+
     __PACKED_STRUCT package_t {
         frame_header_t header;
         uint16_t cmd_id;
         union {
             enemy_info_t enemy_info_;
+            gimbal_current_t gimbal_current_;
+            enemy_color_t enemy_color_;
         };
         uint16_t tail;
     };
@@ -57,14 +72,11 @@ private:
 
     static void uart_rx_callback(UARTDriver *uartp);  // only for internal use
 
-
-
     enum rx_status_t {
         WAIT_STARTING_BYTE,  // receive bytes one by one, waiting for 0xA5
         WAIT_REMAINING_HEADER,  // receive remaining header after SOF
         WAIT_CMD_ID_DATA_TAIL  // receive cmd_id, data section and 2-byte CRC16 tailing
     };
-
 
     static constexpr size_t FRAME_HEADER_SIZE = 5;
     static constexpr size_t FRAME_SOF_SIZE = 1;
@@ -73,6 +85,7 @@ private:
 
     static rx_status_t rx_status;
 
+    static uint16_t tx_seq;
 
     friend void uartStart(UARTDriver *uartp, const UARTConfig *config);
     friend void uartStartReceive(UARTDriver *uartp, size_t n, void *rxbuf);

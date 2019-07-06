@@ -12,8 +12,8 @@
 
 VisionPort::package_t VisionPort::pak;
 VisionPort::rx_status_t VisionPort::rx_status;
-
 VisionPort::enemy_info_t VisionPort::enemy_info;
+uint16_t VisionPort::tx_seq = 0;
 
 const UARTConfig VisionPort::UART_CONFIG = {
         nullptr,
@@ -34,6 +34,20 @@ void VisionPort::init() {
     // Wait for starting byte
     rx_status = WAIT_STARTING_BYTE;
     uartStartReceive(UART_DRIVER, FRAME_SOF_SIZE, &pak);
+}
+
+void VisionPort::send_gimbal(float yaw, float pitch) {
+    package_t tx_pak;
+    size_t tx_pak_size = FRAME_HEADER_SIZE + CMD_ID_SIZE + sizeof(gimbal_current_t) + FRAME_TAIL_SIZE;
+    tx_pak.header.sof = 0xA5;
+    tx_pak.header.data_length = sizeof(gimbal_current_t);
+    tx_pak.header.seq = tx_seq++;
+    Append_CRC8_Check_Sum((uint8_t *)&tx_pak, FRAME_HEADER_SIZE);
+    tx_pak.cmd_id = 0xFF00;
+    tx_pak.gimbal_current_.yaw = yaw;
+    tx_pak.gimbal_current_.pitch = pitch;
+    Append_CRC16_Check_Sum((uint8_t *)&tx_pak, tx_pak_size);
+    uartSendTimeout(UART_DRIVER, &tx_pak_size, &tx_pak, TIME_MS2I(10));
 }
 
 void VisionPort::uart_rx_callback(UARTDriver *uartp) {

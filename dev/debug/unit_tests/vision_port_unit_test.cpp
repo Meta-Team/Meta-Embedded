@@ -17,10 +17,11 @@ class VisionPortEchoThread: public chibios_rt::BaseStaticThread<512>{
         while (!shouldTerminate()){
             LOG("YAW: %.2f  PIT: %.2f  dist: %.2f",
                     VisionPort::enemy_info.yaw_angle, VisionPort::enemy_info.pitch_angle, VisionPort::enemy_info.distance);
+            VisionPort::send_gimbal(1000, 1000);
             sleep(TIME_MS2I(1000));
         }
     }
-}visionPortEchoThread;
+} visionPortEchoThread;
 
 int main(void) {
 
