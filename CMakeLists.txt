@@ -162,42 +162,27 @@ target_link_libraries(HERO ${PROJECT_SOURCE_DIR}/dev/interface/ahrs/ahrs_lib.lib
 # Blink
 add_executable(ut_blink
         dev/module/button_monitor.cpp
-        dev/debug/unit_tests/led_unit_test.cpp)
+        dev/debug/unit_tests/ut_led.cpp)
 
 # Remote Interpreter: include remote_interpreter sources and the unit test modules.
 add_executable(ut_remote_interpreter
         dev/interface/remote_interpreter.cpp
-        dev/debug/unit_tests/remote_interpreter_unit_test.cpp)
-
-# Gimbal Interface: include CANInterface, GimbalIF, GimbalFeedbackThread and the unit test modules.
-add_executable(ut_gimbal_interface
-        dev/interface/can_interface.cpp
-        dev/interface/ahrs/mpu6500.cpp
-        dev/interface/gimbal_interface.cpp
-        dev/scheduler/shoot_scheduler.cpp
-        dev/debug/unit_tests/gimbal_interface_unit_test.cpp)
-# Hero Shoot
-add_executable(ut_hero_shoot
-        dev/interface/can_interface.cpp
-        dev/interface/ahrs/mpu6500.cpp
-        dev/interface/gimbal_interface.cpp
-        dev/debug/unit_tests/hero_shoot_unit_test.cpp)
-target_compile_definitions(ut_hero_shoot PUBLIC HERO)
+        dev/debug/unit_tests/ut_remoteIF.cpp)
 
 # Hero Shoot
 add_executable(pa_hero_shoot
         dev/interface/can_interface.cpp
         dev/interface/gimbal_interface.cpp
-        dev/debug/unit_tests/hero_shoot_param_adjust.cpp)
+        dev/debug/unit_tests/pa_hero_shoot.cpp)
 target_compile_definitions(pa_hero_shoot PUBLIC HERO)
 
-# Gimbal: include CANInterface, GimbalIF, GimbalController, GimbalFeedbackThread and adjustment modules.
+# Shoot: include CANInterface, GimbalIF, GimbalController, GimbalFeedbackThread and adjustment modules.
 # Shoot
-add_executable(pa_shoot
+add_executable(pa_infantry_shoot
         dev/interface/can_interface.cpp
         dev/interface/gimbal_interface.cpp
         dev/scheduler/shoot_scheduler.cpp
-        dev/debug/unit_tests/shoot_param_adjust.cpp
+        dev/debug/unit_tests/pa_infantry_shoot.cpp
         dev/interface/remote_interpreter.cpp)
 
 # Gimbal: include CANInterface, GimbalInterface, GimbalController, GimbalFeedbackThread and adjustment modules.
@@ -208,19 +193,19 @@ add_executable(pa_gimbal
         dev/scheduler/gimbal_scheduler.cpp
         dev/scheduler/shoot_scheduler.cpp
         dev/interface/ahrs/mpu6500.cpp
-        dev/debug/unit_tests/gimbal_pid_adjustment_program.cpp)
+        dev/debug/unit_tests/pa_gimbal.cpp)
 target_compile_definitions(pa_gimbal PRIVATE SHELL_NO_ECHO_MODE)
 
 # MPU6500: include MP6500 interface and unit test.
 add_executable(ut_mpu6500
         dev/interface/ahrs/mpu6500.cpp
-        dev/debug/unit_tests/mpu6500_unit_test.cpp)
+        dev/debug/unit_tests/ut_mpu6500.cpp)
 
 # IST8310
 add_executable(ut_ist8310
         dev/interface/ahrs/mpu6500.cpp
         dev/interface/ahrs/ist8310.cpp
-        dev/debug/unit_tests/ist8310_unit_test.cpp)
+        dev/debug/unit_tests/ut_ist8310.cpp)
 
 # IMU: include IMU interface and unit test.
 add_executable(ut_imu
@@ -228,7 +213,7 @@ add_executable(ut_imu
         dev/interface/ahrs/mpu6500.cpp
         dev/interface/ahrs/ist8310.cpp
         dev/interface/ahrs/ahrs.cpp
-        dev/debug/unit_tests/ahrs_unit_test.cpp)
+        dev/debug/unit_tests/ut_ahrs.cpp)
 
 # AHRS
 add_executable(ut_ahrs
@@ -237,40 +222,34 @@ add_executable(ut_ahrs
         dev/interface/ahrs/ist8310.cpp
         dev/interface/ahrs/ahrs_lib_middleware.c
         dev/interface/ahrs/ahrs.cpp
-        dev/debug/unit_tests/ahrs_unit_test.cpp)
+        dev/debug/unit_tests/ut_ahrs.cpp)
 target_link_libraries(ut_ahrs ${PROJECT_SOURCE_DIR}/dev/interface/ahrs/ahrs_lib.lib)
 
 # AHRSExt
 add_executable(ut_ahrs_ext
         dev/interface/can_interface.cpp
         dev/interface/ahrs/ahrs_ext.cpp
-        dev/debug/unit_tests/ahrs_ext_unit_test.cpp)
+        dev/debug/unit_tests/ut_ahrs_ext'.cpp)
 
 # Buzzer: inlcude Buzzer interface and unit test.
 add_executable(ut_buzzer
         dev/interface/buzzer.cpp
-        dev/debug/unit_tests/buzzer_unit_test.cpp)
-
-# Chassis Interface: include chassis interface sources and the unit test modules.
-add_executable(ut_chassis_interface
-        dev/interface/can_interface.cpp
-        dev/interface/chassis_interface.cpp
-        dev/debug/unit_tests/chassis_interface_unit_test.cpp)
+        dev/debug/unit_tests/ut_buzzer.cpp)
 
 # Chassis: include chassis interface, chassis controller and the unit test modules.
-add_executable(ut_chassis
+add_executable(pa_chassis
         dev/interface/can_interface.cpp
         dev/interface/chassis_interface.cpp
         dev/module/pid_controller.hpp
         dev/scheduler/chassis_scheduler.cpp
-        dev/debug/unit_tests/chassis_unit_test.cpp)
-target_include_directories(ut_chassis PRIVATE dev/vehicle/infantry)
+        dev/debug/unit_tests/ut_chassis.cpp)
+target_include_directories(pa_chassis PRIVATE dev/vehicle/infantry)
 
 # Elevator Interface: include CANInterface, ElevatorInterface, and the unit test modules.
 add_executable(ut_elevator_interface
         dev/interface/can_interface.cpp
         dev/interface/elevator_interface.cpp
-        dev/debug/unit_tests/elevator_interface_unit_test.cpp)
+        dev/debug/unit_tests/ut_elevator_IF.cpp)
 
 # Elevator: include CANInterface, ElevatorInterface, ElevatorController, and the unit test modules.
 add_executable(pa_elevator
@@ -278,18 +257,18 @@ add_executable(pa_elevator
         dev/module/pid_controller.hpp
         dev/interface/elevator_interface.cpp
         dev/control/elevator.cpp
-        dev/debug/unit_tests/elevator_param_adjust.cpp)
+        dev/debug/unit_tests/pa_elevator.cpp)
 
 # Robotic Arm
 add_executable(ut_robotic_arm
         dev/interface/can_interface.cpp
         dev/interface/robotic_arm.cpp
         dev/vehicle/engineer/state_machine_bullet_fetch.cpp
-        dev/debug/unit_tests/engineer_robotic_arm_unit_test.cpp)
+        dev/debug/unit_tests/ut_robotic_arm.cpp)
 
 # Adjust Params of Skywalker-20A for friction wheels
 add_executable(pa_skywalker
-        dev/debug/unit_tests/skywalker_param_adjust.cpp
+        dev/debug/unit_tests/pa_skywalker.cpp
         dev/interface/remote_interpreter.cpp
         dev/interface/buzzer.cpp)
 
@@ -299,13 +278,13 @@ add_executable(ut_sentry_chassis
         dev/module/pid_controller.hpp
         dev/interface/sentry_chassis_interface.cpp
         dev/control/sentry_chassis.cpp
-        dev/debug/unit_tests/sentry_chassis_unit_test.cpp)
+        dev/debug/unit_tests/ut_sentry_chassis.cpp)
 
 add_executable(ut_referee_interface
         dev/common/CRC8.cpp
         dev/common/CRC16.cpp
         dev/interface/referee_interface.cpp
-        dev/debug/unit_tests/referee_interface_unit_test.cpp)
+        dev/debug/unit_tests/ut_refereeIF.cpp)
 
 # Template Unit Test
 add_executable(ut_template
