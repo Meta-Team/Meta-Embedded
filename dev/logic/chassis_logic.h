@@ -85,6 +85,7 @@ private:
     };
 
     static DodgeModeSwitchThread dodgeModeSwitchThread;
+    static chibios_rt::ThreadReference dodgeThreadReference;
 
 };
 

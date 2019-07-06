@@ -26,6 +26,8 @@ Remote::mouse_t Remote::mouse;
 Remote::keyboard_t Remote::key;
 time_msecs_t Remote::last_update_time;
 
+bool Remote::synchronizing = false;
+
 #if REMOTE_USE_EVENTS
 // See macro EVENTSOURCE_DECL() for initialization style
 event_source_t Remote::s_change_event = {(event_listener_t *)(&Remote::s_change_event)};
@@ -52,6 +54,8 @@ UARTConfig Remote::REMOTE_UART_CONFIG = {
  * @note DO NOT use printf, LOG, etc. in this function since it's an ISR callback.
  */
 void Remote::uart_received_callback_(UARTDriver *uartp) {
+
+    if (synchronizing) return;
 
     chSysLockFromISR();  /// ---------------------------------- Enter Critical Zone ----------------------------------
 
@@ -158,6 +162,7 @@ void Remote::uart_received_callback_(UARTDriver *uartp) {
 }
 
 void Remote::uart_synchronize() {
+    synchronizing = true;
     // Wait for no input in 5 ms, to avoid one receive starting from the middle of a frame
     while (true) {
         // For unknown reason, uartReceiveTimeout() seems not to wait for additional bytes if byte_received > 1
@@ -166,6 +171,7 @@ void Remote::uart_synchronize() {
         if (ret == MSG_TIMEOUT) break;
     }
     uartStartReceive(&REMOTE_UART_DRIVER, RX_FRAME_SIZE, rx_buf_);
+    synchronizing = false;
 }
 
 void Remote::start() {

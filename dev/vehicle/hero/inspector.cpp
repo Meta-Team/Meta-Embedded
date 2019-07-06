@@ -152,9 +152,27 @@ bool Inspector::check_chassis_failure() {
     return ret;
 }
 
+bool Inspector::check_remote_data_error() {
+    return (!ABS_IN_RANGE(Remote::rc.ch0, 1.1) || !ABS_IN_RANGE(Remote::rc.ch1, 1.1) ||
+            !ABS_IN_RANGE(Remote::rc.ch2, 1.1) || !ABS_IN_RANGE(Remote::rc.ch3, 1.1) ||
+            !(Remote::rc.s1 >= 1 && Remote::rc.s1 <= 3) || !(Remote::rc.s2 >= 1 && Remote::rc.s2 <= 3) ||
+            !ABS_IN_RANGE(Remote::mouse.x, 1.1) || !ABS_IN_RANGE(Remote::mouse.y, 1.1) ||
+            !ABS_IN_RANGE(Remote::mouse.z, 1.1) ||
+            Remote::rx_buf_[12] > 1 || Remote::rx_buf_[13] > 1);
+}
+
 void Inspector::InspectorThread::main() {
     setName("Inspector");
     while (!shouldTerminate()) {
+
+        if (check_remote_data_error()) {
+            remote_failure_ = true;  // Set it to true to avoid problem when thread switches to User in the middle
+            while (check_remote_data_error()) {
+                Remote::uart_synchronize();
+                sleep(TIME_MS2I(10));  // wait for another normal frame
+            }
+            remote_failure_ = false;
+        }
 
         remote_failure_ = (SYSTIME - Remote::last_update_time > 30);
         if (remote_failure_) LED::led_off(4);

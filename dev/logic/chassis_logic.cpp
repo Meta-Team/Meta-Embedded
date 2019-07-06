@@ -19,9 +19,13 @@ float ChassisLG::target_theta;
 
 tprio_t ChassisLG::dodge_thread_prio;
 ChassisLG::DodgeModeSwitchThread ChassisLG::dodgeModeSwitchThread;
+chibios_rt::ThreadReference ChassisLG::dodgeThreadReference;
+
 
 void ChassisLG::init(tprio_t dodge_thread_prio_) {
     dodge_thread_prio = dodge_thread_prio_;
+    dodgeModeSwitchThread.started = true;
+    dodgeThreadReference = dodgeModeSwitchThread.start(dodge_thread_prio);
 }
 
 ChassisLG::action_t ChassisLG::get_action() {
@@ -40,9 +44,12 @@ void ChassisLG::set_action(ChassisLG::action_t value) {
     } else if (action == DODGE_MODE) {
         ChassisSKD::set_mode(ChassisSKD::GIMBAL_COORDINATE_MODE);
         target_theta = DODGE_MODE_THETA;
+        chSysLock();
         if (!dodgeModeSwitchThread.started) {
-            dodgeModeSwitchThread.start(dodge_thread_prio);
+            dodgeModeSwitchThread.started = true;
+            chSchWakeupS(dodgeThreadReference.getInner(), 0);
         }
+        chSysUnlock();
     }
 }
 
@@ -61,15 +68,16 @@ void ChassisLG::apply_target() {
 }
 
 void ChassisLG::DodgeModeSwitchThread::main() {
-    started = true;
+
     setName("Chassis_Dodge");
     while(!shouldTerminate()) {
 
+        chSysLock();  /// ---------------------------------- Enter Critical Zone ----------------------------------
         if (action != DODGE_MODE) {
             started = false;
-            exit(0);
-            continue;
+            chSchGoSleepS(CH_STATE_SUSPENDED);
         }
+        chSysUnlock();  /// ---------------------------------- Exit Critical Zone ----------------------------------
 
         if (!ABS_IN_RANGE(ChassisSKD::get_actual_theta() - (-target_theta), 20)) {
             target_theta = -target_theta;

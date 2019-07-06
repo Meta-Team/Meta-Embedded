@@ -159,6 +159,8 @@ private:
      */
     static void uart_received_callback_(UARTDriver *uartp);
 
+    static bool synchronizing;
+
     static char rx_buf_[]; // store buf data retrieved from UART
 
     static const int RX_FRAME_SIZE = 18;
