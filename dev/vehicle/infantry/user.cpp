@@ -5,6 +5,7 @@
 #include "user.h"
 
 User::UserThread User::userThread;
+constexpr float User::GIMBAL_PC_YAW_SENSITIVITY[2];
 
 void User::start(tprio_t prio) {
     userThread.start(prio);
@@ -16,7 +17,7 @@ void User::UserThread::main() {
 
         /*** ---------------------------------- Gimbal --------------------------------- ***/
 
-        if (!Inspector::remote_failure() && !Inspector::gimbal_failure()) {
+        if (!Inspector::remote_failure() && !Inspector::chassis_failure() && !Inspector::gimbal_failure()) {
 
             if ((Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_UP) ||
                 (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_MIDDLE)) {
@@ -43,9 +44,24 @@ void User::UserThread::main() {
 
                 GimbalLG::set_action(GimbalLG::ABS_ANGLE_MODE);
 
+                if (pc_x_pressed != Remote::key.x) {  // x pressed or released
+                    // TODO: echo status to user
+                    if (Remote::key.x) {  // x pressed
+                        gimbal_pc_yaw_sensitivity_level = 0;
+                    }
+                    pc_x_pressed = Remote::key.x;
+                }
+
+                if (pc_c_pressed != Remote::key.c) {  // c pressed or released
+                    // TODO: echo status to user
+                    if (Remote::key.c) {  // c pressed
+                        gimbal_pc_yaw_sensitivity_level = 1;
+                    }
+                    pc_c_pressed = Remote::key.c;
+                }
 
                 gimbal_pc_yaw_target_angle +=
-                                   -Remote::mouse.x * (GIMBAL_PC_YAW_SENSITIVITY * USER_THREAD_INTERVAL / 1000.0f);
+                                   -Remote::mouse.x * (GIMBAL_PC_YAW_SENSITIVITY[gimbal_pc_yaw_sensitivity_level] * USER_THREAD_INTERVAL / 1000.0f);
                 // mouse.x use right as positive direction, while GimbalLG use CCW (left) as positive direction
 
 
@@ -66,7 +82,7 @@ void User::UserThread::main() {
                 GimbalLG::set_action(GimbalLG::FORCED_RELAX_MODE);
             }
 
-        } else {  // Inspector::remote_failure() || Inspector::gimbal_failure()
+        } else {  // Inspector::remote_failure() || Inspector::chassis_failure() || Inspector::gimbal_failure()
             /// Safe Mode
             GimbalLG::set_action(GimbalLG::FORCED_RELAX_MODE);
         }
@@ -74,7 +90,7 @@ void User::UserThread::main() {
 
         /*** ---------------------------------- Shoot --------------------------------- ***/
 
-        if (!Inspector::remote_failure() && !Inspector::gimbal_failure()) {
+        if (!Inspector::remote_failure() && !Inspector::chassis_failure() && !Inspector::gimbal_failure()) {
             if ((Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_UP) ||
                 (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_MIDDLE)) {
 
@@ -104,6 +120,9 @@ void User::UserThread::main() {
                     pc_mouse_right_pressed != Remote::mouse.press_right) {  // mouse buttons are pressed or released
 
                     if (Remote::mouse.press_left) {
+                        if (ShootLG::get_friction_wheels_duty_cycle() == 0) {  // force start friction wheels
+                            ShootLG::set_friction_wheels(SHOOT_COMMON_DUTY_CYCLE);
+                        }
                         ShootLG::shoot(SHOOT_LAUNCH_LEFT_COUNT);
                     } else if (Remote::mouse.press_right) {
                         ShootLG::shoot(SHOOT_LAUNCH_RIGHT_COUNT);
@@ -117,12 +136,13 @@ void User::UserThread::main() {
 
                 if (pc_z_pressed != Remote::key.z) {  // key z is pressed or released
                     // TODO: echo status to user
-                    if (ShootLG::get_friction_wheels_duty_cycle() > 0) {
-                        ShootLG::set_friction_wheels(0);
-                    } else {
-                        ShootLG::set_friction_wheels(SHOOT_COMMON_DUTY_CYCLE);
+                    if (Remote::key.z) {  // key pressed
+                        if (ShootLG::get_friction_wheels_duty_cycle() > 0) {
+                            ShootLG::set_friction_wheels(0);
+                        } else {
+                            ShootLG::set_friction_wheels(SHOOT_COMMON_DUTY_CYCLE);
+                        }
                     }
-
                     pc_z_pressed = Remote::key.z;
                 }
 
@@ -132,7 +152,7 @@ void User::UserThread::main() {
                 ShootLG::set_friction_wheels(0);
             }
 
-        } else {  // Inspector::remote_failure() || Inspector::gimbal_failure()
+        } else {  // Inspector::remote_failure() || Inspector::chassis_failure() || Inspector::gimbal_failure()
             /// Safe Mode
             ShootLG::stop();
             ShootLG::set_friction_wheels(0);
@@ -140,7 +160,7 @@ void User::UserThread::main() {
 
         /*** ---------------------------------- Chassis --------------------------------- ***/
 
-        if (!Inspector::remote_failure() && !Inspector::chassis_failure()) {
+        if (!Inspector::remote_failure() && !Inspector::chassis_failure() && !Inspector::gimbal_failure()) {
 
             if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_UP) {
 
@@ -166,14 +186,16 @@ void User::UserThread::main() {
                     ChassisLG::set_action(ChassisLG::FOLLOW_MODE);
                 }
 
-                if (pc_x_pressed != Remote::key.x) {  // key x is pressed or released
+                if (pc_v_pressed != Remote::key.v) {  // key v is pressed or released
                     // TODO: echo status to user
-                    if (Remote::key.x) {  // enter dodge mode
-                        ChassisLG::set_action(ChassisLG::DODGE_MODE);
-                    } else {  // exit dodge mode
-                        ChassisLG::set_action(ChassisLG::FOLLOW_MODE);
+                    if (Remote::key.v) {  // key pressed
+                        if (ChassisLG::get_action() == ChassisLG::FOLLOW_MODE) {
+                            ChassisLG::set_action(ChassisLG::DODGE_MODE);
+                        } else if (ChassisLG::get_action() == ChassisLG::DODGE_MODE) {
+                            ChassisLG::set_action(ChassisLG::FOLLOW_MODE);
+                        }
                     }
-                    pc_x_pressed = Remote::key.x;
+                    pc_v_pressed = Remote::key.v;
                 }
 
                 float target_vx, target_vy;
@@ -198,7 +220,7 @@ void User::UserThread::main() {
                 ChassisLG::set_action(ChassisLG::FORCED_RELAX_MODE);
             }
 
-        } else {  // Inspector::remote_failure() || Inspector::chassis_failure()
+        } else {  // Inspector::remote_failure() || Inspector::chassis_failure() || Inspector::gimbal_failure()
             /// Safe Mode
             ChassisLG::set_action(ChassisLG::FORCED_RELAX_MODE);
         }

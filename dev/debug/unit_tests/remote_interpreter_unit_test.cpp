@@ -4,6 +4,7 @@
 
 // [遥控器拨轮的数据解析【RoboMaster论坛-科技宅天堂】](https://bbs.robomaster.com/thread-8123-1-1.html)
 
+#include <interface/buzzer.h>
 #include "ch.hpp"
 #include "hal.h"
 
@@ -47,6 +48,8 @@ int main() {
     Remote::start();
 
     remoteFeedbackThread.start(NORMALPRIO);
+
+    Buzzer::play_sound(Buzzer::sound_startup, LOWPRIO);
 
     // See chconf.h for what this #define means.
 #if CH_CFG_NO_IDLE_THREAD

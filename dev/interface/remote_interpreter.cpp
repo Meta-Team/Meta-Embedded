@@ -12,6 +12,7 @@
  */
 
 #include "remote_interpreter.h"
+#include "led.h"
 
 /**
  * Hardware configurations.
@@ -35,8 +36,21 @@ event_source_t Remote::key_release_event = {(event_listener_t *)(&Remote::key_re
 #endif
 
 char Remote::rx_buf_[Remote::RX_FRAME_SIZE];
-constexpr UARTConfig Remote::REMOTE_UART_CONFIG;
+UARTConfig Remote::REMOTE_UART_CONFIG = {
+        nullptr,
+        nullptr,
+        uart_received_callback_, // callback function when the buffer is filled
+        nullptr,
+        nullptr,
+        100000, // speed
+        USART_CR1_PCE,
+        0,
+        0,
+};
 
+/**
+ * @note DO NOT use printf, LOG, etc. in this function since it's an ISR callback.
+ */
 void Remote::uart_received_callback_(UARTDriver *uartp) {
 
     chSysLockFromISR();  /// ---------------------------------- Enter Critical Zone ----------------------------------
@@ -143,9 +157,20 @@ void Remote::uart_received_callback_(UARTDriver *uartp) {
     chSysUnlockFromISR();  /// ---------------------------------- Exit Critical Zone ----------------------------------
 }
 
+void Remote::uart_synchronize() {
+    // Wait for no input in 5 ms, to avoid one receive starting from the middle of a frame
+    while (true) {
+        // For unknown reason, uartReceiveTimeout() seems not to wait for additional bytes if byte_received > 1
+        size_t byte_received = 1;
+        msg_t ret = uartReceiveTimeout(&REMOTE_UART_DRIVER, &byte_received, rx_buf_, TIME_MS2I(5));
+        if (ret == MSG_TIMEOUT) break;
+    }
+    uartStartReceive(&REMOTE_UART_DRIVER, RX_FRAME_SIZE, rx_buf_);
+}
+
 void Remote::start() {
     uartStart(&REMOTE_UART_DRIVER, &REMOTE_UART_CONFIG);
-    uartStartReceive(&REMOTE_UART_DRIVER, RX_FRAME_SIZE, rx_buf_);
+    uart_synchronize();
 }
 
 /** @} */

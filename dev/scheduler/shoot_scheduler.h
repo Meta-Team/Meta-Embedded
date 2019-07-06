@@ -40,7 +40,7 @@ public:
 
     enum mode_t {
         FORCED_RELAX_MODE,       // zero force (Still taking control of ChassisIF. External writing to target currents
-                                 // will leads to conflicts.)
+                                 // will leads to conflicts.) Not affecting friction wheels
         LIMITED_SHOOTING_MODE    // using angle control to shoot specific number of bullet
     };
 
@@ -158,7 +158,6 @@ private:
     static float target_angle[2];
     static float target_velocity[2];
     static int target_current[2];
-    static float target_fw;
 
     static PIDController v2i_pid[2];
     static PIDController a2v_pid[2];

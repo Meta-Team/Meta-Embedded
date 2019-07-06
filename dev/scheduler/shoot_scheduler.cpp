@@ -19,7 +19,6 @@ ShootSKD::mode_t ShootSKD::mode = FORCED_RELAX_MODE;
 float ShootSKD::target_angle[2] = {0, 0};
 float ShootSKD::target_velocity[2] = {0, 0};
 int ShootSKD::target_current[2] = {0, 0};
-float ShootSKD::target_fw = 0;
 
 PIDController ShootSKD::v2i_pid[2];
 PIDController ShootSKD::a2v_pid[2];
@@ -61,11 +60,11 @@ void ShootSKD::set_plate_target(float plate_target_angle) {
 }
 
 void ShootSKD::set_friction_wheels(float duty_cycle) {
-    target_fw = duty_cycle;
+    GimbalIF::fw_duty_cycle = duty_cycle;
 }
 
 float ShootSKD::get_friction_wheels_duty_cycle() {
-    return target_fw;
+    return GimbalIF::fw_duty_cycle;
 }
 
 int ShootSKD::get_loader_target_current() {
@@ -101,7 +100,7 @@ void ShootSKD::reset_plate_accumulated_angle() {
 }
 
 void ShootSKD::SKDThread::main() {
-    setName("shoot_skd");
+    setName("Shoot_SKD");
     while (!shouldTerminate()) {
 
         if (mode == LIMITED_SHOOTING_MODE) {
@@ -116,13 +115,9 @@ void ShootSKD::SKDThread::main() {
                 GimbalIF::target_current[i + 2] = target_current[i] * install_position[i];
             }
 
-            GimbalIF::fw_duty_cycle = target_fw;
-
         } else if (mode == FORCED_RELAX_MODE) {
 
             GimbalIF::target_current[GimbalIF::BULLET] = GimbalIF::target_current[GimbalIF::PLATE] = 0;
-            GimbalIF::fw_duty_cycle = 0;
-
         }
 
         // Send currents with GimbalSKD (has smaller SKD_THREAD_INTERVAL)

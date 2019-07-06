@@ -35,7 +35,8 @@ void Inspector::startup_check_can() {
 void Inspector::startup_check_mpu() {
     time_msecs_t t = SYSTIME;
     while (SYSTIME - t < 20) {
-        if (SYSTIME - ahrs->get_mpu_update_time() > 5) {  // No signal in last 5 ms (normal interval 1 ms for on-board MPU)
+        if (SYSTIME - ahrs->get_mpu_update_time() > 5) {
+            // No signal in last 5 ms (normal interval 1 ms for on-board MPU)
             t = SYSTIME;  // reset the counter
         }
         chThdSleepMilliseconds(5);
@@ -45,7 +46,8 @@ void Inspector::startup_check_mpu() {
 void Inspector::startup_check_ist() {
     time_msecs_t t = SYSTIME;
     while (SYSTIME - t < 20) {
-        if (SYSTIME - ahrs->get_ist_update_time() > 5) {  // No signal in last 5 ms (normal interval 1 ms for on-board MPU)
+        if (SYSTIME - ahrs->get_ist_update_time() > 5) {
+            // No signal in last 5 ms (normal interval 1 ms for on-board MPU)
             t = SYSTIME;  // reset the counter
         }
         chThdSleepMilliseconds(5);
@@ -125,7 +127,7 @@ bool Inspector::remote_failure() {
 
 bool Inspector::check_gimbal_failure() {
     bool ret = false;
-    for (unsigned i = 0 ; i < 3; i++) {
+    for (unsigned i = 0; i < 3; i++) {
         if (SYSTIME - GimbalIF::feedback[i].last_update_time > 20) {
             if (!gimbal_failure_) {  // avoid repeating printing
                 LOG_ERR("Gimbal motor %u offline");
@@ -149,9 +151,27 @@ bool Inspector::check_chassis_failure() {
     return ret;
 }
 
+bool Inspector::check_remote_data_error() {
+    return (!ABS_IN_RANGE(Remote::rc.ch0, 1.1) || !ABS_IN_RANGE(Remote::rc.ch1, 1.1) ||
+            !ABS_IN_RANGE(Remote::rc.ch2, 1.1) || !ABS_IN_RANGE(Remote::rc.ch3, 1.1) ||
+            !(Remote::rc.s1 >= 1 && Remote::rc.s1 <= 3) || !(Remote::rc.s2 >= 1 && Remote::rc.s2 <= 3) ||
+            !ABS_IN_RANGE(Remote::mouse.x, 1.1) || !ABS_IN_RANGE(Remote::mouse.y, 1.1) ||
+            !ABS_IN_RANGE(Remote::mouse.z, 1.1) ||
+            Remote::rx_buf_[12] > 1 || Remote::rx_buf_[13] > 1);
+}
+
 void Inspector::InspectorThread::main() {
     setName("Inspector");
     while (!shouldTerminate()) {
+
+        if (check_remote_data_error()) {
+            remote_failure_ = true;  // Set it to true to avoid problem when thread switches to User in the middle
+            while (check_remote_data_error()) {
+                Remote::uart_synchronize();
+                sleep(TIME_MS2I(10));  // wait for another normal frame
+            }
+            remote_failure_ = false;
+        }
 
         remote_failure_ = (SYSTIME - Remote::last_update_time > 30);
         if (remote_failure_) LED::led_off(4);
@@ -166,9 +186,9 @@ void Inspector::InspectorThread::main() {
         else LED::led_on(6);
 
         if (remote_failure_ || gimbal_failure_ || chassis_failure_) {
-            if (!Buzzer::alerting())  Buzzer::alert_on();
+            if (!Buzzer::alerting()) Buzzer::alert_on();
         } else {
-            if (Buzzer::alerting())  Buzzer::alert_off();
+            if (Buzzer::alerting()) Buzzer::alert_off();
         }
 
         sleep(TIME_MS2I(INSPECTOR_THREAD_INTERVAL));
