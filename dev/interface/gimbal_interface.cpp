@@ -78,13 +78,18 @@ void GimbalIF::send_gimbal_currents() {
 #if GIMBAL_INTERFACE_ENABLE_CLIP
     ABS_CROP(target_current[YAW], GIMBAL_INTERFACE_MAX_CURRENT);
 #endif
+
+#ifdef HERO
+    txmsg.data8[0] = (uint8_t) (target_current[YAW] >> 8); // upper byte
+    txmsg.data8[1] = (uint8_t) target_current[YAW];        // lower byte
+#else
     /**
      * @note Viewing from the top of 6623, angle use CCW as positive direction, while current use CW as positive
      *       direction. In order to unified coordinate system, minus sign is applied here.
      */
     txmsg.data8[0] = (uint8_t) (-target_current[YAW] >> 8); // upper byte
     txmsg.data8[1] = (uint8_t) -target_current[YAW];        // lower byte
-
+#endif
 
     // Fill the current of Pitch
 #if GIMBAL_INTERFACE_ENABLE_CLIP
