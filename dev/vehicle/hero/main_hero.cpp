@@ -69,7 +69,7 @@ int main() {
     Shell::start(THREAD_SHELL_PRIO);
     LED::led_on(1);  // LED 1 on now
 
-    /// Setup CAN1
+    /// Setup CAN1 & CAN2
     can1.start(THREAD_CAN1_PRIO);
     can2.start(THREAD_CAN2_PRIO);
     chThdSleepMilliseconds(5);

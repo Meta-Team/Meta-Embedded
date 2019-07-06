@@ -28,7 +28,7 @@ void Inspector::start_inspection(tprio_t thread_prio) {
 void Inspector::startup_check_can() {
     time_msecs_t t = SYSTIME;
     while (SYSTIME - t < 100) {
-        if (SYSTIME - can1->last_error_time < 5) {  // can error occurs
+        if (SYSTIME - can1->last_error_time < 5 || SYSTIME - can2->last_error_time < 5) {  // can error occurs
             t = SYSTIME;  // reset the counter
         }
         chThdSleepMilliseconds(5);
