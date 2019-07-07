@@ -287,10 +287,10 @@ add_executable(ut_referee_interface
         dev/debug/unit_tests/ut_refereeIF.cpp)
 
 add_executable(ut_vision_port
-        dev/module/CRC8.cpp
-        dev/module/CRC16.cpp
+        dev/common/CRC8.cpp
+        dev/common/CRC16.cpp
         dev/interface/vision_port.cpp
-        dev/debug/unit_tests/vision_port_unit_test.cpp)
+        dev/debug/unit_tests/ut_vision_port.cpp)
 
 # Template Unit Test
 add_executable(ut_template
