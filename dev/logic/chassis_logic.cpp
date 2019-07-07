@@ -44,6 +44,7 @@ void ChassisLG::set_action(ChassisLG::action_t value) {
     } else if (action == DODGE_MODE) {
         ChassisSKD::set_mode(ChassisSKD::GIMBAL_COORDINATE_MODE);
         target_theta = DODGE_MODE_THETA;
+        // Resume the thread
         chSysLock();
         if (!dodgeModeSwitchThread.started) {
             dodgeModeSwitchThread.started = true;

@@ -33,6 +33,8 @@ public:
         float distance;
     } enemy_info;
 
+    static time_msecs_t last_update_time;
+
     static void init();
 
     static void send_gimbal(float yaw, float pitch);

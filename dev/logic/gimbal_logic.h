@@ -15,6 +15,8 @@
 
 #include "gimbal_scheduler.h"
 
+#include "vision_port.h"
+
 /**
  * @name GimbalLG
  * @note LG stands for "logic"
@@ -26,9 +28,12 @@ class GimbalLG : public GimbalBase {
 
 public:
 
+    static void init();
+
     enum action_t {
         FORCED_RELAX_MODE,
-        ABS_ANGLE_MODE
+        ABS_ANGLE_MODE,
+        VISION_MODE
     };
 
     /**
@@ -44,7 +49,7 @@ public:
     static void set_action(action_t value);
 
     /**
-     * Set target angles
+     * Set target angles in ABS_ANGLE_MODE
      * @param yaw_target_angle    Yaw target ACCUMULATED angle on ground coordinate [degree]
      * @param pitch_target_angle  Pitch target ACCUMULATED angle on ground coordinate [degree]
      */
@@ -56,6 +61,27 @@ public:
      * @return Accumulated angle
      */
     static float get_accumulated_angle(motor_id_t motor);
+
+private:
+
+    static action_t action;
+
+    class VisionThread : public chibios_rt::BaseStaticThread<256> {
+    public:
+
+        bool started = false;
+
+    private:
+
+        time_msecs_t last_apply_time = 0;
+
+        static constexpr unsigned VISION_FEED_INTERVAL = 5;  // thread interval [ms]
+
+        void main() final;
+    };
+
+    static VisionThread visionThread;
+    static chibios_rt::ThreadReference visionThreadReference;
 
 };
 

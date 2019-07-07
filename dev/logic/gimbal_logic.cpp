@@ -12,29 +12,63 @@
 
 #include "gimbal_logic.h"
 
+GimbalLG::VisionThread GimbalLG::visionThread;
+chibios_rt::ThreadReference GimbalLG::visionThreadReference;
+
 GimbalLG::action_t GimbalLG::get_action() {
-    if (GimbalSKD::get_mode() == GimbalSKD::FORCED_RELAX_MODE) {
-        return FORCED_RELAX_MODE;
-    } else if (GimbalSKD::get_mode() == GimbalSKD::ABS_ANGLE_MODE) {
-        return ABS_ANGLE_MODE;
-    }
-    return FORCED_RELAX_MODE;  // to avoid warning
+    return action;
 }
 
 void GimbalLG::set_action(GimbalLG::action_t value) {
-    if (value == FORCED_RELAX_MODE) {
+    if (value == action) return;  // avoid repeating setting target_theta, etc.
+
+    action = value;
+    if (action == FORCED_RELAX_MODE) {
         GimbalSKD::set_mode(GimbalSKD::FORCED_RELAX_MODE);
-    } else if (value == ABS_ANGLE_MODE) {
+    } else if (action == ABS_ANGLE_MODE) {
         GimbalSKD::set_mode(GimbalSKD::ABS_ANGLE_MODE);
+    } else if (action == VISION_MODE) {
+        GimbalSKD::set_mode(GimbalSKD::ABS_ANGLE_MODE);
+        // Resume the thread
+        chSysLock();
+        if (!visionThread.started) {
+            visionThread.started = true;
+            chSchWakeupS(visionThreadReference.getInner(), 0);
+        }
+        chSysUnlock();
     }
 }
 
 void GimbalLG::set_target(float yaw_target_angle, float pitch_target_angle) {
-    GimbalSKD::set_target_angle(yaw_target_angle, pitch_target_angle);
+    if (action == ABS_ANGLE_MODE) {
+        GimbalSKD::set_target_angle(yaw_target_angle, pitch_target_angle);
+    } else {
+        LOG_ERR("GimbalLG - set_target(): invalid mode");
+    }
 }
 
 float GimbalLG::get_accumulated_angle(GimbalBase::motor_id_t motor) {
     return GimbalSKD::get_accumulated_angle(motor);
+}
+
+void GimbalLG::VisionThread::main() {
+    setName("Vision");
+    while (!shouldTerminate()) {
+
+        chSysLock();  /// ---------------------------------- Enter Critical Zone ----------------------------------
+        if (action != VISION_MODE) {
+            started = false;
+            chSchGoSleepS(CH_STATE_SUSPENDED);
+        }
+        chSysUnlock();  /// ---------------------------------- Exit Critical Zone ----------------------------------
+
+        VisionPort::send_gimbal(GimbalSKD::get_accumulated_angle(YAW), GimbalSKD::get_accumulated_angle(PITCH));
+
+        if (VisionPort::last_update_time != last_apply_time) {
+            GimbalSKD::set_target_angle(VisionPort::enemy_info.yaw_angle, VisionPort::enemy_info.pitch_angle);
+            last_apply_time = VisionPort::last_update_time;
+        }
+    }
 }
 
 /** @} */

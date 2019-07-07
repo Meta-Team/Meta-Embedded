@@ -13,6 +13,7 @@
 VisionPort::package_t VisionPort::pak;
 VisionPort::rx_status_t VisionPort::rx_status;
 VisionPort::enemy_info_t VisionPort::enemy_info;
+time_msecs_t VisionPort::last_update_time = 0;
 uint16_t VisionPort::tx_seq = 0;
 
 const UARTConfig VisionPort::UART_CONFIG = {
@@ -90,6 +91,7 @@ void VisionPort::uart_rx_callback(UARTDriver *uartp) {
                     case 0xff01:
                         enemy_info = pak.enemy_info_;
                         LED::green_toggle();
+                        last_update_time = SYSTIME;
                         break;
                     default:
                         // FIXME: temporarily disabled since not all ID has been implemented
