@@ -26,6 +26,7 @@
 class Referee {
 
 public:
+    static int count_;
 
     static __PACKED_STRUCT game_state_t {
         uint8_t game_type : 4;
@@ -72,14 +73,15 @@ public:
         uint8_t mains_power_shooter_output : 1;
     } game_robot_state;
 
-    static __PACKED_STRUCT power_heat_data_t {
+    __PACKED_STRUCT power_heat_data_t {
         uint16_t chassis_volt;
         uint16_t chassis_current;
         float chassis_power;
         uint16_t chassis_power_buffer;
         uint16_t shooter_heat0;
         uint16_t shooter_heat1;
-    } power_heat_data;
+    };
+    static power_heat_data_t power_heat_data;
 
     static __PACKED_STRUCT game_robot_pos_t {
         float x;
@@ -126,7 +128,7 @@ public:
     static __PACKED_STRUCT robot_interactive_data_t
     {
         student_interactive_header_data_t header;
-        uint8_t data[];
+        uint8_t* data;
     } robot_interactive_data;
 
     static void init();
@@ -143,6 +145,30 @@ private:
         uint8_t crc8;
     } frame_header;
 
+    __PACKED_STRUCT packet_t{
+        frame_header_t header;
+        uint16_t cmd_id;
+        union{
+                game_state_t game_state_;
+                game_result_t  game_result_;
+                game_robot_survivors_t game_robot_survivors_;
+                event_data_t event_data_;
+                supply_projectile_action_t supply_projectile_action_;
+                supply_projectile_booking_t supply_projectile_booking_;
+                game_robot_state_t game_robot_state_;
+                power_heat_data_t power_heat_data_;
+                game_robot_pos_t game_robot_pos_;
+                buff_musk_t buff_musk_;
+                aerial_robot_energy_t aerial_robot_energy_;
+                robot_hurt_t robot_hurt_;
+                shoot_data_t shoot_data_;
+                client_custom_data_t client_custom_data_;
+                robot_interactive_data_t robot_interactive_data_;
+        };
+        uint16_t tail;
+    };
+    static packet_t pak;
+
     enum rx_status_t {
         WAIT_STARTING_BYTE,  // receive bytes one by one, waiting for 0xA5
         WAIT_REMAINING_HEADER,  // receive remaining header after SOF
@@ -155,12 +181,7 @@ private:
     static constexpr size_t CMD_ID_SIZE = 2;
     static constexpr size_t FRAME_TAIL_SIZE = 2;
 
-    static uint16_t cmd_id;
-
     static rx_status_t rx_status;
-
-    static constexpr size_t RX_BUF_SIZE = 100;
-    static uint8_t rx_buf[RX_BUF_SIZE];
 
     friend void uartStart(UARTDriver *uartp, const UARTConfig *config);
     friend void uartStartReceive(UARTDriver *uartp, size_t n, void *rxbuf);

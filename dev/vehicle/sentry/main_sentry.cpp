@@ -149,7 +149,7 @@ class SentryThread : public chibios_rt::BaseStaticThread<512> {
 
             /** Update Movement Request **/
             if (s1_present_state == Remote::S_UP && s2_present_state == Remote::S_UP){
-                LOG("%.2f, %.2f", SuspensionGimbalIF::yaw.angular_position, SuspensionGimbalIF::pitch.angular_position);
+           //     LOG("%.2f, %.2f", SuspensionGimbalIF::yaw.angular_position, SuspensionGimbalIF::pitch.angular_position);
             } else if (s1_present_state == Remote::S_UP && s2_present_state == Remote::S_MIDDLE){
                 SuspensionGimbalSKD::set_motor_angle(SuspensionGimbalIF::YAW_ID, Remote::rc.ch2 * 100.0f);
                 SuspensionGimbalSKD::set_motor_angle(SuspensionGimbalIF::PIT_ID, Remote::rc.ch3 * 40);
@@ -158,16 +158,18 @@ class SentryThread : public chibios_rt::BaseStaticThread<512> {
                 } else{
                     SuspensionGimbalSKD::stop_continuous_shooting();
                 }
-                LOG("%.2f, %.2f", Remote::rc.ch2 * 170.0f, Remote::rc.ch3 * 40.0f);
+             //   LOG("%.2f, %.2f", Remote::rc.ch2 * 170.0f, Remote::rc.ch3 * 40.0f);
             } else if (s1_present_state == Remote::S_MIDDLE && s2_present_state == Remote::S_UP){
                 SentryChassisSKD::set_destination(SentryChassisIF::target_position + Remote::rc.ch0);
-                LOG("%.2f", SentryChassisIF::present_position);
+              //  LOG("%.2f", SentryChassisIF::present_position);
             } else if (s1_present_state == Remote::S_MIDDLE && s2_present_state == Remote::S_DOWN){
                 /// FINAL_AUTO_MODE, random escape
                 // if not escaping but under attack, go into escape mode, use to gimbal data when gimbal is connected
                 under_attack = Remote::rc.ch2>=0.5 || Remote::rc.ch2<=-0.5;
                 if ( under_attack ) SentryChassisSKD::start_escaping();
+               // LOG("chassis power: %.2f", Referee::power_heat_data.chassis_power);
             }
+            LOG("%d",Referee::count_);
             sleep(TIME_MS2I(GIMBAL_THREAD_INTERVAL));
         }
     }
@@ -190,7 +192,10 @@ int main(void) {
 
     /** Basic IO Setup **/
     can1.start(HIGHPRIO - 1);
-    //Remote::start_receive();
+    Referee::init();
+    LOG("3");
+    Remote::start();
+    LOG("4");
 
 
     /*** ------------ Period 2. Calibration and Start Logic Control Thread ----------- ***/
@@ -199,6 +204,7 @@ int main(void) {
     // ahrsExt.start(&can1);
     // SuspensionGimbalIF::init(&can1, GIMBAL_YAW_FRONT_ANGLE_RAW, GIMBAL_PITCH_FRONT_ANGLE_RAW);
     SentryChassisIF::init(&can1);
+    LOG("5");
     // SuspensionGimbalSKD::init(&ahrsExt);
     // SuspensionGimbalSKD::suspensionGimbalThread.start(HIGHPRIO - 2);
     SentryChassisSKD::sentryChassisThread.start(HIGHPRIO - 3);
