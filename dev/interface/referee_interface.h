@@ -8,6 +8,9 @@
 #include "ch.hpp"
 #include "hal.h"
 
+#include "led.h"
+#include "shell.h"
+
 /**
  * @brief the interface for referee system
  * @pre hardware is properly connected and GPIOs are properly configured in board.h
@@ -26,15 +29,6 @@
 class Referee {
 
 public:
-    enum robot_id_t{
-        HERO = 1,
-        ENGINEER = 2,
-        STANDARD_3 = 3,
-        STANDARD_4 = 4,
-        STANDARD_5 = 5,
-        AERIAL = 6,
-        SENTRY = 7
-    };
 
     enum client_data_t{
         DATA_1,
@@ -51,38 +45,38 @@ public:
         SIGNAL_5 = 5
     };
 
-    static __PACKED_STRUCT game_state_t {
+    __PACKED_STRUCT game_state_t {
         uint8_t game_type : 4;
         uint8_t game_progress : 4;
         uint16_t stage_remain_time;
-    } game_state;
+    };
 
-    static __PACKED_STRUCT game_result_t {
+    __PACKED_STRUCT game_result_t {
         uint8_t winner;
-    } game_result;
+    };
 
-    static __PACKED_STRUCT game_robot_survivors_t {
+    __PACKED_STRUCT game_robot_survivors_t {
         uint16_t robot_legion;
-    } game_robot_survivors;
+    };
 
-    static __PACKED_STRUCT event_data_t {
+    __PACKED_STRUCT event_data_t {
         uint32_t event_type;
-    } event_data;
+    };
 
-    static __PACKED_STRUCT supply_projectile_action_t {
+    __PACKED_STRUCT supply_projectile_action_t {
         uint8_t supply_projectile_id;
         uint8_t supply_robot_id;
         uint8_t supply_projectile_step;
         uint8_t supply_projectile_num;
-    } supply_projectile_action;
+    };
 
-    static __PACKED_STRUCT supply_projectile_booking_t {
+    __PACKED_STRUCT supply_projectile_booking_t {
         uint8_t supply_projectile_id;
         uint8_t supply_robot_id;
         uint8_t supply_num;
-    } supply_projectile_booking;
+    };
 
-    static __PACKED_STRUCT game_robot_state_t {
+    __PACKED_STRUCT game_robot_state_t {
         uint8_t robot_id;
         uint8_t robot_level;
         uint16_t remain_HP;
@@ -94,48 +88,94 @@ public:
         uint8_t mains_power_gimbal_output : 1;
         uint8_t mains_power_chassis_output : 1;
         uint8_t mains_power_shooter_output : 1;
-    } game_robot_state;
+    };
 
-    static __PACKED_STRUCT power_heat_data_t {
+    __PACKED_STRUCT power_heat_data_t {
         uint16_t chassis_volt;
         uint16_t chassis_current;
         float chassis_power;
         uint16_t chassis_power_buffer;
         uint16_t shooter_heat0;
         uint16_t shooter_heat1;
-    } power_heat_data;
+    };
 
-    static __PACKED_STRUCT game_robot_pos_t {
+    __PACKED_STRUCT game_robot_pos_t {
         float x;
         float y;
         float z;
         float yaw;
-    } game_robot_pos;
+    };
 
-
-    static __PACKED_STRUCT buff_musk_t {
+    __PACKED_STRUCT buff_musk_t {
         uint8_t power_rune_buff;
-    } buff_musk;
+    };
 
-    static __PACKED_STRUCT aerial_robot_energy_t {
+    __PACKED_STRUCT aerial_robot_energy_t {
         uint8_t energy_point;
         uint8_t attack_time;
-    } aerial_robot_energy;
+    };
 
-    static __PACKED_STRUCT robot_hurt_t {
+    __PACKED_STRUCT robot_hurt_t {
         uint8_t armor_id : 4;
         uint8_t hurt_type : 4;
-    } robot_hurt;
+    };
 
-    static __PACKED_STRUCT shoot_data_t {
+    __PACKED_STRUCT shoot_data_t {
         uint8_t bullet_type;
         uint8_t bullet_freq;
         float bullet_speed;
-    } shoot_data;
+    };
+
+    __PACKED_STRUCT student_interactive_header_data_t {
+            uint16_t data_cmd_id;
+            uint16_t send_ID;
+            uint16_t receiver_ID;
+    };
+
+    __PACKED_STRUCT client_custom_data_t{
+            student_interactive_header_data_t header;
+            float data1;
+            float data2;
+            float data3;
+            uint8_t masks;
+    };
+
+    __PACKED_STRUCT robot_interactive_data_t{
+            student_interactive_header_data_t header;
+            uint8_t dataTBD_1;
+            uint8_t dataTBD_2;
+            uint8_t dataTBD_3;
+    };
+
+    /** Received Data **/
+    static game_state_t  game_state;
+    static game_result_t game_result;
+    static game_robot_survivors_t game_robot_survivors;
+    static event_data_t event_data;
+    static supply_projectile_action_t supply_projectile_action;
+    static supply_projectile_booking_t supply_projectile_booking;
+    static game_robot_state_t game_robot_state;
+    static power_heat_data_t power_heat_data;
+    static game_robot_pos_t game_robot_pos;
+    static buff_musk_t buff_musk;
+    static aerial_robot_energy_t aerial_robot_energy;
+    static robot_hurt_t robot_hurt;
+    static shoot_data_t shoot_data;
+    static robot_interactive_data_t robot_data_receive[7];
+
+    /** Send Data **/
+    static client_custom_data_t client_custom_data;
+    static robot_interactive_data_t robot_data_send[7];
+
+    static uint16_t robot_id;
+
+    static uint16_t client_id;
+
+    static bool is_blue;
 
     static void init();
 
-    static void set_client_info(bool is_blue, robot_id_t id);
+    static void set_robot_info(int id);
 
     static void uart_rx_callback(UARTDriver *uartp);  // only for internal use
 
@@ -143,7 +183,7 @@ public:
 
     static void set_signal_light(signal_light_t signalLight, bool turn_on);
 
-    static void send_client_data();
+    static void send_data(uint16_t receiver_id, uint16_t data_cmd_id = 0);
 
 
 private:
@@ -157,31 +197,6 @@ private:
     static rx_status_t rx_status;
 
     static uint16_t tx_seq;
-
-    __PACKED_STRUCT student_interactive_header_data_t {
-        uint16_t data_cmd_id;
-        uint16_t send_ID;
-        uint16_t receiver_ID;
-    };
-
-    static __PACKED_STRUCT client_custom_data_t{
-        student_interactive_header_data_t header;
-        float data1;
-        float data2;
-        float data3;
-        uint8_t masks;
-    } client_custom_data;
-
-    __PACKED_STRUCT robot_interactive_data_t{
-        student_interactive_header_data_t header;
-        uint8_t dataTBD_1;
-        uint8_t dataTBD_2;
-        uint8_t dataTBD_3;
-    };
-
-    static robot_interactive_data_t robot_data_receive[7];
-    static robot_interactive_data_t robot_data_send[7];
-    static bool robot_interactive_enabled[7];
 
     __PACKED_STRUCT frame_header_t {
         uint8_t sof;  // start byte of header, 0xA5
@@ -222,7 +237,7 @@ private:
     friend void uartStartReceive(UARTDriver *uartp, size_t n, void *rxbuf);
 
     // See cpp file for configs
-    static constexpr UARTDriver *UART_DRIVER = &UARTD3;
+    static constexpr UARTDriver *UART_DRIVER = &UARTD7;
     static const UARTConfig UART_CONFIG;
 };
 

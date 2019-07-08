@@ -2,6 +2,7 @@
 // Created by Administrator on 2019/1/15 0015.
 //
 
+#include "ch.hpp"
 #include "referee_interface.h"
 #include "CRC16.h"
 #include "CRC8.h"
@@ -10,6 +11,7 @@
 #include "string.h"
 #include "led.h"
 
+/** Public Parameters **/
 Referee::game_state_t Referee::game_state;
 Referee::game_result_t Referee::game_result;
 Referee::game_robot_survivors_t Referee::game_robot_survivors;
@@ -23,14 +25,17 @@ Referee::buff_musk_t Referee::buff_musk;
 Referee::aerial_robot_energy_t Referee::aerial_robot_energy;
 Referee::robot_hurt_t Referee::robot_hurt;
 Referee::shoot_data_t Referee::shoot_data;
-Referee::client_custom_data_t Referee::client_custom_data;
 Referee::robot_interactive_data_t Referee::robot_data_receive[7];
+Referee::client_custom_data_t Referee::client_custom_data;
 Referee::robot_interactive_data_t Referee::robot_data_send[7];
-bool Referee::robot_interactive_enabled[7] = {false, false, false, false, false, false, false};
 
-Referee::package_t Referee::pak;
+/** Private Parameters **/
+uint16_t Referee::robot_id;
+uint16_t Referee::client_id;
+bool Referee::is_blue;
 Referee::rx_status_t Referee::rx_status;
 uint16_t Referee::tx_seq = 0;
+Referee::package_t Referee::pak;
 
 const UARTConfig Referee::UART_CONFIG = {
         nullptr,
@@ -43,6 +48,17 @@ const UARTConfig Referee::UART_CONFIG = {
         0,
         0,
 };
+
+void Referee::init() {
+    // Start uart driver
+    uartStart(UART_DRIVER, &UART_CONFIG);
+
+    // Wait for starting byte
+    rx_status = WAIT_STARTING_BYTE;
+    robot_id = 0;
+    uartStartReceive(UART_DRIVER, FRAME_SOF_SIZE, &pak);
+    LOG("sizeof(power_heat_data) = %u", sizeof(power_heat_data));
+}
 
 void Referee::uart_rx_callback(UARTDriver *uartp) {
     (void) uartp;
@@ -73,12 +89,14 @@ void Referee::uart_rx_callback(UARTDriver *uartp) {
 
         case WAIT_CMD_ID_DATA_TAIL:
 
-//            if (Verify_CRC16_Check_Sum(pak_uint8,
-//                                       FRAME_HEADER_SIZE + CMD_ID_SIZE + frame_header.data_length + FRAME_TAIL_SIZE)) {
+            if (Verify_CRC16_Check_Sum(pak_uint8,
+                                       FRAME_HEADER_SIZE + CMD_ID_SIZE + pak.header.data_length + FRAME_TAIL_SIZE)) {
 
                 switch (pak.cmd_id) {
+
                     case 0x0201:
                         game_robot_state = pak.game_robot_state_;
+                        if (robot_id == 0) set_robot_info(game_robot_state.robot_id);
                         break;
                     case 0x0202:
                         LED::red_toggle();
@@ -96,6 +114,7 @@ void Referee::uart_rx_callback(UARTDriver *uartp) {
                         // LOG_ERR("[REFEREE] Unknown cmd_id %u", cmd_id);
                         break;
                 }
+            }
 //            } else {
 //                Shell::printfI("[REFEREE] Invalid data of type %u!" SHELL_NEWLINE_STR, cmd_id);
 //            }
@@ -121,40 +140,43 @@ void Referee::uart_rx_callback(UARTDriver *uartp) {
 
 }
 
-void Referee::init() {
-LOG("1");
-    // Start uart driver
-    uartStart(UART_DRIVER, &UART_CONFIG);
-
-    // Wait for starting byte
-    rx_status = WAIT_STARTING_BYTE;
-    uartStartReceive(UART_DRIVER, FRAME_SOF_SIZE, &pak);
-
-    LOG("sizeof(power_heat_data) = %u", sizeof(power_heat_data));
-}
-
-void Referee::send_client_data() {
+void Referee::send_data(uint16_t receiver_id, uint16_t data_cmd_id) {
+    if (robot_id == 0)
+        return;
     package_t tx_pak;
-    size_t tx_pak_size = FRAME_HEADER_SIZE + CMD_ID_SIZE + sizeof(client_custom_data_t) + FRAME_TAIL_SIZE;
     tx_pak.header.sof = 0xA5;
-    tx_pak.header.data_length = sizeof(client_custom_data_t);
+    if (receiver_id == client_id) {
+        tx_pak.header.data_length = sizeof(client_custom_data_t);
+    } else {
+        if (data_cmd_id == 0) return;
+        tx_pak.header.data_length = sizeof(robot_interactive_data_t);
+    }
     tx_pak.header.seq = tx_seq++;
     Append_CRC8_Check_Sum((uint8_t *)&tx_pak, FRAME_HEADER_SIZE);
     tx_pak.cmd_id = 0x0301;
-    tx_pak.client_custom_data_ = client_custom_data;
+    size_t tx_pak_size;
+    if (receiver_id == client_id){
+        tx_pak.client_custom_data_ = client_custom_data;
+        tx_pak_size = FRAME_HEADER_SIZE + CMD_ID_SIZE + sizeof(client_custom_data_t) + FRAME_TAIL_SIZE;
+    } else{
+        uint16_t receiver_index = receiver_id % 16;
+        robot_data_send[receiver_index].header.send_ID = robot_id;
+        robot_data_send[receiver_index].header.data_cmd_id = data_cmd_id;
+        robot_data_send[receiver_index].header.receiver_ID = receiver_id;
+        tx_pak.robot_interactive_data_ = robot_data_send[receiver_index];
+        tx_pak_size = FRAME_HEADER_SIZE + CMD_ID_SIZE + sizeof(robot_interactive_data_t) + FRAME_TAIL_SIZE;
+    }
     Append_CRC16_Check_Sum((uint8_t *)&tx_pak, tx_pak_size);
-    uartSendTimeout(UART_DRIVER, &tx_pak_size, &tx_pak, TIME_MS2I(10));
+    uartSendTimeout(UART_DRIVER, &tx_pak_size, &tx_pak, TIME_MS2I(20));
 }
 
-void Referee::set_client_info(bool is_blue, Referee::robot_id_t id) {
+void Referee::set_robot_info(int id) {
+    robot_id = id;
+    is_blue = (id < 10);
+    client_id = 0x0100 + (id / 10 * 16) + (id % 10);
+    client_custom_data.header.send_ID = robot_id;
+    client_custom_data.header.receiver_ID = client_id;
     client_custom_data.header.data_cmd_id = 0xD180;
-    if (is_blue) {
-        client_custom_data.header.send_ID = id + 10;
-        client_custom_data.header.receiver_ID = id + 0x0110;
-    } else {
-        client_custom_data.header.send_ID = id;
-        client_custom_data.header.receiver_ID = id + 0x0100;
-    }
 }
 
 void Referee::set_client_data(Referee::client_data_t data_type, float data) {
@@ -164,13 +186,11 @@ void Referee::set_client_data(Referee::client_data_t data_type, float data) {
 }
 
 void Referee::set_signal_light(Referee::signal_light_t signalLight, bool turn_on) {
-    if (signalLight >= 0 && signalLight <= 5){
-        uint8_t picker = (1U) << signalLight;
-        if (turn_on){
-            client_custom_data.masks |= picker;
-        } else{
-            picker = ~picker;
-            client_custom_data.masks &= picker;
-        }
+    uint8_t picker = (1U) << signalLight;
+    if (turn_on){
+        client_custom_data.masks |= picker;
+    } else{
+        picker = ~picker;
+        client_custom_data.masks &= picker;
     }
 }

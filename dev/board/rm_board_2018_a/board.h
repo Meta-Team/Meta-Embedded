@@ -137,8 +137,8 @@
 #define GPIOE_PIN4                  4U
 #define GPIOE_PIN5                  5U
 #define GPIOE_PIN6                  6U
-#define GPIOE_PIN7                  7U
-#define GPIOE_PIN8                  8U
+#define GPIOE_UART7_RX                  7U
+#define GPIOE_UART7_TX                  8U
 #define GPIOE_PIN9                  9U
 #define GPIOE_PIN10                 10U
 #define GPIOE_LED_RED               11U
@@ -768,8 +768,8 @@
  * PE4  - PIN4                      (input floating).
  * PE5  - PIN5                      (input floating).
  * PE6  - PIN6                      (input floating).
- * PE7  - PIN7                      (input floating).
- * PE8  - PIN8                      (input floating).
+ * PE7  - UART7_RX                      (alternate 8).
+ * PE8  - UART7_TX                      (alternate 8).
  * PE9  - PIN9                      (input floating).
  * PE10 - PIN10                     (input floating).
  * PE11 - LED_RED                   (output pushpull maximum).
@@ -785,8 +785,8 @@
                                      PIN_MODE_INPUT(GPIOE_PIN4) |           \
                                      PIN_MODE_INPUT(GPIOE_PIN5) |           \
                                      PIN_MODE_INPUT(GPIOE_PIN6) |           \
-                                     PIN_MODE_INPUT(GPIOE_PIN7) |       \
-                                     PIN_MODE_INPUT(GPIOE_PIN8) |           \
+                                     PIN_MODE_ALTERNATE(GPIOE_UART7_RX) |       \
+                                     PIN_MODE_ALTERNATE(GPIOE_UART7_TX) |           \
                                      PIN_MODE_INPUT(GPIOE_PIN9) |           \
                                      PIN_MODE_INPUT(GPIOE_PIN10) |          \
                                      PIN_MODE_OUTPUT(GPIOE_LED_RED) |          \
@@ -801,8 +801,8 @@
                                      PIN_OTYPE_PUSHPULL(GPIOE_PIN4) |       \
                                      PIN_OTYPE_PUSHPULL(GPIOE_PIN5) |       \
                                      PIN_OTYPE_PUSHPULL(GPIOE_PIN6) |       \
-                                     PIN_OTYPE_PUSHPULL(GPIOE_PIN7) |    \
-                                     PIN_OTYPE_PUSHPULL(GPIOE_PIN8) |       \
+                                     PIN_OTYPE_PUSHPULL(GPIOE_UART7_RX) |    \
+                                     PIN_OTYPE_PUSHPULL(GPIOE_UART7_TX) |       \
                                      PIN_OTYPE_PUSHPULL(GPIOE_PIN9) |       \
                                      PIN_OTYPE_PUSHPULL(GPIOE_PIN10) |      \
                                      PIN_OTYPE_PUSHPULL(GPIOE_LED_RED) |      \
@@ -817,8 +817,8 @@
                                      PIN_OSPEED_HIGH(GPIOE_PIN4) |          \
                                      PIN_OSPEED_HIGH(GPIOE_PIN5) |          \
                                      PIN_OSPEED_HIGH(GPIOE_PIN6) |          \
-                                     PIN_OSPEED_HIGH(GPIOE_PIN7) |        \
-                                     PIN_OSPEED_HIGH(GPIOE_PIN8) |          \
+                                     PIN_OSPEED_HIGH(GPIOE_UART7_RX) |        \
+                                     PIN_OSPEED_HIGH(GPIOE_UART7_TX) |          \
                                      PIN_OSPEED_HIGH(GPIOE_PIN9) |          \
                                      PIN_OSPEED_HIGH(GPIOE_PIN10) |         \
                                      PIN_OSPEED_HIGH(GPIOE_LED_RED) |         \
@@ -833,8 +833,8 @@
                                      PIN_PUPDR_FLOATING(GPIOE_PIN4) |       \
                                      PIN_PUPDR_FLOATING(GPIOE_PIN5) |       \
                                      PIN_PUPDR_FLOATING(GPIOE_PIN6) |       \
-                                     PIN_PUPDR_FLOATING(GPIOE_PIN7) |    \
-                                     PIN_PUPDR_FLOATING(GPIOE_PIN8) |       \
+                                     PIN_PUPDR_FLOATING(GPIOE_UART7_RX) |    \
+                                     PIN_PUPDR_FLOATING(GPIOE_UART7_TX) |       \
                                      PIN_PUPDR_FLOATING(GPIOE_PIN9) |       \
                                      PIN_PUPDR_FLOATING(GPIOE_PIN10) |      \
                                      PIN_PUPDR_FLOATING(GPIOE_LED_RED) |      \
@@ -849,8 +849,8 @@
                                      PIN_ODR_HIGH(GPIOE_PIN4) |             \
                                      PIN_ODR_HIGH(GPIOE_PIN5) |             \
                                      PIN_ODR_HIGH(GPIOE_PIN6) |             \
-                                     PIN_ODR_HIGH(GPIOE_PIN7) |           \
-                                     PIN_ODR_HIGH(GPIOE_PIN8) |             \
+                                     PIN_ODR_HIGH(GPIOE_UART7_RX) |           \
+                                     PIN_ODR_HIGH(GPIOE_UART7_TX) |             \
                                      PIN_ODR_HIGH(GPIOE_PIN9) |             \
                                      PIN_ODR_HIGH(GPIOE_PIN10) |            \
                                      PIN_ODR_HIGH(GPIOE_LED_RED) |            \
@@ -865,8 +865,8 @@
                                      PIN_AFIO_AF(GPIOE_PIN4, 0U) |          \
                                      PIN_AFIO_AF(GPIOE_PIN5, 0U) |          \
                                      PIN_AFIO_AF(GPIOE_PIN6, 0U) |          \
-                                     PIN_AFIO_AF(GPIOE_PIN7, 0U))
-#define VAL_GPIOE_AFRH              (PIN_AFIO_AF(GPIOE_PIN8, 0U) |          \
+                                     PIN_AFIO_AF(GPIOE_UART7_RX, 8U))
+#define VAL_GPIOE_AFRH              (PIN_AFIO_AF(GPIOE_UART7_TX, 8U) |          \
                                      PIN_AFIO_AF(GPIOE_PIN9, 0U) |          \
                                      PIN_AFIO_AF(GPIOE_PIN10, 0U) |         \
                                      PIN_AFIO_AF(GPIOE_LED_RED, 0U) |         \
