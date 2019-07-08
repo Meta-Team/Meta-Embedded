@@ -167,9 +167,9 @@ class SentryThread : public chibios_rt::BaseStaticThread<512> {
                 // if not escaping but under attack, go into escape mode, use to gimbal data when gimbal is connected
                 under_attack = Remote::rc.ch2>=0.5 || Remote::rc.ch2<=-0.5;
                 if ( under_attack ) SentryChassisSKD::start_escaping();
-               // LOG("chassis power: %.2f", Referee::power_heat_data.chassis_power);
+                LOG("chassis power: %.2f", Referee::power_heat_data.chassis_power);
             }
-            LOG("%d",Referee::count_);
+            //LOG("%d",Referee::count_);
             sleep(TIME_MS2I(GIMBAL_THREAD_INTERVAL));
         }
     }

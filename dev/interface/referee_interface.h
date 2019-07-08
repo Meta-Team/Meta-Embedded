@@ -26,7 +26,30 @@
 class Referee {
 
 public:
-    static int count_;
+    enum robot_id_t{
+        HERO = 1,
+        ENGINEER = 2,
+        STANDARD_3 = 3,
+        STANDARD_4 = 4,
+        STANDARD_5 = 5,
+        AERIAL = 6,
+        SENTRY = 7
+    };
+
+    enum client_data_t{
+        DATA_1,
+        DATA_2,
+        DATA_3
+    };
+
+    enum signal_light_t{
+        SIGNAL_0 = 0,
+        SIGNAL_1 = 1,
+        SIGNAL_2 = 2,
+        SIGNAL_3 = 3,
+        SIGNAL_4 = 4,
+        SIGNAL_5 = 5
+    };
 
     static __PACKED_STRUCT game_state_t {
         uint8_t game_type : 4;
@@ -73,15 +96,14 @@ public:
         uint8_t mains_power_shooter_output : 1;
     } game_robot_state;
 
-    __PACKED_STRUCT power_heat_data_t {
+    static __PACKED_STRUCT power_heat_data_t {
         uint16_t chassis_volt;
         uint16_t chassis_current;
         float chassis_power;
         uint16_t chassis_power_buffer;
         uint16_t shooter_heat0;
         uint16_t shooter_heat1;
-    };
-    static power_heat_data_t power_heat_data;
+    } power_heat_data;
 
     static __PACKED_STRUCT game_robot_pos_t {
         float x;
@@ -111,6 +133,31 @@ public:
         float bullet_speed;
     } shoot_data;
 
+    static void init();
+
+    static void set_client_info(bool is_blue, robot_id_t id);
+
+    static void uart_rx_callback(UARTDriver *uartp);  // only for internal use
+
+    static void set_client_data(client_data_t data_type, float data);
+
+    static void set_signal_light(signal_light_t signalLight, bool turn_on);
+
+    static void send_client_data();
+
+
+private:
+
+    enum rx_status_t {
+        WAIT_STARTING_BYTE,  // receive bytes one by one, waiting for 0xA5
+        WAIT_REMAINING_HEADER,  // receive remaining header after SOF
+        WAIT_CMD_ID_DATA_TAIL  // receive cmd_id, data section and 2-byte CRC16 tailing
+    };
+
+    static rx_status_t rx_status;
+
+    static uint16_t tx_seq;
+
     __PACKED_STRUCT student_interactive_header_data_t {
         uint16_t data_cmd_id;
         uint16_t send_ID;
@@ -125,27 +172,25 @@ public:
         uint8_t masks;
     } client_custom_data;
 
-    static __PACKED_STRUCT robot_interactive_data_t
-    {
+    __PACKED_STRUCT robot_interactive_data_t{
         student_interactive_header_data_t header;
-        uint8_t* data;
-    } robot_interactive_data;
+        uint8_t dataTBD_1;
+        uint8_t dataTBD_2;
+        uint8_t dataTBD_3;
+    };
 
-    static void init();
+    static robot_interactive_data_t robot_data_receive[7];
+    static robot_interactive_data_t robot_data_send[7];
+    static bool robot_interactive_enabled[7];
 
-    static void uart_rx_callback(UARTDriver *uartp);  // only for internal use
-
-
-private:
-
-    static __PACKED_STRUCT frame_header_t {
+    __PACKED_STRUCT frame_header_t {
         uint8_t sof;  // start byte of header, 0xA5
         uint16_t data_length;
         uint8_t seq;
         uint8_t crc8;
-    } frame_header;
+    };
 
-    __PACKED_STRUCT packet_t{
+    static __PACKED_STRUCT package_t{
         frame_header_t header;
         uint16_t cmd_id;
         union{
@@ -162,26 +207,16 @@ private:
                 aerial_robot_energy_t aerial_robot_energy_;
                 robot_hurt_t robot_hurt_;
                 shoot_data_t shoot_data_;
-                client_custom_data_t client_custom_data_;
                 robot_interactive_data_t robot_interactive_data_;
+                client_custom_data_t client_custom_data_;
         };
         uint16_t tail;
-    };
-    static packet_t pak;
-
-    enum rx_status_t {
-        WAIT_STARTING_BYTE,  // receive bytes one by one, waiting for 0xA5
-        WAIT_REMAINING_HEADER,  // receive remaining header after SOF
-        WAIT_CMD_ID_DATA_TAIL  // receive cmd_id, data section and 2-byte CRC16 tailing
-    };
-
+    } pak;
 
     static constexpr size_t FRAME_HEADER_SIZE = 5;
     static constexpr size_t FRAME_SOF_SIZE = 1;
     static constexpr size_t CMD_ID_SIZE = 2;
     static constexpr size_t FRAME_TAIL_SIZE = 2;
-
-    static rx_status_t rx_status;
 
     friend void uartStart(UARTDriver *uartp, const UARTConfig *config);
     friend void uartStartReceive(UARTDriver *uartp, size_t n, void *rxbuf);

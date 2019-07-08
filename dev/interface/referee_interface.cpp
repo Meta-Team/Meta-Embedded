@@ -10,7 +10,6 @@
 #include "string.h"
 #include "led.h"
 
-int Referee::count_;
 Referee::game_state_t Referee::game_state;
 Referee::game_result_t Referee::game_result;
 Referee::game_robot_survivors_t Referee::game_robot_survivors;
@@ -25,12 +24,13 @@ Referee::aerial_robot_energy_t Referee::aerial_robot_energy;
 Referee::robot_hurt_t Referee::robot_hurt;
 Referee::shoot_data_t Referee::shoot_data;
 Referee::client_custom_data_t Referee::client_custom_data;
-Referee::robot_interactive_data_t Referee::robot_interactive_data;
+Referee::robot_interactive_data_t Referee::robot_data_receive[7];
+Referee::robot_interactive_data_t Referee::robot_data_send[7];
+bool Referee::robot_interactive_enabled[7] = {false, false, false, false, false, false, false};
 
-Referee::packet_t Referee::pak;
-
-Referee::frame_header_t Referee::frame_header;
+Referee::package_t Referee::pak;
 Referee::rx_status_t Referee::rx_status;
+uint16_t Referee::tx_seq = 0;
 
 const UARTConfig Referee::UART_CONFIG = {
         nullptr,
@@ -66,15 +66,15 @@ void Referee::uart_rx_callback(UARTDriver *uartp) {
             if (Verify_CRC8_Check_Sum(pak_uint8, FRAME_HEADER_SIZE)) {
                 rx_status = WAIT_CMD_ID_DATA_TAIL; // go to next status
             } else {
-                Shell::printfI("[REFEREE] Invalid frameHeader!" SHELL_NEWLINE_STR);
+//                Shell::printfI("[REFEREE] Invalid frameHeader!" SHELL_NEWLINE_STR);
                 rx_status = WAIT_STARTING_BYTE;
             }
             break;
 
         case WAIT_CMD_ID_DATA_TAIL:
 
-            if (Verify_CRC16_Check_Sum(pak_uint8,
-                                       FRAME_HEADER_SIZE + CMD_ID_SIZE + frame_header.data_length + FRAME_TAIL_SIZE)) {
+//            if (Verify_CRC16_Check_Sum(pak_uint8,
+//                                       FRAME_HEADER_SIZE + CMD_ID_SIZE + frame_header.data_length + FRAME_TAIL_SIZE)) {
 
                 switch (pak.cmd_id) {
                     case 0x0201:
@@ -83,7 +83,6 @@ void Referee::uart_rx_callback(UARTDriver *uartp) {
                     case 0x0202:
                         LED::red_toggle();
                         power_heat_data = pak.power_heat_data_;
-                        count_++;
                         break;
                     case 0x0207:
                         shoot_data = pak.shoot_data_;
@@ -97,9 +96,9 @@ void Referee::uart_rx_callback(UARTDriver *uartp) {
                         // LOG_ERR("[REFEREE] Unknown cmd_id %u", cmd_id);
                         break;
                 }
-            } else {
+//            } else {
 //                Shell::printfI("[REFEREE] Invalid data of type %u!" SHELL_NEWLINE_STR, cmd_id);
-            }
+//            }
 
             rx_status = WAIT_STARTING_BYTE;
 
@@ -124,7 +123,6 @@ void Referee::uart_rx_callback(UARTDriver *uartp) {
 
 void Referee::init() {
 LOG("1");
-count_ = 0;
     // Start uart driver
     uartStart(UART_DRIVER, &UART_CONFIG);
 
@@ -133,4 +131,46 @@ count_ = 0;
     uartStartReceive(UART_DRIVER, FRAME_SOF_SIZE, &pak);
 
     LOG("sizeof(power_heat_data) = %u", sizeof(power_heat_data));
+}
+
+void Referee::send_client_data() {
+    package_t tx_pak;
+    size_t tx_pak_size = FRAME_HEADER_SIZE + CMD_ID_SIZE + sizeof(client_custom_data_t) + FRAME_TAIL_SIZE;
+    tx_pak.header.sof = 0xA5;
+    tx_pak.header.data_length = sizeof(client_custom_data_t);
+    tx_pak.header.seq = tx_seq++;
+    Append_CRC8_Check_Sum((uint8_t *)&tx_pak, FRAME_HEADER_SIZE);
+    tx_pak.cmd_id = 0x0301;
+    tx_pak.client_custom_data_ = client_custom_data;
+    Append_CRC16_Check_Sum((uint8_t *)&tx_pak, tx_pak_size);
+    uartSendTimeout(UART_DRIVER, &tx_pak_size, &tx_pak, TIME_MS2I(10));
+}
+
+void Referee::set_client_info(bool is_blue, Referee::robot_id_t id) {
+    client_custom_data.header.data_cmd_id = 0xD180;
+    if (is_blue) {
+        client_custom_data.header.send_ID = id + 10;
+        client_custom_data.header.receiver_ID = id + 0x0110;
+    } else {
+        client_custom_data.header.send_ID = id;
+        client_custom_data.header.receiver_ID = id + 0x0100;
+    }
+}
+
+void Referee::set_client_data(Referee::client_data_t data_type, float data) {
+    if (data_type == DATA_1) client_custom_data.data1 = data;
+    else if (data_type == DATA_2) client_custom_data.data2 = data;
+    else if (data_type == DATA_3) client_custom_data.data3 = data;
+}
+
+void Referee::set_signal_light(Referee::signal_light_t signalLight, bool turn_on) {
+    if (signalLight >= 0 && signalLight <= 5){
+        uint8_t picker = (1U) << signalLight;
+        if (turn_on){
+            client_custom_data.masks |= picker;
+        } else{
+            picker = ~picker;
+            client_custom_data.masks &= picker;
+        }
+    }
 }
