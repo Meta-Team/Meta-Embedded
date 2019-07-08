@@ -68,16 +68,16 @@ void ChassisSKD::velocity_decompose(float vx, float vy, float w) {
     // BL, -vx, +vy, +w, since the motor is installed in the opposite direction
     // BR, -vx, -vy, +w
 
-    target_velocity[FR] = (+vx - vy + w * w_to_v_ratio_) * v_to_wheel_angular_velocity_;
+    target_velocity[FR] = -(+vx - vy + w * w_to_v_ratio_) * v_to_wheel_angular_velocity_;
     target_current[FR] = (int) v2i_pid[FR].calc(ChassisIF::feedback[FR].actual_velocity, target_velocity[FR]);
 
-    target_velocity[FL] = (+vx + vy + w * w_to_v_ratio_) * v_to_wheel_angular_velocity_;
+    target_velocity[FL] = -(+vx + vy + w * w_to_v_ratio_) * v_to_wheel_angular_velocity_;
     target_current[FL] = (int) v2i_pid[FL].calc(ChassisIF::feedback[FL].actual_velocity, target_velocity[FL]);
 
-    target_velocity[BL] = (-vx + vy + w * w_to_v_ratio_) * v_to_wheel_angular_velocity_;
+    target_velocity[BL] = -(-vx + vy + w * w_to_v_ratio_) * v_to_wheel_angular_velocity_;
     target_current[BL] = (int) v2i_pid[BL].calc(ChassisIF::feedback[BL].actual_velocity, target_velocity[BL]);
 
-    target_velocity[BR] = (-vx - vy + w * w_to_v_ratio_) * v_to_wheel_angular_velocity_;
+    target_velocity[BR] = -(-vx - vy + w * w_to_v_ratio_) * v_to_wheel_angular_velocity_;
     target_current[BR] = (int) v2i_pid[BR].calc(ChassisIF::feedback[BR].actual_velocity, target_velocity[BR]);
 }
 

@@ -36,7 +36,7 @@ private:
     static constexpr int SHOOT_LAUNCH_LEFT_COUNT = 5;
     static constexpr int SHOOT_LAUNCH_RIGHT_COUNT = 999;
 
-    static constexpr float SHOOT_COMMON_DUTY_CYCLE = 0;//0.8;
+    static constexpr float SHOOT_COMMON_DUTY_CYCLE = 0.8;
 
     /// Chassis Parameters
     static constexpr float CHASSIS_COMMON_VX = 1200.0f;  // [mm/s]

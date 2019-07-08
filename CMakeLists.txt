@@ -238,12 +238,18 @@ add_executable(ut_buzzer
 
 # Chassis: include chassis interface, chassis controller and the unit test modules.
 add_executable(pa_chassis
-        dev/interface/can_interface.cpp
-        dev/interface/chassis_interface.cpp
         dev/module/pid_controller.hpp
-        dev/scheduler/chassis_scheduler.cpp
-        dev/debug/unit_tests/ut_chassis.cpp)
-target_include_directories(pa_chassis PRIVATE dev/vehicle/infantry)
+        dev/interface/can_interface.cpp
+        dev/interface/remote_interpreter.cpp
+        ${AHRS_SRC}
+        ${HERO_SHOOT_SRC}
+        ${CHASSIS_SRC}
+        dev/debug/unit_tests/pa_chassis/main_hero.cpp
+        dev/debug/unit_tests/pa_chassis/inspector.cpp
+        dev/debug/unit_tests/pa_chassis/user.cpp)
+target_include_directories(pa_chassis PRIVATE dev/debug/unit_tests/pa_chassis)
+target_compile_definitions(pa_chassis PRIVATE pa_chassis ENABLE_STATE_HANDLE)
+target_link_libraries(pa_chassis ${PROJECT_SOURCE_DIR}/dev/interface/ahrs/ahrs_lib.lib)
 
 # Elevator Interface: include CANInterface, ElevatorInterface, and the unit test modules.
 add_executable(ut_elevator_interface
