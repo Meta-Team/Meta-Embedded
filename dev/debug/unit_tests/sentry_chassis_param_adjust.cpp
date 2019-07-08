@@ -10,6 +10,7 @@
 #include "can_interface.h"
 #include "sentry_chassis_interface.h"
 #include "sentry_chassis_skd.h"
+#include "referee_interface.h"
 
 using namespace chibios_rt;
 
@@ -126,11 +127,13 @@ static void cmd_chassis_set_mode(BaseSequentialStream *chp, int argc, char *argv
 
 /**
  * @brief set chassis common PID params
+ * @note modified to set POM pid !!
  */
 static void cmd_chassis_set_pid(BaseSequentialStream *chp, int argc, char *argv[]) {
     (void) argv;
     if (argc != 7) {
-        shellUsage(chp, "g_set_params bullet(0)/plate(1) NULL(0)/v_to_i(1) ki kp kd i_limit out_limit");
+        // shellUsage(chp, "g_set_params bullet(0)/plate(1) NULL(0)/v_to_i(1) ki kp kd i_limit out_limit");
+        shellUsage(chp, "g_set_params 0or1whatever 0or1whatever ki kp kd i_limit out_limit");
         chprintf(chp, "!pe" SHELL_NEWLINE_STR);  // echo parameters error
         return;
     }
@@ -142,13 +145,15 @@ static void cmd_chassis_set_pid(BaseSequentialStream *chp, int argc, char *argv[
                                                   Shell::atof(argv[6])};
 
 
-    SentryChassisSKD::set_pid(*argv[1] == '0', pid_params);
+    // SentryChassisSKD::set_pid(*argv[1] == '0', pid_params);
+    SentryChassisSKD::set_pid(2, pid_params);
 
     chprintf(chp, "!ps" SHELL_NEWLINE_STR); // echo parameters set
 }
 
 /**
  * @brief print the pid information of the specific motor
+ * @note modified to print POM pid !!
  */
 static void cmd_chassis_print_pid(BaseSequentialStream *chp, int argc, char *argv[]) {
     (void) argv;
@@ -156,23 +161,27 @@ static void cmd_chassis_print_pid(BaseSequentialStream *chp, int argc, char *arg
         shellUsage(chp, "g_echo_params");
         return;
     }
-    chprintf(chp, "bullet v_to_i:       ");
-    SentryChassisSKD::print_pid(true);
-    chprintf(chp, "plate v_to_i:     ");
-    SentryChassisSKD::print_pid(false);
+//    chprintf(chp, "bullet v_to_i:       ");
+//    SentryChassisSKD::print_pid(true);
+//    chprintf(chp, "plate v_to_i:     ");
+//    SentryChassisSKD::print_pid(false);
+    chprintf(chp, "P to V:     ");
+    SentryChassisSKD::print_pid(2);
 }
 
 /**
  * @brief set the target_position in the unit of cm
+ * @note modified to set target power limit for chassis, Watts
  */
 static void cmd_chassis_set_position(BaseSequentialStream *chp, int argc, char *argv[]){
     (void) argv;
     if (argc != 2){
-        shellUsage(chp, "g_set_angle target_position same_as_the_first_one");
+//        shellUsage(chp, "g_set_angle target_position same_as_the_first_one");
+        shellUsage(chp, "g_set_angle target_power_limit same_as_the_first_one");
         chprintf(chp, "!cpe" SHELL_NEWLINE_STR);
         return;
     }
-    SentryChassisSKD::set_destination(Shell::atof(argv[0]));
+    SentryChassisSKD::set_target_power(Shell::atof(argv[0]));
 
 }
 
@@ -222,19 +231,30 @@ static void cmd_chassis_print_velocity(BaseSequentialStream *chp, int argc, char
     SentryChassisSKD::printVelocity = !SentryChassisSKD::printVelocity;
 }
 
+static void cmd_chassis_print_power(BaseSequentialStream *chp, int argc, char *argv[]){
+    (void) argv;
+    if (argc != 0){
+        shellUsage(chp, "c_p");
+        chprintf(chp, "!cpe" SHELL_NEWLINE_STR);
+        return;
+    }
+    SentryChassisSKD::printPower = !SentryChassisSKD::printPower;
+}
+
 // Shell commands to control the chassis
 ShellCommand chassisCommands[] = {
         {"g_enable",   cmd_chassis_enable},
         {"g_enable_fb", cmd_chassis_enable_feedback},
         {"g_set_v",     cmd_set_target_velocities},
         {"c_set_mode",    cmd_chassis_set_mode},
-        {"g_set_params",  cmd_chassis_set_pid},
-        {"g_echo_params",   cmd_chassis_print_pid},
-        {"g_set_angle",   cmd_chassis_set_position},
+        {"g_set_params",  cmd_chassis_set_pid},         // modified to set POM pid
+        {"g_echo_params",   cmd_chassis_print_pid},     // modified to echo POM pid
+        {"g_set_angle",   cmd_chassis_set_position},    // modified to set power limit
         {"g_fix", cmd_chassis_clear_position},
         {"c_pos", cmd_chassis_print_position},
         {"c_cur", cmd_chassis_print_current},
         {"c_v", cmd_chassis_print_velocity},
+        {"c_p", cmd_chassis_print_power},
         {nullptr,    nullptr}
 };
 

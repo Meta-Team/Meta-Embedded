@@ -51,6 +51,9 @@ void SentryChassisSKD::SentryChassisThread::main() {
         if(printVelocity)
             print_velocity();
 
+        if(printPower)
+            print_power();
+
         SentryChassisIF::send_currents();
         sleep(TIME_MS2I(100));
     }
@@ -123,6 +126,11 @@ void SentryChassisSKD::set_destination(float dist) {
 void SentryChassisSKD::set_maximum_velocity(float new_velocity){
     SentryChassisIF::target_velocity = new_velocity;
     set_pid(1, {SENTRY_CHASSIS_PID_A2V_KP, SENTRY_CHASSIS_PID_A2V_KI, SENTRY_CHASSIS_PID_A2V_KD, SENTRY_CHASSIS_PID_A2V_I_LIMIT, new_velocity});
+}
+
+void SentryChassisSKD::set_target_power(float new_power) {
+    SentryChassisIF::power_limit = new_power;
+    set_pid(2, {SENTRY_CHASSIS_PID_P2V_KP, SENTRY_CHASSIS_PID_P2V_KI, SENTRY_CHASSIS_PID_P2V_KD, SENTRY_CHASSIS_PID_P2V_I_LIMIT, new_power});
 }
 
 void SentryChassisSKD::startPOM() {
@@ -213,14 +221,14 @@ void SentryChassisSKD::update_target_current() {
 
                 if (sentry_present_position > terminals[next_terminal] - 3 && sentry_present_position < terminals[next_terminal] + 3) update_terminal();
 
-                POM = false; // Delete this line if referee works
+                // POM = false; // Delete this line if referee works
 
                 if ( POM ){
                     if ((sentry_present_position < terminals[next_terminal] && SentryChassisIF::present_velocity > 0.8 * CRUISING_SPEED) ||
                             (sentry_present_position > terminals[next_terminal] && SentryChassisIF::present_velocity < - 0.8 * CRUISING_SPEED))
                         stopPOM();
 
-                    float delta_velocity = sentry_POM_pid.calc(Referee::power_heat_data.chassis_power, 20);
+                    float delta_velocity = sentry_POM_pid.calc(Referee::power_heat_data.chassis_power, SentryChassisIF::power_limit);
                     if (terminals[next_terminal] > sentry_present_position)
                         // If target position is greater than the present position, then we consider it as a negative direction accelerate
                         SentryChassisIF::target_velocity = SentryChassisIF::present_velocity - delta_velocity;

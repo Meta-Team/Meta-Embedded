@@ -37,6 +37,7 @@ public:
     static bool printPosition;
     static bool printCurrent;
     static bool printVelocity;
+    static bool printPower;
 
 private:
 
@@ -92,6 +93,12 @@ public:
     static void set_maximum_velocity(float new_velocity);
 
     /**
+     * @brief set the target power for the chassis
+     * @param new power limit for the chassis
+     */
+     static void set_target_power(float new_power);
+
+    /**
      * Power Optimized Mode ( POM )
      * make the fullest use of the power restriction to accelerate or decelerate
      */
@@ -145,6 +152,16 @@ public:
         LOG("motor %d motor_present_velocity: %.2f", 0, SentryChassisIF::motor[0].motor_present_velocity);
         LOG("motor %d motor_present_velocity: %.2f", 1, SentryChassisIF::motor[1].motor_present_velocity);
     }
+
+    /**
+     * @brief Debug helper function. Print the present power data from the referee system.
+     */
+     static void print_power(){
+         LOG("chassis power: %.2f", Referee::power_heat_data.chassis_power);
+         LOG("chassis power_buffer: %u", Referee::power_heat_data.chassis_power_buffer);
+         LOG("chassis current: %u", Referee::power_heat_data.chassis_current);
+         LOG("chassis voltage: %u", Referee::power_heat_data.chassis_volt);
+     }
 
     /**
      * @brief debug helper function
