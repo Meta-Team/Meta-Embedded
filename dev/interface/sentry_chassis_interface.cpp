@@ -11,6 +11,7 @@ float SentryChassisIF::present_position;
 float SentryChassisIF::present_velocity;
 float SentryChassisIF::target_position;
 float SentryChassisIF::target_velocity;
+float SentryChassisIF::power_limit;
 SentryChassisIF::motor_t SentryChassisIF::motor[SENTRY_CHASSIS_MOTOR_COUNT];
 CANInterface *SentryChassisIF::can;
 

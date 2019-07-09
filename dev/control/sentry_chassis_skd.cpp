@@ -14,6 +14,7 @@ SentryChassisSKD::SentryChassisThread SentryChassisSKD::sentryChassisThread;
 bool SentryChassisSKD::printPosition;
 bool SentryChassisSKD::printCurrent;
 bool SentryChassisSKD::printVelocity;
+bool SentryChassisSKD::printPower;
 
 bool SentryChassisSKD::enable;
 SentryChassisSKD::chassis_mode_t SentryChassisSKD::running_mode;
