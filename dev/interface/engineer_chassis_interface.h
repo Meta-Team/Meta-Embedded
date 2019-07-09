@@ -22,6 +22,13 @@
 
 #define ENGINEER_CHASSIS_MOTOR_COUNT 4
 
+enum engr_motor_id_t {  // goes in a counter-clockwise order
+    FR, // front right motor, 0
+    FL, // front left motor, 1
+    BL, // back left motor, 2
+    BR, // back right motor, 3
+};
+
 /**
  * @name EngineerChassisIF
  * @brief interface to process Engineer chassis motor feedback and send target current.
@@ -35,13 +42,6 @@
 class EngineerChassisIF {
 
 public:
-
-    enum motor_id_t {  // goes in a counter-clockwise order
-        FR, // front right motor, 0
-        FL, // front left motor, 1
-        BL, // back left motor, 2
-        BR, // back right motor, 3
-    };
 
     /** Structure for each motor */
     struct motor_t {

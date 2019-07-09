@@ -10,35 +10,47 @@
 
 #include "engineer_chassis_interface.h"
 #include "pid_controller.hpp"
-
-class EngineerChassisSKD {
-
-};
-
+#include "vehicle/engineer/vehicle_engineer.h"
 
 /**
- * @name Chassis
- * @brief Chassis controller from high level to low level (by inheritance)
+ * @name EngineerChassisSKD
  * @note +X is right, +Y is front, +w is counter-clockwise
  */
-class Chassis : public ChassisInterface, public PIDControllerBase {
+class EngineerChassisSKD {
 
 public:
 
+    // Sentry chassis thread
+    class EngineerChassisThread: public chibios_rt::BaseStaticThread<512>{
+        void main()final;
+    };
+
+    static EngineerChassisThread engineerChassisThread;
+
+    static float target_velocity[];
+
+private:
     /**
      * Initialize ChassisInterface and this calculator
-     * @param can_interface
      * @param wheel_base
      * @param wheel_tread
      * @param wheel_circumference
      */
-    static void init(CANInterface* can_interface, float wheel_base, float wheel_tread, float wheel_circumference);
+    static void init();
+
+public:
+
+    static void lock();
+
+    static void unlock();
 
     /**
      * Change parameters of PID controller of every motor
      * @param pid_params
      */
-    static void change_pid_params(pid_params_t pid_params);
+    static void change_pid_params(PIDControllerBase::pid_params_t pid_params);
+
+    static void set_velocity(float target_vx_, float target_vy_, float target_w_);
 
     /**
      * Calculate current for all chassis motors and fill target_velocity[] (in this class) and target_current[]
@@ -47,27 +59,26 @@ public:
      * @param target_vy: target velocity along the y axis with respect to the front of the chassis (mm/s)
      * @param target_w: target angular with respect to the front of the chassis (degree/s, negative value for clockwise)
      */
-    static void calc(float target_vx, float target_vy, float target_w);
-
-    /**
-     * PID controller for each motor
-     * @note For debug use
-     */
-    static PIDController pid[MOTOR_COUNT];
-
-    /**
-     * Target_velocity for each motor (mid value for two-ring PID)
-     * @note For debug use
-     */
-    static float target_velocity[MOTOR_COUNT];
+    static void update_target_current();
 
 private:
 
+    static bool enable;
+
+    static float target_vx;
+    static float target_vy;
+    static float target_w;
+
+    /**
+     * PID controller for each motor
+     */
+    static PIDController pid[];
+
     // Angular velocity (degree/s) to velocity (mm/s, based on mechanism structure)
-    static float w_to_v_ratio_;
+    static float constexpr w_to_v_ratio_ = (CHASSIS_WHEEL_BASE + CHASSIS_WHEEL_TREAD) / 2.0f / 360.0f * 3.14159f;;
 
     // Wheel speed (mm/s) to wheel angular velocity (degree/s)
-    static float v_to_wheel_angular_velocity_;
+    static float constexpr v_to_wheel_angular_velocity_ = 360.0f / CHASSIS_WHEEL_CIRCUMFERENCE;
 
 };
 

@@ -19,7 +19,7 @@
 
 using namespace chibios_rt;
 
-// Duplicate of motor_id_t in Elevator to reduce code
+// Duplicate of engr_motor_id_t in Elevator to reduce code
 unsigned const FR = Elevator::FR;
 unsigned const FL = Elevator::FL;
 unsigned const BL = Elevator::BL;

@@ -20,7 +20,7 @@
 
 using namespace chibios_rt;
 
-// Duplicate of motor_id_t in GimbalInterface to reduce code
+// Duplicate of engr_motor_id_t in GimbalInterface to reduce code
 unsigned const YAW = GimbalInterface::YAW;
 unsigned const PITCH = GimbalInterface::PITCH;
 

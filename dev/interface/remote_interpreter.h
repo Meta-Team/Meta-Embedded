@@ -17,7 +17,7 @@
 #include "hal.h"
 
 #include "common_macro.h"
-#include "debug/shell/shell.h"
+#include "shell.h"
 
 #if defined(BOARD_RM_2018_A)
 // PB7 USART1_RX (alternate 7)

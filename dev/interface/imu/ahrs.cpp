@@ -100,7 +100,7 @@ void IMU::update_quaternion() {
     float halfwy = bx * (q12 - q03) + bz * (q01 + q23); 
     float halfwz = bz * (0.5f - q11 - q22) + bx * (q02 + q13);
 
-    // calc error
+    // update_target_current error
     float halfex = (a.y * halfvz - a.z * halfvy) + (m.y * halfwz - m.z * halfwy);
     float halfey = (a.z * halfvx - a.x * halfvz) + (m.z * halfwx - m.x * halfwz);
     float halfez = (a.x * halfvy - a.y * halfvx) + (m.x * halfwy - m.y * halfwx);
