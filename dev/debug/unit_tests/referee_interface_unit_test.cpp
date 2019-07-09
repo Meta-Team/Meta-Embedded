@@ -17,7 +17,7 @@ private:
     void main() final {
         setName("referee_echo");
         Referee::init();
-        Referee::set_client_data(Referee::DATA_1, 20);
+        Referee::client_custom_data.data1 = 20;
         bool test = true;
         while(!shouldTerminate()) {
 
@@ -40,7 +40,7 @@ private:
 
             Referee::set_signal_light(Referee::SIGNAL_0, test);
             test = !test;
-            Referee::send_data(Referee::client_id);
+            Referee::send_data(Referee::CLIENT);
             sleep(TIME_MS2I(2000));
         }
     }

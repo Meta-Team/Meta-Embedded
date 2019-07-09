@@ -30,9 +30,6 @@ Referee::client_custom_data_t Referee::client_custom_data;
 Referee::robot_interactive_data_t Referee::robot_data_send[7];
 
 /** Private Parameters **/
-uint16_t Referee::robot_id;
-uint16_t Referee::client_id;
-bool Referee::is_blue;
 Referee::rx_status_t Referee::rx_status;
 uint16_t Referee::tx_seq = 0;
 Referee::package_t Referee::pak;
@@ -55,7 +52,7 @@ void Referee::init() {
 
     // Wait for starting byte
     rx_status = WAIT_STARTING_BYTE;
-    robot_id = 0;
+    game_robot_state.robot_id = 0;
     uartStartReceive(UART_DRIVER, FRAME_SOF_SIZE, &pak);
     LOG("sizeof(power_heat_data) = %u", sizeof(power_heat_data));
 }
@@ -82,7 +79,6 @@ void Referee::uart_rx_callback(UARTDriver *uartp) {
             if (Verify_CRC8_Check_Sum(pak_uint8, FRAME_HEADER_SIZE)) {
                 rx_status = WAIT_CMD_ID_DATA_TAIL; // go to next status
             } else {
-//                Shell::printfI("[REFEREE] Invalid frameHeader!" SHELL_NEWLINE_STR);
                 rx_status = WAIT_STARTING_BYTE;
             }
             break;
@@ -94,30 +90,48 @@ void Referee::uart_rx_callback(UARTDriver *uartp) {
 
                 switch (pak.cmd_id) {
 
-                    case 0x0201:
-                        game_robot_state = pak.game_robot_state_;
-                        if (robot_id == 0) set_robot_info(game_robot_state.robot_id);
+                    case 0x0201: // game_robot_state
+                        if (game_robot_state.robot_id == 0) {
+                            // If it is the first time that robot_state cmd is received, we need to initialize robot identity
+                            game_robot_state = pak.game_robot_state_;
+                            int robot_id = game_robot_state.robot_id;
+                            client_custom_data.header.send_ID = robot_id;
+                            client_custom_data.header.receiver_ID = 0x0100 + (robot_id / 10 * 16) + (robot_id % 10);
+                            client_custom_data.header.data_cmd_id = 0xD180;
+                            for (int i = 0; i < 7; ++i) {
+                                robot_data_send[i].header.send_ID = robot_id;
+                                robot_data_send[i].header.receiver_ID = (robot_id / 10) * 10 + (i + 1); // Robot id is within [1, 7] and [11, 17]
+                            }
+                        } else game_robot_state = pak.game_robot_state_;
                         break;
-                    case 0x0202:
+
+                    case 0x0202: // power_heat_data
                         LED::red_toggle();
                         power_heat_data = pak.power_heat_data_;
                         break;
-                    case 0x0207:
+
+                    case 0x0206: // robot_hurt
+                        robot_hurt = pak.robot_hurt_;
+                        break;
+
+                    case 0x0207: // shoot_data
                         shoot_data = pak.shoot_data_;
                         break;
-                    case 0x0206:
 
-//                        Shell::printfI("[0x0206] data_length = %u" SHELL_NEWLINE_STR, frame_header.data_length);
-                        robot_hurt = pak.robot_hurt_;
+                    case 0x0301: // robot_interactive_data
+                        // Check whether the message is from the same team
+                        if ((game_robot_state.robot_id > 10) ^ (pak.robot_interactive_data_.header.send_ID > 10)) break;
+                        // Check whether the message is for this robot
+                        if (game_robot_state.robot_id != pak.robot_interactive_data_.header.receiver_ID) break;
+                        // If the message pass the check, record it in the corresponding place
+                        robot_data_receive[(pak.robot_interactive_data_.header.send_ID % 10) - 1] = pak.robot_interactive_data_;
+                        break;
+
                     default:
                         // FIXME: temporarily disabled since not all ID has been implemented
-                        // LOG_ERR("[REFEREE] Unknown cmd_id %u", cmd_id);
                         break;
                 }
             }
-//            } else {
-//                Shell::printfI("[REFEREE] Invalid data of type %u!" SHELL_NEWLINE_STR, cmd_id);
-//            }
 
             rx_status = WAIT_STARTING_BYTE;
 
@@ -140,12 +154,12 @@ void Referee::uart_rx_callback(UARTDriver *uartp) {
 
 }
 
-void Referee::send_data(uint16_t receiver_id, uint16_t data_cmd_id) {
-    if (robot_id == 0)
+void Referee::send_data(receiver_index_t receiver_id, uint16_t data_cmd_id) {
+    if (game_robot_state.robot_id == 0)
         return;
     package_t tx_pak;
     tx_pak.header.sof = 0xA5;
-    if (receiver_id == client_id) {
+    if (receiver_id == CLIENT) {
         tx_pak.header.data_length = sizeof(client_custom_data_t);
     } else {
         if (data_cmd_id == 0) return;
@@ -155,34 +169,16 @@ void Referee::send_data(uint16_t receiver_id, uint16_t data_cmd_id) {
     Append_CRC8_Check_Sum((uint8_t *)&tx_pak, FRAME_HEADER_SIZE);
     tx_pak.cmd_id = 0x0301;
     size_t tx_pak_size;
-    if (receiver_id == client_id){
+    if (receiver_id == CLIENT){
         tx_pak.client_custom_data_ = client_custom_data;
         tx_pak_size = FRAME_HEADER_SIZE + CMD_ID_SIZE + sizeof(client_custom_data_t) + FRAME_TAIL_SIZE;
     } else{
-        uint16_t receiver_index = receiver_id % 16;
-        robot_data_send[receiver_index].header.send_ID = robot_id;
-        robot_data_send[receiver_index].header.data_cmd_id = data_cmd_id;
-        robot_data_send[receiver_index].header.receiver_ID = receiver_id;
-        tx_pak.robot_interactive_data_ = robot_data_send[receiver_index];
+        robot_data_send[receiver_id].header.data_cmd_id = data_cmd_id;
+        tx_pak.robot_interactive_data_ = robot_data_send[receiver_id];
         tx_pak_size = FRAME_HEADER_SIZE + CMD_ID_SIZE + sizeof(robot_interactive_data_t) + FRAME_TAIL_SIZE;
     }
     Append_CRC16_Check_Sum((uint8_t *)&tx_pak, tx_pak_size);
     uartSendTimeout(UART_DRIVER, &tx_pak_size, &tx_pak, TIME_MS2I(20));
-}
-
-void Referee::set_robot_info(int id) {
-    robot_id = id;
-    is_blue = (id < 10);
-    client_id = 0x0100 + (id / 10 * 16) + (id % 10);
-    client_custom_data.header.send_ID = robot_id;
-    client_custom_data.header.receiver_ID = client_id;
-    client_custom_data.header.data_cmd_id = 0xD180;
-}
-
-void Referee::set_client_data(Referee::client_data_t data_type, float data) {
-    if (data_type == DATA_1) client_custom_data.data1 = data;
-    else if (data_type == DATA_2) client_custom_data.data2 = data;
-    else if (data_type == DATA_3) client_custom_data.data3 = data;
 }
 
 void Referee::set_signal_light(Referee::signal_light_t signalLight, bool turn_on) {

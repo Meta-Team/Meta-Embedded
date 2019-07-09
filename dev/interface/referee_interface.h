@@ -30,10 +30,15 @@ class Referee {
 
 public:
 
-    enum client_data_t{
-        DATA_1,
-        DATA_2,
-        DATA_3
+    enum receiver_index_t{
+        HERO = 0,
+        ENGINEER = 1,
+        STANDARD3 = 2,
+        STANDARD4 = 3,
+        STANDARD5 = 4,
+        AERIAL = 5,
+        SENTRY = 6,
+        CLIENT = 7
     };
 
     enum signal_light_t{
@@ -142,9 +147,7 @@ public:
 
     __PACKED_STRUCT robot_interactive_data_t{
             student_interactive_header_data_t header;
-            uint8_t dataTBD_1;
-            uint8_t dataTBD_2;
-            uint8_t dataTBD_3;
+            uint8_t dataTBD[3];
     };
 
     /** Received Data **/
@@ -167,23 +170,14 @@ public:
     static client_custom_data_t client_custom_data;
     static robot_interactive_data_t robot_data_send[7];
 
-    static uint16_t robot_id;
-
-    static uint16_t client_id;
-
-    static bool is_blue;
 
     static void init();
 
-    static void set_robot_info(int id);
-
     static void uart_rx_callback(UARTDriver *uartp);  // only for internal use
-
-    static void set_client_data(client_data_t data_type, float data);
 
     static void set_signal_light(signal_light_t signalLight, bool turn_on);
 
-    static void send_data(uint16_t receiver_id, uint16_t data_cmd_id = 0);
+    static void send_data(receiver_index_t receiver_id, uint16_t data_cmd_id = 0);
 
 
 private:
