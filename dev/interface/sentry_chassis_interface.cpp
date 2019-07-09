@@ -11,7 +11,6 @@ float SentryChassisIF::present_position;
 float SentryChassisIF::present_velocity;
 float SentryChassisIF::target_position;
 float SentryChassisIF::target_velocity;
-region_t SentryChassisIF::present_region;
 SentryChassisIF::motor_t SentryChassisIF::motor[SENTRY_CHASSIS_MOTOR_COUNT];
 CANInterface *SentryChassisIF::can;
 
@@ -19,7 +18,6 @@ CANInterface *SentryChassisIF::can;
 
 void SentryChassisIF::init(CANInterface *can_interface) {
     present_position = present_velocity = target_position = target_velocity = 0;
-    present_region = STRAIGHTWAY;
     motor[MOTOR_LEFT].clear_position();
     motor[MOTOR_RIGHT].clear_position();
     can = can_interface;

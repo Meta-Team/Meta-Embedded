@@ -22,11 +22,6 @@
 
 #define SENTRY_CHASSIS_MOTOR_COUNT 2
 
-enum region_t{
-    CURVE_1,
-    STRAIGHTWAY,
-    CURVE_2
-};
 
 /**
  * @name SentryChassis
@@ -53,8 +48,6 @@ public:
     static float target_velocity;
 
     static float power_limit;
-
-    static region_t present_region; // This is specially for FINAL_AUTO_MODE, indicating the rough region in which sentry is limited
 
     // Structure for each motor
     struct motor_t {
