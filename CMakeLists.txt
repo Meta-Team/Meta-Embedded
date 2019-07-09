@@ -88,7 +88,7 @@ target_include_directories(INFANTRY_FOUR PRIVATE dev/vehicle/infantry)
 target_compile_definitions(INFANTRY_FOUR PRIVATE INFANTRY INFANTRY_FOUR ENABLE_STATE_HANDLE)
 
 # Main Program -- Infantry #5
-add_executable(INFANTRY_FIVE ${INFANTRY})
+add_executable(INFANTRY_FIVE ${INFANTRY} dev/control/engineer_chassis_skd.cpp dev/control/engineer_chassis_skd.h dev/control/engineer_elevator_skd.cpp dev/control/engineer_elevator_skd.h)
 target_include_directories(INFANTRY_FIVE PRIVATE dev/vehicle/infantry)
 target_compile_definitions(INFANTRY_FIVE PRIVATE INFANTRY INFANTRY_FIVE ENABLE_STATE_HANDLE)
 
@@ -105,7 +105,7 @@ add_executable(ENGINEER
         dev/vehicle/engineer/state_machine_stage_climb.cpp
         dev/vehicle/engineer/state_machine_bullet_fetch.cpp
         dev/vehicle/engineer/main_engineer.cpp
-        dev/control/elevator.cpp dev/vehicle/engineer/thread_chassis.cpp dev/vehicle/engineer/thread_elevator.cpp)
+        dev/control/elevator.cpp dev/vehicle/engineer/thread_chassis.cpp dev/vehicle/engineer/thread_elevator.cpp dev/interface/engineer_chassis_interface.cpp dev/interface/engineer_chassis_interface.h dev/interface/engineer_elevator_interface.cpp dev/interface/engineer_elevator_interface.h)
 target_include_directories(ENGINEER PRIVATE dev/vehicle/engineer)
 target_compile_definitions(ENGINEER PRIVATE ENGINEER ENABLE_STATE_HANDLE)
 

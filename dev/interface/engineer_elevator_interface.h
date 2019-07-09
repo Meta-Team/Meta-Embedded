@@ -1,0 +1,14 @@
+//
+// Created by Kerui Zhu on 7/9/2019.
+//
+
+#ifndef META_INFANTRY_ENGINEER_ELEVATOR_INTERFACE_H
+#define META_INFANTRY_ENGINEER_ELEVATOR_INTERFACE_H
+
+
+class EngineerElevatorIF {
+
+};
+
+
+#endif //META_INFANTRY_ENGINEER_ELEVATOR_INTERFACE_H
