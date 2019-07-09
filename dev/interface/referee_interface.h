@@ -31,18 +31,18 @@ class Referee {
 public:
 
     enum receiver_index_t{
-        HERO = 0,
-        ENGINEER = 1,
-        STANDARD3 = 2,
-        STANDARD4 = 3,
-        STANDARD5 = 4,
-        AERIAL = 5,
-        SENTRY = 6,
-        CLIENT = 7
+        CLIENT = 0,
+        HERO = 1,
+        ENGINEER = 2,
+        STANDARD3 = 3,
+        STANDARD4 = 4,
+        STANDARD5 = 5,
+        AERIAL = 6,
+        SENTRY = 7
     };
 
     enum signal_light_t{
-        SIGNAL_0 = 0,
+        ENEMY_SPOTTED = 0,
         SIGNAL_1 = 1,
         SIGNAL_2 = 2,
         SIGNAL_3 = 3,
@@ -131,6 +131,17 @@ public:
         float bullet_speed;
     };
 
+    /** Robot Interactive **/
+
+/**
+ * data_cmd_id table:
+ * ---------------------------------------------------------------------------------------------------------------------
+ * CMD          Sender          Receiver            Description             Data
+ * ---------------------------------------------------------------------------------------------------------------------
+ *  0x0210      Sentry          Hero & Standards    Base Alarm              0: Alarm free; otherwise: Alarm triggered
+ *  0x0211      Hero/Standards  Engineer            Robot Die               The position of the dead robot
+ * ---------------------------------------------------------------------------------------------------------------------
+ */
     __PACKED_STRUCT student_interactive_header_data_t {
             uint16_t data_cmd_id;
             uint16_t send_ID;
@@ -164,11 +175,11 @@ public:
     static aerial_robot_energy_t aerial_robot_energy;
     static robot_hurt_t robot_hurt;
     static shoot_data_t shoot_data;
-    static robot_interactive_data_t robot_data_receive[7];
+    static robot_interactive_data_t robot_data_receive;
 
     /** Send Data **/
     static client_custom_data_t client_custom_data;
-    static robot_interactive_data_t robot_data_send[7];
+    static robot_interactive_data_t robot_data_send;
 
 
     static void init();

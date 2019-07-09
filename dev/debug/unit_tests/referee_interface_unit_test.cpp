@@ -38,7 +38,7 @@ private:
             LOG("hurt_type = %u" , (unsigned int) Referee::robot_hurt.hurt_type);
             LOG("");
 
-            Referee::set_signal_light(Referee::SIGNAL_0, test);
+            Referee::set_signal_light(Referee::ENEMY_SPOTTED, test);
             test = !test;
             Referee::send_data(Referee::CLIENT);
             sleep(TIME_MS2I(2000));

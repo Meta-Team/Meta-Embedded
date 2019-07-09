@@ -25,9 +25,9 @@ Referee::buff_musk_t Referee::buff_musk;
 Referee::aerial_robot_energy_t Referee::aerial_robot_energy;
 Referee::robot_hurt_t Referee::robot_hurt;
 Referee::shoot_data_t Referee::shoot_data;
-Referee::robot_interactive_data_t Referee::robot_data_receive[7];
+Referee::robot_interactive_data_t Referee::robot_data_receive;
 Referee::client_custom_data_t Referee::client_custom_data;
-Referee::robot_interactive_data_t Referee::robot_data_send[7];
+Referee::robot_interactive_data_t Referee::robot_data_send;
 
 /** Private Parameters **/
 Referee::rx_status_t Referee::rx_status;
@@ -98,10 +98,7 @@ void Referee::uart_rx_callback(UARTDriver *uartp) {
                             client_custom_data.header.send_ID = robot_id;
                             client_custom_data.header.receiver_ID = 0x0100 + (robot_id / 10 * 16) + (robot_id % 10);
                             client_custom_data.header.data_cmd_id = 0xD180;
-                            for (int i = 0; i < 7; ++i) {
-                                robot_data_send[i].header.send_ID = robot_id;
-                                robot_data_send[i].header.receiver_ID = (robot_id / 10) * 10 + (i + 1); // Robot id is within [1, 7] and [11, 17]
-                            }
+                            robot_data_send.header.send_ID = robot_id;
                         } else game_robot_state = pak.game_robot_state_;
                         break;
 
@@ -124,7 +121,8 @@ void Referee::uart_rx_callback(UARTDriver *uartp) {
                         // Check whether the message is for this robot
                         if (game_robot_state.robot_id != pak.robot_interactive_data_.header.receiver_ID) break;
                         // If the message pass the check, record it in the corresponding place
-                        robot_data_receive[(pak.robot_interactive_data_.header.send_ID % 10) - 1] = pak.robot_interactive_data_;
+                        robot_data_receive = pak.robot_interactive_data_;
+                        //switch (robot_data_receive.)
                         break;
 
                     default:
@@ -173,8 +171,9 @@ void Referee::send_data(receiver_index_t receiver_id, uint16_t data_cmd_id) {
         tx_pak.client_custom_data_ = client_custom_data;
         tx_pak_size = FRAME_HEADER_SIZE + CMD_ID_SIZE + sizeof(client_custom_data_t) + FRAME_TAIL_SIZE;
     } else{
-        robot_data_send[receiver_id].header.data_cmd_id = data_cmd_id;
-        tx_pak.robot_interactive_data_ = robot_data_send[receiver_id];
+        robot_data_send.header.receiver_ID = (game_robot_state.robot_id / 10) * 10 + receiver_id;
+        robot_data_send.header.data_cmd_id = data_cmd_id;
+        tx_pak.robot_interactive_data_ = robot_data_send;
         tx_pak_size = FRAME_HEADER_SIZE + CMD_ID_SIZE + sizeof(robot_interactive_data_t) + FRAME_TAIL_SIZE;
     }
     Append_CRC16_Check_Sum((uint8_t *)&tx_pak, tx_pak_size);
