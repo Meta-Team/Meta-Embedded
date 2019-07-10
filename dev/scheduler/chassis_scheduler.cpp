@@ -61,6 +61,10 @@ float ChassisSKD::get_actual_theta() {
     return GimbalIF::feedback[GimbalIF::YAW].actual_angle;
 }
 
+ChassisSKD::pid_params_t ChassisSKD::echo_pid_params() {
+    return v2i_pid->get_parameters();
+}
+
 void ChassisSKD::velocity_decompose(float vx, float vy, float w) {
 
     // FR, +vx, -vy, +w

@@ -77,6 +77,11 @@ public:
      */
     static float get_actual_theta();
 
+    /**
+     * Get v2i PID parameters.
+     */
+    static pid_params_t echo_pid_params();
+
 private:
 
     // Local storage
@@ -86,7 +91,7 @@ private:
     static float target_theta;
 
     static PIDController a2v_pid;               // for theta control
-    static PIDController v2i_pid[MOTOR_COUNT];  // speed control for each motoe
+    static PIDController v2i_pid[MOTOR_COUNT];  // speed control for each motor
 
     static float target_w;                      // middle value for chassis rotation
     static float target_velocity[MOTOR_COUNT];  // target velocity for each motor (middle value for two-ring PID)
