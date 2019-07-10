@@ -65,6 +65,14 @@ ChassisSKD::pid_params_t ChassisSKD::echo_pid_params() {
     return v2i_pid->get_parameters();
 }
 
+float ChassisSKD::get_actual_velocity(ChassisBase::motor_id_t motorId) {
+    return ChassisIF::feedback[motorId].actual_velocity;
+}
+
+float ChassisSKD::get_target_velocity(ChassisBase::motor_id_t motorId) {
+    return target_velocity[motorId];
+}
+
 void ChassisSKD::velocity_decompose(float vx, float vy, float w) {
 
     // FR, +vx, -vy, +w

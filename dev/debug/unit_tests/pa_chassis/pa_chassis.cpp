@@ -27,10 +27,10 @@
 #include "chassis_logic.h"
 
 #include "inspector.h"
-#include "user.h"
+#include "command.h"
 
 /// Vehicle Specific Configurations
-#include "vehicle_hero.h"
+#include "hero_constants.h"
 
 /// Board Guard
 #if defined(BOARD_RM_2018_A)
@@ -131,7 +131,7 @@ int main() {
 
     /// Start Inspector and User Threads
     Inspector::start_inspection(THREAD_INSPECTOR_PRIO);
-    User::start(THREAD_USER_PRIO);
+    User::start(THREAD_USER_PRIO, THREAD_FEEDBACK_PRIO);
 
     /// Complete Period 2
     Buzzer::play_sound(Buzzer::sound_startup_intel, THREAD_BUZZER_PRIO);  // Now play the startup sound

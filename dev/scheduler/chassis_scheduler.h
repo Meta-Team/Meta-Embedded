@@ -79,8 +79,23 @@ public:
 
     /**
      * Get v2i PID parameters.
+     * @return PID params
      */
     static pid_params_t echo_pid_params();
+
+    /**
+     * Get actual velocity
+     * @param Motor ID
+     * @return motor actual velocity
+     */
+     static float get_actual_velocity(motor_id_t motorId);
+
+     /**
+      * Get target velocity
+      * @param Motor ID
+      * @return motor target velocity
+      */
+     static float get_target_velocity(motor_id_t motorId);
 
 private:
 

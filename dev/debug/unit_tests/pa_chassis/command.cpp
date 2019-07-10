@@ -3,9 +3,10 @@
 // Edited by Qian Chen & Mo Kanya on 2019-07-05
 //
 
-#include "user.h"
+#include "command.h"
 
 User::UserThread User::userThread;
+User::FeedbackThread User::feedbackThread;
 
 time_msecs_t modified_test_end_time = 0;
 time_msecs_t origin_test_end_time = 0;
@@ -63,8 +64,9 @@ ShellCommand chassisCommands[] = {
         {"c_echo_params", cmd_chassis_echo_params},
         {nullptr, nullptr}
 };
-void User::start(tprio_t prio) {
-    userThread.start(prio);
+void User::start(tprio_t user_prio, tprio_t feedback_prio) {
+    userThread.start(user_prio);
+    feedbackThread.start(feedback_prio);
 }
 void User::UserThread::main() {
     setName("User");
@@ -76,5 +78,23 @@ void User::UserThread::main() {
             Shell::printf("!ce" SHELL_NEWLINE_STR);
         }
         sleep(TIME_MS2I(USER_THREAD_INTERVAL));
+    }
+}
+
+void User::FeedbackThread::main() {
+    setName("Feedback");
+    while (!shouldTerminate()) {
+        // feedback
+        Shell::printf("!cv,%u,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f" SHELL_NEWLINE_STR,
+                      TIME_I2MS(chibios_rt::System::getTime()),
+                      ChassisSKD::get_actual_velocity(ChassisBase::FR),
+                      ChassisSKD::get_target_velocity(ChassisBase::FR),
+                      ChassisSKD::get_actual_velocity(ChassisBase::FL),
+                      ChassisSKD::get_target_velocity(ChassisBase::FL),
+                      ChassisSKD::get_actual_velocity(ChassisBase::BL),
+                      ChassisSKD::get_target_velocity(ChassisBase::BL),
+                      ChassisSKD::get_actual_velocity(ChassisBase::BR),
+                      ChassisSKD::get_target_velocity(ChassisBase::BR));
+        sleep(TIME_MS2I(FEEDBACK_THREAD_INTERVAL));
     }
 }

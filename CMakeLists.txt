@@ -244,9 +244,9 @@ add_executable(pa_chassis
         ${AHRS_SRC}
         ${HERO_SHOOT_SRC}
         ${CHASSIS_SRC}
-        dev/debug/unit_tests/pa_chassis/main_hero.cpp
+        dev/debug/unit_tests/pa_chassis/pa_chassis.cpp
         dev/debug/unit_tests/pa_chassis/inspector.cpp
-        dev/debug/unit_tests/pa_chassis/user.cpp)
+        dev/debug/unit_tests/pa_chassis/command.cpp)
 target_include_directories(pa_chassis PRIVATE dev/debug/unit_tests/pa_chassis)
 target_compile_definitions(pa_chassis PRIVATE pa_chassis ENABLE_STATE_HANDLE)
 target_link_libraries(pa_chassis ${PROJECT_SOURCE_DIR}/dev/interface/ahrs/ahrs_lib.lib)
