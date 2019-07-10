@@ -31,17 +31,18 @@ public:
     };
 
     /** Structure for each motor */
-    struct elevator_motor_t {
+    class elevator_motor_t {
 
-        uint16_t actual_angle_raw;
-        int16_t actual_rpm_raw;
-        int16_t actual_current_raw;
-
-        time_msecs_t last_update_time;
+    public:
 
         float accmulate_angle; // [degree]
 
         float actual_velocity; // [degree/s]
+
+        int16_t actual_current;
+
+        time_msecs_t last_update_time;
+
         uint16_t target_current;
 
         /**
@@ -49,11 +50,21 @@ public:
          */
         void clear_accmulate_angle();
 
+    private:
+
+        uint16_t actual_angle_raw;
+
+        int16_t actual_rpm_raw;
+
+        friend EngineerElevatorIF;
     };
 
     struct aided_motor_t {
-        int16_t actual_current_raw;
+
         float actual_velocity; // [degree/s]
+
+        time_msecs_t last_update_time;
+
         uint16_t target_current;
     };
 

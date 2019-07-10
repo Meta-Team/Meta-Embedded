@@ -45,6 +45,9 @@ public:
 
     static constexpr float ANGLE_HEIGHT_RATIO = 458.0f;  // [degree/cm]
 
+    // Size: 2; index 0 for elevator motors, index 1 for auxiliary motors
+    static float target_velocity[];
+
 private:
 
     static bool elevator_enabled;
@@ -55,8 +58,6 @@ private:
 
     static float target_height;
 
-    // Size: 2; index 0 for elevator motors, index 1 for auxiliary motors
-    static float target_velocity[];
 
     // Size: 4; index 0 and 1 for elevator motors, index 2 and 3 for auxiliary motors
     static PIDController v2i_pid[];

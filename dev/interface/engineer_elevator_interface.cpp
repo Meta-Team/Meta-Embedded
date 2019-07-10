@@ -6,18 +6,21 @@
 
 EngineerElevatorIF::elevator_motor_t EngineerElevatorIF::elevatorMotor[MOTOR_COUNT];
 EngineerElevatorIF::aided_motor_t EngineerElevatorIF::aidedMotor[MOTOR_COUNT];
-CANInterface *EngineerElevatorIF::can = nullptr;
+CANInterface* EngineerElevatorIF::can = nullptr;
 
 
 void EngineerElevatorIF::init(CANInterface *can_interface) {
     can = can_interface;
-    can->register_callback(0x205, 0x208, process_feedback);
+    can->register_callback(0x201, 0x204, process_feedback);
     for (elevator_motor_t motor : elevatorMotor) {
-        motor.last_update_time = 0;
+        motor.last_update_time = SYSTIME;
         motor.clear_accmulate_angle();
         motor.target_current = 0;
     }
-    for (aided_motor_t motor : aidedMotor) motor.target_current = 0;
+    for (aided_motor_t motor : aidedMotor){
+        motor.last_update_time = SYSTIME;
+        motor.target_current = 0;
+    }
 }
 
 bool EngineerElevatorIF::send_currents() {
@@ -28,7 +31,7 @@ bool EngineerElevatorIF::send_currents() {
 
     // Fill the header
     txmsg.IDE = CAN_IDE_STD;
-    txmsg.SID = 0x1FF;
+    txmsg.SID = 0x200;
     txmsg.RTR = CAN_RTR_DATA;
     txmsg.DLC = 0x08;
 
@@ -44,34 +47,39 @@ bool EngineerElevatorIF::send_currents() {
 
 void EngineerElevatorIF::process_feedback(CANRxFrame const *rxmsg) {
 
-    if (rxmsg->SID > 0x208 || rxmsg->SID < 0x205) return;
+    if (rxmsg->SID > 0x204 || rxmsg->SID < 0x201) return;
 
-    int motor_id = (int) (rxmsg->SID - 0x205);
+    int motor_id = (int) (rxmsg->SID - 0x201);
 
-    auto new_angle_raw = (uint16_t) (rxmsg->data8[0] << 8 | rxmsg->data8[1]);
-    elevatorMotor[motor_id].actual_rpm_raw = (int16_t) (rxmsg->data8[2] << 8 | rxmsg->data8[3]);
-    elevatorMotor[motor_id].actual_current_raw = (int16_t) (rxmsg->data8[4] << 8 | rxmsg->data8[5]);
-    elevatorMotor[motor_id].actual_temperature_raw = rxmsg->data8[6];
+    if (motor_id < 2){
+        auto new_angle_raw = (uint16_t) (rxmsg->data8[0] << 8 | rxmsg->data8[1]);
+        elevatorMotor[motor_id].actual_rpm_raw = (int16_t) (rxmsg->data8[2] << 8 | rxmsg->data8[3]);
+        elevatorMotor[motor_id].actual_current = (int16_t) (rxmsg->data8[4] << 8 | rxmsg->data8[5]);
 
-    int angle_movement = (int) new_angle_raw - (int) elevatorMotor[motor_id].actual_angle_raw;
+        int angle_movement = (int) new_angle_raw - (int) elevatorMotor[motor_id].actual_angle_raw;
 
-    // If angle_movement is too extreme between two samples,
-    // we grant that it's caused by moving over the 0(8192) point.
-    if (angle_movement < -4096) {
-        angle_movement += 8192;
-    } else if (angle_movement > 4096) {
-        angle_movement -= 8192;
+        // If angle_movement is too extreme between two samples,
+        // we grant that it's caused by moving over the 0(8192) point.
+        if (angle_movement < -4096) {
+            angle_movement += 8192;
+        } else if (angle_movement > 4096) {
+            angle_movement -= 8192;
+        }
+
+        elevatorMotor[motor_id].accmulate_angle += angle_movement * 360.0f / 8192.0f / chassis_motor_decelerate_ratio;
+
+        elevatorMotor[motor_id].actual_angle_raw = new_angle_raw;
+
+        // See the meaning of the motor decelerate ratio
+        elevatorMotor[motor_id].actual_velocity =
+                elevatorMotor[motor_id].actual_rpm_raw / chassis_motor_decelerate_ratio * 360.0f / 60.0f;
+
+        elevatorMotor[motor_id].last_update_time = SYSTIME;
+    } else{
+        motor_id = motor_id % 2;
+        aidedMotor[motor_id].actual_velocity = (rxmsg->data8[2] << 8 | rxmsg->data8[3]) * 360.0f / 60.0f;
+        aidedMotor[motor_id].last_update_time = SYSTIME;
     }
-
-    elevatorMotor[motor_id].accmulate_angle += angle_movement * 360.0f / 8192.0f / 19.2f;
-
-    elevatorMotor[motor_id].actual_angle_raw = new_angle_raw;
-
-    // See the meaning of the motor decelerate ratio
-    elevatorMotor[motor_id].actual_velocity =
-            elevatorMotor[motor_id].actual_rpm_raw / chassis_motor_decelerate_ratio * 360.0f / 60.0f;
-
-    elevatorMotor[motor_id].last_update_time = SYSTIME;
 
 }
 
