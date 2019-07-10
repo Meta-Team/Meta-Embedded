@@ -112,7 +112,9 @@ target_compile_definitions(ENGINEER PRIVATE ENGINEER ENABLE_STATE_HANDLE)
 add_executable(ENGINEER_TEST
         dev/vehicle/engineer/main_engineer_test.cpp
         dev/control/engineer_chassis_skd.cpp
-        dev/interface/engineer_chassis_interface.cpp)
+        dev/interface/engineer_chassis_interface.cpp
+        dev/control/engineer_elevator_skd.cpp
+        dev/interface/engineer_elevator_interface.cpp)
 
 # Blink
 add_executable(ut_blink

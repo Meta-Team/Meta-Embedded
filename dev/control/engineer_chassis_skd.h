@@ -20,7 +20,7 @@ class EngineerChassisSKD {
 
 public:
 
-    // Sentry chassis thread
+    // Engineer chassis thread
     class EngineerChassisThread: public chibios_rt::BaseStaticThread<512>{
         void main()final;
     };

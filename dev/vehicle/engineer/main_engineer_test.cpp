@@ -15,8 +15,10 @@
 #include "remote_interpreter.h"
 
 #include "engineer_chassis_interface.h"
+#include "engineer_elevator_interface.h"
 
 #include "engineer_chassis_skd.h"
+#include "engineer_elevator_skd.h"
 
 
 /**
@@ -131,7 +133,9 @@ int main(void) {
 
     /*** Parameters Set up***/
     EngineerChassisIF::init(&can1);
+    EngineerElevatorIF::init(&can1);
     EngineerChassisSKD::engineerChassisThread.start(HIGHPRIO - 3);
+    EngineerElevatorSKD::engineerElevatorThread.start(HIGHPRIO - 2);
 
     LED::green_on();
     /** Start Logic Control Thread **/
