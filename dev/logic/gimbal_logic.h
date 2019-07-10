@@ -28,7 +28,7 @@ class GimbalLG : public GimbalBase {
 
 public:
 
-    static void init();
+    static void init(tprio_t vision_thread_prio_);
 
     enum action_t {
         FORCED_RELAX_MODE,

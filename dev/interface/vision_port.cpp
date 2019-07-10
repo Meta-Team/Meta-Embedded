@@ -65,7 +65,7 @@ void VisionPort::uart_rx_callback(UARTDriver *uartp) {
     switch (rx_status) {
 
         case WAIT_STARTING_BYTE:
-//            LED::green_toggle();
+            LED::red_toggle();
             if (pak_uint8[0] == 0xA5) {
                 rx_status = WAIT_REMAINING_HEADER;
             } // else, keep waiting for SOF
@@ -84,8 +84,8 @@ void VisionPort::uart_rx_callback(UARTDriver *uartp) {
 
         case WAIT_CMD_ID_DATA_TAIL:
 
-            if (Verify_CRC16_Check_Sum(pak_uint8,
-                                       FRAME_HEADER_SIZE + CMD_ID_SIZE + pak.header.data_length + FRAME_TAIL_SIZE)) {
+//            if (Verify_CRC16_Check_Sum(pak_uint8,
+//                                       FRAME_HEADER_SIZE + CMD_ID_SIZE + pak.header.data_length + FRAME_TAIL_SIZE)) {
 
                 switch (pak.cmd_id) {
                     case 0xff01:
@@ -98,9 +98,9 @@ void VisionPort::uart_rx_callback(UARTDriver *uartp) {
                         // LOG_ERR("[VisionPort] Unknown cmd_id %u", cmd_id);
                         break;
                 }
-            } else {
+//            } else {
 //                Shell::printfI("[VisionPort] Invalid data of type %u!" SHELL_NEWLINE_STR, cmd_id);
-            }
+//            }
 
             rx_status = WAIT_STARTING_BYTE;
 

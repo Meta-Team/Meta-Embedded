@@ -12,8 +12,14 @@
 
 #include "gimbal_logic.h"
 
+GimbalLG::action_t GimbalLG::action = FORCED_RELAX_MODE;
 GimbalLG::VisionThread GimbalLG::visionThread;
 chibios_rt::ThreadReference GimbalLG::visionThreadReference;
+
+void GimbalLG::init(tprio_t vision_thread_prio_) {
+    visionThread.started = true;
+    visionThreadReference = visionThread.start(vision_thread_prio_);
+}
 
 GimbalLG::action_t GimbalLG::get_action() {
     return action;
@@ -62,10 +68,11 @@ void GimbalLG::VisionThread::main() {
         }
         chSysUnlock();  /// ---------------------------------- Exit Critical Zone ----------------------------------
 
-        VisionPort::send_gimbal(GimbalSKD::get_accumulated_angle(YAW), GimbalSKD::get_accumulated_angle(PITCH));
+//        VisionPort::send_gimbal(0, 0);
 
         if (VisionPort::last_update_time != last_apply_time) {
-            GimbalSKD::set_target_angle(VisionPort::enemy_info.yaw_angle, VisionPort::enemy_info.pitch_angle);
+            GimbalSKD::set_target_angle(GimbalSKD::get_accumulated_angle(YAW) + VisionPort::enemy_info.yaw_angle,
+                                        GimbalSKD::get_accumulated_angle(PITCH) + VisionPort::enemy_info.pitch_angle);
             last_apply_time = VisionPort::last_update_time;
         }
     }

@@ -39,7 +39,7 @@ private:
 
     /// Chassis Parameters
     static constexpr float CHASSIS_COMMON_VX = 1000.0f;  // [mm/s]
-    static constexpr float CHASSIS_COMMON_VY = 1000.0f;  // [mm/s]
+    static constexpr float CHASSIS_COMMON_VY = 2000.0f;  // [mm/s]
 
     static constexpr float CHASSIS_PC_SHIFT_RATIO = 1.5f;  // 150% when Shift is pressed
     static constexpr float CHASSIS_PC_CTRL_RATIO = 0.5f;   // 50% when Ctrl is pressed

@@ -109,6 +109,9 @@ int main() {
     palSetPad(GPIOG, GPIOG_RED_SPOT_LASER);  // enable the red spot laser
 
 
+    /// Setup VisionPort
+    VisionPort::init();
+
     /// Complete Period 1
     LED::green_on(); // LED Green on now
 
@@ -136,6 +139,7 @@ int main() {
 
     /// Start LGs
     // GimbalLG does not need initialization
+    GimbalLG::init(THREAD_GIMBAL_LG_VISION_PRIO);
     ShootLG::init(SHOOT_DEGREE_PER_BULLET, THREAD_SHOOT_LG_STUCK_DETECT_PRIO);
     ChassisLG::init(THREAD_CHASSIS_LG_DODGE_PRIO);
 

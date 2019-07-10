@@ -39,13 +39,13 @@ void User::UserThread::main() {
 
                 GimbalLG::set_target(gimbal_yaw_target_angle, pitch_target);
 
-            } else if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_DOWN) {
+            } /*else if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_DOWN) {
 
                 /// Remote - Vision
 
                 GimbalLG::set_action(GimbalLG::VISION_MODE);
 
-            } else if (Remote::rc.s1 == Remote::S_DOWN) {
+            }*/ else if (Remote::rc.s1 == Remote::S_DOWN) {
 
                 /// PC control mode
 
@@ -94,8 +94,8 @@ void User::UserThread::main() {
 
         if (!Inspector::remote_failure() && !Inspector::chassis_failure() && !Inspector::gimbal_failure()) {
             if ((Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_UP) ||
-                (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_MIDDLE) ||
-                (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_DOWN)) {
+                (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_MIDDLE) /*||
+                (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_DOWN)*/) {
 
                 /// Remote - Shoot with Scrolling Wheel
 
@@ -170,7 +170,7 @@ void User::UserThread::main() {
                 /// Remote - Chassis Move + Chassis Follow
                 ChassisLG::set_action(ChassisLG::FOLLOW_MODE);
                 ChassisLG::set_target(Remote::rc.ch2 * CHASSIS_COMMON_VX,  // Both use right as positive direction
-                                      Remote::rc.ch3 * CHASSIS_COMMON_VX   // Both use up    as positive direction
+                                      Remote::rc.ch3 * CHASSIS_COMMON_VY   // Both use up    as positive direction
                 );
 
             } else if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_MIDDLE) {
@@ -178,15 +178,15 @@ void User::UserThread::main() {
                 /// Remote - Chassis Move + Chassis Dodge
                 ChassisLG::set_action(ChassisLG::DODGE_MODE);
                 ChassisLG::set_target(Remote::rc.ch2 * CHASSIS_COMMON_VX,  // Both use right as positive direction
-                                      Remote::rc.ch3 * CHASSIS_COMMON_VX   // Both use up    as positive direction
+                                      Remote::rc.ch3 * CHASSIS_COMMON_VY   // Both use up    as positive direction
                 );
-            } else if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_DOWN) {
+            } /*else if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_DOWN) {
 
                 /// Remote - Chassis Stop (with Vision)
 
                 ChassisLG::set_action(ChassisLG::FORCED_RELAX_MODE);
 
-            } else if (Remote::rc.s1 == Remote::S_DOWN) {
+            }*/ else if (Remote::rc.s1 == Remote::S_DOWN) {
 
                 /// PC control mode
 
@@ -213,8 +213,8 @@ void User::UserThread::main() {
                 else if (Remote::key.s) target_vy = -CHASSIS_COMMON_VY;
                 else target_vy = 0;
 
-                if (Remote::key.d) target_vx = CHASSIS_COMMON_VY;
-                else if (Remote::key.a) target_vx = -CHASSIS_COMMON_VY;
+                if (Remote::key.d) target_vx = CHASSIS_COMMON_VX;
+                else if (Remote::key.a) target_vx = -CHASSIS_COMMON_VX;
                 else target_vx = 0;
 
                 if (Remote::key.ctrl) {

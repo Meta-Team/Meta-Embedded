@@ -106,9 +106,13 @@ set(INFANTRY
         ${AHRS_SRC}
         ${INFANTRY_SHOOT_SRC}
         ${CHASSIS_SRC}
+        dev/interface/vision_port.cpp
+        dev/interface/referee_interface.cpp
+        dev/common/CRC8.cpp
+        dev/common/CRC16.cpp
         dev/vehicle/infantry/inspector.cpp
         dev/vehicle/infantry/user.cpp
-        dev/vehicle/infantry/main_infantry.cpp )
+        dev/vehicle/infantry/main_infantry.cpp)
 
 # Main Program -- Infantry #1
 add_executable(INFANTRY_THREE ${INFANTRY})

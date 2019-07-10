@@ -132,7 +132,7 @@ void GimbalSKD::SKDThread::main() {
 
 float GimbalSKD::get_accumulated_angle(GimbalBase::motor_id_t motor) {
     if (motor == YAW) return accumulated_angle[YAW];
-    if (motor == PITCH) return accumulated_angle[PITCH];
+    if (motor == PITCH) return (gimbal_ahrs->get_angle() * ahrs_angle_rotation).y;
     return 0;
 }
 

@@ -826,8 +826,8 @@
                                      PIN_OSPEED_HIGH(GPIOE_PIN13) |         \
                                      PIN_OSPEED_HIGH(GPIOE_PIN14) |         \
                                      PIN_OSPEED_HIGH(GPIOE_PIN15))
-#define VAL_GPIOE_PUPDR             (PIN_PUPDR_FLOATING(GPIOE_UART8_RX) |       \
-                                     PIN_PUPDR_FLOATING(GPIOE_UART8_TX) |       \
+#define VAL_GPIOE_PUPDR             (PIN_PUPDR_PULLUP(GPIOE_UART8_RX) |       \
+                                     PIN_PUPDR_PULLUP(GPIOE_UART8_TX) |       \
                                      PIN_PUPDR_FLOATING(GPIOE_IST8310_RST) |       \
                                      PIN_PUPDR_FLOATING(GPIOE_CS_SPI) |     \
                                      PIN_PUPDR_FLOATING(GPIOE_PIN4) |       \
