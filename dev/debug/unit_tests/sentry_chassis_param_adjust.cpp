@@ -34,18 +34,22 @@ private:
         while (!shouldTerminate()) {
 
             if (enable_right_feedback) {
-                Shell::printf("!gy,%u,%.2f,%.2f,%.2f,%.2f,%f,%d" SHELL_NEWLINE_STR,
+                Shell::printf("!gy,%u,%.2f,%.2f,%.2f,%.2f,%f,%f" SHELL_NEWLINE_STR,
                               SYSTIME,
-                              SentryChassisIF::motor[SentryChassisIF::MOTOR_RIGHT].motor_present_position, SentryChassisIF::target_position,
+                              //SentryChassisIF::motor[SentryChassisIF::MOTOR_RIGHT].motor_present_position, SentryChassisIF::target_position,
+                              Referee::power_heat_data.chassis_power, SentryChassisIF::power_limit,
                               SentryChassisIF::motor[SentryChassisIF::MOTOR_RIGHT].motor_present_velocity, SentryChassisIF::target_velocity,
-                              Referee::power_heat_data.chassis_power, 20);
+                              //Referee::power_heat_data.chassis_power, 20
+                              SentryChassisIF::motor[SentryChassisIF::MOTOR_LEFT].motor_present_position, SentryChassisIF::target_position);
             }
             if (enable_left_feedback) {
-                Shell::printf("!gp,%u,%.2f,%.2f,%.2f,%.2f,%f,%d" SHELL_NEWLINE_STR,
+                Shell::printf("!gp,%u,%.2f,%.2f,%.2f,%.2f,%f,%f" SHELL_NEWLINE_STR,
                               SYSTIME,
-                              SentryChassisIF::motor[SentryChassisIF::MOTOR_LEFT].motor_present_position, SentryChassisIF::target_position,
+                              //SentryChassisIF::motor[SentryChassisIF::MOTOR_LEFT].motor_present_position, SentryChassisIF::target_position,
+                              Referee::power_heat_data.chassis_power, SentryChassisIF::power_limit,
                               SentryChassisIF::motor[SentryChassisIF::MOTOR_LEFT].motor_present_velocity, SentryChassisIF::target_velocity,
-                              Referee::power_heat_data.chassis_power, 20);
+                              //Referee::power_heat_data.chassis_power, 20
+                              SentryChassisIF::motor[SentryChassisIF::MOTOR_LEFT].motor_present_position, SentryChassisIF::target_position);
             }
 
             sleep(TIME_MS2I(CHASSIS_FEEDBACK_INTERVAL));
@@ -120,6 +124,9 @@ static void cmd_chassis_set_mode(BaseSequentialStream *chp, int argc, char *argv
         case ('4'):
             SentryChassisSKD::set_mode(SentryChassisSKD::FINAL_AUTO_MODE);
             break;
+//        case ('5'):
+//            SentryChassisSKD::set_mode(SentryChassisSKD::POM_MODE);
+//            break;
         default:
             SentryChassisSKD::set_mode(SentryChassisSKD::STOP_MODE);
     }
@@ -171,19 +178,30 @@ static void cmd_chassis_print_pid(BaseSequentialStream *chp, int argc, char *arg
 
 /**
  * @brief set the target_position in the unit of cm
- * @note modified to set target power limit for chassis, Watts
  */
 static void cmd_chassis_set_position(BaseSequentialStream *chp, int argc, char *argv[]){
     (void) argv;
     if (argc != 2){
-//        shellUsage(chp, "g_set_angle target_position same_as_the_first_one");
-        shellUsage(chp, "g_set_angle target_power_limit same_as_the_first_one");
+        shellUsage(chp, "g_set_angle target_position same_as_the_first_one");
+        chprintf(chp, "!cpe" SHELL_NEWLINE_STR);
+        return;
+    }
+    SentryChassisSKD::set_destination(Shell::atof(argv[0]));
+}
+
+/**
+ * @brief set the poser limit for POM mode, Watts
+ * @note need to set manually in shell
+ */
+ static void cmd_chassis_set_power_limit(BaseSequentialStream *chp, int argc, char **argv){
+    (void) argv;
+    if (argc != 1){
+        shellUsage(chp, "c_set_p");
         chprintf(chp, "!cpe" SHELL_NEWLINE_STR);
         return;
     }
     SentryChassisSKD::set_target_power(Shell::atof(argv[0]));
-
-}
+ }
 
 /**
  * @brief clear the present and target position
@@ -249,7 +267,8 @@ ShellCommand chassisCommands[] = {
         {"c_set_mode",    cmd_chassis_set_mode},
         {"g_set_params",  cmd_chassis_set_pid},         // modified to set POM pid
         {"g_echo_params",   cmd_chassis_print_pid},     // modified to echo POM pid
-        {"g_set_angle",   cmd_chassis_set_position},    // modified to set power limit
+        {"g_set_angle",   cmd_chassis_set_position},
+        {"c_set_p", cmd_chassis_set_power_limit},       // added to set power limit, default is 20 when init()
         {"g_fix", cmd_chassis_clear_position},
         {"c_pos", cmd_chassis_print_position},
         {"c_cur", cmd_chassis_print_current},

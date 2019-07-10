@@ -73,6 +73,7 @@ void SentryChassisSKD::init() {
     prev_terminal = 0;
     next_terminal = 5;
     last_attack_time = 0;
+    set_target_power(20);
 }
 
 void SentryChassisSKD::turn_on(){
@@ -216,6 +217,25 @@ void SentryChassisSKD::update_target_current() {
                 // this mode is for adjusting velocity pid
                 // The target velocity is given by user, here we do no calculation to target velocity
                 break;
+
+//            case (POM_MODE): {
+//                /// this mode is for adjusting POM pid, forced use pom
+//                float braking_dist = 8;
+//                if ((sentry_present_position < SentryChassisIF::target_position && SentryChassisIF::present_velocity > 0.8 * CRUISING_SPEED) ||
+//                    (sentry_present_position > SentryChassisIF::target_position && SentryChassisIF::present_velocity < - 0.8 * CRUISING_SPEED)) {
+//                    SentryChassisIF::target_velocity = sentry_a2v_pid.calc(sentry_present_position, SentryChassisIF::target_position);
+//                    break;
+//                }
+//
+//                float delta_velocity = sentry_POM_pid.calc(Referee::power_heat_data.chassis_power, SentryChassisIF::power_limit);
+//                if (SentryChassisIF::target_position > sentry_present_position)
+//                    /// should be + ???
+//                    SentryChassisIF::target_velocity = SentryChassisIF::present_velocity + delta_velocity;
+//                else if (SentryChassisIF::target_position < sentry_present_position)
+//                    /// should be - ???
+//                    SentryChassisIF::target_velocity = SentryChassisIF::present_velocity - delta_velocity;
+//                break; }
+
             case (FINAL_AUTO_MODE):
                 // If we are in the FINAL_AUTO_MODE
                 if ( randomMode && SYSTIME - last_attack_time > 60000) stop_escaping();

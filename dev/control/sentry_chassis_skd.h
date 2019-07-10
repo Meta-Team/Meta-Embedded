@@ -23,6 +23,7 @@ public:
         ONE_STEP_MODE,
         SHUTTLED_MODE,
         V_MODE,
+//        POM_MODE,
         FINAL_AUTO_MODE
     };
 
