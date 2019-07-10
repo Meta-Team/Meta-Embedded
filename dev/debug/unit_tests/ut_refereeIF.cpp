@@ -17,6 +17,8 @@ private:
     void main() final {
         setName("referee_echo");
         Referee::init();
+        Referee::client_custom_data.data1 = 20;
+        bool test = true;
         while(!shouldTerminate()) {
 
             LOG("chassis_volt = %u" , (unsigned int) Referee::power_heat_data.chassis_volt);
@@ -36,6 +38,9 @@ private:
             LOG("hurt_type = %u" , (unsigned int) Referee::robot_hurt.hurt_type);
             LOG("");
 
+            Referee::set_signal_light(Referee::ENEMY_SPOTTED, test);
+            test = !test;
+            Referee::send_data(Referee::CLIENT);
             sleep(TIME_MS2I(2000));
         }
     }

@@ -2,6 +2,7 @@
 // Created by Administrator on 2019/1/15 0015.
 //
 
+#include "ch.hpp"
 #include "referee_interface.h"
 #include "CRC16.h"
 #include "CRC8.h"
@@ -10,7 +11,7 @@
 #include "string.h"
 #include "led.h"
 
-int Referee::count_;
+/** Public Parameters **/
 Referee::game_state_t Referee::game_state;
 Referee::game_result_t Referee::game_result;
 Referee::game_robot_survivors_t Referee::game_robot_survivors;
@@ -24,13 +25,14 @@ Referee::buff_musk_t Referee::buff_musk;
 Referee::aerial_robot_energy_t Referee::aerial_robot_energy;
 Referee::robot_hurt_t Referee::robot_hurt;
 Referee::shoot_data_t Referee::shoot_data;
+Referee::robot_interactive_data_t Referee::robot_data_receive;
 Referee::client_custom_data_t Referee::client_custom_data;
-Referee::robot_interactive_data_t Referee::robot_interactive_data;
+Referee::robot_interactive_data_t Referee::robot_data_send;
 
-Referee::packet_t Referee::pak;
-
-Referee::frame_header_t Referee::frame_header;
+/** Private Parameters **/
 Referee::rx_status_t Referee::rx_status;
+uint16_t Referee::tx_seq = 0;
+Referee::package_t Referee::pak;
 
 const UARTConfig Referee::UART_CONFIG = {
         nullptr,
@@ -43,6 +45,17 @@ const UARTConfig Referee::UART_CONFIG = {
         0,
         0,
 };
+
+void Referee::init() {
+    // Start uart driver
+    uartStart(UART_DRIVER, &UART_CONFIG);
+
+    // Wait for starting byte
+    rx_status = WAIT_STARTING_BYTE;
+    game_robot_state.robot_id = 0;
+    uartStartReceive(UART_DRIVER, FRAME_SOF_SIZE, &pak);
+    LOG("sizeof(power_heat_data) = %u", sizeof(power_heat_data));
+}
 
 void Referee::uart_rx_callback(UARTDriver *uartp) {
     (void) uartp;
@@ -66,7 +79,6 @@ void Referee::uart_rx_callback(UARTDriver *uartp) {
             if (Verify_CRC8_Check_Sum(pak_uint8, FRAME_HEADER_SIZE)) {
                 rx_status = WAIT_CMD_ID_DATA_TAIL; // go to next status
             } else {
-//                Shell::printfI("[REFEREE] Invalid frameHeader!" SHELL_NEWLINE_STR);
                 rx_status = WAIT_STARTING_BYTE;
             }
             break;
@@ -74,31 +86,49 @@ void Referee::uart_rx_callback(UARTDriver *uartp) {
         case WAIT_CMD_ID_DATA_TAIL:
 
             if (Verify_CRC16_Check_Sum(pak_uint8,
-                                       FRAME_HEADER_SIZE + CMD_ID_SIZE + frame_header.data_length + FRAME_TAIL_SIZE)) {
+                                       FRAME_HEADER_SIZE + CMD_ID_SIZE + pak.header.data_length + FRAME_TAIL_SIZE)) {
 
                 switch (pak.cmd_id) {
-                    case 0x0201:
-                        game_robot_state = pak.game_robot_state_;
+
+                    case 0x0201: // game_robot_state
+                        if (game_robot_state.robot_id == 0) {
+                            // If it is the first time that robot_state cmd is received, we need to initialize robot identity
+                            game_robot_state = pak.game_robot_state_;
+                            int robot_id = game_robot_state.robot_id;
+                            client_custom_data.header.send_ID = robot_id;
+                            client_custom_data.header.receiver_ID = 0x0100 + (robot_id / 10 * 16) + (robot_id % 10);
+                            client_custom_data.header.data_cmd_id = 0xD180;
+                            robot_data_send.header.send_ID = robot_id;
+                        } else game_robot_state = pak.game_robot_state_;
                         break;
-                    case 0x0202:
+
+                    case 0x0202: // power_heat_data
                         LED::red_toggle();
                         power_heat_data = pak.power_heat_data_;
-                        count_++;
                         break;
-                    case 0x0207:
+
+                    case 0x0206: // robot_hurt
+                        robot_hurt = pak.robot_hurt_;
+                        break;
+
+                    case 0x0207: // shoot_data
                         shoot_data = pak.shoot_data_;
                         break;
-                    case 0x0206:
 
-//                        Shell::printfI("[0x0206] data_length = %u" SHELL_NEWLINE_STR, frame_header.data_length);
-                        robot_hurt = pak.robot_hurt_;
+                    case 0x0301: // robot_interactive_data
+                        // Check whether the message is from the same team
+                        if ((game_robot_state.robot_id > 10) ^ (pak.robot_interactive_data_.header.send_ID > 10)) break;
+                        // Check whether the message is for this robot
+                        if (game_robot_state.robot_id != pak.robot_interactive_data_.header.receiver_ID) break;
+                        // If the message pass the check, record it in the corresponding place
+                        robot_data_receive = pak.robot_interactive_data_;
+                        //switch (robot_data_receive.)
+                        break;
+
                     default:
                         // FIXME: temporarily disabled since not all ID has been implemented
-                        // LOG_ERR("[REFEREE] Unknown cmd_id %u", cmd_id);
                         break;
                 }
-            } else {
-//                Shell::printfI("[REFEREE] Invalid data of type %u!" SHELL_NEWLINE_STR, cmd_id);
             }
 
             rx_status = WAIT_STARTING_BYTE;
@@ -122,15 +152,40 @@ void Referee::uart_rx_callback(UARTDriver *uartp) {
 
 }
 
-void Referee::init() {
-LOG("1");
-count_ = 0;
-    // Start uart driver
-    uartStart(UART_DRIVER, &UART_CONFIG);
+void Referee::send_data(receiver_index_t receiver_id, uint16_t data_cmd_id) {
+    if (game_robot_state.robot_id == 0)
+        return;
+    package_t tx_pak;
+    tx_pak.header.sof = 0xA5;
+    if (receiver_id == CLIENT) {
+        tx_pak.header.data_length = sizeof(client_custom_data_t);
+    } else {
+        if (data_cmd_id == 0) return;
+        tx_pak.header.data_length = sizeof(robot_interactive_data_t);
+    }
+    tx_pak.header.seq = tx_seq++;
+    Append_CRC8_Check_Sum((uint8_t *)&tx_pak, FRAME_HEADER_SIZE);
+    tx_pak.cmd_id = 0x0301;
+    size_t tx_pak_size;
+    if (receiver_id == CLIENT){
+        tx_pak.client_custom_data_ = client_custom_data;
+        tx_pak_size = FRAME_HEADER_SIZE + CMD_ID_SIZE + sizeof(client_custom_data_t) + FRAME_TAIL_SIZE;
+    } else{
+        robot_data_send.header.receiver_ID = (game_robot_state.robot_id / 10) * 10 + receiver_id;
+        robot_data_send.header.data_cmd_id = data_cmd_id;
+        tx_pak.robot_interactive_data_ = robot_data_send;
+        tx_pak_size = FRAME_HEADER_SIZE + CMD_ID_SIZE + sizeof(robot_interactive_data_t) + FRAME_TAIL_SIZE;
+    }
+    Append_CRC16_Check_Sum((uint8_t *)&tx_pak, tx_pak_size);
+    uartSendTimeout(UART_DRIVER, &tx_pak_size, &tx_pak, TIME_MS2I(20));
+}
 
-    // Wait for starting byte
-    rx_status = WAIT_STARTING_BYTE;
-    uartStartReceive(UART_DRIVER, FRAME_SOF_SIZE, &pak);
-
-    LOG("sizeof(power_heat_data) = %u", sizeof(power_heat_data));
+void Referee::set_signal_light(Referee::signal_light_t signalLight, bool turn_on) {
+    uint8_t picker = (1U) << signalLight;
+    if (turn_on){
+        client_custom_data.masks |= picker;
+    } else{
+        picker = ~picker;
+        client_custom_data.masks &= picker;
+    }
 }
