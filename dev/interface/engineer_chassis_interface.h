@@ -54,7 +54,7 @@ public:
         time_msecs_t last_update_time;
 
         float actual_velocity; // [degree/s]
-        uint16_t target_current;
+        int16_t target_current;
     };
 
     static motor_t motors[];

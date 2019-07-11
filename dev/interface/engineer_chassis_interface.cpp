@@ -36,6 +36,7 @@ bool EngineerChassisIF::send_currents() {
         txmsg.data8[i * 2] = (uint8_t) (motors[i].target_current >> 8);
         txmsg.data8[i * 2 + 1] = (uint8_t) motors[i].target_current;
     }
+//    LOG("FR %d  FL %d", motors[FR].target_current, motors[FL].target_current);
 
     can->send_msg(&txmsg);
     return true;

@@ -22,6 +22,7 @@ void EngineerElevatorSKD::init() {
     change_pid_params(0, ELEVATOR_PID_V2I_PARAMS);
     change_pid_params(1, AIDED_MOTOR_PID_V2I_PARAMS);
     change_pid_params(2, ELEVATOR_PID_A2V_PARAMS);
+    change_pid_params(3, {0,0,0,0,0});
 }
 
 void EngineerElevatorSKD::elevator_enable(bool enable) {
@@ -89,6 +90,6 @@ void EngineerElevatorSKD::EngineerElevatorThread::main() {
     while (!shouldTerminate()){
         update_target_current();
         EngineerElevatorIF::send_currents();
-        sleep(TIME_MS2I(100));
+        sleep(TIME_MS2I(2));
     }
 }

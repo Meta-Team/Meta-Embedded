@@ -12,14 +12,14 @@ CANInterface* EngineerElevatorIF::can = nullptr;
 void EngineerElevatorIF::init(CANInterface *can_interface) {
     can = can_interface;
     can->register_callback(0x201, 0x204, process_feedback);
-    for (elevator_motor_t motor : elevatorMotor) {
-        motor.last_update_time = SYSTIME;
-        motor.clear_accmulate_angle();
-        motor.target_current = 0;
+    for (int i = 0; i < 2; i++) {
+        elevatorMotor[i].last_update_time = SYSTIME;
+        elevatorMotor[i].clear_accmulate_angle();
+        elevatorMotor[i].target_current = 0;
     }
-    for (aided_motor_t motor : aidedMotor){
-        motor.last_update_time = SYSTIME;
-        motor.target_current = 0;
+    for (int i = 0; i < 2; i++){
+        aidedMotor[i].last_update_time = SYSTIME;
+        aidedMotor[i].target_current = 0;
     }
 }
 

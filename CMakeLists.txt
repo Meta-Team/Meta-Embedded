@@ -114,14 +114,17 @@ add_executable(ENGINEER_TEST
         dev/control/engineer_chassis_skd.cpp
         dev/interface/engineer_chassis_interface.cpp
         dev/control/engineer_elevator_skd.cpp
-        dev/interface/engineer_elevator_interface.cpp)
+        dev/interface/engineer_elevator_interface.cpp
+        dev/interface/remote_interpreter.cpp
+        dev/module/can_interface.cpp)
 
 add_executable(ut_engineer
         dev/debug/unit_tests/engineer_unit_test.cpp
         dev/control/engineer_chassis_skd.cpp
         dev/interface/engineer_chassis_interface.cpp
         dev/control/engineer_elevator_skd.cpp
-        dev/interface/engineer_elevator_interface.cpp)
+        dev/interface/engineer_elevator_interface.cpp
+        dev/module/can_interface.cpp)
 
 # Blink
 add_executable(ut_blink

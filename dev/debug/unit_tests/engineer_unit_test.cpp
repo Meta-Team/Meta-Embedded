@@ -38,6 +38,7 @@ public:
             } else if (aided_motor){
                 LOG("%.2f, %.2f, %d", EngineerElevatorIF::aidedMotor[0].actual_velocity, EngineerElevatorSKD::target_velocity[1], EngineerElevatorIF::aidedMotor[0].target_current);
             }
+            sleep(TIME_MS2I(100));
         }
     }
 }engineerFeedbackThread;
@@ -136,6 +137,15 @@ static void cmd_echo_fb(BaseSequentialStream *chp, int argc, char *argv[]){
     else if (i == 2) engineerFeedbackThread.aided_motor = true;
 }
 
+static void cmd_stop_echo_fb(BaseSequentialStream *chp, int argc, char *argv[]){
+    (void) argv;
+    if (argc != 0) {
+        shellUsage(chp, "stop_fb");
+        return;
+    }
+    engineerFeedbackThread.chassis = engineerFeedbackThread.elevator = engineerFeedbackThread.aided_motor = false;
+}
+
 static void cmd_echo_v2i(BaseSequentialStream *chp, int argc, char *argv[]){
     (void) argv;
     if (argc != 1) {
@@ -158,6 +168,7 @@ ShellCommand chassisCommands[] = {
         {"a_set_v",         cmd_aided_motor_set_velocity},
         {"e_set_h",         cmd_elevator_set_height},
         {"echo_fb",         cmd_echo_fb},
+        {"stop_fb",         cmd_stop_echo_fb},
         {"echo_v2i",        cmd_echo_v2i},
         {nullptr,    nullptr}
 };
@@ -172,10 +183,11 @@ int main(){
     Shell::addCommands(chassisCommands);
 
     can1.start(HIGHPRIO - 1);
+    can2.start(HIGHPRIO - 1);
     EngineerChassisIF::init(&can1);
-    EngineerElevatorIF::init(&can2);
+   // EngineerElevatorIF::init(&can2);
     EngineerChassisSKD::engineerChassisThread.start(NORMALPRIO);
-    EngineerElevatorSKD::engineerElevatorThread.start(NORMALPRIO - 1);
+   // EngineerElevatorSKD::engineerElevatorThread.start(NORMALPRIO - 1);
 
     engineerFeedbackThread.start(HIGHPRIO - 2);
 
