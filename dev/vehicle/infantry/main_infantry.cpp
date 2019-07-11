@@ -34,7 +34,9 @@
 #elif defined(INFANTRY_FOUR)                                                /** Infantry #4 **/
 #include "vehicle_infantry_four.h"
 #elif defined(INFANTRY_FIVE)                                                /** Infantry #5 **/
+
 #include "vehicle_infantry_five.h"
+
 #else
 #error "main_infantry.cpp should only be used for Infantry #3, #4, #5."
 #endif
@@ -108,13 +110,14 @@ int main() {
     /// Setup Red Spot Laser
     palSetPad(GPIOG, GPIOG_RED_SPOT_LASER);  // enable the red spot laser
 
+    /// Setup Referee
+    Referee::init();
 
     /// Setup VisionPort
     VisionPort::init();
 
     /// Complete Period 1
     LED::green_on(); // LED Green on now
-
 
 
     /*** ------------ Period 2. Calibration and Start Logic Control Thread ----------- ***/
@@ -146,7 +149,8 @@ int main() {
 
     /// Start Inspector and User Threads
     Inspector::start_inspection(THREAD_INSPECTOR_PRIO);
-    User::start(THREAD_USER_PRIO);
+    User::start(THREAD_USER_PRIO, THREAD_USER_ACTION_PRIO, THREAD_USER_BULLET_INCREMENT_PRIO,
+                THREAD_USER_CLIENT_DATA_SEND_PRIO);
 
     /// Complete Period 2
     Buzzer::play_sound(Buzzer::sound_startup_intel, THREAD_BUZZER_PRIO);  // Now play the startup sound

@@ -8,6 +8,7 @@
 #include "ch.hpp"
 
 #include "remote_interpreter.h"
+#include "referee_interface.h"
 
 #include "gimbal_logic.h"
 #include "infantry_shoot_logic.h"
@@ -19,54 +20,106 @@ class User {
 
 public:
 
-    static void start(tprio_t prio);
+    static void start(tprio_t user_thd_prio, tprio_t user_action_thd_prio, tprio_t bullet_increment_thd_prio,
+                      tprio_t client_data_sending_thd_prio);
 
 private:
 
-    /// Gimbal Parameters
-    static constexpr float GIMBAL_RC_YAW_MAX_SPEED = 90;  // [degree/s]
-    static constexpr float GIMBAL_PC_YAW_SENSITIVITY[3] = {20000, 55000, 100000};  // [Ctrl, Normal, Shift] [degree/s]
+    /// Gimbal Config
+    static float gimbal_rc_yaw_max_speed;  // [degree/s]
+    static float gimbal_pc_yaw_sensitivity[];  // [Ctrl, Normal, Shift] [degree/s]
 
-    static constexpr float GIMBAL_PC_PITCH_SENSITIVITY = 12000;   // rotation speed when mouse moves fastest [degree/s]
-    static constexpr float GIMBAL_PITCH_MIN_ANGLE = -10; // down range for pitch [degree]
-    static constexpr float GIMBAL_PITCH_MAX_ANGLE = 45; //  up range for pitch [degree]
+    static float gimbal_pc_pitch_sensitivity[];   // rotation speed when mouse moves fastest [degree/s]
+    static float gimbal_pitch_min_angle; // down range for pitch [degree]
+    static float gimbal_pitch_max_angle; //  up range for pitch [degree]
 
-    /// Shoot Parameters
-    static constexpr int SHOOT_LAUNCH_LEFT_COUNT = 5;
-    static constexpr int SHOOT_LAUNCH_RIGHT_COUNT = 999;
+    /// Chassis Config
+    static float chassis_v_left_right;  // [mm/s]
+    static float chassis_v_forward;     // [mm/s]
+    static float chassis_v_backward;    // [mm/s]
 
-    static constexpr float SHOOT_COMMON_DUTY_CYCLE = 0.8;
+    static float chassis_pc_shift_ratio;  // 150% when Shift is pressed
+    static float chassis_pc_ctrl_ratio;    // 50% when Ctrl is pressed
 
-    /// Chassis Parameters
-    static constexpr float CHASSIS_COMMON_VX = 1000.0f;  // [mm/s]
-    static constexpr float CHASSIS_COMMON_VY = 2000.0f;  // [mm/s]
+    static Remote::key_t chassis_dodge_switch;
+    static unsigned chassis_dodge_light_index;
 
-    static constexpr float CHASSIS_PC_SHIFT_RATIO = 1.5f;  // 150% when Shift is pressed
-    static constexpr float CHASSIS_PC_CTRL_RATIO = 0.5f;   // 50% when Ctrl is pressed
+    /// Shoot Config
+    static float shoot_launch_left_count;
+    static float shoot_launch_right_count;
+
+    static float shoot_lanuch_speed;
+
+    static float shoot_common_duty_cycle;
+
+    static unsigned shoot_remain_bullet_data_index;
+
+    static Remote::key_t shoot_fw_switch;
+    static unsigned shoot_fw_status_light_index;
+
+    /// Other Config
+    static unsigned high_speed_light_index;
+    static unsigned low_speed_light_index;
 
 
-    /// Thread
+    /// User Thread
     static constexpr unsigned USER_THREAD_INTERVAL = 7;  // [ms]
-
     class UserThread : public chibios_rt::BaseStaticThread<512> {
 
-        float gimbal_yaw_target_angle = 0;
-        float gimbal_pc_pitch_target_angle = 0;
+        /// Runtime variables
 
-        bool pc_z_pressed = false;
-        bool pc_x_pressed = false;
-        bool pc_c_pressed = false;
-        bool pc_v_pressed = false;
-        bool pc_b_pressed = false;
-
-
-        bool pc_mouse_left_pressed = false;
-        bool pc_mouse_right_pressed = false;
+        float gimbal_yaw_target_angle_ = 0;
+        float gimbal_pc_pitch_target_angle_ = 0;
 
         void main() final;
     };
 
     static UserThread userThread;
+
+
+    /// User Action Thread
+    class UserActionThread : public chibios_rt::BaseStaticThread<512> {
+
+        /// Runtime variables
+        event_listener_t s_change_listener;
+        static constexpr eventmask_t S_CHANGE_EVENTMASK = (1U << 0U);
+
+        event_listener_t mouse_press_listener;
+        static constexpr eventmask_t MOUSE_PRESS_EVENTMASK = (1U << 1U);
+
+        event_listener_t mouse_release_listener;
+        static constexpr eventmask_t MOUSE_RELEASE_EVENTMASK = (1U << 2U);
+
+        event_listener_t key_press_listener;
+        static constexpr eventmask_t KEY_PRESS_EVENTMASK = (1U << 3U);
+
+        event_listener_t key_release_listener;
+        static constexpr eventmask_t KEY_RELEASE_EVENTMASK = (1U << 4U);
+
+        void main() final;
+    };
+
+    static UserActionThread userActionThread;
+
+    /// Thread to react to bullet increment event
+    class BulletIncrementThread : public chibios_rt::BaseStaticThread<256> {
+
+        event_listener_t data_received_listener;
+        static constexpr eventmask_t DATA_RECEIVED_EVENTMASK = (1U << 0U);
+
+        void main() final;
+    };
+
+    static BulletIncrementThread bulletIncrementThread;
+
+    /// Referee Client Data Sending Thread
+    static constexpr unsigned CLIENT_DATA_SENDING_THREAD_INTERVAL = 10;  // [ms]
+
+    class ClientDataSendingThread : public chibios_rt::BaseStaticThread<256> {
+        void main() final;
+    };
+
+    static ClientDataSendingThread clientDataSendingThread;
 
 };
 

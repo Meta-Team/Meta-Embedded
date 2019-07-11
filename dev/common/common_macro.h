@@ -5,15 +5,15 @@
 #ifndef META_INFANTRY_COMMON_MACRO_H
 #define META_INFANTRY_COMMON_MACRO_H
 
-#define ABS_CROP(n, limit) { \
+#define ABS_CROP(n, limit) do { \
     if (n > limit) n = limit; \
     if (n < -(limit)) n = -(limit); \
-}
+} while(0)
 
-#define VAL_CROP(n, max, min) { \
+#define VAL_CROP(n, max, min) do { \
     if (n > max) n = max; \
     if (n < min) n = min; \
-}
+} while(0)
 
 #define ABS_IN_RANGE(n, abs_limit) ((n) >= -(abs_limit) && (n) <= (abs_limit))
 

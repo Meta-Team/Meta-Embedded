@@ -8,9 +8,6 @@
 #include "ch.hpp"
 #include "hal.h"
 
-#include "led.h"
-#include "shell.h"
-
 /**
  * @brief the interface for referee system
  * @pre hardware is properly connected and GPIOs are properly configured in board.h
@@ -24,13 +21,18 @@
  *       4. Receive frameHeader.data_length bytes. Go to status 5.
  *       5. Validate data with CRC16. If it's valid, copy data to corresponding structure, or do nothing if failed.
  *          Go to status 1.
- * @attention Designed for 2017 referee system
+ * @usage 1. Invoke init()
+ *        2. Make use of received data or use APIs to send data
+ * @attention Designed for 2019 referee system
  */
+
+#define REFEREE_USE_EVENTS  TRUE
+
 class Referee {
 
 public:
 
-    enum receiver_index_t{
+    enum receiver_index_t {
         CLIENT = 0,
         HERO = 1,
         ENGINEER = 2,
@@ -41,8 +43,8 @@ public:
         SENTRY = 7
     };
 
-    enum signal_light_t{
-        ENEMY_SPOTTED = 0,
+    enum signal_light_t {
+        SIGNAL_0 = 0,
         SIGNAL_1 = 1,
         SIGNAL_2 = 2,
         SIGNAL_3 = 3,
@@ -50,24 +52,29 @@ public:
         SIGNAL_5 = 5
     };
 
+    static constexpr uint16_t GAME_STATE_CMD_ID = 0x0001;
     __PACKED_STRUCT game_state_t {
         uint8_t game_type : 4;
         uint8_t game_progress : 4;
         uint16_t stage_remain_time;
     };
 
+    static constexpr uint16_t GAME_RESULT_CMD_ID = 0x0002;
     __PACKED_STRUCT game_result_t {
         uint8_t winner;
     };
 
+    static constexpr uint16_t ROBOT_SURVIVORS_CMD_ID = 0x0003;
     __PACKED_STRUCT game_robot_survivors_t {
         uint16_t robot_legion;
     };
 
+    static constexpr uint16_t EVENT_CMD_ID = 0x0101;
     __PACKED_STRUCT event_data_t {
         uint32_t event_type;
     };
 
+    static constexpr uint16_t SUPPLY_PROJECTILE_ACTION_CMD_ID = 0x0102;
     __PACKED_STRUCT supply_projectile_action_t {
         uint8_t supply_projectile_id;
         uint8_t supply_robot_id;
@@ -75,12 +82,14 @@ public:
         uint8_t supply_projectile_num;
     };
 
+    static constexpr uint16_t SUPPLY_PROJECTILE_BOOKING_CMD_ID = 0x0103;
     __PACKED_STRUCT supply_projectile_booking_t {
         uint8_t supply_projectile_id;
         uint8_t supply_robot_id;
         uint8_t supply_num;
     };
 
+    static constexpr uint16_t GAME_ROBOT_STATE_CMD_ID = 0x0201;
     __PACKED_STRUCT game_robot_state_t {
         uint8_t robot_id;
         uint8_t robot_level;
@@ -95,6 +104,7 @@ public:
         uint8_t mains_power_shooter_output : 1;
     };
 
+    static constexpr uint16_t POWER_HEAT_DATA_CMD_ID = 0x0202;
     __PACKED_STRUCT power_heat_data_t {
         uint16_t chassis_volt;
         uint16_t chassis_current;
@@ -104,6 +114,7 @@ public:
         uint16_t shooter_heat1;
     };
 
+    static constexpr uint16_t GAME_ROBOT_POS_CMD_ID = 0x0203;
     __PACKED_STRUCT game_robot_pos_t {
         float x;
         float y;
@@ -111,20 +122,24 @@ public:
         float yaw;
     };
 
+    static constexpr uint16_t BUFF_MUSK_CMD_ID = 0x0204;
     __PACKED_STRUCT buff_musk_t {
         uint8_t power_rune_buff;
     };
 
+    static constexpr uint16_t AERIAL_ROBOT_ENERGY_CMD_ID = 0x0205;
     __PACKED_STRUCT aerial_robot_energy_t {
         uint8_t energy_point;
         uint8_t attack_time;
     };
 
+    static constexpr uint16_t ROBOT_HURT_CMD_ID = 0x0206;
     __PACKED_STRUCT robot_hurt_t {
         uint8_t armor_id : 4;
         uint8_t hurt_type : 4;
     };
 
+    static constexpr uint16_t SHOOT_DATA_CMD_ID = 0x0207;
     __PACKED_STRUCT shoot_data_t {
         uint8_t bullet_type;
         uint8_t bullet_freq;
@@ -133,36 +148,39 @@ public:
 
     /** Robot Interactive **/
 
-/**
- * data_cmd_id table:
- * ---------------------------------------------------------------------------------------------------------------------
- * CMD          Sender          Receiver            Description             Data
- * ---------------------------------------------------------------------------------------------------------------------
- *  0x0210      Sentry          Hero & Standards    Base Alarm              0: Alarm free; otherwise: Alarm triggered
- *  0x0211      Hero/Standards  Engineer            Robot Die               The position of the dead robot
- * ---------------------------------------------------------------------------------------------------------------------
- */
+    /**
+     * data_cmd_id table:
+     * ---------------------------------------------------------------------------------------------------------------------
+     * CMD          Sender          Receiver            Description             Data
+     * ---------------------------------------------------------------------------------------------------------------------
+     *  0x0210      Sentry          Hero & Standards    Base Alarm              0: Alarm free; otherwise: Alarm triggered
+     *  0x0211      Hero/Standards  Engineer            Robot Die               The position of the dead robot
+     * ---------------------------------------------------------------------------------------------------------------------
+     */
+
+    static const uint16_t INTERACTIVE_DATA_CMD_ID = 0x0301;
+
     __PACKED_STRUCT student_interactive_header_data_t {
-            uint16_t data_cmd_id;
-            uint16_t send_ID;
-            uint16_t receiver_ID;
+        uint16_t data_cmd_id;
+        uint16_t send_ID;
+        uint16_t receiver_ID;
     };
 
-    __PACKED_STRUCT client_custom_data_t{
-            student_interactive_header_data_t header;
-            float data1;
-            float data2;
-            float data3;
-            uint8_t masks;
+    __PACKED_STRUCT client_custom_data_t {
+        student_interactive_header_data_t header;
+        float data1;
+        float data2;
+        float data3;
+        uint8_t masks;
     };
 
-    __PACKED_STRUCT robot_interactive_data_t{
-            student_interactive_header_data_t header;
-            uint8_t dataTBD[3];
+    __PACKED_STRUCT robot_interactive_data_t {
+        student_interactive_header_data_t header;
+        uint8_t dataTBD[3];
     };
 
     /** Received Data **/
-    static game_state_t  game_state;
+    static game_state_t game_state;
     static game_result_t game_result;
     static game_robot_survivors_t game_robot_survivors;
     static event_data_t event_data;
@@ -177,21 +195,58 @@ public:
     static shoot_data_t shoot_data;
     static robot_interactive_data_t robot_data_receive;
 
+    /**
+     * Start referee interface
+     */
+    static void init();
+
+    /**
+     * Get current robotic ID
+     * @return   game_robot_state.robot_id
+     */
+    static uint8_t get_self_id();
+
+    /**
+     * Set interactive data with other robots
+     * @param data   Interactive data with other robots
+     */
+    static void set_interactive_data(robot_interactive_data_t data);
+
+    /**
+     * Set float numbers to be sent to client
+     * @param index   Index of float number, 1-3
+     * @param data    Number to be sent
+     */
+    static void set_client_number(unsigned index, float data);
+
+    /**
+     * Set signal lights status to be sent to client
+     * @param signal_light   Index of signal lights, 0-5
+     * @param turn_on        Status of signal lights
+     */
+    static void set_client_light(unsigned signal_light, bool turn_on);
+
+    /**
+     * Send data to client or other robots
+     * @param receiver_id   CLIENT or robot ID
+     * @param data_cmd_id   Command ID in data section, only available when sending data to other robots
+     */
+    static void send_data(receiver_index_t receiver_id, uint16_t data_cmd_id = 0);
+
+#if REFEREE_USE_EVENTS
+
+    /**
+     * Event source when data received
+     */
+    static event_source_t data_received_event;
+
+#endif
+
+private:
+
     /** Send Data **/
     static client_custom_data_t client_custom_data;
     static robot_interactive_data_t robot_data_send;
-
-
-    static void init();
-
-    static void uart_rx_callback(UARTDriver *uartp);  // only for internal use
-
-    static void set_signal_light(signal_light_t signalLight, bool turn_on);
-
-    static void send_data(receiver_index_t receiver_id, uint16_t data_cmd_id = 0);
-
-
-private:
 
     enum rx_status_t {
         WAIT_STARTING_BYTE,  // receive bytes one by one, waiting for 0xA5
@@ -210,25 +265,25 @@ private:
         uint8_t crc8;
     };
 
-    static __PACKED_STRUCT package_t{
+    static __PACKED_STRUCT package_t {
         frame_header_t header;
         uint16_t cmd_id;
-        union{
-                game_state_t game_state_;
-                game_result_t  game_result_;
-                game_robot_survivors_t game_robot_survivors_;
-                event_data_t event_data_;
-                supply_projectile_action_t supply_projectile_action_;
-                supply_projectile_booking_t supply_projectile_booking_;
-                game_robot_state_t game_robot_state_;
-                power_heat_data_t power_heat_data_;
-                game_robot_pos_t game_robot_pos_;
-                buff_musk_t buff_musk_;
-                aerial_robot_energy_t aerial_robot_energy_;
-                robot_hurt_t robot_hurt_;
-                shoot_data_t shoot_data_;
-                robot_interactive_data_t robot_interactive_data_;
-                client_custom_data_t client_custom_data_;
+        union {
+            game_state_t game_state_;
+            game_result_t game_result_;
+            game_robot_survivors_t game_robot_survivors_;
+            event_data_t event_data_;
+            supply_projectile_action_t supply_projectile_action_;
+            supply_projectile_booking_t supply_projectile_booking_;
+            game_robot_state_t game_robot_state_;
+            power_heat_data_t power_heat_data_;
+            game_robot_pos_t game_robot_pos_;
+            buff_musk_t buff_musk_;
+            aerial_robot_energy_t aerial_robot_energy_;
+            robot_hurt_t robot_hurt_;
+            shoot_data_t shoot_data_;
+            robot_interactive_data_t robot_interactive_data_;
+            client_custom_data_t client_custom_data_;
         };
         uint16_t tail;
     } pak;
@@ -238,7 +293,10 @@ private:
     static constexpr size_t CMD_ID_SIZE = 2;
     static constexpr size_t FRAME_TAIL_SIZE = 2;
 
+    static void uart_rx_callback(UARTDriver *uartp);  // only for internal use
+
     friend void uartStart(UARTDriver *uartp, const UARTConfig *config);
+
     friend void uartStartReceive(UARTDriver *uartp, size_t n, void *rxbuf);
 
     // See cpp file for configs

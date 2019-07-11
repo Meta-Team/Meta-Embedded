@@ -13,23 +13,20 @@
 
 using namespace chibios_rt;
 
-static constexpr Matrix33 AHRS_MATRIX = {{1.0f, 0.0f, 0.0f},
-                                         {0.0f, 1.0f, 0.0f},
-                                         {0.0f, 0.0f, 1.0f}};
+static constexpr Matrix33 AHRS_MATRIX = {{0.0f, 0.0f, 1.0f},
+                                                  {1.0f, 0.0f, 0.0f},
+                                                  {0.0f, 1.0f, 0.0f}};
+
 
 
 static constexpr Matrix33 ANGLE_INSTALLATION_MATRIX = {{1.0f, 0.0f, 0.0f},
-                                                       {0.0f, 1.0f, 0.0f},
-                                                       {0.0f, 0.0f, -1.0f}};
+                                                              {0.0f, 1.0f, 0.0f},
+                                                              {0.0f, 0.0f, -1.0f}};
 
 
-static constexpr Matrix33 GYRO_INSTALLATION_MATRIX = {{ 0.0f,  0.0f, 1.0f},
-                                                      { 0.0f,  1.0f, 0.0f},
-                                                      {-1.0f, 0.0f, 0.0f}};
-
-//static constexpr Matrix33 GYRO_INSTALLATION_MATRIX = {{-1.0f, 0.0f, 0.0f},
-//                                                      {0.0f, 0.0f, -1.0f},
-//                                                      {0.0f, -1.0f, 0.0f}};
+static constexpr Matrix33 GYRO_INSTALLATION_MATRIX = {{0.0f,  -1.0f, 0.0f},
+                                                             {0.0f,  0.0f,  1.0f},
+                                                             {-1.0f, 0.0f,  0.0f}};
 
 AHRSOnBoard ahrs;
 

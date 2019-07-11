@@ -38,6 +38,73 @@ class RemoteFeedbackThread : public chibios_rt::BaseStaticThread <512> {
     }
 } remoteFeedbackThread;
 
+#if REMOTE_USE_EVENTS
+
+class RemoteEventThread : public chibios_rt::BaseStaticThread<512> {
+
+public:
+
+    event_listener_t s_change_listener;
+    static constexpr eventmask_t S_CHANGE_EVENTMASK = (1U << 0U);
+
+    event_listener_t mouse_press_listener;
+    static constexpr eventmask_t MOUSE_PRESS_EVENTMASK = (1U << 1U);
+
+    event_listener_t mouse_release_listener;
+    static constexpr eventmask_t MOUSE_RELEASE_EVENTMASK = (1U << 2U);
+
+    event_listener_t key_press_listener;
+    static constexpr eventmask_t KEY_PRESS_EVENTMASK = (1U << 3U);
+
+    event_listener_t key_release_listener;
+    static constexpr eventmask_t KEY_RELEASE_EVENTMASK = (1U << 4U);
+
+    eventmask_t LISTEN_EVENTS = KEY_PRESS_EVENTMASK | KEY_RELEASE_EVENTMASK;
+
+    void main() final {
+        setName("remote_evt");
+
+        chEvtRegisterMask(&Remote::s_change_event, &s_change_listener, S_CHANGE_EVENTMASK);
+        chEvtRegisterMask(&Remote::mouse_press_event, &mouse_press_listener, MOUSE_PRESS_EVENTMASK);
+        chEvtRegisterMask(&Remote::mouse_release_event, &mouse_release_listener, MOUSE_RELEASE_EVENTMASK);
+        chEvtRegisterMask(&Remote::key_press_event, &key_press_listener, KEY_PRESS_EVENTMASK);
+        chEvtRegisterMask(&Remote::key_release_event, &key_release_listener, KEY_RELEASE_EVENTMASK);
+
+        while (!shouldTerminate()) {
+            
+            eventmask_t events = chEvtWaitAny(LISTEN_EVENTS);
+            
+            if (events & S_CHANGE_EVENTMASK) {
+                chEvtGetAndClearEvents(S_CHANGE_EVENTMASK);
+                LOG("EVENT s change!");
+            } 
+            
+            if (events & MOUSE_PRESS_EVENTMASK) {
+                eventflags_t mouse_press_flags = chEvtGetAndClearFlags(&mouse_press_listener);
+                LOG("EVENT mouse_press %x !", mouse_press_flags);
+            }
+
+            if (events & MOUSE_RELEASE_EVENTMASK) {
+                eventflags_t mouse_release_flags = chEvtGetAndClearFlags(&mouse_release_listener);
+                LOG("EVENT mouse_release %x !", mouse_release_flags);
+            }
+
+            if (events & KEY_PRESS_EVENTMASK) {
+                eventflags_t key_press_flags = chEvtGetAndClearFlags(&key_press_listener);
+                LOG("EVENT key_press %x !", key_press_flags);
+            }
+
+            if (events & KEY_RELEASE_EVENTMASK) {
+                eventflags_t key_release_flags = chEvtGetAndClearFlags(&key_release_listener);
+                LOG("EVENT key_release %x !", key_release_flags);
+            }
+
+        }
+    }
+} remoteEventThread;
+
+#endif
+
 int main() {
     halInit();
     System::init();
@@ -47,7 +114,8 @@ int main() {
 
     Remote::start();
 
-    remoteFeedbackThread.start(NORMALPRIO);
+//    remoteFeedbackThread.start(NORMALPRIO);
+    remoteEventThread.start(NORMALPRIO - 1);
 
     Buzzer::play_sound(Buzzer::sound_startup, LOWPRIO);
 

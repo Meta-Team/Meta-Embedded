@@ -14,8 +14,6 @@
  */
 
 #include "ch.hpp"
-#include "shell.h"
-#include "shoot_scheduler.h"
 
 /**
  * @name ShootLG
@@ -82,7 +80,7 @@ public:
      * Shoot bullets. Will change shooter state.
      * @param number_of_bullet   Number of bullet to shoot.
      */
-    static void shoot(int number_of_bullet);
+    static void shoot(float number_of_bullet, float number_per_second);
 
     /**
      * Stop shooting. Will change shooter state.
@@ -94,10 +92,11 @@ private:
     static float angle_per_bullet;
 
     static int bullet_count;
-    static int shoot_target_number;
+    static float shoot_target_number;
 
     static shooter_state_t shooter_state;
 
+    /// Stuck Detector
 
     static constexpr unsigned STUCK_DETECTOR_THREAD_INTERVAL = 10;  // [ms]
 
@@ -112,6 +111,13 @@ private:
     };
 
     static StuckDetectorThread stuckDetector;
+
+//    /// Bullet counter
+//    class BulletCounterThread : public chibios_rt::BaseStaticThread<256> {
+//        void main() final;
+//    };
+//
+//    static BulletCounterThread bulletCounterThread;
 
 };
 

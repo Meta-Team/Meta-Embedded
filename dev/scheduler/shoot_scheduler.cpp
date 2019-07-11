@@ -51,12 +51,26 @@ ShootSKD::mode_t ShootSKD::get_mode() {
     return mode;
 }
 
-void ShootSKD::set_loader_target(float loader_target_angle) {
+void ShootSKD::set_loader_target_angle(float loader_target_angle) {
     target_angle[0] = loader_target_angle;
 }
 
-void ShootSKD::set_plate_target(float plate_target_angle) {
+void ShootSKD::set_plate_target_angle(float plate_target_angle) {
     target_angle[1] = plate_target_angle;
+}
+
+void ShootSKD::set_loader_target_velocity(float degree_per_second) {
+    pid_params_t p = a2v_pid[0].get_parameters();
+    p.out_limit = degree_per_second;
+    a2v_pid[0].change_parameters(p);
+    a2v_pid[0].clear_i_out();
+}
+
+void ShootSKD::set_plate_target_velocity(float degree_per_second) {
+    pid_params_t p = a2v_pid[1].get_parameters();
+    p.out_limit = degree_per_second;
+    a2v_pid[1].change_parameters(p);
+    a2v_pid[1].clear_i_out();
 }
 
 void ShootSKD::set_friction_wheels(float duty_cycle) {

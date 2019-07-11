@@ -16,9 +16,6 @@
 #include "ch.hpp"
 #include "hal.h"
 
-#include "common_macro.h"
-#include "debug/shell/shell.h"
-
 #if defined(BOARD_RM_2018_A)
 // PB7 USART1_RX (alternate 7)
 #define REMOTE_UART_PAD GPIOB
@@ -36,7 +33,7 @@
 #endif
 
 // TODO: event functions are not tested yet
-#define REMOTE_USE_EVENTS   FALSE
+#define REMOTE_USE_EVENTS   TRUE
 
 /**
  * @name Remote

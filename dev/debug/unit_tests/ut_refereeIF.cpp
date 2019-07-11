@@ -17,7 +17,7 @@ private:
     void main() final {
         setName("referee_echo");
         Referee::init();
-        Referee::client_custom_data.data1 = 20;
+        Referee::set_client_number(1, 20);
         bool test = true;
         while(!shouldTerminate()) {
 
@@ -38,7 +38,7 @@ private:
             LOG("hurt_type = %u" , (unsigned int) Referee::robot_hurt.hurt_type);
             LOG("");
 
-            Referee::set_signal_light(Referee::ENEMY_SPOTTED, test);
+            Referee::set_client_light(0, test);
             test = !test;
             Referee::send_data(Referee::CLIENT);
             sleep(TIME_MS2I(2000));

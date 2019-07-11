@@ -2,14 +2,13 @@
 // Created by Administrator on 2019/1/15 0015.
 //
 
-#include "ch.hpp"
 #include "referee_interface.h"
+
+#include "led.h"
+#include "shell.h"
+
 #include "CRC16.h"
 #include "CRC8.h"
-#include "shell.h"
-#include "memstreams.h"
-#include "string.h"
-#include "led.h"
 
 /** Public Parameters **/
 Referee::game_state_t Referee::game_state;
@@ -28,6 +27,10 @@ Referee::shoot_data_t Referee::shoot_data;
 Referee::robot_interactive_data_t Referee::robot_data_receive;
 Referee::client_custom_data_t Referee::client_custom_data;
 Referee::robot_interactive_data_t Referee::robot_data_send;
+
+#if REFEREE_USE_EVENTS
+event_source_t Referee::data_received_event;
+#endif
 
 /** Private Parameters **/
 Referee::rx_status_t Referee::rx_status;
@@ -54,13 +57,16 @@ void Referee::init() {
     rx_status = WAIT_STARTING_BYTE;
     game_robot_state.robot_id = 0;
     uartStartReceive(UART_DRIVER, FRAME_SOF_SIZE, &pak);
-    LOG("sizeof(power_heat_data) = %u", sizeof(power_heat_data));
+}
+
+uint8_t Referee::get_self_id() {
+    return game_robot_state.robot_id;
 }
 
 void Referee::uart_rx_callback(UARTDriver *uartp) {
     (void) uartp;
 
-    chSysLockFromISR();
+    chSysLockFromISR();  /// ---------------------------------- Enter Critical Zone ----------------------------------
 
     uint8_t* pak_uint8 = (uint8_t *)&pak;
 
@@ -90,7 +96,7 @@ void Referee::uart_rx_callback(UARTDriver *uartp) {
 
                 switch (pak.cmd_id) {
 
-                    case 0x0201: // game_robot_state
+                    case GAME_ROBOT_STATE_CMD_ID:
                         if (game_robot_state.robot_id == 0) {
                             // If it is the first time that robot_state cmd is received, we need to initialize robot identity
                             game_robot_state = pak.game_robot_state_;
@@ -101,21 +107,40 @@ void Referee::uart_rx_callback(UARTDriver *uartp) {
                             robot_data_send.header.send_ID = robot_id;
                         } else game_robot_state = pak.game_robot_state_;
                         break;
-
-                    case 0x0202: // power_heat_data
-                        LED::red_toggle();
+                    case POWER_HEAT_DATA_CMD_ID:
                         power_heat_data = pak.power_heat_data_;
                         break;
-
-                    case 0x0206: // robot_hurt
+                    case ROBOT_HURT_CMD_ID:
                         robot_hurt = pak.robot_hurt_;
                         break;
-
-                    case 0x0207: // shoot_data
+                    case SHOOT_DATA_CMD_ID:
                         shoot_data = pak.shoot_data_;
                         break;
-
-                    case 0x0301: // robot_interactive_data
+                    case GAME_STATE_CMD_ID:
+                        game_state = pak.game_state_;
+                        break;
+                    case GAME_RESULT_CMD_ID:
+                        game_result = pak.game_result_;
+                        break;
+                    case ROBOT_SURVIVORS_CMD_ID:
+                        game_robot_survivors = pak.game_robot_survivors_;
+                        break;
+                    case EVENT_CMD_ID:
+                        event_data = pak.event_data_;
+                        break;
+                    case SUPPLY_PROJECTILE_ACTION_CMD_ID:
+                        supply_projectile_action = pak.supply_projectile_action_;
+                        break;
+                    case GAME_ROBOT_POS_CMD_ID:
+                        game_robot_pos = pak.game_robot_pos_;
+                        break;
+                    case BUFF_MUSK_CMD_ID:
+                        buff_musk = pak.buff_musk_;
+                        break;
+                    case AERIAL_ROBOT_ENERGY_CMD_ID:
+                        aerial_robot_energy = pak.aerial_robot_energy_;
+                        break;
+                    case INTERACTIVE_DATA_CMD_ID: // robot_interactive_data
                         // Check whether the message is from the same team
                         if ((game_robot_state.robot_id > 10) ^ (pak.robot_interactive_data_.header.send_ID > 10)) break;
                         // Check whether the message is for this robot
@@ -126,11 +151,13 @@ void Referee::uart_rx_callback(UARTDriver *uartp) {
                         break;
 
                     default:
-                        // FIXME: temporarily disabled since not all ID has been implemented
                         break;
                 }
             }
 
+#if REFEREE_USE_EVENTS
+            chEvtBroadcastFlagsI(&data_received_event, pak.cmd_id);
+#endif
             rx_status = WAIT_STARTING_BYTE;
 
             break;
@@ -148,7 +175,7 @@ void Referee::uart_rx_callback(UARTDriver *uartp) {
             break;
     }
 
-    chSysUnlockFromISR();
+    chSysUnlockFromISR();  /// ---------------------------------- Exit Critical Zone ----------------------------------
 
 }
 
@@ -177,11 +204,27 @@ void Referee::send_data(receiver_index_t receiver_id, uint16_t data_cmd_id) {
         tx_pak_size = FRAME_HEADER_SIZE + CMD_ID_SIZE + sizeof(robot_interactive_data_t) + FRAME_TAIL_SIZE;
     }
     Append_CRC16_Check_Sum((uint8_t *)&tx_pak, tx_pak_size);
-    uartSendTimeout(UART_DRIVER, &tx_pak_size, &tx_pak, TIME_MS2I(20));
+    uartStartSend(UART_DRIVER, tx_pak_size, &tx_pak);
 }
 
-void Referee::set_signal_light(Referee::signal_light_t signalLight, bool turn_on) {
-    uint8_t picker = (1U) << signalLight;
+void Referee::set_interactive_data(Referee::robot_interactive_data_t data) {
+    robot_data_send = data;
+}
+
+void Referee::set_client_number(unsigned index, float data) {
+    if (index == 1) {
+        client_custom_data.data1 = data;
+    } else if (index == 2) {
+        client_custom_data.data2 = data;
+    } else if (index == 3) {
+        client_custom_data.data3 = data;
+    } else return;
+}
+
+void Referee::set_client_light(unsigned signal_light, bool turn_on) {
+    if (signal_light >= 6)
+        return;
+    uint8_t picker = (1U) << signal_light;
     if (turn_on){
         client_custom_data.masks |= picker;
     } else{
