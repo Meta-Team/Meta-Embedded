@@ -8,7 +8,7 @@
 #include "led.h"
 #include "serial_shell.h"
 #include "can_interface.h"
-#include "robotic_arm.h"
+#include "robotic_arm_interface.h"
 
 #include "vehicle/engineer/state_machine_bullet_fetch.h"
 
@@ -32,9 +32,9 @@ static void cmd_robotic_clamp_action(BaseSequentialStream *chp, int argc, char *
         return;
     }
     if (Shell::atoi(argv[0]) == 0) {
-        RoboticArm::clamp_action(RoboticArm::CLAMP_RELAX);
+        RoboticArmIF::clamp_action(RoboticArmIF::CLAMP_RELAX);
     } else {
-        RoboticArm::clamp_action(RoboticArm::CLAMP_CLAMPED);
+        RoboticArmIF::clamp_action(RoboticArmIF::CLAMP_CLAMPED);
     }
 }
 
@@ -69,7 +69,7 @@ class FeedbackThread : public chibios_rt::BaseStaticThread<512> {
     void main() final {
         setName("robotic_arm_fb");
         while(!shouldTerminate()) {
-            Shell::printf("rotation motor pos = %f" SHELL_NEWLINE_STR, RoboticArm::get_motor_actual_angle());
+            Shell::printf("rotation motor pos = %f" SHELL_NEWLINE_STR, RoboticArmIF::get_motor_actual_angle());
             sleep(TIME_MS2I(2000));
         }
     }
@@ -86,10 +86,10 @@ int main(void) {
     LED::green_off();
 
     can1.start(HIGHPRIO - 1);
-    RoboticArm::init(&can1);
+    RoboticArmIF::init(&can1);
 
     chThdSleepMilliseconds(2000);
-    RoboticArm::reset_front_angle();
+    RoboticArmIF::clear_angle();
 
     while (palReadPad(STARTUP_BUTTON_PAD, STARTUP_BUTTON_PIN_ID) != STARTUP_BUTTON_PRESS_PAL_STATUS) {
         // Wait for the button to be pressed

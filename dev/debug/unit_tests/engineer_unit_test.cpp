@@ -12,9 +12,11 @@
 
 #include "engineer_chassis_interface.h"
 #include "engineer_elevator_interface.h"
+#include "robotic_arm_interface.h"
 
 #include "engineer_chassis_skd.h"
 #include "engineer_elevator_skd.h"
+#include "RoboticArmSKD.h"
 
 float c_kp, c_ki, c_kd, c_i_limit, c_out_limit;
 float e_kp, e_ki, e_kd, e_i_limit, e_out_limit;
@@ -186,8 +188,10 @@ int main(){
     can2.start(HIGHPRIO - 1);
     EngineerChassisIF::init(&can1);
     EngineerElevatorIF::init(&can2);
+    RoboticArmIF::init(&can2);
     EngineerChassisSKD::engineerChassisThread.start(NORMALPRIO);
     EngineerElevatorSKD::engineerElevatorThread.start(NORMALPRIO - 1);
+    RoboticArmSKD::roboticArmThread.start(NORMALPRIO - 2);
 
     engineerFeedbackThread.start(HIGHPRIO - 2);
 

@@ -88,7 +88,7 @@ target_include_directories(INFANTRY_FOUR PRIVATE dev/vehicle/infantry)
 target_compile_definitions(INFANTRY_FOUR PRIVATE INFANTRY INFANTRY_FOUR ENABLE_STATE_HANDLE)
 
 # Main Program -- Infantry #5
-add_executable(INFANTRY_FIVE ${INFANTRY})
+add_executable(INFANTRY_FIVE ${INFANTRY} dev/control/RoboticArmSKD.cpp dev/control/RoboticArmSKD.h)
 target_include_directories(INFANTRY_FIVE PRIVATE dev/vehicle/infantry)
 target_compile_definitions(INFANTRY_FIVE PRIVATE INFANTRY INFANTRY_FIVE ENABLE_STATE_HANDLE)
 
@@ -100,7 +100,7 @@ add_executable(ENGINEER
         dev/interface/chassis_interface.cpp
         dev/interface/remote_interpreter.cpp
         dev/interface/elevator_interface.cpp
-        dev/interface/robotic_arm.cpp
+        dev/interface/robotic_arm_interface.cpp
         dev/control/chassis.cpp
         dev/vehicle/engineer/state_machine_stage_climb.cpp
         dev/vehicle/engineer/state_machine_bullet_fetch.cpp
@@ -204,7 +204,7 @@ add_executable(pa_elevator
 # Robotic Arm
 add_executable(ut_robotic_arm
         dev/module/can_interface.cpp
-        dev/interface/robotic_arm.cpp
+        dev/interface/robotic_arm_interface.cpp
         dev/vehicle/engineer/state_machine_bullet_fetch.cpp
         dev/debug/unit_tests/engineer_robotic_arm_unit_test.cpp)
 

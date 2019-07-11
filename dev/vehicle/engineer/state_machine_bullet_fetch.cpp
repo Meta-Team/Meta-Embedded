@@ -38,43 +38,43 @@ void BulletFetchStateMachine::main() {
         // Do nothing
     } else if (action_ == INITIAL_OUTWARD) {
         // Step 1. Rotate outwards
-        RoboticArm::set_motor_target_current(-2500);
-        while (RoboticArm::get_motor_actual_angle() > -65) {
-            RoboticArm::send_motor_target_current();
+        RoboticArmIF::set_motor_target_current(-2500);
+        while (RoboticArmIF::get_motor_actual_angle() > -65) {
+            RoboticArmIF::send_current();
             sleep(TIME_MS2I(motor_action_interval));
         }
 
         // Step 2. Rotate outwards with inertia
-        RoboticArm::set_motor_target_current(0);
-        while (RoboticArm::get_motor_actual_angle() > -95) {
-            RoboticArm::send_motor_target_current();
+        RoboticArmIF::set_motor_target_current(0);
+        while (RoboticArmIF::get_motor_actual_angle() > -95) {
+            RoboticArmIF::send_current();
             sleep(TIME_MS2I(motor_action_interval));
         }
 
         // Step 3. Rotate outwards with deceleration
-        RoboticArm::set_motor_target_current(1200);
-        while (RoboticArm::get_motor_actual_angle() > -150) {
-            RoboticArm::send_motor_target_current();
+        RoboticArmIF::set_motor_target_current(1200);
+        while (RoboticArmIF::get_motor_actual_angle() > -150) {
+            RoboticArmIF::send_current();
             sleep(TIME_MS2I(motor_action_interval));
         }
 
         // Wait for 500ms, finish
-        RoboticArm::set_motor_target_current(0);
-        RoboticArm::send_motor_target_current();
+        RoboticArmIF::set_motor_target_current(0);
+        RoboticArmIF::send_current();
         sleep(TIME_MS2I(500));
 
         action_ = STOP;
 
     } else if (action_ == FETCH_ONCE) {
 
-        RoboticArm::clamp_action(RoboticArm::CLAMP_RELAX);
+        RoboticArmIF::clamp_action(RoboticArmIF::CLAMP_RELAX);
         sleep(TIME_MS2I(1000));
         // Step 1. Drawer goes outwards
         palSetPad(GPIOH, GPIOH_POWER4_CTRL);
         sleep(TIME_MS2I(2000));
 
         // Step 2. Clamp
-        RoboticArm::clamp_action(RoboticArm::CLAMP_CLAMPED);
+        RoboticArmIF::clamp_action(RoboticArmIF::CLAMP_CLAMPED);
         sleep(TIME_MS2I(2000));
 
         // Step 3. Drawer goes inwards
@@ -82,16 +82,16 @@ void BulletFetchStateMachine::main() {
         sleep(TIME_MS2I(2000));
 
         // Step 4.1. Rotate inwards
-        RoboticArm::set_motor_target_current(12000);
-        while (RoboticArm::get_motor_actual_angle() < -67) {
-            RoboticArm::send_motor_target_current();
+        RoboticArmIF::set_motor_target_current(12000);
+        while (RoboticArmIF::get_motor_actual_angle() < -67) {
+            RoboticArmIF::send_current();
             sleep(TIME_MS2I(motor_action_interval));
         }
 
         // Step 4.2. Rotate inwards with inertia
-        RoboticArm::set_motor_target_current(0);
-        while (RoboticArm::get_motor_actual_angle() < -40) {
-            RoboticArm::send_motor_target_current();
+        RoboticArmIF::set_motor_target_current(0);
+        while (RoboticArmIF::get_motor_actual_angle() < -40) {
+            RoboticArmIF::send_current();
             sleep(TIME_MS2I(motor_action_interval));
         }
 
@@ -103,51 +103,51 @@ void BulletFetchStateMachine::main() {
         }*/
 
         // Step 3. Wait for bullets to come out
-        RoboticArm::set_motor_target_current(0);
-        RoboticArm::send_motor_target_current();
+        RoboticArmIF::set_motor_target_current(0);
+        RoboticArmIF::send_current();
         sleep(TIME_MS2I(2000));
 
         // Step 4. Throw the box outward
-        RoboticArm::set_motor_target_current(-8000);
-        while (RoboticArm::get_motor_actual_angle() > -65) {
-            RoboticArm::send_motor_target_current();
+        RoboticArmIF::set_motor_target_current(-8000);
+        while (RoboticArmIF::get_motor_actual_angle() > -65) {
+            RoboticArmIF::send_current();
             sleep(TIME_MS2I(motor_action_interval));
         }
         // Relax the clamp
-        RoboticArm::clamp_action(RoboticArm::CLAMP_RELAX);
+        RoboticArmIF::clamp_action(RoboticArmIF::CLAMP_RELAX);
 
         // Wait for 500ms, finish
-        RoboticArm::set_motor_target_current(0);
-        RoboticArm::send_motor_target_current();
+        RoboticArmIF::set_motor_target_current(0);
+        RoboticArmIF::send_current();
 
         action_ = STOP;
 
     } else if (action_ == FINAL_INWARD) {
 
         // Step 1.1. Rotate inwards
-        RoboticArm::set_motor_target_current(3000);
-        while (RoboticArm::get_motor_actual_angle() < -67) {
-            RoboticArm::send_motor_target_current();
+        RoboticArmIF::set_motor_target_current(3000);
+        while (RoboticArmIF::get_motor_actual_angle() < -67) {
+            RoboticArmIF::send_current();
             sleep(TIME_MS2I(motor_action_interval));
         }
 
         // Step 1.2. Rotate inwards with inertia
-        RoboticArm::set_motor_target_current(0);
-        while (RoboticArm::get_motor_actual_angle() < -40) {
-            RoboticArm::send_motor_target_current();
+        RoboticArmIF::set_motor_target_current(0);
+        while (RoboticArmIF::get_motor_actual_angle() < -40) {
+            RoboticArmIF::send_current();
             sleep(TIME_MS2I(motor_action_interval));
         }
 
         // Step 1.3. Rotate inwards with deceleration
-        RoboticArm::set_motor_target_current(-1500);
-        while (RoboticArm::get_motor_actual_angle() < -5) {
-            RoboticArm::send_motor_target_current();
+        RoboticArmIF::set_motor_target_current(-1500);
+        while (RoboticArmIF::get_motor_actual_angle() < -5) {
+            RoboticArmIF::send_current();
             sleep(TIME_MS2I(motor_action_interval));
         }
 
         // Wait for 500ms, finish
-        RoboticArm::set_motor_target_current(0);
-        RoboticArm::send_motor_target_current();
+        RoboticArmIF::set_motor_target_current(0);
+        RoboticArmIF::send_current();
 
         action_ = STOP;
 
@@ -157,5 +157,5 @@ void BulletFetchStateMachine::main() {
 }
 
 bool BulletFetchStateMachine::is_outward() {
-    return (RoboticArm::get_motor_actual_angle() < -150);
+    return (RoboticArmIF::get_motor_actual_angle() < -150);
 }

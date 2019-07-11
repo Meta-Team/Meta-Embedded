@@ -29,7 +29,7 @@ inline void startupCheckRemote() {
 inline void startupCheckRoboticArmFeedback() {
     time_msecs_t t = SYSTIME;
     while (SYSTIME - t < 50) {
-        if (SYSTIME - RoboticArm::get_motor_last_update_time() > 3) {
+        if (SYSTIME - RoboticArmIF::get_motor_last_update_time() > 3) {
             // No feedback in last 3 ms (normal 1 ms)
             t = SYSTIME;  // reset the counter
         }
