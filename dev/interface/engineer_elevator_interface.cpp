@@ -36,10 +36,16 @@ bool EngineerElevatorIF::send_currents() {
     txmsg.DLC = 0x08;
 
     // Fill target currents
-    for (int i = 0; i < MOTOR_COUNT; i++) {
-        txmsg.data8[i * 2] = (uint8_t) (elevatorMotor[i].target_current >> 8);
-        txmsg.data8[i * 2 + 1] = (uint8_t) elevatorMotor[i].target_current;
-    }
+    txmsg.data8[0] = (uint8_t) (elevatorMotor[R].target_current >> 8);
+    txmsg.data8[1] = (uint8_t) elevatorMotor[R].target_current;
+    txmsg.data8[2] = (uint8_t) (elevatorMotor[L].target_current >> 8);
+    txmsg.data8[3] = (uint8_t) elevatorMotor[L].target_current;
+
+    txmsg.data8[4] = (uint8_t) (aidedMotor[R].target_current >> 8);
+    txmsg.data8[5] = (uint8_t) aidedMotor[R].target_current;
+    txmsg.data8[6] = (uint8_t) ((-aidedMotor[L].target_current) >> 8);
+    txmsg.data8[7] = (uint8_t) (-aidedMotor[R].target_current);
+
 
     can->send_msg(&txmsg);
     return true;
@@ -66,7 +72,7 @@ void EngineerElevatorIF::process_feedback(CANRxFrame const *rxmsg) {
             angle_movement -= 8192;
         }
 
-        elevatorMotor[motor_id].accmulate_angle += angle_movement * 360.0f / 8192.0f / chassis_motor_decelerate_ratio;
+        elevatorMotor[motor_id].present_angle += angle_movement * 360.0f / 8192.0f / chassis_motor_decelerate_ratio;
 
         elevatorMotor[motor_id].actual_angle_raw = new_angle_raw;
 
@@ -84,5 +90,5 @@ void EngineerElevatorIF::process_feedback(CANRxFrame const *rxmsg) {
 }
 
 void EngineerElevatorIF::elevator_motor_t::clear_accmulate_angle() {
-    accmulate_angle = 0;
+    present_angle = 0;
 }

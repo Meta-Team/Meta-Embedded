@@ -35,32 +35,32 @@ public:
 
     static void elevator_enable(bool enable);
 
-    static void elevator_lock(bool enable_);
-
     static void aided_motor_enable(bool enable);
 
     static void change_pid_params(int pid_id, PIDControllerBase::pid_params_t pid_params);
 
+    static void set_target_height(float new_height);
+
+    static void set_aided_motor_velocity(float target_velocity_L, float target_velocity_R);
+
     static void update_target_current();
 
-    static constexpr float ANGLE_HEIGHT_RATIO = 458.0f;  // [degree/cm]
+    static float target_height;
 
-    // Size: 2; index 0 for elevator motors, index 1 for auxiliary motors
+    // Size: 4; index 0 and 1 for elevator motors, index 2 and 3 for auxiliary motors
     static float target_velocity[];
 
 private:
 
     static bool elevator_enabled;
 
-    static bool elevator_locked;
-
     static bool aided_motor_enabled;
-
-    static float target_height;
-
 
     // Size: 4; index 0 and 1 for elevator motors, index 2 and 3 for auxiliary motors
     static PIDController v2i_pid[];
+
+    // Size: 2; index 0 and 1 for elevator motors
+    static PIDController a2v_pid[];
 
     static PIDController counter_balance_pid;
 };

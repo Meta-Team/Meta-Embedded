@@ -29,9 +29,9 @@
  *  UP    UP    Safe
  *  UP    MID   Remote - Chassis remote controlling
  *  UP    DOWN  Remote - Elevator remote controlling
- *  MID   UP    ***
- *  MID   MID   ***
- *  MID   DOWN  ***
+ *  MID   UP    Remote - Test mode, Chassis only
+ *  MID   MID   Remote - Test mode, Elevator pulls up and Aided_motor drives
+ *  MID   DOWN  Remote - Test mode, Elevator returns to origin
  *  DOWN  UP    ***
  *  DOWN  MID   ***
  *  DOWN  DOWN  Final PC MODE
@@ -40,6 +40,7 @@
  */
 
 CANInterface can1(&CAND1);
+CANInterface can2(&CAND2);
 
 class EngineerThread: public chibios_rt::BaseStaticThread<1024>{
 
@@ -48,6 +49,7 @@ class EngineerThread: public chibios_rt::BaseStaticThread<1024>{
     void main() final{
         setName("engineer");
         Remote::rc_status_t s1_present_state = Remote::S_UP, s2_present_state = Remote::S_UP;
+        bool elevating = false;
         while (!shouldTerminate()){
 
             /** Setting State **/
@@ -65,22 +67,36 @@ class EngineerThread: public chibios_rt::BaseStaticThread<1024>{
 
                             case Remote::S_UP :
                                 EngineerChassisSKD::lock();
+                                EngineerElevatorSKD::elevator_enable(false);
+                                EngineerElevatorSKD::aided_motor_enable(false);
                                 break;
                             case Remote::S_MIDDLE :
                                 EngineerChassisSKD::unlock();
+                                EngineerElevatorSKD::elevator_enable(false);
+                                EngineerElevatorSKD::aided_motor_enable(false);
                                 break;
                             case Remote::S_DOWN :
+                                EngineerChassisSKD::lock();
+                                EngineerElevatorSKD::elevator_enable(true);
+                                EngineerElevatorSKD::aided_motor_enable(true);
                                 break;
                         }
 
                         break;
 
                     case Remote::S_MIDDLE :
-
+                        // The whole section is for a complete remote landing process
+                        EngineerElevatorSKD::elevator_enable(true);
+                        EngineerElevatorSKD::aided_motor_enable(true);
                         switch (s2_present_state){
                             case Remote::S_UP :
+                                EngineerChassisSKD::unlock();
+                                EngineerElevatorSKD::set_target_height(0);
                                 break;
                             case Remote::S_MIDDLE :
+                                EngineerChassisSKD::lock();
+                                EngineerElevatorSKD::set_target_height(22);
+                                elevating = true;
                                 break;
                             case Remote::S_DOWN :
                                 break;
@@ -102,8 +118,53 @@ class EngineerThread: public chibios_rt::BaseStaticThread<1024>{
 
 
             /** Update Movement Request **/
-            if (s1_present_state == Remote::S_UP && s2_present_state == Remote::S_MIDDLE){
-                EngineerChassisSKD::set_velocity(Remote::rc.ch2 * ENGINEER_CHASSIS_VELOCITY_MAX, Remote::rc.ch3 * ENGINEER_CHASSIS_VELOCITY_MAX, Remote::rc.ch0 * ENGINEER_CHASSIS_W_MAX);
+
+            switch (s1_present_state){
+                case Remote::S_UP:
+                    switch (s2_present_state){
+                        case Remote::S_UP:
+                            break;
+                        case Remote::S_MIDDLE:
+                            EngineerChassisSKD::set_velocity(Remote::rc.ch2 * ENGINEER_CHASSIS_VELOCITY_MAX, Remote::rc.ch3 * ENGINEER_CHASSIS_VELOCITY_MAX, Remote::rc.ch0 * ENGINEER_CHASSIS_W_MAX);
+                            break;
+                        case Remote::S_DOWN:
+                            EngineerElevatorSKD::set_target_height(EngineerElevatorSKD::target_height + Remote::rc.ch3 * 2);
+                            if (Remote::rc.ch0 > 0.5) EngineerElevatorSKD::set_aided_motor_velocity(Remote::rc.ch0 * ENGINEER_AIDED_MOTOR_VELOCITY, 0);
+                            else if (Remote::rc.ch0 < - 0.5) EngineerElevatorSKD::set_aided_motor_velocity(0, - Remote::rc.ch0 * ENGINEER_AIDED_MOTOR_VELOCITY);
+                            else EngineerElevatorSKD::set_aided_motor_velocity(Remote::rc.ch1 * ENGINEER_AIDED_MOTOR_VELOCITY, Remote::rc.ch1 * ENGINEER_AIDED_MOTOR_VELOCITY);
+                            break;
+                    }
+                    break;
+                case Remote::S_MIDDLE:
+                    switch (s2_present_state){
+                        case Remote::S_UP:
+                            EngineerChassisSKD::set_velocity(Remote::rc.ch2 * ENGINEER_CHASSIS_VELOCITY_MAX, Remote::rc.ch3 * ENGINEER_CHASSIS_VELOCITY_MAX, Remote::rc.ch0 * ENGINEER_CHASSIS_W_MAX);
+                            break;
+                        case Remote::S_MIDDLE:
+                            if (Remote::rc.ch0 > 0.5) EngineerElevatorSKD::set_aided_motor_velocity(Remote::rc.ch0 * ENGINEER_AIDED_MOTOR_VELOCITY, 0);
+                            else if (Remote::rc.ch0 < - 0.5) EngineerElevatorSKD::set_aided_motor_velocity(0, - Remote::rc.ch0 * ENGINEER_AIDED_MOTOR_VELOCITY);
+                            else EngineerElevatorSKD::set_aided_motor_velocity(Remote::rc.ch1 * ENGINEER_AIDED_MOTOR_VELOCITY, Remote::rc.ch1 * ENGINEER_AIDED_MOTOR_VELOCITY);
+
+                            if (elevating && EngineerElevatorIF::elevatorMotor[0].present_angle > 20 * ANGLE_HEIGHT_RATIO){
+                                elevating = false;
+                            }
+                            if (!elevating){
+                                EngineerElevatorSKD::set_target_height(EngineerElevatorSKD::target_height + Remote::rc.ch3);
+                            }
+                        case Remote::S_DOWN:
+                            break;
+                    }
+                    break;
+                case Remote::S_DOWN:
+                    switch (s2_present_state){
+                        case Remote::S_UP:
+                            break;
+                        case Remote::S_MIDDLE:
+                            break;
+                        case Remote::S_DOWN:
+                            break;
+                    }
+                    break;
             }
             sleep(TIME_MS2I(ENGINEER_THREAD_INTERVAL));
         }
@@ -133,9 +194,9 @@ int main(void) {
 
     /*** Parameters Set up***/
     EngineerChassisIF::init(&can1);
-    EngineerElevatorIF::init(&can1);
-    EngineerChassisSKD::engineerChassisThread.start(HIGHPRIO - 3);
-    EngineerElevatorSKD::engineerElevatorThread.start(HIGHPRIO - 2);
+    EngineerElevatorIF::init(&can2);
+    EngineerChassisSKD::engineerChassisThread.start(HIGHPRIO - 2);
+    EngineerElevatorSKD::engineerElevatorThread.start(HIGHPRIO - 3);
 
     LED::green_on();
     /** Start Logic Control Thread **/

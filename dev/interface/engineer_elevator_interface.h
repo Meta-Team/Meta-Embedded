@@ -35,7 +35,7 @@ public:
 
     public:
 
-        float accmulate_angle; // [degree]
+        float present_angle; // [degree]
 
         float actual_velocity; // [degree/s]
 
@@ -43,7 +43,7 @@ public:
 
         time_msecs_t last_update_time;
 
-        uint16_t target_current;
+        int16_t target_current;
 
         /**
          * @brief set current actual angle as 0 degree
@@ -65,7 +65,7 @@ public:
 
         time_msecs_t last_update_time;
 
-        uint16_t target_current;
+        int16_t target_current;
     };
 
     static elevator_motor_t elevatorMotor[];
