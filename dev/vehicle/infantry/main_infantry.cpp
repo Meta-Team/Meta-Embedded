@@ -143,14 +143,13 @@ int main() {
     /// Start LGs
     // GimbalLG does not need initialization
     GimbalLG::init(THREAD_GIMBAL_LG_VISION_PRIO);
-    ShootLG::init(SHOOT_DEGREE_PER_BULLET, THREAD_SHOOT_LG_STUCK_DETECT_PRIO);
+    ShootLG::init(SHOOT_DEGREE_PER_BULLET, THREAD_SHOOT_LG_STUCK_DETECT_PRIO, THREAD_SHOOT_BULLET_COUNTER_PRIO);
     ChassisLG::init(THREAD_CHASSIS_LG_DODGE_PRIO);
 
 
     /// Start Inspector and User Threads
     Inspector::start_inspection(THREAD_INSPECTOR_PRIO);
-    User::start(THREAD_USER_PRIO, THREAD_USER_ACTION_PRIO, THREAD_USER_BULLET_INCREMENT_PRIO,
-                THREAD_USER_CLIENT_DATA_SEND_PRIO);
+    User::start(THREAD_USER_PRIO, THREAD_USER_ACTION_PRIO, THREAD_USER_CLIENT_DATA_SEND_PRIO);
 
     /// Complete Period 2
     Buzzer::play_sound(Buzzer::sound_startup_intel, THREAD_BUZZER_PRIO);  // Now play the startup sound

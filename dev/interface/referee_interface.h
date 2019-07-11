@@ -64,9 +64,22 @@ public:
         uint8_t winner;
     };
 
-    static constexpr uint16_t ROBOT_SURVIVORS_CMD_ID = 0x0003;
-    __PACKED_STRUCT game_robot_survivors_t {
-        uint16_t robot_legion;
+    static constexpr uint16_t GAME_ROBOT_HP_CMD_ID = 0x0003;
+    __PACKED_STRUCT game_robot_HP_t {
+        uint16_t red_1_robot_HP;
+        uint16_t red_2_robot_HP;
+        uint16_t red_3_robot_HP;
+        uint16_t red_4_robot_HP;
+        uint16_t red_5_robot_HP;
+        uint16_t red_7_robot_HP;
+        uint16_t red_base_HP;
+        uint16_t blue_1_robot_HP;
+        uint16_t blue_2_robot_HP;
+        uint16_t blue_3_robot_HP;
+        uint16_t blue_4_robot_HP;
+        uint16_t blue_5_robot_HP;
+        uint16_t blue_7_robot_HP;
+        uint16_t blue_base_HP;
     };
 
     static constexpr uint16_t EVENT_CMD_ID = 0x0101;
@@ -87,6 +100,12 @@ public:
         uint8_t supply_projectile_id;
         uint8_t supply_robot_id;
         uint8_t supply_num;
+    };
+
+    static constexpr uint16_t REFEREE_WARNING_CMD_ID = 0x0103;
+    __PACKED_STRUCT referee_warning_t {
+        uint8_t level;
+        uint8_t foul_robot_id;
     };
 
     static constexpr uint16_t GAME_ROBOT_STATE_CMD_ID = 0x0201;
@@ -146,6 +165,11 @@ public:
         float bullet_speed;
     };
 
+    static constexpr uint16_t BULLET_REMAINING_CMD_ID = 0x0208;
+    __PACKED_STRUCT bullet_remaining_t {
+        uint16_t bullet_remaining_num;
+    };
+
     /** Robot Interactive **/
 
     /**
@@ -182,10 +206,11 @@ public:
     /** Received Data **/
     static game_state_t game_state;
     static game_result_t game_result;
-    static game_robot_survivors_t game_robot_survivors;
+    static game_robot_HP_t game_robot_HP;
     static event_data_t event_data;
     static supply_projectile_action_t supply_projectile_action;
     static supply_projectile_booking_t supply_projectile_booking;
+    static referee_warning_t referee_warning;
     static game_robot_state_t game_robot_state;
     static power_heat_data_t power_heat_data;
     static game_robot_pos_t game_robot_pos;
@@ -194,6 +219,7 @@ public:
     static robot_hurt_t robot_hurt;
     static shoot_data_t shoot_data;
     static robot_interactive_data_t robot_data_receive;
+    static bullet_remaining_t bullet_remaining;
 
     /**
      * Start referee interface
@@ -271,10 +297,11 @@ private:
         union {
             game_state_t game_state_;
             game_result_t game_result_;
-            game_robot_survivors_t game_robot_survivors_;
+            game_robot_HP_t game_robot_HP_;
             event_data_t event_data_;
             supply_projectile_action_t supply_projectile_action_;
             supply_projectile_booking_t supply_projectile_booking_;
+            referee_warning_t referee_warning_;
             game_robot_state_t game_robot_state_;
             power_heat_data_t power_heat_data_;
             game_robot_pos_t game_robot_pos_;
@@ -282,6 +309,7 @@ private:
             aerial_robot_energy_t aerial_robot_energy_;
             robot_hurt_t robot_hurt_;
             shoot_data_t shoot_data_;
+            bullet_remaining_t bullet_remaining_;
             robot_interactive_data_t robot_interactive_data_;
             client_custom_data_t client_custom_data_;
         };

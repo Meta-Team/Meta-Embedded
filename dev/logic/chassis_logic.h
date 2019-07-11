@@ -14,7 +14,8 @@
 #define META_INFANTRY_CHASSIS_LOGIC_H
 
 #include "ch.hpp"
-#include "chassis_scheduler.h"
+
+#include "referee_interface.h"
 
 /**
  * @name ChassisLG
@@ -87,6 +88,7 @@ private:
     static DodgeModeSwitchThread dodgeModeSwitchThread;
     static chibios_rt::ThreadReference dodgeThreadReference;
 
+    static constexpr unsigned DODGE_MODE_STATUS_LIGHT_INDEX = 1;
 };
 
 

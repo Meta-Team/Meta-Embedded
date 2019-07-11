@@ -23,36 +23,26 @@ float User::chassis_pc_shift_ratio = 1.5f;  // 150% when Shift is pressed
 float User::chassis_pc_ctrl_ratio = 0.5;    // 50% when Ctrl is pressed
 
 Remote::key_t User::chassis_dodge_switch = Remote::KEY_X;
-unsigned User::chassis_dodge_light_index = 3;
 
 /// Shoot Config
 float User::shoot_launch_left_count = 5;
 float User::shoot_launch_right_count = 999;
 
-float User::shoot_lanuch_speed = 5.0f;
+float User::shoot_launch_speed = 5.0f;
 
 float User::shoot_common_duty_cycle = 0.8;
 
-unsigned User::shoot_remain_bullet_data_index = 1;
-
 Remote::key_t User::shoot_fw_switch = Remote::KEY_Z;
-unsigned User::shoot_fw_status_light_index = 0;
-
-/// Other Config
-unsigned User::high_speed_light_index = 5;
-unsigned User::low_speed_light_index = 4;
 
 
 /// Variables
 User::UserThread User::userThread;
 User::UserActionThread User::userActionThread;
-User::BulletIncrementThread User::bulletIncrementThread;
 User::ClientDataSendingThread User::clientDataSendingThread;
 
-void User::start(tprio_t user_thd_prio, tprio_t user_action_thd_prio, tprio_t bullet_increment_thd_prio, tprio_t client_data_sending_thd_prio) {
+void User::start(tprio_t user_thd_prio, tprio_t user_action_thd_prio, tprio_t client_data_sending_thd_prio) {
     userThread.start(user_thd_prio);
     userActionThread.start(user_action_thd_prio);
-    bulletIncrementThread.start(bullet_increment_thd_prio);
     clientDataSendingThread.start(client_data_sending_thd_prio);
 }
 
@@ -101,20 +91,26 @@ void User::UserThread::main() {
                     yaw_sensitivity = gimbal_pc_yaw_sensitivity[0];
                     pitch_sensitivity = gimbal_pc_pitch_sensitivity[0];
 
-                    Referee::set_client_light(high_speed_light_index, true);
-                    Referee::set_client_light(low_speed_light_index, false);
+                    // High speed, 3 lights from right
+                    Referee::set_client_light(3, true);
+                    Referee::set_client_light(4, true);
+                    Referee::set_client_light(5, true);
                 } else if (Remote::key.shift) {
                     yaw_sensitivity = gimbal_pc_yaw_sensitivity[2];
                     pitch_sensitivity = gimbal_pc_pitch_sensitivity[2];
 
-                    Referee::set_client_light(high_speed_light_index, false);
-                    Referee::set_client_light(low_speed_light_index, true);
+                    // Slow speed, 1 light from right
+                    Referee::set_client_light(3, false);
+                    Referee::set_client_light(4, false);
+                    Referee::set_client_light(5, true);
                 } else {
                     yaw_sensitivity = gimbal_pc_yaw_sensitivity[1];
                     pitch_sensitivity = gimbal_pc_pitch_sensitivity[1];
 
-                    Referee::set_client_light(high_speed_light_index, false);
-                    Referee::set_client_light(low_speed_light_index, false);
+                    // Middle speed, 2 lights from right
+                    Referee::set_client_light(3, false);
+                    Referee::set_client_light(4, true);
+                    Referee::set_client_light(5, true);
                 }
                 // Referee client data will be sent by ClientDataSendingThread
 
@@ -286,12 +282,11 @@ void User::UserActionThread::main() {
             /// Shoot
             if (ShootLG::get_friction_wheels_duty_cycle() == 0) {  // force start friction wheels
                 ShootLG::set_friction_wheels(shoot_common_duty_cycle);
-                Referee::set_client_light(shoot_fw_status_light_index, true);
             }
             if (mouse_flag & (1U << Remote::MOUSE_LEFT)) {
-                ShootLG::shoot(shoot_launch_left_count, shoot_lanuch_speed);
+                ShootLG::shoot(shoot_launch_left_count, shoot_launch_speed);
             } else if (mouse_flag & (1U << Remote::MOUSE_RIGHT)) {
-                ShootLG::shoot(shoot_launch_right_count, shoot_lanuch_speed);
+                ShootLG::shoot(shoot_launch_right_count, shoot_launch_speed);
             }
         } else {  // releasing one while pressing another won't result in stopping
             if (events & MOUSE_RELEASE_EVENTMASK) {
@@ -308,10 +303,8 @@ void User::UserActionThread::main() {
             if (key_flag & (1U << chassis_dodge_switch)) {
                 if (ChassisLG::get_action() == ChassisLG::FOLLOW_MODE) {
                     ChassisLG::set_action(ChassisLG::DODGE_MODE);
-                    Referee::set_client_light(chassis_dodge_light_index, true);
                 } else if (ChassisLG::get_action() == ChassisLG::DODGE_MODE) {
                     ChassisLG::set_action(ChassisLG::FOLLOW_MODE);
-                    Referee::set_client_light(chassis_dodge_light_index, false);
                 }
             }
 
@@ -319,10 +312,8 @@ void User::UserActionThread::main() {
             if (key_flag & (1U << shoot_fw_switch)) {
                 if (ShootLG::get_friction_wheels_duty_cycle() > 0) {
                     ShootLG::set_friction_wheels(0);
-                    Referee::set_client_light(shoot_fw_status_light_index, false);
                 } else {
                     ShootLG::set_friction_wheels(shoot_common_duty_cycle);
-                    Referee::set_client_light(shoot_fw_status_light_index, true);
                 }
             }
         }
@@ -334,29 +325,9 @@ void User::UserActionThread::main() {
     }
 }
 
-void User::BulletIncrementThread::main() {
-    setName("User_Bullet");
-
-    chEvtRegisterMask(&Referee::data_received_event, &data_received_listener, DATA_RECEIVED_EVENTMASK);
-
-    while (!shouldTerminate()) {
-        chEvtWaitAny(DATA_RECEIVED_EVENTMASK);
-        eventflags_t flags = chEvtGetAndClearFlags(&data_received_listener);
-        if (flags == Referee::SUPPLY_PROJECTILE_ACTION_CMD_ID &&
-            Referee::supply_projectile_action.supply_robot_id == Referee::get_self_id() &&
-            Referee::supply_projectile_action.supply_projectile_step == 2  // bullet fall
-                ) {
-            ShootLG::increment_bullet((int) (Referee::supply_projectile_action.supply_projectile_num * 1.0f));
-        }
-    }
-}
-
 void User::ClientDataSendingThread::main() {
     setName("User_Client");
     while (!shouldTerminate()) {
-
-        Referee::set_client_number(shoot_remain_bullet_data_index, ShootLG::get_bullet_count());
-
         Referee::send_data(Referee::CLIENT);
         sleep(TIME_MS2I(CLIENT_DATA_SENDING_THREAD_INTERVAL));
     }

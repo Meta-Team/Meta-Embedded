@@ -20,8 +20,7 @@ class User {
 
 public:
 
-    static void start(tprio_t user_thd_prio, tprio_t user_action_thd_prio, tprio_t bullet_increment_thd_prio,
-                      tprio_t client_data_sending_thd_prio);
+    static void start(tprio_t user_thd_prio, tprio_t user_action_thd_prio, tprio_t client_data_sending_thd_prio);
 
 private:
 
@@ -42,25 +41,16 @@ private:
     static float chassis_pc_ctrl_ratio;    // 50% when Ctrl is pressed
 
     static Remote::key_t chassis_dodge_switch;
-    static unsigned chassis_dodge_light_index;
 
     /// Shoot Config
     static float shoot_launch_left_count;
     static float shoot_launch_right_count;
 
-    static float shoot_lanuch_speed;
+    static float shoot_launch_speed;
 
     static float shoot_common_duty_cycle;
 
-    static unsigned shoot_remain_bullet_data_index;
-
     static Remote::key_t shoot_fw_switch;
-    static unsigned shoot_fw_status_light_index;
-
-    /// Other Config
-    static unsigned high_speed_light_index;
-    static unsigned low_speed_light_index;
-
 
     /// User Thread
     static constexpr unsigned USER_THREAD_INTERVAL = 7;  // [ms]
@@ -100,17 +90,6 @@ private:
     };
 
     static UserActionThread userActionThread;
-
-    /// Thread to react to bullet increment event
-    class BulletIncrementThread : public chibios_rt::BaseStaticThread<256> {
-
-        event_listener_t data_received_listener;
-        static constexpr eventmask_t DATA_RECEIVED_EVENTMASK = (1U << 0U);
-
-        void main() final;
-    };
-
-    static BulletIncrementThread bulletIncrementThread;
 
     /// Referee Client Data Sending Thread
     static constexpr unsigned CLIENT_DATA_SENDING_THREAD_INTERVAL = 10;  // [ms]

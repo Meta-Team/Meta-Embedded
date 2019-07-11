@@ -13,10 +13,11 @@
 /** Public Parameters **/
 Referee::game_state_t Referee::game_state;
 Referee::game_result_t Referee::game_result;
-Referee::game_robot_survivors_t Referee::game_robot_survivors;
+Referee::game_robot_HP_t Referee::game_robot_HP;
 Referee::event_data_t Referee::event_data;
 Referee::supply_projectile_action_t Referee::supply_projectile_action;
 Referee::supply_projectile_booking_t Referee::supply_projectile_booking;
+Referee::referee_warning_t Referee::referee_warning;
 Referee::game_robot_state_t Referee::game_robot_state;
 Referee::power_heat_data_t Referee::power_heat_data;
 Referee::game_robot_pos_t Referee::game_robot_pos;
@@ -25,11 +26,14 @@ Referee::aerial_robot_energy_t Referee::aerial_robot_energy;
 Referee::robot_hurt_t Referee::robot_hurt;
 Referee::shoot_data_t Referee::shoot_data;
 Referee::robot_interactive_data_t Referee::robot_data_receive;
+Referee::bullet_remaining_t Referee::bullet_remaining;
+
 Referee::client_custom_data_t Referee::client_custom_data;
 Referee::robot_interactive_data_t Referee::robot_data_send;
 
 #if REFEREE_USE_EVENTS
-event_source_t Referee::data_received_event;
+// See macro EVENTSOURCE_DECL() for initialization style
+event_source_t Referee::data_received_event = {(event_listener_t *)(&Referee::data_received_event)};;
 #endif
 
 /** Private Parameters **/
@@ -122,8 +126,8 @@ void Referee::uart_rx_callback(UARTDriver *uartp) {
                     case GAME_RESULT_CMD_ID:
                         game_result = pak.game_result_;
                         break;
-                    case ROBOT_SURVIVORS_CMD_ID:
-                        game_robot_survivors = pak.game_robot_survivors_;
+                    case GAME_ROBOT_HP_CMD_ID:
+                        game_robot_HP = pak.game_robot_HP_;
                         break;
                     case EVENT_CMD_ID:
                         event_data = pak.event_data_;
@@ -131,6 +135,8 @@ void Referee::uart_rx_callback(UARTDriver *uartp) {
                     case SUPPLY_PROJECTILE_ACTION_CMD_ID:
                         supply_projectile_action = pak.supply_projectile_action_;
                         break;
+                    case REFEREE_WARNING_CMD_ID:
+                        referee_warning = pak.referee_warning_;
                     case GAME_ROBOT_POS_CMD_ID:
                         game_robot_pos = pak.game_robot_pos_;
                         break;
@@ -139,6 +145,9 @@ void Referee::uart_rx_callback(UARTDriver *uartp) {
                         break;
                     case AERIAL_ROBOT_ENERGY_CMD_ID:
                         aerial_robot_energy = pak.aerial_robot_energy_;
+                        break;
+                    case BULLET_REMAINING_CMD_ID:
+                        bullet_remaining = pak.bullet_remaining_;
                         break;
                     case INTERACTIVE_DATA_CMD_ID: // robot_interactive_data
                         // Check whether the message is from the same team
@@ -204,7 +213,7 @@ void Referee::send_data(receiver_index_t receiver_id, uint16_t data_cmd_id) {
         tx_pak_size = FRAME_HEADER_SIZE + CMD_ID_SIZE + sizeof(robot_interactive_data_t) + FRAME_TAIL_SIZE;
     }
     Append_CRC16_Check_Sum((uint8_t *)&tx_pak, tx_pak_size);
-    uartStartSend(UART_DRIVER, tx_pak_size, &tx_pak);
+    uartSendTimeout(UART_DRIVER, &tx_pak_size, &tx_pak, TIME_MS2I(20));
 }
 
 void Referee::set_interactive_data(Referee::robot_interactive_data_t data) {

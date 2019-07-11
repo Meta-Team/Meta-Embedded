@@ -32,7 +32,7 @@ public:
      * @param angle_per_bullet_            Angle for bullet loader to rotate to fill one bullet [degree]
      * @param stuck_detector_thread_prio   Thread priority for stuck detector thread
      */
-    static void init(float angle_per_bullet_, tprio_t stuck_detector_thread_prio);
+    static void init(float angle_per_bullet_, tprio_t stuck_detector_thread_prio, tprio_t bullet_counter_thread_prio);
 
     /**
      * Add bullet to internal bullet counter
@@ -92,32 +92,51 @@ private:
     static float angle_per_bullet;
 
     static int bullet_count;
+
     static float shoot_target_number;
 
     static shooter_state_t shooter_state;
 
+    static constexpr unsigned FW_STATUS_LIGHT_INDEX = 0;
+
+
+
     /// Stuck Detector
-
-    static constexpr unsigned STUCK_DETECTOR_THREAD_INTERVAL = 10;  // [ms]
-
-    static constexpr int STUCK_THRESHOLD_CURRENT = 1500;  // lower current to trigger stuck handling [mA]
-    static constexpr float STUCK_THRESHOLD_VELOCITY = 5;  // upper velocity to trigger stuck handling [degree/s]
-
-    static constexpr unsigned STUCK_REVERSE_TIME = 500;  // time to stay in reverse turing state [ms]
-    static constexpr unsigned STUCK_REVERSE_ANGLE = 5;   // reverse turning target angle when stuck [degree]
-
     class StuckDetectorThread : public chibios_rt::BaseStaticThread<512> {
+    public:
+
+        bool started = false;
+        bool waited = false;
+
+    private:
+
+        static constexpr unsigned STUCK_DETECTOR_THREAD_INTERVAL = 10;  // [ms]
+
+        static constexpr unsigned STUCK_DETECTOR_INITIAL_WAIT_INTERVAL = 500;  // [ms]
+
+        static constexpr int STUCK_THRESHOLD_CURRENT = 1500;  // lower current to trigger stuck handling [mA]
+        static constexpr float STUCK_THRESHOLD_VELOCITY = 5;  // upper velocity to trigger stuck handling [degree/s]
+
+        static constexpr unsigned STUCK_REVERSE_TIME = 1000;  // time to stay in reverse turing state [ms]
+        static constexpr unsigned STUCK_REVERSE_ANGLE = 10;   // reverse turning target angle when stuck [degree]
+
         void main() final;
     };
 
     static StuckDetectorThread stuckDetector;
+    static chibios_rt::ThreadReference stuckDetectorReference;
 
-//    /// Bullet counter
-//    class BulletCounterThread : public chibios_rt::BaseStaticThread<256> {
-//        void main() final;
-//    };
-//
-//    static BulletCounterThread bulletCounterThread;
+
+    /// Bullet Counter using Referee Data
+    class BulletCounterThread : public chibios_rt::BaseStaticThread<256> {
+
+        event_listener_t data_received_listener;
+        static constexpr eventmask_t DATA_RECEIVED_EVENTMASK = (1U << 0U);
+
+        void main() final;
+    };
+
+    static BulletCounterThread bulletCounterThread;
 
 };
 

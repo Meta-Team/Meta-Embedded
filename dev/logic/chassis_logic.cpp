@@ -12,6 +12,8 @@
 
 #include "chassis_logic.h"
 
+#include "chassis_scheduler.h"
+
 ChassisLG::action_t ChassisLG::action = FORCED_RELAX_MODE;
 float ChassisLG::target_vx;
 float ChassisLG::target_vy;
@@ -52,6 +54,8 @@ void ChassisLG::set_action(ChassisLG::action_t value) {
         }
         chSysUnlock();
     }
+    Referee::set_client_light(DODGE_MODE_STATUS_LIGHT_INDEX, (action == DODGE_MODE));
+    // Sending client data will be complete by higher level thread
 }
 
 void ChassisLG::set_target(float vx, float vy) {

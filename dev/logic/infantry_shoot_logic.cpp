@@ -22,11 +22,14 @@ int ShootLG::bullet_count = 0;
 float ShootLG::shoot_target_number = 0;
 ShootLG::shooter_state_t ShootLG::shooter_state = STOP;
 ShootLG::StuckDetectorThread ShootLG::stuckDetector;
-//ShootLG::BulletCounterThread ShootLG::bulletCounterThread;
+chibios_rt::ThreadReference ShootLG::stuckDetectorReference;
 
-void ShootLG::init(float angle_per_bullet_, tprio_t stuck_detector_thread_prio) {
+ShootLG::BulletCounterThread ShootLG::bulletCounterThread;
+
+void ShootLG::init(float angle_per_bullet_, tprio_t stuck_detector_thread_prio, tprio_t bullet_counter_thread_prio) {
     angle_per_bullet = angle_per_bullet_;
-    stuckDetector.start(stuck_detector_thread_prio);
+    stuckDetectorReference = stuckDetector.start(stuck_detector_thread_prio);
+    bulletCounterThread.start(bullet_counter_thread_prio);
 }
 
 void ShootLG::increment_bullet(int number_of_bullet) {
@@ -43,6 +46,8 @@ int ShootLG::get_bullet_count() {
 
 void ShootLG::set_friction_wheels(float duty_cycle) {
     ShootSKD::set_friction_wheels(duty_cycle);
+    Referee::set_client_light(FW_STATUS_LIGHT_INDEX, (duty_cycle != 0));
+    // Sending client data will be complete by higher level thread
 }
 
 float ShootLG::get_friction_wheels_duty_cycle() {
@@ -55,16 +60,25 @@ ShootLG::shooter_state_t ShootLG::get_shooter_state() {
 
 void ShootLG::shoot(float number_of_bullet, float number_per_second) {
     shoot_target_number = number_of_bullet;
+
     shooter_state = SHOOTING;
+
     ShootSKD::set_mode(ShootSKD::LIMITED_SHOOTING_MODE);
     ShootSKD::reset_loader_accumulated_angle();
     ShootSKD::set_loader_target_angle(shoot_target_number * angle_per_bullet);
     ShootSKD::set_loader_target_velocity(number_per_second * angle_per_bullet);
+
+    chSysLock();
+    if (!stuckDetector.started) {
+        stuckDetector.started = true;
+        stuckDetector.waited = false;
+        chSchWakeupS(stuckDetectorReference.getInner(), 0);
+    }
+    chSysUnlock();
 }
 
 void ShootLG::stop() {
     ShootSKD::set_mode(ShootSKD::FORCED_RELAX_MODE);
-    bullet_count -= (int) (ShootSKD::get_loader_accumulated_angle() / angle_per_bullet);
     ShootSKD::reset_loader_accumulated_angle();
     shooter_state = STOP;
 }
@@ -73,8 +87,19 @@ void ShootLG::StuckDetectorThread::main() {
     setName("Shoot_Stuck");
     while (!shouldTerminate()) {
 
-        if (shooter_state == SHOOTING &&
-            ShootSKD::get_loader_target_current() > STUCK_THRESHOLD_CURRENT &&
+        chSysLock();  /// ---------------------------------- Enter Critical Zone ----------------------------------
+        if (shooter_state != SHOOTING) {
+            started = false;
+            chSchGoSleepS(CH_STATE_SUSPENDED);
+        }
+        chSysUnlock();  /// ---------------------------------- Exit Critical Zone ----------------------------------
+
+        if (!waited) {
+            sleep(TIME_MS2I(STUCK_DETECTOR_INITIAL_WAIT_INTERVAL));
+            waited = true;
+        }
+
+        if (ShootSKD::get_loader_target_current() > STUCK_THRESHOLD_CURRENT &&
             ShootSKD::get_loader_actual_velocity() < STUCK_THRESHOLD_VELOCITY) {
 
             shooter_state = STUCK;
@@ -90,6 +115,32 @@ void ShootLG::StuckDetectorThread::main() {
         }
 
         sleep(TIME_MS2I(STUCK_DETECTOR_THREAD_INTERVAL));
+    }
+}
+
+void ShootLG::BulletCounterThread::main() {
+    setName("Shoot_Count");
+
+    chEvtRegisterMask(&Referee::data_received_event, &data_received_listener, DATA_RECEIVED_EVENTMASK);
+
+    while (!shouldTerminate()) {
+
+        chEvtWaitAny(DATA_RECEIVED_EVENTMASK);
+
+        eventflags_t flags = chEvtGetAndClearFlags(&data_received_listener);
+
+        // Add bullets
+        if (flags == Referee::SUPPLY_PROJECTILE_ACTION_CMD_ID &&
+            Referee::supply_projectile_action.supply_robot_id == Referee::get_self_id() &&
+            Referee::supply_projectile_action.supply_projectile_step == 2  // bullet fall
+                ) {
+            bullet_count += (int) (Referee::supply_projectile_action.supply_projectile_num * 1.0f);
+        }
+
+        // Shoot bullets
+        if (flags == Referee::SHOOT_DATA_CMD_ID) {
+            bullet_count -= Referee::shoot_data.bullet_freq;
+        }
     }
 }
 

@@ -17,7 +17,7 @@ private:
     void main() final {
         setName("referee_echo");
         Referee::init();
-        Referee::set_client_number(1, 20);
+        Referee::set_client_number(1, 36);
         bool test = true;
         while(!shouldTerminate()) {
 
