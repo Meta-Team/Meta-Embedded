@@ -42,9 +42,9 @@ bool EngineerElevatorIF::send_currents() {
     txmsg.data8[3] = (uint8_t) elevatorMotor[L].target_current;
 
     txmsg.data8[4] = (uint8_t) (aidedMotor[R].target_current >> 8);
-    txmsg.data8[5] = (uint8_t) aidedMotor[R].target_current;
-    txmsg.data8[6] = (uint8_t) ((-aidedMotor[L].target_current) >> 8);
-    txmsg.data8[7] = (uint8_t) (-aidedMotor[R].target_current);
+    txmsg.data8[5] = (uint8_t) (aidedMotor[R].target_current);
+    txmsg.data8[6] = (uint8_t) (aidedMotor[L].target_current >> 8);
+    txmsg.data8[7] = (uint8_t) (aidedMotor[L].target_current);
 
 
     can->send_msg(&txmsg);
@@ -83,7 +83,9 @@ void EngineerElevatorIF::process_feedback(CANRxFrame const *rxmsg) {
         elevatorMotor[motor_id].last_update_time = SYSTIME;
     } else{
         motor_id = motor_id % 2;
-        aidedMotor[motor_id].actual_velocity = (rxmsg->data8[2] << 8 | rxmsg->data8[3]) * 360.0f / 60.0f;
+
+        aidedMotor[motor_id].actual_velocity = ((int16_t ) (rxmsg->data8[2] << 8 | rxmsg->data8[3])) / 6.0f;
+        //LOG("%f", aidedMotor[motor_id].actual_velocity);
         aidedMotor[motor_id].last_update_time = SYSTIME;
     }
 

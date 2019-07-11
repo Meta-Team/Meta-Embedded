@@ -76,8 +76,9 @@ void EngineerElevatorSKD::update_target_current() {
         EngineerElevatorIF::elevatorMotor[0].target_current = EngineerElevatorIF::elevatorMotor[1].target_current = 0;
     }
     if (aided_motor_enabled){
+        //LOG("%d  %d", EngineerElevatorIF::aidedMotor[0].actual_velocity, target_velocity[2]);
         EngineerElevatorIF::aidedMotor[0].target_current = (int16_t ) v2i_pid[2].calc(EngineerElevatorIF::aidedMotor[0].actual_velocity, target_velocity[2]);
-        EngineerElevatorIF::aidedMotor[1].target_current = (int16_t ) v2i_pid[3].calc(EngineerElevatorIF::aidedMotor[1].actual_velocity, target_velocity[3]);
+        EngineerElevatorIF::aidedMotor[1].target_current = (int16_t ) v2i_pid[3].calc(EngineerElevatorIF::aidedMotor[1].actual_velocity, - target_velocity[3]);
     } else{
         EngineerElevatorIF::aidedMotor[0].target_current = EngineerElevatorIF::aidedMotor[1].target_current = 0;
     }

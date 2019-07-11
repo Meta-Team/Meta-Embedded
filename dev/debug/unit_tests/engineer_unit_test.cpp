@@ -185,9 +185,9 @@ int main(){
     can1.start(HIGHPRIO - 1);
     can2.start(HIGHPRIO - 1);
     EngineerChassisIF::init(&can1);
-   // EngineerElevatorIF::init(&can2);
+    EngineerElevatorIF::init(&can2);
     EngineerChassisSKD::engineerChassisThread.start(NORMALPRIO);
-   // EngineerElevatorSKD::engineerElevatorThread.start(NORMALPRIO - 1);
+    EngineerElevatorSKD::engineerElevatorThread.start(NORMALPRIO - 1);
 
     engineerFeedbackThread.start(HIGHPRIO - 2);
 
