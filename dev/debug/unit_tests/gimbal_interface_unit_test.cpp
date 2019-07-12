@@ -37,7 +37,7 @@ unsigned const GIMBAL_FEEDBACK_INTERVAL = 25; // [ms]
 
 CANInterface can1(&CAND1);
 
-class GimbalFeedbackThread : public chibios_rt::BaseStaticThread<1024> {
+class ElevatorFeedbackThread : public chibios_rt::BaseStaticThread<1024> {
 
 public:
 

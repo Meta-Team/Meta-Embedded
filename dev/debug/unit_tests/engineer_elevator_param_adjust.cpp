@@ -5,29 +5,22 @@
 /**
  * This unit test reuse unit for gimbal.
  */
-// TODO: revise comments
-
 #include "ch.hpp"
 #include "hal.h"
-
 #include "led.h"
 #include "serial_shell.h"
-
 #include "can_interface.h"
+#include "common_macro.h"
+#include "buzzer.h"
 
-#include "elevator.h"
+#include "engineer_elevator_interface.h"
+#include "engineer_elevator_skd.h"
 
 using namespace chibios_rt;
 
-// Duplicate of engr_motor_id_t in Elevator to reduce code
-unsigned const FR = Elevator::FR;
-unsigned const FL = Elevator::FL;
-unsigned const BL = Elevator::BL;
-unsigned const BR = Elevator::BR;
-unsigned const MOTOR_COUNT = Elevator::MOTOR_COUNT;
+unsigned const R = EngineerElevatorIF::R;
+unsigned const L = EngineerElevatorIF::R;
 
-// Calculation interval for elevator thread
-unsigned const ELEVATOR_THREAD_INTERVAL = 2;    // [ms]
 unsigned const ELEVATOR_FEEDBACK_INTERVAL = 25; // [ms]
 
 int const MAX_VELOCITY = {40960};  // absolute maximum, [qc/s]
@@ -36,19 +29,19 @@ int const MAX_CURRENT = 6000;  // [mA]
 bool elevator_enabled = false;  // for out
 
 bool enable_a2v_pid = false;
-// If not enabled, the thread will take target_velocity and perform v_to_i convention.
-// If enabled, the thread will take target_angle and perform two-ring conventions.
 
 float target_angle = 0;
 float target_v = 0;
 
-CANInterface can1(&CAND1);
 CANInterface can2(&CAND2);
 
 
 class ElevatorFeedbackThread : public chibios_rt::BaseStaticThread<1024> {
 
-    // Feedback always enabled
+public:
+
+    bool enable_right_feedback = false;
+    bool enable_left_feedback = false;
 
 private:
 
@@ -58,14 +51,20 @@ private:
 
         while (!shouldTerminate()) {
 
-            // Reuse channel for gimbal yaw
-            // Use one motor as representation
-            Shell::printf("!gy,%u,%.2f,%.2f,%.2f,%.2f,%d,%d" SHELL_NEWLINE_STR,
-                          SYSTIME,
-                          (float) Elevator::feedback[FR].accmulate_angle, (float) target_angle,
-                          (float) Elevator::feedback[FR].actual_velocity, (float) target_v,
-                          Elevator::feedback[FR].actual_current_raw, Elevator::target_current[FR]);
-
+            if (enable_right_feedback) {
+                Shell::printf("!gy,%u,%.2f,%.2f,%.2f,%.2f,%d,%d" SHELL_NEWLINE_STR,
+                              SYSTIME,
+                              EngineerElevatorIF::elevatorMotor[R].present_angle, EngineerElevatorSKD::target_height * ANGLE_HEIGHT_RATIO,
+                              EngineerElevatorIF::elevatorMotor[R].actual_velocity, EngineerElevatorSKD::target_velocity[0],
+                              EngineerElevatorIF::elevatorMotor[R].actual_current, EngineerElevatorIF::elevatorMotor[R].target_current);
+            }
+            if (enable_left_feedback) {
+                Shell::printf("!gp,%u,%.2f,%.2f,%.2f,%.2f,%d,%d" SHELL_NEWLINE_STR,
+                              SYSTIME,
+                              EngineerElevatorIF::elevatorMotor[L].present_angle, EngineerElevatorSKD::target_height * ANGLE_HEIGHT_RATIO,
+                              EngineerElevatorIF::elevatorMotor[L].actual_velocity, EngineerElevatorSKD::target_velocity[1],
+                              EngineerElevatorIF::elevatorMotor[L].actual_current, EngineerElevatorIF::elevatorMotor[L].target_current);
+            }
 
             sleep(TIME_MS2I(ELEVATOR_FEEDBACK_INTERVAL));
         }
@@ -74,84 +73,43 @@ private:
 } elevatorFeedbackThread;
 
 
-/**
- * @brief set enabled states of yaw and pitch motors
- * @param chp
- * @param argc
- * @param argv
- */
 static void cmd_elevator_enable(BaseSequentialStream *chp, int argc, char *argv[]) {
     (void) argv;
-    if (argc != 2 || (*argv[0] != '0' && *argv[0] != '1') || (*argv[1] != '0' && *argv[1] != '1')) {
+    if (argc != 2) {
         shellUsage(chp, "g_enable (0/1) NULL");
         return;
     }
-    elevator_enabled = *argv[0] - '0';
+    EngineerElevatorSKD::elevator_enable(*argv[0] - '0');
 }
 
-/**
- * @brief set enabled state of friction wheels
- * @param chp
- * @param argc
- * @param argv
- */
 static void cmd_elevator_enable_fw(BaseSequentialStream *chp, int argc, char *argv[]) {
     (void) argv;
-    if (argc != 1 || (*argv[0] != '0' && *argv[0] != '1')) {
+    if (argc != 1) {
         shellUsage(chp, "g_enable_fw DELETED");
         return;
     }
     // Do nothing
 }
 
-/**
- * @brief set feedback enable states
- * @param chp
- * @param argc
- * @param argv
- */
 static void cmd_elevator_enable_feedback(BaseSequentialStream *chp, int argc, char *argv[]) {
     (void) argv;
-    if (argc != 2 || (*argv[0] != '0' && *argv[0] != '1') || (*argv[1] != '0' && *argv[1] != '1')) {
+    if (argc != 2) {
         shellUsage(chp, "g_enable_fb DELETED");
         return;
     }
     // Do nothing
 }
 
-
-/**
- * @brief set front_angle_raw with current actual angle
- * @param chp
- * @param argc
- * @param argv
- */
 static void cmd_elevator_fix_front_angle(BaseSequentialStream *chp, int argc, char *argv[]) {
     (void) argv;
     if (argc != 0) {
         shellUsage(chp, "g_fix");
         return;
     }
-    for (unsigned i = 0; i < MOTOR_COUNT; i++) {
-        Elevator::feedback[i].clear_accmulate_angle();
-    }
-
-//    chprintf(chp, "!f" SHELL_NEWLINE_STR);
+    for (unsigned i = 0; i < 2; i++)
+        EngineerElevatorIF::elevatorMotor[i].clear_accmulate_angle();
 }
 
-void _cmd_elevator_clear_i_out() {
-    for (unsigned i = 0; i < MOTOR_COUNT; i++) {
-        Elevator::a2v_pid[i].clear_i_out();
-        Elevator::v2i_pid[i].clear_i_out();
-    }
-}
-
-/**
- * @brief set target velocity of yaw and pitch and disable pos_to_v_pid
- * @param chp
- * @param argc
- * @param argv
- */
 void cmd_elevator_set_target_velocities(BaseSequentialStream *chp, int argc, char *argv[]) {
     (void) argv;
     if (argc != 2) {
@@ -159,18 +117,10 @@ void cmd_elevator_set_target_velocities(BaseSequentialStream *chp, int argc, cha
         return;
     }
 
-    target_v = Shell::atof(argv[0]);
-    _cmd_elevator_clear_i_out();
-
+    EngineerElevatorSKD::target_velocity[0] = EngineerElevatorSKD::target_velocity[1] = Shell::atof(argv[0]);
     enable_a2v_pid = false;
 }
 
-/**
- * @brief set target angle of yaw and pitch and enable pos_to_v_pid
- * @param chp
- * @param argc
- * @param argv
- */
 static void cmd_elevator_set_target_angle(BaseSequentialStream *chp, int argc, char *argv[]) {
     (void) argv;
     if (argc != 2) {
@@ -179,8 +129,6 @@ static void cmd_elevator_set_target_angle(BaseSequentialStream *chp, int argc, c
     }
 
     target_angle = Shell::atof(argv[0]);
-    _cmd_elevator_clear_i_out();
-
     enable_a2v_pid = true;
 }
 
