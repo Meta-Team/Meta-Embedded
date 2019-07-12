@@ -137,10 +137,12 @@ void ShootLG::BulletCounterThread::main() {
             bullet_count += (int) (Referee::supply_projectile_action.supply_projectile_num * 1.0f);
         }
 
-        // Shoot bullets
-        if (flags == Referee::SHOOT_DATA_CMD_ID) {
+        // Shoot bullets, DISCARDED since client display shooting count itself
+        /*if (flags == Referee::SHOOT_DATA_CMD_ID) {
             bullet_count -= Referee::shoot_data.bullet_freq;
-        }
+        }*/
+
+        Referee::set_client_number(1, bullet_count);
     }
 }
 

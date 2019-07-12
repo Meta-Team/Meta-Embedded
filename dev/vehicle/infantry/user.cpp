@@ -7,10 +7,9 @@
 
 /// Gimbal Config
 float User::gimbal_rc_yaw_max_speed = 90;  // [degree/s]
-float User::gimbal_pc_yaw_sensitivity[3] = {20000, 55000, 100000};  // [Ctrl, Normal, Shift] [degree/s]
+float User::gimbal_pc_yaw_sensitivity[3] = {20000, 60000, 100000};  // [Slow, Normal, Fast] [degree/s]
 
-float User::gimbal_pc_pitch_sensitivity[3] = {8000, 12000,
-                                              12000};   // rotation speed when mouse moves fastest [degree/s]
+float User::gimbal_pc_pitch_sensitivity[3] = {15000, 40000, 50000};   // [Slow, Normal, Fast] [degree/s]
 float User::gimbal_pitch_min_angle = -10; // down range for pitch [degree]
 float User::gimbal_pitch_max_angle = 45; //  up range for pitch [degree]
 
@@ -30,7 +29,7 @@ float User::shoot_launch_right_count = 999;
 
 float User::shoot_launch_speed = 5.0f;
 
-float User::shoot_common_duty_cycle = 0.8;
+float User::shoot_common_duty_cycle = 0.6;
 
 Remote::key_t User::shoot_fw_switch = Remote::KEY_Z;
 
@@ -44,6 +43,11 @@ void User::start(tprio_t user_thd_prio, tprio_t user_action_thd_prio, tprio_t cl
     userThread.start(user_thd_prio);
     userActionThread.start(user_action_thd_prio);
     clientDataSendingThread.start(client_data_sending_thd_prio);
+
+    // Normal speed, 2 lights from right
+    Referee::set_client_light(3, false);
+    Referee::set_client_light(4, true);
+    Referee::set_client_light(5, true);
 }
 
 void User::UserThread::main() {
@@ -92,22 +96,22 @@ void User::UserThread::main() {
                     pitch_sensitivity = gimbal_pc_pitch_sensitivity[0];
 
                     // High speed, 3 lights from right
-                    Referee::set_client_light(3, true);
-                    Referee::set_client_light(4, true);
+                    Referee::set_client_light(3, false);
+                    Referee::set_client_light(4, false);
                     Referee::set_client_light(5, true);
                 } else if (Remote::key.shift) {
                     yaw_sensitivity = gimbal_pc_yaw_sensitivity[2];
                     pitch_sensitivity = gimbal_pc_pitch_sensitivity[2];
 
                     // Slow speed, 1 light from right
-                    Referee::set_client_light(3, false);
-                    Referee::set_client_light(4, false);
+                    Referee::set_client_light(3, true);
+                    Referee::set_client_light(4, true);
                     Referee::set_client_light(5, true);
                 } else {
                     yaw_sensitivity = gimbal_pc_yaw_sensitivity[1];
                     pitch_sensitivity = gimbal_pc_pitch_sensitivity[1];
 
-                    // Middle speed, 2 lights from right
+                    // Normal speed, 2 lights from right
                     Referee::set_client_light(3, false);
                     Referee::set_client_light(4, true);
                     Referee::set_client_light(5, true);
@@ -267,7 +271,7 @@ void User::UserActionThread::main() {
 
     while (!shouldTerminate()) {
 
-        eventmask_t events = chEvtWaitAny(MOUSE_PRESS_EVENTMASK | KEY_PRESS_EVENTMASK);
+        eventmask_t events = chEvtWaitAny(MOUSE_PRESS_EVENTMASK | MOUSE_RELEASE_EVENTMASK | KEY_PRESS_EVENTMASK);
 
         /**
          * NOTICE: use flag instead of direct accessing variable in Remote, since event can be trigger by other key, etc

@@ -114,7 +114,7 @@ int main() {
 
     Remote::start();
 
-//    remoteFeedbackThread.start(NORMALPRIO);
+    remoteFeedbackThread.start(NORMALPRIO);
     remoteEventThread.start(NORMALPRIO - 1);
 
     Buzzer::play_sound(Buzzer::sound_startup, LOWPRIO);

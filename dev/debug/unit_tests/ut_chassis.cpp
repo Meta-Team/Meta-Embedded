@@ -102,7 +102,7 @@ private:
         while (!shouldTerminate()) {
             Shell::printf("!cv,%u,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f" SHELL_NEWLINE_STR,
                           TIME_I2MS(chibios_rt::System::getTime()),
-                          ;
+                          Chassis::feedback[0].actual_velocity,
                           Chassis::target_velocity[0],
                           Chassis::feedback[1].actual_velocity,
                           Chassis::target_velocity[1],

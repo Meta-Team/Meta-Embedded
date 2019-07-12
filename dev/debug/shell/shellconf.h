@@ -26,7 +26,7 @@
 #define SHELL_USE_COMPLETION                TRUE
 
 // Clear shell prompt string
-#define SHELL_PROMPT_STR                    ">"
+#define SHELL_PROMPT_STR                    ""
 
 // Enable float in chprintf
 #define CHPRINTF_USE_FLOAT                  TRUE

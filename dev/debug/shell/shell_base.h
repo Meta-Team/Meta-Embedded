@@ -74,7 +74,7 @@
  * @brief   Shell maximum input line length.
  */
 #if !defined(SHELL_MAX_LINE_LENGTH) || defined(__DOXYGEN__)
-#define SHELL_MAX_LINE_LENGTH       64
+#define SHELL_MAX_LINE_LENGTH       128
 #endif
 
 /**
