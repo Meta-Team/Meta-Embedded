@@ -197,9 +197,16 @@ add_executable(ut_elevator_interface
 add_executable(pa_elevator
         dev/module/can_interface.cpp
         dev/module/pid_controller.hpp
-        dev/interface/elevator_interface.cpp
-        dev/control/elevator.cpp
-        dev/debug/unit_tests/elevator_param_adjust.cpp)
+        dev/control/engineer_elevator_skd.cpp
+        dev/interface/engineer_elevator_interface.cpp
+        dev/debug/unit_tests/engineer_elevator_param_adjust.cpp)
+
+add_executable(pa_engineer_chassis
+        dev/module/can_interface.cpp
+        dev/module/pid_controller.hpp
+        dev/control/engineer_chassis_skd.cpp
+        dev/interface/engineer_chassis_interface.cpp
+        dev/debug/unit_tests/engineer_chassis_param_adjust.cpp)
 
 # Robotic Arm
 add_executable(ut_robotic_arm
