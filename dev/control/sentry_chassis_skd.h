@@ -136,6 +136,7 @@ public:
     static void print_position(){
         LOG("motor %d position: %.2f", 0, SentryChassisIF::motor[0].motor_present_position);
         LOG("motor %d position: %.2f", 1, SentryChassisIF::motor[1].motor_present_position);
+        LOG("target position: %.2f", SentryChassisIF::target_position);
     }
 
     /**
@@ -152,6 +153,7 @@ public:
     static void print_velocity(){
         LOG("motor %d motor_present_velocity: %.2f", 0, SentryChassisIF::motor[0].motor_present_velocity);
         LOG("motor %d motor_present_velocity: %.2f", 1, SentryChassisIF::motor[1].motor_present_velocity);
+        LOG("target velocity: %.2f", SentryChassisIF::target_velocity);
     }
 
     /**

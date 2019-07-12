@@ -175,6 +175,7 @@ void SentryChassisSKD::update_terminal() {
                 next_terminal = 0;
             }
         }
+        set_destination(terminals[next_terminal]);
         startPOM();
     }
 
@@ -206,35 +207,37 @@ void SentryChassisSKD::update_target_current() {
                                                                            SentryChassisIF::target_position);
                 }
                 break;
-            case (SHUTTLED_MODE):
+            case (SHUTTLED_MODE): {
                 // If we are in the SHUTTLED_MODE
-                if (sentry_present_position > radius - 3) set_destination(-radius);
-                else if (sentry_present_position < -radius + 3) set_destination(radius);
-                SentryChassisIF::target_velocity = sentry_a2v_pid.calc(sentry_present_position,
-                                                                       SentryChassisIF::target_position);
-                break;
+                if (sentry_present_position > radius - 3) {
+                    set_destination(-radius);
+                    startPOM();
+                }
+                else if (sentry_present_position < -radius + 3) {
+                    set_destination(radius);
+                    startPOM();
+                }
+
+                if (POM) {
+                    if ((SentryChassisIF::present_velocity > 0.8 * CRUISING_SPEED) || SentryChassisIF::present_velocity < -0.8 * CRUISING_SPEED)
+                        stopPOM();
+
+                    float delta_velocity = sentry_POM_pid.calc(Referee::power_heat_data.chassis_power,
+                                                               SentryChassisIF::power_limit);
+                    if (SentryChassisIF::target_position > sentry_present_position)
+                        SentryChassisIF::target_velocity = SentryChassisIF::present_velocity - delta_velocity;
+                    else if (SentryChassisIF::target_position < sentry_present_position)
+                        SentryChassisIF::target_velocity = SentryChassisIF::present_velocity + delta_velocity;
+                }
+                else
+                    SentryChassisIF::target_velocity = sentry_a2v_pid.calc(sentry_present_position, SentryChassisIF::target_position);
+
+                break; }
+
             case (V_MODE):
                 // this mode is for adjusting velocity pid
                 // The target velocity is given by user, here we do no calculation to target velocity
                 break;
-
-//            case (POM_MODE): {
-//                /// this mode is for adjusting POM pid, forced use pom
-//                float braking_dist = 8;
-//                if ((sentry_present_position < SentryChassisIF::target_position && SentryChassisIF::present_velocity > 0.8 * CRUISING_SPEED) ||
-//                    (sentry_present_position > SentryChassisIF::target_position && SentryChassisIF::present_velocity < - 0.8 * CRUISING_SPEED)) {
-//                    SentryChassisIF::target_velocity = sentry_a2v_pid.calc(sentry_present_position, SentryChassisIF::target_position);
-//                    break;
-//                }
-//
-//                float delta_velocity = sentry_POM_pid.calc(Referee::power_heat_data.chassis_power, SentryChassisIF::power_limit);
-//                if (SentryChassisIF::target_position > sentry_present_position)
-//                    /// should be + ???
-//                    SentryChassisIF::target_velocity = SentryChassisIF::present_velocity + delta_velocity;
-//                else if (SentryChassisIF::target_position < sentry_present_position)
-//                    /// should be - ???
-//                    SentryChassisIF::target_velocity = SentryChassisIF::present_velocity - delta_velocity;
-//                break; }
 
             case (FINAL_AUTO_MODE):
                 // If we are in the FINAL_AUTO_MODE

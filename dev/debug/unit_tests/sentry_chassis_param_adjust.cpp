@@ -140,7 +140,7 @@ static void cmd_chassis_set_pid(BaseSequentialStream *chp, int argc, char *argv[
     (void) argv;
     if (argc != 7) {
         // shellUsage(chp, "g_set_params bullet(0)/plate(1) NULL(0)/v_to_i(1) ki kp kd i_limit out_limit");
-        shellUsage(chp, "g_set_params 0or1whatever 0or1whatever ki kp kd i_limit out_limit");
+        shellUsage(chp, "g_set_params 0or1whatever p2v(0)/v2i(1)/a2v(2) ki kp kd i_limit out_limit");
         chprintf(chp, "!pe" SHELL_NEWLINE_STR);  // echo parameters error
         return;
     }
@@ -151,9 +151,13 @@ static void cmd_chassis_set_pid(BaseSequentialStream *chp, int argc, char *argv[
                                                   Shell::atof(argv[5]),
                                                   Shell::atof(argv[6])};
 
-
     // SentryChassisSKD::set_pid(*argv[1] == '0', pid_params);
-    SentryChassisSKD::set_pid(2, pid_params);
+    if (*argv[1] == '0')    // a2v -> p2v
+        SentryChassisSKD::set_pid(2, pid_params);
+    if (*argv[1] == '1')    // v2i
+        SentryChassisSKD::set_pid(0, pid_params);
+    if (*argv[1] == '2')    // a2v
+        SentryChassisSKD::set_pid(1, pid_params);
 
     chprintf(chp, "!ps" SHELL_NEWLINE_STR); // echo parameters set
 }
@@ -174,6 +178,11 @@ static void cmd_chassis_print_pid(BaseSequentialStream *chp, int argc, char *arg
 //    SentryChassisSKD::print_pid(false);
     chprintf(chp, "P to V:     ");
     SentryChassisSKD::print_pid(2);
+    chprintf(chp, "A to V:     ");
+    SentryChassisSKD::print_pid(1);
+    chprintf(chp, "V to I:     ");
+    SentryChassisSKD::print_pid(0);
+
 }
 
 /**
@@ -290,6 +299,7 @@ int main(void) {
     Shell::addCommands(chassisCommands);
 
     can1.start(HIGHPRIO - 1);
+    Referee::init();
     SentryChassisIF::init(&can1);
     SentryChassisSKD::sentryChassisThread.start(NORMALPRIO);
     chassisFeedbackThread.start(NORMALPRIO - 1);

@@ -38,7 +38,7 @@ Step 2: MATLAB清空位置 ("g_fix")
 Step 3: 终端输入运动模式 ("c_set_mode")
     DEFAULT STOP_MODE     发送0电流
     1 ONE_STEP_MODE       一个指令运动一段距离后停下
-    2 SHUTTLED_MODE       自动模式，哨兵以当前位置为原点在[-radus, radus]的范围内往复运动
+    2 SHUTTLED_MODE       自动模式，哨兵以当前位置为原点在[-radius, radius]的范围内往复运动
     3 V_MODE
     4 FINAL_AUTO_MODE
 
