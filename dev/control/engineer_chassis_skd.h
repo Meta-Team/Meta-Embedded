@@ -50,6 +50,8 @@ public:
      */
     static void change_pid_params(PIDControllerBase::pid_params_t pid_params);
 
+    static void print_pid();
+
     static void set_velocity(float target_vx_, float target_vy_, float target_w_);
 
     /**
