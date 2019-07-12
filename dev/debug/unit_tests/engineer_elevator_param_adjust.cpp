@@ -26,6 +26,7 @@ unsigned const ELEVATOR_FEEDBACK_INTERVAL = 25; // [ms]
 int const MAX_VELOCITY = {40960};  // absolute maximum, [qc/s]
 int const MAX_CURRENT = 6000;  // [mA]
 
+CANInterface can1(&CAND1);
 CANInterface can2(&CAND2);
 
 
@@ -110,7 +111,8 @@ void cmd_elevator_set_target_velocities(BaseSequentialStream *chp, int argc, cha
         shellUsage(chp, "g_set_v target_velocity NULL");
         return;
     }
-    EngineerElevatorSKD::target_velocity[0] = EngineerElevatorSKD::target_velocity[1] = Shell::atof(argv[0]);
+    PIDControllerBase::pid_params_t p = EngineerElevatorSKD::a2v_pid[0].get_parameters();
+    EngineerElevatorSKD::change_pid_params(2,{p.kp, p.ki, p.kd, p.i_limit, Shell::atof(argv[0])});
 }
 
 static void cmd_elevator_set_target_height(BaseSequentialStream *chp, int argc, char **argv) {
@@ -181,6 +183,7 @@ int main(void) {
     Shell::start(HIGHPRIO);
     Shell::addCommands(elevatorCotrollerCommands);
 
+    can1.start(HIGHPRIO - 1);
     can2.start(HIGHPRIO - 2);
     chThdSleepMilliseconds(10);
     EngineerElevatorIF::init(&can2);
