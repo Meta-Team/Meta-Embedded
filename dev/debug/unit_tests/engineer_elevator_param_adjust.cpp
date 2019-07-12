@@ -19,19 +19,12 @@
 using namespace chibios_rt;
 
 unsigned const R = EngineerElevatorIF::R;
-unsigned const L = EngineerElevatorIF::R;
+unsigned const L = EngineerElevatorIF::L;
 
 unsigned const ELEVATOR_FEEDBACK_INTERVAL = 25; // [ms]
 
 int const MAX_VELOCITY = {40960};  // absolute maximum, [qc/s]
 int const MAX_CURRENT = 6000;  // [mA]
-
-bool elevator_enabled = false;  // for out
-
-bool enable_a2v_pid = false;
-
-float target_angle = 0;
-float target_v = 0;
 
 CANInterface can2(&CAND2);
 
@@ -94,10 +87,11 @@ static void cmd_elevator_enable_fw(BaseSequentialStream *chp, int argc, char *ar
 static void cmd_elevator_enable_feedback(BaseSequentialStream *chp, int argc, char *argv[]) {
     (void) argv;
     if (argc != 2) {
-        shellUsage(chp, "g_enable_fb DELETED");
+        shellUsage(chp, "g_enable_fb right(0/1) left(0/1)");
         return;
     }
-    // Do nothing
+    elevatorFeedbackThread.enable_right_feedback = *argv[0] - '0';
+    elevatorFeedbackThread.enable_left_feedback = *argv[1] - '0';
 }
 
 static void cmd_elevator_fix_front_angle(BaseSequentialStream *chp, int argc, char *argv[]) {
@@ -116,28 +110,19 @@ void cmd_elevator_set_target_velocities(BaseSequentialStream *chp, int argc, cha
         shellUsage(chp, "g_set_v target_velocity NULL");
         return;
     }
-
     EngineerElevatorSKD::target_velocity[0] = EngineerElevatorSKD::target_velocity[1] = Shell::atof(argv[0]);
-    enable_a2v_pid = false;
 }
 
-static void cmd_elevator_set_target_angle(BaseSequentialStream *chp, int argc, char *argv[]) {
+static void cmd_elevator_set_target_height(BaseSequentialStream *chp, int argc, char **argv) {
     (void) argv;
     if (argc != 2) {
         shellUsage(chp, "g_set_angle target_angle NULL");
         return;
     }
 
-    target_angle = Shell::atof(argv[0]);
-    enable_a2v_pid = true;
+    EngineerElevatorSKD::set_target_height(Shell::atof(argv[0]));
 }
 
-/**
- * @brief set pid parameters
- * @param chp
- * @param argc
- * @param argv
- */
 void cmd_elevator_set_parameters(BaseSequentialStream *chp, int argc, char *argv[]) {
     (void) argv;
     if (argc != 7) {
@@ -146,41 +131,22 @@ void cmd_elevator_set_parameters(BaseSequentialStream *chp, int argc, char *argv
         return;
     }
 
-    Elevator::pid_params_t a2v_params = Elevator::a2v_pid[FR].get_parameters();
-    Elevator::pid_params_t v2i_params = Elevator::v2i_pid[FR].get_parameters();
+    PIDControllerBase::pid_params_t p = {Shell::atof(argv[2]),
+                                         Shell::atof(argv[3]),
+                                         Shell::atof(argv[4]),
+                                         Shell::atof(argv[5]),
+                                         Shell::atof(argv[6])};
 
-    Elevator::pid_params_t *p = nullptr;
-    if (*argv[0] == '0' && *argv[1] == '0') p = &a2v_params;
-    else if (*argv[0] == '0' && *argv[1] == '1') p = &v2i_params;
-    else {
-        chprintf(chp, "!pe" SHELL_NEWLINE_STR);  // echo parameters error
-        return;
-    }
-
-    *p = {Shell::atof(argv[2]),
-          Shell::atof(argv[3]),
-          Shell::atof(argv[4]),
-          Shell::atof(argv[5]),
-          Shell::atof(argv[6])};
-
-    Elevator::change_pid_params(a2v_params, v2i_params);
+    if (*argv[1] == '0') EngineerElevatorSKD::change_pid_params(2, p);
+    else EngineerElevatorSKD::change_pid_params(0, p);
 
     chprintf(chp, "!ps" SHELL_NEWLINE_STR); // echo parameters set
 }
 
-/**
- * @brief helper function for cmd_elevator_echo_parameters()
- */
-static inline void _cmd_elevator_echo_parameters(BaseSequentialStream *chp, Elevator::pid_params_t p) {
+static inline void _cmd_elevator_echo_parameters(BaseSequentialStream *chp, PIDControllerBase::pid_params_t p) {
     chprintf(chp, "%f %f %f %f %f" SHELL_NEWLINE_STR, p.kp, p.ki, p.kd, p.i_limit, p.out_limit);
 }
 
-/**
- * @brief echo pid parameters
- * @param chp
- * @param argc
- * @param argv
- */
 void cmd_elevator_echo_parameters(BaseSequentialStream *chp, int argc, char *argv[]) {
     (void) argv;
     if (argc != 0) {
@@ -189,9 +155,9 @@ void cmd_elevator_echo_parameters(BaseSequentialStream *chp, int argc, char *arg
     }
 
     chprintf(chp, "angle_to_v:   ");
-    _cmd_elevator_echo_parameters(chp, Elevator::a2v_pid[FR].get_parameters());
+    _cmd_elevator_echo_parameters(chp, EngineerElevatorSKD::a2v_pid[0].get_parameters());
     chprintf(chp, "v_to_i:       ");
-    _cmd_elevator_echo_parameters(chp, Elevator::v2i_pid[FR].get_parameters());
+    _cmd_elevator_echo_parameters(chp, EngineerElevatorSKD::v2i_pid[0].get_parameters());
 }
 
 // Command lists for elevator controller test and adjustments
@@ -200,73 +166,12 @@ ShellCommand elevatorCotrollerCommands[] = {
         {"g_enable_fb",   cmd_elevator_enable_feedback},
         {"g_fix",         cmd_elevator_fix_front_angle},
         {"g_set_v",       cmd_elevator_set_target_velocities},
-        {"g_set_angle",   cmd_elevator_set_target_angle},
+        {"g_set_angle",   cmd_elevator_set_target_height},
         {"g_set_params",  cmd_elevator_set_parameters},
         {"g_echo_params", cmd_elevator_echo_parameters},
         {"g_enable_fw",   cmd_elevator_enable_fw},
         {nullptr,         nullptr}
 };
-
-
-class ElevatorDebugThread : public BaseStaticThread<1024> {
-protected:
-    void main() final {
-        setName("elevator");
-        while (!shouldTerminate()) {
-
-            // Calculation and check
-            if (elevator_enabled) {
-
-                for (unsigned i = 0; i < MOTOR_COUNT; i++) {
-
-                    if (enable_a2v_pid) {
-                        // Calculate from angle to velocity
-                        Elevator::calc_a2v_((Elevator::motor_id_t) i, Elevator::feedback[i].accmulate_angle, target_angle);
-                    } else {
-                        // Directly fill the target velocity
-                        Elevator::target_velocity[i] = target_v;
-                    }
-
-                    // Perform velocity check
-                    if (Elevator::feedback[i].actual_velocity > MAX_VELOCITY ||
-                        Elevator::feedback[i].actual_velocity < -MAX_VELOCITY) {
-                        Shell::printf("!dyv" SHELL_NEWLINE_STR);
-                        elevator_enabled = false;
-                        continue;
-                    }
-
-                    // Calculate from velocity to current
-                    Elevator::calc_v2i_((Elevator::motor_id_t) i, Elevator::feedback[i].actual_velocity, Elevator::target_velocity[i]);
-                    // NOTE: Elevator::target_velocity[i] is either calculated or filled (see above)
-
-
-                    // Perform current check
-                    if (Elevator::target_current[i] > MAX_CURRENT || Elevator::target_current[i] < -MAX_CURRENT) {
-                        Shell::printf("!dyc" SHELL_NEWLINE_STR);
-                        elevator_enabled = false;
-                        continue;
-                    }
-                }
-
-            }
-
-            // This operation should be after calculation since motor can get disabled if check failed
-            // This operation should always perform, instead of being put in a 'else' block
-            if (!elevator_enabled) {
-                for (unsigned i = 0; i < MOTOR_COUNT; i++) {
-                    Elevator::target_current[i] = 0;
-                }
-            }
-            
-
-            // Send currents
-            Elevator::send_elevator_currents();
-
-            sleep(TIME_MS2I(ELEVATOR_THREAD_INTERVAL));
-        }
-    }
-} elevatorThread;
-
 
 int main(void) {
 
@@ -276,13 +181,15 @@ int main(void) {
     Shell::start(HIGHPRIO);
     Shell::addCommands(elevatorCotrollerCommands);
 
-    can1.start(HIGHPRIO - 1);
     can2.start(HIGHPRIO - 2);
     chThdSleepMilliseconds(10);
-    Elevator::init(&can2);
+    EngineerElevatorIF::init(&can2);
 
     elevatorFeedbackThread.start(NORMALPRIO - 1);
-    elevatorThread.start(NORMALPRIO);
+    EngineerElevatorSKD::engineerElevatorThread.start(NORMALPRIO);
+
+    chThdSleepMilliseconds(500);
+    Buzzer::play_sound(Buzzer::sound_startup_intel, LOWPRIO);
 
     // See chconf.h for what this #define means.
 #if CH_CFG_NO_IDLE_THREAD

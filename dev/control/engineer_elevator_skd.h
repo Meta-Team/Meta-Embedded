@@ -63,6 +63,8 @@ private:
     static PIDController a2v_pid[];
 
     static PIDController counter_balance_pid;
+
+    friend void cmd_elevator_echo_parameters(BaseSequentialStream *chp, int argc, char *argv[]);
 };
 
 
