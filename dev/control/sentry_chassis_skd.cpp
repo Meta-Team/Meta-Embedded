@@ -73,7 +73,7 @@ void SentryChassisSKD::init() {
     prev_terminal = 0;
     next_terminal = 5;
     last_attack_time = 0;
-    set_target_power(20);
+    set_target_power(25);
 }
 
 void SentryChassisSKD::turn_on(){
