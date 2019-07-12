@@ -26,6 +26,7 @@ unsigned const ELEVATOR_FEEDBACK_INTERVAL = 25; // [ms]
 int const MAX_VELOCITY = {40960};  // absolute maximum, [qc/s]
 int const MAX_CURRENT = 6000;  // [mA]
 
+CANInterface can1(&CAND1);
 CANInterface can2(&CAND2);
 
 
@@ -182,6 +183,7 @@ int main(void) {
     Shell::start(HIGHPRIO);
     Shell::addCommands(elevatorCotrollerCommands);
 
+    can1.start(HIGHPRIO - 1);
     can2.start(HIGHPRIO - 2);
     chThdSleepMilliseconds(10);
     EngineerElevatorIF::init(&can2);
