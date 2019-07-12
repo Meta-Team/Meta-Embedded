@@ -21,6 +21,7 @@
 
 CAN交互界面申明：
     CANInterface can1(&CAND1);
+    // 注意：如果只用了一个CAN2，要把CAN1和CAN2两个都开起来！
 
 测试所需的全局变量（内容自定）：
     unsigned const YAW = Gimbal::YAW;

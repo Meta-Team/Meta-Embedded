@@ -76,9 +76,9 @@ class EngineerThread: public chibios_rt::BaseStaticThread<1024>{
                                 EngineerElevatorSKD::aided_motor_enable(false);
                                 break;
                             case Remote::S_DOWN :
-                                EngineerChassisSKD::lock();
-                                EngineerElevatorSKD::elevator_enable(true);
-                                EngineerElevatorSKD::aided_motor_enable(true);
+//                                EngineerChassisSKD::lock();
+//                                EngineerElevatorSKD::elevator_enable(true);
+//                                EngineerElevatorSKD::aided_motor_enable(true);
                                 break;
                         }
 
@@ -125,7 +125,7 @@ class EngineerThread: public chibios_rt::BaseStaticThread<1024>{
                         case Remote::S_UP:
                             break;
                         case Remote::S_MIDDLE:
-                            EngineerChassisSKD::set_velocity(Remote::rc.ch2 * ENGINEER_CHASSIS_VELOCITY_MAX, Remote::rc.ch3 * ENGINEER_CHASSIS_VELOCITY_MAX, Remote::rc.ch0 * ENGINEER_CHASSIS_W_MAX);
+                            EngineerChassisSKD::set_velocity(Remote::rc.ch2 * ENGINEER_CHASSIS_VELOCITY_MAX, Remote::rc.ch3 * ENGINEER_CHASSIS_VELOCITY_MAX, -Remote::rc.ch0 * ENGINEER_CHASSIS_W_MAX);
                             break;
                         case Remote::S_DOWN:
                             EngineerElevatorSKD::set_target_height(EngineerElevatorSKD::target_height + Remote::rc.ch3 * 2);

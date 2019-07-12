@@ -7,6 +7,8 @@
 EngineerChassisSKD::EngineerChassisThread EngineerChassisSKD::engineerChassisThread;
 float EngineerChassisSKD::target_velocity[ENGINEER_CHASSIS_MOTOR_COUNT];
 bool EngineerChassisSKD::enable;
+bool EngineerChassisSKD::time_control;
+time_msecs_t EngineerChassisSKD::test_end_time;
 float EngineerChassisSKD::target_vx;
 float EngineerChassisSKD::target_vy;
 float EngineerChassisSKD::target_w;
@@ -14,6 +16,8 @@ PIDController EngineerChassisSKD::pid[ENGINEER_CHASSIS_MOTOR_COUNT];
 
 void EngineerChassisSKD::init(){
     lock();
+    time_control = false;
+    test_end_time = 0;
     change_pid_params(CHASSIS_PID_V2I_PARAMS);
 }
 
@@ -25,6 +29,11 @@ void EngineerChassisSKD::lock() {
 void EngineerChassisSKD::unlock() {
     enable = true;
     for (PIDController pidController : pid) pidController.clear_i_out();
+}
+
+void EngineerChassisSKD::set_test_end_time(time_msecs_t run_time) {
+    time_control = true;
+    test_end_time = TIME_I2MS(chVTGetSystemTime()) + run_time;
 }
 
 void EngineerChassisSKD::change_pid_params(PIDControllerBase::pid_params_t pid_params) {
@@ -77,8 +86,17 @@ void EngineerChassisSKD::EngineerChassisThread::main() {
     EngineerChassisSKD::init();
 
     while (!shouldTerminate()){
+
+        // if under time_control mode, mainly designed for matlab params adjusting
+        if (time_control) {
+            if (SYSTIME >= test_end_time) {
+                target_vx = target_vy = target_w = 0.0f;
+                Shell::printf("!ce" SHELL_NEWLINE_STR);
+            }
+        }
+
         update_target_current();
         EngineerChassisIF::send_currents();
-        sleep(TIME_MS2I(20));
+        sleep(TIME_MS2I(2));
     }
 }

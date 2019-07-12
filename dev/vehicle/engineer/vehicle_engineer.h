@@ -6,12 +6,12 @@
 #define META_INFANTRY_VEHICLE_ENGINEER_H
 
 /** Mechanism Parameters */
-#define CHASSIS_WHEEL_BASE  600.0f  // distance between front axle and the back axle, mm
-#define CHASSIS_WHEEL_TREAD 560.0f  // distance between left and right wheels, mm
-#define CHASSIS_WHEEL_CIRCUMFERENCE 478.0f  // mm
+#define CHASSIS_WHEEL_BASE  485.0f  // distance between front axle and the back axle, mm
+#define CHASSIS_WHEEL_TREAD 460.0f  // distance between left and right wheels, mm
+#define CHASSIS_WHEEL_CIRCUMFERENCE 479.1f  // mm
 
-#define ENGINEER_CHASSIS_VELOCITY_MAX 10.0f
-#define ENGINEER_CHASSIS_W_MAX 10.0f
+#define ENGINEER_CHASSIS_VELOCITY_MAX 1000.0f
+#define ENGINEER_CHASSIS_W_MAX 150.0f
 #define ENGINEER_AIDED_MOTOR_VELOCITY 600.0f
 #define ANGLE_HEIGHT_RATIO 458.0f  // [degree/cm]
 

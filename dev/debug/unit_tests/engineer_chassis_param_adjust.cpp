@@ -64,12 +64,44 @@ static void cmd_chassis_set_target(BaseSequentialStream *chp, int argc, char *ar
         shellUsage(chp, "c_set_target vx(mm/s) vy(mm/s) w(deg/s, + for ccw) test_time(ms)");
         return;
     }
-
     target_vx = Shell::atof(argv[0]);
     target_vy = Shell::atof(argv[1]);
     target_w = Shell::atof(argv[2]);
-    test_end_time = TIME_I2MS(chVTGetSystemTime()) + (time_msecs_t) Shell::atoi(argv[3]);
 
+    EngineerChassisSKD::set_velocity(target_vx, target_vy, target_w);
+
+    EngineerChassisSKD::set_test_end_time( (time_msecs_t) Shell::atoi(argv[3]));
+
+}
+
+
+static void cmd_chassis_stop(BaseSequentialStream *chp, int argc, char *argv[]) {
+    (void) argv;
+    if (argc != 0) {
+        shellUsage(chp, "s");
+        return;
+    }
+    EngineerChassisSKD::set_velocity(0,0,0);
+}
+
+
+static void cmd_chassis_set_vy(BaseSequentialStream *chp, int argc, char *argv[]) {
+    (void) argv;
+    if (argc != 1) {
+        shellUsage(chp, "r_y vy");
+        return;
+    }
+    EngineerChassisSKD::set_velocity(0, Shell::atoi(argv[0]),0);
+}
+
+
+static void cmd_chassis_set_vx(BaseSequentialStream *chp, int argc, char *argv[]) {
+    (void) argv;
+    if (argc != 1) {
+        shellUsage(chp, "r_x vx");
+        return;
+    }
+    EngineerChassisSKD::set_velocity(Shell::atoi(argv[0]),0,0);
 }
 
 
@@ -102,10 +134,35 @@ static void cmd_chassis_echo_parameters(BaseSequentialStream *chp, int argc, cha
 }
 
 
+static void cmd_chassis_enable(BaseSequentialStream *chp, int argc, char *argv[]) {
+    (void) argv;
+    if (argc != 0) {
+        shellUsage(chp, "c_enable");
+        return;
+    }
+    EngineerChassisSKD::unlock();
+    chprintf(chp, "chassis unlocked");
+}
+
+static void cmd_chassis_disable(BaseSequentialStream *chp, int argc, char *argv[]) {
+    (void) argv;
+    if (argc != 0) {
+        shellUsage(chp, "c_disable");
+        return;
+    }
+    EngineerChassisSKD::lock();
+    chprintf(chp, "chassis locked");
+}
+
 ShellCommand chassisCommands[] = {
         {"c_set_params",  cmd_chassis_set_parameters},
         {"c_set_target",  cmd_chassis_set_target},
+        {"s", cmd_chassis_stop},
+        {"r_y", cmd_chassis_set_vy},
+        {"r_x", cmd_chassis_set_vx},
         {"c_echo_params", cmd_chassis_echo_parameters},
+        {"c_enable", cmd_chassis_enable},
+        {"c_disable", cmd_chassis_disable},
         {nullptr,         nullptr}
 };
 
@@ -126,6 +183,7 @@ int main(void) {
     chassisFeedbackThread.start(NORMALPRIO - 1);
 
     Buzzer::play_sound(Buzzer::sound_startup_intel, LOWPRIO);
+    LED::green_on();
 
     // See chconf.h for what this #define means.
 #if CH_CFG_NO_IDLE_THREAD

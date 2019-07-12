@@ -44,6 +44,8 @@ public:
 
     static void unlock();
 
+    static void set_test_end_time(time_msecs_t run_time);
+
     /**
      * Change parameters of PID controller of every motor
      * @param pid_params
@@ -66,6 +68,9 @@ public:
 private:
 
     static bool enable;
+
+    static bool time_control;
+    static time_msecs_t test_end_time; // [ms]
 
     static float target_vx;
     static float target_vy;
