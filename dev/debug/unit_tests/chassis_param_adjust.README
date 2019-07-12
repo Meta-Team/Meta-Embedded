@@ -66,9 +66,7 @@ CAN交互界面申明：
                                     Shell::atof(argv[2]),
                                     Shell::atof(argv[3]),
                                     Shell::atof(argv[4])});
-        for (int i = 0; i < Chassis::MOTOR_COUNT; i++) {
-            Chassis::pid[i].clear_i_out();
-        }
+        // i_out is already clear when setting pid params
         chprintf(chp, "!cps" SHELL_NEWLINE_STR); // echo chassis parameters set
     }
 
@@ -79,9 +77,9 @@ CAN交互界面申明：
             shellUsage(chp, "c_echo_params");
             return;
         }
-        Chassis::pid_params_t p = Chassis::pid[0].get_parameters();  // all PID params should be the same
-        chprintf(chp, "Chassis PID: %f %f %f %f %f" SHELL_NEWLINE_STR, p.kp, p.ki, p.kd, p.i_limit, p.out_limit);
-    }
+        chprintf(chp, "engineer chassis V to I:    ");
+        EngineerChassisSKD::print_pid();
+        }
 
 Shell指令集（所有通过窗口发送的指令名和相对应的函数名都要在此登记）：
     ShellCommand chassisCommands[] = {

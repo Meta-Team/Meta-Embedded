@@ -34,6 +34,11 @@ void EngineerChassisSKD::change_pid_params(PIDControllerBase::pid_params_t pid_p
     }
 }
 
+void EngineerChassisSKD::print_pid() {
+    PIDControllerBase::pid_params_t to_print = pid[0].get_parameters();
+    LOG("%f %f %f %f %f", to_print.kp, to_print.ki, to_print.kd, to_print.i_limit, to_print.out_limit);
+}
+
 void EngineerChassisSKD::update_target_current() {
 
     if (enable){
