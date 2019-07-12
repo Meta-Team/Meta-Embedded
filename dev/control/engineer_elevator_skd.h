@@ -65,6 +65,8 @@ private:
     static PIDController counter_balance_pid;
 
     friend void cmd_elevator_echo_parameters(BaseSequentialStream *chp, int argc, char *argv[]);
+
+    friend void cmd_elevator_set_target_velocities(BaseSequentialStream *chp, int argc, char *argv[]);
 };
 
 

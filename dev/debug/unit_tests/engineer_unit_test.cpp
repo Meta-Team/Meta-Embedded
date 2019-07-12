@@ -122,7 +122,6 @@ static void cmd_elevator_set_height(BaseSequentialStream *chp, int argc, char *a
         return;
     }
     float new_height = Shell::atof(argv[0]);
-    VAL_CROP(new_height, 30, 0)
     EngineerElevatorSKD::set_target_height(new_height);
 }
 

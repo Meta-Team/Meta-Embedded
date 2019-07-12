@@ -110,7 +110,8 @@ void cmd_elevator_set_target_velocities(BaseSequentialStream *chp, int argc, cha
         shellUsage(chp, "g_set_v target_velocity NULL");
         return;
     }
-    EngineerElevatorSKD::target_velocity[0] = EngineerElevatorSKD::target_velocity[1] = Shell::atof(argv[0]);
+    PIDControllerBase::pid_params_t p = EngineerElevatorSKD::a2v_pid[0].get_parameters();
+    EngineerElevatorSKD::change_pid_params(2,{p.kp, p.ki, p.kd, p.i_limit, Shell::atof(argv[0])});
 }
 
 static void cmd_elevator_set_target_height(BaseSequentialStream *chp, int argc, char **argv) {
