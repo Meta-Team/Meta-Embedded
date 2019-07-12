@@ -100,6 +100,14 @@ private:
 
     static ClientDataSendingThread clientDataSendingThread;
 
+    /// Friend Configure Functions
+    friend void gimbal_get_config(BaseSequentialStream *chp, int argc, char *argv[]);
+    friend void gimbal_set_config(BaseSequentialStream *chp, int argc, char *argv[]);
+    friend void chassis_get_config(BaseSequentialStream *chp, int argc, char *argv[]);
+    friend void chassis_set_config(BaseSequentialStream *chp, int argc, char *argv[]);
+    friend void shoot_get_config(BaseSequentialStream *chp, int argc, char *argv[]);
+    friend void shoot_set_config(BaseSequentialStream *chp, int argc, char *argv[]);
+
 };
 
 

@@ -178,4 +178,18 @@ void Remote::start() {
     uart_synchronize();
 }
 
+Remote::key_t Remote::char2key(const char c) {
+    for (unsigned i = 0; i < KEY_COUNT; i++) {
+        if (c == KEY_CHAR_TABLE[i]) {
+            return (key_t) i;
+        }
+    }
+    return KEY_COUNT;
+}
+
+char Remote::key2char(const Remote::key_t key_index) {
+    if (key_index >= KEY_COUNT) return '\0';
+    return KEY_CHAR_TABLE[key_index];
+}
+
 /** @} */

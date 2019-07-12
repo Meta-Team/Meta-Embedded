@@ -112,7 +112,7 @@ set(INFANTRY
         dev/common/CRC16.cpp
         dev/vehicle/infantry/inspector.cpp
         dev/vehicle/infantry/user.cpp
-        dev/vehicle/infantry/main_infantry.cpp)
+        dev/vehicle/infantry/main_infantry.cpp dev/vehicle/infantry/settings.cpp)
 
 # Main Program -- Infantry #1
 add_executable(INFANTRY_THREE ${INFANTRY})

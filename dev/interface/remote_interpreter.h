@@ -101,6 +101,22 @@ public:
         KEY_COUNT
     };
 
+    /**
+     * Translate char to key index (key_t)
+     * @param c   Char to be translated
+     * @return Key index or KEY_COUNT if fails
+     * @note KEY_SHIFT uses '^', KEY_CTRL uses '#'
+     */
+    static key_t char2key(const char c);
+
+    /**
+     * Translate key index (key_t) to char
+     * @param key_index   Key index to be translated
+     * @return Char corresponding to the key index, or '\0' if fails
+     * @note KEY_SHIFT uses '^', KEY_CTRL uses '#'
+     */
+    static char key2char(const key_t key_index);
+
     typedef union {
         struct {
             bool w:1;
@@ -148,6 +164,8 @@ public:
     static void uart_synchronize();
 
 private:
+
+    static constexpr const char* KEY_CHAR_TABLE = "WSAD^#QERFGZXCVB";
 
     /**
      * Call back function when a frame is completely retrieved

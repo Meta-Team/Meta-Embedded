@@ -28,6 +28,8 @@
 #include "inspector.h"
 #include "user.h"
 
+#include "settings.h"
+
 /// Vehicle Specific Configurations
 #if defined(INFANTRY_THREE)                                                 /** Infantry #3 **/
 #include "vehicle_infantry_three.h"
@@ -71,6 +73,7 @@ int main() {
 
     /// Setup Shell
     Shell::start(THREAD_SHELL_PRIO);
+    Shell::addCommands(mainProgramCommands);
     LED::led_on(1);  // LED 1 on now
 
     /// Setup CAN1
