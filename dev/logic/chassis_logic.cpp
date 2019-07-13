@@ -79,7 +79,7 @@ void ChassisLG::DodgeModeSwitchThread::main() {
         }
         chSysUnlock();  /// ---------------------------------- Exit Critical Zone ----------------------------------
 
-        if (!ABS_IN_RANGE(ChassisSKD::get_actual_theta() - (-target_theta), 20)) {
+        if (!ABS_IN_RANGE(ChassisSKD::get_actual_theta() - (-target_theta), 10)) {
             target_theta = -target_theta;
         }
         /**
