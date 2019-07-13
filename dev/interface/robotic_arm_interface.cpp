@@ -20,7 +20,7 @@ void RoboticArmIF::init(CANInterface *can_interface) {
     palSetPad(GPIOH, GPIOH_POWER2_CTRL);
     palSetPad(GPIOH, GPIOH_POWER1_CTRL);
     chThdSleepMilliseconds(10);
-    clear_angle();
+    present_angle = 0;
 }
 
 void RoboticArmIF::process_feedback(CANRxFrame const *rxmsg) {
@@ -45,10 +45,6 @@ void RoboticArmIF::process_feedback(CANRxFrame const *rxmsg) {
     present_velocity = ((int16_t) (rxmsg->data8[2] << 8 | rxmsg->data8[3])) / motor_decelerate_ratio * 360.0f / 60.0f;
 
     motor_last_update_time = SYSTIME;
-}
-
-void RoboticArmIF::clear_angle() {
-    present_angle = 0;
 }
 
 bool RoboticArmIF::send_current() {

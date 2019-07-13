@@ -88,7 +88,7 @@ target_include_directories(INFANTRY_FOUR PRIVATE dev/vehicle/infantry)
 target_compile_definitions(INFANTRY_FOUR PRIVATE INFANTRY INFANTRY_FOUR ENABLE_STATE_HANDLE)
 
 # Main Program -- Infantry #5
-add_executable(INFANTRY_FIVE ${INFANTRY} dev/control/RoboticArmSKD.cpp dev/control/RoboticArmSKD.h)
+add_executable(INFANTRY_FIVE ${INFANTRY} dev/control/robotic_arm_skd.cpp dev/control/robotic_arm_skd.h)
 target_include_directories(INFANTRY_FIVE PRIVATE dev/vehicle/infantry)
 target_compile_definitions(INFANTRY_FIVE PRIVATE INFANTRY INFANTRY_FIVE ENABLE_STATE_HANDLE)
 
@@ -124,7 +124,7 @@ add_executable(ut_engineer
         dev/interface/engineer_chassis_interface.cpp
         dev/control/engineer_elevator_skd.cpp
         dev/interface/engineer_elevator_interface.cpp
-        dev/control/RoboticArmSKD.cpp
+        dev/control/robotic_arm_skd.cpp
         dev/interface/robotic_arm_interface.cpp
         dev/module/can_interface.cpp)
 
@@ -212,10 +212,10 @@ add_executable(pa_engineer_chassis
 
 # Robotic Arm
 add_executable(ut_robotic_arm
+        dev/debug/unit_tests/engineer_robotic_arm_unit_test.cpp
         dev/module/can_interface.cpp
         dev/interface/robotic_arm_interface.cpp
-        dev/vehicle/engineer/state_machine_bullet_fetch.cpp
-        dev/debug/unit_tests/engineer_robotic_arm_unit_test.cpp)
+        dev/control/robotic_arm_skd.cpp)
 
 # Adjust Params of Skywalker-20A for friction wheels
 add_executable(pa_skywalker

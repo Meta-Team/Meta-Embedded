@@ -40,12 +40,6 @@ public:
      */
     static void init(CANInterface *can_interface);
 
-
-    /**
-     * @brief set current angle as front angle
-     */
-    static void clear_angle();
-
     /**
      * @brief send rotation motor target current
      * @return

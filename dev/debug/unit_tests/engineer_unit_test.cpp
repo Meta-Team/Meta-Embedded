@@ -16,7 +16,7 @@
 
 #include "engineer_chassis_skd.h"
 #include "engineer_elevator_skd.h"
-#include "RoboticArmSKD.h"
+#include "robotic_arm_skd.h"
 
 float c_kp, c_ki, c_kd, c_i_limit, c_out_limit;
 float e_kp, e_ki, e_kd, e_i_limit, e_out_limit;
