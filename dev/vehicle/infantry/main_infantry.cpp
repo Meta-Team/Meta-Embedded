@@ -14,6 +14,7 @@
 #include "can_interface.h"
 #include "ahrs.h"
 #include "remote_interpreter.h"
+#include "sd_card_interface.h"
 
 #include "gimbal_interface.h"
 #include "gimbal_scheduler.h"
@@ -74,6 +75,12 @@ int main() {
     /// Setup Shell
     Shell::start(THREAD_SHELL_PRIO);
     Shell::addCommands(mainProgramCommands);
+
+    /// Setup SDCard
+    if (SDCard::init()) {
+        SDCard::read_all();
+    }
+
     LED::led_on(1);  // LED 1 on now
 
     /// Setup CAN1
@@ -83,7 +90,14 @@ int main() {
     LED::led_on(2);  // LED 2 on now
 
     /// Setup On-Board AHRS
-    ahrs.load_calibration_data(MPU6500_STORED_GYRO_BIAS);
+    Vector3D ahrs_bias;
+    if (SDCard::get_data(MPU6500_BIAS_DATA_ID, &ahrs_bias, sizeof(ahrs_bias))) {
+        ahrs.load_calibration_data(ahrs_bias);
+        LOG("Use AHRS bias in SD Card");
+    } else {
+        ahrs.load_calibration_data(MPU6500_STORED_GYRO_BIAS);
+        LOG_WARN("Use default AHRS bias");
+    }
     ahrs.start(ON_BOARD_AHRS_MATRIX, THREAD_MPU_PRIO, THREAD_IST_PRIO, THREAD_AHRS_PRIO);
     chThdSleepMilliseconds(5);
     Inspector::startup_check_mpu();  // check MPU6500 has signal. Block for 20 ms

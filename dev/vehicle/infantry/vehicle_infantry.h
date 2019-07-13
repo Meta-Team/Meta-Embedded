@@ -27,6 +27,8 @@ static constexpr Matrix33 GIMBAL_GYRO_INSTALLATION_MATRIX = {{0.0f,  -1.0f, 0.0f
                                                              {0.0f,  0.0f,  1.0f},
                                                              {-1.0f, 0.0f,  0.0f}};
 
+#define MPU6500_BIAS_DATA_ID 0x0001
+
 /// Gimbal and Shoot PID Parameters
 #define GIMBAL_PID_YAW_A2V_KP 5.3f
 #define GIMBAL_PID_YAW_A2V_KI 0.0f

@@ -43,6 +43,14 @@ public:
         return Vector3D(a.x / c, a.y / c, a.z / c);
     }
 
+    friend bool operator== (const Vector3D &a, const Vector3D &b) {
+        return (a.x == b.x && a.y == b.y && a.z == b.z);
+    }
+
+    friend bool operator!= (const Vector3D &a, const Vector3D &b) {
+        return !(a == b);
+    }
+
     const Vector3D crossMultiply(Vector3D b) {
         Vector3D ans;
         ans.x = y * b.z - z * b.y;

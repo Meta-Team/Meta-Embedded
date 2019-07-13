@@ -71,7 +71,7 @@ bool Shell::start(tprio_t prio) {
     return true;
 }
 
-bool Shell::addCommands(ShellCommand *commandList) {
+bool Shell::addCommands(const ShellCommand *commandList) {
     int i = 0;
     while (i < SHELL_MAX_COMMAND_COUNT && shellCommands_[i].sc_name != nullptr) i++;
     while (i < SHELL_MAX_COMMAND_COUNT && commandList->sc_name != nullptr) {

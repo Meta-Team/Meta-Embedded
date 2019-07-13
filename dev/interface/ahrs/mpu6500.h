@@ -176,6 +176,7 @@ private:
                                      MPU6500_ADLPF_20HZ};     // Accel digital low-pass filter 20Hz
 
     friend void cmd_echo_gyro_bias(BaseSequentialStream *chp, int argc, char *argv[]);
+    friend class AHRSCalibrationThread;
 };
 
 #endif

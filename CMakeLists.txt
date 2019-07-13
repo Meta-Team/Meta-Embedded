@@ -146,7 +146,7 @@ add_executable(ENGINEER
         dev/vehicle/engineer/main_engineer.cpp
         dev/control/elevator.cpp dev/vehicle/engineer/thread_chassis.cpp dev/vehicle/engineer/thread_elevator.cpp)
 target_include_directories(ENGINEER PRIVATE dev/vehicle/engineer)
-target_compile_definitions(ENGINEER PRIVATE ENGINEER ENABLE_STATE_HANDLE)
+target_compile_definitions(ENGINEER PRIVATE ENGINEER)
 
 # Main Program -- Hero
 add_executable(HERO
@@ -160,7 +160,7 @@ add_executable(HERO
         dev/vehicle/hero/user.cpp
         dev/vehicle/hero/main_hero.cpp)
 target_include_directories(HERO PRIVATE dev/vehicle/hero)
-target_compile_definitions(HERO PRIVATE HERO ENABLE_STATE_HANDLE)
+target_compile_definitions(HERO PRIVATE HERO)
 target_link_libraries(HERO ${PROJECT_SOURCE_DIR}/dev/interface/ahrs/ahrs_lib.lib)
 
 # Blink
@@ -296,9 +296,36 @@ add_executable(ut_vision_port
         dev/interface/vision_port.cpp
         dev/debug/unit_tests/ut_vision_port.cpp)
 
-# Template Unit Test
-add_executable(ut_template
-        dev/debug/unit_tests/unit_test_template.cpp)
+add_executable(ut_sd_card
+        dev/interface/sd_card_interface.cpp
+        dev/common/CRC16.cpp
+        dev/debug/unit_tests/ut_sd_card.cpp)
+
+add_executable(ca_ahrs_infantry
+        dev/interface/ahrs/ahrs_math.hpp
+        dev/interface/ahrs/mpu6500.cpp
+        dev/interface/ahrs/ist8310.cpp
+        dev/interface/ahrs/ahrs_lib_middleware.c
+        dev/interface/ahrs/ahrs.cpp
+        dev/common/CRC16.cpp
+        dev/interface/sd_card_interface.cpp
+        dev/debug/unit_tests/ca_ahrs.cpp)
+target_link_libraries(ca_ahrs_infantry ${PROJECT_SOURCE_DIR}/dev/interface/ahrs/ahrs_lib.lib)
+target_include_directories(ca_ahrs_infantry PRIVATE dev/vehicle/infantry)
+target_compile_definitions(ca_ahrs_infantry PRIVATE INFANTRY)
+
+add_executable(ca_ahrs_hero
+        dev/interface/ahrs/ahrs_math.hpp
+        dev/interface/ahrs/mpu6500.cpp
+        dev/interface/ahrs/ist8310.cpp
+        dev/interface/ahrs/ahrs_lib_middleware.c
+        dev/interface/ahrs/ahrs.cpp
+        dev/common/CRC16.cpp
+        dev/interface/sd_card_interface.cpp
+        dev/debug/unit_tests/ca_ahrs.cpp)
+target_link_libraries(ca_ahrs_hero ${PROJECT_SOURCE_DIR}/dev/interface/ahrs/ahrs_lib.lib)
+target_include_directories(ca_ahrs_hero PRIVATE dev/vehicle/hero)
+target_compile_definitions(ca_ahrs_hero PRIVATE HERO)
 
 # =========== Post Configurations for all targets ===========
 

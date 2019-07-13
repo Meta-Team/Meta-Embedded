@@ -72,10 +72,10 @@ public:
 
     /**
      * Add shell commands
-     * @param command_list   NULL-terminate command lsit
+     * @param commandList   NULL-terminate command lsit
      * @return If one or more commands can't be added because the maximum command count has been reached, return false
      */
-    static bool addCommands(ShellCommand *command_list);
+    static bool addCommands(const ShellCommand *commandList);
 
     /**
      * Print with format through shell
