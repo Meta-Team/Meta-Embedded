@@ -594,10 +594,10 @@
                                      PIN_OSPEED_HIGH(GPIOC_PIN15))
 #define VAL_GPIOC_PUPDR             (PIN_PUPDR_FLOATING(GPIOC_OTG_FS_POWER_ON) |\
                                      PIN_PUPDR_PULLUP(GPIOC_PIN1) |         \
-                                     PIN_PUPDR_PULLUP(GPIOC_ADC1_IN12) |         \
-                                     PIN_PUPDR_PULLUP(GPIOC_ADC1_IN13) |      \
-                                     PIN_PUPDR_PULLUP(GPIOC_ADC1_IN14) |         \
-                                     PIN_PUPDR_PULLUP(GPIOC_ADC1_IN15) |         \
+                                     PIN_PUPDR_FLOATING(GPIOC_ADC1_IN12) |         \
+                                     PIN_PUPDR_FLOATING(GPIOC_ADC1_IN13) |      \
+                                     PIN_PUPDR_FLOATING(GPIOC_ADC1_IN14) |         \
+                                     PIN_PUPDR_FLOATING(GPIOC_ADC1_IN15) |         \
                                      PIN_PUPDR_PULLUP(GPIOC_PIN6) |         \
                                      PIN_PUPDR_FLOATING(GPIOC_MCLK) |       \
                                      PIN_PUPDR_PULLUP(GPIOC_PIN8) |         \

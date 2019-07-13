@@ -230,8 +230,8 @@ add_executable(ut_sentry_chassis
         dev/debug/unit_tests/sentry_chassis_unit_test.cpp)
 
 # Template Unit Test
-add_executable(ut_template
-        dev/debug/unit_tests/unit_test_template.cpp)
+add_executable(ut_adc
+        dev/debug/unit_tests/ut_adc.cpp)
 
 # =========== Post Configurations for all targets ===========
 
