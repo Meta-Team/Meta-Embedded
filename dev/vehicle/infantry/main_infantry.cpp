@@ -15,6 +15,8 @@
 #include "ahrs.h"
 #include "remote_interpreter.h"
 #include "sd_card_interface.h"
+#include "vision_port.h"
+#include "super_capacitor_port.h"
 
 #include "gimbal_interface.h"
 #include "gimbal_scheduler.h"
@@ -39,9 +41,8 @@
 #elif defined(INFANTRY_FIVE)                                                /** Infantry #5 **/
 
 #include "vehicle_infantry_five.h"
-
 #else
-#error "main_infantry.cpp should only be used for Infantry #3, #4, #5."
+#error "File main_infantry.cpp should only be used for Infantry #3, #4, #5."
 #endif
 
 /// Board Guard
@@ -54,6 +55,10 @@
 CANInterface can1(&CAND1);
 AHRSOnBoard ahrs;
 
+/// Local Constants
+static const Matrix33 ON_BOARD_AHRS_MATRIX_ = ON_BOARD_AHRS_MATRIX;
+static const Matrix33 GIMBAL_ANGLE_INSTALLATION_MATRIX_ = GIMBAL_ANGLE_INSTALLATION_MATRIX;
+static const Matrix33 GIMBAL_GYRO_INSTALLATION_MATRIX_ = GIMBAL_GYRO_INSTALLATION_MATRIX;
 
 int main() {
 
@@ -79,15 +84,16 @@ int main() {
     /// Setup SDCard
     if (SDCard::init()) {
         SDCard::read_all();
+        LED::led_on(DEV_BOARD_LED_SD_CARD);  // LED 8 on if SD card inserted
     }
 
-    LED::led_on(1);  // LED 1 on now
+    LED::led_on(DEV_BOARD_LED_SYSTEM_INIT);  // LED 1 on now
 
     /// Setup CAN1
     can1.start(THREAD_CAN1_PRIO);
     chThdSleepMilliseconds(5);
     Inspector::startup_check_can();  // check no persistent CAN Error. Block for 100 ms
-    LED::led_on(2);  // LED 2 on now
+    LED::led_on(DEV_BOARD_LED_CAN);  // LED 2 on now
 
     /// Setup On-Board AHRS
     Vector3D ahrs_bias;
@@ -98,32 +104,32 @@ int main() {
         ahrs.load_calibration_data(MPU6500_STORED_GYRO_BIAS);
         LOG_WARN("Use default AHRS bias");
     }
-    ahrs.start(ON_BOARD_AHRS_MATRIX, THREAD_MPU_PRIO, THREAD_IST_PRIO, THREAD_AHRS_PRIO);
+    ahrs.start(ON_BOARD_AHRS_MATRIX_, THREAD_MPU_PRIO, THREAD_IST_PRIO, THREAD_AHRS_PRIO);
     chThdSleepMilliseconds(5);
     Inspector::startup_check_mpu();  // check MPU6500 has signal. Block for 20 ms
     Inspector::startup_check_ist();  // check IST8310 has signal. Block for 20 ms
-    LED::led_on(3);  // LED 3 on now
+    LED::led_on(DEV_BOARD_LED_AHRS);  // LED 3 on now
 
     /// Setup Remote
     Remote::start();
     Inspector::startup_check_remote();  // check Remote has signal. Block for 50 ms
-    LED::led_on(4);  // LED 4 on now
+    LED::led_on(DEV_BOARD_LED_REMOTE);  // LED 4 on now
 
 
     /// Setup GimbalIF (for Gimbal and Shoot)
     GimbalIF::init(&can1, GIMBAL_YAW_FRONT_ANGLE_RAW, GIMBAL_PITCH_FRONT_ANGLE_RAW);
     chThdSleepMilliseconds(10);
     Inspector::startup_check_gimbal_feedback(); // check gimbal motors has continuous feedback. Block for 20 ms
-    LED::led_on(5);  // LED 5 on now
+    LED::led_on(DEV_BOARD_LED_GIMBAL);  // LED 5 on now
 
 
     /// Setup ChassisIF
     ChassisIF::init(&can1);
     chThdSleepMilliseconds(10);
     Inspector::startup_check_chassis_feedback();  // check chassis motors has continuous feedback. Block for 20 ms
-    LED::led_on(6);  // LED 6 on now
-
-
+    LED::led_on(DEV_BOARD_LED_CHASSIS);  // LED 6 on now
+    
+    
     /// Setup Red Spot Laser
     palSetPad(GPIOG, GPIOG_RED_SPOT_LASER);  // enable the red spot laser
 
@@ -132,9 +138,12 @@ int main() {
 
     /// Setup VisionPort
     VisionPort::init();
+    
+    /// Setup SuperCapacitor Port
+    SuperCapacitor::init(&can1);
 
     /// Complete Period 1
-    LED::green_on(); // LED Green on now
+    LED::green_on();  // LED Green on now
 
 
     /*** ------------ Period 2. Calibration and Start Logic Control Thread ----------- ***/
@@ -145,7 +154,7 @@ int main() {
         GimbalIF::feedback[GimbalIF::PITCH].last_angle_raw, GimbalIF::feedback[GimbalIF::PITCH].actual_angle);
 
     /// Start SKDs
-    GimbalSKD::start(&ahrs, GIMBAL_ANGLE_INSTALLATION_MATRIX, GIMBAL_GYRO_INSTALLATION_MATRIX,
+    GimbalSKD::start(&ahrs, GIMBAL_ANGLE_INSTALLATION_MATRIX_, GIMBAL_GYRO_INSTALLATION_MATRIX_,
                      GIMBAL_YAW_INSTALL_DIRECTION, GIMBAL_PITCH_INSTALL_DIRECTION, THREAD_GIMBAL_SKD_PRIO);
     GimbalSKD::load_pid_params(GIMBAL_PID_YAW_A2V_PARAMS, GIMBAL_PID_YAW_V2I_PARAMS,
                                GIMBAL_PID_PITCH_A2V_PARAMS, GIMBAL_PID_PITCH_V2I_PARAMS);
@@ -158,7 +167,6 @@ int main() {
     ChassisSKD::load_pid_params(CHASSIS_PID_THETA2V_PARAMS, CHASSIS_PID_V2I_PARAMS);
 
     /// Start LGs
-    // GimbalLG does not need initialization
     GimbalLG::init(THREAD_GIMBAL_LG_VISION_PRIO);
     ShootLG::init(SHOOT_DEGREE_PER_BULLET, THREAD_SHOOT_LG_STUCK_DETECT_PRIO, THREAD_SHOOT_BULLET_COUNTER_PRIO);
     ChassisLG::init(THREAD_CHASSIS_LG_DODGE_PRIO);

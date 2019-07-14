@@ -75,6 +75,7 @@ public:
  */
 #define GIMBAL_INTERFACE_ENABLE_CLIP  FALSE
 
+
 #if GIMBAL_INTERFACE_ENABLE_CLIP
 #define GIMBAL_INTERFACE_MAX_CURRENT 5000
 #define GIMBAL_INTERFACE_BULLET_LOADER_MAX_CURRENT 5000
@@ -121,7 +122,7 @@ public:
         int round_count = 0;
 
         /**
-         * Last update time since system started
+         * Last update time (ms, from system start)
          */
         time_msecs_t last_update_time = 0;
 

@@ -46,7 +46,7 @@ int ShootLG::get_bullet_count() {
 
 void ShootLG::set_friction_wheels(float duty_cycle) {
     ShootSKD::set_friction_wheels(duty_cycle);
-    Referee::set_client_light(FW_STATUS_LIGHT_INDEX, (duty_cycle != 0));
+    Referee::set_client_light(USER_CLIENT_FW_STATE_LIGHT, (duty_cycle != 0));
     // Sending client data will be complete by higher level thread
 }
 
@@ -129,6 +129,9 @@ void ShootLG::BulletCounterThread::main() {
 
         eventflags_t flags = chEvtGetAndClearFlags(&data_received_listener);
 
+        // Toggle Referee LED if any data is received
+        LED::led_toggle(DEV_BOARD_LED_REFEREE);
+
         // Add bullets
         if (flags == Referee::SUPPLY_PROJECTILE_ACTION_CMD_ID &&
             Referee::supply_projectile_action.supply_robot_id == Referee::get_self_id() &&
@@ -137,12 +140,7 @@ void ShootLG::BulletCounterThread::main() {
             bullet_count += (int) (Referee::supply_projectile_action.supply_projectile_num * 1.0f);
         }
 
-        // Shoot bullets, DISCARDED since client display shooting count itself
-        /*if (flags == Referee::SHOOT_DATA_CMD_ID) {
-            bullet_count -= Referee::shoot_data.bullet_freq;
-        }*/
-
-        Referee::set_client_number(1, bullet_count);
+        Referee::set_client_number(USER_CLIENT_ACQUIRED_BULLET_NUM, bullet_count);
     }
 }
 

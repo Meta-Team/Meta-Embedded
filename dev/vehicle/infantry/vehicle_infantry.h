@@ -6,10 +6,12 @@
 #ifndef META_INFANTRY_VEHICLE_INFANTRY_H
 #define META_INFANTRY_VEHICLE_INFANTRY_H
 
+
+
 /// AHRS Configurations
-static constexpr Matrix33 ON_BOARD_AHRS_MATRIX = {{0.0f, 0.0f, 1.0f},
-                                                  {1.0f, 0.0f, 0.0f},
-                                                  {0.0f, 1.0f, 0.0f}};
+#define ON_BOARD_AHRS_MATRIX {{0.0f, 0.0f, 1.0f}, \
+                              {1.0f, 0.0f, 0.0f}, \
+                              {0.0f, 1.0f, 0.0f}}
 
 
 /// Gimbal and Shoot Installation Configurations
@@ -18,14 +20,14 @@ static constexpr Matrix33 ON_BOARD_AHRS_MATRIX = {{0.0f, 0.0f, 1.0f},
 #define SHOOT_BULLET_INSTALL_DIRECTION (ShootSKD::POSITIVE)
 #define SHOOT_DEGREE_PER_BULLET 40.0f  // rotation degree of bullet loader for each bullet
 
-static constexpr Matrix33 GIMBAL_ANGLE_INSTALLATION_MATRIX = {{1.0f, 0.0f, 0.0f},
-                                                              {0.0f, 1.0f, 0.0f},
-                                                              {0.0f, 0.0f, -1.0f}};
+#define GIMBAL_ANGLE_INSTALLATION_MATRIX {{1.0f, 0.0f, 0.0f}, \
+                                          {0.0f, 1.0f, 0.0f}, \
+                                          {0.0f, 0.0f, -1.0f}}
 
 
-static constexpr Matrix33 GIMBAL_GYRO_INSTALLATION_MATRIX = {{0.0f,  -1.0f, 0.0f},
-                                                             {0.0f,  0.0f,  1.0f},
-                                                             {-1.0f, 0.0f,  0.0f}};
+#define GIMBAL_GYRO_INSTALLATION_MATRIX {{0.0f,  -1.0f, 0.0f}, \
+                                         {0.0f,  0.0f,  1.0f}, \
+                                         {-1.0f, 0.0f,  0.0f}}
 
 #define MPU6500_BIAS_DATA_ID 0x0001
 
@@ -33,8 +35,8 @@ static constexpr Matrix33 GIMBAL_GYRO_INSTALLATION_MATRIX = {{0.0f,  -1.0f, 0.0f
 #define GIMBAL_PID_YAW_A2V_KP 5.3f
 #define GIMBAL_PID_YAW_A2V_KI 0.0f
 #define GIMBAL_PID_YAW_A2V_KD 0.18f
-#define GIMBAL_PID_YAW_A2V_I_LIMIT 1000.0f
-#define GIMBAL_PID_YAW_A2V_OUT_LIMIT 3000.0f
+#define GIMBAL_PID_YAW_A2V_I_LIMIT 720.0f
+#define GIMBAL_PID_YAW_A2V_OUT_LIMIT 720.0f
 #define GIMBAL_PID_YAW_A2V_PARAMS \
     {GIMBAL_PID_YAW_A2V_KP, GIMBAL_PID_YAW_A2V_KI, GIMBAL_PID_YAW_A2V_KD, \
     GIMBAL_PID_YAW_A2V_I_LIMIT, GIMBAL_PID_YAW_A2V_OUT_LIMIT}
@@ -51,8 +53,8 @@ static constexpr Matrix33 GIMBAL_GYRO_INSTALLATION_MATRIX = {{0.0f,  -1.0f, 0.0f
 #define GIMBAL_PID_PITCH_A2V_KP 10.0f
 #define GIMBAL_PID_PITCH_A2V_KI 0.0f
 #define GIMBAL_PID_PITCH_A2V_KD 0.75f
-#define GIMBAL_PID_PITCH_A2V_I_LIMIT 1000.0f
-#define GIMBAL_PID_PITCH_A2V_OUT_LIMIT 3000.0f
+#define GIMBAL_PID_PITCH_A2V_I_LIMIT 720.0f
+#define GIMBAL_PID_PITCH_A2V_OUT_LIMIT 720.0f
 #define GIMBAL_PID_PITCH_A2V_PARAMS \
     {GIMBAL_PID_PITCH_A2V_KP, GIMBAL_PID_PITCH_A2V_KI, GIMBAL_PID_PITCH_A2V_KD, \
     GIMBAL_PID_PITCH_A2V_I_LIMIT, GIMBAL_PID_PITCH_A2V_OUT_LIMIT}
@@ -129,5 +131,31 @@ static constexpr Matrix33 GIMBAL_GYRO_INSTALLATION_MATRIX = {{0.0f,  -1.0f, 0.0f
 #define THREAD_SHELL_PRIO                   (LOWPRIO + 5)
 #define THREAD_BUZZER_PRIO                  (LOWPRIO + 1)
 #define THREAD_IDEAL_PRIO                   (LOWPRIO)
+
+/// Dev Board LED Usage List
+#define DEV_BOARD_LED_SYSTEM_INIT 1
+#define DEV_BOARD_LED_CAN         2
+#define DEV_BOARD_LED_AHRS        3
+#define DEV_BOARD_LED_REMOTE      4
+#define DEV_BOARD_LED_GIMBAL      5
+#define DEV_BOARD_LED_CHASSIS     6
+#define DEV_BOARD_LED_REFEREE     7  // used in infantry ShootLG BulletCounterThread
+#define DEV_BOARD_LED_SD_CARD     8
+
+/// User Client Usage List
+#define USER_CLIENT_FW_STATE_LIGHT                  0
+#define USER_CLIENT_DODGE_MODE_LIGHT                1
+#define USER_CLIENT_SUPER_CAPACITOR_STATUS_LIGHT    2
+#define USER_CLIENT_SPEED_LEVEL_3_LIGHT             3
+#define USER_CLIENT_SPEED_LEVEL_2_LIGHT             4
+#define USER_CLIENT_SPEED_LEVEL_1_LIGHT             5
+
+#define USER_CLIENT_ACQUIRED_BULLET_NUM             1
+#define USER_CLIENT_ACTUAL_POWER_NUM                2
+#define USER_CLIENT_SUPER_CAPACITOR_VOLTAGE_NUM     3
+
+/// Super Capacitor Configurations
+#define SUPER_CAPACITOR_WARNING_VOLTAGE   18
+
 
 #endif //META_INFANTRY_VEHICLE_INFANTRY_H

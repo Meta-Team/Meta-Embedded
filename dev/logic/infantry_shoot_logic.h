@@ -15,6 +15,12 @@
 
 #include "ch.hpp"
 
+#if defined(INFANTRY)
+#include "vehicle_infantry.h"
+#else
+#error "Files infantry_shoot_logic.h/cpp should only be used for Infantry main program"
+#endif
+
 /**
  * @name ShootLG
  * @note LG stands for "logic"
@@ -96,9 +102,6 @@ private:
     static float shoot_target_number;
 
     static shooter_state_t shooter_state;
-
-    static constexpr unsigned FW_STATUS_LIGHT_INDEX = 0;
-
 
 
     /// Stuck Detector

@@ -15,6 +15,12 @@
 #include "chassis_interface.h"
 #include "gimbal_interface.h"
 
+#if defined(INFANTRY)
+#include "vehicle_infantry.h"
+#else
+#error "Files inspector.h/cpp should only be used for Infantry main program"
+#endif
+
 class Inspector {
 
 public:

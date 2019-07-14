@@ -129,7 +129,7 @@ void MPUOnBoard::update() {
         temp_accel_bias = temp_accel_bias + accel;
 #endif
     } else {  // MPU6500 moves
-        LED::led_toggle(8);
+//        LED::led_toggle(8);
         static_measurement_count = 0;
         temp_gyro_bias = Vector3D(0, 0, 0);
 #if MPU6500_ENABLE_ACCEL_BIAS
@@ -155,7 +155,7 @@ void MPUOnBoard::update() {
     /// Perform gyro re-bias
 
     if (static_measurement_count >= BIAS_SAMPLE_COUNT) {
-        LED::led_toggle(7);
+//        LED::led_toggle(7);
         gyro_bias = temp_gyro_bias / BIAS_SAMPLE_COUNT;
 #if MPU6500_ENABLE_ACCEL_BIAS
         if (last_calibration_time == 0) {

@@ -78,7 +78,6 @@ void Referee::uart_rx_callback(UARTDriver *uartp) {
     switch (rx_status) {
 
         case WAIT_STARTING_BYTE:
-            LED::green_toggle();
             if (pak_uint8[0] == 0xA5) {
                 rx_status = WAIT_REMAINING_HEADER;
             }

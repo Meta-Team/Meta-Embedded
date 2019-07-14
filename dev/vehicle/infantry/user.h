@@ -9,6 +9,7 @@
 
 #include "remote_interpreter.h"
 #include "referee_interface.h"
+#include "super_capacitor_port.h"
 
 #include "gimbal_logic.h"
 #include "infantry_shoot_logic.h"
@@ -51,6 +52,9 @@ private:
     static float shoot_common_duty_cycle;
 
     static Remote::key_t shoot_fw_switch;
+
+    /// Helpers
+    static void set_user_client_speed_light_(int level);
 
     /// User Thread
     static constexpr unsigned USER_THREAD_INTERVAL = 7;  // [ms]

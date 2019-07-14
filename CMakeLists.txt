@@ -107,7 +107,9 @@ set(INFANTRY
         ${INFANTRY_SHOOT_SRC}
         ${CHASSIS_SRC}
         dev/interface/vision_port.cpp
+        dev/interface/super_capacitor_port.cpp
         dev/interface/referee_interface.cpp
+        dev/interface/sd_card_interface.cpp
         dev/common/CRC8.cpp
         dev/common/CRC16.cpp
         dev/vehicle/infantry/inspector.cpp
@@ -181,7 +183,6 @@ add_executable(pa_hero_shoot
 target_compile_definitions(pa_hero_shoot PUBLIC HERO)
 
 # Shoot: include CANInterface, GimbalIF, GimbalController, GimbalFeedbackThread and adjustment modules.
-# Shoot
 add_executable(pa_infantry_shoot
         dev/interface/can_interface.cpp
         dev/interface/gimbal_interface.cpp

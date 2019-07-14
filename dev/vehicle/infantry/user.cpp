@@ -45,9 +45,7 @@ void User::start(tprio_t user_thd_prio, tprio_t user_action_thd_prio, tprio_t cl
     clientDataSendingThread.start(client_data_sending_thd_prio);
 
     // Normal speed, 2 lights from right
-    Referee::set_client_light(3, false);
-    Referee::set_client_light(4, true);
-    Referee::set_client_light(5, true);
+    set_user_client_speed_light_(2);
 }
 
 void User::UserThread::main() {
@@ -95,26 +93,20 @@ void User::UserThread::main() {
                     yaw_sensitivity = gimbal_pc_yaw_sensitivity[0];
                     pitch_sensitivity = gimbal_pc_pitch_sensitivity[0];
 
-                    // High speed, 3 lights from right
-                    Referee::set_client_light(3, false);
-                    Referee::set_client_light(4, false);
-                    Referee::set_client_light(5, true);
+                    // Slow speed, 3 lights from right
+                    set_user_client_speed_light_(1);
                 } else if (Remote::key.shift) {
                     yaw_sensitivity = gimbal_pc_yaw_sensitivity[2];
                     pitch_sensitivity = gimbal_pc_pitch_sensitivity[2];
 
-                    // Slow speed, 1 light from right
-                    Referee::set_client_light(3, true);
-                    Referee::set_client_light(4, true);
-                    Referee::set_client_light(5, true);
+                    // High speed, 1 light from right
+                    set_user_client_speed_light_(3);
                 } else {
                     yaw_sensitivity = gimbal_pc_yaw_sensitivity[1];
                     pitch_sensitivity = gimbal_pc_pitch_sensitivity[1];
 
                     // Normal speed, 2 lights from right
-                    Referee::set_client_light(3, false);
-                    Referee::set_client_light(4, true);
-                    Referee::set_client_light(5, true);
+                    set_user_client_speed_light_(2);
                 }
                 // Referee client data will be sent by ClientDataSendingThread
 
@@ -260,6 +252,12 @@ void User::UserThread::main() {
     }
 }
 
+void User::set_user_client_speed_light_(int level) {
+    Referee::set_client_light(USER_CLIENT_SPEED_LEVEL_3_LIGHT, (level >= 3));
+    Referee::set_client_light(USER_CLIENT_SPEED_LEVEL_2_LIGHT, (level >= 2));
+    Referee::set_client_light(USER_CLIENT_SPEED_LEVEL_1_LIGHT, (level >= 1));
+}
+
 void User::UserActionThread::main() {
     setName("User_Action");
 
@@ -331,8 +329,33 @@ void User::UserActionThread::main() {
 
 void User::ClientDataSendingThread::main() {
     setName("User_Client");
+
+    bool super_capacitor_light_status_ = false;
+
     while (!shouldTerminate()) {
+
+        /// Super Capacitor
+
+        // TODO: determine feedback interval
+        if (SYSTIME - SuperCapacitor::last_feedback_time < 1000) {
+            Referee::set_client_number(USER_CLIENT_ACTUAL_POWER_NUM, SuperCapacitor::feedback.output_power);
+            Referee::set_client_number(USER_CLIENT_SUPER_CAPACITOR_VOLTAGE_NUM,
+                                       SuperCapacitor::feedback.capacitor_voltage);
+            if (SuperCapacitor::feedback.capacitor_voltage > SUPER_CAPACITOR_WARNING_VOLTAGE) {
+                super_capacitor_light_status_ = true;
+            } else {
+                super_capacitor_light_status_ = not super_capacitor_light_status_;  // blink voltage light
+            }
+        } else {
+            Referee::set_client_number(USER_CLIENT_ACTUAL_POWER_NUM, 0);
+            Referee::set_client_number(USER_CLIENT_SUPER_CAPACITOR_VOLTAGE_NUM, 0);
+            super_capacitor_light_status_ = false;
+        }
+        Referee::set_client_light(USER_CLIENT_SUPER_CAPACITOR_STATUS_LIGHT, super_capacitor_light_status_);
+
+        /// Send data
         Referee::send_data(Referee::CLIENT);
+
         sleep(TIME_MS2I(CLIENT_DATA_SENDING_THREAD_INTERVAL));
     }
 }

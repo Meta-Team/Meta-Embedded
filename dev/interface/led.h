@@ -81,7 +81,7 @@ public:
 
     /**
      * Turn on indexed green LED on RM Board 2018 A
-     * @param i   LED index
+     * @param i   LED index [1-8]
      */
     static void led_on(unsigned i) {
         if (i >= 1 && i <= 8) LED_PAD_ON(GPIOG, i);
@@ -89,7 +89,7 @@ public:
 
     /**
      * Turn off indexed green LED on RM Board 2018 A
-     * @param i   LED index
+     * @param i   LED index [1-8]
      */
     static void led_off(unsigned i) {
         if (i >= 1 && i <= 8) LED_PAD_OFF(GPIOG, i);
@@ -97,7 +97,7 @@ public:
 
     /**
      * Toggle indexed green LED on RM Board 2018 A
-     * @param i   LED index
+     * @param i   LED index [1-8]
      */
     static void led_toggle(unsigned i) {
         if (i >= 1 && i <= 8) palTogglePad(GPIOG, i);
