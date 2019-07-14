@@ -231,7 +231,8 @@ add_executable(ut_sentry_chassis
 
 # Template Unit Test
 add_executable(ut_adc
-        dev/debug/unit_tests/ut_adc.cpp)
+        dev/debug/unit_tests/ut_adc.cpp
+        dev/interface/dms_interface.cpp)
 
 # =========== Post Configurations for all targets ===========
 
