@@ -98,7 +98,7 @@ int main() {
 
     /// Setup On-Board AHRS
     Vector3D ahrs_bias;
-    if (SDCard::get_data(MPU6500_BIAS_DATA_ID, &ahrs_bias, sizeof(ahrs_bias))) {
+    if (SDCard::get_data(MPU6500_BIAS_DATA_ID, &ahrs_bias, sizeof(ahrs_bias)) == SDCard::OK) {
         ahrs.load_calibration_data(ahrs_bias);
         LOG("Use AHRS bias in SD Card");
     } else {
@@ -118,6 +118,7 @@ int main() {
 
 
     /// Setup GimbalIF (for Gimbal and Shoot)
+    chThdSleepMilliseconds(2000);  // wait for C610 to be online
     GimbalIF::init(&can1, GIMBAL_YAW_FRONT_ANGLE_RAW, GIMBAL_PITCH_FRONT_ANGLE_RAW,
                    GIMBAL_YAW_MOTOR_TYPE, GIMBAL_PITCH_MOTOR_TYPE, SHOOT_BULLET_MOTOR_TYPE);
     chThdSleepMilliseconds(10);

@@ -98,7 +98,7 @@ private:
     /// Referee Client Data Sending Thread
     static constexpr unsigned CLIENT_DATA_SENDING_THREAD_INTERVAL = 10;  // [ms]
 
-    class ClientDataSendingThread : public chibios_rt::BaseStaticThread<256> {
+    class ClientDataSendingThread : public chibios_rt::BaseStaticThread<512> {
         void main() final;
     };
 
