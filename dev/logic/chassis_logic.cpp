@@ -11,7 +11,6 @@
  */
 
 #include "chassis_logic.h"
-
 #include "chassis_scheduler.h"
 
 ChassisLG::action_t ChassisLG::action = FORCED_RELAX_MODE;
@@ -19,13 +18,15 @@ float ChassisLG::target_vx;
 float ChassisLG::target_vy;
 float ChassisLG::target_theta;
 
+float ChassisLG::dodge_mode_theta_ = 0;
 tprio_t ChassisLG::dodge_thread_prio;
 ChassisLG::DodgeModeSwitchThread ChassisLG::dodgeModeSwitchThread;
 chibios_rt::ThreadReference ChassisLG::dodgeThreadReference;
 
 
-void ChassisLG::init(tprio_t dodge_thread_prio_) {
+void ChassisLG::init(tprio_t dodge_thread_prio_, float dodge_mode_theta) {
     dodge_thread_prio = dodge_thread_prio_;
+    dodge_mode_theta_ = dodge_mode_theta;
     dodgeModeSwitchThread.started = true;
     dodgeThreadReference = dodgeModeSwitchThread.start(dodge_thread_prio);
 }
@@ -45,7 +46,7 @@ void ChassisLG::set_action(ChassisLG::action_t value) {
         apply_target();
     } else if (action == DODGE_MODE) {
         ChassisSKD::set_mode(ChassisSKD::GIMBAL_COORDINATE_MODE);
-        target_theta = DODGE_MODE_THETA;
+        target_theta = dodge_mode_theta_;
         // Resume the thread
         chSysLock();
         if (!dodgeModeSwitchThread.started) {
@@ -54,7 +55,7 @@ void ChassisLG::set_action(ChassisLG::action_t value) {
         }
         chSysUnlock();
     }
-    Referee::set_client_light(DODGE_MODE_STATUS_LIGHT_INDEX, (action == DODGE_MODE));
+    Referee::set_client_light(USER_CLIENT_DODGE_MODE_LIGHT, (action == DODGE_MODE));
     // Sending client data will be complete by higher level thread
 }
 

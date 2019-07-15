@@ -53,9 +53,9 @@ private:
     static bool check_chassis_failure();
     static bool check_remote_data_error();
 
-    static constexpr unsigned INSPECTOR_THREAD_INTERVAL = 20;  // [ms]
-
+    /// Inspector Thread
     class InspectorThread : public chibios_rt::BaseStaticThread<512> {
+        static constexpr unsigned INSPECTOR_THREAD_INTERVAL = 20;  // [ms]
         void main();
     };
 

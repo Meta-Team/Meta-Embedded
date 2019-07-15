@@ -7,10 +7,12 @@
 #ifndef META_INFANTRY_VEHICLE_INFANTRY_H
 #define META_INFANTRY_VEHICLE_INFANTRY_H
 
+
+
 /// AHRS Configurations
-static constexpr Matrix33 ON_BOARD_AHRS_MATRIX = {{1.0f, 0.0f, 0.0f},
-                                                  {0.0f, 1.0f, 0.0f},
-                                                  {0.0f, 0.0f, 1.0f}};
+#define ON_BOARD_AHRS_MATRIX {{1.0f, 0.0f, 0.0f}, \
+                              {0.0f, 1.0f, 0.0f}, \
+                              {0.0f, 0.0f, 1.0f}}
 // Raw angle of yaw and pitch when gimbal points straight forward.
 //   Note: the program will echo the raw angles of yaw and pitch as the program starts
 
@@ -23,6 +25,8 @@ static constexpr Matrix33 ON_BOARD_AHRS_MATRIX = {{1.0f, 0.0f, 0.0f},
 
 #define LOADER_SHOOT_DEGREE_PER_BULLET 72.0f
 #define PLATE_SHOOT_DEGREE_PER_BULLET 36.0f
+
+#define MPU6500_BIAS_DATA_ID 0x0001
 #define MPU6500_STORED_GYRO_BIAS {-0.631951332, 0.030548788, 0.723660469}
 
 
@@ -30,15 +34,16 @@ static constexpr Matrix33 ON_BOARD_AHRS_MATRIX = {{1.0f, 0.0f, 0.0f},
 #define GIMBAL_YAW_INSTALL_DIRECTION    (GimbalSKD::POSITIVE)
 #define GIMBAL_PITCH_INSTALL_DIRECTION  (GimbalSKD::POSITIVE)
 #define SHOOT_BULLET_INSTALL_DIRECTION (ShootSKD::POSITIVE)
+#define SHOOT_PLATE_INSTALL_DIRECTION (ShootSKD::POSITIVE)
 
-static constexpr Matrix33 GIMBAL_ANGLE_INSTALLATION_MATRIX = {{1.0f, 0.0f, 0.0f},
-                                                              {0.0f, 1.0f, 0.0f},
-                                                              {0.0f, 0.0f, -1.0f}};
+#define GIMBAL_ANGLE_INSTALLATION_MATRIX {{1.0f, 0.0f, 0.0f}, \
+                                          {0.0f, 1.0f, 0.0f}, \
+                                          {0.0f, 0.0f, -1.0f}}
 
 
-static constexpr Matrix33 GIMBAL_GYRO_INSTALLATION_MATRIX = {{ 0.0f,  0.0f, 1.0f},
-                                                             { 0.0f,  1.0f, 0.0f},
-                                                             {-1.0f, 0.0f, 0.0f}};
+#define GIMBAL_GYRO_INSTALLATION_MATRIX {{ 0.0f,  0.0f, 1.0f}, \
+                                         { 0.0f,  1.0f, 0.0f}, \
+                                         {-1.0f, 0.0f, 0.0f}}
 
 /// Gimbal and Shoot PID Parameters
 #define GIMBAL_PID_YAW_A2V_KP 4.4f
@@ -139,6 +144,8 @@ static constexpr Matrix33 GIMBAL_GYRO_INSTALLATION_MATRIX = {{ 0.0f,  0.0f, 1.0f
     {CHASSIS_PID_THETA2V_KP, CHASSIS_PID_THETA2V_KI, CHASSIS_PID_THETA2V_KD, \
     CHASSIS_PID_THETA2V_I_LIMIT, CHASSIS_PID_THETA2V_OUT_LIMIT}
 
+#define CHASSIS_DODGE_MODE_THETA   15
+    
 /// Thread Priority List
 #define THREAD_CAN1_PRIO                    (HIGHPRIO - 1)
 #define THREAD_CAN2_PRIO                    (HIGHPRIO - 2)
@@ -147,15 +154,42 @@ static constexpr Matrix33 GIMBAL_GYRO_INSTALLATION_MATRIX = {{ 0.0f,  0.0f, 1.0f
 #define THREAD_AHRS_PRIO                    (HIGHPRIO - 5)
 #define THREAD_GIMBAL_SKD_PRIO              (NORMALPRIO + 3)
 #define THREAD_CHASSIS_SKD_PRIO             (NORMALPRIO + 2)
-#define THREAD_USER_PRIO                    (NORMALPRIO)
 #define THREAD_SHOOT_SKD_PRIO               (NORMALPRIO + 1)
-#define THREAD_CHASSIS_LG_DODGE_PRIO        (NORMALPRIO - 1)
-#define THREAD_SHOOT_LG_AUTOMATION_PRIO   (NORMALPRIO - 2)
-#define THREAD_SHOOT_LG_STUCK_DETECT_PRIO   (NORMALPRIO - 3)
-
+#define THREAD_USER_PRIO                    (NORMALPRIO)
+#define THREAD_USER_ACTION_PRIO             (NORMALPRIO - 1)
+#define THREAD_CHASSIS_LG_DODGE_PRIO        (NORMALPRIO - 2)
+#define THREAD_SHOOT_LG_AUTOMATION_PRIO     (NORMALPRIO - 3)
+#define THREAD_SHOOT_LG_STUCK_DETECT_PRIO   (NORMALPRIO - 4)
+#define THREAD_GIMBAL_LG_VISION_PRIO        (NORMALPRIO - 5)
 #define THREAD_INSPECTOR_PRIO               (NORMALPRIO - 10)
-#define THREAD_SHELL_PRIO                   (LOWPRIO + 10)
+#define THREAD_INSPECTOR_REFEREE_PRIO       (NORMALPRIO - 11)
+#define THREAD_USER_CLIENT_DATA_SEND_PRIO   (LOWPRIO + 6)
+#define THREAD_SHELL_PRIO                   (LOWPRIO + 5)
 #define THREAD_BUZZER_PRIO                  (LOWPRIO + 1)
 #define THREAD_IDEAL_PRIO                   (LOWPRIO)
+
+/// Dev Board LED Usage List
+#define DEV_BOARD_LED_SYSTEM_INIT 1
+#define DEV_BOARD_LED_CAN         2
+#define DEV_BOARD_LED_AHRS        3
+#define DEV_BOARD_LED_REMOTE      4
+#define DEV_BOARD_LED_GIMBAL      5
+#define DEV_BOARD_LED_CHASSIS     6
+#define DEV_BOARD_LED_REFEREE     7
+#define DEV_BOARD_LED_SD_CARD     8
+
+/// User Client Usage List
+#define USER_CLIENT_FW_STATE_LIGHT                  0
+#define USER_CLIENT_DODGE_MODE_LIGHT                1
+#define USER_CLIENT_SUPER_CAPACITOR_STATUS_LIGHT    2
+#define USER_CLIENT_SPEED_LEVEL_3_LIGHT             3
+#define USER_CLIENT_SPEED_LEVEL_2_LIGHT             4
+#define USER_CLIENT_SPEED_LEVEL_1_LIGHT             5
+
+#define USER_CLIENT_ACTUAL_POWER_NUM                2
+#define USER_CLIENT_SUPER_CAPACITOR_VOLTAGE_NUM     3
+
+/// Super Capacitor Configurations
+#define SUPER_CAPACITOR_WARNING_VOLTAGE   18
 
 #endif //META_INFANTRY_VEHICLE_INFANTRY_H

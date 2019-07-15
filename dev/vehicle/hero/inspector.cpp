@@ -14,6 +14,7 @@ bool Inspector::chassis_failure_ = false;
 bool Inspector::remote_failure_ = false;
 
 Inspector::InspectorThread Inspector::inspectorThread;
+Inspector::RefereeInspectorThread Inspector::refereeInspectorThread;
 
 void Inspector::init(CANInterface *can1_, CANInterface *can2_, AbstractAHRS *ahrs_) {
     can1 = can1_;
@@ -21,8 +22,9 @@ void Inspector::init(CANInterface *can1_, CANInterface *can2_, AbstractAHRS *ahr
     ahrs = ahrs_;
 }
 
-void Inspector::start_inspection(tprio_t thread_prio) {
+void Inspector::start_inspection(tprio_t thread_prio, tprio_t referee_inspector_prio) {
     inspectorThread.start(thread_prio);
+    refereeInspectorThread.start(referee_inspector_prio);
 }
 
 void Inspector::startup_check_can() {
@@ -175,23 +177,39 @@ void Inspector::InspectorThread::main() {
         }
 
         remote_failure_ = (SYSTIME - Remote::last_update_time > 30);
-        if (remote_failure_) LED::led_off(4);
-        else LED::led_on(4);
+        if (remote_failure_) LED::led_off(DEV_BOARD_LED_REMOTE);
+        else LED::led_on(DEV_BOARD_LED_REMOTE);
 
         gimbal_failure_ = check_gimbal_failure();
-        if (gimbal_failure_) LED::led_off(5);
-        else LED::led_on(5);
+        if (gimbal_failure_) LED::led_off(DEV_BOARD_LED_GIMBAL);
+        else LED::led_on(DEV_BOARD_LED_GIMBAL);
 
         chassis_failure_ = check_chassis_failure();
-        if (chassis_failure_) LED::led_off(6);
-        else LED::led_on(6);
+        if (chassis_failure_) LED::led_off(DEV_BOARD_LED_CHASSIS);
+        else LED::led_on(DEV_BOARD_LED_CHASSIS);
 
         if (remote_failure_ || gimbal_failure_ || chassis_failure_) {
-            if (!Buzzer::alerting())  Buzzer::alert_on();
+            if (!Buzzer::alerting()) Buzzer::alert_on();
         } else {
-            if (Buzzer::alerting())  Buzzer::alert_off();
+            if (Buzzer::alerting()) Buzzer::alert_off();
         }
 
         sleep(TIME_MS2I(INSPECTOR_THREAD_INTERVAL));
+    }
+}
+
+void Inspector::RefereeInspectorThread::main() {
+    setName("Inspector_Referee");
+
+    chEvtRegisterMask(&Referee::data_received_event, &data_received_listener, DATA_RECEIVED_EVENTMASK);
+
+    while (!shouldTerminate()) {
+
+        chEvtWaitAny(DATA_RECEIVED_EVENTMASK);
+
+        eventflags_t flags = chEvtGetAndClearFlags(&data_received_listener);
+
+        // Toggle Referee LED if any data is received
+        LED::led_toggle(DEV_BOARD_LED_REFEREE);
     }
 }

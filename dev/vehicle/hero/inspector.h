@@ -15,6 +15,13 @@
 #include "remote_interpreter.h"
 #include "chassis_interface.h"
 #include "gimbal_interface.h"
+#include "referee_interface.h"
+
+#if defined(HERO)
+#include "vehicle_hero.h"
+#else
+#error "Files inspector.h/cpp should only be used for Hero main program"
+#endif
 
 class Inspector {
 
@@ -22,7 +29,7 @@ public:
 
     static void init(CANInterface *can1_, CANInterface *can2_, AbstractAHRS *ahrs_);
 
-    static void start_inspection(tprio_t thread_prio);
+    static void start_inspection(tprio_t thread_prio, tprio_t referee_inspector_prio);
 
     static void startup_check_can();
     static void startup_check_mpu();
@@ -49,13 +56,24 @@ private:
     static bool check_chassis_failure();
     static bool check_remote_data_error();
 
-    static constexpr unsigned INSPECTOR_THREAD_INTERVAL = 20;  // [ms]
-
+    /// Inspector Thread
     class InspectorThread : public chibios_rt::BaseStaticThread<512> {
+        static constexpr unsigned INSPECTOR_THREAD_INTERVAL = 20;  // [ms]
         void main();
     };
 
     static InspectorThread inspectorThread;
+
+    /// Referee Inspector Thread
+    class RefereeInspectorThread : public chibios_rt::BaseStaticThread<256> {
+
+        event_listener_t data_received_listener;
+        static constexpr eventmask_t DATA_RECEIVED_EVENTMASK = (1U << 0U);
+
+        void main() final;
+    };
+
+    static RefereeInspectorThread refereeInspectorThread;
 
 };
 

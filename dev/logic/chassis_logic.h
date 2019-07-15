@@ -17,6 +17,14 @@
 
 #include "referee_interface.h"
 
+#if defined(INFANTRY)
+#include "vehicle_infantry.h"
+#elif defined(HERO)
+#include "vehicle_hero.h"
+#else
+#error "Files infantry_shoot_logic.h/cpp can only be used for Infantry or Hero main program now"
+#endif
+
 /**
  * @name ChassisLG
  * @note LG stands for "logic"
@@ -32,8 +40,9 @@ public:
     /**
      * Initialize this module
      * @param dodge_thread_prio_   Thread priority for dodge thread
+     * @param dodge_mode_theta     Rotation angle (theta) in DODGE_MODE [degree]
      */
-    static void init(tprio_t dodge_thread_prio_);
+    static void init(tprio_t dodge_thread_prio_, float dodge_mode_theta);
 
     enum action_t {
         FORCED_RELAX_MODE,
@@ -68,7 +77,7 @@ private:
     static float target_theta;
 
     static void apply_target();  // helper function to apply target values to ChassisSKD
-    static constexpr unsigned DODGE_MODE_THETA = 15;  // rotation angle (theta) in DODGE_MODE [degree]
+    static float dodge_mode_theta_;  // rotation angle (theta) in DODGE_MODE [degree]
 
     static tprio_t dodge_thread_prio;
 
@@ -86,8 +95,6 @@ private:
 
     static DodgeModeSwitchThread dodgeModeSwitchThread;
     static chibios_rt::ThreadReference dodgeThreadReference;
-
-    static constexpr unsigned DODGE_MODE_STATUS_LIGHT_INDEX = 1;
 };
 
 

@@ -130,7 +130,7 @@ int main() {
 
 
     /// Start Inspector and User Threads
-    Inspector::start_inspection(THREAD_INSPECTOR_PRIO);
+    Inspector::start_inspection(THREAD_INSPECTOR_PRIO, 0);
     User::start(THREAD_USER_PRIO, THREAD_FEEDBACK_PRIO);
 
     /// Complete Period 2

@@ -34,13 +34,13 @@ public:
 
     enum receiver_index_t {
         CLIENT = 0,
-        HERO = 1,
-        ENGINEER = 2,
-        STANDARD3 = 3,
-        STANDARD4 = 4,
-        STANDARD5 = 5,
-        AERIAL = 6,
-        SENTRY = 7
+        HERO_EMB = 1,
+        ENGINEER_EMB = 2,
+        STANDARD3_EMB = 3,
+        STANDARD4_EMB = 4,
+        STANDARD5_EMB = 5,
+        AERIAL_EMB = 6,
+        SENTRY_EMB = 7
     };
 
     enum signal_light_t {

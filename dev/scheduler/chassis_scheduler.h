@@ -35,8 +35,8 @@ class ChassisSKD : public ChassisBase, public PIDControllerBase {
 public:
 
     enum install_mode_t {
-        POSITIVE = 1;
-        NEGATIVE = -1;
+        POSITIVE = 1,
+        NEGATIVE = -1
     };
 
     enum mode_t {

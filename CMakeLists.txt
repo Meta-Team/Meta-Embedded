@@ -114,7 +114,8 @@ set(INFANTRY
         dev/common/CRC16.cpp
         dev/vehicle/infantry/inspector.cpp
         dev/vehicle/infantry/user.cpp
-        dev/vehicle/infantry/main_infantry.cpp dev/vehicle/infantry/settings.cpp)
+        dev/vehicle/infantry/main_infantry.cpp
+        dev/vehicle/infantry/settings.cpp)
 
 # Main Program -- Infantry #1
 add_executable(INFANTRY_THREE ${INFANTRY})
@@ -134,6 +135,28 @@ target_include_directories(INFANTRY_FIVE PRIVATE dev/vehicle/infantry)
 target_compile_definitions(INFANTRY_FIVE PRIVATE INFANTRY INFANTRY_FIVE)
 target_link_libraries(INFANTRY_FIVE ${PROJECT_SOURCE_DIR}/dev/interface/ahrs/ahrs_lib.lib)
 
+# Main Program -- Hero
+add_executable(HERO
+        dev/module/pid_controller.hpp
+        dev/interface/can_interface.cpp
+        dev/interface/remote_interpreter.cpp
+        ${AHRS_SRC}
+        ${HERO_SHOOT_SRC}
+        ${CHASSIS_SRC}
+        dev/interface/vision_port.cpp
+        dev/interface/super_capacitor_port.cpp
+        dev/interface/referee_interface.cpp
+        dev/interface/sd_card_interface.cpp
+        dev/common/CRC8.cpp
+        dev/common/CRC16.cpp
+        dev/vehicle/hero/inspector.cpp
+        dev/vehicle/hero/user.cpp
+        dev/vehicle/hero/main_hero.cpp
+        dev/vehicle/hero/settings.cpp)
+target_include_directories(HERO PRIVATE dev/vehicle/hero)
+target_compile_definitions(HERO PRIVATE HERO)
+target_link_libraries(HERO ${PROJECT_SOURCE_DIR}/dev/interface/ahrs/ahrs_lib.lib)
+
 # Main Program -- Engineer
 add_executable(ENGINEER
         dev/module/pid_controller.hpp
@@ -149,21 +172,6 @@ add_executable(ENGINEER
         dev/control/elevator.cpp dev/vehicle/engineer/thread_chassis.cpp dev/vehicle/engineer/thread_elevator.cpp)
 target_include_directories(ENGINEER PRIVATE dev/vehicle/engineer)
 target_compile_definitions(ENGINEER PRIVATE ENGINEER)
-
-# Main Program -- Hero
-add_executable(HERO
-        dev/module/pid_controller.hpp
-        dev/interface/can_interface.cpp
-        dev/interface/remote_interpreter.cpp
-        ${AHRS_SRC}
-        ${HERO_SHOOT_SRC}
-        ${CHASSIS_SRC}
-        dev/vehicle/hero/inspector.cpp
-        dev/vehicle/hero/user.cpp
-        dev/vehicle/hero/main_hero.cpp)
-target_include_directories(HERO PRIVATE dev/vehicle/hero)
-target_compile_definitions(HERO PRIVATE HERO)
-target_link_libraries(HERO ${PROJECT_SOURCE_DIR}/dev/interface/ahrs/ahrs_lib.lib)
 
 # Blink
 add_executable(ut_blink
