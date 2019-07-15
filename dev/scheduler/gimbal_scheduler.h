@@ -36,6 +36,9 @@
  *       targets and PID controllers. Only when reading from or writing to GimbalIF will coordinate transform
  *       (by multiple to install_direction_t) be performed based on yaw_install and pitch_install
  */
+
+#define GIMBAL_SKD_USE_AHRS_PITCH_ANGLE   TRUE
+
 class GimbalSKD : public GimbalBase, public PIDControllerBase {
 
 public:

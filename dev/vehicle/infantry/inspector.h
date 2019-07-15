@@ -55,7 +55,7 @@ private:
 
     static constexpr unsigned INSPECTOR_THREAD_INTERVAL = 20;  // [ms]
 
-    class InspectorThread : public chibios_rt::BaseStaticThread<512> {
+    class InspectorThread : public chibios_rt::BaseStaticThread<1024> {
         void main();
     };
 

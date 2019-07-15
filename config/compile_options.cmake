@@ -15,7 +15,7 @@ set(OPT_FLAGS "${OPT_FLAGS} -flto")
 set(OPT_FLAGS "${OPT_FLAGS} -mfloat-abi=hard -mfpu=fpv4-sp-d16")
 
 # Linker optimization flags
-set(LD_OPT_FLAGS ",--gc-sections,--defsym=__process_stack_size__=0x400,--defsym=__main_stack_size__=0x400")
+set(LD_OPT_FLAGS ",--gc-sections,--defsym=__process_stack_size__=0x800,--defsym=__main_stack_size__=0x800")
 
 # Flags for C sources only
 set(C_OPT_FLAGS "")
