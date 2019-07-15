@@ -34,6 +34,11 @@ class ChassisSKD : public ChassisBase, public PIDControllerBase {
 
 public:
 
+    enum install_mode_t {
+        POSITIVE = 1;
+        NEGATIVE = -1;
+    };
+
     enum mode_t {
         FORCED_RELAX_MODE,         // zero force (Still taking control of ChassisIF. External writing to target currents
                                    // will leads to conflicts.)
@@ -48,7 +53,8 @@ public:
      * @param wheel_circumference   Circumference of wheels [mm]
      * @param thread_prio           Priority of PID calculation thread
      */
-    static void start(float wheel_base, float wheel_tread, float wheel_circumference, tprio_t thread_prio);
+    static void start(float wheel_base, float wheel_tread, float wheel_circumference, install_mode_t install_mode,
+                      tprio_t thread_prio);
 
     /**
      * Change PID parameters of PID controller
@@ -98,8 +104,10 @@ private:
     // Wheel speed (mm/s) to wheel angular velocity (degree/s)
     static float v_to_wheel_angular_velocity_;
 
+    static install_mode_t install_mode_;
+
     // Helper function to convert chassis velocity to velocities of each wheel and perform PID calculation once
-    static void velocity_decompose(float vx, float vy, float w);
+    static void velocity_decompose_(float vx, float vy, float w);
 
     static constexpr unsigned int SKD_THREAD_INTERVAL = 2; // PID calculation interval [ms]
 

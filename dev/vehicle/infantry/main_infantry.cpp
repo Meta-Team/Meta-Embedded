@@ -41,6 +41,7 @@
 #elif defined(INFANTRY_FIVE)                                                /** Infantry #5 **/
 
 #include "vehicle_infantry_five.h"
+
 #else
 #error "File main_infantry.cpp should only be used for Infantry #3, #4, #5."
 #endif
@@ -128,8 +129,8 @@ int main() {
     chThdSleepMilliseconds(10);
     Inspector::startup_check_chassis_feedback();  // check chassis motors has continuous feedback. Block for 20 ms
     LED::led_on(DEV_BOARD_LED_CHASSIS);  // LED 6 on now
-    
-    
+
+
     /// Setup Red Spot Laser
     palSetPad(GPIOG, GPIOG_RED_SPOT_LASER);  // enable the red spot laser
 
@@ -138,7 +139,7 @@ int main() {
 
     /// Setup VisionPort
     VisionPort::init();
-    
+
     /// Setup SuperCapacitor Port
     SuperCapacitor::init(&can1);
 
@@ -163,7 +164,8 @@ int main() {
     ShootSKD::load_pid_params(SHOOT_PID_BULLET_LOADER_A2V_PARAMS, SHOOT_PID_BULLET_LOADER_V2I_PARAMS,
                               {0, 0, 0, 0, 0} /* of no use */, {0, 0, 0, 0, 0} /* of no use */);
 
-    ChassisSKD::start(CHASSIS_WHEEL_BASE, CHASSIS_WHEEL_TREAD, CHASSIS_WHEEL_CIRCUMFERENCE, THREAD_CHASSIS_SKD_PRIO);
+    ChassisSKD::start(CHASSIS_WHEEL_BASE, CHASSIS_WHEEL_TREAD, CHASSIS_WHEEL_CIRCUMFERENCE, ChassisSKD::POSITIVE,
+                      THREAD_CHASSIS_SKD_PRIO);
     ChassisSKD::load_pid_params(CHASSIS_PID_THETA2V_PARAMS, CHASSIS_PID_V2I_PARAMS);
 
     /// Start LGs
