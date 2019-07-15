@@ -67,7 +67,7 @@ public:
 /**
  * OPTION: Enable velocity calculation from feedback angle (using derivative.)
  */
-#define GIMBAL_INTERFACE_ENABLE_VELOCITY_CALCULATION  TRUE
+#define GIMBAL_INTERFACE_ENABLE_VELOCITY_DIFFERENTIAL  TRUE
 
 /**
  * OPTION: Enable clip at the moment of sending current.
@@ -86,19 +86,37 @@ class GimbalIF : public GimbalBase {
 
 public:
 
+    enum motor_type_t {
+        NONE_MOTOR,
+        RM6623,
+        M2006,
+        GM6020,
+        GM3510,
+        M3508
+    };
+
     /**
      * Initialize GimbalIF. Angles of bullet loader and bullet plate will be reset.
      * @param can_interface           Initialized CANInterface for yaw, pitch and bullet_loader motor
      * @param yaw_front_angle_raw     Raw angle of yaw when gimbal points straight forward, depending on installation.
      * @param pitch_front_angle_raw   Raw angle of pitch when gimbal points straight forward, depending on installation.
+     * @param yaw_type                Yaw motor motor type
+     * @param pitch_type              Pitch motor motor type
+     * @param bullet_type             Bullet loader motor type
+     * @param plate_type              Bullet plate motor type, default to NONE_MOTOR
      */
-    static void init(CANInterface *can_interface, uint16_t yaw_front_angle_raw, uint16_t pitch_front_angle_raw);
+    static void init(CANInterface *can_interface, uint16_t yaw_front_angle_raw, uint16_t pitch_front_angle_raw,
+                     motor_type_t yaw_type, motor_type_t pitch_type, motor_type_t bullet_type,
+                     motor_type_t plate_type = NONE_MOTOR);
 
 
     struct motor_feedback_t {
 
     public:
 
+        void init(motor_type_t type_, motor_id_t id_);
+
+        motor_type_t type;
         motor_id_t id;
 
         /**
@@ -106,19 +124,23 @@ public:
          * @note Viewing from TOP of 6623/2006 motor. 180 <--CCW-- front_angle_raw --CW--> -180
          */
         float actual_angle = 0.0f;     // [degree]
-#if GIMBAL_INTERFACE_ENABLE_VELOCITY_CALCULATION
 
         /**
          * Velocity
          * @note Viewing from TOP of 6623/2006 motor. Positive for CCW. Negative for CW.
          */
         float actual_velocity = 0.0f;  // [degree/s]
-#endif
+
         /**
          * Actual current
          * @note Direction is UNKNOWN yet. In reality, it vibrates significantly, and it's not useful for now.
          */
         int actual_current = 0;  // [mA]
+
+        /**
+         * Number of round
+         * @note Viewing from TOP of 6623/2006 motor. Positive for CCW. Negative for CW.
+         */
         int round_count = 0;
 
         /**
@@ -127,7 +149,7 @@ public:
         time_msecs_t last_update_time = 0;
 
         /**
-         * Set current actual angle as the front angle
+         * Set current actual angle as the zero reference angle and clear the round count (accumulated angle = 0)
          */
         void reset_front_angle();
 
@@ -139,9 +161,11 @@ public:
 
     private:
 
+        void load(CANRxFrame const *rxmsg);  // load feedback from rxmsg
+
         uint16_t last_angle_raw = 0;  // in the range of [0, 8191]
 
-#if GIMBAL_INTERFACE_ENABLE_VELOCITY_CALCULATION
+#if GIMBAL_INTERFACE_ENABLE_VELOCITY_DIFFERENTIAL
         // Variables for velocity sampling
         time_msecs_t sample_time_stamp = 0;
         int sample_count = 0;
@@ -149,7 +173,6 @@ public:
 #endif
 
         friend GimbalIF;
-
         friend int main();
 
     };
@@ -184,7 +207,7 @@ private:
     static void process_motor_feedback(CANRxFrame const *rxmsg);  // callback function
     friend CANInterface;
 
-#if GIMBAL_INTERFACE_ENABLE_VELOCITY_CALCULATION
+#if GIMBAL_INTERFACE_ENABLE_VELOCITY_DIFFERENTIAL
     static constexpr int VELOCITY_SAMPLE_INTERVAL = 50;  // count of feedback for one sample of angular velocity
 #endif
 

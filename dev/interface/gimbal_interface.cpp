@@ -35,18 +35,23 @@ const PWMConfig FRICTION_WHEELS_PWM_CFG = {
         0
 };
 
-void GimbalIF::init(CANInterface *can_interface, uint16_t yaw_front_angle_raw, uint16_t pitch_front_angle_raw) {
+void GimbalIF::init(CANInterface *can_interface, uint16_t yaw_front_angle_raw, uint16_t pitch_front_angle_raw,
+        motor_type_t yaw_type, motor_type_t pitch_type, motor_type_t bullet_type, motor_type_t plate_type) {
 
     feedback[YAW].id = YAW;
+    feedback[YAW].type = yaw_type;
     feedback[YAW].last_angle_raw = yaw_front_angle_raw;
 
     feedback[PITCH].id = PITCH;
+    feedback[PITCH].type = pitch_type;
     feedback[PITCH].last_angle_raw = pitch_front_angle_raw;
 
     feedback[BULLET].id = BULLET;
+    feedback[BULLET].type = bullet_type;
     feedback[BULLET].reset_front_angle();
 
     feedback[PLATE].id = PLATE;
+    feedback[PLATE].type = plate_type;
     feedback[PLATE].reset_front_angle();
 
     can_ = can_interface;
@@ -79,44 +84,65 @@ void GimbalIF::send_gimbal_currents() {
     ABS_CROP(target_current[YAW], GIMBAL_INTERFACE_MAX_CURRENT);
 #endif
 
-#ifdef HERO
+if (feedback[YAW].type != RM6623) {
     txmsg.data8[0] = (uint8_t) (target_current[YAW] >> 8); // upper byte
     txmsg.data8[1] = (uint8_t) target_current[YAW];        // lower byte
-#else
+} else {
     /**
      * @note Viewing from the top of 6623, angle use CCW as positive direction, while current use CW as positive
      *       direction. In order to unified coordinate system, minus sign is applied here.
      */
     txmsg.data8[0] = (uint8_t) (-target_current[YAW] >> 8); // upper byte
     txmsg.data8[1] = (uint8_t) -target_current[YAW];        // lower byte
-#endif
+}
 
     // Fill the current of Pitch
 #if GIMBAL_INTERFACE_ENABLE_CLIP
     ABS_CROP(target_current[PITCH], GIMBAL_INTERFACE_MAX_CURRENT);
 #endif
-    /**
-     * @note Viewing from the top of 6623, angle use CCW as positive direction, while current use CW as positive
-     *       direction. In order to unified coordinate system, minus sign is applied here.
-     */
-    txmsg.data8[2] = (uint8_t) (-target_current[PITCH] >> 8); // upper byte
-    txmsg.data8[3] = (uint8_t) -target_current[PITCH];        // lower byte
-
+    if (feedback[PITCH].type != RM6623) {
+        txmsg.data8[2] = (uint8_t) (target_current[PITCH] >> 8); // upper byte
+        txmsg.data8[3] = (uint8_t) target_current[PITCH];        // lower byte
+    } else {
+        /**
+         * @note Viewing from the top of 6623, angle use CCW as positive direction, while current use CW as positive
+         *       direction. In order to unified coordinate system, minus sign is applied here.
+         */
+        txmsg.data8[2] = (uint8_t) (-target_current[PITCH] >> 8); // upper byte
+        txmsg.data8[3] = (uint8_t) -target_current[PITCH];        // lower byte
+    }
 
     // Fill the current of bullet loader
 #if GIMBAL_INTERFACE_ENABLE_CLIP
     ABS_CROP(target_current[BULLET], GIMBAL_INTERFACE_BULLET_LOADER_MAX_CURRENT);
 #endif
-    txmsg.data8[4] = (uint8_t) (target_current[BULLET] >> 8); // upper byte
-    txmsg.data8[5] = (uint8_t) target_current[BULLET];       // lower byte
-
+    if (feedback[BULLET].type != RM6623) {
+        txmsg.data8[4] = (uint8_t) (target_current[BULLET] >> 8); // upper byte
+        txmsg.data8[5] = (uint8_t) target_current[BULLET];       // lower byte
+    } else {
+        /**
+         * @note Viewing from the top of 6623, angle use CCW as positive direction, while current use CW as positive
+         *       direction. In order to unified coordinate system, minus sign is applied here.
+         */
+        txmsg.data8[4] = (uint8_t) (-target_current[BULLET] >> 8); // upper byte
+        txmsg.data8[5] = (uint8_t) -target_current[BULLET];       // lower byte
+    }
 
     // Fill the current of plate
 #if GIMBAL_INTERFACE_ENABLE_CLIP
     ABS_CROP(target_current[PLATE], GIMBAL_INTERFACE_BULLET_PLATE_MAX_CURRENT);
 #endif
-    txmsg.data8[6] = (uint8_t) (target_current[PLATE] >> 8);
-    txmsg.data8[7] = (uint8_t) target_current[PLATE];
+    if (feedback[PLATE].type != RM6623) {
+        txmsg.data8[6] = (uint8_t) (target_current[PLATE] >> 8);
+        txmsg.data8[7] = (uint8_t) target_current[PLATE];
+    } else {
+        /**
+         * @note Viewing from the top of 6623, angle use CCW as positive direction, while current use CW as positive
+         *       direction. In order to unified coordinate system, minus sign is applied here.
+         */
+        txmsg.data8[6] = (uint8_t) (-target_current[PLATE] >> 8);
+        txmsg.data8[7] = (uint8_t) -target_current[PLATE];
+    }
 
 
     can_->send_msg(&txmsg);
@@ -128,6 +154,17 @@ void GimbalIF::send_gimbal_currents() {
 }
 
 void GimbalIF::process_motor_feedback(CANRxFrame const *rxmsg) {
+    feedback[(motor_id_t) (rxmsg->SID - 0x205)].load(rxmsg);
+}
+
+void GimbalIF::motor_feedback_t::init(motor_type_t type_, motor_id_t id_) {
+    type = type_;
+    id = id_;
+}
+
+void GimbalIF::motor_feedback_t::load(CANRxFrame const *rxmsg) {
+
+    if (type == NONE_MOTOR) return;
 
     /**
      * Function logic description:
@@ -135,134 +172,88 @@ void GimbalIF::process_motor_feedback(CANRxFrame const *rxmsg) {
      *     angle movement
      *  2. Add the angle movement with the relative angle, get the new relative angle, modify the relative angle and
      *     the base round value
-     *  3. Divide the angle movement by the time break to get the angular velocity
      */
 
-    motor_id_t id = (motor_id_t) (rxmsg->SID - 0x205);
-
-    // Get the present absolute angle value by combining the data into a temporary variable
+    /// Get new absolute angle value of motor
     uint16_t new_actual_angle_raw = (rxmsg->data8[0] << 8 | rxmsg->data8[1]);
 
     // Check whether this new raw angle is valid
-    if (new_actual_angle_raw > 8191) {
-        return;
-    }
+    if (new_actual_angle_raw > 8191) return;
 
-    // Calculate the angle movement in raw data
+    /// Calculate the angle movement in raw data
+    // KEY IDEA: add the change of angle to actual angle
     // We assume that the absolute value of the angle movement is smaller than 180 degrees (4096 of raw data)
-    int angle_movement = (int) new_actual_angle_raw - (int) feedback[id].last_angle_raw;
+    int angle_movement = (int) new_actual_angle_raw - (int) last_angle_raw;
 
-    switch (id) {
-        case 0:  // YAW, RM6623
-        case 1:  // PITCH, RM6623
+    // Store new_actual_angle_raw for calculation of angle_movement next time
+    last_angle_raw = new_actual_angle_raw;
 
-            feedback[id].last_angle_raw = new_actual_angle_raw;
+    /// If angle_movement is too extreme between two samples, we grant that it's caused by moving over the 0(8192) point
+    if (angle_movement < -4096) angle_movement += 8192;
+    if (angle_movement > 4096) angle_movement -= 8192;
 
-            // If angle_movement is too extreme between two samples,
-            // we grant that it's caused by moving over the 0(8192) point.
-            if (angle_movement < -4096) {
-                angle_movement += 8192;
-            } else if (angle_movement > 4096) {
-                angle_movement -= 8192;
-            }
+    if (type == RM6623) {  // RM6623 deceleration ratio = 1
 
-            // KEY IDEA: add the change of angle to actual angle
-            feedback[id].actual_angle += angle_movement * 360.0f / 8192;
+        // raw -> degree
+        actual_angle += angle_movement * 0.043945312f;  // * 360 / 8192
 
-            // If the actual_angle is greater than 180(-180) then it turns a round in CCW(CW) direction
-            if (feedback[id].actual_angle >= 180.0f) {
-                feedback[id].actual_angle -= 360.0f;
-                feedback[id].round_count++;
-            }
-            if (feedback[id].actual_angle < -180.0f) {
-                feedback[id].actual_angle += 360.0f;
-                feedback[id].round_count--;
-            }
+        actual_velocity = 0;  // no velocity feedback available
 
-#if GIMBAL_INTERFACE_ENABLE_VELOCITY_CALCULATION
+        actual_current = (int16_t) (rxmsg->data8[2] << 8 | rxmsg->data8[3]);
 
-            // Calculate the angular velocity and get the actual current
-            // Sum angle movements for VELOCITY_SAMPLE_INTERVAL times, and calculate the average
+    } else if (type == M2006) {  // M2006 deceleration ratio = 36,
 
-            feedback[id].sample_movement_sum += angle_movement;
-            feedback[id].sample_count++;
-            if (feedback[id].sample_count >= VELOCITY_SAMPLE_INTERVAL) {
+        // raw -> degree with deceleration ratio
+        actual_angle += angle_movement * 0.001220703f;  // * 360 / 8192 / 36
 
-                time_msecs_t new_sample_time = SYSTIME;
-                feedback[id].actual_velocity = feedback[id].sample_movement_sum * 360.0f * 1000.0f / 8192.0f /
-                                               (float) (new_sample_time - feedback[id].sample_time_stamp);
-                feedback[id].sample_time_stamp = new_sample_time;
+        // rpm -> degree/s with deceleration ratio
+        actual_velocity = ((int16_t) (rxmsg->data8[2] << 8 | rxmsg->data8[3])) * 0.166666667f;  // 360 / 60 / 36
 
-                feedback[id].sample_movement_sum = 0;
-                feedback[id].sample_count = 0;
-            }
-#endif
+        actual_current = 0;  // no current feedback available
 
-            feedback[id].actual_current = (int16_t) (rxmsg->data8[2] << 8 | rxmsg->data8[3]);
+    } else if (type == M3508) {  // M3508 deceleration ratio = 3591/187
 
-            feedback[id].last_update_time = SYSTIME;
+        // raw -> degree with deceleration ratio
+        actual_angle += angle_movement * 0.002288436f; // 360 / 8192 / (3591/187)
 
-            break;
+        // rpm -> degree/s with deceleration ratio
+        actual_velocity = ((int16_t) (rxmsg->data8[2] << 8 | rxmsg->data8[3])) * 0.312447786f;  // 360 / 60 / (3591/187)
 
-        case 2:  // BULLET, M2006
+        actual_current = (int16_t) (rxmsg->data8[4] << 8 | rxmsg->data8[5]);
 
-            feedback[id].last_angle_raw = new_actual_angle_raw;
+    } else if (type == GM6020) {  // GM6020 deceleration ratio = 1
 
-            // Make sure that the angle movement could not change abruptly when rotating an extreme angle.
-            if (angle_movement < -4096) angle_movement = angle_movement + 8192;
-            if (angle_movement > 4096) angle_movement = angle_movement - 8192;
+        // raw -> degree
+        actual_angle += angle_movement * 0.043945312f;  // * 360 / 8192
 
-            // KEY IDEA: add the change of angle to actual angle / 36 (deceleration ratio)
-            feedback[id].actual_angle += angle_movement * 10.0f / 8192;
+        // rpm -> degree/s
+        actual_velocity = ((int16_t) (rxmsg->data8[2] << 8 | rxmsg->data8[3])) * 6.0f;  // 360 / 60
 
-            // If the actual_angle is greater than 180(-180) then it turns a round in CCW(CW) direction
-            if (feedback[id].actual_angle >= 360.0f) {
-                feedback[id].actual_angle -= 360.0f;
-                feedback[id].round_count++;
-            }
-            if (feedback[id].actual_angle < 0.0f) {
-                feedback[id].actual_angle += 360.0f;
-                feedback[id].round_count--;
-            }
+        actual_current = (int16_t) (rxmsg->data8[4] << 8 | rxmsg->data8[5]);
 
-            // Get the angular velocity: feedback / 36 (deceleration ratio) * 6.0f (360 degrees per round per 60 s)
-            feedback[id].actual_velocity = ((int16_t) (rxmsg->data8[2] << 8 | rxmsg->data8[3])) / 6.0f;
+    } else if (type == GM3510) {  // GM3510 deceleration ratio = 1
 
-            feedback[id].last_update_time = SYSTIME;
+        // raw -> degree
+        actual_angle += angle_movement * 0.043945312f;  // * 360 / 8192
 
-            break;
+        actual_velocity = 0;  // no velocity feedback available
 
-        case 3:   // PLATE, M3508
+        actual_current = 0;  // no current feedback available
 
-            feedback[id].last_angle_raw = new_actual_angle_raw;
-
-            // Make sure that the angle movement could not change abruptly when rotating an extreme angle.
-            if (angle_movement < -4096) angle_movement = angle_movement + 8192;
-            if (angle_movement > 4096) angle_movement = angle_movement - 8192;
-
-            feedback[id].actual_angle += angle_movement * 18.9f / 8192; // deceleration ratio : 19, 360/19 = 18.947368421052632
-
-            // IF the actual angle is beyond (-180,180)
-            if (feedback[id].actual_angle >= 360.0f) {
-                feedback[id].actual_angle -= 360.0f;
-                feedback[id].round_count++;
-            }
-            if (feedback[id].actual_angle <= 0.0f) {
-                feedback[id].actual_angle +=360.0f;
-                feedback[id].round_count--;
-            }
-
-            feedback[id].actual_velocity = ((int16_t) (rxmsg->data8[2] << 8 | rxmsg->data8[3])) / 19.2f * 360.0f / 60.0f;
-
-            feedback[id].last_update_time = SYSTIME;
-
-            break;
-
-        default:
-
-            break;
     }
 
+    /// Normalize the angle to [-180, 180]
+    // If the actual_angle is greater than 180(-180) then it turns a round in CCW(CW) direction
+    if (actual_angle >= 180.0f) {
+        actual_angle -= 360.0f;
+        round_count++;
+    }
+    if (actual_angle < -180.0f) {
+        actual_angle += 360.0f;
+        round_count--;
+    }
+
+    last_update_time = SYSTIME;
 }
 
 void GimbalIF::motor_feedback_t::reset_front_angle() {

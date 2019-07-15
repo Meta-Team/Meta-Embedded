@@ -82,7 +82,7 @@ public:
     };
 
     /**
-     * Interface for each chassis motor
+     * Feedback for each chassis motor
      */
     static motor_feedback_t feedback[];
 

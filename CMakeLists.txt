@@ -117,7 +117,7 @@ set(INFANTRY
         dev/vehicle/infantry/main_infantry.cpp
         dev/vehicle/infantry/settings.cpp)
 
-# Main Program -- Infantry #1
+# Main Program -- Infantry #3
 add_executable(INFANTRY_THREE ${INFANTRY})
 target_include_directories(INFANTRY_THREE PRIVATE dev/vehicle/infantry)
 target_compile_definitions(INFANTRY_THREE PRIVATE INFANTRY INFANTRY_THREE)
@@ -156,6 +156,20 @@ add_executable(HERO
 target_include_directories(HERO PRIVATE dev/vehicle/hero)
 target_compile_definitions(HERO PRIVATE HERO)
 target_link_libraries(HERO ${PROJECT_SOURCE_DIR}/dev/interface/ahrs/ahrs_lib.lib)
+
+# Main Program -- Sentry
+add_executable(SENTRY
+        dev/interface/can_interface.cpp
+        dev/interface/suspension_gimbal_interface.cpp
+        dev/interface/sentry_chassis_interface.cpp
+        dev/scheduler/sentry_chassis_skd.cpp
+        dev/scheduler/suspension_gimbal_skd.cpp
+        dev/vehicle/sentry/main_sentry.cpp
+        dev/interface/remote_interpreter.cpp
+        dev/interface/referee_interface.cpp
+        dev/interface/ahrs/ahrs_ext.cpp
+        dev/common/CRC8.cpp
+        dev/common/CRC16.cpp)
 
 # Main Program -- Engineer
 add_executable(ENGINEER
@@ -291,49 +305,25 @@ add_executable(pa_skywalker
         dev/interface/remote_interpreter.cpp
         dev/interface/buzzer.cpp)
 
-# Sentry Chassis
-add_executable(ut_sentry_chassis
-        dev/interface/can_interface.cpp
-        dev/module/pid_controller.hpp
-        dev/interface/sentry_chassis_interface.cpp
-        dev/control/sentry_chassis_skd.cpp
-        dev/debug/unit_tests/sentry_chassis_unit_test.cpp
-        dev/interface/referee_interface.cpp
-        dev/module/CRC8.cpp
-        dev/module/CRC16.cpp)
 
-#Sentry Chassis Matlab Test
-add_executable(ut_sentry_chassis_mat
+# Adjust Params of Sentry Chassis
+add_executable(pa_sentry_chassis
         dev/interface/can_interface.cpp
         dev/module/pid_controller.hpp
         dev/interface/sentry_chassis_interface.cpp
-        dev/control/sentry_chassis_skd.cpp
+        dev/scheduler/sentry_chassis_skd.cpp
         dev/debug/unit_tests/sentry_chassis_param_adjust.cpp
         dev/interface/referee_interface.cpp
-        dev/module/CRC8.cpp
-        dev/module/CRC16.cpp)
+        dev/common/CRC8.cpp
+        dev/common/CRC16.cpp)
 
 #Suspension Gimbal Test
 add_executable(ut_suspension_gimbal
         dev/interface/can_interface.cpp
         dev/module/pid_controller.hpp
         dev/interface/suspension_gimbal_interface.cpp
-        dev/control/suspension_gimbal_skd.cpp
+        dev/scheduler/suspension_gimbal_skd.cpp
         dev/debug/unit_tests/suspension_gimbal_unit_test.cpp)
-
-#Sentry Remote Test
-add_executable(ut_sentry_remote
-        dev/interface/can_interface.cpp
-        dev/interface/suspension_gimbal_interface.cpp
-        dev/interface/sentry_chassis_interface.cpp
-        dev/control/sentry_chassis_skd.cpp
-        dev/control/suspension_gimbal_skd.cpp
-        dev/vehicle/sentry/main_sentry.cpp
-        dev/interface/remote_interpreter.cpp
-        dev/interface/referee_interface.cpp
-        dev/interface/ahrs/ahrs_ext.cpp
-        dev/module/CRC8.cpp
-        dev/module/CRC16.cpp)
 
 add_executable(ut_referee_interface
         dev/common/CRC8.cpp

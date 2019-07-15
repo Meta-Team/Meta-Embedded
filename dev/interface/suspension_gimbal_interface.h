@@ -24,12 +24,6 @@
 #if SUSPENSION_GIMBAL_INTERFACE_ENABLE_CLIP
 #define SUSPENSION_YAW_MAX_VOLTAGE 30000
 #define SUSPENSION_PITCH_MAX_VOLTAGE 29000
-#define SUSPENSION_GIMBAL_INTERFACE_BULLET_LOADER_MAX_CURRENT 3000
-#define MAX_YAW_ANGLE 170.0f // degree
-#define MIN_YAW_ANGLE -170.0f
-#define MAX_PITCH_ANGLE 40.0f // degree
-#define MIN_PITCH_ANGLE -85.0f
-#define BULLET_LOADER_SPEED 360.0f // degree/s
 #endif
 
 /**
@@ -49,7 +43,7 @@ typedef enum {
     SHOOT = 2,
 } shoot_mode_t;
 
-class SuspensionGimbalIF {
+class SGimbalIF {
 
 public:
 
@@ -89,7 +83,7 @@ public:
         /**
          * Normalized Angle and Rounds
          */
-        float target_angle = 0;
+
 
         // Some const parameters for feedback processing
         float angle_movement_lower_bound;

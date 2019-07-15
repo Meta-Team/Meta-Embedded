@@ -65,7 +65,7 @@ class SentryThread : public chibios_rt::BaseStaticThread<512> {
 
             /** Setting State **/
 
-            if (s1_present_state != Remote::rc.s1 || s2_present_state != Remote::rc.s2){
+            if (s1_present_state != Remote::rc.s1 || s2_present_state != Remote::rc.s2) {
                 // If the state of remote controller is changed, then we change the state/mode of the SKDs
                 s1_present_state = Remote::rc.s1;
                 s2_present_state = Remote::rc.s2;
@@ -76,7 +76,7 @@ class SentryThread : public chibios_rt::BaseStaticThread<512> {
 
                         SentryChassisSKD::turn_off();
 
-                        switch (s2_present_state){
+                        switch (s2_present_state) {
 
                             case Remote::S_UP :
                                 SuspensionGimbalSKD::set_motor_enable(SuspensionGimbalIF::YAW_ID, false);
@@ -115,7 +115,7 @@ class SentryThread : public chibios_rt::BaseStaticThread<512> {
                         SuspensionGimbalSKD::set_motor_enable(SuspensionGimbalIF::BULLET_LOADER_ID, false);
                         SuspensionGimbalSKD::set_shoot_mode(OFF);
 
-                        switch (s2_present_state){
+                        switch (s2_present_state) {
                             case Remote::S_UP :
                                 SentryChassisSKD::set_mode(SentryChassisSKD::ONE_STEP_MODE);
                                 break;
@@ -133,7 +133,7 @@ class SentryThread : public chibios_rt::BaseStaticThread<512> {
                         SuspensionGimbalSKD::set_motor_enable(SuspensionGimbalIF::PIT_ID, false);
                         SuspensionGimbalSKD::set_motor_enable(SuspensionGimbalIF::BULLET_LOADER_ID, false);
                         SuspensionGimbalSKD::set_shoot_mode(OFF);
-                        switch (s2_present_state){
+                        switch (s2_present_state) {
                             case Remote::S_UP :
                                 break;
                             case Remote::S_MIDDLE :
@@ -148,26 +148,26 @@ class SentryThread : public chibios_rt::BaseStaticThread<512> {
 
 
             /** Update Movement Request **/
-            if (s1_present_state == Remote::S_UP && s2_present_state == Remote::S_UP){
-           //     LOG("%.2f, %.2f", SuspensionGimbalIF::yaw.angular_position, SuspensionGimbalIF::pitch.angular_position);
-            } else if (s1_present_state == Remote::S_UP && s2_present_state == Remote::S_MIDDLE){
+            if (s1_present_state == Remote::S_UP && s2_present_state == Remote::S_UP) {
+                //     LOG("%.2f, %.2f", SuspensionGimbalIF::yaw.angular_position, SuspensionGimbalIF::pitch.angular_position);
+            } else if (s1_present_state == Remote::S_UP && s2_present_state == Remote::S_MIDDLE) {
                 SuspensionGimbalSKD::set_motor_angle(SuspensionGimbalIF::YAW_ID, Remote::rc.ch2 * 100.0f);
                 SuspensionGimbalSKD::set_motor_angle(SuspensionGimbalIF::PIT_ID, Remote::rc.ch3 * 40);
-                if (Remote::rc.ch0 > 0.5f){
+                if (Remote::rc.ch0 > 0.5f) {
                     SuspensionGimbalSKD::start_continuous_shooting();
-                } else{
+                } else {
                     SuspensionGimbalSKD::stop_continuous_shooting();
                 }
-             //   LOG("%.2f, %.2f", Remote::rc.ch2 * 170.0f, Remote::rc.ch3 * 40.0f);
-            } else if (s1_present_state == Remote::S_MIDDLE && s2_present_state == Remote::S_UP){
+                //   LOG("%.2f, %.2f", Remote::rc.ch2 * 170.0f, Remote::rc.ch3 * 40.0f);
+            } else if (s1_present_state == Remote::S_MIDDLE && s2_present_state == Remote::S_UP) {
                 SentryChassisSKD::set_destination(SentryChassisIF::target_position + Remote::rc.ch0);
-              //  LOG("%.2f", SentryChassisIF::present_position);
-            } else if (s1_present_state == Remote::S_MIDDLE && s2_present_state == Remote::S_DOWN){
+                //  LOG("%.2f", SentryChassisIF::present_position);
+            } else if (s1_present_state == Remote::S_MIDDLE && s2_present_state == Remote::S_DOWN) {
                 /// FINAL_AUTO_MODE, random escape
                 // if not escaping but under attack, go into escape mode, use to gimbal data when gimbal is connected
                 // under_attack = Remote::rc.ch2>=0.5 || Remote::rc.ch2<=-0.5;
                 under_attack = true;
-                if ( under_attack ) SentryChassisSKD::start_escaping();
+                if (under_attack) SentryChassisSKD::start_escaping();
                 LOG("chassis power: %.2f", Referee::power_heat_data.chassis_power);
             }
             //LOG("%d",Referee::count_);

@@ -19,7 +19,7 @@ bool SuspensionGimbalSKD::continuous_shooting;
  * Public Functions
  */
 
-void SuspensionGimbalSKD::init(AHRSExt* ahrs) {
+void SuspensionGimbalSKD::init(AbstractAHRS* ahrs) {
     yaw_a2v_pid.change_parameters(GIMBAL_YAW_A2V_PID_PARAMS);
     yaw_v2i_pid.change_parameters(GIMBAL_YAW_V2I_PID_PARAMS);
     pitch_a2v_pid.change_parameters(GIMBAL_PITCH_A2V_PID_PARAMS);

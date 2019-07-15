@@ -2,7 +2,7 @@
 // Created by zhukerui on 2019/6/8.
 //
 
-#include <control/suspension_gimbal_skd.h>
+#include <scheduler/suspension_gimbal_skd.h>
 #include "ch.hpp"
 #include "hal.h"
 

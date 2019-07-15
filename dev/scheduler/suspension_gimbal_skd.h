@@ -30,7 +30,7 @@ public:
 
     static SuspensionGimbalThread suspensionGimbalThread;
 
-    static void init(AHRSExt* ahrs);
+    static void init(AbstractAHRS* ahrs);
 
     static void set_front(SuspensionGimbalIF::motor_id_t motor_id);
 
