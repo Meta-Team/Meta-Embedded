@@ -7,6 +7,9 @@
 
 RoboticArmSKD::RoboticArmThread RoboticArmSKD::roboticArmThread;
 RoboticArmSKD::robotic_arm_state_t RoboticArmSKD::state;
+RoboticArmSKD::digital_status_t RoboticArmSKD::door_state;
+RoboticArmSKD::digital_status_t RoboticArmSKD::lift_state;
+RoboticArmSKD::digital_status_t RoboticArmSKD::extend_state;
 bool RoboticArmSKD::released;
 float RoboticArmSKD::trigger_angle;
 float RoboticArmSKD::target_velocity;
@@ -20,6 +23,13 @@ void RoboticArmSKD::init() {
     target_velocity = 0;
     v2i_pid.change_parameters(ROBOTIC_ARM_PID_V2I_PARAMS);
     v2i_pid.clear_i_out();
+    
+    door_state = HIGH_STATUS;
+    extend_state = HIGH_STATUS;
+    lift_state = HIGH_STATUS;
+    change_status(door_state, DOOR_PAD);
+    change_status(extend_state, EXTEND_PAD);
+    change_status(lift_state, LIFT_PAD);
 }
 
 void RoboticArmSKD::set_clamp_action(clamp_status_t target_status) {
@@ -45,6 +55,15 @@ void RoboticArmSKD::pull_back() {
     }
     if (state == BOX_CLAMPED) state = TAKING_BOX;
 }
+
+void RoboticArmSKD::change_status(digital_status_t& status, uint8_t pad) {
+    if (released) {
+        if (status == HIGH_STATUS) status = LOW_STATUS;
+        else status = HIGH_STATUS;
+        palWritePad(GPIOH, pad, status);
+    }
+}
+
 
 void RoboticArmSKD::update_target_current() {
     // State managing
