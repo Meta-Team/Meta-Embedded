@@ -161,8 +161,6 @@ public:
 
     private:
 
-        void load(CANRxFrame const *rxmsg);  // load feedback from rxmsg
-
         uint16_t last_angle_raw = 0;  // in the range of [0, 8191]
 
 #if GIMBAL_INTERFACE_ENABLE_VELOCITY_DIFFERENTIAL

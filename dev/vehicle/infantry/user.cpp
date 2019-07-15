@@ -54,7 +54,7 @@ void User::UserThread::main() {
 
         /*** ---------------------------------- Gimbal --------------------------------- ***/
 
-        if (!Inspector::remote_failure() && !Inspector::chassis_failure() && !Inspector::gimbal_failure()) {
+        if (!Inspector::remote_failure() /*&& !Inspector::chassis_failure()*/ && !Inspector::gimbal_failure()) {
 
             if ((Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_UP) ||
                 (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_MIDDLE)) {
@@ -136,7 +136,7 @@ void User::UserThread::main() {
 
         /*** ---------------------------------- Shoot --------------------------------- ***/
 
-        if (!Inspector::remote_failure() && !Inspector::chassis_failure() && !Inspector::gimbal_failure()) {
+        if (!Inspector::remote_failure() /*&& !Inspector::chassis_failure()*/ && !Inspector::gimbal_failure()) {
             if ((Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_UP) ||
                 (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_MIDDLE) /*||
                 (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_DOWN)*/) {
@@ -179,7 +179,7 @@ void User::UserThread::main() {
 
         /*** ---------------------------------- Chassis --------------------------------- ***/
 
-        if (!Inspector::remote_failure() && !Inspector::chassis_failure() && !Inspector::gimbal_failure()) {
+        if (!Inspector::remote_failure() && !Inspector::chassis_failure() /*&& !Inspector::gimbal_failure()*/) {
 
             if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_UP) {
 

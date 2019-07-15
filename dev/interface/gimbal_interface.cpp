@@ -154,19 +154,10 @@ if (feedback[YAW].type != RM6623) {
 }
 
 void GimbalIF::process_motor_feedback(CANRxFrame const *rxmsg) {
+
     chSysLock();  /// ---------------------------------- Enter Critical Zone ----------------------------------
-    feedback[(motor_id_t) (rxmsg->SID - 0x205)].load(rxmsg);
-    chSysUnlock();  /// ---------------------------------- Exit Critical Zone ----------------------------------
-}
 
-void GimbalIF::motor_feedback_t::init(motor_type_t type_, motor_id_t id_) {
-    type = type_;
-    id = id_;
-}
-
-void GimbalIF::motor_feedback_t::load(CANRxFrame const *rxmsg) {
-
-    if (type == NONE_MOTOR) return;
+    motor_feedback_t* fb = &feedback[(motor_id_t) (rxmsg->SID - 0x205)];
 
     /**
      * Function logic description:
@@ -185,77 +176,98 @@ void GimbalIF::motor_feedback_t::load(CANRxFrame const *rxmsg) {
     /// Calculate the angle movement in raw data
     // KEY IDEA: add the change of angle to actual angle
     // We assume that the absolute value of the angle movement is smaller than 180 degrees (4096 of raw data)
-    int angle_movement = (int) new_actual_angle_raw - (int) last_angle_raw;
+    int angle_movement = (int) new_actual_angle_raw - (int) fb->last_angle_raw;
 
     // Store new_actual_angle_raw for calculation of angle_movement next time
-    last_angle_raw = new_actual_angle_raw;
+    fb->last_angle_raw = new_actual_angle_raw;
 
     /// If angle_movement is too extreme between two samples, we grant that it's caused by moving over the 0(8192) point
     if (angle_movement < -4096) angle_movement += 8192;
     if (angle_movement > 4096) angle_movement -= 8192;
 
-    if (type == RM6623) {  // RM6623 deceleration ratio = 1
+    switch (fb->type) {
 
-        // raw -> degree
-        actual_angle += angle_movement * 0.043945312f;  // * 360 / 8192
+        case RM6623:  // RM6623 deceleration ratio = 1
 
-        actual_velocity = 0;  // no velocity feedback available
+            // raw -> degree
+            fb->actual_angle += angle_movement * 0.043945312f;  // * 360 / 8192
 
-        actual_current = (int16_t) (rxmsg->data8[2] << 8 | rxmsg->data8[3]);
+            fb->actual_velocity = 0;  // no velocity feedback available
 
-    } else if (type == M2006) {  // M2006 deceleration ratio = 36,
+            fb->actual_current = (int16_t) (rxmsg->data8[2] << 8 | rxmsg->data8[3]);
+            
+            break;
 
-        // raw -> degree with deceleration ratio
-        actual_angle += angle_movement * 0.001220703f;  // * 360 / 8192 / 36
+        case M2006:  // M2006 deceleration ratio = 36,
 
-        // rpm -> degree/s with deceleration ratio
-        actual_velocity = ((int16_t) (rxmsg->data8[2] << 8 | rxmsg->data8[3])) * 0.166666667f;  // 360 / 60 / 36
+            // raw -> degree with deceleration ratio
+            fb->actual_angle += angle_movement * 0.001220703f;  // * 360 / 8192 / 36
 
-        actual_current = 0;  // no current feedback available
+            // rpm -> degree/s with deceleration ratio
+            fb->actual_velocity = ((int16_t) (rxmsg->data8[2] << 8 | rxmsg->data8[3])) * 0.166666667f;  // 360 / 60 / 36
 
-    } else if (type == M3508) {  // M3508 deceleration ratio = 3591/187
+            fb->actual_current = 0;  // no current feedback available
 
-        // raw -> degree with deceleration ratio
-        actual_angle += angle_movement * 0.002288436f; // 360 / 8192 / (3591/187)
+            break;
 
-        // rpm -> degree/s with deceleration ratio
-        actual_velocity = ((int16_t) (rxmsg->data8[2] << 8 | rxmsg->data8[3])) * 0.312447786f;  // 360 / 60 / (3591/187)
+        case M3508:  // M3508 deceleration ratio = 3591/187
 
-        actual_current = (int16_t) (rxmsg->data8[4] << 8 | rxmsg->data8[5]);
+            // raw -> degree with deceleration ratio
+            fb->actual_angle += angle_movement * 0.002288436f; // 360 / 8192 / (3591/187)
 
-    } else if (type == GM6020) {  // GM6020 deceleration ratio = 1
+            // rpm -> degree/s with deceleration ratio
+            fb->actual_velocity =
+                    ((int16_t) (rxmsg->data8[2] << 8 | rxmsg->data8[3])) * 0.312447786f;  // 360 / 60 / (3591/187)
 
-        // raw -> degree
-        actual_angle += angle_movement * 0.043945312f;  // * 360 / 8192
+            fb->actual_current = (int16_t) (rxmsg->data8[4] << 8 | rxmsg->data8[5]);
 
-        // rpm -> degree/s
-        actual_velocity = ((int16_t) (rxmsg->data8[2] << 8 | rxmsg->data8[3])) * 6.0f;  // 360 / 60
+            break;
 
-        actual_current = (int16_t) (rxmsg->data8[4] << 8 | rxmsg->data8[5]);
+        case GM6020:  // GM6020 deceleration ratio = 1
 
-    } else if (type == GM3510) {  // GM3510 deceleration ratio = 1
+            // raw -> degree
+            fb->actual_angle += angle_movement * 0.043945312f;  // * 360 / 8192
 
-        // raw -> degree
-        actual_angle += angle_movement * 0.043945312f;  // * 360 / 8192
+            // rpm -> degree/s
+            fb->actual_velocity = ((int16_t) (rxmsg->data8[2] << 8 | rxmsg->data8[3])) * 6.0f;  // 360 / 60
 
-        actual_velocity = 0;  // no velocity feedback available
+            fb->actual_current = (int16_t) (rxmsg->data8[4] << 8 | rxmsg->data8[5]);
+            
+            break;
 
-        actual_current = 0;  // no current feedback available
+        case GM3510:  // GM3510 deceleration ratio = 1
 
+            // raw -> degree
+            fb->actual_angle += angle_movement * 0.043945312f;  // * 360 / 8192
+
+            fb->actual_velocity = 0;  // no velocity feedback available
+
+            fb->actual_current = 0;  // no current feedback available
+
+        default:
+            break;
     }
 
     /// Normalize the angle to [-180, 180]
     // If the actual_angle is greater than 180(-180) then it turns a round in CCW(CW) direction
-    if (actual_angle >= 180.0f) {
-        actual_angle -= 360.0f;
-        round_count++;
+    if (fb->actual_angle >= 180.0f) {
+        fb->actual_angle -= 360.0f;
+        fb->round_count++;
     }
-    if (actual_angle < -180.0f) {
-        actual_angle += 360.0f;
-        round_count--;
+    if (fb->actual_angle < -180.0f) {
+        fb->actual_angle += 360.0f;
+        fb->round_count--;
     }
 
-    last_update_time = SYSTIME;
+    fb->last_update_time = SYSTIME;
+    
+    chSysUnlock();  /// ---------------------------------- Exit Critical Zone ----------------------------------
+
+}
+
+void GimbalIF::motor_feedback_t::init(motor_type_t type_, motor_id_t id_) {
+    type = type_;
+    id = id_;
 }
 
 void GimbalIF::motor_feedback_t::reset_front_angle() {

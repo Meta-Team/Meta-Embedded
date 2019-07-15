@@ -19,9 +19,6 @@
 #define GIMBAL_YAW_FRONT_ANGLE_RAW 6772
 #define GIMBAL_PITCH_FRONT_ANGLE_RAW -200
 
-#define GIMBAL_YAW_ACTUAL_VELOCITY (MPU6500::angle_speed.z)
-#define GIMBAL_PITCH_ACTUAL_VELOCITY (MPU6500::angle_speed.y)
-
 
 #define LOADER_SHOOT_DEGREE_PER_BULLET 72.0f
 #define PLATE_SHOOT_DEGREE_PER_BULLET 36.0f
@@ -32,7 +29,7 @@
 
 /// Gimbal and Shoot Installation Configurations
 
-#define GIMBAL_YAW_MOTOR_TYPE     (GimbalIF::RM6623)
+#define GIMBAL_YAW_MOTOR_TYPE     (GimbalIF::GM6020)
 #define GIMBAL_PITCH_MOTOR_TYPE   (GimbalIF::RM6623)
 #define SHOOT_BULLET_MOTOR_TYPE   (GimbalIF::M2006)
 #define SHOOT_PLATE_MOTOR_TYPE    (GimbalIF::M3508)
