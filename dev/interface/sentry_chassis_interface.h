@@ -8,6 +8,7 @@
 
 #include "ch.hpp"
 #include "hal.h"
+
 #include "can_interface.h"
 
 /**
@@ -20,7 +21,7 @@
 #define SENTRY_CHASSIS_MAX_CURRENT 5000  // mA
 #endif
 
-class SentryChassisBase {
+class SChassisBase {
 public:
     enum motor_id_t {
         MOTOR_RIGHT,
@@ -30,8 +31,8 @@ public:
 };
 
 /**
- * @name SentryChassisIF
- * @note "IF" stands for "interface"
+ * @name SChassisIF
+ * @note "IF" stands for "interface", "S" is short for "Sentry"
  * @brief Interface to process chassis motor feedback and send target current.
  * @pre Hardware is properly set. CAN id of each motor should be the same as motor_id_t.
  * @usage 1. Call init(CANInterface *). The interface should be properly initialized.
@@ -40,41 +41,31 @@ public:
  * @note This module is designed to process feedback automatically, but not to send current automatically, to avoid
  *       unintended chassis movements.
  */
-class SentryChassisIF : public SentryChassisBase{
+class SChassisIF : public SChassisBase{
 
 public:
 
-    static float present_position;
-    static float present_velocity;
+    static float present_position();
+    static float present_velocity();
 
-//    static float target_position;
-
-//    static float target_velocity;
-
-//    static float power_limit;
-
+    static void clear_position();
 
     struct motor_feedback_t {
 
         motor_id_t id;
-        float motor_present_position;
-        float motor_present_velocity;
 
-        int16_t actual_current_raw;
+        float present_position;   // [cm]
+        float present_velocity;   // [cm/s]
 
     private:
 
-        int16_t actual_angle = 0;
-        int16_t round_count = 0;
         int16_t last_angle_raw = 0; // 8192 for 360 degrees
-        float actual_angular_velocity; // degree/s
 
         void clear_position(){
-            motor_present_velocity = motor_present_position = 0;
-            actual_angle = round_count = target_current = 0;
+            present_position = 0;
         }
 
-        friend SentryChassisIF;
+        friend SChassisIF;
     };
 
     /**
@@ -103,9 +94,6 @@ private:
 
     static float constexpr DISPLACEMENT_PER_ROUND = 17.28f;
     static float constexpr CHASSIS_MOTOR_DECELERATE_RATIO = 19.2f; // 3591/187 on the datasheet
-
-
-
 };
 
 

@@ -74,7 +74,7 @@ class SentryThread : public chibios_rt::BaseStaticThread<512> {
 
                     case Remote::S_UP :
 
-                        SentryChassisSKD::turn_off();
+                        SChassisSKD::turn_off();
 
                         switch (s2_present_state) {
 
@@ -109,7 +109,7 @@ class SentryThread : public chibios_rt::BaseStaticThread<512> {
 
                     case Remote::S_MIDDLE :
 
-                        SentryChassisSKD::turn_on();
+                        SChassisSKD::turn_on();
                         SuspensionGimbalSKD::set_motor_enable(SuspensionGimbalIF::YAW_ID, false);
                         SuspensionGimbalSKD::set_motor_enable(SuspensionGimbalIF::PIT_ID, false);
                         SuspensionGimbalSKD::set_motor_enable(SuspensionGimbalIF::BULLET_LOADER_ID, false);
@@ -117,18 +117,18 @@ class SentryThread : public chibios_rt::BaseStaticThread<512> {
 
                         switch (s2_present_state) {
                             case Remote::S_UP :
-                                SentryChassisSKD::set_mode(SentryChassisSKD::ONE_STEP_MODE);
+                                SChassisSKD::set_mode(SChassisSKD::ONE_STEP_MODE);
                                 break;
                             case Remote::S_MIDDLE :
-                                SentryChassisSKD::set_mode(SentryChassisSKD::SHUTTLED_MODE);
+                                SChassisSKD::set_mode(SChassisSKD::SHUTTLED_MODE);
                                 break;
                             case Remote::S_DOWN :
-                                SentryChassisSKD::set_mode(SentryChassisSKD::FINAL_AUTO_MODE);
+                                SChassisSKD::set_mode(SChassisSKD::FINAL_AUTO_MODE);
                                 break;
                         }
                         break;
                     case Remote::S_DOWN :
-                        SentryChassisSKD::turn_off();
+                        SChassisSKD::turn_off();
                         SuspensionGimbalSKD::set_motor_enable(SuspensionGimbalIF::YAW_ID, false);
                         SuspensionGimbalSKD::set_motor_enable(SuspensionGimbalIF::PIT_ID, false);
                         SuspensionGimbalSKD::set_motor_enable(SuspensionGimbalIF::BULLET_LOADER_ID, false);
@@ -160,14 +160,14 @@ class SentryThread : public chibios_rt::BaseStaticThread<512> {
                 }
                 //   LOG("%.2f, %.2f", Remote::rc.ch2 * 170.0f, Remote::rc.ch3 * 40.0f);
             } else if (s1_present_state == Remote::S_MIDDLE && s2_present_state == Remote::S_UP) {
-                SentryChassisSKD::set_destination(SentryChassisIF::target_position + Remote::rc.ch0);
-                //  LOG("%.2f", SentryChassisIF::present_position);
+                SChassisSKD::set_destination(SChassisIF::  + Remote::rc.ch0);
+                //  LOG("%.2f", SChassisIF::present_position);
             } else if (s1_present_state == Remote::S_MIDDLE && s2_present_state == Remote::S_DOWN) {
                 /// FINAL_AUTO_MODE, random escape
                 // if not escaping but under attack, go into escape mode, use to gimbal data when gimbal is connected
                 // under_attack = Remote::rc.ch2>=0.5 || Remote::rc.ch2<=-0.5;
                 under_attack = true;
-                if (under_attack) SentryChassisSKD::start_escaping();
+                if (under_attack) SChassisSKD::start_escaping();
                 LOG("chassis power: %.2f", Referee::power_heat_data.chassis_power);
             }
             //LOG("%d",Referee::count_);
@@ -204,11 +204,11 @@ int main(void) {
     /*** Parameters Set up***/
     // ahrsExt.start(&can1);
     // SuspensionGimbalIF::init(&can1, GIMBAL_YAW_FRONT_ANGLE_RAW, GIMBAL_PITCH_FRONT_ANGLE_RAW);
-    SentryChassisIF::init(&can1);
+    SChassisIF::init(&can1);
     LOG("5");
     // SuspensionGimbalSKD::init(&ahrsExt);
     // SuspensionGimbalSKD::suspensionGimbalThread.start(HIGHPRIO - 2);
-    SentryChassisSKD::sentryChassisThread.start(HIGHPRIO - 3);
+    SChassisSKD::sentryChassisThread.start(HIGHPRIO - 3);
 
     LED::green_on();
     /** Start Logic Control Thread **/

@@ -109,7 +109,7 @@ private:
     static install_direction_t yaw_install;
     static install_direction_t pitch_install;
 
-    // local storage
+    // Local storage
     static mode_t mode;
     static float target_angle[2];
 

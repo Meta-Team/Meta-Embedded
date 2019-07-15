@@ -160,7 +160,6 @@ target_link_libraries(HERO ${PROJECT_SOURCE_DIR}/dev/interface/ahrs/ahrs_lib.lib
 # Main Program -- Sentry
 add_executable(SENTRY
         dev/interface/can_interface.cpp
-        dev/interface/suspension_gimbal_interface.cpp
         dev/interface/sentry_chassis_interface.cpp
         dev/scheduler/sentry_chassis_skd.cpp
         dev/scheduler/suspension_gimbal_skd.cpp
@@ -169,7 +168,7 @@ add_executable(SENTRY
         dev/interface/referee_interface.cpp
         dev/interface/ahrs/ahrs_ext.cpp
         dev/common/CRC8.cpp
-        dev/common/CRC16.cpp)
+        dev/common/CRC16.cpp dev/logic/sentry_chassis_logic.cpp dev/logic/sentry_chassis_logic.h)
 
 # Main Program -- Engineer
 add_executable(ENGINEER
@@ -321,7 +320,6 @@ add_executable(pa_sentry_chassis
 add_executable(ut_suspension_gimbal
         dev/interface/can_interface.cpp
         dev/module/pid_controller.hpp
-        dev/interface/suspension_gimbal_interface.cpp
         dev/scheduler/suspension_gimbal_skd.cpp
         dev/debug/unit_tests/suspension_gimbal_unit_test.cpp)
 

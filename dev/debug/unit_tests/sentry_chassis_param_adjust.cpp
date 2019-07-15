@@ -58,6 +58,65 @@ private:
 
 }chassisFeedbackThread;
 
+/**
+     * @brief debug helper function
+     * @param pid_id -- the same as "set_pid"
+     */
+static void print_pid(int pid_id){
+    if (pid_id == 0){
+        PIDControllerBase::pid_params_t to_print = left_v2i_pid.get_parameters();
+        LOG("%f %f %f %f %f", to_print.kp, to_print.ki, to_print.kd, to_print.i_limit, to_print.out_limit);
+    } else if (pid_id == 1){
+        PIDControllerBase::pid_params_t to_print = sentry_a2v_pid.get_parameters();
+        LOG("%f %f %f %f %f", to_print.kp, to_print.ki, to_print.kd, to_print.i_limit, to_print.out_limit);
+    } else if (pid_id == 2){
+        PIDControllerBase::pid_params_t to_print = sentry_POM_pid.get_parameters();
+        LOG("%f %f %f %f %f", to_print.kp, to_print.ki, to_print.kd, to_print.i_limit, to_print.out_limit);
+    }
+}
+
+// Debug options
+static bool printPosition;
+static bool printCurrent;
+static bool printVelocity;
+static bool printPower;
+
+void SChassisSKD::SentryChassisThread::main() {
+
+    setName("SentryChassis");
+    SChassisSKD::init();
+
+    while (!shouldTerminate()){
+        update_target_current();
+
+        if(printPosition) {
+            LOG("motor %d position: %.2f", 0, SChassisIF::motor[0].motor_present_position);
+            LOG("motor %d position: %.2f", 1, SChassisIF::motor[1].motor_present_position);
+            LOG("target position: %.2f", SChassisIF::target_position);
+        }
+
+        if(printCurrent) {
+            LOG("motor %d target_current: %d", 0, SChassisIF::motor[0].target_current);
+            LOG("motor %d target_current: %d", 1, SChassisIF::motor[1].target_current);
+        }
+
+        if(printVelocity) {
+            LOG("motor %d motor_present_velocity: %.2f", 0, SChassisIF::motor[0].motor_present_velocity);
+            LOG("motor %d motor_present_velocity: %.2f", 1, SChassisIF::motor[1].motor_present_velocity);
+            LOG("target velocity: %.2f", SChassisIF::target_velocity);
+        }
+
+        if(printPower) {
+            LOG("chassis power: %.2f", Referee::power_heat_data.chassis_power);
+            LOG("chassis power_buffer: %u", Referee::power_heat_data.chassis_power_buffer);
+            LOG("chassis current: %u", Referee::power_heat_data.chassis_current);
+            LOG("chassis voltage: %u", Referee::power_heat_data.chassis_volt);
+        }
+
+        SChassisIF::send_currents();
+        sleep(TIME_MS2I(100));
+    }
+}
 
 /**
  * @brief enable the chassis
