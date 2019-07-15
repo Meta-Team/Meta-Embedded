@@ -128,7 +128,7 @@ bool Inspector::remote_failure() {
 bool Inspector::check_gimbal_failure() {
     bool ret = false;
     for (unsigned i = 0; i < 3; i++) {
-        if (SYSTIME - GimbalIF::feedback[i].last_update_time > 50) {
+        if (SYSTIME - GimbalIF::feedback[i].last_update_time > 75) {
             if (!gimbal_failure_) {  // avoid repeating printing
                 LOG_ERR("Gimbal motor %u offline", i);
                 ret = true;
@@ -141,7 +141,7 @@ bool Inspector::check_gimbal_failure() {
 bool Inspector::check_chassis_failure() {
     bool ret = false;
     for (unsigned i = 0; i < ChassisIF::MOTOR_COUNT; i++) {
-        if (SYSTIME - ChassisIF::feedback[i].last_update_time > 50) {
+        if (SYSTIME - ChassisIF::feedback[i].last_update_time > 75) {
             if (!chassis_failure_) {  // avoid repeating printing
                 LOG_ERR("Chassis motor %u offline", i);
                 ret = true;

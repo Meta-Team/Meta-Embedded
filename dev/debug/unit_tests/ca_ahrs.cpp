@@ -81,6 +81,8 @@ ShellCommand sdCommands[] = {
         {nullptr,    nullptr}
 };
 
+static const Matrix33 ON_BOARD_AHRS_MATRIX_ = ON_BOARD_AHRS_MATRIX;
+
 int main(void) {
     halInit();
     chibios_rt::System::init();
@@ -93,7 +95,7 @@ int main(void) {
     LOG("SDCard::init() = %d", SDCard::init());
     SDCard::read_all();
 
-    ahrs.start(ON_BOARD_AHRS_MATRIX, HIGHPRIO - 2, HIGHPRIO - 3, HIGHPRIO - 1);
+    ahrs.start(ON_BOARD_AHRS_MATRIX_, HIGHPRIO - 2, HIGHPRIO - 3, HIGHPRIO - 1);
     Buzzer::play_sound(Buzzer::sound_startup, LOWPRIO);
 
     ahrsCalibrationThread.start(NORMALPRIO + 1);

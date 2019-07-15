@@ -154,7 +154,9 @@ if (feedback[YAW].type != RM6623) {
 }
 
 void GimbalIF::process_motor_feedback(CANRxFrame const *rxmsg) {
+    chSysLock();  /// ---------------------------------- Enter Critical Zone ----------------------------------
     feedback[(motor_id_t) (rxmsg->SID - 0x205)].load(rxmsg);
+    chSysUnlock();  /// ---------------------------------- Exit Critical Zone ----------------------------------
 }
 
 void GimbalIF::motor_feedback_t::init(motor_type_t type_, motor_id_t id_) {

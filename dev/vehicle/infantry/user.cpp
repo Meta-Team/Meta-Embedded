@@ -145,11 +145,11 @@ void User::UserThread::main() {
 
                 if (Remote::rc.wheel > 0.5) {  // down
                     if (ShootLG::get_shooter_state() == ShootLG::STOP) {
-                        ShootLG::shoot(shoot_launch_left_count, 0);
+                        ShootLG::shoot(shoot_launch_left_count, shoot_launch_speed);
                     }
                 } else if (Remote::rc.wheel < -0.5) {  // up
                     if (ShootLG::get_shooter_state() == ShootLG::STOP) {
-                        ShootLG::shoot(shoot_launch_right_count, 0);
+                        ShootLG::shoot(shoot_launch_right_count, shoot_launch_speed);
                     }
                 } else {
                     if (ShootLG::get_shooter_state() != ShootLG::STOP) {
