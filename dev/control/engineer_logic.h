@@ -34,18 +34,25 @@ public:
 private:
 
     enum engineer_state_t{
+        LOCK,
         FREE,
         FORWARD_ONLY,
-        BACKWARD_ONLY
+        BACKWARD_ONLY,
+        RIIGHT_ONLY,
+        LEFT_ONLY,
+        BL_ROTATE,
+        BR_ROTATE
     };
 
     static engineer_state_t state;
 
-    static int16_t dms_heights[];
+    static bool elevated;
 
     static uint8_t edges;
 
     static uint16_t trigger_height;
+
+    static void update_dms_data();
 };
 
 
