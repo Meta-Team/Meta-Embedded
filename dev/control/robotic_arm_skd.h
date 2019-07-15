@@ -21,6 +21,10 @@
  *          when reaching a trigger angle, release the box
  */
 
+#define DOOR_PAD GPIOH_POWER1_CTRL
+#define LIFT_PAD GPIOH_POWER3_CTRL
+#define EXTEND_PAD GPIOH_POWER4_CTRL
+
 class RoboticArmSKD {
 
 public:
@@ -34,6 +38,11 @@ public:
     enum clamp_status_t {
         CLAMP_RELAX = PAL_LOW,
         CLAMP_CLAMPED = PAL_HIGH
+    }; //GPIOH_POWER2
+
+    enum digital_status_t {
+        LOW_STATUS = PAL_LOW,
+        HIGH_STATUS = PAL_HIGH
     };
 
     enum robotic_arm_state_t{
@@ -65,6 +74,10 @@ public:
 private:
 
     static robotic_arm_state_t state;
+
+    static digital_status_t door_state, lift_state, extend_state;
+
+    static void  change_status(digital_status_t& status, uint8_t pad);
 
     static float trigger_angle;
 
