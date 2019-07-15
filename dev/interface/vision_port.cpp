@@ -20,12 +20,9 @@ const UARTConfig VisionPort::UART_CONFIG = {
         nullptr,
         nullptr,
         VisionPort::uart_rx_callback, // callback function when the buffer is filled
-        nullptr,
-        nullptr,
-        115200, // speed
-        0,
-        0,
-        0,
+        VisionPort::uart_char_callback,
+        VisionPort::uart_err_callback,
+        460800, // speed
 };
 
 void VisionPort::init() {
@@ -120,5 +117,18 @@ void VisionPort::uart_rx_callback(UARTDriver *uartp) {
     }
 
     chSysUnlockFromISR();
+
+}
+
+void VisionPort::uart_err_callback(UARTDriver *uartp, uartflags_t e) {
+    for (unsigned i = 0; i < 8; i++) {
+        if (e & (1U << i)) LED::led_toggle(i + 1);
+    }
+//    chSysLockFromISR();
+//    uartStartReceiveI(uartp, FRAME_SOF_SIZE, &pak);
+//    chSysUnlockFromISR();
+}
+
+void VisionPort::uart_char_callback(UARTDriver *uartp, uint16_t c) {
 
 }

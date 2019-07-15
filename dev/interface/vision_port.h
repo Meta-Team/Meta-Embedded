@@ -73,6 +73,8 @@ private:
     static package_t pak;
 
     static void uart_rx_callback(UARTDriver *uartp);  // only for internal use
+    static void uart_err_callback(UARTDriver *uartp, uartflags_t e);
+    static void uart_char_callback(UARTDriver *uartp, uint16_t c);
 
     enum rx_status_t {
         WAIT_STARTING_BYTE,  // receive bytes one by one, waiting for 0xA5
