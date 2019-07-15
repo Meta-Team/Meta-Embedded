@@ -1,5 +1,6 @@
 //
 // Created by liuzikai on 2019-04-12.
+// Modified by zhukerui and jintengjun
 //
 
 #ifndef META_INFANTRY_SENTRY_CHASSIS_H
@@ -19,6 +20,9 @@
 #define SENTRY_CHASSIS_MAX_CURRENT 5000  // mA
 #endif
 
+#define SENTRY_CHASSIS_MOTOR_COUNT 2
+
+
 /**
  * @name SentryChassis
  * @brief interface to process chassis motor feedback and send target current.
@@ -26,43 +30,50 @@
  * @usage 1. init(CANInterface *). The interface should be properly initialized.
  *        2. control the data flow based on actual implementation
  */
-class SentryChassis {
+class SentryChassisIF {
 
 public:
 
-    static float constexpr chassis_motor_decelerate_ratio = 19.2f; // 3591/187 on the data sheet
-
     enum motor_id_t {
         MOTOR_RIGHT,
-        MOTOR_LEFT,
-        MOTOR_COUNT // = 2
+        MOTOR_LEFT
     };
+
+    static float present_position;
+
+    static float present_velocity;
+
+    static float target_position;
+
+    static float target_velocity;
+
+    static float power_limit;
 
     // Structure for each motor
     struct motor_t {
 
         motor_id_t id;
-
-        int16_t actual_rpm_raw;
+        float motor_present_position;
+        float motor_present_velocity;
         int16_t actual_current_raw;
-        uint8_t actual_temperature_raw;
+        int16_t target_current;
 
+    private:
         int16_t actual_angle = 0;
+        int16_t round_count = 0;
         int16_t last_angle_raw = 0; // 8192 for 360 degrees
-
         float actual_angular_velocity; // degree/s
-        int round_count = 0;
-        int target_current;
 
+        void clear_position(){
+            motor_present_velocity = motor_present_position = 0;
+            actual_angle = round_count = target_current = 0;
+        }
+
+        friend SentryChassisIF;
+        friend class SentryChassisSKD;
     };
 
     static motor_t motor[];
-
-    /**
-     * @brief send all target currents
-     * @return
-     */
-    static bool send_currents();
 
     /**
      * @brief set CAN interface for receiving and sending
@@ -70,16 +81,21 @@ public:
      */
     static void init(CANInterface* can_interface);
 
-
-
 private:
 
     static CANInterface* can;
 
     static void process_feedback(CANRxFrame const*rxmsg);
 
+    static bool send_currents();
+
+    static float constexpr displacement_per_round = 17.28f;
+
+    static float constexpr chassis_motor_decelerate_ratio = 19.2f; // 3591/187 on the data sheet
+
     friend CANInterface;
 
+    friend class SentryChassisSKD;
 };
 
 

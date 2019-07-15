@@ -242,7 +242,7 @@ target_link_libraries(ut_ahrs ${PROJECT_SOURCE_DIR}/dev/interface/ahrs/ahrs_lib.
 add_executable(ut_ahrs_ext
         dev/interface/can_interface.cpp
         dev/interface/ahrs/ahrs_ext.cpp
-        dev/debug/unit_tests/ut_ahrs_ext'.cpp)
+        dev/debug/unit_tests/ut_ahrs_ext.cpp)
 
 # Buzzer: inlcude Buzzer interface and unit test.
 add_executable(ut_buzzer
@@ -296,8 +296,44 @@ add_executable(ut_sentry_chassis
         dev/interface/can_interface.cpp
         dev/module/pid_controller.hpp
         dev/interface/sentry_chassis_interface.cpp
-        dev/control/sentry_chassis.cpp
-        dev/debug/unit_tests/ut_sentry_chassis.cpp)
+        dev/control/sentry_chassis_skd.cpp
+        dev/debug/unit_tests/sentry_chassis_unit_test.cpp
+        dev/interface/referee_interface.cpp
+        dev/module/CRC8.cpp
+        dev/module/CRC16.cpp)
+
+#Sentry Chassis Matlab Test
+add_executable(ut_sentry_chassis_mat
+        dev/interface/can_interface.cpp
+        dev/module/pid_controller.hpp
+        dev/interface/sentry_chassis_interface.cpp
+        dev/control/sentry_chassis_skd.cpp
+        dev/debug/unit_tests/sentry_chassis_param_adjust.cpp
+        dev/interface/referee_interface.cpp
+        dev/module/CRC8.cpp
+        dev/module/CRC16.cpp)
+
+#Suspension Gimbal Test
+add_executable(ut_suspension_gimbal
+        dev/interface/can_interface.cpp
+        dev/module/pid_controller.hpp
+        dev/interface/suspension_gimbal_interface.cpp
+        dev/control/suspension_gimbal_skd.cpp
+        dev/debug/unit_tests/suspension_gimbal_unit_test.cpp)
+
+#Sentry Remote Test
+add_executable(ut_sentry_remote
+        dev/interface/can_interface.cpp
+        dev/interface/suspension_gimbal_interface.cpp
+        dev/interface/sentry_chassis_interface.cpp
+        dev/control/sentry_chassis_skd.cpp
+        dev/control/suspension_gimbal_skd.cpp
+        dev/vehicle/sentry/main_sentry.cpp
+        dev/interface/remote_interpreter.cpp
+        dev/interface/referee_interface.cpp
+        dev/interface/ahrs/ahrs_ext.cpp
+        dev/module/CRC8.cpp
+        dev/module/CRC16.cpp)
 
 add_executable(ut_referee_interface
         dev/common/CRC8.cpp
