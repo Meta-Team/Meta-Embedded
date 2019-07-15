@@ -116,7 +116,7 @@ void User::UserThread::main() {
                     pc_z_pressed = Remote::key.z;
                 }
 
-            } else {
+            } else if(Remote::rc.s1 == Remote::S_UP){
                 /// Safe Mode
                 HeroShootLG::ForceStop();
                 HeroShootLG::set_friction_wheels(0);

@@ -20,7 +20,7 @@ class User {
 
 public:
 
-    static void start(tprio_t prio);
+    static void start(tprio_t user_prio, tprio_t feedback_prio);
 
 private:
 
@@ -36,7 +36,7 @@ private:
     static constexpr int SHOOT_LAUNCH_LEFT_COUNT = 5;
     static constexpr int SHOOT_LAUNCH_RIGHT_COUNT = 999;
 
-    static constexpr float SHOOT_COMMON_DUTY_CYCLE = 0;//0.8;
+    static constexpr float SHOOT_COMMON_DUTY_CYCLE = 0.8;
 
     /// Chassis Parameters
     static constexpr float CHASSIS_COMMON_VX = 1200.0f;  // [mm/s]
@@ -47,6 +47,7 @@ private:
 
     /// Thread
     static constexpr unsigned USER_THREAD_INTERVAL = 7;  // [ms]
+    static constexpr unsigned FEEDBACK_THREAD_INTERVAL = 25;
 
     class UserThread : public chibios_rt::BaseStaticThread<512> {
         float gimbal_rc_yaw_target_angle = 0;
@@ -58,8 +59,12 @@ private:
         bool pc_mouse_right_pressed = false;
         void main() final;
     };
+    class FeedbackThread : public chibios_rt::BaseStaticThread<512> {
+        void main() final;
+    };
 
     static UserThread userThread;
+    static FeedbackThread feedbackThread;
 
 };
 

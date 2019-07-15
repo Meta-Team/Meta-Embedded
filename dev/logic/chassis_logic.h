@@ -68,8 +68,7 @@ private:
     static float target_theta;
 
     static void apply_target();  // helper function to apply target values to ChassisSKD
-
-    static constexpr unsigned DODGE_MODE_THETA = 45;  // rotation angle (theta) in DODGE_MODE [degree]
+    static constexpr unsigned DODGE_MODE_THETA = 15;  // rotation angle (theta) in DODGE_MODE [degree]
 
     static tprio_t dodge_thread_prio;
 
