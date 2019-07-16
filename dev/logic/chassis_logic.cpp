@@ -42,9 +42,11 @@ void ChassisLG::set_action(ChassisLG::action_t value) {
     if (action == FORCED_RELAX_MODE) {
         ChassisSKD::set_mode(ChassisSKD::FORCED_RELAX_MODE);
     } else if (action == FOLLOW_MODE) {
+        ChassisSKD::load_pid_params(CHASSIS_FOLLOW_PID_THETA2V_PARAMS, CHASSIS_PID_V2I_PARAMS);
         ChassisSKD::set_mode(ChassisSKD::GIMBAL_COORDINATE_MODE);
         apply_target();
     } else if (action == DODGE_MODE) {
+        ChassisSKD::load_pid_params(CHASSIS_DODGE_PID_THETA2V_PARAMS, CHASSIS_PID_V2I_PARAMS);
         ChassisSKD::set_mode(ChassisSKD::GIMBAL_COORDINATE_MODE);
         target_theta = dodge_mode_theta_;
         // Resume the thread
