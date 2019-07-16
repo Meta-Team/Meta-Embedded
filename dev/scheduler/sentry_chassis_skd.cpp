@@ -48,6 +48,14 @@ void SChassisSKD::set_destination(float dist) {
     target_position = dist;
 }
 
+float SChassisSKD::present_position() {
+    return SChassisIF::present_position();
+}
+
+float SChassisSKD::present_velocity() {
+    return SChassisIF::present_velocity();
+}
+
 
 void SChassisSKD::SKDThread::main() {
     setName("SChassis_SKD");
