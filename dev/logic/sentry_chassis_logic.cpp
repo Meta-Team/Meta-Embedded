@@ -4,52 +4,83 @@
 
 #include "sentry_chassis_logic.h"
 
-float SChassisSKD::radius;
-float SChassisSKD::terminals[6] = {LEFT_END, CURVE_1_LEFT, CURVE_1_RIGHT, CURVE_2_LEFT, CURVE_2_RIGHT, RIGHT_END};
-int SChassisSKD::prev_terminal;
-int SChassisSKD::next_terminal;
-unsigned SChassisSKD::last_attack_time;
+#include "sentry_chassis_skd.h"
 
-void SChassisSKD::init() {
-    printPosition = printCurrent = printVelocity = false;
-    enable = false;
-    running_mode = STOP_MODE;
-    POM = false;
-    randomMode = false;
-    set_pid(2, POM_PID_P2V_PARAMS);
-    set_pid(1, CRUISING_PID_A2V_PARAMS);
-    set_pid(0, SENTRY_CHASSIS_PID_V2I_PARAMS);
-    radius = 50.0f;
-    prev_terminal = 0;
-    next_terminal = 5;
-    last_attack_time = 0;
-    set_target_power(25);
+SChassisLG::mode_t SChassisLG::mode = FORCED_RELAX_MODE;
+float SChassisLG::manual_dest = 0;
+float SChassisLG::radius = 50.0f;
+bool SChassisLG::random_mode = false;
+constexpr float SChassisLG::terminals[6];
+int SChassisLG::prev_terminal = 0;
+int SChassisLG::next_terminal = 5;
+
+SChassisLG::DirectionSwitchThread SChassisLG::directionSwitchThread;
+chibios_rt::ThreadReference SChassisLG::directionThreadReference;
+
+void SChassisLG::init(tprio_t direction_switch_thd_prio) {
+    directionSwitchThread.started = true;
+    directionThreadReference = directionSwitchThread.start(direction_switch_thd_prio);
 }
 
-void SChassisSKD::set_mode(chassis_mode_t target_mode) {
-    running_mode = target_mode;
-    set_origin();
-    if(running_mode == SHUTTLED_MODE){
-        set_destination(radius);
-    } else if (running_mode == FINAL_AUTO_MODE){
-        prev_terminal = 0;
-        next_terminal = 5;
-        randomMode = false;
-        startPOM();
+void SChassisLG::set_mode(SChassisLG::mode_t value) {
+    if (value == mode) return;
+
+    mode = value;
+    if (mode == FORCED_RELAX_MODE) {
+        SChassisSKD::set_mode(SChassisSKD::FORCED_RELAX_MODE);
+    } else {
+        SChassisSKD::set_mode(SChassisSKD::ABS_DEST_MODE);
+        SChassisSKD::reset_origin();  /// NOTICE: reset origin every time switching mode
+        if (mode == MANUAL_MODE) {
+            SChassisSKD::set_destination(manual_dest);
+        } else if (mode == SHUTTLE_MODE || mode == FINAL_AUTO_MODE) {
+            // Resume the thread
+            chSysLock();
+            if (!directionSwitchThread.started) {
+                directionSwitchThread.started = true;
+                chSchWakeupS(directionThreadReference.getInner(), 0);
+            }
+            chSysUnlock();
+        }
     }
 }
 
-/** When enemies are spotted or the sentry is being attacked, start escaping using POM */
-void SChassisSKD::start_escaping(){
+SChassisLG::mode_t SChassisLG::get_mode() {
+    return mode;
+}
+
+void SChassisLG::set_manual_dest(float dest) {
+    manual_dest = dest;
+}
+
+float SChassisLG::get_manual_dest() {
+    return manual_dest;
+}
+
+void SChassisLG::set_shuttle_radius(float shuttle_radius) {
+    radius = shuttle_radius;
+}
+
+float SChassisLG::get_shuttle_radius() {
+    return radius;
+}
+
+bool SChassisLG::get_escaping_status() {
+    return random_mode;
+}
+
+void SChassisLG::start_escaping() {
     last_attack_time = SYSTIME;
-    if (!randomMode){
-        randomMode = true;
-        update_terminal();
+    if (!random_mode) {
+        random_mode = true;
+        update_next_terminal();
     }
 }
 
-void SChassisSKD::update_terminal() {
-    if (randomMode){
+void SChassisLG::update_next_terminal() {
+
+    if (random_mode) {
+
         int dest = SYSTIME % 6; // get a random index between 0 and 5 and decide the next terminal accordingly
 
         if (dest == next_terminal) {
@@ -61,7 +92,8 @@ void SChassisSKD::update_terminal() {
             next_terminal = dest;
         }
     } else {
-        if (next_terminal == 0){
+
+        if (next_terminal == 0) {
             prev_terminal = next_terminal;
             next_terminal = 5;
         } else {
@@ -69,102 +101,48 @@ void SChassisSKD::update_terminal() {
             next_terminal = 0;
         }
     }
-    set_destination(terminals[next_terminal]);
-    startPOM();
+
 }
 
-/**  stop the randomMode and prepare for cruising */
-void SChassisSKD::stop_escaping() {
-    randomMode = false;
-    // return to cruising mode
-    if ( SChassisIF::present_velocity>0 )
+void SChassisLG::stop_escaping() {
+    random_mode = false;
+
+    // Return to cruising mode
+    if (SChassisSKD::present_velocity() > 0)
         next_terminal = 5;
     else
         next_terminal = 0;
 }
 
-void SChassisSKD::update_target_current() {
-    if (enable){
+void SChassisLG::DirectionSwitchThread::main() {
+    setName("Chassis_Switch");
+    while (!shouldTerminate()) {
 
-        float sentry_present_position = SChassisIF::present_position;
-
-        switch (running_mode) {
-            case (ONE_STEP_MODE):
-                // If we are in the ONE_STEP_MODE
-                if (sentry_present_position >= SChassisIF::target_position - 3 &&
-                    sentry_present_position <= SChassisIF::target_position + 3) {
-                    // If the sentry is in the "stop area", we stop the sentry by simply set the target velocity to 0
-                    SChassisIF::target_velocity = 0;
-                } else {
-                    SChassisIF::target_velocity = sentry_a2v_pid.calc(sentry_present_position,
-                                                                      SChassisIF::target_position);
-                }
-                break;
-            case (SHUTTLED_MODE): {
-                // If we are in the SHUTTLED_MODE
-                if (sentry_present_position > radius - 3) {
-                    set_destination(-radius);
-                    startPOM();
-                }
-                else if (sentry_present_position < -radius + 3) {
-                    set_destination(radius);
-                    startPOM();
-                }
-
-                if (POM) {
-                    if ((SChassisIF::present_velocity > 0.8 * CRUISING_SPEED) || (SChassisIF::present_velocity < -0.8 * CRUISING_SPEED))
-                        stopPOM();
-                    float delta_velocity = sentry_POM_pid.calc(Referee::power_heat_data.chassis_power, SChassisIF::power_limit);
-                    if (SChassisIF::target_position > sentry_present_position)
-                        SChassisIF::target_velocity = SChassisIF::present_velocity + delta_velocity;
-                    else if (SChassisIF::target_position < sentry_present_position)
-                        SChassisIF::target_velocity = SChassisIF::present_velocity - delta_velocity;
-                } else
-                    SChassisIF::target_velocity = sentry_a2v_pid.calc(sentry_present_position, SChassisIF::target_position);
-
-                break; }
-
-            case (V_MODE):
-                // this mode is for adjusting velocity pid
-                // The target velocity is given by user, here we do no calculation to target velocity
-                break;
-
-            case (FINAL_AUTO_MODE):
-                // If we are in the FINAL_AUTO_MODE
-                if ( randomMode && SYSTIME - last_attack_time > 60000) stop_escaping();
-
-                if (sentry_present_position > terminals[next_terminal] - 3 && sentry_present_position < terminals[next_terminal] + 3) update_terminal();
-
-                // POM = false; // Delete this line if referee works
-
-                if ( POM ){
-                    if ((sentry_present_position < terminals[next_terminal] && SChassisIF::present_velocity > 0.8 * CRUISING_SPEED) ||
-                        (sentry_present_position > terminals[next_terminal] && SChassisIF::present_velocity < - 0.8 * CRUISING_SPEED))
-                        stopPOM();
-
-                    float delta_velocity = sentry_POM_pid.calc(Referee::power_heat_data.chassis_power, SChassisIF::power_limit);
-                    if (terminals[next_terminal] > sentry_present_position)
-                        // If target position is greater than the present position, then we consider it as a negative direction accelerate
-                        SChassisIF::target_velocity = SChassisIF::present_velocity + delta_velocity;
-                    else if (terminals[next_terminal] < sentry_present_position)
-                        // If target position is greater than the present position, then we consider it as a negative direction accelerate
-                        SChassisIF::target_velocity = SChassisIF::present_velocity - delta_velocity;
-                    // If target position is the same as present position, then we can not decide and do nothing
-
-                } else {
-                    SChassisIF::target_velocity = sentry_a2v_pid.calc(sentry_present_position, terminals[next_terminal]);
-                }
-                break;
-            case (STOP_MODE):
-            default:
-                // If we are in the STOP_MODE, then the sentry now is not movable
-                SChassisIF::target_velocity = 0;
+        chSysLock();  /// ---------------------------------- Enter Critical Zone ----------------------------------
+        if (mode != SHUTTLE_MODE && mode != FINAL_AUTO_MODE) {
+            started = false;
+            chSchGoSleepS(CH_STATE_SUSPENDED);
         }
-        // Set the target current
-        SChassisIF::motor[0].target_current = (int16_t)(right_v2i_pid.calc(SChassisIF::motor[0].motor_present_velocity, SChassisIF::target_velocity));
-        SChassisIF::motor[1].target_current = (int16_t)(left_v2i_pid.calc(SChassisIF::motor[1].motor_present_velocity, SChassisIF::target_velocity));
+        chSysUnlock();  /// ---------------------------------- Exit Critical Zone ----------------------------------
 
-    }else {
-        SChassisIF::motor[0].target_current = SChassisIF::motor[1].target_current = 0;
+        float present_position = SChassisSKD::present_position();
+
+        if (mode == SHUTTLE_MODE) {
+            if (present_position > radius - DEST_TOLERANT_RANGE) {
+                SChassisSKD::set_destination(-radius);
+            } else if (present_position < -radius + DEST_TOLERANT_RANGE) {
+                SChassisSKD::set_destination(radius);
+            }
+        } else if (mode == FINAL_AUTO_MODE) {
+            
+            if (random_mode && SYSTIME - last_attack_time > STOP_ESCAPING_AFTER) stop_escaping();
+
+            if (ABS_IN_RANGE(present_position - terminals[next_terminal], DEST_TOLERANT_RANGE)) {
+                update_next_terminal();
+            }
+        }
+
+        sleep(TIME_MS2I(DIRECTION_INSPECTION_INTERVAL));
+
     }
 }

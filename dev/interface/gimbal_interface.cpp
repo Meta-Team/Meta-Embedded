@@ -155,10 +155,6 @@ if (feedback[YAW].type != RM6623) {
 
 void GimbalIF::process_motor_feedback(CANRxFrame const *rxmsg) {
 
-    chSysLock();  /// ---------------------------------- Enter Critical Zone ----------------------------------
-
-    motor_feedback_t* fb = &feedback[(motor_id_t) (rxmsg->SID - 0x205)];
-
     /**
      * Function logic description:
      *  1. First, get the absolute angle value from the motor, compared with the last absolute angle value, get the
@@ -172,6 +168,10 @@ void GimbalIF::process_motor_feedback(CANRxFrame const *rxmsg) {
 
     // Check whether this new raw angle is valid
     if (new_actual_angle_raw > 8191) return;
+
+    chSysLock();  /// ---------------------------------- Enter Critical Zone ----------------------------------
+
+    motor_feedback_t* fb = &feedback[(motor_id_t) (rxmsg->SID - 0x205)];
 
     /// Calculate the angle movement in raw data
     // KEY IDEA: add the change of angle to actual angle

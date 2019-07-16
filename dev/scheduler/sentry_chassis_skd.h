@@ -44,6 +44,9 @@ public:
      */
     static void set_destination(float dist);
 
+    static float present_position();
+    static float present_velocity();
+
 private:
 
     // Local storage

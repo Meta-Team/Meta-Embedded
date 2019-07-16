@@ -44,7 +44,7 @@ class GimbalSKD : public GimbalBase, public PIDControllerBase {
 public:
 
     enum mode_t {
-        FORCED_RELAX_MODE,   // zero force (Still taking control of ChassisIF. External writing to target currents
+        FORCED_RELAX_MODE,   // zero force (Still taking control of GimbalIF. External writing to target currents
                              // will leads to conflicts.)
         ABS_ANGLE_MODE,      // target_angle of yaw is relative to ground
     }; // no support for RELATIVE_ANGLE_MODE
