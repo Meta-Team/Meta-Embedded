@@ -91,7 +91,7 @@ void VisionPort::uart_rx_callback(UARTDriver *uartp) {
                 switch (pak.cmd_id) {
                     case 0xFF01:
                         enemy_info = pak.enemy_info_;
-                        LED::green_toggle();
+                        LED::red_toggle();
                         last_update_time = SYSTIME;
                         break;
                 }
