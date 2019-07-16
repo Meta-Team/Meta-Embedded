@@ -2,25 +2,36 @@
 // Created by zhukerui on 2019/5/18.
 //
 
+/// Headers
+#include <interface/ahrs/ahrs_ext.h>
 #include "ch.hpp"
 #include "hal.h"
 
-#include "vehicle_sentry.h"
-
-// Modules and basic communication channels
-#include "can_interface.h"
+#include "led.h"
+#include "buzzer.h"
 #include "common_macro.h"
 
-// Interfaces
-#include "buzzer.h"
-#include "mpu6500.h"
+#include "shell.h"
+#include "can_interface.h"
+#include "ahrs.h"
 #include "remote_interpreter.h"
-#include "suspension_gimbal_interface.h"
-#include "sentry_chassis_interface.h"
+#include "sd_card_interface.h"
+#include "vision_port.h"
 
-// Controllers
-#include "suspension_gimbal_skd.h"
-#include "sentry_chassis_skd.h"
+#include "gimbal_interface.h"
+#include "gimbal_scheduler.h"
+#include "gimbal_logic.h"
+#include "shoot_scheduler.h"
+#include "sentry_shoot_logic.h"
+
+#include "sentry_chassis_interface.h"
+#include "sentry_chassis_scheduler.h"
+#include "sentry_chassis_logic.h"
+
+#include "sentry_inspector.h"
+#include "sentry_user.h"
+
+#include "sentry_settings.h"
 
 
 /**
@@ -41,200 +52,137 @@
  */
 
 CANInterface can1(&CAND1);
-//AHRSExt ahrsExt;
+AHRSExt ahrsExt;
 
-/** Threads **/
+/// Local Constants
+static const Matrix33 AHRS_EXT_MATRIX_ = AHRS_EXT_MATRIX;
+static const Matrix33 GIMBAL_ANGLE_INSTALLATION_MATRIX_ = GIMBAL_ANGLE_INSTALLATION_MATRIX;
+static const Matrix33 GIMBAL_GYRO_INSTALLATION_MATRIX_ = GIMBAL_GYRO_INSTALLATION_MATRIX;
 
-/**
- * @name GimbalThread
- * @brief Thread to control gimbal, including shooting mechanism
- * @pre Remote interpreter starts receive
- * @pre Initialize GimbalInterface with CAN driver and set the front angles of yaw and pitch properly
- * @pre Start the thread of updating MPU6500
- */
-class SentryThread : public chibios_rt::BaseStaticThread<512> {
+int main() {
 
-    static constexpr unsigned int GIMBAL_THREAD_INTERVAL = 10; // [ms]
+    /*** --------------------------- Period 0. Fundamental Setup --------------------------- ***/
 
-    void main() final {
-        setName("sentry");
-        // bool escaping = false;
-        bool under_attack;
-        Remote::rc_status_t s1_present_state = Remote::S_UP, s2_present_state = Remote::S_UP;
-        while (!shouldTerminate()) {
-
-            /** Setting State **/
-
-            if (s1_present_state != Remote::rc.s1 || s2_present_state != Remote::rc.s2) {
-                // If the state of remote controller is changed, then we change the state/mode of the SKDs
-                s1_present_state = Remote::rc.s1;
-                s2_present_state = Remote::rc.s2;
-
-                switch (s1_present_state) {
-
-                    case Remote::S_UP :
-
-                        SChassisSKD::turn_off();
-
-                        switch (s2_present_state) {
-
-                            case Remote::S_UP :
-                                SuspensionGimbalSKD::set_motor_enable(SuspensionGimbalIF::YAW_ID, false);
-                                SuspensionGimbalSKD::set_motor_enable(SuspensionGimbalIF::PIT_ID, false);
-                                SuspensionGimbalSKD::set_motor_enable(SuspensionGimbalIF::BULLET_LOADER_ID, false);
-                                SuspensionGimbalSKD::set_shoot_mode(OFF);
-                                break;
-                            case Remote::S_MIDDLE :
-                                LED::led_toggle(7);
-                                SuspensionGimbalSKD::set_motor_enable(SuspensionGimbalIF::YAW_ID, true);
-                                SuspensionGimbalSKD::set_motor_enable(SuspensionGimbalIF::PIT_ID, true);
-                                SuspensionGimbalSKD::set_motor_enable(SuspensionGimbalIF::BULLET_LOADER_ID, true);
-                                SuspensionGimbalSKD::set_shoot_mode(AWAIT);
-                                SuspensionGimbalSKD::set_front(SuspensionGimbalIF::YAW_ID);
-                                SuspensionGimbalSKD::set_front(SuspensionGimbalIF::PIT_ID);
-                                SuspensionGimbalSKD::set_front(SuspensionGimbalIF::BULLET_LOADER_ID);
-                                break;
-                            case Remote::S_DOWN :
-                                SuspensionGimbalSKD::set_motor_enable(SuspensionGimbalIF::YAW_ID, true);
-                                SuspensionGimbalSKD::set_motor_enable(SuspensionGimbalIF::PIT_ID, true);
-                                SuspensionGimbalSKD::set_motor_enable(SuspensionGimbalIF::BULLET_LOADER_ID, true);
-                                SuspensionGimbalSKD::set_shoot_mode(AWAIT);
-                                SuspensionGimbalSKD::set_front(SuspensionGimbalIF::YAW_ID);
-                                SuspensionGimbalSKD::set_front(SuspensionGimbalIF::PIT_ID);
-                                SuspensionGimbalSKD::set_front(SuspensionGimbalIF::BULLET_LOADER_ID);
-                                break;
-                        }
-
-                        break;
-
-                    case Remote::S_MIDDLE :
-
-                        SChassisSKD::turn_on();
-                        SuspensionGimbalSKD::set_motor_enable(SuspensionGimbalIF::YAW_ID, false);
-                        SuspensionGimbalSKD::set_motor_enable(SuspensionGimbalIF::PIT_ID, false);
-                        SuspensionGimbalSKD::set_motor_enable(SuspensionGimbalIF::BULLET_LOADER_ID, false);
-                        SuspensionGimbalSKD::set_shoot_mode(OFF);
-
-                        switch (s2_present_state) {
-                            case Remote::S_UP :
-                                SChassisSKD::set_mode(SChassisSKD::ONE_STEP_MODE);
-                                break;
-                            case Remote::S_MIDDLE :
-                                SChassisSKD::set_mode(SChassisSKD::SHUTTLED_MODE);
-                                break;
-                            case Remote::S_DOWN :
-                                SChassisSKD::set_mode(SChassisSKD::FINAL_AUTO_MODE);
-                                break;
-                        }
-                        break;
-                    case Remote::S_DOWN :
-                        SChassisSKD::turn_off();
-                        SuspensionGimbalSKD::set_motor_enable(SuspensionGimbalIF::YAW_ID, false);
-                        SuspensionGimbalSKD::set_motor_enable(SuspensionGimbalIF::PIT_ID, false);
-                        SuspensionGimbalSKD::set_motor_enable(SuspensionGimbalIF::BULLET_LOADER_ID, false);
-                        SuspensionGimbalSKD::set_shoot_mode(OFF);
-                        switch (s2_present_state) {
-                            case Remote::S_UP :
-                                break;
-                            case Remote::S_MIDDLE :
-                                break;
-                            case Remote::S_DOWN :
-                                break;
-                        }
-                        break;
-                }
-
-            }
-
-
-            /** Update Movement Request **/
-            if (s1_present_state == Remote::S_UP && s2_present_state == Remote::S_UP) {
-                //     LOG("%.2f, %.2f", SuspensionGimbalIF::yaw.angular_position, SuspensionGimbalIF::pitch.angular_position);
-            } else if (s1_present_state == Remote::S_UP && s2_present_state == Remote::S_MIDDLE) {
-                SuspensionGimbalSKD::set_motor_angle(SuspensionGimbalIF::YAW_ID, Remote::rc.ch2 * 100.0f);
-                SuspensionGimbalSKD::set_motor_angle(SuspensionGimbalIF::PIT_ID, Remote::rc.ch3 * 40);
-                if (Remote::rc.ch0 > 0.5f) {
-                    SuspensionGimbalSKD::start_continuous_shooting();
-                } else {
-                    SuspensionGimbalSKD::stop_continuous_shooting();
-                }
-                //   LOG("%.2f, %.2f", Remote::rc.ch2 * 170.0f, Remote::rc.ch3 * 40.0f);
-            } else if (s1_present_state == Remote::S_MIDDLE && s2_present_state == Remote::S_UP) {
-                SChassisSKD::set_destination(SChassisIF::  + Remote::rc.ch0);
-                //  LOG("%.2f", SChassisIF::present_position);
-            } else if (s1_present_state == Remote::S_MIDDLE && s2_present_state == Remote::S_DOWN) {
-                /// FINAL_AUTO_MODE, random escape
-                // if not escaping but under attack, go into escape mode, use to gimbal data when gimbal is connected
-                // under_attack = Remote::rc.ch2>=0.5 || Remote::rc.ch2<=-0.5;
-                under_attack = true;
-                if (under_attack) SChassisSKD::start_escaping();
-                LOG("chassis power: %.2f", Referee::power_heat_data.chassis_power);
-            }
-            //LOG("%d",Referee::count_);
-            sleep(TIME_MS2I(GIMBAL_THREAD_INTERVAL));
-        }
-    }
-} sentryThread;
-
-
-int main(void) {
-
-    /*** --------------------------- Period 1. Basic Setup --------------------------- ***/
-
-    /** Basic Initializations **/
     halInit();
     chibios_rt::System::init();
 
-    LED::green_off();
-    LED::red_off();
+    // Enable power of bullet loader motor
+    palSetPadMode(GPIOH, GPIOH_POWER1_CTRL, PAL_MODE_OUTPUT_PUSHPULL);
+    palSetPad(GPIOH, GPIOH_POWER1_CTRL);
 
-    /** Debug Setup **/
-    Shell::start(HIGHPRIO);
+    /*** ---------------------- Period 1. Modules Setup and Self-Check ---------------------- ***/
 
-    /** Basic IO Setup **/
-    can1.start(HIGHPRIO - 1);
-    Referee::init();
-    LOG("3");
+    /// Preparation of Period 1
+    Inspector::init(&can1, &ahrsExt);
+    LED::all_off();
+
+    /// Setup Shell
+    Shell::start(THREAD_SHELL_PRIO);
+    Shell::addCommands(mainProgramCommands);
+
+    /// Setup SDCard
+    if (SDCard::init()) {
+        SDCard::read_all();
+        LED::led_on(DEV_BOARD_LED_SD_CARD);  // LED 8 on if SD card inserted
+    }
+
+    LED::led_on(DEV_BOARD_LED_SYSTEM_INIT);  // LED 1 on now
+
+    /// Setup CAN1
+    can1.start(THREAD_CAN1_PRIO);
+    chThdSleepMilliseconds(5);
+    Inspector::startup_check_can();  // check no persistent CAN Error. Block for 100 ms
+    LED::led_on(DEV_BOARD_LED_CAN);  // LED 2 on now
+
+    /// Setup AHRS_EXT
+    ahrsExt.start(&can1);
+    chThdSleepMilliseconds(5);
+    Inspector::startup_check_mpu();  // check MPU6500 has signal. Block for 20 ms
+    Inspector::startup_check_ist();  // check IST8310 has signal. Block for 20 ms
+    LED::led_on(DEV_BOARD_LED_AHRS);  // LED 3 on now
+
+    /// Setup Remote
     Remote::start();
-    LOG("4");
+    Inspector::startup_check_remote();  // check Remote has signal. Block for 50 ms
+    LED::led_on(DEV_BOARD_LED_REMOTE);  // LED 4 on now
+
+
+    /// Setup GimbalIF (for Gimbal and Shoot)
+    chThdSleepMilliseconds(2000);  // wait for C610 to be online
+    GimbalIF::init(&can1, GIMBAL_YAW_FRONT_ANGLE_RAW, GIMBAL_PITCH_FRONT_ANGLE_RAW,
+                   GIMBAL_YAW_MOTOR_TYPE, GIMBAL_PITCH_MOTOR_TYPE, SHOOT_BULLET_MOTOR_TYPE);
+    chThdSleepMilliseconds(10);
+    Inspector::startup_check_gimbal_feedback(); // check gimbal motors has continuous feedback. Block for 20 ms
+    LED::led_on(DEV_BOARD_LED_GIMBAL);  // LED 5 on now
+
+
+    /// Setup ChassisIF
+    SChassisIF::init(&can1);
+    chThdSleepMilliseconds(10);
+    Inspector::startup_check_chassis_feedback();  // check chassis motors has continuous feedback. Block for 20 ms
+    LED::led_on(DEV_BOARD_LED_CHASSIS);  // LED 6 on now
+
+
+    /// Setup Red Spot Laser
+    palSetPad(GPIOG, GPIOG_RED_SPOT_LASER);  // enable the red spot laser
+
+    /// Setup Referee
+    Referee::init();
+
+    /// Setup VisionPort
+    VisionPort::init();
+
+    /// Setup SuperCapacitor Port
+    SuperCapacitor::init(&can1);
+
+    /// Complete Period 1
+    LED::green_on();  // LED Green on now
 
 
     /*** ------------ Period 2. Calibration and Start Logic Control Thread ----------- ***/
 
-    /*** Parameters Set up***/
-    // ahrsExt.start(&can1);
-    // SuspensionGimbalIF::init(&can1, GIMBAL_YAW_FRONT_ANGLE_RAW, GIMBAL_PITCH_FRONT_ANGLE_RAW);
-    SChassisIF::init(&can1);
-    LOG("5");
-    // SuspensionGimbalSKD::init(&ahrsExt);
-    // SuspensionGimbalSKD::suspensionGimbalThread.start(HIGHPRIO - 2);
-    SChassisSKD::sentryChassisThread.start(HIGHPRIO - 3);
+    /// Echo Gimbal Raws and Converted Angles
+    LOG("Gimbal Yaw: %u, %f, Pitch: %u, %f",
+        GimbalIF::feedback[GimbalIF::YAW].last_angle_raw, GimbalIF::feedback[GimbalIF::YAW].actual_angle,
+        GimbalIF::feedback[GimbalIF::PITCH].last_angle_raw, GimbalIF::feedback[GimbalIF::PITCH].actual_angle);
 
-    LED::green_on();
-    /** Start Logic Control Thread **/
-    chThdSleepMilliseconds(500);
-    sentryThread.start(NORMALPRIO);
-    /** Echo Gimbal Raws and Converted Angles **/
-    chThdSleepMilliseconds(500);
-    /*LOG("Gimbal Yaw: %u, %f, Pitch: %u, %f",
-        SuspensionGimbalIF::yaw.last_angle, SuspensionGimbalIF::yaw.angular_position,
-        SuspensionGimbalIF::pitch.last_angle, SuspensionGimbalIF::pitch.angular_position);
-    */
-    /** Play the Startup Sound **/
-    Buzzer::play_sound(Buzzer::sound_startup_intel, LOWPRIO);
+    /// Start SKDs
+    GimbalSKD::start(&ahrsExt, GIMBAL_ANGLE_INSTALLATION_MATRIX_, GIMBAL_GYRO_INSTALLATION_MATRIX_,
+                     GIMBAL_YAW_INSTALL_DIRECTION, GIMBAL_PITCH_INSTALL_DIRECTION, THREAD_GIMBAL_SKD_PRIO);
+    GimbalSKD::load_pid_params(GIMBAL_PID_YAW_A2V_PARAMS, GIMBAL_PID_YAW_V2I_PARAMS,
+                               GIMBAL_PID_PITCH_A2V_PARAMS, GIMBAL_PID_PITCH_V2I_PARAMS);
+
+    ShootSKD::start(SHOOT_BULLET_INSTALL_DIRECTION, ShootSKD::POSITIVE /* of no use */, THREAD_SHOOT_SKD_PRIO);
+    ShootSKD::load_pid_params(SHOOT_PID_BULLET_LOADER_A2V_PARAMS, SHOOT_PID_BULLET_LOADER_V2I_PARAMS,
+                              {0, 0, 0, 0, 0} /* of no use */, {0, 0, 0, 0, 0} /* of no use */);
+
+    SChassisSKD::start( SChassisSKD::POSITIVE, SChassisSKD::POSITIVE, THREAD_CHASSIS_SKD_PRIO);
+    SChassisSKD::load_pid_params(CHASSIS_PID_A2V_PARAMS, CHASSIS_PID_V2I_PARAMS);
+
+    /// Start LGs
+    GimbalLG::init(THREAD_GIMBAL_LG_VISION_PRIO);
+    ShootLG::init(SHOOT_DEGREE_PER_BULLET, THREAD_SHOOT_LG_STUCK_DETECT_PRIO, THREAD_SHOOT_BULLET_COUNTER_PRIO);
+    SChassisLG::init(THREAD_CHASSIS_LG_DODGE_PRIO);
+
+
+    /// Start Inspector and User Threads
+    Inspector::start_inspection(THREAD_INSPECTOR_PRIO);
+    User::start(THREAD_USER_PRIO);
+
+    /// Complete Period 2
+    Buzzer::play_sound(Buzzer::sound_startup_intel, THREAD_BUZZER_PRIO);  // Now play the startup sound
 
 
     /*** ------------------------ Period 3. End of main thread ----------------------- ***/
 
     // Entering empty loop with low priority
-
 #if CH_CFG_NO_IDLE_THREAD  // See chconf.h for what this #define means.
     // ChibiOS idle thread has been disabled, main() should implement infinite loop
     while (true) {}
 #else
     // When vehicle() quits, the vehicle thread will somehow enter an infinite loop, so we set the
     // priority to lowest before quitting, to let other threads run normally
-    chibios_rt::BaseThread::setPriority(1);
+    chibios_rt::BaseThread::setPriority(THREAD_IDEAL_PRIO);
 #endif
     return 0;
 }

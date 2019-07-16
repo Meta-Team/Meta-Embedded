@@ -4,7 +4,7 @@
 // Modified by Laixinyi on 2019/7/1
 //
 
-#include "sentry_chassis_skd.h"
+#include "sentry_chassis_scheduler.h"
 
 SChassisSKD::mode_t SChassisSKD::mode = FORCED_RELAX_MODE;
 SChassisSKD::install_direction_t SChassisSKD::motor_install_[2];
@@ -19,8 +19,8 @@ int SChassisSKD::target_current[MOTOR_COUNT] = {0, 0};
 SChassisSKD::SKDThread SChassisSKD::skdThread;
 
 
-void SChassisSKD::init(SChassisSKD::install_direction_t left_motor_install,
-                       SChassisSKD::install_direction_t right_motor_install, tprio_t thread_prio) {
+void SChassisSKD::start(SChassisSKD::install_direction_t left_motor_install,
+                        SChassisSKD::install_direction_t right_motor_install, tprio_t thread_prio) {
 
     motor_install_[MOTOR_LEFT] = left_motor_install;
     motor_install_[MOTOR_RIGHT] = right_motor_install;
@@ -28,11 +28,10 @@ void SChassisSKD::init(SChassisSKD::install_direction_t left_motor_install,
     skdThread.start(thread_prio);
 }
 
-void SChassisSKD::load_pid_params(PIDControllerBase::pid_params_t left_v2i_params,
-                                  PIDControllerBase::pid_params_t right_v2i_params,
-                                  PIDControllerBase::pid_params_t sentry_a2v_params) {
-    v2i_pid[MOTOR_LEFT].change_parameters(left_v2i_params);
-    v2i_pid[MOTOR_RIGHT].change_parameters(right_v2i_params);
+void SChassisSKD::load_pid_params(PIDControllerBase::pid_params_t sentry_a2v_params,
+                                  PIDControllerBase::pid_params_t sentry_v2i_params) {
+    v2i_pid[MOTOR_LEFT].change_parameters(sentry_v2i_params);
+    v2i_pid[MOTOR_RIGHT].change_parameters(sentry_v2i_params);
     a2v_pid.change_parameters(sentry_a2v_params);
 }
 

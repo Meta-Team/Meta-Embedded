@@ -9,7 +9,7 @@
 #include "debug/shell/shell.h"
 #include "can_interface.h"
 #include "sentry_chassis_interface.h"
-#include "sentry_chassis_skd.h"
+#include "sentry_chassis_scheduler.h"
 #include "referee_interface.h"
 
 using namespace chibios_rt;
@@ -84,7 +84,7 @@ static bool printPower;
 void SChassisSKD::SentryChassisThread::main() {
 
     setName("SentryChassis");
-    SChassisSKD::init();
+    SChassisSKD::start();
 
     while (!shouldTerminate()){
         update_target_current();

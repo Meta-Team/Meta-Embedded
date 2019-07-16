@@ -4,7 +4,7 @@
 
 #include "sentry_chassis_logic.h"
 
-#include "sentry_chassis_skd.h"
+#include "sentry_chassis_scheduler.h"
 
 SChassisLG::mode_t SChassisLG::mode = FORCED_RELAX_MODE;
 float SChassisLG::manual_dest = 0;
@@ -87,7 +87,7 @@ void SChassisLG::update_next_terminal() {
             next_terminal = prev_terminal;
             prev_terminal = dest;
         } else {
-            if ((dest - next_terminal) * SChassisIF::present_velocity > 0) dest = 5 - dest;
+            if ((dest - next_terminal) * SChassisIF::present_velocity() > 0) dest = 5 - dest;
             prev_terminal = next_terminal;
             next_terminal = dest;
         }
@@ -101,7 +101,7 @@ void SChassisLG::update_next_terminal() {
             next_terminal = 0;
         }
     }
-
+    SChassisSKD::set_destination(terminals[next_terminal]);
 }
 
 void SChassisLG::stop_escaping() {

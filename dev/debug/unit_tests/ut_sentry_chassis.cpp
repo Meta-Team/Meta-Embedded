@@ -9,7 +9,7 @@
 #include "debug/shell/shell.h"
 #include "can_interface.h"
 #include "sentry_chassis_interface.h"
-#include "sentry_chassis_skd.h"
+#include "sentry_chassis_scheduler.h"
 
 using namespace chibios_rt;
 

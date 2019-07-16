@@ -13,11 +13,13 @@ class VisionPort {
 
 public:
 
-    static __PACKED_STRUCT enemy_info_t{
+    __PACKED_STRUCT enemy_info_t{
         float yaw_angle;
         float pitch_angle;
         float distance;
-    } enemy_info;
+    };
+
+    static enemy_info_t enemy_info;
 
     static time_msecs_t last_update_time;
 

@@ -161,14 +161,22 @@ target_link_libraries(HERO ${PROJECT_SOURCE_DIR}/dev/interface/ahrs/ahrs_lib.lib
 add_executable(SENTRY
         dev/interface/can_interface.cpp
         dev/interface/sentry_chassis_interface.cpp
-        dev/scheduler/sentry_chassis_skd.cpp
-        dev/scheduler/suspension_gimbal_skd.cpp
-        dev/vehicle/sentry/main_sentry.cpp
+        dev/scheduler/sentry_chassis_scheduler.cpp
+        dev/logic/sentry_chassis_logic.cpp
+        dev/interface/gimbal_interface.cpp
+        dev/scheduler/gimbal_scheduler.cpp
+        dev/logic/gimbal_logic.cpp
+        dev/scheduler/shoot_scheduler.cpp
+        dev/logic/sentry_shoot_logic.cpp
         dev/interface/remote_interpreter.cpp
         dev/interface/referee_interface.cpp
         dev/interface/ahrs/ahrs_ext.cpp
+        dev/vehicle/sentry/main_sentry.cpp
+        dev/vehicle/sentry/sentry_inspector.cpp
+        dev/vehicle/sentry/sentry_settings.cpp
+        dev/vehicle/sentry/user.cpp
         dev/common/CRC8.cpp
-        dev/common/CRC16.cpp dev/logic/sentry_chassis_logic.cpp dev/logic/sentry_chassis_logic.h)
+        dev/common/CRC16.cpp)
 
 # Main Program -- Engineer
 add_executable(ENGINEER
@@ -310,18 +318,11 @@ add_executable(pa_sentry_chassis
         dev/interface/can_interface.cpp
         dev/module/pid_controller.hpp
         dev/interface/sentry_chassis_interface.cpp
-        dev/scheduler/sentry_chassis_skd.cpp
+        dev/scheduler/sentry_chassis_scheduler.cpp
         dev/debug/unit_tests/sentry_chassis_param_adjust.cpp
         dev/interface/referee_interface.cpp
         dev/common/CRC8.cpp
         dev/common/CRC16.cpp)
-
-#Suspension Gimbal Test
-add_executable(ut_suspension_gimbal
-        dev/interface/can_interface.cpp
-        dev/module/pid_controller.hpp
-        dev/scheduler/suspension_gimbal_skd.cpp
-        dev/debug/unit_tests/suspension_gimbal_unit_test.cpp)
 
 add_executable(ut_referee_interface
         dev/common/CRC8.cpp

@@ -28,11 +28,10 @@ public:
     };
 
 
-    static void init(install_direction_t left_motor_install, install_direction_t right_motor_install,
-                     tprio_t thread_prio);
+    static void start(install_direction_t left_motor_install, install_direction_t right_motor_install,
+                      tprio_t thread_prio);
 
-    static void load_pid_params(pid_params_t left_v2i_params, pid_params_t right_v2i_params,
-                                pid_params_t sentry_a2v_params);
+    static void load_pid_params(pid_params_t sentry_a2v_params, pid_params_t sentry_v2i_params);
 
     static void reset_origin();
 
