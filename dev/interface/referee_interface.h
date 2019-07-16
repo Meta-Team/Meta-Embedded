@@ -8,11 +8,15 @@
 #include "ch.hpp"
 #include "hal.h"
 
+
 /**
- * @brief the interface for referee system
- * @pre hardware is properly connected and GPIOs are properly configured in board.h
- * @pre call start() to start UART port and start receive
- * @note the status machine of receiving:
+ * @name Referee
+ * @brief Interface for referee system
+ * @pre Hardware is properly connected and UART pins are properly configured in board.h
+ * @usage 1. Invoke init()
+ *        2. Make use of received data or use APIs to send data
+ * @note Designed for 2019 referee protocol V2.0, some functions may not be completed
+ * @note Status machine of receiving:
  *       1. Receive byte one by one. If valid SOF 0xA5 is received, go to 2.
  *       2. Receive the remaining header. If header is valid (CRC8), go to 3. Otherwise, go back to 1.
  *       3. Receive cmdID. Check whether the id is valid and data length is correct. But even if there is error, still
@@ -21,9 +25,6 @@
  *       4. Receive frameHeader.data_length bytes. Go to status 5.
  *       5. Validate data with CRC16. If it's valid, copy data to corresponding structure, or do nothing if failed.
  *          Go to status 1.
- * @usage 1. Invoke init()
- *        2. Make use of received data or use APIs to send data
- * @attention Designed for 2019 referee system
  */
 
 #define REFEREE_USE_EVENTS  TRUE
