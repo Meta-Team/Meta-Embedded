@@ -18,6 +18,8 @@
 #include "engineer_elevator_skd.h"
 #include "robotic_arm_skd.h"
 
+#include "engineer_elevator_logic.h"
+
 float c_kp, c_ki, c_kd, c_i_limit, c_out_limit;
 float e_kp, e_ki, e_kd, e_i_limit, e_out_limit;
 float a_kp, a_ki, a_kd, a_i_limit, a_out_limit;
@@ -159,7 +161,43 @@ static void cmd_echo_v2i(BaseSequentialStream *chp, int argc, char *argv[]){
     else if (i == 2) LOG("%.2f, %.2f, %.2f, %.2f, %.2f", a_kp, a_ki, a_kd, a_i_limit, a_out_limit);
 }
 
+static void cmd_auto_up(BaseSequentialStream *chp, int argc, char *argv[]){
+    (void) argv;
+    if (argc != 0) {
+        shellUsage(chp, "up");
+        return;
+    }
+    EngineerElevatorLG::set_action(EngineerElevatorLG::UPWARD);
+}
 
+static void cmd_auto_down(BaseSequentialStream *chp, int argc, char *argv[]){
+    (void) argv;
+    if (argc != 0) {
+        shellUsage(chp, "down");
+        return;
+    }
+    EngineerElevatorLG::set_action(EngineerElevatorLG::DOWNWARD);
+}
+
+static void cmd_stop_elev(BaseSequentialStream *chp, int argc, char *argv[]){
+    (void) argv;
+    if (argc != 0) {
+        shellUsage(chp, "s");
+        return;
+    }
+    EngineerElevatorLG::set_action(EngineerElevatorLG::FREE);
+}
+
+static void cmd_reset_elev(BaseSequentialStream *chp, int argc, char *argv[]){
+    (void) argv;
+    if (argc != 0) {
+        shellUsage(chp, "reset");
+        return;
+    }
+    EngineerElevatorSKD::aided_motor_enable(false);
+    EngineerElevatorSKD::elevator_enable(true);
+    EngineerElevatorSKD::set_target_height(0);
+}
 
 ShellCommand chassisCommands[] = {
         {"enable",          cmd_enable},
@@ -171,6 +209,10 @@ ShellCommand chassisCommands[] = {
         {"echo_fb",         cmd_echo_fb},
         {"stop_fb",         cmd_stop_echo_fb},
         {"echo_v2i",        cmd_echo_v2i},
+        {"up",              cmd_auto_up},
+        {"down",            cmd_auto_down},
+        {"s",               cmd_stop_elev},
+        {"reset",           cmd_reset_elev},
         {nullptr,    nullptr}
 };
 
@@ -191,6 +233,7 @@ int main(){
     EngineerChassisSKD::engineerChassisThread.start(NORMALPRIO);
     EngineerElevatorSKD::engineerElevatorThread.start(NORMALPRIO - 1);
     RoboticArmSKD::roboticArmThread.start(NORMALPRIO - 2);
+    EngineerElevatorLG::engineerLogicThread.start(NORMALPRIO - 3);
 
     engineerFeedbackThread.start(HIGHPRIO - 2);
 

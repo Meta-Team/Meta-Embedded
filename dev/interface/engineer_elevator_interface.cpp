@@ -23,6 +23,10 @@ void EngineerElevatorIF::init(CANInterface *can_interface) {
     }
 }
 
+float EngineerElevatorIF::get_current_height() {
+    return ( elevatorMotor[0].present_angle + elevatorMotor[1].present_angle ) / 2 / ANGLE_HEIGHT_RATIO;
+}
+
 bool EngineerElevatorIF::send_currents() {
 
     if (!can) return false;

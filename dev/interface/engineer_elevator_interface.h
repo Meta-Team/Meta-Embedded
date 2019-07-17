@@ -9,6 +9,7 @@
 #include "hal.h"
 #include "can_interface.h"
 #include "common_macro.h"
+#include "../vehicle/engineer/vehicle_engineer.h"
 
 /**
  * @name EngineerElevatorIF
@@ -76,6 +77,8 @@ public:
      * @param can_interface
      */
     static void init(CANInterface* can_interface);
+
+    static float get_current_height();
 
     static bool send_currents();
 

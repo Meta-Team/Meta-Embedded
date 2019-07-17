@@ -116,7 +116,7 @@ add_executable(ENGINEER_TEST
         dev/control/engineer_elevator_skd.cpp
         dev/interface/engineer_elevator_interface.cpp
         dev/interface/remote_interpreter.cpp
-        dev/control/engineer_logic.cpp
+        dev/control/engineer_elevator_logic.cpp
         dev/interface/referee_interface.cpp
         dev/common/CRC8.cpp
         dev/common/CRC16.cpp
@@ -126,10 +126,13 @@ add_executable(ut_engineer
         dev/debug/unit_tests/engineer_unit_test.cpp
         dev/control/engineer_chassis_skd.cpp
         dev/interface/engineer_chassis_interface.cpp
+        dev/control/engineer_elevator_logic.cpp
         dev/control/engineer_elevator_skd.cpp
         dev/interface/engineer_elevator_interface.cpp
         dev/control/robotic_arm_skd.cpp
         dev/interface/robotic_arm_interface.cpp
+        dev/interface/dms_interface.cpp
+        dev/interface/referee_interface.cpp
         dev/module/can_interface.cpp)
 
 # Blink
@@ -203,6 +206,7 @@ add_executable(ut_elevator_interface
 add_executable(pa_elevator
         dev/module/can_interface.cpp
         dev/module/pid_controller.hpp
+        dev/control/engineer_elevator_logic.cpp
         dev/control/engineer_elevator_skd.cpp
         dev/interface/engineer_elevator_interface.cpp
         dev/debug/unit_tests/engineer_elevator_param_adjust.cpp)

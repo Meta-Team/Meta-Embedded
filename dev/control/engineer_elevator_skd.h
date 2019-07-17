@@ -39,7 +39,7 @@ public:
 
     static void change_pid_params(int pid_id, PIDControllerBase::pid_params_t pid_params);
 
-    static void set_target_height(float new_height);
+    static void set_target_height(float new_height);        // cm
 
     static void set_aided_motor_velocity(float target_velocity_L, float target_velocity_R);
 

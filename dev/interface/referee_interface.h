@@ -328,7 +328,7 @@ private:
     friend void uartStartReceive(UARTDriver *uartp, size_t n, void *rxbuf);
 
     // See cpp file for configs
-    static constexpr UARTDriver *UART_DRIVER = &UARTD7;
+    static constexpr UARTDriver *UART_DRIVER = &UARTD1;
     static const UARTConfig UART_CONFIG;
 };
 
