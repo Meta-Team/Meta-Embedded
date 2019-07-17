@@ -48,7 +48,7 @@ public:
 
         time_msecs_t last_update_time;
 
-        float accmulate_angle; // [degree]
+        float accumulate_angle; // [degree]
 
         float actual_velocity; // [degree/s]
 

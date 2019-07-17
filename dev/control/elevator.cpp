@@ -28,7 +28,7 @@ void Elevator::calc_v2i_(motor_id_t motor, float actual_velocity_, float target_
 }
 
 void Elevator::calc_motor_(motor_id_t motor) {
-    calc_a2v_(motor, feedback[motor].accmulate_angle, target_angle[motor]);
+    calc_a2v_(motor, feedback[motor].accumulate_angle, target_angle[motor]);
     calc_v2i_(motor, feedback[motor].actual_velocity, target_velocity[motor]);
 }
 
@@ -39,8 +39,8 @@ void Elevator::calc(float height) {
 }
 
 float Elevator::get_height() {
-    float l_height = feedback[L].accmulate_angle / ANGLE_HEIGHT_RATIO;
-    float r_height = feedback[R].accmulate_angle / ANGLE_HEIGHT_RATIO;
+    float l_height = feedback[L].accumulate_angle / ANGLE_HEIGHT_RATIO;
+    float r_height = feedback[R].accumulate_angle / ANGLE_HEIGHT_RATIO;
     if (!ABS_IN_RANGE(l_height - r_height, UNBALANCE_LIMIT)) {
         StateHandler::raiseException(StateHandler::ELEVATOR_UNBALANCE);
     }
@@ -48,5 +48,5 @@ float Elevator::get_height() {
 }
 
 bool Elevator::motor_reach_target(motor_id_t motor) {
-    return ABS_IN_RANGE(feedback[motor].accmulate_angle - target_angle[motor], STABLE_RANGE);
+    return ABS_IN_RANGE(feedback[motor].accumulate_angle - target_angle[motor], STABLE_RANGE);
 }

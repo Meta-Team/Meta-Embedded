@@ -1,5 +1,5 @@
 //
-// Created by Kerui Zhu on 7/15/2019.
+// Created by LaiXinyi on 7/15/2019.
 //
 
 #ifndef META_INFANTRY_ENGINEER_LOGIC_H
@@ -21,14 +21,22 @@ public:
     static void init();
 
     enum action_t {
-        FREE,           // not elevating
+        FREE,           // free to control, for debug
+        LOCK,           // not elevating
         UPWARD,         // going upstairs
         DOWNWARD,       // going down stairs
     };
 
     static void set_action(action_t act);
 
-
+    // both the two sensors in front detect the stage, can start to go up-stairs
+    static bool reach_stage;
+    // both the two sensors at the back wheels landed on stage, enter the last step of going up-stairs
+    static bool back_landed;
+    // both the two sensors at the back wheels reach the edge, can start to go down-stairs
+    static bool back_edged;
+    // both the two sensors at the front wheels leave the stage, enter the last step of going down-stairs
+    static bool front_leave_stage;
 
     class EngineerElevatorLGThread: public chibios_rt::BaseStaticThread<512>{
 
@@ -45,6 +53,7 @@ private:
 
     enum elevator_state_t{
         STOP,           // not using elevator
+        PREPARING,      // preparing to elevate, move forward to reach the stage or backward to reach the edge
         ASCENDING,      // elevator standing up
         DESCENDING,     // elevator squatting down
         AIDING,         // aided motor moving
@@ -53,6 +62,10 @@ private:
     static action_t action;
 
     static elevator_state_t state;
+
+    static float reach_stage_trigger;
+
+    static float hanging_trigger;   //TODO need an interval??
 
     /**
      * @brief check the hanging status of each wheels, and light up the corresponding client light

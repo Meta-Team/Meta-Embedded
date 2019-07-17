@@ -53,7 +53,7 @@ void ElevatorInterface::process_elevator_feedback(CANRxFrame const *rxmsg) {
         angle_movement -= 8192;
     }
 
-    feedback[motor_id].accmulate_angle += angle_movement * 360.0f / 8192.0f / 19.2f;
+    feedback[motor_id].accumulate_angle += angle_movement * 360.0f / 8192.0f / 19.2f;
 
     feedback[motor_id].actual_angle_raw = new_angle_raw;
 
@@ -84,6 +84,6 @@ void ElevatorInterface::init(CANInterface *can_interface) {
 }
 
 void ElevatorInterface::motor_feedback_t::clear_accmulate_angle() {
-    accmulate_angle = 0;
+    accumulate_angle = 0;
 }
 

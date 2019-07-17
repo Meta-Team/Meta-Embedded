@@ -1,5 +1,5 @@
 //
-// Created by Kerui Zhu on 7/15/2019.
+// Created by LaiXinyi on 7/15/2019.
 //
 
 #include "engineer_elevator_logic.h"
@@ -7,38 +7,51 @@
 EngineerElevatorLG::EngineerElevatorLGThread EngineerElevatorLG::engineerLogicThread;
 EngineerElevatorLG::action_t EngineerElevatorLG::action;
 EngineerElevatorLG::elevator_state_t EngineerElevatorLG::state;
+bool EngineerElevatorLG::reach_stage;
+bool EngineerElevatorLG::back_landed;
+bool EngineerElevatorLG::back_edged;
+bool EngineerElevatorLG::front_leave_stage;
+float EngineerElevatorLG::reach_stage_trigger;
+float EngineerElevatorLG::hanging_trigger;
 
 
 void EngineerElevatorLG::init() {
-    //TODO
     set_action(FREE);
     state = STOP;
+    reach_stage = false;
+    back_landed = false;
+    back_edged = false;
+    front_leave_stage = false;
+    //TODO the following values not determined yet
+    reach_stage_trigger = 2000;
+    hanging_trigger = 1500;
 }
 
 
 void EngineerElevatorLG::set_action(EngineerElevatorLG::action_t act) {
 
-    // when current action is FREE, it is safe to set any action
-    if (action == FREE)
-        action = act;
-    else if (act == FREE) {
+    // highest priority for LOCK
+    if (act == LOCK) {
         LOG("forced stop, all freeze now");
-        set_action(FREE);
-        //TODO
-    } else {
-        LOG("set_action failed");
-        if (action == UPWARD)    LOG("current state: UPWARD");
-        if (action == DOWNWARD)  LOG("current state: DOWNWARD");
+        action = LOCK;
     }
+
+    // when current action is LOCK or FREE, it is safe to set any action
+    else if (action == LOCK || action == FREE)
+        action = act;
+    else if (action == UPWARD)
+        LOG("set_action failed, current state: UPWARD");
+    else if (action == DOWNWARD)
+        LOG("set_action failed, current state: DOWNWARD");
 
 }
 
 
 void EngineerElevatorLG::update_hanging_status() {
 
+    //TODO need to revise
     /// client lights are arranged in this way: [FL BL BR FR]
     /// in chassis interface, motor_id : FR - 0, FL - 1, BL - 2, BR - 3
-
     for (unsigned i=0; i<4; i++) {
         if ( DMSInterface::check_hanging(i) )
             Referee::set_client_light( (i+3)%4 ,true);
@@ -50,29 +63,42 @@ void EngineerElevatorLG::update_hanging_status() {
 
 void EngineerElevatorLG::going_up() {
 
-    /// (the aided motors already on the stage)
-    /// start_going_up -> STOP -> ASCENDING -> AIDING -> DESCENDING -> free
+    /// (near the stage)
+    /// STOP -> PREPARING -> ASCENDING -> AIDING -> DESCENDING -> free
 
     if (state == STOP) {
-        state = ASCENDING;
-        EngineerElevatorSKD::elevator_enable(true);
-        EngineerElevatorSKD::aided_motor_enable(false);
-        EngineerElevatorSKD::set_target_height(STAGE_HEIGHT);
+        state = PREPARING;
+        LOG("preparing");
+        EngineerChassisSKD::unlock();
+        EngineerChassisSKD::set_velocity(0, 0.5*ENGINEER_CHASSIS_VELOCITY_MAX, 0);
+    }
+    else if (state == PREPARING) {
+        //reach_stage = DMSInterface::get_distance(FFL) > reach_stage_trigger && DMSInterface::get_distance(FFR) > reach_stage_trigger;
+        if ( reach_stage ) {
+            state = ASCENDING;
+            LOG("ascending");
+            EngineerChassisSKD::lock();
+            EngineerElevatorSKD::elevator_enable(true);
+            EngineerElevatorSKD::aided_motor_enable(false);
+            EngineerElevatorSKD::set_target_height(STAGE_HEIGHT);
+        }
     }
     else if (state == ASCENDING) {
-        if ( STAGE_HEIGHT <= EngineerElevatorIF::get_current_height() ) {
+        reach_stage = false;
+        back_landed = false;
+        if ( STAGE_HEIGHT - 0.05 <= EngineerElevatorIF::get_current_height() ) {
             state = AIDING;
+            LOG("aiding");
             EngineerElevatorSKD::elevator_enable(false);
             EngineerElevatorSKD::aided_motor_enable(true);
-            //TODO maybe allow to speed up?
             EngineerElevatorSKD::set_aided_motor_velocity(ENGINEER_AIDED_MOTOR_VELOCITY, ENGINEER_AIDED_MOTOR_VELOCITY);
         }
     }
     else if (state == AIDING) {
-        if ( // (!DMSInterface::check_hanging(0)) && (!DMSInterface::check_hanging(1)) &&
-             (!DMSInterface::check_hanging(2)) && (!DMSInterface::check_hanging(3))  )
-        {   // when the back wheels are landed
+        //back_landed = DMSInterface::get_distance(DMSInterface::BL) > hanging_trigger && DMSInterface::get_distance(DMSInterface::BR) > hanging_trigger;
+        if ( back_landed ) {
             state = DESCENDING;
+            LOG("descending");
             EngineerElevatorSKD::elevator_enable(true);
             EngineerElevatorSKD::aided_motor_enable(false);
             EngineerElevatorSKD::set_target_height(0);
@@ -82,9 +108,10 @@ void EngineerElevatorLG::going_up() {
     else if (state == DESCENDING) {
         if ( 0 >= EngineerElevatorIF::get_current_height() ) {
             state = STOP;
+            LOG("stop");
             EngineerElevatorSKD::elevator_enable(false);
             EngineerElevatorSKD::aided_motor_enable(false);
-            action = FREE;
+            action = LOCK;
             LOG("going up-stairs done");
         }
     }
@@ -93,40 +120,43 @@ void EngineerElevatorLG::going_up() {
 
 void EngineerElevatorLG::going_down() {
 
-    /// the aided wheels already out of the stage, the back sensors just hanging
-    /// start_going_down -> STOP -> ASCENDING -> AIDING -> DESCENDING -> free
+    /// near the edge
+    /// STOP -> PREPARING -> ASCENDING -> AIDING -> DESCENDING -> free
 
     if (state == STOP) {
-        if ( (!DMSInterface::check_hanging(2)) && (!DMSInterface::check_hanging(3)) ) {
-            // both back wheels are still on the stages
-            LOG("not ready yet, keep reversing");
-            set_action(FREE);
-        }
-        else if ( DMSInterface::check_hanging(2) && DMSInterface::check_hanging(3) ) {
-            // both back wheels are hanging
+        state = PREPARING;
+        LOG("preparing");
+        EngineerChassisSKD::unlock();
+        EngineerChassisSKD::set_velocity(0, -0.5*ENGINEER_CHASSIS_VELOCITY_MAX, 0);
+    }
+    else if (state == PREPARING) {
+        //back_edged = DMSInterface::get_distance(BL) < hanging_trigger && DMSInterface::get_distance(BR) < hanging_trigger;
+        if ( back_edged ) {
             state = ASCENDING;
+            LOG("ascending");
+            EngineerChassisSKD::lock();
             EngineerElevatorSKD::elevator_enable(true);
             EngineerElevatorSKD::aided_motor_enable(false);
             EngineerElevatorSKD::set_target_height(STAGE_HEIGHT);
         }
-        else {
-            // one of the wheel is hanging while the other is not
-            //TODO cha_pivot_rotate
-        }
+        //TODO cha_pivot_turn
     }
     else if (state == ASCENDING) {
-        if ( STAGE_HEIGHT <= EngineerElevatorIF::get_current_height() ) {
+        back_edged = false;
+        front_leave_stage = false;
+        if ( STAGE_HEIGHT - 0.05 <= EngineerElevatorIF::get_current_height() ) {
             state = AIDING;
+            LOG("aiding");
             EngineerElevatorSKD::elevator_enable(false);
             EngineerElevatorSKD::aided_motor_enable(true);
-            //TODO maybe allow to speed up?
             EngineerElevatorSKD::set_aided_motor_velocity(-ENGINEER_AIDED_MOTOR_VELOCITY, -ENGINEER_AIDED_MOTOR_VELOCITY);
         }
     }
     else if (state == AIDING) {
-        if ( DMSInterface::check_hanging(0) && DMSInterface::check_hanging(1) )
-        {   // when the front wheels leave the stage
+        //front_leave_stage = DMSInterface::get_distance(FL) < hanging_trigger && DMSInterface::get_distance(FR) < hanging_trigger;
+        if ( front_leave_stage ) {
             state = DESCENDING;
+            LOG("descending");
             EngineerElevatorSKD::elevator_enable(true);
             EngineerElevatorSKD::aided_motor_enable(false);
             EngineerElevatorSKD::set_target_height(0);
@@ -136,9 +166,10 @@ void EngineerElevatorLG::going_down() {
     else if (state == DESCENDING) {
         if ( 0 >= EngineerElevatorIF::get_current_height() ) {
             state = STOP;
+            LOG("stop");
             EngineerElevatorSKD::elevator_enable(false);
             EngineerElevatorSKD::aided_motor_enable(false);
-            action = FREE;
+            action = LOCK;
             LOG("going down-stairs done");
         }
     }
@@ -150,7 +181,7 @@ void EngineerElevatorLG::going_down() {
 
 //TODO pivot_turn
 
-//TODO quit action
+//TODO force quit
 
 //TODO other error checking
 
@@ -167,7 +198,7 @@ void EngineerElevatorLG::EngineerElevatorLGThread::main() {
 
         update_hanging_status();
 
-        if (action == FREE) {
+        if (action == LOCK) {
             EngineerElevatorSKD::elevator_enable(false);
             EngineerElevatorSKD::aided_motor_enable(false);
         } else if (action == UPWARD) {

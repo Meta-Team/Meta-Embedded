@@ -27,9 +27,9 @@ static void cmd_elevator_echo(BaseSequentialStream *chp, int argc, char *argv[])
         shellUsage(chp, "c_echo");
         return;
     }
-    chprintf(chp, "accmulate_angle: R = %d, L = %d" SHELL_NEWLINE_STR,
-             ElevatorInterface::feedback[ElevatorInterface::R].accmulate_angle,
-             ElevatorInterface::feedback[ElevatorInterface::L].accmulate_angle);
+    chprintf(chp, "accumulate_angle: R = %d, L = %d" SHELL_NEWLINE_STR,
+             ElevatorInterface::feedback[ElevatorInterface::R].accumulate_angle,
+             ElevatorInterface::feedback[ElevatorInterface::L].accumulate_angle);
     chprintf(chp, "actual_velocity: R = %.2f, L = %.2f" SHELL_NEWLINE_STR,
              ElevatorInterface::feedback[ElevatorInterface::R].actual_velocity,
              ElevatorInterface::feedback[ElevatorInterface::L].actual_velocity);

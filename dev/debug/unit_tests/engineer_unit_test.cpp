@@ -1,5 +1,6 @@
 //
 // Created by Kerui Zhu on 7/10/2019.
+// Modified by LaiXinyi on 7/16/2019.
 //
 
 #include "ch.hpp"
@@ -37,7 +38,7 @@ public:
                 LOG("%.2f, %.2f, %d, %d", EngineerChassisIF::motors[0].actual_velocity, EngineerChassisSKD::target_velocity[0],
                     EngineerChassisIF::motors[0].actual_current_raw, EngineerChassisIF::motors[0].target_current);
             } else if (elevator){
-                LOG("%.2f, %.2f, %d, %d", EngineerElevatorIF::elevatorMotor[0].actual_velocity, EngineerElevatorSKD::target_velocity[0],
+                LOG("%.2f, %.2f, %.2f, %d, %d", EngineerElevatorIF::get_current_height(), EngineerElevatorIF::elevatorMotor[0].actual_velocity, EngineerElevatorSKD::target_velocity[0],
                     EngineerElevatorIF::elevatorMotor[0].actual_current, EngineerElevatorIF::elevatorMotor[0].target_current);
             } else if (aided_motor){
                 LOG("%.2f, %.2f, %d", EngineerElevatorIF::aidedMotor[0].actual_velocity, EngineerElevatorSKD::target_velocity[1], EngineerElevatorIF::aidedMotor[0].target_current);
@@ -185,7 +186,8 @@ static void cmd_stop_elev(BaseSequentialStream *chp, int argc, char *argv[]){
         shellUsage(chp, "s");
         return;
     }
-    EngineerElevatorLG::set_action(EngineerElevatorLG::FREE);
+    EngineerElevatorLG::set_action(EngineerElevatorLG::LOCK);
+    EngineerChassisSKD::lock();
 }
 
 static void cmd_reset_elev(BaseSequentialStream *chp, int argc, char *argv[]){
@@ -194,9 +196,23 @@ static void cmd_reset_elev(BaseSequentialStream *chp, int argc, char *argv[]){
         shellUsage(chp, "reset");
         return;
     }
+    EngineerElevatorLG::set_action(EngineerElevatorLG::FREE);
     EngineerElevatorSKD::aided_motor_enable(false);
     EngineerElevatorSKD::elevator_enable(true);
     EngineerElevatorSKD::set_target_height(0);
+}
+
+static void cmd_set_sensor_state(BaseSequentialStream *chp, int argc, char *argv[]){
+    (void) argv;
+    if (argc != 1) {
+        shellUsage(chp, "sensor 0(reach_stage) / 1(back_landed) / 2(back_edged) / 3(front_leave_stage)");
+        return;
+    }
+    int i = Shell::atoi(argv[0]);
+    if (i==0) EngineerElevatorLG::reach_stage = true;
+    if (i==1) EngineerElevatorLG::back_landed = true;
+    if (i==2) EngineerElevatorLG::back_edged = true;
+    if (i==3) EngineerElevatorLG::front_leave_stage = true;
 }
 
 ShellCommand chassisCommands[] = {
@@ -213,6 +229,7 @@ ShellCommand chassisCommands[] = {
         {"down",            cmd_auto_down},
         {"s",               cmd_stop_elev},
         {"reset",           cmd_reset_elev},
+        {"sensor",         cmd_set_sensor_state},
         {nullptr,    nullptr}
 };
 
@@ -226,7 +243,7 @@ int main(){
     Shell::addCommands(chassisCommands);
 
     can1.start(HIGHPRIO - 1);
-    can2.start(HIGHPRIO - 1);
+    can2.start(HIGHPRIO - 2);
     EngineerChassisIF::init(&can1);
     EngineerElevatorIF::init(&can2);
     RoboticArmIF::init(&can2);
