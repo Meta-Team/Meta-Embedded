@@ -48,6 +48,17 @@ static void cmd_robotic_arm_action(BaseSequentialStream *chp, int argc, char *ar
     else RoboticArmSKD::pull_back();
 }
 
+static void cmd_robotic_arm_status(BaseSequentialStream *chp, int argc, char *argv[]) {
+    (void) argv;
+    if (argc != 1) {
+        shellUsage(chp, "0(door)/1(extend)/2(lift)");
+        return;
+    }
+    if (Shell::atoi(argv[0]) == 0) RoboticArmSKD::change_status(RoboticArmSKD::door_state, DOOR_PAD);
+    else if (Shell::atoi(argv[0]) == 1) RoboticArmSKD::change_status(RoboticArmSKD::extend_state, EXTEND_PAD);
+    else if (Shell::atoi(argv[0]) == 2) RoboticArmSKD::change_status(RoboticArmSKD::lift_state, LIFT_PAD);
+}
+
 static void cmd_robotic_arm_emergency_stop(BaseSequentialStream *chp, int argc, char *argv[]) {
     (void) argv;
     if (argc != 0) {
@@ -77,6 +88,7 @@ ShellCommand roboticArmCommands[] = {
         {"rotate", cmd_robotic_arm_action},
         {"s", cmd_robotic_arm_emergency_stop},
         {"set_v2i", cmd_robotic_arm_set_v2i},
+        {"change", cmd_robotic_arm_status},
         {nullptr, nullptr}
 };
 

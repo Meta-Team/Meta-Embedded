@@ -71,13 +71,13 @@ public:
 
     static void pull_back();
 
-private:
-
-    static robotic_arm_state_t state;
+    static void  change_status(digital_status_t& status, uint8_t pad);
 
     static digital_status_t door_state, lift_state, extend_state;
 
-    static void  change_status(digital_status_t& status, uint8_t pad);
+private:
+
+    static robotic_arm_state_t state;
 
     static float trigger_angle;
 
