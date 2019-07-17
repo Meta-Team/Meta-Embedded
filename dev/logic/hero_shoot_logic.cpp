@@ -4,7 +4,6 @@
 
 #include "hero_shoot_logic.h"
 
-#include "math.h"
 #include "shell.h"
 #include "referee_interface.h"
 #include "shoot_scheduler.h"
@@ -93,20 +92,10 @@ void HeroShootLG::force_stop() {
 }
 
 HeroShootLG::loader_state_t HeroShootLG::get_loader_status() {
-    if (loader_target_angle - ShootSKD::get_loader_accumulated_angle() > 3.0f && loaderState != STUCK) {
-        loaderState = LOADING;
-    } else if (loader_target_angle - ShootSKD::get_loader_accumulated_angle() < 3.0f && loaderState != STUCK) {
-        loaderState = STOP;
-    }
     return loaderState;
 }
 
 HeroShootLG::loader_state_t HeroShootLG::get_plate_status() {
-    if (plate_target_angle - ShootSKD::get_plate_accumulated_angle() > 2.0f && plateState != STUCK) {
-        plateState = LOADING;
-    } else if (plate_target_angle - ShootSKD::get_plate_accumulated_angle() < 2.0f && plateState != STUCK) {
-        plateState = STOP;
-    }
     return plateState;
 }
 
@@ -143,14 +132,14 @@ void HeroShootLG::AutoLoaderThread::main() {
 
     while (!shouldTerminate()) {
 
-        // Update the loader state.
+        // Update the loader State
         if (loader_target_angle - ShootSKD::get_loader_accumulated_angle() > 3.0f && loaderState != STUCK) {
             loaderState = LOADING;
-        } else if (fabs(loader_target_angle - ShootSKD::get_loader_accumulated_angle()) < 3.0f && loaderState != STUCK) {
+        } else if (loader_target_angle - ShootSKD::get_loader_accumulated_angle() < 3.0f && loaderState != STUCK) {
             loaderState = STOP;
         }
 
-        // Update the plate state.
+        // Update the plate State.
         if (plate_target_angle - ShootSKD::get_plate_accumulated_angle() > 2.0f && plateState != STUCK) {
             plateState = LOADING;
         } else if (plate_target_angle - ShootSKD::get_plate_accumulated_angle() < 2.0f && plateState != STUCK) {
@@ -166,7 +155,7 @@ void HeroShootLG::AutoLoaderThread::main() {
         }
 
         // loader load automatically.
-        if ((!loaded_bullet[0] && loaded_bullet[2]) && get_loader_status() == STOP) {
+        if (!loaded_bullet[0] && loaded_bullet[2] && get_loader_status() == STOP) {
             ShootSKD::set_mode(ShootSKD::LIMITED_SHOOTING_MODE);
             // get rid of empty bullet place
             loaderState = LOADING;
@@ -181,7 +170,7 @@ void HeroShootLG::AutoLoaderThread::main() {
 
         // Plate load automatically.
         if (get_plate_status() == STOP &&
-            ((loaded_bullet[0] && !loaded_bullet[1] && loaded_bullet[2] && !loaded_bullet[3]) || (!loaded_bullet[2]))) {
+            ((loaded_bullet[2] && !loaded_bullet[3] && loaded_bullet[0] && !loaded_bullet[1]) || (!loaded_bullet[2]))) {
             ShootSKD::set_mode(ShootSKD::LIMITED_SHOOTING_MODE);
 
             // If top bullet place is (about to) be empty due to auto loading
@@ -189,6 +178,8 @@ void HeroShootLG::AutoLoaderThread::main() {
             plate_target_angle += plate_angle_per_bullet;
             ShootSKD::set_plate_target_angle(plate_target_angle);
             // No need to update the sequence. The special situation has already been considered.
+
+            load_bullet_count++;
         }
 
         sleep(TIME_MS2I(AUTO_LOADER_THREAD_INTERVAL));
