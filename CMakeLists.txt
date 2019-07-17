@@ -116,6 +116,10 @@ add_executable(ENGINEER_TEST
         dev/control/engineer_elevator_skd.cpp
         dev/interface/engineer_elevator_interface.cpp
         dev/interface/remote_interpreter.cpp
+        dev/control/engineer_logic.cpp
+        dev/interface/referee_interface.cpp
+        dev/common/CRC8.cpp
+        dev/common/CRC16.cpp
         dev/module/can_interface.cpp)
 
 add_executable(ut_engineer
