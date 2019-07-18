@@ -12,13 +12,13 @@
 #include "super_capacitor_port.h"
 
 #include "sentry_gimbal_logic.h"
-#include "infantry_shoot_logic.h"
+#include "shoot_logic.h"
 #include "sentry_chassis_logic.h"
 
-#include "sentry_inspector.h"
+#include "inspector_sentry.h"
 #include "vision_port.h"
 
-class User {
+class UserS {
 
 public:
 
@@ -102,7 +102,6 @@ private:
 
     static VitualUserThread vitualUserThread;
     static chibios_rt::ThreadReference vitualUserThreadReference;
-
 
 
     /// Friend Configure Functions

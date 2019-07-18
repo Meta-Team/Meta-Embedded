@@ -12,7 +12,7 @@
 #include "super_capacitor_port.h"
 
 #include "gimbal_logic.h"
-#include "infantry_shoot_logic.h"
+#include "shoot_logic.h"
 #include "chassis_logic.h"
 
 #include "inspector_infantry.h"

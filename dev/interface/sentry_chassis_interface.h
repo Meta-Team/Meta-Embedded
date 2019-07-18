@@ -57,6 +57,8 @@ public:
         float present_position;   // [cm]
         float present_velocity;   // [cm/s]
 
+        time_msecs_t last_update_time = 0;
+
     private:
 
         int16_t last_angle_raw = 0; // 8192 for 360 degrees

@@ -10,7 +10,7 @@
 
 #include "shell.h"
 
-#include "sentry_user.h"
+#include "user_sentry.h"
 
 void gimbal_get_config(BaseSequentialStream *chp, int argc, char *argv[]);
 void gimbal_set_config(BaseSequentialStream *chp, int argc, char *argv[]);

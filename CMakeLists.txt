@@ -74,7 +74,7 @@ set(INFANTRY_SHOOT_SRC
         dev/scheduler/gimbal_scheduler.cpp
         dev/scheduler/shoot_scheduler.cpp
         dev/logic/gimbal_logic.cpp
-        dev/logic/infantry_shoot_logic.cpp)
+        dev/logic/shoot_logic.cpp)
 
 set(HERO_SHOOT_SRC
         dev/interface/gimbal_interface.cpp
@@ -160,23 +160,33 @@ target_link_libraries(HERO ${PROJECT_SOURCE_DIR}/dev/interface/ahrs/ahrs_lib.lib
 # Main Program -- Sentry
 add_executable(SENTRY
         dev/interface/can_interface.cpp
+        dev/interface/remote_interpreter.cpp
+        dev/interface/referee_interface.cpp
+        dev/interface/sd_card_interface.cpp
+        dev/interface/vision_port.cpp
+        dev/interface/ahrs/ahrs_ext.cpp
+        dev/common/CRC8.cpp
+        dev/common/CRC16.cpp
+
         dev/interface/sentry_chassis_interface.cpp
         dev/scheduler/sentry_chassis_scheduler.cpp
         dev/logic/sentry_chassis_logic.cpp
+
         dev/interface/gimbal_interface.cpp
         dev/scheduler/gimbal_scheduler.cpp
         dev/logic/sentry_gimbal_logic.cpp
+
         dev/scheduler/shoot_scheduler.cpp
-        dev/logic/sentry_shoot_logic.cpp
-        dev/interface/remote_interpreter.cpp
-        dev/interface/referee_interface.cpp
-        dev/interface/ahrs/ahrs_ext.cpp
+        dev/logic/shoot_logic.cpp
+
         dev/vehicle/sentry/main_sentry.cpp
-        dev/vehicle/sentry/sentry_inspector.cpp
-        dev/vehicle/sentry/sentry_settings.cpp
-        dev/vehicle/sentry/sentry_user.cpp
-        dev/common/CRC8.cpp
-        dev/common/CRC16.cpp)
+        dev/vehicle/sentry/inspector_sentry.cpp
+        dev/vehicle/sentry/settings_sentry.cpp
+        dev/vehicle/sentry/user_sentry.cpp
+
+        )
+target_include_directories(SENTRY PRIVATE dev/vehicle/sentry)
+target_compile_definitions(SENTRY PRIVATE SENTRY)
 
 # Main Program -- Engineer
 add_executable(ENGINEER

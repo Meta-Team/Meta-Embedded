@@ -2,8 +2,8 @@
 // Created by liuzikai on 2019-06-26.
 //
 
-#ifndef META_INFANTRY_INFANTRY_SHOOT_LOGIC_H
-#define META_INFANTRY_INFANTRY_SHOOT_LOGIC_H
+#ifndef META_INFANTRY_SHOOT_LOGIC_H
+#define META_INFANTRY_SHOOT_LOGIC_H
 
 /**
  * @file    infantry_shoot_logic.h
@@ -17,8 +17,10 @@
 
 #if defined(INFANTRY)
 #include "vehicle_infantry.h"
+#elif defined(SENTRY)
+#include "vehicle_sentry.h"
 #else
-#error "Files infantry_shoot_logic.h/cpp should only be used for Infantry main program"
+#error "Files infantry_shoot_logic.h/cpp should only be used for Infantry or Sentry main program"
 #endif
 
 /**
@@ -143,6 +145,6 @@ private:
 
 };
 
-#endif //META_INFANTRY_INFANTRY_SHOOT_LOGIC_H
+#endif //META_INFANTRY_SHOOT_LOGIC_H
 
 /** @} */

@@ -7,12 +7,6 @@
 #define META_SENTRY_VEHICLE_SENTRY_H
 
 
-/// AHRS Configurations
-#define AHRS_EXT_MATRIX {{0.0f, 0.0f, 1.0f}, \
-                        {1.0f, 0.0f, 0.0f}, \
-                        {0.0f, 1.0f, 0.0f}}
-
-
 /// Gimbal and Shoot Installation Configurations
 #define GIMBAL_YAW_MOTOR_TYPE     (GimbalIF::GM6020)
 #define GIMBAL_PITCH_MOTOR_TYPE   (GimbalIF::GM3510)
@@ -23,6 +17,7 @@
 #define SHOOT_BULLET_INSTALL_DIRECTION  (ShootSKD::POSITIVE)
 #define SHOOT_DEGREE_PER_BULLET 40.0f  // rotation degree of bullet loader for each bullet
 
+// TODO: measure
 #define GIMBAL_ANGLE_INSTALLATION_MATRIX {{1.0f, 0.0f, 0.0f}, \
                                           {0.0f, 1.0f, 0.0f}, \
                                           {0.0f, 0.0f, -1.0f}}
@@ -166,8 +161,5 @@
 #define USER_CLIENT_ACQUIRED_BULLET_NUM             1
 #define USER_CLIENT_ACTUAL_POWER_NUM                2
 #define USER_CLIENT_SUPER_CAPACITOR_VOLTAGE_NUM     3
-
-/// Super Capacitor Configurations
-#define SUPER_CAPACITOR_WARNING_VOLTAGE   18
 
 #endif //META_INFANTRY_VEHICLE_SENTRY_H

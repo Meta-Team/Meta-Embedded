@@ -11,7 +11,7 @@
  */
 
 
-#include "infantry_shoot_logic.h"
+#include "shoot_logic.h"
 
 #include "shell.h"
 #include "shoot_scheduler.h"

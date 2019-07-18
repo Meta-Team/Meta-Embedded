@@ -184,6 +184,7 @@ private:
     friend void uartStartReceive(UARTDriver *uartp, size_t n, void *rxbuf);
     friend class InspectorI;
     friend class InspectorH;
+    friend class InspectorS;
 
     static UARTConfig REMOTE_UART_CONFIG;
 

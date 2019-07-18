@@ -12,11 +12,11 @@
 #include "can_interface.h"
 #include "ahrs_abstract.h"
 #include "remote_interpreter.h"
-#include "chassis_interface.h"
+#include "sentry_chassis_interface.h"
 #include "gimbal_interface.h"
 #include "vehicle_sentry.h"
 
-class Inspector {
+class InspectorS {
 
 public:
 
