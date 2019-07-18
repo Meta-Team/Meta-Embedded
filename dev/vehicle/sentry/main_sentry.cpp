@@ -20,7 +20,7 @@
 
 #include "gimbal_interface.h"
 #include "gimbal_scheduler.h"
-#include "gimbal_logic.h"
+#include "sentry_gimbal_logic.h"
 #include "shoot_scheduler.h"
 #include "sentry_shoot_logic.h"
 
@@ -33,29 +33,11 @@
 
 #include "sentry_settings.h"
 
-
-/**
- * Mode Table:
- * ------------------------------------------------------------
- * Left  Right  Mode
- * ------------------------------------------------------------
- *  UP    UP    Safe
- *  UP    MID   Remote - Chassis safe; gimbal remote controlling
- *  UP    DOWN  Auto - Chassis safe; gimbal auto controlling
- *  MID   UP    Remote - Chassis remote controlling, constant speed mode; gimbal fix
- *  MID   MID   Remote - Constant speed mode
- *  MID   DOWN  Remote - Various speed mode, used to test the final auto mode
- *  DOWN  UP/MID Auto (temporarily this can't be achieved, so just left it be the Safe mode)
- *  DOWN  DOWN  Final Auto Mode, Random walk.
- *  -Others-    Safe
- * ------------------------------------------------------------
- */
-
 CANInterface can1(&CAND1);
 AHRSExt ahrsExt;
 
 /// Local Constants
-static const Matrix33 AHRS_EXT_MATRIX_ = AHRS_EXT_MATRIX;
+//static const Matrix33 AHRS_EXT_MATRIX_ = AHRS_EXT_MATRIX;
 static const Matrix33 GIMBAL_ANGLE_INSTALLATION_MATRIX_ = GIMBAL_ANGLE_INSTALLATION_MATRIX;
 static const Matrix33 GIMBAL_GYRO_INSTALLATION_MATRIX_ = GIMBAL_GYRO_INSTALLATION_MATRIX;
 
@@ -160,14 +142,14 @@ int main() {
     SChassisSKD::load_pid_params(CHASSIS_PID_A2V_PARAMS, CHASSIS_PID_V2I_PARAMS);
 
     /// Start LGs
-    GimbalLG::init(THREAD_GIMBAL_LG_VISION_PRIO);
+    SGimbalLG::init();
     ShootLG::init(SHOOT_DEGREE_PER_BULLET, THREAD_SHOOT_LG_STUCK_DETECT_PRIO, THREAD_SHOOT_BULLET_COUNTER_PRIO);
     SChassisLG::init(THREAD_CHASSIS_LG_DODGE_PRIO);
 
 
     /// Start Inspector and User Threads
     Inspector::start_inspection(THREAD_INSPECTOR_PRIO);
-    User::start(THREAD_USER_PRIO);
+    User::start(THREAD_USER_PRIO, THREAD_GIMBAL_LG_VISION_PRIO);
 
     /// Complete Period 2
     Buzzer::play_sound(Buzzer::sound_startup_intel, THREAD_BUZZER_PRIO);  // Now play the startup sound

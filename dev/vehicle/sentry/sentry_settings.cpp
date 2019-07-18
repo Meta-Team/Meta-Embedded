@@ -21,10 +21,10 @@ void gimbal_get_config(BaseSequentialStream *chp, int argc, char *argv[]) {
         return;
     }
     chprintf(chp, "!sg,%f,%f,%f,%f,%f,%f,%f,%f" SHELL_NEWLINE_STR,
-             User::gimbal_pc_yaw_sensitivity[0], User::gimbal_pc_yaw_sensitivity[1], User::gimbal_pc_yaw_sensitivity[2],
+             User::yaw_sensitivity[0], User::yaw_sensitivity[1], User::yaw_sensitivity[2],
              User::gimbal_pitch_max_angle, User::gimbal_pitch_min_angle,
-             User::gimbal_pc_pitch_sensitivity[0], User::gimbal_pc_pitch_sensitivity[1],
-             User::gimbal_pc_pitch_sensitivity[2]);
+             User::pitch_sensitivity[0], User::pitch_sensitivity[1],
+             User::pitch_sensitivity[2]);
 }
 
 void gimbal_set_config(BaseSequentialStream *chp, int argc, char *argv[]) {
@@ -33,14 +33,14 @@ void gimbal_set_config(BaseSequentialStream *chp, int argc, char *argv[]) {
         chprintf(chp, "!se" SHELL_NEWLINE_STR);
         return;
     }
-    User::gimbal_pc_yaw_sensitivity[0] = Shell::atof(argv[0]);
-    User::gimbal_pc_yaw_sensitivity[1] = Shell::atof(argv[1]);
-    User::gimbal_pc_yaw_sensitivity[2] = Shell::atof(argv[2]);
+    User::yaw_sensitivity[0] = Shell::atof(argv[0]);
+    User::yaw_sensitivity[1] = Shell::atof(argv[1]);
+    User::yaw_sensitivity[2] = Shell::atof(argv[2]);
     User::gimbal_pitch_max_angle = Shell::atof(argv[3]);
     User::gimbal_pitch_min_angle = Shell::atof(argv[4]);
-    User::gimbal_pc_pitch_sensitivity[0] = Shell::atof(argv[5]);
-    User::gimbal_pc_pitch_sensitivity[1] = Shell::atof(argv[6]);
-    User::gimbal_pc_pitch_sensitivity[2] = Shell::atof(argv[7]);
+    User::pitch_sensitivity[0] = Shell::atof(argv[5]);
+    User::pitch_sensitivity[1] = Shell::atof(argv[6]);
+    User::pitch_sensitivity[2] = Shell::atof(argv[7]);
 
     chprintf(chp, "!so" SHELL_NEWLINE_STR);
 }
@@ -52,9 +52,7 @@ void chassis_get_config(BaseSequentialStream *chp, int argc, char *argv[]) {
         return;
     }
     chprintf(chp, "!sc,%f,%f,%f,%f,%f,%c" SHELL_NEWLINE_STR,
-             User::chassis_v_forward, User::chassis_v_backward, User::chassis_v,
-             User::chassis_pc_shift_ratio, User::chassis_pc_ctrl_ratio,
-             Remote::key2char(User::chassis_dodge_switch));
+             User::chassis_v, 0, 0, 0, 0,' ');
 }
 
 void chassis_set_config(BaseSequentialStream *chp, int argc, char *argv[]) {
@@ -64,12 +62,7 @@ void chassis_set_config(BaseSequentialStream *chp, int argc, char *argv[]) {
         return;
     }
 
-    User::chassis_v_forward = Shell::atof(argv[0]);
-    User::chassis_v_backward = Shell::atof(argv[1]);
-    User::chassis_v = Shell::atof(argv[2]);
-    User::chassis_pc_shift_ratio = Shell::atof(argv[3]);
-    User::chassis_pc_ctrl_ratio = Shell::atof(argv[4]);
-    User::chassis_dodge_switch = Remote::char2key(argv[5][0]);
+    User::chassis_v = Shell::atof(argv[0]);
 
     chprintf(chp, "!so" SHELL_NEWLINE_STR);
 }
@@ -84,7 +77,7 @@ void shoot_get_config(BaseSequentialStream *chp, int argc, char *argv[]) {
              User::shoot_launch_left_count, User::shoot_launch_right_count,
              User::shoot_launch_speed,
              User::shoot_common_duty_cycle,
-             Remote::key2char(User::shoot_fw_switch));
+             ' ');
 }
 
 void shoot_set_config(BaseSequentialStream *chp, int argc, char *argv[]) {
@@ -98,7 +91,6 @@ void shoot_set_config(BaseSequentialStream *chp, int argc, char *argv[]) {
     User::shoot_launch_right_count = Shell::atof(argv[1]);
     User::shoot_launch_speed = Shell::atof(argv[2]);
     User::shoot_common_duty_cycle = Shell::atof(argv[3]);
-    User::shoot_fw_switch = Remote::char2key(argv[4][0]);
 
     chprintf(chp, "!so" SHELL_NEWLINE_STR);
 }

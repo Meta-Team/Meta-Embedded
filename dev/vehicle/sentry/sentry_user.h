@@ -1,5 +1,5 @@
 //
-// Created by liuzikai on 2019-06-25.
+// Created by Kerui Zhu on 2019-07-16.
 //
 
 #ifndef META_SENTRY_USER_H
@@ -11,19 +11,28 @@
 #include "referee_interface.h"
 #include "super_capacitor_port.h"
 
-#include "gimbal_logic.h"
+#include "sentry_gimbal_logic.h"
 #include "infantry_shoot_logic.h"
 #include "sentry_chassis_logic.h"
 
 #include "sentry_inspector.h"
+#include "vision_port.h"
 
 class User {
 
 public:
 
-    static void start(tprio_t user_thd_prio);
+    static void start(tprio_t user_thd_prio, tprio_t v_user_thd_prio);
 
 private:
+
+    enum sentry_mode_t{
+        FORCED_RELAX_MODE,
+        REMOTE_MODE,
+        AUTO_MODE
+    };
+
+    static sentry_mode_t sentryMode;
 
     enum gimbal_sensitivity_t{
         CRUISING,
@@ -34,6 +43,9 @@ private:
     /// Gimbal Config
     static float yaw_sensitivity[];  // [Cruising, Target_slow, Target_fast] [degree/s]
     static float pitch_sensitivity[];  // [Cruising, Target_slow, Target_fast] [degree/s]
+
+    static float gimbal_yaw_target_angle_;
+    static float gimbal_pitch_target_angle_;
 
     static float gimbal_yaw_min_angle; // left range for yaw [degree]
     static float gimbal_yaw_max_angle; // right range for yaw [degree]
@@ -51,21 +63,47 @@ private:
 
     static float shoot_common_duty_cycle;
 
-    static Remote::key_t shoot_fw_switch;
+    static void set_mode(sentry_mode_t mode);
+
+    static bool fire;
 
     /// User Thread
     static constexpr unsigned USER_THREAD_INTERVAL = 7;  // [ms]
     class UserThread : public chibios_rt::BaseStaticThread<512> {
 
-        /// Runtime variables
-
-        float gimbal_yaw_target_angle_ = 0;
-        float gimbal_pitch_target_angle_ = 0;
-
         void main() final;
     };
 
     static UserThread userThread;
+
+    class VitualUserThread : public chibios_rt::BaseStaticThread<256> {
+    public:
+
+        enum vitual_user_mode_t{
+            VISION_ONLY_MODE,
+            CRUISING_ONLY_MODE,
+            FINAL_AUTO_MODE
+        };
+
+        void set_v_user_mode(vitual_user_mode_t mode);
+
+        bool started = false;
+
+    private:
+        bool enemy_spotted = false;
+        vitual_user_mode_t v_user_mode = FINAL_AUTO_MODE;
+        float yaw_terminal = gimbal_yaw_max_angle, pitch_terminal = gimbal_pitch_max_angle;
+        static constexpr unsigned AUTO_CONTROL_INTERVAL = 5;
+        static constexpr float GIMBAL_YAW_TARGET_FAST_TRIGGER = 10.0f;
+        static constexpr float GIMBAL_PITCH_TARGET_FAST_TRIGGER = 5.0f;
+
+        void main() final;
+    };
+
+    static VitualUserThread vitualUserThread;
+    static chibios_rt::ThreadReference vitualUserThreadReference;
+
+
 
     /// Friend Configure Functions
     friend void gimbal_get_config(BaseSequentialStream *chp, int argc, char *argv[]);

@@ -165,7 +165,7 @@ add_executable(SENTRY
         dev/logic/sentry_chassis_logic.cpp
         dev/interface/gimbal_interface.cpp
         dev/scheduler/gimbal_scheduler.cpp
-        dev/logic/gimbal_logic.cpp
+        dev/logic/sentry_gimbal_logic.cpp
         dev/scheduler/shoot_scheduler.cpp
         dev/logic/sentry_shoot_logic.cpp
         dev/interface/remote_interpreter.cpp
@@ -174,7 +174,7 @@ add_executable(SENTRY
         dev/vehicle/sentry/main_sentry.cpp
         dev/vehicle/sentry/sentry_inspector.cpp
         dev/vehicle/sentry/sentry_settings.cpp
-        dev/vehicle/sentry/user.cpp
+        dev/vehicle/sentry/sentry_user.cpp
         dev/common/CRC8.cpp
         dev/common/CRC16.cpp)
 
