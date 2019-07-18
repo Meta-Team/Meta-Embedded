@@ -56,15 +56,14 @@ private:
     /// Helpers
     static void set_user_client_speed_light_(int level);
 
+    /// Runtime variables
+
+    static float gimbal_yaw_target_angle_;
+    static float gimbal_pc_pitch_target_angle_;
+
     /// User Thread
     static constexpr unsigned USER_THREAD_INTERVAL = 7;  // [ms]
     class UserThread : public chibios_rt::BaseStaticThread<512> {
-
-        /// Runtime variables
-
-        float gimbal_yaw_target_angle_ = 0;
-        float gimbal_pc_pitch_target_angle_ = 0;
-
         void main() final;
     };
 

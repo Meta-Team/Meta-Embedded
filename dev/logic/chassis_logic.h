@@ -88,7 +88,7 @@ private:
 
     private:
 
-        static constexpr unsigned DODGE_MODE_SWITCH_INTERVAL = 1000;  // interval to switch direction in DODGE_MODE [ms]
+        static constexpr unsigned DODGE_MODE_SWITCH_INTERVAL = CHASSIS_DODGE_MODE_INTERVAL;  // interval to switch direction in DODGE_MODE [ms]
 
         void main() final;
     };

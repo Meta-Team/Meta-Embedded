@@ -7,9 +7,9 @@
 
 /// Gimbal Config
 float User::gimbal_rc_yaw_max_speed = 90;  // [degree/s]
-float User::gimbal_pc_yaw_sensitivity[3] = {20000, 60000, 100000};  // [Slow, Normal, Fast] [degree/s]
+float User::gimbal_pc_yaw_sensitivity[3] = {50000, 100000, 150000};  // [Slow, Normal, Fast] [degree/s]
 
-float User::gimbal_pc_pitch_sensitivity[3] = {15000, 40000, 50000};   // [Slow, Normal, Fast] [degree/s]
+float User::gimbal_pc_pitch_sensitivity[3] = {20000, 50000, 60000};   // [Slow, Normal, Fast] [degree/s]
 float User::gimbal_pitch_min_angle = -10; // down range for pitch [degree]
 float User::gimbal_pitch_max_angle = 45; //  up range for pitch [degree]
 
@@ -35,6 +35,8 @@ Remote::key_t User::shoot_fw_switch = Remote::KEY_Z;
 
 
 /// Variables
+float User::gimbal_yaw_target_angle_ = 0;
+float User::gimbal_pc_pitch_target_angle_ = 0;
 User::UserThread User::userThread;
 User::UserActionThread User::userActionThread;
 User::ClientDataSendingThread User::clientDataSendingThread;
@@ -308,6 +310,14 @@ void User::UserActionThread::main() {
                 } else if (ChassisLG::get_action() == ChassisLG::DODGE_MODE) {
                     ChassisLG::set_action(ChassisLG::FOLLOW_MODE);
                 }
+            }
+
+            if (key_flag & (1U << Remote::KEY_Q)) {
+                gimbal_yaw_target_angle_ += 90.0f;
+                GimbalLG::set_target(gimbal_yaw_target_angle_, gimbal_pc_pitch_target_angle_);
+            } else if (key_flag & (1U << Remote::KEY_E)) {
+                gimbal_yaw_target_angle_ -= 90.0f;
+                GimbalLG::set_target(gimbal_yaw_target_angle_, gimbal_pc_pitch_target_angle_);
             }
 
             /// Shoot
