@@ -56,6 +56,9 @@ public:
 
     static void set_velocity(float target_vx_, float target_vy_, float target_w_);
 
+    /** rotate about a given wheel, used when one wheel is edged */
+    static void pivot_turn(engr_motor_id_t id, float w);
+
     /**
      * Calculate current for all chassis motors and fill target_velocity[] (in this class) and target_current[]
      * (in ChassisInterface)

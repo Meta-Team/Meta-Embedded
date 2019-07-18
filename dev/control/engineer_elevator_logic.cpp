@@ -12,7 +12,8 @@ bool EngineerElevatorLG::back_landed;
 bool EngineerElevatorLG::back_edged;
 bool EngineerElevatorLG::front_leave_stage;
 float EngineerElevatorLG::reach_stage_trigger;
-float EngineerElevatorLG::hanging_trigger;
+uint16_t EngineerElevatorLG::hanging_trigger;
+uint16_t EngineerElevatorLG::landed_trigger;
 
 
 void EngineerElevatorLG::init() {
@@ -22,9 +23,13 @@ void EngineerElevatorLG::init() {
     back_landed = false;
     back_edged = false;
     front_leave_stage = false;
+
+    hanging_trigger = 2000;
+    landed_trigger = 3000;
+
     //TODO the following values not determined yet
     reach_stage_trigger = 2000;
-    hanging_trigger = 1500;
+
 }
 
 
@@ -49,15 +54,28 @@ void EngineerElevatorLG::set_action(EngineerElevatorLG::action_t act) {
 
 void EngineerElevatorLG::update_hanging_status() {
 
-    //TODO need to revise
-    /// client lights are arranged in this way: [FL BL BR FR]
-    /// in chassis interface, motor_id : FR - 0, FL - 1, BL - 2, BR - 3
-    for (unsigned i=0; i<4; i++) {
-        if ( DMSInterface::check_hanging(i) )
-            Referee::set_client_light( (i+3)%4 ,true);
-        else
-            Referee::set_client_light( (i+3)%4 , false);
-    }
+    // client lights are arranged in this way: [FL BL BR FR]
+    // in chassis interface, motor_id : FR - 0, FL - 1, BL - 2, BR - 3
+    // light the client lights when the wheel is hanging
+
+    bool FL_hanging = DMSInterface::get_raw_sample(DMSInterface::FL) < hanging_trigger;
+    bool BL_hanging = DMSInterface::get_raw_sample(DMSInterface::BL) < hanging_trigger;
+    bool BR_hanging = DMSInterface::get_raw_sample(DMSInterface::BR) < hanging_trigger;
+    bool FR_hanging = DMSInterface::get_raw_sample(DMSInterface::FR) < hanging_trigger;
+
+    // FL
+    if ( FL_hanging )   Referee::set_client_light(0, true);
+    else                Referee::set_client_light(0, false);
+    // BL
+    if ( BL_hanging )   Referee::set_client_light(1, true);
+    else                Referee::set_client_light(1, false);
+    // BR
+    if ( BR_hanging )   Referee::set_client_light(2, true);
+    else                Referee::set_client_light(2, false);
+    // FR
+    if ( FR_hanging )   Referee::set_client_light(3, true);
+    else                Referee::set_client_light(3, false);
+
 }
 
 
@@ -73,7 +91,8 @@ void EngineerElevatorLG::going_up() {
         EngineerChassisSKD::set_velocity(0, 0.5*ENGINEER_CHASSIS_VELOCITY_MAX, 0);
     }
     else if (state == PREPARING) {
-        //reach_stage = DMSInterface::get_distance(FFL) > reach_stage_trigger && DMSInterface::get_distance(FFR) > reach_stage_trigger;
+        //TODO
+        //reach_stage = DMSInterface::get_distance(FFL) > reach_stage_trigger && DMSInterface::get_raw_sample(FFR) > reach_stage_trigger;
         if ( reach_stage ) {
             state = ASCENDING;
             LOG("ascending");
@@ -95,7 +114,10 @@ void EngineerElevatorLG::going_up() {
         }
     }
     else if (state == AIDING) {
-        //back_landed = DMSInterface::get_distance(DMSInterface::BL) > hanging_trigger && DMSInterface::get_distance(DMSInterface::BR) > hanging_trigger;
+        bool BL_landed = DMSInterface::get_raw_sample(DMSInterface::BL) > landed_trigger;
+        bool BR_landed = DMSInterface::get_raw_sample(DMSInterface::BR) > landed_trigger;
+        back_landed = BL_landed && BR_landed;
+
         if ( back_landed ) {
             state = DESCENDING;
             LOG("descending");
@@ -103,10 +125,9 @@ void EngineerElevatorLG::going_up() {
             EngineerElevatorSKD::aided_motor_enable(false);
             EngineerElevatorSKD::set_target_height(0);
         }
-        //TODO ele_pivot_rotate
     }
     else if (state == DESCENDING) {
-        if ( 0 >= EngineerElevatorIF::get_current_height() ) {
+        if ( 0.05 >= EngineerElevatorIF::get_current_height() ) {
             state = STOP;
             LOG("stop");
             EngineerElevatorSKD::elevator_enable(false);
@@ -130,7 +151,10 @@ void EngineerElevatorLG::going_down() {
         EngineerChassisSKD::set_velocity(0, -0.5*ENGINEER_CHASSIS_VELOCITY_MAX, 0);
     }
     else if (state == PREPARING) {
-        //back_edged = DMSInterface::get_distance(BL) < hanging_trigger && DMSInterface::get_distance(BR) < hanging_trigger;
+        bool BL_hanging = DMSInterface::get_raw_sample(DMSInterface::BL) < hanging_trigger;
+        bool BR_hanging = DMSInterface::get_raw_sample(DMSInterface::BR) < hanging_trigger;
+        back_edged = BL_hanging && BR_hanging;
+
         if ( back_edged ) {
             state = ASCENDING;
             LOG("ascending");
@@ -139,7 +163,12 @@ void EngineerElevatorLG::going_down() {
             EngineerElevatorSKD::aided_motor_enable(false);
             EngineerElevatorSKD::set_target_height(STAGE_HEIGHT);
         }
-        //TODO cha_pivot_turn
+        else if ( BL_hanging && !BR_hanging ) {
+            EngineerChassisSKD::pivot_turn(BL, 0.5 * ENGINEER_CHASSIS_W_MAX);
+        }
+        else if ( !BL_hanging && BR_hanging ) {
+            EngineerChassisSKD::pivot_turn(BR, -0.5 * ENGINEER_CHASSIS_VELOCITY_MAX);
+        }
     }
     else if (state == ASCENDING) {
         back_edged = false;
@@ -153,7 +182,10 @@ void EngineerElevatorLG::going_down() {
         }
     }
     else if (state == AIDING) {
-        //front_leave_stage = DMSInterface::get_distance(FL) < hanging_trigger && DMSInterface::get_distance(FR) < hanging_trigger;
+        bool FL_hanging = DMSInterface::get_raw_sample(DMSInterface::FL) < hanging_trigger;
+        bool FR_hanging = DMSInterface::get_raw_sample(DMSInterface::FR) < hanging_trigger;
+        front_leave_stage = FL_hanging && FR_hanging;
+
         if ( front_leave_stage ) {
             state = DESCENDING;
             LOG("descending");
@@ -161,7 +193,6 @@ void EngineerElevatorLG::going_down() {
             EngineerElevatorSKD::aided_motor_enable(false);
             EngineerElevatorSKD::set_target_height(0);
         }
-        //TODO ele_pivot_rotate
     }
     else if (state == DESCENDING) {
         if ( 0 >= EngineerElevatorIF::get_current_height() ) {
@@ -177,15 +208,7 @@ void EngineerElevatorLG::going_down() {
 }
 
 
-
-
-//TODO pivot_turn
-
-//TODO force quit
-
-//TODO other error checking
-
-
+//TODO force stop
 
 
 void EngineerElevatorLG::EngineerElevatorLGThread::main() {

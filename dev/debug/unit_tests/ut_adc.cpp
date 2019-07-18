@@ -18,7 +18,8 @@ private:
         setName("adc_echo");
         DMSInterface::init(3);
         while (!shouldTerminate()) {
-            LOG("%u %u %u", DMSInterface::get_distance(0), DMSInterface::get_distance(1), DMSInterface::get_distance(2));
+            LOG("%u %u %u", DMSInterface::get_raw_sample(DMSInterface::FR), DMSInterface::get_raw_sample(DMSInterface::FL),
+                DMSInterface::get_raw_sample(DMSInterface::BL));
             sleep(TIME_MS2I(250));
         }
     }

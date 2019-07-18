@@ -1,5 +1,6 @@
 //
 // Created by Kerui Zhu on 7/14/2019.
+// Modified by LaiXinyi on 7/18/2019.
 //
 
 #include "dms_interface.h"
@@ -18,15 +19,9 @@ void DMSInterface::init(int sensor_num) {
     adcSTM32EnableTSVREFE();
 }
 
-adcsample_t DMSInterface::get_distance(int index) {
+adcsample_t DMSInterface::get_raw_sample(DMS_id_t id) {
     adcConvert(&ADCD1, &adcgrpcfg, samples, ADC_GRP1_BUF_DEPTH);
-    VAL_CROP(index, num - 1, 0)
-    return samples[index];
-}
-
-bool DMSInterface::check_hanging(int index) {
-    return get_distance(index) < WHEEL_HEIGHT_DMS_VAL;
-    // TODO maybe need an interval???
+    return samples[id];
 }
 
 void DMSInterface::adccallback(ADCDriver *adcp, adcsample_t *buffer, size_t n) {

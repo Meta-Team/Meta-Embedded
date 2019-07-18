@@ -215,6 +215,17 @@ static void cmd_set_sensor_state(BaseSequentialStream *chp, int argc, char *argv
     if (i==3) EngineerElevatorLG::front_leave_stage = true;
 }
 
+static void cmd_chassis_pivot_turn(BaseSequentialStream *chp, int argc, char *argv[]){
+    (void) argv;
+    if (argc != 1) {
+        shellUsage(chp, "pivot 0(BL) / 1(BR)");
+        return;
+    }
+    int i = Shell::atoi(argv[0]);
+    if (i==0) EngineerChassisSKD::pivot_turn(BL, 0.5*ENGINEER_CHASSIS_W_MAX);
+    if (i==1) EngineerChassisSKD::pivot_turn(BR, -0.5*ENGINEER_CHASSIS_W_MAX);
+}
+
 ShellCommand chassisCommands[] = {
         {"enable",          cmd_enable},
         {"disable",         cmd_disable},
@@ -229,7 +240,8 @@ ShellCommand chassisCommands[] = {
         {"down",            cmd_auto_down},
         {"s",               cmd_stop_elev},
         {"reset",           cmd_reset_elev},
-        {"sensor",         cmd_set_sensor_state},
+        {"sensor",          cmd_set_sensor_state},
+        {"pivot",           cmd_chassis_pivot_turn},
         {nullptr,    nullptr}
 };
 

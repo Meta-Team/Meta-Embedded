@@ -1,5 +1,6 @@
 //
 // Created by Kerui Zhu on 7/14/2019.
+// Modified by LaiXinyi on 7/18/2019.
 //
 
 #ifndef META_INFANTRY_DMS_INTERFACE_H
@@ -10,60 +11,45 @@
 #include "common_macro.h"
 #include "led.h"
 #include "serial_shell.h"
-#include "../vehicle/engineer/vehicle_engineer.h"
-#include "chassis_interface.h"
 
 #define ADC_GRP1_NUM_CHANNELS   4
 #define ADC_GRP1_BUF_DEPTH      1
 
-
 /**
  * @name DMSInterface
  * @note DMS stands for "distance measuring sensor"
- * @brief Interface to read the values of distance measuring sensors from the ADC port,
- *        process the analog samples and knowing whether the wheels are hanging.
- * @note about the sensors and the corresponding pins:
- *       FRONT_L -
+ * @brief Interface to read the values of distance measuring sensors from the ADC port.
+ * @note 4 Sensors and the corresponding pins:
  *       FR 0 - ADC1_IN12(PC2) - L1
  *       FL 1 - ADC1_IN13(PC3) - M1
  *       BL 2 - ADC1_IN14(PC4) - N1
  *       BR 3 - ADC1_IN15(PC5) - O1
+ * @note For a landed wheel, sample value > 3000; for a hanging wheel, sample wheel < 2000
  */
 
 class DMSInterface {
 
 public:
 
-//    enum DMS_id_t {
-//        FFL, // front left sensor,    0
-//        FFR, // front right sensor,   1
-//        FR, // front right motor, 0   2
-//        FL, // front left motor, 1    3
-//        BL, // back left motor, 2     4
-//        BR, // back right motor, 3    5
-//    };
+    enum DMS_id_t {
+        FR,     // front right, 0
+        FL,     // front left, 1
+        BL,     // back left, 2
+        BR,     // back right, 3
+    };
 
     static void init(int sensor_num);
 
     /**
-     * @brief check whether a wheel is hanging by comparing the sample value
-     *        with the corresponding value for wheel height.
-     * @return true if the wheel of given index is hanging, false if not
-     */
-    static bool check_hanging(int index); //TODO check_distance
-
-
-    /**
      * @brief return the raw sample value from the DMS at the given index.
      */
-    static adcsample_t get_distance(int index);
+    static adcsample_t get_raw_sample(DMS_id_t id);
 
 private:
 
     static int num;
 
     static adcsample_t samples[];
-\
 
     static void adccallback(ADCDriver *adcp, adcsample_t *buffer, size_t n);
 

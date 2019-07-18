@@ -25,11 +25,12 @@ class EngineerElevatorIF {
 
 public:
 
-    enum motor_id_t {  // goes in a counter-clockwise order
+    enum motor_id_t {
         R, // right motor, 0
         L, // left motor, 1
         MOTOR_COUNT
     };
+
 
     /** Structure for each motor */
     class elevator_motor_t {
@@ -37,37 +38,27 @@ public:
     public:
 
         float present_angle; // [degree]
-
         float actual_velocity; // [degree/s]
-
         int16_t actual_current;
-
         time_msecs_t last_update_time;
-
         int16_t target_current;
 
-        /**
-         * @brief set current actual angle as 0 degree
-         */
+        /** @brief set current actual angle as 0 degree */
         void clear_accmulate_angle();
 
     private:
-
         uint16_t actual_angle_raw;
-
         int16_t actual_rpm_raw;
-
         friend EngineerElevatorIF;
     };
 
+
     struct aided_motor_t {
-
         float actual_velocity; // [degree/s]
-
         time_msecs_t last_update_time;
-
         int16_t target_current;
     };
+
 
     static elevator_motor_t elevatorMotor[];
     static aided_motor_t aidedMotor[];

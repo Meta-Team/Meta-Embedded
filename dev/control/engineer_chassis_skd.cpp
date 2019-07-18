@@ -81,6 +81,29 @@ void EngineerChassisSKD::set_velocity(float target_vx_, float target_vy_, float 
     target_w = target_w_;
 }
 
+void EngineerChassisSKD::pivot_turn(engr_motor_id_t id, float w) {
+    double point_x;
+    double point_y;
+
+    if (id == FR) {
+        point_x = 0.5 * CHASSIS_WHEEL_TREAD;
+        point_y = 0.5 * CHASSIS_WHEEL_BASE;
+    } else if (id == FL) {
+        point_x = -0.5 * CHASSIS_WHEEL_TREAD;
+        point_y = 0.5 * CHASSIS_WHEEL_BASE;
+    } else if (id == BL) {
+        point_x = -0.5 * CHASSIS_WHEEL_TREAD;
+        point_y = -0.5 * CHASSIS_WHEEL_BASE;
+    } else {
+        point_x = 0.5 * CHASSIS_WHEEL_TREAD;
+        point_y = -0.5 * CHASSIS_WHEEL_BASE;
+    }
+
+    float vx = point_y * target_w;
+    float vy = -point_x * target_w;
+    set_velocity(vx, vy, w);
+}
+
 void EngineerChassisSKD::EngineerChassisThread::main() {
     setName("EngineerChassis");
     EngineerChassisSKD::init();

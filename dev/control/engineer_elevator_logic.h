@@ -63,12 +63,15 @@ private:
 
     static elevator_state_t state;
 
+    //TODO use the switch
     static float reach_stage_trigger;
 
-    static float hanging_trigger;   //TODO need an interval??
+    static uint16_t hanging_trigger;
+
+    static uint16_t landed_trigger;
 
     /**
-     * @brief check the hanging status of each wheels, and light up the corresponding client light
+     * @brief light up the client light if the wheel is hanging
      * @note the client lights are arranged in this way: [FL BL BR FR]
      */
     static void update_hanging_status();
