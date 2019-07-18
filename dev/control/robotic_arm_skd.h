@@ -21,9 +21,10 @@
  *          when reaching a trigger angle, release the box
  */
 
-#define DOOR_PAD GPIOH_POWER1_CTRL
-#define LIFT_PAD GPIOH_POWER3_CTRL
-#define EXTEND_PAD GPIOH_POWER4_CTRL
+#define DOOR_PAD GPIOE_PIN4
+#define LIFT_PAD GPIOE_PIN5
+#define EXTEND_PAD GPIOE_PIN6
+#define CLAMP_PAD GPIOE_PIN12
 
 class RoboticArmSKD {
 
@@ -72,6 +73,8 @@ public:
     static void pull_back();
 
     static void  change_status(digital_status_t& status, uint8_t pad);
+
+    static void set_status(digital_status_t& status, uint8_t pad, digital_status_t state);
 
     static digital_status_t door_state, lift_state, extend_state;
 

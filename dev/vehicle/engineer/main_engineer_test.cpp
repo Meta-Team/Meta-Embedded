@@ -20,6 +20,9 @@
 #include "engineer_chassis_skd.h"
 #include "engineer_elevator_skd.h"
 
+#include "robotic_arm_interface.h"
+#include "robotic_arm_skd.h"
+
 
 /**
  * Mode Table:
@@ -152,6 +155,14 @@ class EngineerThread: public chibios_rt::BaseStaticThread<1024>{
                                 EngineerElevatorSKD::set_target_height(EngineerElevatorSKD::target_height + Remote::rc.ch3);
                             }
                         case Remote::S_DOWN:
+                            if (Remote::rc.ch1 > 0.5) RoboticArmSKD::set_status(RoboticArmSKD::lift_state, LIFT_PAD, RoboticArmSKD::HIGH_STATUS);
+                            else if (Remote::rc.ch1 < -0.5) RoboticArmSKD::set_status(RoboticArmSKD::lift_state, LIFT_PAD, RoboticArmSKD::LOW_STATUS);
+                            else if (Remote::rc.ch0 > 0.5) RoboticArmSKD::set_status(RoboticArmSKD::extend_state, EXTEND_PAD, RoboticArmSKD::HIGH_STATUS);
+                            else if (Remote::rc.ch0 < -0.5) RoboticArmSKD::set_status(RoboticArmSKD::extend_state, EXTEND_PAD, RoboticArmSKD::LOW_STATUS);
+                            else if (Remote::rc.ch2 > 0.5) RoboticArmSKD::change_status(RoboticArmSKD::door_state, DOOR_PAD);
+                            else if (Remote::rc.ch3 > 0.5) RoboticArmSKD::set_clamp_action(RoboticArmSKD::CLAMP_CLAMPED);
+                            else if (Remote::rc.ch3 < -0.5) RoboticArmSKD::set_clamp_action(RoboticArmSKD::CLAMP_RELAX);
+                            else if (Remote::rc.ch2 < -0.5) RoboticArmSKD::pull_back();
                             break;
                     }
                     break;

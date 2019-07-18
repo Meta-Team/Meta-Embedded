@@ -23,7 +23,7 @@ void RoboticArmSKD::init() {
     target_velocity = 0;
     v2i_pid.change_parameters(ROBOTIC_ARM_PID_V2I_PARAMS);
     v2i_pid.clear_i_out();
-    
+
     door_state = HIGH_STATUS;
     extend_state = HIGH_STATUS;
     lift_state = HIGH_STATUS;
@@ -33,7 +33,7 @@ void RoboticArmSKD::init() {
 }
 
 void RoboticArmSKD::set_clamp_action(clamp_status_t target_status) {
-    palWritePad(GPIOH, GPIOH_POWER2_CTRL, target_status);
+    palWritePad(GPIOH, CLAMP_PAD, target_status);
     if (target_status == CLAMP_CLAMPED) state = BOX_CLAMPED;
     else state = WAITING;
 }
@@ -64,6 +64,11 @@ void RoboticArmSKD::change_status(digital_status_t& status, uint8_t pad) {
     }
 }
 
+void RoboticArmSKD::set_status(digital_status_t& status, uint8_t pad, digital_status_t state) {
+    if (released) {
+        palWritePad(GPIOH, pad, state);
+    }
+}
 
 void RoboticArmSKD::update_target_current() {
     // State managing
