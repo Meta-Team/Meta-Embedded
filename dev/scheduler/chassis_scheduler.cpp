@@ -11,6 +11,7 @@
  */
 
 #include "chassis_scheduler.h"
+#include "vehicle_hero.h"
 
 ChassisSKD::mode_t ChassisSKD::mode = FORCED_RELAX_MODE;
 
@@ -92,7 +93,7 @@ void ChassisSKD::SKDThread::main() {
 
             float theta = get_actual_theta();
             target_w = a2v_pid.calc(theta, target_theta);
-            velocity_decompose_(target_vx * cosf(theta / 180.0f * M_PI) - target_vy * sinf(theta / 180.0f * M_PI),
+            velocity_decompose_(target_vx * cosf(theta / 180.0f * M_PI) - target_vy * sinf(theta / 180.0f * M_PI)- target_w / 180.0f * M_PI * CHASSIS_GIMBAL_OFFSET,
                                 target_vx * sinf(theta / 180.0f * M_PI) + target_vy * cosf(theta / 180.0f * M_PI),
                                 target_w);
 

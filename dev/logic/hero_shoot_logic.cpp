@@ -94,7 +94,7 @@ void HeroShootLG::force_stop() {
 HeroShootLG::loader_state_t HeroShootLG::get_loader_status() {
     if (loader_target_angle - ShootSKD::get_loader_accumulated_angle() > 3.0f && loaderState != STUCK) {
         loaderState = LOADING;
-    } else if (loader_target_angle - ShootSKD::get_loader_accumulated_angle() < 3.0f && loaderState != STUCK) {
+    } else if (loader_target_angle - ShootSKD::get_loader_accumulated_angle() < 6.0f && loaderState != STUCK) {
         loaderState = STOP;
     }
     return loaderState;
@@ -117,7 +117,7 @@ void HeroShootLG::StuckDetectorThread::main() {
             ShootSKD::get_loader_actual_velocity() < LOADER_STUCK_THRESHOLD_VELOCITY) {
             loaderState = STUCK;
             ShootSKD::set_loader_target_angle(
-                    ShootSKD::get_loader_accumulated_angle() - 10.0f);  // Back up to ample space
+                    ShootSKD::get_loader_accumulated_angle() - 15.0f);  // Back up to ample space
         }
 //        if(get_plate_status() == LOADING &&
 //           ShootSKD::get_plate_target_current() > PLATE_STUCK_THRESHOLD_CURRENT &&
@@ -154,9 +154,9 @@ void HeroShootLG::AutoLoaderThread::main() {
         if (!loaded_bullet[0] && loaded_bullet[2] && get_loader_status() == STOP) {
             ShootSKD::set_mode(ShootSKD::LIMITED_SHOOTING_MODE);
             // get rid of empty bullet place
-            loaderState = LOADING;
             loader_target_angle += loader_angle_per_bullet;
             ShootSKD::set_loader_target_angle(loader_target_angle);
+            loaderState = LOADING;
             loaded_bullet[0] = loaded_bullet[1];
             loaded_bullet[1] = loaded_bullet[2];
             loaded_bullet[2] = loaded_bullet[3];
