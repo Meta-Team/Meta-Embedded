@@ -2,8 +2,8 @@
 // Created by liuzikai on 2019-06-25.
 //
 
-#ifndef META_INFANTRY_USER_H
-#define META_INFANTRY_USER_H
+#ifndef META_INFANTRY_USER_INFANTRY_H
+#define META_INFANTRY_USER_INFANTRY_H
 
 #include "ch.hpp"
 
@@ -15,9 +15,9 @@
 #include "infantry_shoot_logic.h"
 #include "chassis_logic.h"
 
-#include "inspector.h"
+#include "inspector_infantry.h"
 
-class User {
+class UserI {
 
 public:
 
@@ -114,4 +114,4 @@ private:
 };
 
 
-#endif //META_INFANTRY_USER_H
+#endif //META_INFANTRY_USER_INFANTRY_H

@@ -182,7 +182,7 @@ private:
 
     friend void uartStart(UARTDriver *uartp, const UARTConfig *config);
     friend void uartStartReceive(UARTDriver *uartp, size_t n, void *rxbuf);
-    friend class Inspector;
+    friend class InspectorI;
 
     static UARTConfig REMOTE_UART_CONFIG;
 

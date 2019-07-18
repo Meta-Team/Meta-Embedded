@@ -2,8 +2,8 @@
 // Created by liuzikai on 2019-06-25.
 //
 
-#ifndef META_INFANTRY_INSPECTOR_H
-#define META_INFANTRY_INSPECTOR_H
+#ifndef META_INFANTRY_INSPECTOR_INFANTRY_H
+#define META_INFANTRY_INSPECTOR_INFANTRY_H
 
 #include "ch.hpp"
 
@@ -21,7 +21,7 @@
 #error "Files inspector.h/cpp should only be used for Infantry main program"
 #endif
 
-class Inspector {
+class InspectorI {
 
 public:
 
@@ -64,4 +64,4 @@ private:
 };
 
 
-#endif //META_INFANTRY_INSPECTOR_H
+#endif //META_INFANTRY_INSPECTOR_INFANTRY_H

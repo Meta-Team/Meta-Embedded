@@ -2,27 +2,27 @@
 // Created by liuzikai on 2019-06-25.
 //
 
-#include "inspector.h"
+#include "inspector_infantry.h"
 
-AbstractAHRS *Inspector::ahrs = nullptr;
-CANInterface *Inspector::can1 = nullptr;
+AbstractAHRS *InspectorI::ahrs = nullptr;
+CANInterface *InspectorI::can1 = nullptr;
 
-bool Inspector::gimbal_failure_ = false;
-bool Inspector::chassis_failure_ = false;
-bool Inspector::remote_failure_ = false;
+bool InspectorI::gimbal_failure_ = false;
+bool InspectorI::chassis_failure_ = false;
+bool InspectorI::remote_failure_ = false;
 
-Inspector::InspectorThread Inspector::inspectorThread;
+InspectorI::InspectorThread InspectorI::inspectorThread;
 
-void Inspector::init(CANInterface *can1_, AbstractAHRS *ahrs_) {
+void InspectorI::init(CANInterface *can1_, AbstractAHRS *ahrs_) {
     can1 = can1_;
     ahrs = ahrs_;
 }
 
-void Inspector::start_inspection(tprio_t thread_prio) {
+void InspectorI::start_inspection(tprio_t thread_prio) {
     inspectorThread.start(thread_prio);
 }
 
-void Inspector::startup_check_can() {
+void InspectorI::startup_check_can() {
     time_msecs_t t = SYSTIME;
     while (SYSTIME - t < 100) {
         if (SYSTIME - can1->last_error_time < 5) {  // can error occurs
@@ -32,7 +32,7 @@ void Inspector::startup_check_can() {
     }
 }
 
-void Inspector::startup_check_mpu() {
+void InspectorI::startup_check_mpu() {
     time_msecs_t t = SYSTIME;
     while (SYSTIME - t < 20) {
         if (SYSTIME - ahrs->get_mpu_update_time() > 5) {
@@ -43,7 +43,7 @@ void Inspector::startup_check_mpu() {
     }
 }
 
-void Inspector::startup_check_ist() {
+void InspectorI::startup_check_ist() {
     time_msecs_t t = SYSTIME;
     while (SYSTIME - t < 20) {
         if (SYSTIME - ahrs->get_ist_update_time() > 5) {
@@ -54,7 +54,7 @@ void Inspector::startup_check_ist() {
     }
 }
 
-void Inspector::startup_check_remote() {
+void InspectorI::startup_check_remote() {
     time_msecs_t t = SYSTIME;
     while (SYSTIME - t < 50) {
         if (SYSTIME - Remote::last_update_time > 25) {  // No signal in last 25 ms (normal interval 7 ms)
@@ -64,7 +64,7 @@ void Inspector::startup_check_remote() {
     }
 }
 
-void Inspector::startup_check_chassis_feedback() {
+void InspectorI::startup_check_chassis_feedback() {
     time_msecs_t t = SYSTIME;
     while (SYSTIME - t < 20) {
         if (SYSTIME - ChassisIF::feedback[ChassisIF::FR].last_update_time > 5) {
@@ -91,7 +91,7 @@ void Inspector::startup_check_chassis_feedback() {
     }
 }
 
-void Inspector::startup_check_gimbal_feedback() {
+void InspectorI::startup_check_gimbal_feedback() {
     time_msecs_t t = SYSTIME;
     while (SYSTIME - t < 20) {
         if (SYSTIME - GimbalIF::feedback[GimbalIF::YAW].last_update_time > 5) {
@@ -113,19 +113,19 @@ void Inspector::startup_check_gimbal_feedback() {
     }
 }
 
-bool Inspector::gimbal_failure() {
+bool InspectorI::gimbal_failure() {
     return gimbal_failure_;
 }
 
-bool Inspector::chassis_failure() {
+bool InspectorI::chassis_failure() {
     return chassis_failure_;
 }
 
-bool Inspector::remote_failure() {
+bool InspectorI::remote_failure() {
     return remote_failure_;
 }
 
-bool Inspector::check_gimbal_failure() {
+bool InspectorI::check_gimbal_failure() {
     bool ret = false;
     for (unsigned i = 0; i < 3; i++) {
         if (SYSTIME - GimbalIF::feedback[i].last_update_time > 75) {
@@ -138,7 +138,7 @@ bool Inspector::check_gimbal_failure() {
     return ret;
 }
 
-bool Inspector::check_chassis_failure() {
+bool InspectorI::check_chassis_failure() {
     bool ret = false;
     for (unsigned i = 0; i < ChassisIF::MOTOR_COUNT; i++) {
         if (SYSTIME - ChassisIF::feedback[i].last_update_time > 75) {
@@ -151,7 +151,7 @@ bool Inspector::check_chassis_failure() {
     return ret;
 }
 
-bool Inspector::check_remote_data_error() {
+bool InspectorI::check_remote_data_error() {
     return (!ABS_IN_RANGE(Remote::rc.ch0, 1.1) || !ABS_IN_RANGE(Remote::rc.ch1, 1.1) ||
             !ABS_IN_RANGE(Remote::rc.ch2, 1.1) || !ABS_IN_RANGE(Remote::rc.ch3, 1.1) ||
             !(Remote::rc.s1 >= 1 && Remote::rc.s1 <= 3) || !(Remote::rc.s2 >= 1 && Remote::rc.s2 <= 3) ||
@@ -160,8 +160,8 @@ bool Inspector::check_remote_data_error() {
             Remote::rx_buf_[12] > 1 || Remote::rx_buf_[13] > 1);
 }
 
-void Inspector::InspectorThread::main() {
-    setName("Inspector");
+void InspectorI::InspectorThread::main() {
+    setName("InspectorI");
     while (!shouldTerminate()) {
 
         if (check_remote_data_error()) {

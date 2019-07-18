@@ -112,10 +112,10 @@ set(INFANTRY
         dev/interface/sd_card_interface.cpp
         dev/common/CRC8.cpp
         dev/common/CRC16.cpp
-        dev/vehicle/infantry/inspector.cpp
-        dev/vehicle/infantry/user.cpp
+        dev/vehicle/infantry/inspector_infantry.cpp
+        dev/vehicle/infantry/user_infantry.cpp
         dev/vehicle/infantry/main_infantry.cpp
-        dev/vehicle/infantry/settings.cpp)
+        dev/vehicle/infantry/settings_infantry.cpp)
 
 # Main Program -- Infantry #3
 add_executable(INFANTRY_THREE ${INFANTRY})
