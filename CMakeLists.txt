@@ -149,10 +149,10 @@ add_executable(HERO
         dev/interface/sd_card_interface.cpp
         dev/common/CRC8.cpp
         dev/common/CRC16.cpp
-        dev/vehicle/hero/inspector.cpp
-        dev/vehicle/hero/user.cpp
+        dev/vehicle/hero/inspector_hero.cpp
+        dev/vehicle/hero/user_hero.cpp
         dev/vehicle/hero/main_hero.cpp
-        dev/vehicle/hero/settings.cpp)
+        dev/vehicle/hero/settings_hero.cpp)
 target_include_directories(HERO PRIVATE dev/vehicle/hero)
 target_compile_definitions(HERO PRIVATE HERO)
 target_link_libraries(HERO ${PROJECT_SOURCE_DIR}/dev/interface/ahrs/ahrs_lib.lib)

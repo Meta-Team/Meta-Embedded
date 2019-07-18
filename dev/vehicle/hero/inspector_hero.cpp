@@ -3,31 +3,31 @@
 // Edited by Qian Chen & Mo Kanya on 2019-07-05
 //
 
-#include "inspector.h"
+#include "inspector_hero.h"
 
-AbstractAHRS *Inspector::ahrs = nullptr;
-CANInterface *Inspector::can1 = nullptr;
-CANInterface *Inspector::can2 = nullptr;
+AbstractAHRS *InspectorH::ahrs = nullptr;
+CANInterface *InspectorH::can1 = nullptr;
+CANInterface *InspectorH::can2 = nullptr;
 
-bool Inspector::gimbal_failure_ = false;
-bool Inspector::chassis_failure_ = false;
-bool Inspector::remote_failure_ = false;
+bool InspectorH::gimbal_failure_ = false;
+bool InspectorH::chassis_failure_ = false;
+bool InspectorH::remote_failure_ = false;
 
-Inspector::InspectorThread Inspector::inspectorThread;
-Inspector::RefereeInspectorThread Inspector::refereeInspectorThread;
+InspectorH::InspectorThread InspectorH::inspectorThread;
+InspectorH::RefereeInspectorThread InspectorH::refereeInspectorThread;
 
-void Inspector::init(CANInterface *can1_, CANInterface *can2_, AbstractAHRS *ahrs_) {
+void InspectorH::init(CANInterface *can1_, CANInterface *can2_, AbstractAHRS *ahrs_) {
     can1 = can1_;
     can2 = can2_;
     ahrs = ahrs_;
 }
 
-void Inspector::start_inspection(tprio_t thread_prio, tprio_t referee_inspector_prio) {
+void InspectorH::start_inspection(tprio_t thread_prio, tprio_t referee_inspector_prio) {
     inspectorThread.start(thread_prio);
     refereeInspectorThread.start(referee_inspector_prio);
 }
 
-void Inspector::startup_check_can() {
+void InspectorH::startup_check_can() {
     time_msecs_t t = SYSTIME;
     while (SYSTIME - t < 100) {
         if (SYSTIME - can1->last_error_time < 5 || SYSTIME - can2->last_error_time < 5) {  // can error occurs
@@ -37,7 +37,7 @@ void Inspector::startup_check_can() {
     }
 }
 
-void Inspector::startup_check_mpu() {
+void InspectorH::startup_check_mpu() {
     time_msecs_t t = SYSTIME;
     while (SYSTIME - t < 20) {
         if (SYSTIME - ahrs->get_mpu_update_time() > 5) {  // No signal in last 5 ms (normal interval 1 ms for on-board MPU)
@@ -47,7 +47,7 @@ void Inspector::startup_check_mpu() {
     }
 }
 
-void Inspector::startup_check_ist() {
+void InspectorH::startup_check_ist() {
     time_msecs_t t = SYSTIME;
     while (SYSTIME - t < 20) {
         if (SYSTIME - ahrs->get_ist_update_time() > 5) {  // No signal in last 5 ms (normal interval 1 ms for on-board MPU)
@@ -57,7 +57,7 @@ void Inspector::startup_check_ist() {
     }
 }
 
-void Inspector::startup_check_remote() {
+void InspectorH::startup_check_remote() {
     time_msecs_t t = SYSTIME;
     while (SYSTIME - t < 50) {
         if (SYSTIME - Remote::last_update_time > 25) {  // No signal in last 25 ms (normal interval 7 ms)
@@ -67,7 +67,7 @@ void Inspector::startup_check_remote() {
     }
 }
 
-void Inspector::startup_check_chassis_feedback() {
+void InspectorH::startup_check_chassis_feedback() {
     time_msecs_t t = SYSTIME;
     while (SYSTIME - t < 20) {
         if (SYSTIME - ChassisIF::feedback[ChassisIF::FR].last_update_time > 5) {
@@ -94,7 +94,7 @@ void Inspector::startup_check_chassis_feedback() {
     }
 }
 
-void Inspector::startup_check_gimbal_feedback() {
+void InspectorH::startup_check_gimbal_feedback() {
     time_msecs_t t = SYSTIME;
     while (SYSTIME - t < 20) {
         if (SYSTIME - GimbalIF::feedback[GimbalIF::YAW].last_update_time > 5) {
@@ -116,19 +116,19 @@ void Inspector::startup_check_gimbal_feedback() {
     }
 }
 
-bool Inspector::gimbal_failure() {
+bool InspectorH::gimbal_failure() {
     return gimbal_failure_;
 }
 
-bool Inspector::chassis_failure() {
+bool InspectorH::chassis_failure() {
     return chassis_failure_;
 }
 
-bool Inspector::remote_failure() {
+bool InspectorH::remote_failure() {
     return remote_failure_;
 }
 
-bool Inspector::check_gimbal_failure() {
+bool InspectorH::check_gimbal_failure() {
     bool ret = false;
     for (unsigned i = 0 ; i < 4; i++) {
         if (SYSTIME - GimbalIF::feedback[i].last_update_time > 20) {
@@ -141,7 +141,7 @@ bool Inspector::check_gimbal_failure() {
     return ret;
 }
 
-bool Inspector::check_chassis_failure() {
+bool InspectorH::check_chassis_failure() {
     bool ret = false;
     for (unsigned i = 0; i < ChassisIF::MOTOR_COUNT; i++) {
         if (SYSTIME - ChassisIF::feedback[i].last_update_time > 20) {
@@ -154,7 +154,7 @@ bool Inspector::check_chassis_failure() {
     return ret;
 }
 
-bool Inspector::check_remote_data_error() {
+bool InspectorH::check_remote_data_error() {
     return (!ABS_IN_RANGE(Remote::rc.ch0, 1.1) || !ABS_IN_RANGE(Remote::rc.ch1, 1.1) ||
             !ABS_IN_RANGE(Remote::rc.ch2, 1.1) || !ABS_IN_RANGE(Remote::rc.ch3, 1.1) ||
             !(Remote::rc.s1 >= 1 && Remote::rc.s1 <= 3) || !(Remote::rc.s2 >= 1 && Remote::rc.s2 <= 3) ||
@@ -163,8 +163,8 @@ bool Inspector::check_remote_data_error() {
             Remote::rx_buf_[12] > 1 || Remote::rx_buf_[13] > 1);
 }
 
-void Inspector::InspectorThread::main() {
-    setName("Inspector");
+void InspectorH::InspectorThread::main() {
+    setName("InspectorH");
     while (!shouldTerminate()) {
 
         if (check_remote_data_error()) {
@@ -198,8 +198,8 @@ void Inspector::InspectorThread::main() {
     }
 }
 
-void Inspector::RefereeInspectorThread::main() {
-    setName("Inspector_Referee");
+void InspectorH::RefereeInspectorThread::main() {
+    setName("InspectorH_Referee");
 
     chEvtRegisterMask(&Referee::data_received_event, &data_received_listener, DATA_RECEIVED_EVENTMASK);
 
@@ -208,6 +208,7 @@ void Inspector::RefereeInspectorThread::main() {
         chEvtWaitAny(DATA_RECEIVED_EVENTMASK);
 
         eventflags_t flags = chEvtGetAndClearFlags(&data_received_listener);
+        (void) flags;
 
         // Toggle Referee LED if any data is received
         LED::led_toggle(DEV_BOARD_LED_REFEREE);

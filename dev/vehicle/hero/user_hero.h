@@ -16,9 +16,9 @@
 #include "hero_shoot_logic.h"
 #include "chassis_logic.h"
 
-#include "inspector.h"
+#include "inspector_hero.h"
 
-class User {
+class UserH {
 
 public:
 

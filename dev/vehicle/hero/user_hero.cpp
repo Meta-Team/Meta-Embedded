@@ -3,44 +3,44 @@
 // Edited by Qian Chen & Mo Kanya on 2019-07-05
 //
 
-#include "user.h"
+#include "user_hero.h"
 
 
 /// Gimbal Config
-float User::gimbal_rc_yaw_max_speed = 90;  // [degree/s]
-float User::gimbal_pc_yaw_sensitivity[3] = {20000, 60000, 100000};  // [Slow, Normal, Fast] [degree/s]
+float UserH::gimbal_rc_yaw_max_speed = 90;  // [degree/s]
+float UserH::gimbal_pc_yaw_sensitivity[3] = {20000, 60000, 100000};  // [Slow, Normal, Fast] [degree/s]
 
-float User::gimbal_pc_pitch_sensitivity[3] = {15000, 40000, 50000};   // [Slow, Normal, Fast] [degree/s]
-float User::gimbal_pitch_min_angle = -10; // down range for pitch [degree]
-float User::gimbal_pitch_max_angle = 45; //  up range for pitch [degree]
+float UserH::gimbal_pc_pitch_sensitivity[3] = {15000, 40000, 50000};   // [Slow, Normal, Fast] [degree/s]
+float UserH::gimbal_pitch_min_angle = -10; // down range for pitch [degree]
+float UserH::gimbal_pitch_max_angle = 45; //  up range for pitch [degree]
 
 /// Chassis Config
-float User::chassis_v_left_right = 1000.0f;  // [mm/s]
-float User::chassis_v_forward = 2000.0f;     // [mm/s]
-float User::chassis_v_backward = 2000.0f;    // [mm/s]
+float UserH::chassis_v_left_right = 1000.0f;  // [mm/s]
+float UserH::chassis_v_forward = 2000.0f;     // [mm/s]
+float UserH::chassis_v_backward = 2000.0f;    // [mm/s]
 
-float User::chassis_pc_shift_ratio = 1.5f;  // 150% when Shift is pressed
-float User::chassis_pc_ctrl_ratio = 0.5;    // 50% when Ctrl is pressed
+float UserH::chassis_pc_shift_ratio = 1.5f;  // 150% when Shift is pressed
+float UserH::chassis_pc_ctrl_ratio = 0.5;    // 50% when Ctrl is pressed
 
-Remote::key_t User::chassis_dodge_switch = Remote::KEY_X;
+Remote::key_t UserH::chassis_dodge_switch = Remote::KEY_X;
 
 /// Shoot Config
-float User::shoot_launch_left_count = 5;
-float User::shoot_launch_right_count = 999;
+float UserH::shoot_launch_left_count = 5;
+float UserH::shoot_launch_right_count = 999;
 
-float User::shoot_launch_speed = 5.0f;
+float UserH::shoot_launch_speed = 5.0f;
 
-float User::shoot_common_duty_cycle = 0.6;
+float UserH::shoot_common_duty_cycle = 0.6;
 
-Remote::key_t User::shoot_fw_switch = Remote::KEY_Z;
+Remote::key_t UserH::shoot_fw_switch = Remote::KEY_Z;
 
 
 /// Variables
-User::UserThread User::userThread;
-User::UserActionThread User::userActionThread;
-User::ClientDataSendingThread User::clientDataSendingThread;
+UserH::UserThread UserH::userThread;
+UserH::UserActionThread UserH::userActionThread;
+UserH::ClientDataSendingThread UserH::clientDataSendingThread;
 
-void User::start(tprio_t user_thd_prio, tprio_t user_action_thd_prio, tprio_t client_data_sending_thd_prio) {
+void UserH::start(tprio_t user_thd_prio, tprio_t user_action_thd_prio, tprio_t client_data_sending_thd_prio) {
     userThread.start(user_thd_prio);
     userActionThread.start(user_action_thd_prio);
     clientDataSendingThread.start(client_data_sending_thd_prio);
@@ -49,13 +49,13 @@ void User::start(tprio_t user_thd_prio, tprio_t user_action_thd_prio, tprio_t cl
     set_user_client_speed_light_(2);
 }
 
-void User::UserThread::main() {
-    setName("User");
+void UserH::UserThread::main() {
+    setName("UserH");
     while (!shouldTerminate()) {
 
         /*** ---------------------------------- Gimbal --------------------------------- ***/
 
-        if (!Inspector::remote_failure() && !Inspector::chassis_failure() && !Inspector::gimbal_failure()) {
+        if (!InspectorH::remote_failure() && !InspectorH::chassis_failure() && !InspectorH::gimbal_failure()) {
 
             if ((Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_UP) ||
                 (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_MIDDLE)) {
@@ -129,7 +129,7 @@ void User::UserThread::main() {
                 GimbalLG::set_action(GimbalLG::FORCED_RELAX_MODE);
             }
 
-        } else {  // Inspector::remote_failure() || Inspector::chassis_failure() || Inspector::gimbal_failure()
+        } else {  // InspectorH::remote_failure() || InspectorH::chassis_failure() || InspectorH::gimbal_failure()
             /// Safe Mode
             GimbalLG::set_action(GimbalLG::FORCED_RELAX_MODE);
         }
@@ -137,7 +137,7 @@ void User::UserThread::main() {
 
         /*** ---------------------------------- Shoot --------------------------------- ***/
 
-        if (!Inspector::remote_failure() && !Inspector::chassis_failure() && !Inspector::gimbal_failure()) {
+        if (!InspectorH::remote_failure() && !InspectorH::chassis_failure() && !InspectorH::gimbal_failure()) {
             if ((Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_UP) ||
                 (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_MIDDLE) /*||
                 (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_DOWN)*/) {
@@ -170,7 +170,7 @@ void User::UserThread::main() {
                 HeroShootLG::set_friction_wheels(0);
             }
 
-        } else {  // Inspector::remote_failure() || Inspector::chassis_failure() || Inspector::gimbal_failure()
+        } else {  // InspectorH::remote_failure() || InspectorH::chassis_failure() || InspectorH::gimbal_failure()
             /// Safe Mode
             HeroShootLG::force_stop();
             HeroShootLG::set_friction_wheels(0);
@@ -178,7 +178,7 @@ void User::UserThread::main() {
 
         /*** ---------------------------------- Chassis --------------------------------- ***/
 
-        if (!Inspector::remote_failure() && !Inspector::chassis_failure() && !Inspector::gimbal_failure()) {
+        if (!InspectorH::remote_failure() && !InspectorH::chassis_failure() && !InspectorH::gimbal_failure()) {
 
             if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_UP) {
 
@@ -240,7 +240,7 @@ void User::UserThread::main() {
                 ChassisLG::set_action(ChassisLG::FORCED_RELAX_MODE);
             }
 
-        } else {  // Inspector::remote_failure() || Inspector::chassis_failure() || Inspector::gimbal_failure()
+        } else {  // InspectorH::remote_failure() || InspectorH::chassis_failure() || InspectorH::gimbal_failure()
             /// Safe Mode
             ChassisLG::set_action(ChassisLG::FORCED_RELAX_MODE);
         }
@@ -251,13 +251,13 @@ void User::UserThread::main() {
     }
 }
 
-void User::set_user_client_speed_light_(int level) {
+void UserH::set_user_client_speed_light_(int level) {
     Referee::set_client_light(USER_CLIENT_SPEED_LEVEL_3_LIGHT, (level >= 3));
     Referee::set_client_light(USER_CLIENT_SPEED_LEVEL_2_LIGHT, (level >= 2));
     Referee::set_client_light(USER_CLIENT_SPEED_LEVEL_1_LIGHT, (level >= 1));
 }
 
-void User::UserActionThread::main() {
+void UserH::UserActionThread::main() {
     setName("User_Action");
 
     chEvtRegisterMask(&Remote::s_change_event, &s_change_listener, S_CHANGE_EVENTMASK);
@@ -322,7 +322,7 @@ void User::UserActionThread::main() {
     }
 }
 
-void User::ClientDataSendingThread::main() {
+void UserH::ClientDataSendingThread::main() {
     setName("User_Client");
 
     bool super_capacitor_light_status_ = false;
