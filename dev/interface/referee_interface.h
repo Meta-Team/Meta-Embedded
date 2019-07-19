@@ -116,9 +116,9 @@ public:
         uint16_t remain_HP;
         uint16_t max_HP;
         uint16_t shooter_heat0_cooling_rate;
-        uint16_t shooter_heat0_cooling_limit;
+        uint16_t shooter_heat0_cooling_limit;  // 17mm max heat
         uint16_t shooter_heat1_cooling_rate;
-        uint16_t shooter_heat1_cooling_limit;
+        uint16_t shooter_heat1_cooling_limit;  // 42mm max heat
         uint8_t mains_power_gimbal_output : 1;
         uint8_t mains_power_chassis_output : 1;
         uint8_t mains_power_shooter_output : 1;

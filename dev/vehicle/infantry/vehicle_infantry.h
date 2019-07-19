@@ -166,9 +166,11 @@
 #define USER_CLIENT_SPEED_LEVEL_2_LIGHT             4
 #define USER_CLIENT_SPEED_LEVEL_1_LIGHT             5
 
-#define USER_CLIENT_ACQUIRED_BULLET_NUM             1
-#define USER_CLIENT_ACTUAL_POWER_NUM                2
-#define USER_CLIENT_SUPER_CAPACITOR_VOLTAGE_NUM     3
+#define USER_CLIENT_FW_SPEED_NUM                    1
+#define USER_CLIENT_REMAINING_HEAT_NUM              2
+#define USER_CLIENT_ACQUIRED_BULLET_NUM             3
+//#define USER_CLIENT_REMAINING_HEAT_NUM              2
+//#define USER_CLIENT_ACQUIRED_BULLET_NUM             3
 
 /// Super Capacitor Configurations
 #define SUPER_CAPACITOR_WARNING_VOLTAGE   18
