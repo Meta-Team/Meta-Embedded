@@ -54,6 +54,7 @@
 
 /// Instances
 CANInterface can1(&CAND1);
+CANInterface can2(&CAND2);
 AHRSOnBoard ahrs;
 
 /// Local Constants
@@ -72,10 +73,14 @@ int main() {
     palSetPadMode(GPIOH, GPIOH_POWER1_CTRL, PAL_MODE_OUTPUT_PUSHPULL);
     palSetPad(GPIOH, GPIOH_POWER1_CTRL);
 
+    // Enable power of ultraviolet lights
+    palSetPadMode(GPIOH, GPIOH_POWER2_CTRL, PAL_MODE_OUTPUT_PUSHPULL);
+    palSetPad(GPIOH, GPIOH_POWER2_CTRL);
+
     /*** ---------------------- Period 1. Modules Setup and Self-Check ---------------------- ***/
 
     /// Preparation of Period 1
-    InspectorI::init(&can1, &ahrs);
+    InspectorI::init(&can1, &can2, &ahrs);
     LED::all_off();
 
     /// Setup Shell
@@ -92,6 +97,7 @@ int main() {
 
     /// Setup CAN1
     can1.start(THREAD_CAN1_PRIO);
+    can2.start(THREAD_CAN2_PRIO);
     chThdSleepMilliseconds(5);
     InspectorI::startup_check_can();  // check no persistent CAN Error. Block for 100 ms
     LED::led_on(DEV_BOARD_LED_CAN);  // LED 2 on now
@@ -143,7 +149,7 @@ int main() {
     VisionPort::init();
 
     /// Setup SuperCapacitor Port
-    SuperCapacitor::init(&can1);
+    SuperCapacitor::init(&can2);
 
     /// Complete Period 1
     LED::green_on();  // LED Green on now

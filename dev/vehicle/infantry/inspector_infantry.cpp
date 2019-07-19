@@ -6,6 +6,7 @@
 
 AbstractAHRS *InspectorI::ahrs = nullptr;
 CANInterface *InspectorI::can1 = nullptr;
+CANInterface *InspectorI::can2 = nullptr;
 
 bool InspectorI::gimbal_failure_ = false;
 bool InspectorI::chassis_failure_ = false;
@@ -13,8 +14,9 @@ bool InspectorI::remote_failure_ = false;
 
 InspectorI::InspectorThread InspectorI::inspectorThread;
 
-void InspectorI::init(CANInterface *can1_, AbstractAHRS *ahrs_) {
+void InspectorI::init(CANInterface *can1_, CANInterface *can2_, AbstractAHRS *ahrs_) {
     can1 = can1_;
+    can2 = can2_;
     ahrs = ahrs_;
 }
 
@@ -26,6 +28,9 @@ void InspectorI::startup_check_can() {
     time_msecs_t t = SYSTIME;
     while (SYSTIME - t < 100) {
         if (SYSTIME - can1->last_error_time < 5) {  // can error occurs
+            t = SYSTIME;  // reset the counter
+        }
+        if (SYSTIME - can2->last_error_time < 5) {  // can error occurs
             t = SYSTIME;  // reset the counter
         }
         chThdSleepMilliseconds(5);

@@ -15,8 +15,8 @@ float UserI::gimbal_pitch_max_angle = 45; //  up range for pitch [degree]
 
 /// Chassis Config
 float UserI::chassis_v_left_right = 1000.0f;  // [mm/s]
-float UserI::chassis_v_forward = 2000.0f;     // [mm/s]
-float UserI::chassis_v_backward = 2000.0f;    // [mm/s]
+float UserI::chassis_v_forward = 3000.0f;     // [mm/s]
+float UserI::chassis_v_backward = 3000.0f;    // [mm/s]
 
 float UserI::chassis_pc_shift_ratio = 1.5f;  // 150% when Shift is pressed
 float UserI::chassis_pc_ctrl_ratio = 0.5;    // 50% when Ctrl is pressed
@@ -347,15 +347,15 @@ void UserI::ClientDataSendingThread::main() {
         /// Shoot
         // 17mm shooter heat
         Referee::set_client_number(USER_CLIENT_REMAINING_HEAT_NUM,
-                                   100.0f * Referee::game_robot_state.shooter_heat0_cooling_limit /
-                                   Referee::power_heat_data.shooter_heat0);
+                                   100.0f * (1.0f - Referee::power_heat_data.shooter_heat0 /
+                                                    Referee::game_robot_state.shooter_heat0_cooling_limit));
 
         /// Super Capacitor
         // TODO: determine feedback interval
         if (SYSTIME - SuperCapacitor::last_feedback_time < 1000) {
 //            Referee::set_client_number(USER_CLIENT_ACTUAL_POWER_NUM, SuperCapacitor::feedback.output_power);
-//            Referee::set_client_number(USER_CLIENT_SUPER_CAPACITOR_VOLTAGE_NUM,
-//                                       SuperCapacitor::feedback.capacitor_voltage);
+            Referee::set_client_number(USER_CLIENT_SUPER_CAPACITOR_VOLTAGE_NUM,
+                                       SuperCapacitor::feedback.capacitor_voltage);
             if (SuperCapacitor::feedback.capacitor_voltage > SUPER_CAPACITOR_WARNING_VOLTAGE) {
                 super_capacitor_light_status_ = true;
             } else {
@@ -363,7 +363,7 @@ void UserI::ClientDataSendingThread::main() {
             }
         } else {
 //            Referee::set_client_number(USER_CLIENT_ACTUAL_POWER_NUM, 0);
-//            Referee::set_client_number(USER_CLIENT_SUPER_CAPACITOR_VOLTAGE_NUM, 0);
+            Referee::set_client_number(USER_CLIENT_SUPER_CAPACITOR_VOLTAGE_NUM, 0);
             super_capacitor_light_status_ = false;
         }
         Referee::set_client_light(USER_CLIENT_SUPER_CAPACITOR_STATUS_LIGHT, super_capacitor_light_status_);

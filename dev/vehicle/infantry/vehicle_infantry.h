@@ -133,6 +133,7 @@
 #define THREAD_MPU_PRIO                     (HIGHPRIO - 2)
 #define THREAD_IST_PRIO                     (HIGHPRIO - 3)
 #define THREAD_AHRS_PRIO                    (HIGHPRIO - 4)
+#define THREAD_CAN2_PRIO                    (HIGHPRIO - 5)
 #define THREAD_GIMBAL_SKD_PRIO              (NORMALPRIO + 3)
 #define THREAD_CHASSIS_SKD_PRIO             (NORMALPRIO + 2)
 #define THREAD_SHOOT_SKD_PRIO               (NORMALPRIO + 1)
@@ -169,8 +170,8 @@
 #define USER_CLIENT_FW_SPEED_NUM                    1
 #define USER_CLIENT_REMAINING_HEAT_NUM              2
 #define USER_CLIENT_ACQUIRED_BULLET_NUM             3
-//#define USER_CLIENT_REMAINING_HEAT_NUM              2
-//#define USER_CLIENT_ACQUIRED_BULLET_NUM             3
+//#define USER_CLIENT_ACTUAL_POWER_NUM                2
+#define USER_CLIENT_SUPER_CAPACITOR_VOLTAGE_NUM     1
 
 /// Super Capacitor Configurations
 #define SUPER_CAPACITOR_WARNING_VOLTAGE   18
