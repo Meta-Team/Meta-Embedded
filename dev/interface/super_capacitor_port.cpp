@@ -25,11 +25,11 @@ void SuperCapacitor::set_power(float input_power) {
 }
 
 void SuperCapacitor::process_feedback(CANRxFrame const *rxmsg) {
-    chSysLock();  /// ---------------------------------- Enter Critical Zone ----------------------------------
+//    chSysLock();  /// ---------------------------------- Enter Critical Zone ----------------------------------
     feedback.input_voltage = rxmsg->data16[0] / 100.0f;
     feedback.capacitor_voltage = rxmsg->data16[1] / 100.0f;
     feedback.input_current = rxmsg->data16[2] / 100.0f;
     feedback.output_power = rxmsg->data16[3] / 100.0f;
     last_feedback_time = SYSTIME;
-    chSysUnlock();  /// ---------------------------------- Exit Critical Zone ----------------------------------
+//    chSysUnlock();  /// ---------------------------------- Exit Critical Zone ----------------------------------
 }
