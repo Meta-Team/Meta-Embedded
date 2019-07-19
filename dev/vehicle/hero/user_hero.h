@@ -97,7 +97,7 @@ private:
     static UserActionThread userActionThread;
 
     /// Referee Client Data Sending Thread
-    static constexpr unsigned CLIENT_DATA_SENDING_THREAD_INTERVAL = 11;  // [ms]
+    static constexpr unsigned CLIENT_DATA_SENDING_THREAD_INTERVAL = 100;  // [ms]
 
     class ClientDataSendingThread : public chibios_rt::BaseStaticThread<256> {
         void main() final;

@@ -344,21 +344,26 @@ void UserI::ClientDataSendingThread::main() {
 
     while (!shouldTerminate()) {
 
-        /// Super Capacitor
+        /// Shoot
+        // 17mm shooter heat
+        Referee::set_client_number(USER_CLIENT_REMAINING_HEAT_NUM,
+                                   100.0f * Referee::game_robot_state.shooter_heat0_cooling_limit /
+                                   Referee::power_heat_data.shooter_heat0);
 
+        /// Super Capacitor
         // TODO: determine feedback interval
         if (SYSTIME - SuperCapacitor::last_feedback_time < 1000) {
-            Referee::set_client_number(USER_CLIENT_ACTUAL_POWER_NUM, SuperCapacitor::feedback.output_power);
-            Referee::set_client_number(USER_CLIENT_SUPER_CAPACITOR_VOLTAGE_NUM,
-                                       SuperCapacitor::feedback.capacitor_voltage);
+//            Referee::set_client_number(USER_CLIENT_ACTUAL_POWER_NUM, SuperCapacitor::feedback.output_power);
+//            Referee::set_client_number(USER_CLIENT_SUPER_CAPACITOR_VOLTAGE_NUM,
+//                                       SuperCapacitor::feedback.capacitor_voltage);
             if (SuperCapacitor::feedback.capacitor_voltage > SUPER_CAPACITOR_WARNING_VOLTAGE) {
                 super_capacitor_light_status_ = true;
             } else {
                 super_capacitor_light_status_ = not super_capacitor_light_status_;  // blink voltage light
             }
         } else {
-            Referee::set_client_number(USER_CLIENT_ACTUAL_POWER_NUM, 0);
-            Referee::set_client_number(USER_CLIENT_SUPER_CAPACITOR_VOLTAGE_NUM, 0);
+//            Referee::set_client_number(USER_CLIENT_ACTUAL_POWER_NUM, 0);
+//            Referee::set_client_number(USER_CLIENT_SUPER_CAPACITOR_VOLTAGE_NUM, 0);
             super_capacitor_light_status_ = false;
         }
         Referee::set_client_light(USER_CLIENT_SUPER_CAPACITOR_STATUS_LIGHT, super_capacitor_light_status_);
