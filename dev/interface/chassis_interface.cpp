@@ -47,7 +47,7 @@ void ChassisIF::process_chassis_feedback(CANRxFrame const *rxmsg) {
 
     if (rxmsg->SID > 0x204 || rxmsg->SID < 0x201) return;
 
-    chSysLock();  /// ---------------------------------- Enter Critical Zone ----------------------------------
+//    chSysLock();  /// ---------------------------------- Enter Critical Zone ----------------------------------
 
     int motor_id = (int) (rxmsg->SID - 0x201);
 
@@ -62,7 +62,7 @@ void ChassisIF::process_chassis_feedback(CANRxFrame const *rxmsg) {
 
     feedback[motor_id].last_update_time = SYSTIME;
 
-    chSysUnlock();  /// ---------------------------------- Exit Critical Zone ----------------------------------
+//    chSysUnlock();  /// ---------------------------------- Exit Critical Zone ----------------------------------
 
 }
 
