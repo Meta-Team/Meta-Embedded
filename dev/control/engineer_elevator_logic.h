@@ -60,6 +60,9 @@ public:
     /** @brief Set action as FREE, only for debugging separately */
     static void set_action_free();
 
+    /** @brief Set action lock, for safe mode */
+    static void set_action_lock();
+
     // both the two sensors in front detect the stage, can start to go up-stairs
     static bool reach_stage;
     // both the two sensors at the back wheels landed on stage, enter the last step of going up-stairs
@@ -93,13 +96,17 @@ private:
 
     static action_t action;
 
-    static action_t prev_action;    // keep record of the action before forced stop, used for reversing
+    static action_t prev_action;    // keep record of the action before forced stop, used for cont or quit
 
     static elevator_state_t state;
 
     static uint16_t hanging_trigger;
-
     static uint16_t landed_trigger;
+
+    // for debugging, support pause and resume
+    static float prev_e_tg_h;
+    static float prev_aR_tg_v;
+    static float prev_aL_tg_v;
 
     /**
      * @brief light up the client light if the wheel is hanging

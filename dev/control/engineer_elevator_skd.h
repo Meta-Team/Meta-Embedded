@@ -43,8 +43,6 @@ public:
 
     static void set_aided_motor_velocity(float target_velocity_L, float target_velocity_R);
 
-    static void update_target_current();
-
     static float target_height;
 
     // Size: 4; index 0 and 1 for elevator motors, index 2 and 3 for auxiliary motors

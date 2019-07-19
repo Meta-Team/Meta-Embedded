@@ -22,13 +22,17 @@ void EngineerChassisSKD::init(){
 }
 
 void EngineerChassisSKD::lock() {
-    enable = false;
-    target_vx = target_vy = target_w = 0;
+    if (enable) {
+        enable = false;
+        target_vx = target_vy = target_w = 0;
+    }
 }
 
 void EngineerChassisSKD::unlock() {
-    enable = true;
-    for (PIDController pidController : pid) pidController.clear_i_out();
+    if (!enable) {
+        enable = true;
+        for (PIDController pidController : pid) pidController.clear_i_out();
+    }
 }
 
 void EngineerChassisSKD::set_test_end_time(time_msecs_t run_time) {

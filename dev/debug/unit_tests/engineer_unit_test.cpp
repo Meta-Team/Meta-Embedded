@@ -72,6 +72,28 @@ static void cmd_disable(BaseSequentialStream *chp, int argc, char **argv) {
     else if (i == 2) EngineerElevatorSKD::aided_motor_enable(false);
 }
 
+static void cmd_echo_fb(BaseSequentialStream *chp, int argc, char *argv[]){
+    (void) argv;
+    if (argc != 1) {
+        shellUsage(chp, "echo_fb 0(chassis)/1(elevator)/2(aided_motor)");
+        return;
+    }
+    engineerFeedbackThread.chassis = engineerFeedbackThread.elevator = engineerFeedbackThread.aided_motor = false;
+    int i = Shell::atoi(argv[0]);
+    if (i == 0) engineerFeedbackThread.chassis = true;
+    else if (i == 1) engineerFeedbackThread.elevator = true;
+    else if (i == 2) engineerFeedbackThread.aided_motor = true;
+}
+
+static void cmd_stop_echo_fb(BaseSequentialStream *chp, int argc, char *argv[]){
+    (void) argv;
+    if (argc != 0) {
+        shellUsage(chp, "stop_fb");
+        return;
+    }
+    engineerFeedbackThread.chassis = engineerFeedbackThread.elevator = engineerFeedbackThread.aided_motor = false;
+}
+
 static void cmd_set_v2i(BaseSequentialStream *chp, int argc, char **argv) {
     (void) argv;
     if (argc != 6) {
@@ -98,6 +120,29 @@ static void cmd_set_v2i(BaseSequentialStream *chp, int argc, char **argv) {
                                                    a_i_limit = Shell::atof(argv[4]),
                                                    a_out_limit = Shell::atof(argv[5])});
     LOG("pass!");
+}
+
+static void cmd_echo_v2i(BaseSequentialStream *chp, int argc, char *argv[]){
+    (void) argv;
+    if (argc != 1) {
+        shellUsage(chp, "echo_v2i 0(chassis)/1(elevator)/2(aided_motor)");
+        return;
+    }
+    int i = Shell::atoi(argv[0]);
+    if (i == 0) LOG("%.2f, %.2f, %.2f, %.2f, %.2f", c_kp, c_ki, c_kd, c_i_limit, c_out_limit);
+    else if (i == 1) LOG("%.2f, %.2f, %.2f, %.2f, %.2f", e_kp, e_ki, e_kd, e_i_limit, e_out_limit);
+    else if (i == 2) LOG("%.2f, %.2f, %.2f, %.2f, %.2f", a_kp, a_ki, a_kd, a_i_limit, a_out_limit);
+}
+
+
+static void cmd_elevator_set_free(BaseSequentialStream *chp, int argc, char *argv[]){
+    (void) argv;
+    if (argc != 0) {
+        shellUsage(chp, "free");
+        return;
+    }
+    // for debugging the elevator separately
+    EngineerElevatorLG::set_action_free();
 }
 
 static void cmd_chassis_set_velocity(BaseSequentialStream *chp, int argc, char *argv[]) {
@@ -128,39 +173,58 @@ static void cmd_elevator_set_height(BaseSequentialStream *chp, int argc, char *a
     EngineerElevatorSKD::set_target_height(new_height);
 }
 
-static void cmd_echo_fb(BaseSequentialStream *chp, int argc, char *argv[]){
-    (void) argv;
-    if (argc != 1) {
-        shellUsage(chp, "echo_fb 0(chassis)/1(elevator)/2(aided_motor)");
-        return;
-    }
-    engineerFeedbackThread.chassis = engineerFeedbackThread.elevator = engineerFeedbackThread.aided_motor = false;
-    int i = Shell::atoi(argv[0]);
-    if (i == 0) engineerFeedbackThread.chassis = true;
-    else if (i == 1) engineerFeedbackThread.elevator = true;
-    else if (i == 2) engineerFeedbackThread.aided_motor = true;
-}
-
-static void cmd_stop_echo_fb(BaseSequentialStream *chp, int argc, char *argv[]){
+static void cmd_elevator_clear_height(BaseSequentialStream *chp, int argc, char *argv[]){
     (void) argv;
     if (argc != 0) {
-        shellUsage(chp, "stop_fb");
+        shellUsage(chp, "e_clear_h");
         return;
     }
-    engineerFeedbackThread.chassis = engineerFeedbackThread.elevator = engineerFeedbackThread.aided_motor = false;
+    EngineerElevatorIF::elevatorMotor[0].clear_accumulate_angle();
+    EngineerElevatorIF::elevatorMotor[1].clear_accumulate_angle();
 }
 
-static void cmd_echo_v2i(BaseSequentialStream *chp, int argc, char *argv[]){
+
+
+static void cmd_stop_elev(BaseSequentialStream *chp, int argc, char *argv[]){
     (void) argv;
-    if (argc != 1) {
-        shellUsage(chp, "echo_v2i 0(chassis)/1(elevator)/2(aided_motor)");
+    if (argc != 0) {
+        shellUsage(chp, "s");
         return;
     }
-    int i = Shell::atoi(argv[0]);
-    if (i == 0) LOG("%.2f, %.2f, %.2f, %.2f, %.2f", c_kp, c_ki, c_kd, c_i_limit, c_out_limit);
-    else if (i == 1) LOG("%.2f, %.2f, %.2f, %.2f, %.2f", e_kp, e_ki, e_kd, e_i_limit, e_out_limit);
-    else if (i == 2) LOG("%.2f, %.2f, %.2f, %.2f, %.2f", a_kp, a_ki, a_kd, a_i_limit, a_out_limit);
+    EngineerElevatorLG::forced_stop();
 }
+
+static void cmd_elevator_quit_action(BaseSequentialStream *chp, int argc, char *argv[]){
+    (void) argv;
+    if (argc != 0) {
+        shellUsage(chp, "quit");
+        return;
+    }
+    EngineerElevatorLG::quit_action();
+}
+
+static void cmd_elevator_cont_action(BaseSequentialStream *chp, int argc, char *argv[]){
+    (void) argv;
+    if (argc != 0) {
+        shellUsage(chp, "cont");
+        return;
+    }
+    EngineerElevatorLG::continue_action();
+}
+
+static void cmd_reset_elev(BaseSequentialStream *chp, int argc, char *argv[]){
+    (void) argv;
+    if (argc != 0) {
+        shellUsage(chp, "reset");
+        return;
+    }
+    EngineerElevatorLG::set_action_free();
+    EngineerElevatorSKD::aided_motor_enable(false);
+    EngineerElevatorSKD::elevator_enable(true);
+    EngineerElevatorSKD::set_target_height(0);
+}
+
+
 
 static void cmd_auto_up(BaseSequentialStream *chp, int argc, char *argv[]){
     (void) argv;
@@ -178,27 +242,6 @@ static void cmd_auto_down(BaseSequentialStream *chp, int argc, char *argv[]){
         return;
     }
     EngineerElevatorLG::start_going_down();
-}
-
-static void cmd_stop_elev(BaseSequentialStream *chp, int argc, char *argv[]){
-    (void) argv;
-    if (argc != 0) {
-        shellUsage(chp, "s");
-        return;
-    }
-    EngineerElevatorLG::forced_stop();
-}
-
-static void cmd_reset_elev(BaseSequentialStream *chp, int argc, char *argv[]){
-    (void) argv;
-    if (argc != 0) {
-        shellUsage(chp, "reset");
-        return;
-    }
-    EngineerElevatorLG::set_action_free();
-    EngineerElevatorSKD::aided_motor_enable(false);
-    EngineerElevatorSKD::elevator_enable(true);
-    EngineerElevatorSKD::set_target_height(0);
 }
 
 static void cmd_set_sensor_state(BaseSequentialStream *chp, int argc, char *argv[]){
@@ -225,42 +268,31 @@ static void cmd_chassis_pivot_turn(BaseSequentialStream *chp, int argc, char *ar
     if (i==1) EngineerChassisSKD::pivot_turn(BR, 0.5*ENGINEER_CHASSIS_W_MAX);
 }
 
-static void cmd_elevator_quit_action(BaseSequentialStream *chp, int argc, char *argv[]){
-    (void) argv;
-    if (argc != 0) {
-        shellUsage(chp, "quit");
-        return;
-    }
-    EngineerElevatorLG::quit_action();
-}
-
-static void cmd_elevator_cont_action(BaseSequentialStream *chp, int argc, char *argv[]){
-    (void) argv;
-    if (argc != 0) {
-        shellUsage(chp, "cont");
-        return;
-    }
-    EngineerElevatorLG::continue_action();
-}
 
 ShellCommand chassisCommands[] = {
         {"enable",          cmd_enable},
         {"disable",         cmd_disable},
+        {"echo_fb",         cmd_echo_fb},
+        {"stop_fb",         cmd_stop_echo_fb},
         {"set_v2i",         cmd_set_v2i},
+        {"echo_v2i",        cmd_echo_v2i},
+
+        {"free",            cmd_elevator_set_free},
         {"c_set_v",         cmd_chassis_set_velocity},
         {"a_set_v",         cmd_aided_motor_set_velocity},
         {"e_set_h",         cmd_elevator_set_height},
-        {"echo_fb",         cmd_echo_fb},
-        {"stop_fb",         cmd_stop_echo_fb},
-        {"echo_v2i",        cmd_echo_v2i},
+        {"e_clear_h",       cmd_elevator_clear_height},
+
+        {"s",               cmd_stop_elev},
+        {"cont",            cmd_elevator_cont_action},
+        {"quit",            cmd_elevator_quit_action},
+        {"reset",           cmd_reset_elev},
+
         {"up",              cmd_auto_up},
         {"down",            cmd_auto_down},
-        {"s",               cmd_stop_elev},
-        {"reset",           cmd_reset_elev},
         {"sensor",          cmd_set_sensor_state},
         {"pivot",           cmd_chassis_pivot_turn},
-        {"quit",            cmd_elevator_quit_action},
-        {"cont",            cmd_elevator_cont_action},
+
         {nullptr,    nullptr}
 };
 

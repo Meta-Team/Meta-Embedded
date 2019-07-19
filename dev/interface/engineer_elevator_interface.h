@@ -44,7 +44,7 @@ public:
         int16_t target_current;
 
         /** @brief set current actual angle as 0 degree */
-        void clear_accmulate_angle();
+        void clear_accumulate_angle();
 
     private:
         uint16_t actual_angle_raw;

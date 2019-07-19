@@ -14,7 +14,7 @@
 #define ENGINEER_CHASSIS_W_MAX 150.0f
 #define ENGINEER_AIDED_MOTOR_VELOCITY 600.0f
 #define ANGLE_HEIGHT_RATIO 458.0f   // [degree/cm] //TODO need to measure
-#define STAGE_HEIGHT 17.0f          // cm //TODO temporarily
+#define STAGE_HEIGHT 17.0f          // cm //TODO need to measure
 
 #define ROBOTIC_ARM_STRETCH_OUT_ANGLE 120.0f
 #define ROBOTIC_ARM_PULL_BACK_ANGLE 30.0f

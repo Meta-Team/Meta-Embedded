@@ -56,6 +56,8 @@ public:
 
     static bool released;
 
+    //TODO: lock()
+
 private:
 
     static void init();

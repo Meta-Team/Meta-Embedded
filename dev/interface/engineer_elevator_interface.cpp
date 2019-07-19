@@ -14,7 +14,7 @@ void EngineerElevatorIF::init(CANInterface *can_interface) {
     can->register_callback(0x201, 0x204, process_feedback);
     for (int i = 0; i < 2; i++) {
         elevatorMotor[i].last_update_time = SYSTIME;
-        elevatorMotor[i].clear_accmulate_angle();
+        elevatorMotor[i].clear_accumulate_angle();
         elevatorMotor[i].target_current = 0;
     }
     for (int i = 0; i < 2; i++){
@@ -95,6 +95,6 @@ void EngineerElevatorIF::process_feedback(CANRxFrame const *rxmsg) {
 
 }
 
-void EngineerElevatorIF::elevator_motor_t::clear_accmulate_angle() {
+void EngineerElevatorIF::elevator_motor_t::clear_accumulate_angle() {
     present_angle = 0;
 }

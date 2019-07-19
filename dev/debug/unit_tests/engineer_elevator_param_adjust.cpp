@@ -102,7 +102,7 @@ static void cmd_elevator_fix_front_angle(BaseSequentialStream *chp, int argc, ch
         return;
     }
     for (unsigned i = 0; i < 2; i++)
-        EngineerElevatorIF::elevatorMotor[i].clear_accmulate_angle();
+        EngineerElevatorIF::elevatorMotor[i].clear_accumulate_angle();
 }
 
 void cmd_elevator_set_target_velocities(BaseSequentialStream *chp, int argc, char *argv[]) {
