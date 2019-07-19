@@ -253,6 +253,8 @@ void UserS::VitualUserThread::main() {
         VisionPort::send_gimbal(SGimbalLG::get_accumulated_angle(SGimbalLG::YAW),
                                 SGimbalLG::get_accumulated_angle(SGimbalLG::PITCH));
 
+        VisionPort::send_enemy_color(Referee::game_robot_state.robot_id < 10);
+
         enemy_spotted = SYSTIME - VisionPort::last_update_time > 50;
 
         /*** ---------------------------------- Gimbal + Shooter --------------------------------- ***/
