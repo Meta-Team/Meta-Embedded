@@ -168,7 +168,7 @@ static void cmd_auto_up(BaseSequentialStream *chp, int argc, char *argv[]){
         shellUsage(chp, "up");
         return;
     }
-    EngineerElevatorLG::set_action(EngineerElevatorLG::UPWARD);
+    EngineerElevatorLG::start_going_up();
 }
 
 static void cmd_auto_down(BaseSequentialStream *chp, int argc, char *argv[]){
@@ -177,7 +177,7 @@ static void cmd_auto_down(BaseSequentialStream *chp, int argc, char *argv[]){
         shellUsage(chp, "down");
         return;
     }
-    EngineerElevatorLG::set_action(EngineerElevatorLG::DOWNWARD);
+    EngineerElevatorLG::start_going_down();
 }
 
 static void cmd_stop_elev(BaseSequentialStream *chp, int argc, char *argv[]){
@@ -186,8 +186,7 @@ static void cmd_stop_elev(BaseSequentialStream *chp, int argc, char *argv[]){
         shellUsage(chp, "s");
         return;
     }
-    EngineerElevatorLG::set_action(EngineerElevatorLG::LOCK);
-    EngineerChassisSKD::lock();
+    EngineerElevatorLG::forced_stop();
 }
 
 static void cmd_reset_elev(BaseSequentialStream *chp, int argc, char *argv[]){
@@ -196,7 +195,7 @@ static void cmd_reset_elev(BaseSequentialStream *chp, int argc, char *argv[]){
         shellUsage(chp, "reset");
         return;
     }
-    EngineerElevatorLG::set_action(EngineerElevatorLG::FREE);
+    EngineerElevatorLG::set_action_free();
     EngineerElevatorSKD::aided_motor_enable(false);
     EngineerElevatorSKD::elevator_enable(true);
     EngineerElevatorSKD::set_target_height(0);
@@ -222,8 +221,26 @@ static void cmd_chassis_pivot_turn(BaseSequentialStream *chp, int argc, char *ar
         return;
     }
     int i = Shell::atoi(argv[0]);
-    if (i==0) EngineerChassisSKD::pivot_turn(BL, 0.5*ENGINEER_CHASSIS_W_MAX);
-    if (i==1) EngineerChassisSKD::pivot_turn(BR, -0.5*ENGINEER_CHASSIS_W_MAX);
+    if (i==0) EngineerChassisSKD::pivot_turn(BL, -0.5*ENGINEER_CHASSIS_W_MAX);
+    if (i==1) EngineerChassisSKD::pivot_turn(BR, 0.5*ENGINEER_CHASSIS_W_MAX);
+}
+
+static void cmd_elevator_quit_action(BaseSequentialStream *chp, int argc, char *argv[]){
+    (void) argv;
+    if (argc != 0) {
+        shellUsage(chp, "quit");
+        return;
+    }
+    EngineerElevatorLG::quit_action();
+}
+
+static void cmd_elevator_cont_action(BaseSequentialStream *chp, int argc, char *argv[]){
+    (void) argv;
+    if (argc != 0) {
+        shellUsage(chp, "cont");
+        return;
+    }
+    EngineerElevatorLG::continue_action();
 }
 
 ShellCommand chassisCommands[] = {
@@ -242,6 +259,8 @@ ShellCommand chassisCommands[] = {
         {"reset",           cmd_reset_elev},
         {"sensor",          cmd_set_sensor_state},
         {"pivot",           cmd_chassis_pivot_turn},
+        {"quit",            cmd_elevator_quit_action},
+        {"cont",            cmd_elevator_cont_action},
         {nullptr,    nullptr}
 };
 

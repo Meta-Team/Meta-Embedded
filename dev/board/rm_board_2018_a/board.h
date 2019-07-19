@@ -99,7 +99,7 @@
 #define GPIOC_OTG_FS_POWER_ON       0U
 #define GPIOC_PIN1                  1U
 #define GPIOC_ADC1_IN12                  2U
-#define GPIOC_ADC1_IN13               3U
+#define GPIOC_ADC1_IN13                  3U
 #define GPIOC_ADC1_IN14                  4U
 #define GPIOC_ADC1_IN15                  5U
 #define GPIOC_PIN6                  6U

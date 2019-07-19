@@ -13,6 +13,12 @@
 #include "dms_interface.h"
 #include "referee_interface.h"
 
+#define FF_SWITCH_PAD GPIOB
+#define FFL_SWITCH_PIN_ID GPIOB_PIN0    // PB0 - L2
+#define FFR_SWITCH_PIN_ID GPIOB_PIN1    // PB1 - M2
+#define SWITCH_TOUCH_PAL_STATUS PAL_HIGH
+
+/** @note for the switch: BLACK -> GPIO; RED -> GND; BLUE -> VCC */
 
 class EngineerElevatorLG {
 
@@ -27,7 +33,32 @@ public:
         DOWNWARD,       // going down stairs
     };
 
-    static void set_action(action_t act);
+    /**
+     * @pre action == UPWARD || action == DOWNWARD
+     * @brief Force the elevator to stop during going UPWARD or going DOWNWARD
+     */
+    static void forced_stop();
+
+    /**
+     * @pre action == STOP
+     * @brief Quit prev_action by reversing.
+     */
+    static void quit_action();
+
+    /**
+     * @pre action == STOP
+     * @brief Continue prev_action.
+     */
+    static void continue_action();
+
+    /** @brief Start a whole auto process of going up-stairs */
+    static void start_going_up();
+
+    /** @brief Start a whole auto process of going down-stairs */
+    static void start_going_down();
+
+    /** @brief Set action as FREE, only for debugging separately */
+    static void set_action_free();
 
     // both the two sensors in front detect the stage, can start to go up-stairs
     static bool reach_stage;
@@ -46,6 +77,7 @@ public:
 
     static EngineerElevatorLGThread engineerLogicThread;
 
+    // TODO
     // static bool ignore_DMS;
 
 
@@ -61,10 +93,9 @@ private:
 
     static action_t action;
 
-    static elevator_state_t state;
+    static action_t prev_action;    // keep record of the action before forced stop, used for reversing
 
-    //TODO use the switch
-    static float reach_stage_trigger;
+    static elevator_state_t state;
 
     static uint16_t hanging_trigger;
 
@@ -78,13 +109,13 @@ private:
 
     /**
      * @brief the automatic movements of going up-stairs
-     * @pre the aided motors should be on the stage
+     * @pre near the stage
      */
     static void going_up();
 
     /**
      * @brief the automatic movements of going down-stairs
-     * @pre the aided wheels should be out of the stage
+     * @pre near the edge
      */
     static void going_down();
 

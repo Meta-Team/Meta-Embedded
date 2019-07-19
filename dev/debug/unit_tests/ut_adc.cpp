@@ -1,5 +1,6 @@
 //
 // Created by Kerui Zhu on 7/13/2019.
+// Modified by
 //
 
 #include <interface/buzzer.h>
@@ -11,15 +12,48 @@
 
 #include "dms_interface.h"
 
+#define FF_SWITCH_PAD GPIOB
+#define FFL_SWITCH_PIN_ID GPIOB_PIN0
+#define FFR_SWITCH_PIN_ID GPIOB_PIN1
+#define SWITCH_TOUCH_PAL_STATUS PAL_HIGH
+
 
 class ADCEchoThread : public chibios_rt::BaseStaticThread <512> {
 private:
     void main() final {
         setName("adc_echo");
-        DMSInterface::init(3);
+        DMSInterface::init(4);
+        uint16_t hanging_trigger = 2000;
+        uint16_t landed_trigger = 3000;
         while (!shouldTerminate()) {
-            LOG("%u %u %u", DMSInterface::get_raw_sample(DMSInterface::FR), DMSInterface::get_raw_sample(DMSInterface::FL),
-                DMSInterface::get_raw_sample(DMSInterface::BL));
+//             LOG("%u %u %u", DMSInterface::get_raw_sample(DMSInterface::FR), DMSInterface::get_raw_sample(DMSInterface::FL),
+//                 DMSInterface::get_raw_sample(DMSInterface::BL));
+
+            if ( DMSInterface::get_raw_sample(DMSInterface::FR) > landed_trigger)
+                LOG("FR landed");
+            if ( DMSInterface::get_raw_sample(DMSInterface::FL) > landed_trigger)
+                LOG("FL landed");
+
+            if ( DMSInterface::get_raw_sample(DMSInterface::FR) < hanging_trigger)
+                LOG("FR hanging");
+            if ( DMSInterface::get_raw_sample(DMSInterface::FL) < hanging_trigger)
+                LOG("FL hanging");
+
+//            if ( DMSInterface::get_raw_sample(DMSInterface::BR) > landed_trigger)
+//                LOG("BR landed");
+//            if ( DMSInterface::get_raw_sample(DMSInterface::BL) > landed_trigger)
+//                LOG("BL landed");
+//
+//            if ( DMSInterface::get_raw_sample(DMSInterface::BR) < hanging_trigger)
+//                LOG("BR hanging");
+//            if ( DMSInterface::get_raw_sample(DMSInterface::BL) < hanging_trigger)
+//                LOG("BL hanging");
+
+//            if ( palReadPad(FF_SWITCH_PAD, FFL_SWITCH_PIN_ID) == SWITCH_TOUCH_PAL_STATUS )
+//                LOG("FFL reaches stage");
+//            if ( palReadPad(FF_SWITCH_PAD, FFR_SWITCH_PIN_ID) == SWITCH_TOUCH_PAL_STATUS )
+//                LOG("FFR reaches stage");
+
             sleep(TIME_MS2I(250));
         }
     }
