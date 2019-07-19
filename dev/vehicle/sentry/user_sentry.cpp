@@ -311,7 +311,7 @@ void UserS::VitualUserThread::main() {
 
         /*** ---------------------------------- Chassis --------------------------------- ***/
 
-        if (v_user_mode == FINAL_AUTO_MODE && (enemy_spotted)) {
+        if ((v_user_mode == FINAL_AUTO_MODE) && (enemy_spotted || Referee::robot_hurt.armor_id > 0)) {
             if (!SChassisLG::get_escaping_status()) {
                 SChassisLG::start_escaping();
             }
