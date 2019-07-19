@@ -28,7 +28,8 @@ void CANInterface::ErrorFeedbackThread::main() {
             continue;
         }
 
-//        eventflags_t flags = chEvtGetAndClearFlags(&el);
+        eventflags_t flags = chEvtGetAndClearFlags(&el);
+        LOG_ERR("CAN Error %u", flags);
         last_error_time = SYSTIME;
     }
 

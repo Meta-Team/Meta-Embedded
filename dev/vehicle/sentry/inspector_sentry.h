@@ -20,7 +20,7 @@ class InspectorS {
 
 public:
 
-    static void init(CANInterface *can1_, AbstractAHRS *ahrs_);
+    static void init(CANInterface *can1_, CANInterface *can2_, AbstractAHRS *ahrs_);
 
     static void start_inspection(tprio_t thread_prio);
 
@@ -39,6 +39,7 @@ private:
 
     static AbstractAHRS *ahrs;
     static CANInterface *can1;
+    static CANInterface *can2;
 
     static bool gimbal_failure_;
     static bool chassis_failure_;
@@ -49,7 +50,7 @@ private:
     static bool check_remote_data_error();
 
     /// Inspector Thread
-    class InspectorThread : public chibios_rt::BaseStaticThread<512> {
+    class InspectorThread : public chibios_rt::BaseStaticThread<2048> {
         static constexpr unsigned INSPECTOR_THREAD_INTERVAL = 20;  // [ms]
         void main();
     };

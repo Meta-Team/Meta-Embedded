@@ -56,6 +56,13 @@ public:
     */
 
     /**
+     * Load external calibration data
+     * @param gyro_bias_   Gyro bias value
+     * @note To skip initial calibration at start(), call this function BEFORE start()
+     */
+    void load_calibration_data(Vector3D gyro_bias_);
+
+    /**
      * Start external AHRS update thread
      * @param can_interface initialized yaw, pitch and bullet_loader motor
      */
@@ -99,6 +106,8 @@ private:
         float fp32;
         uint32_t ui32;
     };
+
+    friend void cmd_echo_gyro_bias(BaseSequentialStream *chp, int argc, char *argv[]);
 
 };
 

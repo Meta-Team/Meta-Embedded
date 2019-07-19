@@ -33,6 +33,7 @@
 #include "settings_sentry.h"
 
 CANInterface can1(&CAND1);
+CANInterface can2(&CAND2);
 AHRSExt ahrsExt;
 
 /// Local Constants
@@ -54,7 +55,7 @@ int main() {
     /*** ---------------------- Period 1. Modules Setup and Self-Check ---------------------- ***/
 
     /// Preparation of Period 1
-    InspectorS::init(&can1, &ahrsExt);
+    InspectorS::init(&can1, &can2, &ahrsExt);
     LED::all_off();
 
     /// Setup Shell
@@ -71,12 +72,21 @@ int main() {
 
     /// Setup CAN1
     can1.start(THREAD_CAN1_PRIO);
+    can2.start(THREAD_CAN2_PRIO);
     chThdSleepMilliseconds(5);
     InspectorS::startup_check_can();  // check no persistent CAN Error. Block for 100 ms
     LED::led_on(DEV_BOARD_LED_CAN);  // LED 2 on now
 
     /// Setup AHRS_EXT
-    ahrsExt.start(&can1);
+    Vector3D ahrs_bias;
+    if (SDCard::get_data(MPU6500_BIAS_DATA_ID, &ahrs_bias, sizeof(ahrs_bias)) == SDCard::OK) {
+        ahrsExt.load_calibration_data(ahrs_bias);
+        LOG("Use AHRS bias in SD Card");
+    } else {
+        ahrsExt.load_calibration_data(EXT_AHRS_STORED_BIAS);
+        LOG_WARN("Use default AHRS bias");
+    }
+    ahrsExt.start(&can2);
     chThdSleepMilliseconds(5);
     InspectorS::startup_check_mpu();  // check MPU6500 has signal. Block for 20 ms
     InspectorS::startup_check_ist();  // check IST8310 has signal. Block for 20 ms
@@ -134,7 +144,7 @@ int main() {
     ShootSKD::load_pid_params(SHOOT_PID_BULLET_LOADER_A2V_PARAMS, SHOOT_PID_BULLET_LOADER_V2I_PARAMS,
                               {0, 0, 0, 0, 0} /* of no use */, {0, 0, 0, 0, 0} /* of no use */);
 
-    SChassisSKD::start( SChassisSKD::POSITIVE, SChassisSKD::POSITIVE, THREAD_CHASSIS_SKD_PRIO);
+    SChassisSKD::start(SChassisSKD::POSITIVE, SChassisSKD::POSITIVE, THREAD_CHASSIS_SKD_PRIO);
     SChassisSKD::load_pid_params(CHASSIS_PID_A2V_PARAMS, CHASSIS_PID_V2I_PARAMS);
 
     /// Start LGs

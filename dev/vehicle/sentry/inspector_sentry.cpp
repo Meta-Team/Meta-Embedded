@@ -6,6 +6,7 @@
 
 AbstractAHRS *InspectorS::ahrs = nullptr;
 CANInterface *InspectorS::can1 = nullptr;
+CANInterface *InspectorS::can2 = nullptr;
 
 bool InspectorS::gimbal_failure_ = false;
 bool InspectorS::chassis_failure_ = false;
@@ -13,8 +14,9 @@ bool InspectorS::remote_failure_ = false;
 
 InspectorS::InspectorThread InspectorS::inspectorThread;
 
-void InspectorS::init(CANInterface *can1_, AbstractAHRS *ahrs_) {
+void InspectorS::init(CANInterface *can1_, CANInterface *can2_, AbstractAHRS *ahrs_) {
     can1 = can1_;
+    can2 = can2_;
     ahrs = ahrs_;
 }
 
@@ -26,6 +28,9 @@ void InspectorS::startup_check_can() {
     time_msecs_t t = SYSTIME;
     while (SYSTIME - t < 100) {
         if (SYSTIME - can1->last_error_time < 5) {  // can error occurs
+            t = SYSTIME;  // reset the counter
+        }
+        if (SYSTIME - can2->last_error_time < 5) {  // can error occurs
             t = SYSTIME;  // reset the counter
         }
         chThdSleepMilliseconds(5);
@@ -84,17 +89,17 @@ void InspectorS::startup_check_chassis_feedback() {
 void InspectorS::startup_check_gimbal_feedback() {
     time_msecs_t t = SYSTIME;
     while (SYSTIME - t < 20) {
-        if (SYSTIME - GimbalIF::feedback[GimbalIF::YAW].last_update_time > 5) {
+        if (SYSTIME - GimbalIF::feedback[GimbalIF::YAW].last_update_time > 20) {
             // No feedback in last 5 ms (normal 1 ms)
             LOG_ERR("Startup - Gimbal Yaw offline.");
             t = SYSTIME;  // reset the counter
         }
-        if (SYSTIME - GimbalIF::feedback[GimbalIF::PITCH].last_update_time > 5) {
+        if (SYSTIME - GimbalIF::feedback[GimbalIF::PITCH].last_update_time > 20) {
             // No feedback in last 5 ms (normal 1 ms)
             LOG_ERR("Startup - Gimbal Pitch offline.");
             t = SYSTIME;  // reset the counter
         }
-        if (SYSTIME - GimbalIF::feedback[GimbalIF::BULLET].last_update_time > 5) {
+        if (SYSTIME - GimbalIF::feedback[GimbalIF::BULLET].last_update_time > 20) {
             // No feedback in last 5 ms (normal 1 ms)
             LOG_ERR("Startup - Gimbal Bullet offline.");
             t = SYSTIME;  // reset the counter
@@ -118,7 +123,7 @@ bool InspectorS::remote_failure() {
 bool InspectorS::check_gimbal_failure() {
     bool ret = false;
     for (unsigned i = 0; i < 3; i++) {
-        if (SYSTIME - GimbalIF::feedback[i].last_update_time > 20) {
+        if (SYSTIME - GimbalIF::feedback[i].last_update_time > 50) {
             if (!gimbal_failure_) {  // avoid repeating printing
                 LOG_ERR("Gimbal motor %u offline", i);
                 ret = true;

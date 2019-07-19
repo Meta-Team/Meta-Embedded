@@ -12,25 +12,26 @@
 #define GIMBAL_PITCH_MOTOR_TYPE   (GimbalIF::GM3510)
 #define SHOOT_BULLET_MOTOR_TYPE   (GimbalIF::M2006)
 
-#define GIMBAL_YAW_INSTALL_DIRECTION    (GimbalSKD::POSITIVE)
+#define GIMBAL_YAW_INSTALL_DIRECTION    (GimbalSKD::NEGATIVE)
 #define GIMBAL_PITCH_INSTALL_DIRECTION  (GimbalSKD::POSITIVE)
 #define SHOOT_BULLET_INSTALL_DIRECTION  (ShootSKD::POSITIVE)
 #define SHOOT_DEGREE_PER_BULLET 40.0f  // rotation degree of bullet loader for each bullet
 
-// TODO: measure
 #define GIMBAL_ANGLE_INSTALLATION_MATRIX {{1.0f, 0.0f, 0.0f}, \
-                                          {0.0f, 1.0f, 0.0f}, \
-                                          {0.0f, 0.0f, -1.0f}}
+                                          {0.0f, 0.0f, -1.0f}, \
+                                          {0.0f, 1.0f, 0.0f}}
 
 
-#define GIMBAL_GYRO_INSTALLATION_MATRIX {{0.0f,  -1.0f, 0.0f}, \
-                                         {0.0f,  0.0f,  1.0f}, \
-                                         {-1.0f, 0.0f,  0.0f}}
+#define GIMBAL_GYRO_INSTALLATION_MATRIX {{0.0f,  0.0f, -1.0f}, \
+                                         {0.0f,  1.0f,  0.0f}, \
+                                         {1.0f,  0.0f,  0.0f}}
+
+#define EXT_AHRS_STORED_BIAS {-0.984146595, 1.359451293, 0.020426832}
 
 #define MPU6500_BIAS_DATA_ID 0x0001
 
-#define GIMBAL_YAW_FRONT_ANGLE_RAW 3957
-#define GIMBAL_PITCH_FRONT_ANGLE_RAW 7256  // of no use now
+#define GIMBAL_YAW_FRONT_ANGLE_RAW 160
+#define GIMBAL_PITCH_FRONT_ANGLE_RAW 7074  // of no use now
 
 #define MPU6500_STORED_GYRO_BIAS {-0.566247761, -0.634880125, 0.307405889}
 
@@ -57,7 +58,7 @@
 #define GIMBAL_PID_PITCH_A2V_KI 0.0f
 #define GIMBAL_PID_PITCH_A2V_KD 0.05f
 #define GIMBAL_PID_PITCH_A2V_I_LIMIT 0.0f
-#define GIMBAL_PID_PITCH_A2V_OUT_LIMIT 3000.0f
+#define GIMBAL_PID_PITCH_A2V_OUT_LIMIT 60.0f
 #define GIMBAL_PID_PITCH_A2V_PARAMS \
     {GIMBAL_PID_PITCH_A2V_KP, GIMBAL_PID_PITCH_A2V_KI, GIMBAL_PID_PITCH_A2V_KD, \
     GIMBAL_PID_PITCH_A2V_I_LIMIT, GIMBAL_PID_PITCH_A2V_OUT_LIMIT}
@@ -122,9 +123,10 @@
 
 /// Thread Priority List
 #define THREAD_CAN1_PRIO                    (HIGHPRIO - 1)
-#define THREAD_MPU_PRIO                     (HIGHPRIO - 2)
-#define THREAD_IST_PRIO                     (HIGHPRIO - 3)
-#define THREAD_AHRS_PRIO                    (HIGHPRIO - 4)
+#define THREAD_CAN2_PRIO                    (HIGHPRIO - 2)
+#define THREAD_MPU_PRIO                     (HIGHPRIO - 3)
+#define THREAD_IST_PRIO                     (HIGHPRIO - 4)
+#define THREAD_AHRS_PRIO                    (HIGHPRIO - 5)
 #define THREAD_GIMBAL_SKD_PRIO              (NORMALPRIO + 3)
 #define THREAD_CHASSIS_SKD_PRIO             (NORMALPRIO + 2)
 #define THREAD_SHOOT_SKD_PRIO               (NORMALPRIO + 1)

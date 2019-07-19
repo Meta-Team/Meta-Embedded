@@ -14,26 +14,54 @@
 using namespace chibios_rt;
 
 CANInterface can1(&CAND1);
+CANInterface can2(&CAND2);
 AHRSExt ahrs;
+
+static constexpr Matrix33 ANGLE_INSTALLATION_MATRIX = {{1.0f, 0.0f, 0.0f},
+                                                       {0.0f, 0.0f, -1.0f},
+                                                       {0.0f, 1.0f, 0.0f}};
+
+static constexpr Matrix33 GYRO_INSTALLATION_MATRIX = {{0.0f,  0.0f, -1.0f},
+                                                      {0.0f,  1.0f,  0.0f},
+                                                      {1.0f,  0.0f,  0.0f}};
 
 class AHRSFeedbackThread : public BaseStaticThread<1024> {
 protected:
     void main() final {
         setName("ahrs_ext");
-        ahrs.start(&can1);
-        Buzzer::play_sound(Buzzer::sound_startup, LOWPRIO);
         while (!shouldTerminate()) {
-            Shell::printf("!a,%.4f,%.4f,%.4f" SHELL_NEWLINE_STR,
-                          ahrs.get_angle().x,
-                          ahrs.get_angle().y,
-                          ahrs.get_angle().z);
-//            Shell::printf("w = (%.4f, %.4f, %.4f), a = (%.4f, %.4f, %.4f)" SHELL_NEWLINE_STR,
-//                          ahrs.gyro.x, ahrs.gyro.y, ahrs.gyro.z,
-//                          ahrs.accel.x, ahrs.accel.y, ahrs.accel.z);
+            Vector3D angle = ahrs.get_angle() * ANGLE_INSTALLATION_MATRIX;
+            Vector3D gyro = ahrs.get_gyro() * GYRO_INSTALLATION_MATRIX;
+
+//            Shell::printf("!a,%.4f,%.4f,%.4f" SHELL_NEWLINE_STR,
+//                          angle.x,
+//                          angle.y,
+//                          angle.z);
+            Shell::printf("w = (%.4f, %.4f, %.4f), a = (%.4f, %.4f, %.4f)" SHELL_NEWLINE_STR,
+                          gyro.x, gyro.y, gyro.z,
+                          ahrs.get_accel().x, ahrs.get_accel().y, ahrs.get_accel().z);
             sleep(TIME_MS2I(100));
         }
     }
 } feedbackThread;
+
+void cmd_echo_gyro_bias(BaseSequentialStream *chp, int argc, char *argv[]) {
+    (void) argv;
+    if (argc != 0) {
+        shellUsage(chp, "echo_bias");
+        return;
+    }
+
+    chprintf(chp, "gyro_bias.x = %f" SHELL_NEWLINE_STR, ahrs.gyro_bias.x);
+    chprintf(chp, "gyro_bias.y = %f" SHELL_NEWLINE_STR, ahrs.gyro_bias.y);
+    chprintf(chp, "gyro_bias.z = %f" SHELL_NEWLINE_STR, ahrs.gyro_bias.z);
+}
+
+
+ShellCommand ahrsShellCommands[] = {
+        {"echo_bias", cmd_echo_gyro_bias},
+        {nullptr,     nullptr}
+};
 
 int main(void) {
 
@@ -41,9 +69,16 @@ int main(void) {
     System::init();
 
     Shell::start(NORMALPRIO - 10);
+    Shell::addCommands(ahrsShellCommands);
     LED::all_off();
 
     can1.start(HIGHPRIO);
+    can2.start(HIGHPRIO - 1);
+
+    ahrs.load_calibration_data({-0.984146595, 1.359451293, 0.020426832});
+    ahrs.start(&can2);
+    Buzzer::play_sound(Buzzer::sound_startup, LOWPRIO);
+
     feedbackThread.start(NORMALPRIO);
 
     // See chconf.h for what this #define means.
