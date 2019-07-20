@@ -36,12 +36,12 @@ void SChassisLG::set_mode(SChassisLG::mode_t value) {
             SChassisSKD::set_destination(manual_dest);
         } else if (mode == SHUTTLE_MODE || mode == FINAL_AUTO_MODE) {
             // Resume the thread
-            chSysLock();
+            chSysLock();  /// ---------------------------------- Enter Critical Zone ----------------------------------
             if (!directionSwitchThread.started) {
                 directionSwitchThread.started = true;
                 chSchWakeupS(directionThreadReference.getInner(), 0);
             }
-            chSysUnlock();
+            chSysUnlock();  /// ---------------------------------- Exit Critical Zone ----------------------------------
         }
     }
 }

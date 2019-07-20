@@ -36,12 +36,12 @@ void GimbalLG::set_action(GimbalLG::action_t value) {
     } else if (action == VISION_MODE) {
         GimbalSKD::set_mode(GimbalSKD::ABS_ANGLE_MODE);
         // Resume the thread
-        chSysLock();
+        chSysLock();  /// ---------------------------------- Enter Critical Zone ----------------------------------
         if (!visionThread.started) {
             visionThread.started = true;
             chSchWakeupS(visionThreadReference.getInner(), 0);
         }
-        chSysUnlock();
+        chSysUnlock();  /// ---------------------------------- Exit Critical Zone ----------------------------------
     }
 }
 

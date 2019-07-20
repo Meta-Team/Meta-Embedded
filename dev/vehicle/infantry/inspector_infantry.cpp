@@ -178,6 +178,8 @@ void InspectorI::InspectorThread::main() {
             remote_failure_ = false;
         }
 
+        chSysLock();  /// ---------------------------------- Enter Critical Zone ----------------------------------
+
         remote_failure_ = (SYSTIME - Remote::last_update_time > 30);
         if (remote_failure_) LED::led_off(DEV_BOARD_LED_REMOTE);
         else LED::led_on(DEV_BOARD_LED_REMOTE);
@@ -195,6 +197,8 @@ void InspectorI::InspectorThread::main() {
         } else {
             if (Buzzer::alerting()) Buzzer::alert_off();
         }
+
+        chSysUnlock();  /// ---------------------------------- Exit Critical Zone ----------------------------------
 
         sleep(TIME_MS2I(INSPECTOR_THREAD_INTERVAL));
     }

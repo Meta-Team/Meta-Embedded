@@ -79,7 +79,7 @@ void VisionPort::uart_rx_callback(UARTDriver *uartp) {
 
     (void) uartp;
 
-    chSysLockFromISR();
+    chSysLockFromISR();  /// ---------------------------------- Enter Critical Zone ----------------------------------
 
     uint8_t *pak_uint8 = (uint8_t *) &pak;
 
@@ -132,7 +132,7 @@ void VisionPort::uart_rx_callback(UARTDriver *uartp) {
             break;
     }
 
-    chSysUnlockFromISR();
+    chSysUnlockFromISR();  /// ---------------------------------- Exit Critical Zone ----------------------------------
 
 }
 

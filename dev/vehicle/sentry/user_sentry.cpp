@@ -228,12 +228,12 @@ void UserS::set_mode(UserS::sentry_mode_t mode) {
         SGimbalLG::set_action(SGimbalLG::ABS_ANGLE_MODE);
         if (sentryMode == AUTO_MODE) {
             // Resume the thread
-            chSysLock();
+            chSysLock();  /// ---------------------------------- Enter Critical Zone ----------------------------------
             if (!vitualUserThread.started) {
                 vitualUserThread.started = true;
                 chSchWakeupS(vitualUserThreadReference.getInner(), 0);
             }
-            chSysUnlock();
+            chSysUnlock();  /// ---------------------------------- Exit Critical Zone ----------------------------------
         }
     }
 }

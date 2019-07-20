@@ -50,12 +50,12 @@ void ChassisLG::set_action(ChassisLG::action_t value) {
         ChassisSKD::set_mode(ChassisSKD::GIMBAL_COORDINATE_MODE);
         target_theta = dodge_mode_theta_;
         // Resume the thread
-        chSysLock();
+        chSysLock();  /// ---------------------------------- Enter Critical Zone ----------------------------------
         if (!dodgeModeSwitchThread.started) {
             dodgeModeSwitchThread.started = true;
             chSchWakeupS(dodgeThreadReference.getInner(), 0);
         }
-        chSysUnlock();
+        chSysUnlock();  /// ---------------------------------- Exit Critical Zone ----------------------------------
     }
     Referee::set_client_light(USER_CLIENT_DODGE_MODE_LIGHT, (action == DODGE_MODE));
     // Sending client data will be complete by higher level thread
