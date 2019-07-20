@@ -332,8 +332,8 @@ void UserH::ClientDataSendingThread::main() {
         /// Shoot
         // 42mm shooter heat
         Referee::set_client_number(USER_CLIENT_REMAINING_HEAT_NUM,
-                                   100.0f * Referee::game_robot_state.shooter_heat1_cooling_limit /
-                                   Referee::power_heat_data.shooter_heat1);
+                                   100.0f * (1.0f - (float) Referee::power_heat_data.shooter_heat1 /
+                                                    (float) Referee::game_robot_state.shooter_heat1_cooling_limit));
 
         /// Super Capacitor
         // TODO: determine feedback interval
