@@ -170,7 +170,7 @@ int main() {
 #else
     // When vehicle() quits, the vehicle thread will somehow enter an infinite loop, so we set the
     // priority to lowest before quitting, to let other threads run normally
-    chibios_rt::BaseThread::setPriority(THREAD_IDEAL_PRIO);
+    chibios_rt::BaseThread::setPriority(IDLEPRIO);
 #endif
     return 0;
 }
