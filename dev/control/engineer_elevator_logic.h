@@ -24,44 +24,47 @@ class EngineerElevatorLG {
 
 public:
 
-    static void init();
-
     enum action_t {
         FREE,           // free to control, for debug
         LOCK,           // not elevating
+        PAUSE,          // from pause_action
         UPWARD,         // going upstairs
         DOWNWARD,       // going down stairs
     };
 
-    /**
-     * @pre action == UPWARD || action == DOWNWARD
-     * @brief Force the elevator to stop during going UPWARD or going DOWNWARD
-     */
-    static void forced_stop();
+    static void init();
 
-    /**
-     * @pre action == STOP
-     * @brief Quit prev_action by reversing.
-     */
-    static void quit_action();
+    static action_t get_action() {      return action;      }
+    static action_t get_prev_action() { return prev_action; }
 
-    /**
-     * @pre action == STOP
-     * @brief Continue prev_action.
-     */
-    static void continue_action();
-
-    /** @brief Start a whole auto process of going up-stairs */
-    static void start_going_up();
-
-    /** @brief Start a whole auto process of going down-stairs */
-    static void start_going_down();
-
-    /** @brief Set action as FREE, only for debugging separately */
+    /** @brief Set action as FREE, only for debugging each part of the process separately.
+     *  @note Can only be set free when LOCK OR PAUSE */
     static void set_action_free();
 
-    /** @brief Set action lock, for safe mode */
+    /** @brief LOCK anyway, for safe mode.
+     *  @note need to reset manually by setting FREE. */
     static void set_action_lock();
+
+    /** @brief Start an auto process of going up-stairs */
+    static void start_going_up();
+
+    /** @brief Start an auto process of going down-stairs */
+    static void start_going_down();
+
+
+    /**
+     * @pre action == UPWARD || action == DOWNWARD || action == FREE
+     * @brief Force the elevator to stop during going UPWARD or going DOWNWARD
+     */
+    static void pause_action();
+
+    /** @brief Continue prev_action from PAUSE. */
+    static void continue_action();
+
+    /** @brief Quit prev_action by reversing from PAUSE. */
+    static void quit_action();
+
+
 
     // both the two sensors in front detect the stage, can start to go up-stairs
     static bool reach_stage;

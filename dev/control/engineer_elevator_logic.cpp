@@ -8,12 +8,15 @@ EngineerElevatorLG::EngineerElevatorLGThread EngineerElevatorLG::engineerLogicTh
 EngineerElevatorLG::action_t EngineerElevatorLG::action;
 EngineerElevatorLG::action_t EngineerElevatorLG::prev_action;
 EngineerElevatorLG::elevator_state_t EngineerElevatorLG::state;
+
 bool EngineerElevatorLG::reach_stage;
 bool EngineerElevatorLG::back_landed;
 bool EngineerElevatorLG::back_edged;
 bool EngineerElevatorLG::front_leave_stage;
+
 uint16_t EngineerElevatorLG::hanging_trigger;
 uint16_t EngineerElevatorLG::landed_trigger;
+
 float EngineerElevatorLG::prev_e_tg_h;
 float EngineerElevatorLG::prev_aR_tg_v;
 float EngineerElevatorLG::prev_aL_tg_v;
@@ -31,33 +34,52 @@ void EngineerElevatorLG::init() {
     landed_trigger = 3000;
 }
 
-void EngineerElevatorLG::forced_stop() {
+void EngineerElevatorLG::set_action_free() {
+    if (action == LOCK || action == PAUSE) {
+        action = FREE;
+        state = STOP;
+    }
+}
+
+void EngineerElevatorLG::set_action_lock() {
+    EngineerChassisSKD::lock();
+    action = LOCK;
+    state = STOP;
+}
+
+void EngineerElevatorLG::start_going_up() {
+    if (action == LOCK && state == STOP)   { action = UPWARD;    going_up(); }
+    else         LOG("cannot go up-stairs from start");
+}
+
+void EngineerElevatorLG::start_going_down() {
+    if (action == LOCK && state == STOP)   { action = DOWNWARD;  going_down(); }
+    else         LOG("cannot go down-stairs from start");
+}
+
+
+void EngineerElevatorLG::pause_action() {
 
     if (action == FREE) {
         LOG("pause from FREE");
         prev_action = FREE;
-        action = LOCK;
+        action = PAUSE;
         prev_e_tg_h = EngineerElevatorSKD::target_height;
         prev_aR_tg_v = EngineerElevatorSKD::target_velocity[2];
         prev_aL_tg_v = EngineerElevatorSKD::target_velocity[3];
     }
-    else if (action == LOCK) {
-        LOG("already locked");
-        // don't change prev_action, maybe unintended
-    }
-    else {
-        if (action == UPWARD)   LOG("forced_stop from going UPWARD");
-        if (action == DOWNWARD) LOG("forced_stop from going DOWNWARD");
+    else if (action == UPWARD || action == DOWNWARD) {
+        if (action == UPWARD)   LOG("pause_action from going UPWARD");
+        if (action == DOWNWARD) LOG("pause_action from going DOWNWARD");
         prev_action = action;
-        action = LOCK;
+        action = PAUSE;
         EngineerChassisSKD::lock();
     }
-
 }
 
 void EngineerElevatorLG::continue_action() {
-    if (action != LOCK)
-        LOG("invalid command, elevator not locked");
+    if (action != PAUSE)
+        LOG("invalid cont, elevator not paused");
     else {
         action = prev_action;
         prev_action = LOCK;
@@ -75,12 +97,13 @@ void EngineerElevatorLG::continue_action() {
 
 void EngineerElevatorLG::quit_action() {
 
-    if (action != LOCK)
-        LOG("invalid quit, elevator not locked");
-
+    if (action != PAUSE)
+        LOG("invalid quit, elevator not paused");
     else {
-        if (prev_action != UPWARD && prev_action != DOWNWARD)
+        if (prev_action != UPWARD && prev_action != DOWNWARD) {
             LOG("invalid quit, no prev_action");
+            return;
+        }
         else if (prev_action == UPWARD)     action = DOWNWARD;
         else if (prev_action == DOWNWARD)   action = UPWARD;
 
@@ -103,26 +126,6 @@ void EngineerElevatorLG::quit_action() {
 }
 
 
-void EngineerElevatorLG::set_action_free() {
-    if (action == LOCK)     action = FREE;
-}
-
-void EngineerElevatorLG::set_action_lock() {
-    if ( action != UPWARD && action != DOWNWARD ) {
-        action = LOCK;
-        state = STOP;
-    }
-}
-
-void EngineerElevatorLG::start_going_up() {
-    if (action == LOCK && state == STOP)   { action = UPWARD;    going_up(); }
-    else         LOG("cannot go up-stairs from start");
-}
-
-void EngineerElevatorLG::start_going_down() {
-    if (action == LOCK && state == STOP)   { action = DOWNWARD;  going_down(); }
-    else         LOG("cannot go down-stairs from start");
-}
 
 void EngineerElevatorLG::update_hanging_status() {
 
@@ -305,7 +308,7 @@ void EngineerElevatorLG::EngineerElevatorLGThread::main() {
 
         update_hanging_status();
 
-        if (action == LOCK) {
+        if (action == LOCK || action == PAUSE) {
             EngineerElevatorSKD::elevator_enable(false);
             EngineerElevatorSKD::aided_motor_enable(false);
         } else if (action == UPWARD) {

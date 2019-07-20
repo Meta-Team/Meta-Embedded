@@ -191,7 +191,7 @@ static void cmd_stop_elev(BaseSequentialStream *chp, int argc, char *argv[]){
         shellUsage(chp, "s");
         return;
     }
-    EngineerElevatorLG::forced_stop();
+    EngineerElevatorLG::pause_action();
 }
 
 static void cmd_elevator_quit_action(BaseSequentialStream *chp, int argc, char *argv[]){
