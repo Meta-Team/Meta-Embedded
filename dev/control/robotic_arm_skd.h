@@ -48,10 +48,12 @@ public:
 
     enum robotic_arm_state_t{
         WAITING,
+        LIFT,
         BOX_CLAMPED,
         TAKING_BOX,
         TAKING_BULLET,
-        THROW_AWAY
+        THROW_AWAY,
+        DOWN
     };
 
     static bool released;
@@ -78,9 +80,14 @@ public:
 
     static void set_status(digital_status_t& status, uint8_t pad, digital_status_t state);
 
-    static digital_status_t door_state, lift_state, extend_state;
+    static void next_step();
+    static void prev_step();
+
+    static void change_extend();
 
 private:
+
+    static digital_status_t door_state, lift_state, extend_state;
 
     static robotic_arm_state_t state;
 

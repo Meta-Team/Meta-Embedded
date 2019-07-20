@@ -155,14 +155,9 @@ class EngineerThread: public chibios_rt::BaseStaticThread<1024>{
             /// remote Robotic arm test
             else if ( Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_DOWN ) {
 
-                if (Remote::rc.ch1 > 0.5) RoboticArmSKD::set_status(RoboticArmSKD::lift_state, LIFT_PAD, RoboticArmSKD::HIGH_STATUS);
-                else if (Remote::rc.ch1 < -0.5) RoboticArmSKD::set_status(RoboticArmSKD::lift_state, LIFT_PAD, RoboticArmSKD::LOW_STATUS);
-                else if (Remote::rc.ch0 > 0.5) RoboticArmSKD::set_status(RoboticArmSKD::extend_state, EXTEND_PAD, RoboticArmSKD::HIGH_STATUS);
-                else if (Remote::rc.ch0 < -0.5) RoboticArmSKD::set_status(RoboticArmSKD::extend_state, EXTEND_PAD, RoboticArmSKD::LOW_STATUS);
-                else if (Remote::rc.ch2 > 0.5) RoboticArmSKD::change_status(RoboticArmSKD::door_state, DOOR_PAD);
-                else if (Remote::rc.ch3 > 0.5) RoboticArmSKD::set_clamp_action(RoboticArmSKD::CLAMP_CLAMPED);
-                else if (Remote::rc.ch3 < -0.5) RoboticArmSKD::set_clamp_action(RoboticArmSKD::CLAMP_RELAX);
-                else if (Remote::rc.ch2 < -0.5) RoboticArmSKD::pull_back();
+                if (Remote::rc.ch1 > 0.5) RoboticArmSKD::next_step();
+                else if (Remote::rc.ch1 < -0.5) RoboticArmSKD::prev_step();
+                else if (Remote::rc.ch0 > 0.5) RoboticArmSKD::change_extend();
 
             }
 
@@ -216,8 +211,12 @@ class EngineerThread: public chibios_rt::BaseStaticThread<1024>{
                 Remote::key_t UserI::chassis_dodge_switch = Remote::KEY_X;
 
 
-                /// Robotic Arm
+                /// Robotic Arm Config
 
+                /// Robotic Arm
+                if (Remote::key.f) RoboticArmSKD::next_step();
+                else if (Remote::key.g) RoboticArmSKD::prev_step();
+                else if (Remote::key.r) RoboticArmSKD::change_extend();
 
             }
 
