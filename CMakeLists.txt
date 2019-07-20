@@ -204,6 +204,31 @@ add_executable(ENGINEER
 target_include_directories(ENGINEER PRIVATE dev/vehicle/engineer)
 target_compile_definitions(ENGINEER PRIVATE ENGINEER)
 
+add_executable(AERIAL
+        dev/module/pid_controller.hpp
+        dev/interface/can_interface.cpp
+        dev/interface/remote_interpreter.cpp
+        dev/interface/sd_card_interface.cpp
+
+        dev/interface/gimbal_interface.cpp
+        dev/scheduler/gimbal_scheduler.cpp
+        dev/logic/gimbal_logic.cpp
+
+        dev/interface/referee_interface.cpp
+        dev/common/CRC8.cpp
+        dev/common/CRC16.cpp
+
+        dev/interface/ahrs/ahrs_ext.cpp
+
+        dev/scheduler/shoot_scheduler.cpp
+        dev/logic/shoot_logic.cpp
+
+        dev/vehicle/aerial/main_aerial.cpp
+        dev/vehicle/aerial/user_aerial.cpp
+        dev/vehicle/aerial/inspector_aerial.cpp
+        dev/vehicle/aerial/settings_aerial.cpp
+        )
+
 # Blink
 add_executable(ut_blink
         dev/module/button_monitor.cpp

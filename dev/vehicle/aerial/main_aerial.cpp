@@ -1,5 +1,5 @@
 //
-// Created by zhukerui on 2019/5/18.
+// Created by Kerui Zhu on 7/19/2019.
 //
 
 /// Headers
@@ -15,23 +15,25 @@
 #include "ahrs_ext.h"
 #include "remote_interpreter.h"
 #include "sd_card_interface.h"
-#include "vision_port.h"
 
 #include "gimbal_interface.h"
 #include "gimbal_scheduler.h"
-#include "sentry_gimbal_logic.h"
+#include "gimbal_logic.h"
 #include "shoot_scheduler.h"
 #include "shoot_logic.h"
 
-#include "sentry_chassis_interface.h"
-#include "sentry_chassis_scheduler.h"
-#include "sentry_chassis_logic.h"
+#include "inspector_aerial.h"
+#include "user_aerial.h"
+#include "settings_aerial.h"
+#include "vehicle_aerial.h"
 
-#include "inspector_sentry.h"
-#include "user_sentry.h"
+/// Board Guard
+#if defined(BOARD_RM_2018_A)
+#else
+#error "Infantry supports only RM Board 2018 A currently"
+#endif
 
-#include "settings_sentry.h"
-
+/// Instances
 CANInterface can1(&CAND1);
 CANInterface can2(&CAND2);
 AHRSExt ahrsExt;
@@ -54,7 +56,7 @@ int main() {
     /*** ---------------------- Period 1. Modules Setup and Self-Check ---------------------- ***/
 
     /// Preparation of Period 1
-    InspectorS::init(&can1, &can2, &ahrsExt);
+    InspectorA::init(&can1, &can2, &ahrsExt);
     LED::all_off();
 
     /// Setup Shell
@@ -73,7 +75,7 @@ int main() {
     can1.start(THREAD_CAN1_PRIO);
     can2.start(THREAD_CAN2_PRIO);
     chThdSleepMilliseconds(5);
-    InspectorS::startup_check_can();  // check no persistent CAN Error. Block for 100 ms
+    InspectorA::startup_check_can();  // check no persistent CAN Error. Block for 100 ms
     LED::led_on(DEV_BOARD_LED_CAN);  // LED 2 on now
 
     /// Setup AHRS_EXT
@@ -87,13 +89,13 @@ int main() {
     }
     ahrsExt.start(&can2);
     chThdSleepMilliseconds(5);
-    InspectorS::startup_check_mpu();  // check MPU6500 has signal. Block for 20 ms
-    InspectorS::startup_check_ist();  // check IST8310 has signal. Block for 20 ms
+    InspectorA::startup_check_mpu();  // check MPU6500 has signal. Block for 20 ms
+    InspectorA::startup_check_ist();  // check IST8310 has signal. Block for 20 ms
     LED::led_on(DEV_BOARD_LED_AHRS);  // LED 3 on now
 
     /// Setup Remote
     Remote::start();
-    InspectorS::startup_check_remote();  // check Remote has signal. Block for 50 ms
+    InspectorA::startup_check_remote();  // check Remote has signal. Block for 50 ms
     LED::led_on(DEV_BOARD_LED_REMOTE);  // LED 4 on now
 
 
@@ -102,15 +104,8 @@ int main() {
     GimbalIF::init(&can1, GIMBAL_YAW_FRONT_ANGLE_RAW, GIMBAL_PITCH_FRONT_ANGLE_RAW,
                    GIMBAL_YAW_MOTOR_TYPE, GIMBAL_PITCH_MOTOR_TYPE, SHOOT_BULLET_MOTOR_TYPE);
     chThdSleepMilliseconds(10);
-    InspectorS::startup_check_gimbal_feedback(); // check gimbal motors has continuous feedback. Block for 20 ms
+    InspectorA::startup_check_gimbal_feedback(); // check gimbal motors has continuous feedback. Block for 20 ms
     LED::led_on(DEV_BOARD_LED_GIMBAL);  // LED 5 on now
-
-
-    /// Setup ChassisIF
-    SChassisIF::init(&can1);
-    chThdSleepMilliseconds(10);
-    InspectorS::startup_check_chassis_feedback();  // check chassis motors has continuous feedback. Block for 20 ms
-    LED::led_on(DEV_BOARD_LED_CHASSIS);  // LED 6 on now
 
 
     /// Setup Red Spot Laser
@@ -143,18 +138,14 @@ int main() {
     ShootSKD::load_pid_params(SHOOT_PID_BULLET_LOADER_A2V_PARAMS, SHOOT_PID_BULLET_LOADER_V2I_PARAMS,
                               {0, 0, 0, 0, 0} /* of no use */, {0, 0, 0, 0, 0} /* of no use */);
 
-    SChassisSKD::start(SChassisSKD::POSITIVE, SChassisSKD::POSITIVE, THREAD_CHASSIS_SKD_PRIO);
-    SChassisSKD::load_pid_params(CHASSIS_PID_A2V_PARAMS, CHASSIS_PID_V2I_PARAMS);
-
     /// Start LGs
-    SGimbalLG::init();
+    GimbalLG::init(THREAD_GIMBAL_LG_VISION_PRIO);
     ShootLG::init(SHOOT_DEGREE_PER_BULLET, THREAD_SHOOT_LG_STUCK_DETECT_PRIO, THREAD_SHOOT_BULLET_COUNTER_PRIO);
-    SChassisLG::init(THREAD_CHASSIS_LG_DODGE_PRIO);
 
 
     /// Start Inspector and User Threads
-    InspectorS::start_inspection(THREAD_INSPECTOR_PRIO);
-    UserS::start(THREAD_USER_PRIO, THREAD_GIMBAL_LG_VISION_PRIO);
+    InspectorA::start_inspection(THREAD_INSPECTOR_PRIO);
+    UserA::start(THREAD_USER_PRIO, THREAD_USER_ACTION_PRIO, THREAD_USER_CLIENT_DATA_SEND_PRIO);
 
     /// Complete Period 2
     Buzzer::play_sound(Buzzer::sound_startup_intel, THREAD_BUZZER_PRIO);  // Now play the startup sound
