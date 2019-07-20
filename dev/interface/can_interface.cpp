@@ -16,7 +16,7 @@
 #if (CAN_INTERFACE_ENABLE_ERROR_FEEDBACK_THREAD == TRUE)
 
 void CANInterface::ErrorFeedbackThread::main() {
-    setName("can_err_fb");
+    setName("CAN_Err_FB");
 
     event_listener_t el;
     chEvtRegister(&(can_driver->error_event), &el, 0);
@@ -73,11 +73,8 @@ void CANInterface::main() {
 
     while (!shouldTerminate()) {
 
-        // Wait until a event occurs, or timeout
-        if (waitAnyEventTimeout(ALL_EVENTS, TIME_MS2I(100)) == 0) {
-            // Do nothing. Lost of signal will be handled externally for each component
-            continue;
-        }
+        // Wait until a event occurs
+        waitAnyEvent(ALL_EVENTS);
 
         // Process every received message
         while (canReceive(can_driver, CAN_ANY_MAILBOX, &rxmsg, TIME_IMMEDIATE) == MSG_OK) {
