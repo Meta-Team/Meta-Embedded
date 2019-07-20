@@ -166,8 +166,10 @@ void Remote::uart_synchronize() {
     while (true) {
         // For unknown reason, uartReceiveTimeout() seems not to wait for additional bytes if byte_received > 1
         size_t byte_received = 1;
-        msg_t ret = uartReceiveTimeout(&REMOTE_UART_DRIVER, &byte_received, rx_buf_, TIME_MS2I(5));
-        if (ret == MSG_TIMEOUT) break;
+        if (REMOTE_UART_DRIVER.rxstate != UART_RX_ACTIVE) {
+            msg_t ret = uartReceiveTimeout(&REMOTE_UART_DRIVER, &byte_received, rx_buf_, TIME_MS2I(5));
+            if (ret == MSG_TIMEOUT) break;
+        }
     }
     uartStartReceive(&REMOTE_UART_DRIVER, RX_FRAME_SIZE, rx_buf_);
     synchronizing = false;

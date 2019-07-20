@@ -10,6 +10,7 @@ SChassisLG::mode_t SChassisLG::mode = FORCED_RELAX_MODE;
 float SChassisLG::manual_dest = 0;
 float SChassisLG::radius = 50.0f;
 bool SChassisLG::random_mode = false;
+time_msecs_t SChassisLG::last_attack_time = 0;
 constexpr float SChassisLG::terminals[6];
 int SChassisLG::prev_terminal = 0;
 int SChassisLG::next_terminal = 5;
@@ -35,12 +36,12 @@ void SChassisLG::set_mode(SChassisLG::mode_t value) {
             SChassisSKD::set_destination(manual_dest);
         } else if (mode == SHUTTLE_MODE || mode == FINAL_AUTO_MODE) {
             // Resume the thread
-            chSysLock();
+            chSysLock();  /// ---------------------------------- Enter Critical Zone ----------------------------------
             if (!directionSwitchThread.started) {
                 directionSwitchThread.started = true;
                 chSchWakeupS(directionThreadReference.getInner(), 0);
             }
-            chSysUnlock();
+            chSysUnlock();  /// ---------------------------------- Exit Critical Zone ----------------------------------
         }
     }
 }

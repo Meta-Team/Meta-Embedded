@@ -6,6 +6,11 @@
 
 AHRSExt *AHRSExt::inst;
 
+void AHRSExt::load_calibration_data(Vector3D gyro_bias_) {
+    gyro_bias = gyro_bias_;
+    last_calibration_time = SYSTIME;
+}
+
 void AHRSExt::start(CANInterface *can_interface) {
     can = can_interface;
     can->register_callback(0x0A, 0x0C, process_feedback);

@@ -1,9 +1,10 @@
 //
 // Created by liuzikai on 2019-06-25.
+// Edited by Qian Chen & Mo Kanya on 2019-07-05
 //
 
-#ifndef META_INFANTRY_USER_H
-#define META_INFANTRY_USER_H
+#ifndef META_HERO_USER_H
+#define META_HERO_USER_H
 
 #include "ch.hpp"
 
@@ -12,12 +13,12 @@
 #include "super_capacitor_port.h"
 
 #include "gimbal_logic.h"
-#include "infantry_shoot_logic.h"
+#include "hero_shoot_logic.h"
 #include "chassis_logic.h"
 
-#include "inspector.h"
+#include "inspector_hero.h"
 
-class User {
+class UserH {
 
 public:
 
@@ -96,9 +97,9 @@ private:
     static UserActionThread userActionThread;
 
     /// Referee Client Data Sending Thread
-    static constexpr unsigned CLIENT_DATA_SENDING_THREAD_INTERVAL = 10;  // [ms]
+    static constexpr unsigned CLIENT_DATA_SENDING_THREAD_INTERVAL = 100;  // [ms]
 
-    class ClientDataSendingThread : public chibios_rt::BaseStaticThread<512> {
+    class ClientDataSendingThread : public chibios_rt::BaseStaticThread<256> {
         void main() final;
     };
 
@@ -115,4 +116,4 @@ private:
 };
 
 
-#endif //META_INFANTRY_USER_H
+#endif //META_INFANTRY_HERO_H

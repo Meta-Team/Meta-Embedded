@@ -23,7 +23,7 @@
 #error "Files inspector.h/cpp should only be used for Hero main program"
 #endif
 
-class Inspector {
+class InspectorH {
 
 public:
 

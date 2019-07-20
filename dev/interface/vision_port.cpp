@@ -58,11 +58,28 @@ void VisionPort::send_gimbal(float yaw, float pitch) {
 //    uartStartSend(UART_DRIVER, tx_pak_size, (uint8_t *) &tx_pak);  // it has some problem
 }
 
+void VisionPort::send_enemy_color(bool is_blue){
+    package_t tx_pak;
+
+    size_t tx_pak_size = FRAME_HEADER_SIZE + CMD_ID_SIZE + sizeof(enemy_color_t) + FRAME_TAIL_SIZE;
+
+    tx_pak.header.sof = 0xA5;
+    tx_pak.header.data_length = sizeof(enemy_color_t);
+    tx_pak.header.seq = tx_seq++;
+    Append_CRC8_Check_Sum((uint8_t *) &tx_pak, FRAME_HEADER_SIZE);
+
+    tx_pak.cmd_id = 0xFF00;
+    tx_pak.enemy_color_.is_blue = is_blue;
+    Append_CRC16_Check_Sum((uint8_t *) &tx_pak, tx_pak_size);
+
+    uartSendFullTimeout(UART_DRIVER, &tx_pak_size, &tx_pak, TIME_MS2I(10));
+}
+
 void VisionPort::uart_rx_callback(UARTDriver *uartp) {
 
     (void) uartp;
 
-    chSysLockFromISR();
+    chSysLockFromISR();  /// ---------------------------------- Enter Critical Zone ----------------------------------
 
     uint8_t *pak_uint8 = (uint8_t *) &pak;
 
@@ -115,7 +132,7 @@ void VisionPort::uart_rx_callback(UARTDriver *uartp) {
             break;
     }
 
-    chSysUnlockFromISR();
+    chSysUnlockFromISR();  /// ---------------------------------- Exit Critical Zone ----------------------------------
 
 }
 

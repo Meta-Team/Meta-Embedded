@@ -1,10 +1,9 @@
 //
 // Created by liuzikai on 2019-06-25.
-// Edited by Qian Chen & Mo Kanya on 2019-07-05
 //
 
-#ifndef META_HERO_USER_H
-#define META_HERO_USER_H
+#ifndef META_INFANTRY_USER_INFANTRY_H
+#define META_INFANTRY_USER_INFANTRY_H
 
 #include "ch.hpp"
 
@@ -13,12 +12,12 @@
 #include "super_capacitor_port.h"
 
 #include "gimbal_logic.h"
-#include "hero_shoot_logic.h"
+#include "shoot_logic.h"
 #include "chassis_logic.h"
 
-#include "inspector.h"
+#include "inspector_infantry.h"
 
-class User {
+class UserI {
 
 public:
 
@@ -57,15 +56,14 @@ private:
     /// Helpers
     static void set_user_client_speed_light_(int level);
 
+    /// Runtime variables
+
+    static float gimbal_yaw_target_angle_;
+    static float gimbal_pc_pitch_target_angle_;
+
     /// User Thread
     static constexpr unsigned USER_THREAD_INTERVAL = 7;  // [ms]
     class UserThread : public chibios_rt::BaseStaticThread<512> {
-
-        /// Runtime variables
-
-        float gimbal_yaw_target_angle_ = 0;
-        float gimbal_pc_pitch_target_angle_ = 0;
-
         void main() final;
     };
 
@@ -97,9 +95,9 @@ private:
     static UserActionThread userActionThread;
 
     /// Referee Client Data Sending Thread
-    static constexpr unsigned CLIENT_DATA_SENDING_THREAD_INTERVAL = 10;  // [ms]
+    static constexpr unsigned CLIENT_DATA_SENDING_THREAD_INTERVAL = 100;  // [ms]
 
-    class ClientDataSendingThread : public chibios_rt::BaseStaticThread<256> {
+    class ClientDataSendingThread : public chibios_rt::BaseStaticThread<512> {
         void main() final;
     };
 
@@ -116,4 +114,4 @@ private:
 };
 
 
-#endif //META_INFANTRY_HERO_H
+#endif //META_INFANTRY_USER_INFANTRY_H

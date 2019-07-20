@@ -6,6 +6,7 @@
 #include "common_macro.h"
 
 SChassisIF::motor_feedback_t SChassisIF::feedback[MOTOR_COUNT];
+int SChassisIF::target_current[MOTOR_COUNT];
 CANInterface *SChassisIF::can;
 
 void SChassisIF::init(CANInterface *can_interface) {
@@ -74,6 +75,8 @@ void SChassisIF::process_feedback(CANRxFrame const *rxmsg) {
     // rpm -> cm/s with deceleration ratio, 60 / (3591/187) * DISPLACEMENT_PER_ROUND
     feedback[id].present_velocity = ((int16_t) (rxmsg->data8[2] << 8 | rxmsg->data8[3]))
                                     * 3.124477861f * DISPLACEMENT_PER_ROUND;
+
+    feedback[id].last_update_time = SYSTIME;
 }
 
 float SChassisIF::present_velocity() {

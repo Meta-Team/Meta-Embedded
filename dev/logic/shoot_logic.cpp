@@ -11,7 +11,7 @@
  */
 
 
-#include "infantry_shoot_logic.h"
+#include "shoot_logic.h"
 
 #include "shell.h"
 #include "shoot_scheduler.h"
@@ -68,13 +68,13 @@ void ShootLG::shoot(float number_of_bullet, float number_per_second) {
     ShootSKD::set_loader_target_angle(shoot_target_number * angle_per_bullet);
     ShootSKD::set_loader_target_velocity(number_per_second * angle_per_bullet);
 
-    chSysLock();
+    chSysLock();  /// ---------------------------------- Enter Critical Zone ----------------------------------
     if (!stuckDetector.started) {
         stuckDetector.started = true;
         stuckDetector.waited = false;
         chSchWakeupS(stuckDetectorReference.getInner(), 0);
     }
-    chSysUnlock();
+    chSysUnlock();  /// ---------------------------------- Exit Critical Zone ----------------------------------
 }
 
 void ShootLG::stop() {

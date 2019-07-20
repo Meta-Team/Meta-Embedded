@@ -29,10 +29,10 @@
 #include "chassis_scheduler.h"
 #include "chassis_logic.h"
 
-#include "inspector.h"
-#include "user.h"
+#include "inspector_hero.h"
+#include "user_hero.h"
 
-#include "settings.h"
+#include "settings_hero.h"
 
 /// Vehicle Specific Configurations
 #if defined(HERO)                                                 /** Hero **/
@@ -73,7 +73,7 @@ int main() {
     /*** ---------------------- Period 1. Modules Setup and Self-Check ---------------------- ***/
 
     /// Preparation of Period 1
-    Inspector::init(&can1, &can2, &ahrs);
+    InspectorH::init(&can1, &can2, &ahrs);
     LED::all_off();
 
     /// Setup Shell
@@ -92,7 +92,7 @@ int main() {
     can1.start(THREAD_CAN1_PRIO);
     can2.start(THREAD_CAN2_PRIO);
     chThdSleepMilliseconds(5);
-    Inspector::startup_check_can();  // check no persistent CAN Error. Block for 100 ms
+    InspectorH::startup_check_can();  // check no persistent CAN Error. Block for 100 ms
     LED::led_on(DEV_BOARD_LED_CAN);  // LED 2 on now
 
     /// Setup On-Board AHRS
@@ -106,28 +106,29 @@ int main() {
     }
     ahrs.start(ON_BOARD_AHRS_MATRIX_, THREAD_MPU_PRIO, THREAD_IST_PRIO, THREAD_AHRS_PRIO);
     chThdSleepMilliseconds(5);
-    Inspector::startup_check_mpu();  // check MPU6500 has signal. Block for 20 ms
-    Inspector::startup_check_ist();  // check IST8310 has signal. Block for 20 ms
+    InspectorH::startup_check_mpu();  // check MPU6500 has signal. Block for 20 ms
+    InspectorH::startup_check_ist();  // check IST8310 has signal. Block for 20 ms
     LED::led_on(DEV_BOARD_LED_AHRS);  // LED 3 on now
 
     /// Setup Remote
     Remote::start();
-    Inspector::startup_check_remote();  // check Remote has signal. Block for 50 ms
+    InspectorH::startup_check_remote();  // check Remote has signal. Block for 50 ms
     LED::led_on(DEV_BOARD_LED_REMOTE);  // LED 4 on now
 
 
     /// Setup GimbalIF (for Gimbal and Shoot)
+    chThdSleepMilliseconds(2000);  // wait for C610 to be online
     GimbalIF::init(&can1, GIMBAL_YAW_FRONT_ANGLE_RAW, GIMBAL_PITCH_FRONT_ANGLE_RAW,
                    GIMBAL_YAW_MOTOR_TYPE, GIMBAL_PITCH_MOTOR_TYPE, SHOOT_BULLET_MOTOR_TYPE, SHOOT_PLATE_MOTOR_TYPE);
     chThdSleepMilliseconds(10);
-    Inspector::startup_check_gimbal_feedback(); // check gimbal motors has continuous feedback. Block for 20 ms
+    InspectorH::startup_check_gimbal_feedback(); // check gimbal motors has continuous feedback. Block for 20 ms
     LED::led_on(DEV_BOARD_LED_GIMBAL);  // LED 5 on now
 
 
     /// Setup ChassisIF
     ChassisIF::init(&can2);
     chThdSleepMilliseconds(10);
-    Inspector::startup_check_chassis_feedback();  // check chassis motors has continuous feedback. Block for 20 ms
+    InspectorH::startup_check_chassis_feedback();  // check chassis motors has continuous feedback. Block for 20 ms
     LED::led_on(DEV_BOARD_LED_CHASSIS);  // LED 6 on now
 
 
@@ -176,8 +177,8 @@ int main() {
 
 
     /// Start Inspector and User Threads
-    Inspector::start_inspection(THREAD_INSPECTOR_PRIO, THREAD_INSPECTOR_REFEREE_PRIO);
-    User::start(THREAD_USER_PRIO, THREAD_USER_ACTION_PRIO, THREAD_USER_CLIENT_DATA_SEND_PRIO);
+    InspectorH::start_inspection(THREAD_INSPECTOR_PRIO, THREAD_INSPECTOR_REFEREE_PRIO);
+    UserH::start(THREAD_USER_PRIO, THREAD_USER_ACTION_PRIO, THREAD_USER_CLIENT_DATA_SEND_PRIO);
 
     /// Complete Period 2
     Buzzer::play_sound(Buzzer::sound_startup_intel, THREAD_BUZZER_PRIO);  // Now play the startup sound
@@ -192,7 +193,7 @@ int main() {
 #else
     // When vehicle() quits, the vehicle thread will somehow enter an infinite loop, so we set the
     // priority to lowest before quitting, to let other threads run normally
-    chibios_rt::BaseThread::setPriority(THREAD_IDEAL_PRIO);
+    chibios_rt::BaseThread::setPriority(IDLEPRIO);
 #endif
     return 0;
 }

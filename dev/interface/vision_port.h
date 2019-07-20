@@ -27,6 +27,8 @@ public:
 
     static void send_gimbal(float yaw, float pitch);
 
+    static void send_enemy_color(bool is_blue);
+
 private:
 
     __PACKED_STRUCT frame_header_t {
@@ -41,12 +43,17 @@ private:
         float pitch;
     };
 
+    __PACKED_STRUCT enemy_color_t{
+        bool is_blue;
+    };
+
     __PACKED_STRUCT package_t {
         frame_header_t header;
         uint16_t cmd_id;
         union {
             enemy_info_t enemy_info_;
             gimbal_current_t gimbal_current_;
+            enemy_color_t enemy_color_;
         };
         uint16_t tail;
     };
