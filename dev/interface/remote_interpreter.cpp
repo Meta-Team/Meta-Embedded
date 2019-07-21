@@ -169,6 +169,8 @@ void Remote::uart_synchronize() {
         if (REMOTE_UART_DRIVER.rxstate != UART_RX_ACTIVE) {
             msg_t ret = uartReceiveTimeout(&REMOTE_UART_DRIVER, &byte_received, rx_buf_, TIME_MS2I(5));
             if (ret == MSG_TIMEOUT) break;
+        } else {
+            chThdSleepMicroseconds(20);  // sleep caller thread
         }
     }
     uartStartReceive(&REMOTE_UART_DRIVER, RX_FRAME_SIZE, rx_buf_);

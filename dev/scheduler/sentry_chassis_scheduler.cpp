@@ -37,6 +37,7 @@ void SChassisSKD::load_pid_params(PIDControllerBase::pid_params_t sentry_a2v_par
 
 void SChassisSKD::reset_origin() {
     SChassisIF::clear_position();
+    target_position = 0;
 }
 
 void SChassisSKD::set_mode(SChassisSKD::mode_t target_mode) {

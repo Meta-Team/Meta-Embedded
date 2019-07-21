@@ -155,12 +155,16 @@ bool InspectorH::check_chassis_failure() {
 }
 
 bool InspectorH::check_remote_data_error() {
-    return (!ABS_IN_RANGE(Remote::rc.ch0, 1.1) || !ABS_IN_RANGE(Remote::rc.ch1, 1.1) ||
-            !ABS_IN_RANGE(Remote::rc.ch2, 1.1) || !ABS_IN_RANGE(Remote::rc.ch3, 1.1) ||
-            !(Remote::rc.s1 >= 1 && Remote::rc.s1 <= 3) || !(Remote::rc.s2 >= 1 && Remote::rc.s2 <= 3) ||
-            !ABS_IN_RANGE(Remote::mouse.x, 1.1) || !ABS_IN_RANGE(Remote::mouse.y, 1.1) ||
-            !ABS_IN_RANGE(Remote::mouse.z, 1.1) ||
-            Remote::rx_buf_[12] > 1 || Remote::rx_buf_[13] > 1);
+    chSysLock();  /// ---------------------------------- Enter Critical Zone ----------------------------------
+    bool ret = (!ABS_IN_RANGE(Remote::rc.ch0, 1.1) || !ABS_IN_RANGE(Remote::rc.ch1, 1.1) ||
+                !ABS_IN_RANGE(Remote::rc.ch2, 1.1) || !ABS_IN_RANGE(Remote::rc.ch3, 1.1) ||
+                !(Remote::rc.s1 >= 1 && Remote::rc.s1 <= 3) || !(Remote::rc.s2 >= 1 && Remote::rc.s2 <= 3) ||
+                !ABS_IN_RANGE(Remote::mouse.x, 1.1) || !ABS_IN_RANGE(Remote::mouse.y, 1.1) ||
+                !ABS_IN_RANGE(Remote::mouse.z, 1.1) ||
+                Remote::rx_buf_[12] > 1 || Remote::rx_buf_[13] > 1);
+    chSysUnlock();  /// ---------------------------------- Exit Critical Zone ----------------------------------
+    return ret;
+
 }
 
 void InspectorH::InspectorThread::main() {

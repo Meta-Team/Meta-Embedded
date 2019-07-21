@@ -17,7 +17,7 @@ float UserS::gimbal_pitch_min_angle = -60; // down range for pitch [degree]
 float UserS::gimbal_pitch_max_angle = 0; //  up range for pitch [degree]
 
 /// Chassis Config
-float UserS::chassis_v = 1000.0f;  // [mm/s]
+float UserS::chassis_v = 80.0f;  // [cm/s]
 
 /// Shoot Config
 float UserS::shoot_launch_left_count = 5;
