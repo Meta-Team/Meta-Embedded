@@ -31,6 +31,7 @@ void EngineerChassisSKD::lock() {
 void EngineerChassisSKD::unlock() {
     if (!enable) {
         enable = true;
+        set_velocity(0,0,0);
         for (PIDController pidController : pid) pidController.clear_i_out();
     }
 }

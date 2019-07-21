@@ -66,6 +66,7 @@ class EngineerThread: public chibios_rt::BaseStaticThread<1024>{
 
             /// remote chassis, left FBLR, right turn
             else if ( Remote::rc.s1 == Remote::S_UP && Remote::rc.s2 == Remote::S_MIDDLE ) {
+                LOG("remote chassis");
                 EngineerChassisSKD::unlock();
                 EngineerElevatorLG::set_action_lock();
                 EngineerChassisSKD::set_velocity(

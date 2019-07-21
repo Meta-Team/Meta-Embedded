@@ -41,22 +41,27 @@ public:
                 LOG("%.2f, %.2f, %.2f, %d, %d", EngineerElevatorIF::get_current_height(), EngineerElevatorIF::elevatorMotor[0].actual_velocity, EngineerElevatorSKD::target_velocity[0],
                     EngineerElevatorIF::elevatorMotor[0].actual_current, EngineerElevatorIF::elevatorMotor[0].target_current);
             } else if (aided_motor){
-                LOG("%.2f, %.2f, %d", EngineerElevatorIF::aidedMotor[0].actual_velocity, EngineerElevatorSKD::target_velocity[1], EngineerElevatorIF::aidedMotor[0].target_current);
+                LOG("%.2f, %.2f, %d", EngineerElevatorIF::aidedMotor[0].actual_velocity, EngineerElevatorSKD::target_velocity[2], EngineerElevatorIF::aidedMotor[0].target_current);
             } else if (dms){
-                unsigned print = 9000000;
-                uint16_t landed_trigger = 3000;
-                uint16_t hanging_trigger = 2000;
-                if ( DMSInterface::get_raw_sample(DMSInterface::FR) > landed_trigger)           print += 1000;
-                else if ( DMSInterface::get_raw_sample(DMSInterface::FR) < hanging_trigger )    print += 2000;
-                if ( DMSInterface::get_raw_sample(DMSInterface::FL) > landed_trigger)           print += 100;
-                else if ( DMSInterface::get_raw_sample(DMSInterface::FL) < hanging_trigger )    print += 200;
-                if ( DMSInterface::get_raw_sample(DMSInterface::BR) > landed_trigger)           print += 10;
-                else if ( DMSInterface::get_raw_sample(DMSInterface::BR) < hanging_trigger )    print += 20;
-                if ( DMSInterface::get_raw_sample(DMSInterface::BL) > landed_trigger)           print += 1;
-                else if ( DMSInterface::get_raw_sample(DMSInterface::BL) < hanging_trigger )    print += 2;
-                if ( palReadPad(FF_SWITCH_PAD, FFL_SWITCH_PIN_ID) == SWITCH_TOUCH_PAL_STATUS )  print += 100000;
-                if ( palReadPad(FF_SWITCH_PAD, FFR_SWITCH_PIN_ID) == SWITCH_TOUCH_PAL_STATUS )  print += 10000;
-                LOG("FFL|FFR|FR|FL|BL|BR 1reach 2hanging 1landed 0 %u", print);
+//                unsigned print = 9000000;
+//                uint16_t landed_trigger = 2500;
+//                uint16_t hanging_trigger = 1500;
+//                if ( DMSInterface::get_raw_sample(DMSInterface::FR) > landed_trigger)           print += 1000;
+//                else if ( DMSInterface::get_raw_sample(DMSInterface::FR) < hanging_trigger )    print += 2000;
+//                if ( DMSInterface::get_raw_sample(DMSInterface::FL) > landed_trigger)           print += 100;
+//                else if ( DMSInterface::get_raw_sample(DMSInterface::FL) < hanging_trigger )    print += 200;
+//                if ( DMSInterface::get_raw_sample(DMSInterface::BR) > landed_trigger)           print += 10;
+//                else if ( DMSInterface::get_raw_sample(DMSInterface::BR) < hanging_trigger )    print += 20;
+//                if ( DMSInterface::get_raw_sample(DMSInterface::BL) > landed_trigger)           print += 1;
+//                else if ( DMSInterface::get_raw_sample(DMSInterface::BL) < hanging_trigger )    print += 2;
+//                if ( palReadPad(FF_SWITCH_PAD, FFL_SWITCH_PIN_ID) == SWITCH_TOUCH_PAL_STATUS )  print += 100000;
+//                if ( palReadPad(FF_SWITCH_PAD, FFR_SWITCH_PIN_ID) == SWITCH_TOUCH_PAL_STATUS )  print += 10000;
+//                LOG("FFL|FFR|FR|FL|BL|BR 1reach 2hanging 1landed 0 %u", print);
+
+                LOG("%u %u %u %u", DMSInterface::get_raw_sample(DMSInterface::FR), DMSInterface::get_raw_sample(DMSInterface::FL),
+                    DMSInterface::get_raw_sample(DMSInterface::BL), DMSInterface::get_raw_sample(DMSInterface::BR));
+                
+                //dms = false;
             }
             sleep(TIME_MS2I(100));
         }
@@ -90,7 +95,7 @@ static void cmd_disable(BaseSequentialStream *chp, int argc, char **argv) {
 static void cmd_echo_fb(BaseSequentialStream *chp, int argc, char *argv[]){
     (void) argv;
     if (argc != 1) {
-        shellUsage(chp, "echo_fb 0(chassis)/1(elevator)/2(aided_motor)");
+        shellUsage(chp, "echo_fb 0(chassis)/1(elevator)/2(aided_motor)/3(dms)");
         return;
     }
     engineerFeedbackThread.chassis = engineerFeedbackThread.elevator = engineerFeedbackThread.aided_motor = engineerFeedbackThread.dms = false;
@@ -176,7 +181,9 @@ static void cmd_aided_motor_set_velocity(BaseSequentialStream *chp, int argc, ch
         shellUsage(chp, "a_set_v v_right v_left (degree/s)");
         return;
     }
-    EngineerElevatorSKD::set_aided_motor_velocity(Shell::atof(argv[0]), Shell::atof(argv[1]));
+    float vr = Shell::atof(argv[0]);
+    float vl = Shell::atof(argv[1]);
+    EngineerElevatorSKD::set_aided_motor_velocity( vr, vl );
 }
 
 static void cmd_elevator_set_height(BaseSequentialStream *chp, int argc, char *argv[]){
@@ -315,7 +322,7 @@ ShellCommand chassisCommands[] = {
 int main(){
     halInit();
     chibios_rt::System::init();
-    LED::green_off();
+    //LED::green_off();
     LED::red_off();
 
     Shell::start(HIGHPRIO);

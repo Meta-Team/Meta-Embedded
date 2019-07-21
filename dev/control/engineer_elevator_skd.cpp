@@ -76,6 +76,8 @@ void EngineerElevatorSKD::set_aided_motor_velocity(float target_velocity_L, floa
         target_velocity[2] = target_velocity_R;
         target_velocity[3] = target_velocity_L;
     }
+    else
+        LOG("aided motor disabled");
 }
 
 void EngineerElevatorSKD::EngineerElevatorThread::main() {
@@ -95,7 +97,6 @@ void EngineerElevatorSKD::EngineerElevatorThread::main() {
         //calculation for aided motor
         EngineerElevatorIF::aidedMotor[0].target_current = (int16_t ) v2i_pid[2].calc(EngineerElevatorIF::aidedMotor[0].actual_velocity, target_velocity[2]);
         EngineerElevatorIF::aidedMotor[1].target_current = (int16_t ) v2i_pid[3].calc(EngineerElevatorIF::aidedMotor[1].actual_velocity, - target_velocity[3]);
-
         EngineerElevatorIF::send_currents();
         sleep(TIME_MS2I(2));
     }
