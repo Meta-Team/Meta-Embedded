@@ -116,12 +116,14 @@ void HeroShootLG::StuckDetectorThread::main() {
             sleep(TIME_MS2I(STUCK_REVERSE_TIME));
 
             // Update the loaders' states.
-            loaderState = LOADING;
-            plateState = LOADING;
-
-            // Reset the target angle
-            ShootSKD::set_loader_target_angle(loader_target_angle);
-            ShootSKD::set_plate_target_angle(plate_target_angle);
+            if(loaderState == STUCK) {
+                loaderState = LOADING;
+                ShootSKD::set_loader_target_angle(loader_target_angle);
+            }
+            if(plateState == STUCK) {
+                plateState = LOADING;
+                ShootSKD::set_plate_target_angle(plate_target_angle);
+            }
 
         }
         sleep(TIME_MS2I(STUCK_DETECTOR_THREAD_INTERVAL));
