@@ -35,8 +35,8 @@
  *  UP    MID   Remote - Chassis remote controlling
  *  UP    DOWN  Remote - Elevator remote controlling
  *  MID   UP    Remote - Auto elevating
- *  MID   MID   Remote - Auto Fetching Bullet /// not done yet
- *  MID   DOWN  Remote - Robotic arm test
+ *  MID   MID   ***
+ *  MID   DOWN  Remote - Robotic Arm test
  *  DOWN  UP    ***
  *  DOWN  MID   ***
  *  DOWN  DOWN  Final PC MODE
@@ -54,20 +54,20 @@ class EngineerThread: public chibios_rt::BaseStaticThread<1024>{
     void main() final{
         setName("engineer");
 
+        bool elevating = false;
+
         while (!shouldTerminate()){
 
             /// safe mode
             if ( Remote::rc.s1 == Remote::S_UP && Remote::rc.s2 == Remote::S_UP ) {
                 EngineerChassisSKD::lock();
                 EngineerElevatorLG::set_action_lock();
-                // and disable Robotic arm
             }
 
             /// remote chassis, left FBLR, right turn
             else if ( Remote::rc.s1 == Remote::S_UP && Remote::rc.s2 == Remote::S_MIDDLE ) {
                 EngineerChassisSKD::unlock();
                 EngineerElevatorLG::set_action_lock();
-                // and disable Robotic arm
                 EngineerChassisSKD::set_velocity(
                         Remote::rc.ch2 * ENGINEER_CHASSIS_VELOCITY_MAX,
                         Remote::rc.ch3 * ENGINEER_CHASSIS_VELOCITY_MAX,
@@ -145,7 +145,7 @@ class EngineerThread: public chibios_rt::BaseStaticThread<1024>{
             }
 
 
-            /// remote auto fetching bullet - NOT DONE YET
+            /// Safe
             else if ( Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_MIDDLE ) {
                 // set as safe currently
                 EngineerChassisSKD::lock();
@@ -167,32 +167,33 @@ class EngineerThread: public chibios_rt::BaseStaticThread<1024>{
                 // the same as UP-UP
                 EngineerChassisSKD::lock();
                 EngineerElevatorLG::set_action_lock();
-                // and disable Robotic arm
             }
 
 
             /// PC control
             else if ( Remote::rc.s1 == Remote::S_DOWN && Remote::rc.s2 == Remote::S_DOWN ) {
 
-                /// Chassis
+                /// Chassis WSQE, AD, ctrl, shift
 
-                /// Chassis Config
-                float chassis_v_left_right = 1000.0f;  // [mm/s]
-                float chassis_v_forward = 3000.0f;     // [mm/s]
-                float chassis_v_backward = 3000.0f;    // [mm/s]
-
+                float chassis_v = 0.6 * ENGINEER_CHASSIS_VELOCITY_MAX;  // [mm/s]
+                float chassis_w = ENGINEER_CHASSIS_W_MAX;               // [degree/s]
                 float chassis_pc_shift_ratio = 1.5f;  // 150% when Shift is pressed
                 float chassis_pc_ctrl_ratio = 0.5;    // 50% when Ctrl is pressed
 
-                float target_vx, target_vy;
+                float target_vx, target_vy, target_w;
 
-                if (Remote::key.w)      target_vy = chassis_v_forward;
-                else if (Remote::key.s) target_vy = -chassis_v_backward;
+                if (Remote::key.w)      target_vy = chassis_v;
+                else if (Remote::key.s) target_vy = -chassis_v;
                 else                    target_vy = 0;
 
-                if (Remote::key.d)      target_vx = chassis_v_left_right;
-                else if (Remote::key.a) target_vx = -chassis_v_left_right;
+                if (Remote::key.q)      target_vx = chassis_v;
+                else if (Remote::key.e) target_vx = -chassis_v;
                 else                    target_vx = 0;
+
+                if (Remote::key.a)      target_w = chassis_w;
+                else if (Remote::key.d) target_w = -chassis_w;
+                else                    target_w = 0;
+
 
                 if (Remote::key.ctrl) {
                     target_vx *= chassis_pc_ctrl_ratio;
@@ -201,25 +202,47 @@ class EngineerThread: public chibios_rt::BaseStaticThread<1024>{
                     target_vx *= chassis_pc_shift_ratio;
                     target_vy *= chassis_pc_shift_ratio;
                 }
-                // No need to echo to user since it has been done above
 
-                ChassisLG::set_target(target_vx, target_vy);
-
-
-                /// Elevator
-
-                Remote::key_t UserI::chassis_dodge_switch = Remote::KEY_X;
+                EngineerChassisSKD::set_velocity(target_vx, target_vy, target_w);
 
 
-                /// Robotic Arm Config
+                /// Elevator, RF
+
+                if ( EngineerElevatorLG::get_action() == EngineerElevatorLG::LOCK ) {
+                    if (Remote::key.r)          EngineerElevatorLG::start_going_up();
+                    else if (Remote::key.f)     EngineerElevatorLG::start_going_down();
+                }
+                else if ( EngineerElevatorLG::get_action() == EngineerElevatorLG::UPWARD ) {
+                    if (Remote::key.f)          EngineerElevatorLG::pause_action();
+                }
+                else if ( EngineerElevatorLG::get_action() == EngineerElevatorLG::DOWNWARD ) {
+                    if (Remote::key.r)          EngineerElevatorLG::pause_action();
+                }
+
+                else if ( EngineerElevatorLG::get_action() == EngineerElevatorLG::PAUSE )
+                    if ( EngineerElevatorLG::get_prev_action() == EngineerElevatorLG::UPWARD ) {
+                        if (Remote::key.r)      EngineerElevatorLG::continue_action();
+                        else if (Remote::key.f) EngineerElevatorLG::quit_action();
+                    }
+                    else if ( EngineerElevatorLG::get_prev_action() == EngineerElevatorLG::DOWNWARD ) {
+                        if (Remote::key.r)      EngineerElevatorLG::quit_action();
+                        else if (Remote::key.f) EngineerElevatorLG::continue_action();
+                }
+
 
                 /// Robotic Arm
-                if (Remote::key.f) RoboticArmSKD::next_step();
-                else if (Remote::key.g) RoboticArmSKD::prev_step();
-                else if (Remote::key.r) RoboticArmSKD::change_extend();
+
+                if (Remote::key.c) RoboticArmSKD::next_step();
+                else if (Remote::key.z) RoboticArmSKD::prev_step();
+                else if (Remote::key.x) RoboticArmSKD::change_extend();
+
+
+                /// supplying bullets
+
+                /// camera
+
 
             }
-
 
 
             sleep(TIME_MS2I(ENGINEER_THREAD_INTERVAL));
@@ -254,7 +277,6 @@ int main(void) {
     EngineerElevatorIF::init(&can2);
     RoboticArmIF::init(&can2);
 
-    //TODO ???
     EngineerChassisSKD::engineerChassisThread.start(HIGHPRIO - 2);
     EngineerElevatorSKD::engineerElevatorThread.start(HIGHPRIO - 3);
     RoboticArmSKD::roboticArmThread.start(HIGHPRIO - 4);
