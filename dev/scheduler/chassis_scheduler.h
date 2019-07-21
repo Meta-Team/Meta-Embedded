@@ -48,13 +48,14 @@ public:
 
     /**
      * Initialize ChassisInterface and this calculator
-     * @param wheel_base            Distance between front axle and the back axle [mm]
-     * @param wheel_tread           Distance between left and right wheels [mm]
-     * @param wheel_circumference   Circumference of wheels [mm]
-     * @param thread_prio           Priority of PID calculation thread
+     * @param wheel_base              Distance between front axle and the back axle [mm]
+     * @param wheel_tread             Distance between left and right wheels [mm]
+     * @param wheel_circumference     Circumference of wheels [mm]
+     * @param chassis_gimbal_offset   Distance between gimbal and chassis [mm, + for gimbal at "front"]
+     * @param thread_prio             Priority of PID calculation thread
      */
     static void start(float wheel_base, float wheel_tread, float wheel_circumference, install_mode_t install_mode,
-                      tprio_t thread_prio);
+                      float chassis_gimbal_offset, tprio_t thread_prio);
 
     /**
      * Change PID parameters of PID controller
@@ -123,6 +124,8 @@ private:
 
     // Wheel speed (mm/s) to wheel angular velocity (degree/s)
     static float v_to_wheel_angular_velocity_;
+
+    static float chassis_gimbal_offset_;
 
     static install_mode_t install_mode_;
 

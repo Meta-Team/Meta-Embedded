@@ -49,18 +49,18 @@
                                          {-1.0f, 0.0f, 0.0f}}
 
 /// Gimbal and Shoot PID Parameters
-#define GIMBAL_PID_YAW_A2V_KP 4.8f
+#define GIMBAL_PID_YAW_A2V_KP 11.0f
 #define GIMBAL_PID_YAW_A2V_KI 0.0f
-#define GIMBAL_PID_YAW_A2V_KD 0.06f
+#define GIMBAL_PID_YAW_A2V_KD 0.15f
 #define GIMBAL_PID_YAW_A2V_I_LIMIT 720.0f
 #define GIMBAL_PID_YAW_A2V_OUT_LIMIT 720.0f
 #define GIMBAL_PID_YAW_A2V_PARAMS \
     {GIMBAL_PID_YAW_A2V_KP, GIMBAL_PID_YAW_A2V_KI, GIMBAL_PID_YAW_A2V_KD, \
     GIMBAL_PID_YAW_A2V_I_LIMIT, GIMBAL_PID_YAW_A2V_OUT_LIMIT}
 
-#define GIMBAL_PID_YAW_V2I_KP 136.0f
-#define GIMBAL_PID_YAW_V2I_KI 0.28f
-#define GIMBAL_PID_YAW_V2I_KD 0.0f
+#define GIMBAL_PID_YAW_V2I_KP 200.0f
+#define GIMBAL_PID_YAW_V2I_KI 0.1f
+#define GIMBAL_PID_YAW_V2I_KD 0.01f
 #define GIMBAL_PID_YAW_V2I_I_LIMIT 10000.0f
 #define GIMBAL_PID_YAW_V2I_OUT_LIMIT 10000.0f
 #define GIMBAL_PID_YAW_V2I_PARAMS \
@@ -70,8 +70,8 @@
 #define GIMBAL_PID_PITCH_A2V_KP 10.5f
 #define GIMBAL_PID_PITCH_A2V_KI 0.0f
 #define GIMBAL_PID_PITCH_A2V_KD 0.01f
-#define GIMBAL_PID_PITCH_A2V_I_LIMIT 60.0f
-#define GIMBAL_PID_PITCH_A2V_OUT_LIMIT 75.0f
+#define GIMBAL_PID_PITCH_A2V_I_LIMIT 70.0f
+#define GIMBAL_PID_PITCH_A2V_OUT_LIMIT 90.0f
 #define GIMBAL_PID_PITCH_A2V_PARAMS \
     {GIMBAL_PID_PITCH_A2V_KP, GIMBAL_PID_PITCH_A2V_KI, GIMBAL_PID_PITCH_A2V_KD, \
     GIMBAL_PID_PITCH_A2V_I_LIMIT, GIMBAL_PID_PITCH_A2V_OUT_LIMIT}
@@ -126,7 +126,7 @@
 #define CHASSIS_WHEEL_BASE 492.4f                      // distance between front axle and the back axle [mm]
 #define CHASSIS_WHEEL_TREAD 472.76f                    // distance between left and right wheels [mm]
 #define CHASSIS_WHEEL_CIRCUMFERENCE 478.0f             // circumference of wheels [mm]
-#define CHASSIS_GIMBAL_OFFSET 60.0f                    // plan distance between center of gimbal and the center of chassis
+#define CHASSIS_GIMBAL_OFFSET 60.0f                    // distance between center of gimbal and the center of chassis
 
 /// Chassis PID Parameters
 #define CHASSIS_PID_V2I_KP 46.0f

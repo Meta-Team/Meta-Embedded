@@ -102,7 +102,7 @@ void HeroShootLG::StuckDetectorThread::main() {
             loaderState = STUCK;
             ShootSKD::set_loader_target_angle(
                     ShootSKD::get_loader_accumulated_angle() - 10.0f);  // Back up to ample space
-        };
+        }
         if(plateState == LOADING &&
            ShootSKD::get_plate_target_current() > PLATE_STUCK_THRESHOLD_CURRENT &&
            ShootSKD::get_plate_actual_velocity() < PLATE_STUCK_THRESHOLD_VELOCITY &&
@@ -110,13 +110,22 @@ void HeroShootLG::StuckDetectorThread::main() {
             plateState = STUCK;
             ShootSKD::set_plate_target_angle(ShootSKD::get_plate_accumulated_angle() - 7.0f);  // Back up to ample space
         }
-        if (loaderState == STUCK ) {
+        if (loaderState == STUCK || plateState == STUCK) {
+
+            // Give some time to let the loaders to reverse.
             sleep(TIME_MS2I(STUCK_REVERSE_TIME));
-            loaderState = LOADING;
-            ShootSKD::set_loader_target_angle(loader_target_angle);
-            ShootSKD::set_plate_target_angle(plate_target_angle);
-            plateState = LOADING;
-        };
+
+            // Update the loaders' states & reset the target angle.
+            if(loaderState == STUCK) {
+                loaderState = LOADING;
+                ShootSKD::set_loader_target_angle(loader_target_angle);
+            }
+            if(plateState == STUCK) {
+                plateState = LOADING;
+                ShootSKD::set_plate_target_angle(plate_target_angle);
+            }
+
+        }
         sleep(TIME_MS2I(STUCK_DETECTOR_THREAD_INTERVAL));
     }
 }
