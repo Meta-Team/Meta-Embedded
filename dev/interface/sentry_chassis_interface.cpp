@@ -72,9 +72,9 @@ void SChassisIF::process_feedback(CANRxFrame const *rxmsg) {
     // raw -> cm with deceleration ratio, / 8192 / (3591/187) * DISPLACEMENT_PER_ROUND
     feedback[id].present_position += angle_movement * 0.000006357f * DISPLACEMENT_PER_ROUND;
 
-    // rpm -> cm/s with deceleration ratio, 60 / (3591/187) * DISPLACEMENT_PER_ROUND
+    // rpm -> cm/s with deceleration ratio, / 60 / (3591/187) * DISPLACEMENT_PER_ROUND
     feedback[id].present_velocity = ((int16_t) (rxmsg->data8[2] << 8 | rxmsg->data8[3]))
-                                    * 3.124477861f * DISPLACEMENT_PER_ROUND;
+                                    * 0.000867911f * DISPLACEMENT_PER_ROUND;
 
     feedback[id].last_update_time = SYSTIME;
 }

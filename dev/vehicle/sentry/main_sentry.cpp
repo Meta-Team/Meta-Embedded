@@ -102,7 +102,7 @@ int main() {
     GimbalIF::init(&can1, GIMBAL_YAW_FRONT_ANGLE_RAW, GIMBAL_PITCH_FRONT_ANGLE_RAW,
                    GIMBAL_YAW_MOTOR_TYPE, GIMBAL_PITCH_MOTOR_TYPE, SHOOT_BULLET_MOTOR_TYPE);
     chThdSleepMilliseconds(10);
-    InspectorS::startup_check_gimbal_feedback(); // check gimbal motors has continuous feedback. Block for 20 ms
+//    InspectorS::startup_check_gimbal_feedback(); // check gimbal motors has continuous feedback. Block for 20 ms
     LED::led_on(DEV_BOARD_LED_GIMBAL);  // LED 5 on now
 
 
@@ -153,7 +153,7 @@ int main() {
 
 
     /// Start Inspector and User Threads
-    InspectorS::start_inspection(THREAD_INSPECTOR_PRIO);
+//    InspectorS::start_inspection(THREAD_INSPECTOR_PRIO);
     UserS::start(THREAD_USER_PRIO, THREAD_GIMBAL_LG_VISION_PRIO);
 
     /// Complete Period 2

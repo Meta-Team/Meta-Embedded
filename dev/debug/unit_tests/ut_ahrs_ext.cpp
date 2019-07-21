@@ -37,9 +37,9 @@ protected:
 //                          angle.x,
 //                          angle.y,
 //                          angle.z);
-            Shell::printf("w = (%.4f, %.4f, %.4f), a = (%.4f, %.4f, %.4f)" SHELL_NEWLINE_STR,
-                          gyro.x, gyro.y, gyro.z,
-                          ahrs.get_accel().x, ahrs.get_accel().y, ahrs.get_accel().z);
+//            Shell::printf("w = (%.4f, %.4f, %.4f), a = (%.4f, %.4f, %.4f)" SHELL_NEWLINE_STR,
+//                          gyro.x, gyro.y, gyro.z,
+//                          ahrs.get_accel().x, ahrs.get_accel().y, ahrs.get_accel().z);
             sleep(TIME_MS2I(100));
         }
     }
