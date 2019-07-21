@@ -30,7 +30,7 @@ CANInterface can2(&CAND2);
 
 class EngineerFeedbackThread: public chibios_rt::BaseStaticThread<256>{
 public:
-    bool chassis = false, elevator = false, aided_motor = false;
+    bool chassis = false, elevator = false, aided_motor = false, dms = false;
     void main()final {
         setName("EngineerFeedback");
         while (!shouldTerminate()){
@@ -42,6 +42,21 @@ public:
                     EngineerElevatorIF::elevatorMotor[0].actual_current, EngineerElevatorIF::elevatorMotor[0].target_current);
             } else if (aided_motor){
                 LOG("%.2f, %.2f, %d", EngineerElevatorIF::aidedMotor[0].actual_velocity, EngineerElevatorSKD::target_velocity[1], EngineerElevatorIF::aidedMotor[0].target_current);
+            } else if (dms){
+                unsigned print = 9000000;
+                uint16_t landed_trigger = 3000;
+                uint16_t hanging_trigger = 2000;
+                if ( DMSInterface::get_raw_sample(DMSInterface::FR) > landed_trigger)           print += 1000;
+                else if ( DMSInterface::get_raw_sample(DMSInterface::FR) < hanging_trigger )    print += 2000;
+                if ( DMSInterface::get_raw_sample(DMSInterface::FL) > landed_trigger)           print += 100;
+                else if ( DMSInterface::get_raw_sample(DMSInterface::FL) < hanging_trigger )    print += 200;
+                if ( DMSInterface::get_raw_sample(DMSInterface::BR) > landed_trigger)           print += 10;
+                else if ( DMSInterface::get_raw_sample(DMSInterface::BR) < hanging_trigger )    print += 20;
+                if ( DMSInterface::get_raw_sample(DMSInterface::BL) > landed_trigger)           print += 1;
+                else if ( DMSInterface::get_raw_sample(DMSInterface::BL) < hanging_trigger )    print += 2;
+                if ( palReadPad(FF_SWITCH_PAD, FFL_SWITCH_PIN_ID) == SWITCH_TOUCH_PAL_STATUS )  print += 100000;
+                if ( palReadPad(FF_SWITCH_PAD, FFR_SWITCH_PIN_ID) == SWITCH_TOUCH_PAL_STATUS )  print += 10000;
+                LOG("FFL|FFR|FR|FL|BL|BR 1reach 2hanging 1landed 0 %u", print);
             }
             sleep(TIME_MS2I(100));
         }
@@ -78,11 +93,12 @@ static void cmd_echo_fb(BaseSequentialStream *chp, int argc, char *argv[]){
         shellUsage(chp, "echo_fb 0(chassis)/1(elevator)/2(aided_motor)");
         return;
     }
-    engineerFeedbackThread.chassis = engineerFeedbackThread.elevator = engineerFeedbackThread.aided_motor = false;
+    engineerFeedbackThread.chassis = engineerFeedbackThread.elevator = engineerFeedbackThread.aided_motor = engineerFeedbackThread.dms = false;
     int i = Shell::atoi(argv[0]);
     if (i == 0) engineerFeedbackThread.chassis = true;
     else if (i == 1) engineerFeedbackThread.elevator = true;
     else if (i == 2) engineerFeedbackThread.aided_motor = true;
+    else if (i == 3) engineerFeedbackThread.dms = true;
 }
 
 static void cmd_stop_echo_fb(BaseSequentialStream *chp, int argc, char *argv[]){
@@ -91,7 +107,7 @@ static void cmd_stop_echo_fb(BaseSequentialStream *chp, int argc, char *argv[]){
         shellUsage(chp, "stop_fb");
         return;
     }
-    engineerFeedbackThread.chassis = engineerFeedbackThread.elevator = engineerFeedbackThread.aided_motor = false;
+    engineerFeedbackThread.chassis = engineerFeedbackThread.elevator = engineerFeedbackThread.aided_motor = engineerFeedbackThread.dms = false;
 }
 
 static void cmd_set_v2i(BaseSequentialStream *chp, int argc, char **argv) {

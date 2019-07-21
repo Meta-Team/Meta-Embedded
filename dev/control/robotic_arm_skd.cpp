@@ -26,7 +26,7 @@ void RoboticArmSKD::init() {
 
     door_state = HIGH_STATUS;
     extend_state = HIGH_STATUS;
-    lift_state = HIGH_STATUS;''
+    lift_state = HIGH_STATUS;
     change_status(door_state, DOOR_PAD);
     change_status(extend_state, EXTEND_PAD);
     change_status(lift_state, LIFT_PAD);

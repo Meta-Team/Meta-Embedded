@@ -112,10 +112,13 @@ add_executable(ENGINEER_TEST
         dev/vehicle/engineer/main_engineer_test.cpp
         dev/control/engineer_chassis_skd.cpp
         dev/interface/engineer_chassis_interface.cpp
+        dev/control/engineer_elevator_logic.cpp
         dev/control/engineer_elevator_skd.cpp
         dev/interface/engineer_elevator_interface.cpp
+        dev/interface/dms_interface.cpp
+        dev/control/robotic_arm_skd.cpp
+        dev/interface/robotic_arm_interface.cpp
         dev/interface/remote_interpreter.cpp
-        dev/control/engineer_elevator_logic.cpp
         dev/interface/referee_interface.cpp
         dev/common/CRC8.cpp
         dev/common/CRC16.cpp
