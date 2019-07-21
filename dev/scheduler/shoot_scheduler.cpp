@@ -121,9 +121,9 @@ void ShootSKD::SKDThread::main() {
 
             // PID calculation
             for (size_t i = 0; i < 2; i++) {
-                target_velocity[i] = a2v_pid->calc(GimbalIF::feedback[2 + i].accumulated_angle() * install_position[i],
+                target_velocity[i] = a2v_pid[i].calc(GimbalIF::feedback[2 + i].accumulated_angle() * install_position[i],
                                                    target_angle[i]);
-                target_current[i] = (int) v2i_pid->calc(
+                target_current[i] = (int) v2i_pid[i].calc(
                         GimbalIF::feedback[2 + i].actual_velocity * install_position[i],
                         target_velocity[i]);
                 GimbalIF::target_current[i + 2] = target_current[i] * install_position[i];

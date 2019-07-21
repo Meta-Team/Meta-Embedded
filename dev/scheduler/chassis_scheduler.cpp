@@ -11,7 +11,14 @@
  */
 
 #include "chassis_scheduler.h"
+
+#if defined(INFANTRY)
+#include "vehicle_infantry.h"
+#elif defined(HERO)
 #include "vehicle_hero.h"
+#else
+#error "Files infantry_shoot_logic.h/cpp can only be used for Infantry or Hero main program now"
+#endif
 
 ChassisSKD::mode_t ChassisSKD::mode = FORCED_RELAX_MODE;
 

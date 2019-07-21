@@ -77,7 +77,7 @@ public:
 //    static HeroShootLG::loader_state_t get_plate_status();
 
 private:
-
+    static int load_bullet_count;
     static float loader_angle_per_bullet;
     static float loader_target_angle;
     static float plate_angle_per_bullet;
@@ -100,8 +100,8 @@ private:
         static constexpr int LOADER_STUCK_THRESHOLD_CURRENT = 1500;
         static constexpr int LOADER_STUCK_THRESHOLD_VELOCITY = 2;
 
-//        static constexpr int PLATE_STUCK_THRESHOLD_CURRENT = 5000;
-//        static constexpr int PLATE_STUCK_THRESHOLD_VELOCITY = 2;
+        static constexpr int PLATE_STUCK_THRESHOLD_CURRENT = 3500;
+        static constexpr int PLATE_STUCK_THRESHOLD_VELOCITY = 2;
 
         void main() final;
     };

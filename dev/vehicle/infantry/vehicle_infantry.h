@@ -95,6 +95,7 @@
 #define CHASSIS_WHEEL_BASE  420.0f                     // distance between front axle and the back axle [mm]
 #define CHASSIS_WHEEL_TREAD 372.0f                     // distance between left and right wheels [mm]
 #define CHASSIS_WHEEL_CIRCUMFERENCE 478.0f             // circumference of wheels [mm]
+#define CHASSIS_GIMBAL_OFFSET 0.0f                    // plan distance between center of gimbal and the center of chassis
 
 
 /// Chassis PID Parameters
@@ -107,6 +108,16 @@
     {CHASSIS_PID_V2I_KP, CHASSIS_PID_V2I_KI, CHASSIS_PID_V2I_KD, \
     CHASSIS_PID_V2I_I_LIMIT, CHASSIS_PID_V2I_OUT_LIMIT}
 
+#define CHASSIS_CLIP_PID_V2I_KP 26.0f
+#define CHASSIS_CLIP_PID_V2I_KI 0.1f
+#define CHASSIS_CLIP_PID_V2I_KD 0.02f
+#define CHASSIS_CLIP_PID_V2I_I_LIMIT 2000.0f
+#define CHASSIS_CLIP_PID_V2I_OUT_LIMIT 6000.0f
+#define CHASSIS_CLIP_PID_V2I_PARAMS \
+    {CHASSIS_CLIP_PID_V2I_KP, CHASSIS_CLIP_PID_V2I_KI, CHASSIS_CLIP_PID_V2I_KD, \
+    CHASSIS_CLIP_PID_V2I_I_LIMIT, CHASSIS_CLIP_PID_V2I_OUT_LIMIT}               
+    // Infantry clip PID params of no use that is set to handle conflicts between Hero and Infantry
+    
 #define CHASSIS_FOLLOW_PID_THETA2V_KP 10.0f
 #define CHASSIS_FOLLOW_PID_THETA2V_KI 0.00f
 #define CHASSIS_FOLLOW_PID_THETA2V_KD 0.0f

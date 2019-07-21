@@ -15,6 +15,7 @@ float HeroShootLG::plate_target_angle = 0.0f;
 int  HeroShootLG::plate_runtime = 0;
 bool HeroShootLG::loaded_bullet[4] = {false, false, false, false};
 // loaded_bullet[0] is the closest bullet place to the friction wheel.
+int HeroShootLG::load_bullet_count = 0;
 HeroShootLG::loader_state_t HeroShootLG::loaderState = STOP;
 HeroShootLG::loader_state_t HeroShootLG::plateState = STOP;
 
@@ -102,7 +103,13 @@ void HeroShootLG::StuckDetectorThread::main() {
             ShootSKD::set_loader_target_angle(
                     ShootSKD::get_loader_accumulated_angle() - 10.0f);  // Back up to ample space
         };
-
+        if(plateState == LOADING &&
+           ShootSKD::get_plate_target_current() > PLATE_STUCK_THRESHOLD_CURRENT &&
+           ShootSKD::get_plate_actual_velocity() < PLATE_STUCK_THRESHOLD_VELOCITY &&
+           load_bullet_count != 0) {
+            plateState = STUCK;
+            ShootSKD::set_plate_target_angle(ShootSKD::get_plate_accumulated_angle() - 7.0f);  // Back up to ample space
+        }
         if (loaderState == STUCK ) {
             sleep(TIME_MS2I(STUCK_REVERSE_TIME));
             loaderState = LOADING;
@@ -164,6 +171,7 @@ void HeroShootLG::AutoLoaderThread::main() {
             ShootSKD::set_plate_target_angle(plate_target_angle);
             // No need to update the sequence. The special situation has already been considered.
             plateState = LOADING;
+            load_bullet_count++;
         }
 
         sleep(TIME_MS2I(AUTO_LOADER_THREAD_INTERVAL));
