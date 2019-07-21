@@ -115,7 +115,7 @@ void HeroShootLG::StuckDetectorThread::main() {
             // Give some time to let the loaders to reverse.
             sleep(TIME_MS2I(STUCK_REVERSE_TIME));
 
-            // Update the loaders' states.
+            // Update the loaders' states & reset the target angle.
             if(loaderState == STUCK) {
                 loaderState = LOADING;
                 ShootSKD::set_loader_target_angle(loader_target_angle);
