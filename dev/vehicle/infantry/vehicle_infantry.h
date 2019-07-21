@@ -95,7 +95,6 @@
 #define CHASSIS_WHEEL_BASE  420.0f                     // distance between front axle and the back axle [mm]
 #define CHASSIS_WHEEL_TREAD 372.0f                     // distance between left and right wheels [mm]
 #define CHASSIS_WHEEL_CIRCUMFERENCE 478.0f             // circumference of wheels [mm]
-#define CHASSIS_GIMBAL_OFFSET 0.0f                    // plan distance between center of gimbal and the center of chassis
 
 
 /// Chassis PID Parameters

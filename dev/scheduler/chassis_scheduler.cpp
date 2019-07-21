@@ -12,14 +12,6 @@
 
 #include "chassis_scheduler.h"
 
-#if defined(INFANTRY)
-#include "vehicle_infantry.h"
-#elif defined(HERO)
-#include "vehicle_hero.h"
-#else
-#error "Files infantry_shoot_logic.h/cpp can only be used for Infantry or Hero main program now"
-#endif
-
 ChassisSKD::mode_t ChassisSKD::mode = FORCED_RELAX_MODE;
 
 float ChassisSKD::target_vx;
@@ -35,6 +27,7 @@ int ChassisSKD::target_current[MOTOR_COUNT];
 
 float ChassisSKD::w_to_v_ratio_ = 0.0f;
 float ChassisSKD::v_to_wheel_angular_velocity_ = 0.0f;
+float ChassisSKD::chassis_gimbal_offset_ = 0.0f;
 
 ChassisSKD::install_mode_t ChassisSKD::install_mode_ = POSITIVE;
 
@@ -42,9 +35,10 @@ ChassisSKD::SKDThread ChassisSKD::skdThread;
 
 
 void ChassisSKD::start(float wheel_base, float wheel_tread, float wheel_circumference, install_mode_t install_mode,
-                       tprio_t thread_prio) {
+                       float chassis_gimbal_offset, tprio_t thread_prio) {
     w_to_v_ratio_ = (wheel_base + wheel_tread) / 2.0f / 360.0f * 3.14159f;
     v_to_wheel_angular_velocity_ = (360.0f / wheel_circumference);
+    chassis_gimbal_offset_ = chassis_gimbal_offset;
     install_mode_ = install_mode;
 
     skdThread.start(thread_prio);
@@ -100,9 +94,11 @@ void ChassisSKD::SKDThread::main() {
 
             float theta = get_actual_theta();
             target_w = a2v_pid.calc(theta, target_theta);
-            velocity_decompose_(target_vx * cosf(theta / 180.0f * M_PI) - target_vy * sinf(theta / 180.0f * M_PI)-
-                                    target_w / 180.0f * M_PI * CHASSIS_GIMBAL_OFFSET,
+            velocity_decompose_(target_vx * cosf(theta / 180.0f * M_PI) - target_vy * sinf(theta / 180.0f * M_PI)
+                                - target_w / 180.0f * M_PI * chassis_gimbal_offset_,
+
                                 target_vx * sinf(theta / 180.0f * M_PI) + target_vy * cosf(theta / 180.0f * M_PI),
+
                                 target_w);
 
         } else if (mode == FORCED_RELAX_MODE) {
