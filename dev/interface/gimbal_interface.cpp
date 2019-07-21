@@ -172,7 +172,7 @@ void GimbalIF::process_motor_feedback(CANRxFrame const *rxmsg) {
     chSysLock();  /// ---------------------------------- Enter Critical Zone ----------------------------------
 
     motor_feedback_t* fb = &feedback[(motor_id_t) (rxmsg->SID - 0x205)];
-
+    if (rxmsg->SID == 0x205) LOG("!!!");
     /// Calculate the angle movement in raw data
     // KEY IDEA: add the change of angle to actual angle
     // We assume that the absolute value of the angle movement is smaller than 180 degrees (4096 of raw data)

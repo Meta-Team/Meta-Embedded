@@ -14,7 +14,7 @@ float UserS::gimbal_pitch_target_angle_ = 0;
 float UserS::gimbal_yaw_min_angle = -160; // left range for yaw [degree]
 float UserS::gimbal_yaw_max_angle = 160; // right range for yaw [degree]
 float UserS::gimbal_pitch_min_angle = -60; // down range for pitch [degree]
-float UserS::gimbal_pitch_max_angle = 30; //  up range for pitch [degree]
+float UserS::gimbal_pitch_max_angle = 0; //  up range for pitch [degree]
 
 /// Chassis Config
 float UserS::chassis_v = 1000.0f;  // [mm/s]

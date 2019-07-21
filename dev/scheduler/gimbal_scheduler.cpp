@@ -81,9 +81,13 @@ void GimbalSKD::SKDThread::main() {
         Vector3D ahrs_gyro = gimbal_ahrs->get_gyro() * ahrs_gyro_rotation;
 
         // TODO: document calculations here
-        float angle[2] = {ahrs_angle.x, ahrs_angle.y};
+//        float angle[2] = {ahrs_angle.x, ahrs_angle.y};
+//        float velocity[2] = {
+//                ahrs_gyro.x * cosf(ahrs_angle.y / 180.0f * M_PI) + ahrs_gyro.z * sinf(ahrs_angle.y / 180.0f * M_PI),
+//                ahrs_gyro.y};
+        float angle[2] = {GimbalIF::feedback[GimbalIF::YAW].actual_angle, GimbalIF::feedback[GimbalIF::PITCH].actual_angle};
         float velocity[2] = {
-                ahrs_gyro.x * cosf(ahrs_angle.y / 180.0f * M_PI) + ahrs_gyro.z * sinf(ahrs_angle.y / 180.0f * M_PI),
+                GimbalIF::feedback[GimbalIF::YAW].actual_velocity,
                 ahrs_gyro.y};
 
         for (int i = YAW; i <= PITCH; i++) {

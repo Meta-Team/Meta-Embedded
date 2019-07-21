@@ -28,7 +28,7 @@
 #endif
 
 #define CAN_INTERFACE_ENABLE_ERROR_FEEDBACK_THREAD   TRUE
-#define CAN_INTERFACE_THREAD_WORK_AREA_SIZE   512  // also used in cpp, do not delete
+#define CAN_INTERFACE_THREAD_WORK_AREA_SIZE   2048  // also used in cpp, do not delete
 
 /**
  * CAN interface to receive, distribute and send message
