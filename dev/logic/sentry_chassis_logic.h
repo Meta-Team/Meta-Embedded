@@ -66,7 +66,7 @@ private:
     private:
 
         // interval to evaluate whether switching dest is needed in SHUTTLE_MODE or FINAL_AUTO_MODE [ms]
-        static constexpr unsigned DIRECTION_INSPECTION_INTERVAL = 10;
+        static constexpr unsigned DIRECTION_INSPECTION_INTERVAL = 5;
 
         void main() final;
     };

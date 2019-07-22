@@ -99,7 +99,7 @@
 #define GPIOC_OTG_FS_POWER_ON       0U
 #define GPIOC_PIN1                  1U
 #define GPIOC_ADC1_IN12                  2U
-#define GPIOC_ADC1_IN13               3U
+#define GPIOC_ADC1_IN13                  3U
 #define GPIOC_ADC1_IN14                  4U
 #define GPIOC_ADC1_IN15                  5U
 #define GPIOC_PIN6                  6U
@@ -594,10 +594,10 @@
                                      PIN_OSPEED_HIGH(GPIOC_PIN15))
 #define VAL_GPIOC_PUPDR             (PIN_PUPDR_FLOATING(GPIOC_OTG_FS_POWER_ON) |\
                                      PIN_PUPDR_PULLUP(GPIOC_PIN1) |         \
-                                     PIN_PUPDR_PULLUP(GPIOC_ADC1_IN12) |         \
-                                     PIN_PUPDR_PULLUP(GPIOC_ADC1_IN13) |      \
-                                     PIN_PUPDR_PULLUP(GPIOC_ADC1_IN14) |         \
-                                     PIN_PUPDR_PULLUP(GPIOC_ADC1_IN15) |         \
+                                     PIN_PUPDR_FLOATING(GPIOC_ADC1_IN12) |         \
+                                     PIN_PUPDR_FLOATING(GPIOC_ADC1_IN13) |      \
+                                     PIN_PUPDR_FLOATING(GPIOC_ADC1_IN14) |         \
+                                     PIN_PUPDR_FLOATING(GPIOC_ADC1_IN15) |         \
                                      PIN_PUPDR_PULLUP(GPIOC_PIN6) |         \
                                      PIN_PUPDR_FLOATING(GPIOC_MCLK) |       \
                                      PIN_PUPDR_PULLUP(GPIOC_SDIO_D0) |         \
@@ -782,15 +782,15 @@
                                      PIN_MODE_ALTERNATE(GPIOE_UART8_TX) |           \
                                      PIN_MODE_OUTPUT(GPIOE_IST8310_RST) |           \
                                      PIN_MODE_OUTPUT(GPIOE_CS_SPI) |        \
-                                     PIN_MODE_INPUT(GPIOE_PIN4) |           \
-                                     PIN_MODE_INPUT(GPIOE_PIN5) |           \
-                                     PIN_MODE_INPUT(GPIOE_PIN6) |           \
+                                     PIN_MODE_OUTPUT(GPIOE_PIN4) |           \
+                                     PIN_MODE_OUTPUT(GPIOE_PIN5) |           \
+                                     PIN_MODE_OUTPUT(GPIOE_PIN6) |           \
                                      PIN_MODE_ALTERNATE(GPIOE_UART7_RX) |       \
                                      PIN_MODE_ALTERNATE(GPIOE_UART7_TX) |           \
                                      PIN_MODE_INPUT(GPIOE_PIN9) |           \
                                      PIN_MODE_INPUT(GPIOE_PIN10) |          \
                                      PIN_MODE_OUTPUT(GPIOE_LED_RED) |          \
-                                     PIN_MODE_INPUT(GPIOE_PIN12) |          \
+                                     PIN_MODE_OUTPUT(GPIOE_PIN12) |          \
                                      PIN_MODE_INPUT(GPIOE_PIN13) |          \
                                      PIN_MODE_INPUT(GPIOE_PIN14) |          \
                                      PIN_MODE_INPUT(GPIOE_PIN15))

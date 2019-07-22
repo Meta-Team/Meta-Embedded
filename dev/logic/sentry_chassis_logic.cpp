@@ -27,14 +27,22 @@ void SChassisLG::set_mode(SChassisLG::mode_t value) {
     if (value == mode) return;
 
     mode = value;
+
+    /// NOTICE: reset origin every time switching mode
+    SChassisSKD::reset_origin();
+    manual_dest = 0;
+
     if (mode == FORCED_RELAX_MODE) {
         SChassisSKD::set_mode(SChassisSKD::FORCED_RELAX_MODE);
     } else {
         SChassisSKD::set_mode(SChassisSKD::ABS_DEST_MODE);
-        SChassisSKD::reset_origin();  /// NOTICE: reset origin every time switching mode
+
         if (mode == MANUAL_MODE) {
+
             SChassisSKD::set_destination(manual_dest);
+
         } else if (mode == SHUTTLE_MODE || mode == FINAL_AUTO_MODE) {
+
             // Resume the thread
             chSysLock();  /// ---------------------------------- Enter Critical Zone ----------------------------------
             if (!directionSwitchThread.started) {
@@ -42,6 +50,14 @@ void SChassisLG::set_mode(SChassisLG::mode_t value) {
                 chSchWakeupS(directionThreadReference.getInner(), 0);
             }
             chSysUnlock();  /// ---------------------------------- Exit Critical Zone ----------------------------------
+
+            if (mode == SHUTTLE_MODE) {
+                SChassisSKD::set_destination(radius);
+            } else {
+                prev_terminal = 0;
+                next_terminal = 5;
+                SChassisSKD::set_destination(terminals[next_terminal]);
+            }
         }
     }
 }
@@ -52,6 +68,7 @@ SChassisLG::mode_t SChassisLG::get_mode() {
 
 void SChassisLG::set_manual_dest(float dest) {
     manual_dest = dest;
+    SChassisSKD::set_destination(manual_dest);
 }
 
 float SChassisLG::get_manual_dest() {
@@ -82,7 +99,7 @@ void SChassisLG::update_next_terminal() {
 
     if (random_mode) {
 
-        int dest = SYSTIME % 6; // get a random index between 0 and 5 and decide the next terminal accordingly
+        int dest = SYSTIME % 6;  // get a random index between 0 and 5 and decide the next terminal accordingly
 
         if (dest == next_terminal) {
             next_terminal = prev_terminal;
@@ -129,6 +146,7 @@ void SChassisLG::DirectionSwitchThread::main() {
         float present_position = SChassisSKD::present_position();
 
         if (mode == SHUTTLE_MODE) {
+
             if (present_position > radius - DEST_TOLERANT_RANGE) {
                 SChassisSKD::set_destination(-radius);
             } else if (present_position < -radius + DEST_TOLERANT_RANGE) {

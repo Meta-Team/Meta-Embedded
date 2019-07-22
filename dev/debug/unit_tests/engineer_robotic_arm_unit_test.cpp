@@ -6,7 +6,7 @@
 #include "ch.hpp"
 #include "hal.h"
 #include "led.h"
-#include "debug/shell/shell.h"
+#include "serial_shell.h"
 #include "can_interface.h"
 #include "common_macro.h"
 #include "buzzer.h"
@@ -48,6 +48,15 @@ CANInterface can2(&CAND2);
 //    else RoboticArmSKD::pull_back();
 //}
 
+static void cmd_clamp_test(BaseSequentialStream *chp, int argc, char *argv[]) {
+    (void) argv;
+    if (argc != 0) {
+        shellUsage(chp, "s (emergency stop)");
+        return;
+    }
+    RoboticArmSKD::change_digital_status(RoboticArmSKD::clamp_state, CLAMP_PAD);
+}
+
 static void cmd_robotic_arm_emergency_stop(BaseSequentialStream *chp, int argc, char *argv[]) {
     (void) argv;
     if (argc != 0) {
@@ -83,7 +92,7 @@ static void cmd_robotic_arm_prev(BaseSequentialStream *chp, int argc, char *argv
 }
 
 ShellCommand roboticArmCommands[] = {
-//        {"clamp", cmd_robotic_clamp_action},
+        {"clamp", cmd_clamp_test},
 //        {"rotate", cmd_robotic_arm_action},
         {"s", cmd_robotic_arm_emergency_stop},
         {"set_v2i", cmd_robotic_arm_set_v2i},

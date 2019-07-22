@@ -39,9 +39,7 @@
 #elif defined(INFANTRY_FOUR)                                                /** Infantry #4 **/
 #include "vehicle_infantry_four.h"
 #elif defined(INFANTRY_FIVE)                                                /** Infantry #5 **/
-
 #include "vehicle_infantry_five.h"
-
 #else
 #error "File main_infantry.cpp should only be used for Infantry #3, #4, #5."
 #endif
@@ -95,7 +93,7 @@ int main() {
 
     LED::led_on(DEV_BOARD_LED_SYSTEM_INIT);  // LED 1 on now
 
-    /// Setup CAN1
+    /// Setup CAN1 & CAN2
     can1.start(THREAD_CAN1_PRIO);
     can2.start(THREAD_CAN2_PRIO);
     chThdSleepMilliseconds(5);

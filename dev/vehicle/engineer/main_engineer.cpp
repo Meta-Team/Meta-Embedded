@@ -1,79 +1,48 @@
 //
-// Created by liuzikai on 2019-01-27.
+// Created by Kerui Zhu on 7/10/2019.
+// Modified by LaiXinyi on 7/19/2019.
 //
 
-// Headers
+/// Headers
 #include "ch.hpp"
 #include "hal.h"
 
 #include "led.h"
-#include "shell.h"
-
-#include "can_interface.h"
-
 #include "buzzer.h"
+#include "common_macro.h"
+
+#include "shell.h"
+#include "can_interface.h"
+#include "ahrs.h"
 #include "remote_interpreter.h"
-#include "robotic_arm.h"
+#include "sd_card_interface.h"
 
-#include "scheduler/chassis_scheduler.h"
-#include "elevator.h"
+#include "chassis_interface.h"
+#include "engineer_elevator_interface.h"
+//#include "robotic_arm_interface.h"
 
-// Vehicle specific config
-#if defined(ENGINEER) // specified in CMakeLists.txt
+#include "engineer_chassis_skd.h"
+#include "engineer_elevator_skd.h"
+//#include "robotic_arm_skd.h"
+
+#include "engineer_elevator_logic.h"
+
+#include "inspector_engineer.h"
+#include "user_engineer.h"
+
+#include "settings_engineer.h"
+
+/// Vehicle Specific Configurations
+#if defined(ENGINEER)
 #include "vehicle_engineer.h"
 #else
-#error "main_engineer.cpp should only be used for Engineer."
+#error "File main_engineer.cpp should only be used for Engineer."
 #endif
 
-// Board guard
-#if defined(BOARD_RM_2018_A) // specified in build profile
-#else
-#error "Engineer is only developed for RM board 2018 A."
-#endif
-
-
-// Threads and State Machines
-#include "thread_chassis.h"
-#include "thread_elevator.h"
-#include "thread_error_detect.hpp"
-#include "state_machine_stage_climb.h"
-#include "state_machine_bullet_fetch.h"
-#include "thread_action_trigger.hpp"
-
-
-// Interfaces
 CANInterface can1(&CAND1);
 CANInterface can2(&CAND2);
 
-// Threads
-ChassisThread chassisThread({CHASSIS_PID_V2I_PARAMS});
-ElevatorThread elevatorThread({ELEVATOR_PID_A2V_PARAMS}, {ELEVATOR_PID_V2I_PARAMS});
-
-StageClimbStateMachine stageClimbStateMachine(chassisThread, elevatorThread);
-BulletFetchStateMachine bulletFetchStateMachine;
-
-ActionTriggerThread actionTriggerThread(elevatorThread, bulletFetchStateMachine, stageClimbStateMachine);
-
-ErrorDetectThread errorDetectThread;
-
-static void cmd_elevator_set_target_position(BaseSequentialStream *chp, int argc, char *argv[]) {
-    (void) argv;
-    if (argc != 2) {
-        shellUsage(chp, "e_set front_pos[cm] back_pos[cm] positive for VEHICLE to UP");
-        return;
-    }
-    elevatorThread.set_front_target_height(Shell::atof(argv[0]));
-    elevatorThread.set_back_target_height(Shell::atof(argv[1]));
-    chprintf(chp, "Target pos = %f, %f" SHELL_NEWLINE_STR, Shell::atof(argv[0]), Shell::atof(argv[1]));
-}
-
-// Shell commands to control the elevator interface directly
-ShellCommand elevatorInterfaceCommands[] = {
-        {"e_set", cmd_elevator_set_target_position},
-        {nullptr, nullptr}
-};
-
-int main(void) {
+int main() {
 
     /*** --------------------------- Period 0. Fundamental Setup --------------------------- ***/
 
@@ -82,79 +51,93 @@ int main(void) {
 
     /*** ---------------------- Period 1. Modules Setup and Self-Check ---------------------- ***/
 
+    /// Preparation of Period 1
+    InspectorE::init(&can1, &can2);
     LED::all_off();
 
-    /** Setup Shell */
-    Shell::start(HIGHPRIO);
-    Shell::addCommands(elevatorInterfaceCommands);
-    StateHandler::echoEvent(StateHandler::SHELL_START);
-    // LED 1 on now
+    /// Setup Shell
+    Shell::start(THREAD_SHELL_PRIO);
+    Shell::addCommands(mainProgramCommands);
 
-    /** Setup CAN1 & CAN2 */
-    can1.start(HIGHPRIO - 1);
-    can2.start(HIGHPRIO - 2);
+    /// Setup SDCard
+    if (SDCard::init()) {
+        SDCard::read_all();
+        LED::led_on(DEV_BOARD_LED_SD_CARD);  // LED 8 on if SD card inserted
+    }
+
+    LED::led_on(DEV_BOARD_LED_SYSTEM_INIT);  // LED 1 on now
+
+    /// Setup CAN1 & CAN2
+    can1.start(THREAD_CAN1_PRIO);
+    can2.start(THREAD_CAN2_PRIO);
     chThdSleepMilliseconds(5);
-    startupCheckCAN();  // check no persistent CAN Error. Block for 100 ms
-    StateHandler::echoEvent(StateHandler::CAN_START_SUCCESSFULLY);
-    // LED 2 on now
+    InspectorE::startup_check_can();  // check no persistent CAN Error. Block for 100 ms
+    LED::led_on(DEV_BOARD_LED_CAN);  // LED 2 on now
 
-    LED::led_on(3);
-    // LED 3 on now
+    /// Start DMS Interface
+    DMSInterface::init(4);
+    // TODO: check DMS
+    LED::led_on(DEV_BOARD_LED_DMS);  // LED 3 on now
 
-    /** Setup Remote */
+    /// Setup Remote
     Remote::start();
-    startupCheckRemote();  // check Remote has signal. Block for 50 ms
-    StateHandler::echoEvent(StateHandler::REMOTE_START_SUCCESSFULLY);
-    // LED 4 on now
+    InspectorE::startup_check_remote();  // check Remote has signal. Block for 50 ms
+    LED::led_on(DEV_BOARD_LED_REMOTE);  // LED 4 on now
 
-    /** Setup RoboticArm */
-    RoboticArm::init(&can1);
+    /// Setup GimbalIF
+    // TODO: write gimbal
+
+    /// Setup Robotic Arm
+    // TODO: write robotic arm
+
+    /// Setup ElevatorIF
+    EngineerElevatorIF::init(&can2);
     chThdSleepMilliseconds(10);
-    startupCheckRoboticArmFeedback();  // check chassis motors has continuous feedback. Block for 50 ms
-    StateHandler::echoEvent(StateHandler::ROBOTIC_ARM_CONNECT);
-    // LED 5 on now
+    InspectorE::startup_check_elevator_feedback();  // check elevator motors has continuous feedback. Block for 20 ms
+    LED::led_on(DEV_BOARD_LED_ELEVATOR);  // LED 5 on now
 
-    /** Setup Chassis */
-    Chassis::init(&can1, CHASSIS_WHEEL_BASE, CHASSIS_WHEEL_TREAD, CHASSIS_WHEEL_CIRCUMFERENCE);
+    /// Setup ChassisIF
+    ChassisIF::init(&can1);
     chThdSleepMilliseconds(10);
-    startupCheckChassisFeedback();  // check chassis motors has continuous feedback. Block for 50 ms
-    StateHandler::echoEvent(StateHandler::CHASSIS_CONNECTED);
-    // LED 6 on now
+    InspectorE::startup_check_chassis_feedback();  // check chassis motors has continuous feedback. Block for 20 ms
+    LED::led_on(DEV_BOARD_LED_CHASSIS);  // LED 6 on now
 
-    /** Setup Elevator */
-    Elevator::init(&can2);
-    chThdSleepMilliseconds(10);
-    startupCheckElevatorFeedback();  // check chassis motors has continuous feedback. Block for 50 ms
-    StateHandler::echoEvent(StateHandler::ELEVATOR_CONNECTED);
-    // LED 7 on now
+    /// Setup Referee
+    Referee::init();
 
-    StateHandler::echoEvent(StateHandler::MAIN_MODULES_SETUP_COMPLETE);
-    // LED Green on now
+    /// Complete Period 1
+    LED::green_on();  // LED Green on now
 
 
     /*** ------------ Period 2. Calibration and Start Logic Control Thread ----------- ***/
 
-    RoboticArm::reset_front_angle();
+    /// Start SKDs
+    EngineerChassisSKD::start(CHASSIS_WHEEL_BASE, CHASSIS_WHEEL_TREAD, CHASSIS_WHEEL_CIRCUMFERENCE, THREAD_CHASSIS_SKD_PRIO);
+    EngineerChassisSKD::load_pid_params(CHASSIS_PID_V2I_PARAMS);
+    EngineerElevatorSKD::start(THREAD_ELEVATOR_SKD_PRIO);
+    EngineerElevatorSKD::load_pid_params(ELEVATOR_PID_A2V_PARAMS, ELEVATOR_PID_V2I_PARAMS, AIDED_MOTOR_PID_V2I_PARAMS, {0, 0, 0, 0, 0});
 
-    chassisThread.start(NORMALPRIO);
-    elevatorThread.start(NORMALPRIO - 1);
-    actionTriggerThread.start(NORMALPRIO - 2);
-    errorDetectThread.start(LOWPRIO + 1);
+    /// Start LGs
+    EngineerElevatorLG::init(THREAD_ELEVATOR_LG_PRIO);
 
-    StateHandler::echoEvent(StateHandler::MAIN_THREAD_SETUP_COMPLETE);
-    // Now play the startup sound
+    /// Start Inspector and User Threads
+    InspectorE::start_inspection(THREAD_INSPECTOR_PRIO, THREAD_INSPECTOR_REFEREE_PRIO);
+    UserE::start(THREAD_USER_PRIO, THREAD_USER_ACTION_PRIO, THREAD_USER_CLIENT_DATA_SEND_PRIO);
+
+    /// Complete Period 2
+    Buzzer::play_sound(Buzzer::sound_startup_intel, THREAD_BUZZER_PRIO);  // Now play the startup sound
+
 
     /*** ------------------------ Period 3. End of main thread ----------------------- ***/
 
     // Entering empty loop with low priority
-
 #if CH_CFG_NO_IDLE_THREAD  // See chconf.h for what this #define means.
     // ChibiOS idle thread has been disabled, main() should implement infinite loop
     while (true) {}
 #else
     // When vehicle() quits, the vehicle thread will somehow enter an infinite loop, so we set the
     // priority to lowest before quitting, to let other threads run normally
-    chibios_rt::BaseThread::setPriority(1);
+    chibios_rt::BaseThread::setPriority(IDLEPRIO);
 #endif
     return 0;
 }

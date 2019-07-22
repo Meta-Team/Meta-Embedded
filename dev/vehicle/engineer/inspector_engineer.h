@@ -10,48 +10,46 @@
 #include "buzzer.h"
 
 #include "can_interface.h"
-#include "ahrs_abstract.h"
 #include "remote_interpreter.h"
-#include "chassis_interface.h"
-#include "gimbal_interface.h"
+#include "referee_interface.h"
 
-#if defined(INFANTRY)
-#include "vehicle_infantry.h"
+#include "chassis_interface.h"
+#include "engineer_elevator_interface.h"
+
+#if defined(ENGINEER)
+#include "vehicle_engineer.h"
 #else
-#error "Files inspector_infantry.h/cpp should only be used for Infantry main program"
+#error "Files inspector_engineer.h/cpp should only be used for Engineer main program"
 #endif
 
-class InspectorI {
+class InspectorE {
 
 public:
 
-    static void init(CANInterface *can1_, CANInterface *can2_, AbstractAHRS *ahrs_);
+    static void init(CANInterface *can1_, CANInterface *can2_);
 
-    static void start_inspection(tprio_t thread_prio);
+    static void start_inspection(tprio_t thread_prio, tprio_t referee_inspector_prio);
 
     static void startup_check_can();
-    static void startup_check_mpu();
-    static void startup_check_ist();
     static void startup_check_remote();
-    static void startup_check_gimbal_feedback();
     static void startup_check_chassis_feedback();
+    static void startup_check_elevator_feedback();
 
-    static bool gimbal_failure();
     static bool chassis_failure();
+    static bool elevator_failure();
     static bool remote_failure();
 
 private:
 
-    static AbstractAHRS *ahrs;
     static CANInterface *can1;
     static CANInterface *can2;
 
-    static bool gimbal_failure_;
     static bool chassis_failure_;
+    static bool elevator_failure_;
     static bool remote_failure_;
 
-    static bool check_gimbal_failure();
     static bool check_chassis_failure();
+    static bool check_elevator_failure();
     static bool check_remote_data_error();
 
     /// Inspector Thread
@@ -61,6 +59,17 @@ private:
     };
 
     static InspectorThread inspectorThread;
+
+    /// Referee Inspector Thread
+    class RefereeInspectorThread : public chibios_rt::BaseStaticThread<256> {
+
+        event_listener_t data_received_listener;
+        static constexpr eventmask_t DATA_RECEIVED_EVENTMASK = (1U << 0U);
+
+        void main() final;
+    };
+
+    static RefereeInspectorThread refereeInspectorThread;
 
 };
 

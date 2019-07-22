@@ -89,17 +89,17 @@ void InspectorS::startup_check_chassis_feedback() {
 void InspectorS::startup_check_gimbal_feedback() {
     time_msecs_t t = SYSTIME;
     while (SYSTIME - t < 20) {
-        if (SYSTIME - GimbalIF::feedback[GimbalIF::YAW].last_update_time > 20) {
+        if (SYSTIME - GimbalIF::feedback[GimbalIF::YAW].last_update_time > 5) {
             // No feedback in last 5 ms (normal 1 ms)
             LOG_ERR("Startup - Gimbal Yaw offline.");
             t = SYSTIME;  // reset the counter
         }
-        if (SYSTIME - GimbalIF::feedback[GimbalIF::PITCH].last_update_time > 20) {
+        if (SYSTIME - GimbalIF::feedback[GimbalIF::PITCH].last_update_time > 5) {
             // No feedback in last 5 ms (normal 1 ms)
             LOG_ERR("Startup - Gimbal Pitch offline.");
             t = SYSTIME;  // reset the counter
         }
-        if (SYSTIME - GimbalIF::feedback[GimbalIF::BULLET].last_update_time > 20) {
+        if (SYSTIME - GimbalIF::feedback[GimbalIF::BULLET].last_update_time > 5) {
             // No feedback in last 5 ms (normal 1 ms)
             LOG_ERR("Startup - Gimbal Bullet offline.");
             t = SYSTIME;  // reset the counter
@@ -123,7 +123,7 @@ bool InspectorS::remote_failure() {
 bool InspectorS::check_gimbal_failure() {
     bool ret = false;
     for (unsigned i = 0; i < 3; i++) {
-        if (SYSTIME - GimbalIF::feedback[i].last_update_time > 50) {
+        if (SYSTIME - GimbalIF::feedback[i].last_update_time > 20) {
             if (!gimbal_failure_) {  // avoid repeating printing
                 LOG_ERR("Gimbal motor %u offline", i);
                 ret = true;
@@ -147,12 +147,16 @@ bool InspectorS::check_chassis_failure() {
 }
 
 bool InspectorS::check_remote_data_error() {
-    return (!ABS_IN_RANGE(Remote::rc.ch0, 1.1) || !ABS_IN_RANGE(Remote::rc.ch1, 1.1) ||
-            !ABS_IN_RANGE(Remote::rc.ch2, 1.1) || !ABS_IN_RANGE(Remote::rc.ch3, 1.1) ||
-            !(Remote::rc.s1 >= 1 && Remote::rc.s1 <= 3) || !(Remote::rc.s2 >= 1 && Remote::rc.s2 <= 3) ||
-            !ABS_IN_RANGE(Remote::mouse.x, 1.1) || !ABS_IN_RANGE(Remote::mouse.y, 1.1) ||
-            !ABS_IN_RANGE(Remote::mouse.z, 1.1) ||
-            Remote::rx_buf_[12] > 1 || Remote::rx_buf_[13] > 1);
+    chSysLock();  /// ---------------------------------- Enter Critical Zone ----------------------------------
+    bool ret = (!ABS_IN_RANGE(Remote::rc.ch0, 1.1) || !ABS_IN_RANGE(Remote::rc.ch1, 1.1) ||
+                !ABS_IN_RANGE(Remote::rc.ch2, 1.1) || !ABS_IN_RANGE(Remote::rc.ch3, 1.1) ||
+                !(Remote::rc.s1 >= 1 && Remote::rc.s1 <= 3) || !(Remote::rc.s2 >= 1 && Remote::rc.s2 <= 3) ||
+                !ABS_IN_RANGE(Remote::mouse.x, 1.1) || !ABS_IN_RANGE(Remote::mouse.y, 1.1) ||
+                !ABS_IN_RANGE(Remote::mouse.z, 1.1) ||
+                Remote::rx_buf_[12] > 1 || Remote::rx_buf_[13] > 1);
+    chSysUnlock();  /// ---------------------------------- Exit Critical Zone ----------------------------------
+    return ret;
+
 }
 
 void InspectorS::InspectorThread::main() {

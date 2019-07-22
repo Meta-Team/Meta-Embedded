@@ -188,22 +188,6 @@ add_executable(SENTRY
 target_include_directories(SENTRY PRIVATE dev/vehicle/sentry)
 target_compile_definitions(SENTRY PRIVATE SENTRY)
 
-# Main Program -- Engineer
-add_executable(ENGINEER
-        dev/module/pid_controller.hpp
-        dev/interface/can_interface.cpp
-        dev/interface/chassis_interface.cpp
-        dev/interface/remote_interpreter.cpp
-        dev/interface/elevator_interface.cpp
-        dev/interface/robotic_arm.cpp
-        dev/scheduler/chassis_scheduler.cpp
-        dev/vehicle/engineer/state_machine_stage_climb.cpp
-        dev/vehicle/engineer/state_machine_bullet_fetch.cpp
-        dev/vehicle/engineer/main_engineer.cpp
-        dev/control/elevator.cpp dev/vehicle/engineer/thread_chassis.cpp dev/vehicle/engineer/thread_elevator.cpp)
-target_include_directories(ENGINEER PRIVATE dev/vehicle/engineer)
-target_compile_definitions(ENGINEER PRIVATE ENGINEER)
-
 add_executable(AERIAL
         dev/module/pid_controller.hpp
         dev/interface/can_interface.cpp
@@ -228,6 +212,48 @@ add_executable(AERIAL
         dev/vehicle/aerial/inspector_aerial.cpp
         dev/vehicle/aerial/settings_aerial.cpp
         )
+target_include_directories(AERIAL PRIVATE dev/vehicle/aerial)
+target_compile_definitions(AERIAL PRIVATE AERIAL)
+
+add_executable(ENGINEER
+        dev/interface/can_interface.cpp
+        dev/interface/remote_interpreter.cpp
+        dev/interface/referee_interface.cpp
+        dev/interface/sd_card_interface.cpp
+        dev/common/CRC8.cpp
+        dev/common/CRC16.cpp
+
+        dev/interface/chassis_interface.cpp
+        dev/interface/dms_interface.cpp
+        dev/interface/engineer_elevator_interface.cpp
+
+        dev/scheduler/engineer_chassis_skd.cpp
+        dev/scheduler/engineer_elevator_skd.cpp
+
+        dev/logic/engineer_elevator_logic.cpp
+
+        dev/vehicle/engineer/main_engineer.cpp
+        dev/vehicle/engineer/user_engineer.cpp
+        dev/vehicle/engineer/inspector_engineer.cpp
+        dev/vehicle/engineer/settings_engineer.cpp
+
+#        dev/control/robotic_arm_skd.cpp
+#        dev/interface/robotic_arm_interface.cpp
+        )
+target_include_directories(ENGINEER PRIVATE dev/vehicle/engineer)
+target_compile_definitions(ENGINEER PRIVATE ENGINEER)
+
+add_executable(ut_engineer
+        dev/debug/unit_tests/engineer_unit_test.cpp
+        dev/scheduler/engineer_chassis_skd.cpp
+        dev/logic/engineer_elevator_logic.cpp
+        dev/scheduler/engineer_elevator_skd.cpp
+        dev/interface/engineer_elevator_interface.cpp
+        dev/control/robotic_arm_skd.cpp
+        dev/interface/robotic_arm_interface.cpp
+        dev/interface/dms_interface.cpp
+        dev/interface/referee_interface.cpp
+        dev/interface/can_interface.cpp)
 
 # Blink
 add_executable(ut_blink
@@ -323,23 +349,34 @@ target_link_libraries(pa_chassis ${PROJECT_SOURCE_DIR}/dev/interface/ahrs/ahrs_l
 # Elevator Interface: include CANInterface, ElevatorInterface, and the unit test modules.
 add_executable(ut_elevator_interface
         dev/interface/can_interface.cpp
-        dev/interface/elevator_interface.cpp
         dev/debug/unit_tests/ut_elevator_IF.cpp)
+
+add_executable(ut_engineer_gimbal
+        dev/interface/engineer_gimbal.cpp
+        dev/interface/remote_interpreter.cpp
+        dev/debug/unit_tests/engineer_gimbal_unit_test.cpp)
 
 # Elevator: include CANInterface, ElevatorInterface, ElevatorController, and the unit test modules.
 add_executable(pa_elevator
         dev/interface/can_interface.cpp
         dev/module/pid_controller.hpp
-        dev/interface/elevator_interface.cpp
-        dev/control/elevator.cpp
-        dev/debug/unit_tests/pa_elevator.cpp)
+        dev/logic/engineer_elevator_logic.cpp
+        dev/scheduler/engineer_elevator_skd.cpp
+        dev/interface/engineer_elevator_interface.cpp
+        dev/debug/unit_tests/engineer_elevator_param_adjust.cpp)
+
+add_executable(pa_engineer_chassis
+        dev/interface/can_interface.cpp
+        dev/module/pid_controller.hpp
+        dev/scheduler/engineer_chassis_skd.cpp
+        dev/debug/unit_tests/engineer_chassis_param_adjust.cpp)
 
 # Robotic Arm
 add_executable(ut_robotic_arm
+        dev/debug/unit_tests/engineer_robotic_arm_unit_test.cpp
         dev/interface/can_interface.cpp
-        dev/interface/robotic_arm.cpp
-        dev/vehicle/engineer/state_machine_bullet_fetch.cpp
-        dev/debug/unit_tests/ut_robotic_arm.cpp)
+        dev/interface/robotic_arm_interface.cpp
+        dev/control/robotic_arm_skd.cpp)
 
 # Adjust Params of Skywalker-20A for friction wheels
 add_executable(pa_skywalker
@@ -376,6 +413,9 @@ add_executable(ut_sd_card
         dev/common/CRC16.cpp
         dev/debug/unit_tests/ut_sd_card.cpp)
 
+add_executable(ut_adc
+        dev/debug/unit_tests/ut_adc.cpp
+        dev/interface/dms_interface.cpp)
 add_executable(ca_ahrs_infantry
         dev/interface/ahrs/ahrs_math.hpp
         dev/interface/ahrs/mpu6500.cpp

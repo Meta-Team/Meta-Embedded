@@ -16,6 +16,12 @@
 #include "gimbal_interface.h"
 #include "vehicle_sentry.h"
 
+#if defined(SENTRY)
+#include "vehicle_sentry.h"
+#else
+#error "Files inspector_sentry.h/cpp should only be used for Sentry main program"
+#endif
+
 class InspectorS {
 
 public:
@@ -50,7 +56,7 @@ private:
     static bool check_remote_data_error();
 
     /// Inspector Thread
-    class InspectorThread : public chibios_rt::BaseStaticThread<2048> {
+    class InspectorThread : public chibios_rt::BaseStaticThread<512> {
         static constexpr unsigned INSPECTOR_THREAD_INTERVAL = 20;  // [ms]
         void main();
     };

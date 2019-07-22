@@ -186,6 +186,7 @@ private:
     friend class InspectorH;
     friend class InspectorS;
     friend class InspectorA;
+    friend class InspectorE;
 
     static UARTConfig REMOTE_UART_CONFIG;
 

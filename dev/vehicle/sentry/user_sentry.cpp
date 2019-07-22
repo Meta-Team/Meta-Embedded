@@ -13,11 +13,11 @@ float UserS::gimbal_yaw_target_angle_ = 0;
 float UserS::gimbal_pitch_target_angle_ = 0;
 float UserS::gimbal_yaw_min_angle = -160; // left range for yaw [degree]
 float UserS::gimbal_yaw_max_angle = 160; // right range for yaw [degree]
-float UserS::gimbal_pitch_min_angle = -50; // down range for pitch [degree]
-float UserS::gimbal_pitch_max_angle = 10; //  up range for pitch [degree]
+float UserS::gimbal_pitch_min_angle = -60; // down range for pitch [degree]
+float UserS::gimbal_pitch_max_angle = 0; //  up range for pitch [degree]
 
 /// Chassis Config
-float UserS::chassis_v = 1000.0f;  // [mm/s]
+float UserS::chassis_v = 80.0f;  // [cm/s]
 
 /// Shoot Config
 float UserS::shoot_launch_left_count = 5;
@@ -324,7 +324,5 @@ void UserS::VitualUserThread::main() {
 }
 
 void UserS::VitualUserThread::set_v_user_mode(UserS::VitualUserThread::vitual_user_mode_t mode) {
-    if (v_user_mode == mode)
-        return;
     v_user_mode = mode;
 }

@@ -2,29 +2,29 @@
 // Created by liuzikai on 2019-06-25.
 //
 
-#include "inspector_infantry.h"
+#include "inspector_engineer.h"
 
-AbstractAHRS *InspectorI::ahrs = nullptr;
-CANInterface *InspectorI::can1 = nullptr;
-CANInterface *InspectorI::can2 = nullptr;
+CANInterface *InspectorE::can1 = nullptr;
+CANInterface *InspectorE::can2 = nullptr;
 
-bool InspectorI::gimbal_failure_ = false;
-bool InspectorI::chassis_failure_ = false;
-bool InspectorI::remote_failure_ = false;
+bool InspectorE::chassis_failure_ = false;
+bool InspectorE::elevator_failure_ = false;
+bool InspectorE::remote_failure_ = false;
 
-InspectorI::InspectorThread InspectorI::inspectorThread;
+InspectorE::InspectorThread InspectorE::inspectorThread;
+InspectorE::RefereeInspectorThread InspectorE::refereeInspectorThread;
 
-void InspectorI::init(CANInterface *can1_, CANInterface *can2_, AbstractAHRS *ahrs_) {
+void InspectorE::init(CANInterface *can1_, CANInterface *can2_) {
     can1 = can1_;
     can2 = can2_;
-    ahrs = ahrs_;
 }
 
-void InspectorI::start_inspection(tprio_t thread_prio) {
+void InspectorE::start_inspection(tprio_t thread_prio, tprio_t referee_inspector_prio) {
     inspectorThread.start(thread_prio);
+    refereeInspectorThread.start(referee_inspector_prio);
 }
 
-void InspectorI::startup_check_can() {
+void InspectorE::startup_check_can() {
     time_msecs_t t = SYSTIME;
     while (SYSTIME - t < 100) {
         if (SYSTIME - can1->last_error_time < 5) {  // can error occurs
@@ -37,29 +37,7 @@ void InspectorI::startup_check_can() {
     }
 }
 
-void InspectorI::startup_check_mpu() {
-    time_msecs_t t = SYSTIME;
-    while (SYSTIME - t < 20) {
-        if (SYSTIME - ahrs->get_mpu_update_time() > 5) {
-            // No signal in last 5 ms (normal interval 1 ms for on-board MPU)
-            t = SYSTIME;  // reset the counter
-        }
-        chThdSleepMilliseconds(5);
-    }
-}
-
-void InspectorI::startup_check_ist() {
-    time_msecs_t t = SYSTIME;
-    while (SYSTIME - t < 20) {
-        if (SYSTIME - ahrs->get_ist_update_time() > 5) {
-            // No signal in last 5 ms (normal interval 1 ms for on-board MPU)
-            t = SYSTIME;  // reset the counter
-        }
-        chThdSleepMilliseconds(5);
-    }
-}
-
-void InspectorI::startup_check_remote() {
+void InspectorE::startup_check_remote() {
     time_msecs_t t = SYSTIME;
     while (SYSTIME - t < 50) {
         if (SYSTIME - Remote::last_update_time > 25) {  // No signal in last 25 ms (normal interval 7 ms)
@@ -69,7 +47,7 @@ void InspectorI::startup_check_remote() {
     }
 }
 
-void InspectorI::startup_check_chassis_feedback() {
+void InspectorE::startup_check_chassis_feedback() {
     time_msecs_t t = SYSTIME;
     while (SYSTIME - t < 20) {
         if (SYSTIME - ChassisIF::feedback[ChassisIF::FR].last_update_time > 5) {
@@ -96,54 +74,46 @@ void InspectorI::startup_check_chassis_feedback() {
     }
 }
 
-void InspectorI::startup_check_gimbal_feedback() {
+void InspectorE::startup_check_elevator_feedback() {
     time_msecs_t t = SYSTIME;
     while (SYSTIME - t < 20) {
-        if (SYSTIME - GimbalIF::feedback[GimbalIF::YAW].last_update_time > 5) {
+        if (SYSTIME - EngineerElevatorIF::elevatorMotor[EngineerElevatorIF::R].last_update_time > 5) {
             // No feedback in last 5 ms (normal 1 ms)
-            LOG_ERR("Startup - Gimbal Yaw offline.");
+            LOG_ERR("Startup - Elevator R offline.");
             t = SYSTIME;  // reset the counter
         }
-        if (SYSTIME - GimbalIF::feedback[GimbalIF::PITCH].last_update_time > 5) {
+        if (SYSTIME - EngineerElevatorIF::elevatorMotor[EngineerElevatorIF::L].last_update_time > 5) {
             // No feedback in last 5 ms (normal 1 ms)
-            LOG_ERR("Startup - Gimbal Pitch offline.");
+            LOG_ERR("Startup - Elevator L offline.");
             t = SYSTIME;  // reset the counter
         }
-        if (SYSTIME - GimbalIF::feedback[GimbalIF::BULLET].last_update_time > 5) {
+        if (SYSTIME - EngineerElevatorIF::aidedMotor[EngineerElevatorIF::R].last_update_time > 5) {
             // No feedback in last 5 ms (normal 1 ms)
-            LOG_ERR("Startup - Gimbal Bullet offline.");
+            LOG_ERR("Startup - Aided R offline.");
+            t = SYSTIME;  // reset the counter
+        }
+        if (SYSTIME - EngineerElevatorIF::aidedMotor[EngineerElevatorIF::L].last_update_time > 5) {
+            // No feedback in last 5 ms (normal 1 ms)
+            LOG_ERR("Startup - Aided L offline.");
             t = SYSTIME;  // reset the counter
         }
         chThdSleepMilliseconds(5);
     }
 }
 
-bool InspectorI::gimbal_failure() {
-    return gimbal_failure_;
-}
-
-bool InspectorI::chassis_failure() {
+bool InspectorE::chassis_failure() {
     return chassis_failure_;
 }
 
-bool InspectorI::remote_failure() {
+bool InspectorE::elevator_failure() {
+    return elevator_failure_;
+}
+
+bool InspectorE::remote_failure() {
     return remote_failure_;
 }
 
-bool InspectorI::check_gimbal_failure() {
-    bool ret = false;
-    for (unsigned i = 0; i < 3; i++) {
-        if (SYSTIME - GimbalIF::feedback[i].last_update_time > 20) {
-            if (!gimbal_failure_) {  // avoid repeating printing
-                LOG_ERR("Gimbal motor %u offline", i);
-                ret = true;
-            }
-        }
-    }
-    return ret;
-}
-
-bool InspectorI::check_chassis_failure() {
+bool InspectorE::check_chassis_failure() {
     bool ret = false;
     for (unsigned i = 0; i < ChassisIF::MOTOR_COUNT; i++) {
         if (SYSTIME - ChassisIF::feedback[i].last_update_time > 20) {
@@ -156,7 +126,36 @@ bool InspectorI::check_chassis_failure() {
     return ret;
 }
 
-bool InspectorI::check_remote_data_error() {
+bool InspectorE::check_elevator_failure() {
+    bool ret = false;
+    if (SYSTIME - EngineerElevatorIF::elevatorMotor[EngineerElevatorIF::R].last_update_time > 20) {
+        if (!elevator_failure_) {  // avoid repeating printing
+            LOG_ERR("Elevator R offline.");
+            ret = true;
+        }
+    }
+    if (SYSTIME - EngineerElevatorIF::elevatorMotor[EngineerElevatorIF::L].last_update_time > 20) {
+        if (!elevator_failure_) {  // avoid repeating printing
+            LOG_ERR("Elevator L offline.");
+            ret = true;
+        }
+    }
+    if (SYSTIME - EngineerElevatorIF::aidedMotor[EngineerElevatorIF::R].last_update_time > 20) {
+        if (!elevator_failure_) {  // avoid repeating printing
+            LOG_ERR("Aided R offline.");
+            ret = true;
+        }
+    }
+    if (SYSTIME - EngineerElevatorIF::aidedMotor[EngineerElevatorIF::L].last_update_time > 20) {
+        if (!elevator_failure_) {  // avoid repeating printing
+            LOG_ERR("Aided L offline.");
+            ret = true;
+        }
+    }
+    return ret;
+}
+
+bool InspectorE::check_remote_data_error() {
     chSysLock();  /// ---------------------------------- Enter Critical Zone ----------------------------------
     bool ret = (!ABS_IN_RANGE(Remote::rc.ch0, 1.1) || !ABS_IN_RANGE(Remote::rc.ch1, 1.1) ||
                 !ABS_IN_RANGE(Remote::rc.ch2, 1.1) || !ABS_IN_RANGE(Remote::rc.ch3, 1.1) ||
@@ -169,8 +168,8 @@ bool InspectorI::check_remote_data_error() {
 
 }
 
-void InspectorI::InspectorThread::main() {
-    setName("InspectorI");
+void InspectorE::InspectorThread::main() {
+    setName("InspectorE");
     while (!shouldTerminate()) {
 
         if (check_remote_data_error()) {
@@ -188,15 +187,15 @@ void InspectorI::InspectorThread::main() {
         if (remote_failure_) LED::led_off(DEV_BOARD_LED_REMOTE);
         else LED::led_on(DEV_BOARD_LED_REMOTE);
 
-        gimbal_failure_ = check_gimbal_failure();
-        if (gimbal_failure_) LED::led_off(DEV_BOARD_LED_GIMBAL);
-        else LED::led_on(DEV_BOARD_LED_GIMBAL);
-
         chassis_failure_ = check_chassis_failure();
         if (chassis_failure_) LED::led_off(DEV_BOARD_LED_CHASSIS);
         else LED::led_on(DEV_BOARD_LED_CHASSIS);
 
-        if (remote_failure_ || gimbal_failure_ || chassis_failure_) {
+        elevator_failure_ = check_elevator_failure();
+        if (elevator_failure_) LED::led_off(DEV_BOARD_LED_ELEVATOR);
+        else LED::led_on(DEV_BOARD_LED_ELEVATOR);
+
+        if (remote_failure_ || chassis_failure_ || elevator_failure_) {
             if (!Buzzer::alerting()) Buzzer::alert_on();
         } else {
             if (Buzzer::alerting()) Buzzer::alert_off();
@@ -205,5 +204,22 @@ void InspectorI::InspectorThread::main() {
         chSysUnlock();  /// ---------------------------------- Exit Critical Zone ----------------------------------
 
         sleep(TIME_MS2I(INSPECTOR_THREAD_INTERVAL));
+    }
+}
+
+void InspectorE::RefereeInspectorThread::main() {
+    setName("InspectorH_Referee");
+
+    chEvtRegisterMask(&Referee::data_received_event, &data_received_listener, DATA_RECEIVED_EVENTMASK);
+
+    while (!shouldTerminate()) {
+
+        chEvtWaitAny(DATA_RECEIVED_EVENTMASK);
+
+        eventflags_t flags = chEvtGetAndClearFlags(&data_received_listener);
+        (void) flags;
+
+        // Toggle Referee LED if any data is received
+        LED::led_toggle(DEV_BOARD_LED_REFEREE);
     }
 }
