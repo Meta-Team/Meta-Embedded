@@ -3,6 +3,7 @@
 //
 
 #include "robotic_arm_skd.h"
+#include "engineer_elevator_skd.h"
 #include "math.h"
 
 RoboticArmSKD::RoboticArmThread RoboticArmSKD::roboticArmThread;
@@ -52,6 +53,14 @@ void RoboticArmSKD::change_extend() {
 }
 
 void RoboticArmSKD::change_door() {
+    if (released) {
+        if (door_state == HIGH_STATUS) {
+
+        }
+        else {
+
+        }
+    }
     change_digital_status(door_state, DOOR_PAD);
 }
 
