@@ -196,7 +196,7 @@ add_executable(ENGINEER
         dev/interface/remote_interpreter.cpp
         dev/interface/elevator_interface.cpp
         dev/interface/robotic_arm_interface.cpp
-        dev/control/chassis.cpp
+#        dev/control/chassis.cpp
         dev/vehicle/engineer/state_machine_bullet_fetch.cpp
         dev/vehicle/engineer/main_engineer.cpp
         dev/control/elevator.cpp dev/vehicle/engineer/thread_chassis.cpp)
@@ -242,7 +242,7 @@ add_executable(ENGINEER_TEST
         dev/interface/referee_interface.cpp
         dev/common/CRC8.cpp
         dev/common/CRC16.cpp
-        dev/module/can_interface.cpp)
+        dev/interface/can_interface.cpp)
 
 add_executable(ut_engineer
         dev/debug/unit_tests/engineer_unit_test.cpp
@@ -255,7 +255,7 @@ add_executable(ut_engineer
         dev/interface/robotic_arm_interface.cpp
         dev/interface/dms_interface.cpp
         dev/interface/referee_interface.cpp
-        dev/module/can_interface.cpp)
+        dev/interface/can_interface.cpp)
 
 # Blink
 add_executable(ut_blink
@@ -364,7 +364,7 @@ add_executable(pa_elevator
         dev/debug/unit_tests/engineer_elevator_param_adjust.cpp)
 
 add_executable(pa_engineer_chassis
-        dev/module/can_interface.cpp
+        dev/interface/can_interface.cpp
         dev/module/pid_controller.hpp
         dev/control/engineer_chassis_skd.cpp
         dev/interface/engineer_chassis_interface.cpp
@@ -373,7 +373,7 @@ add_executable(pa_engineer_chassis
 # Robotic Arm
 add_executable(ut_robotic_arm
         dev/debug/unit_tests/engineer_robotic_arm_unit_test.cpp
-        dev/module/can_interface.cpp
+        dev/interface/can_interface.cpp
         dev/interface/robotic_arm_interface.cpp
         dev/control/robotic_arm_skd.cpp)
 

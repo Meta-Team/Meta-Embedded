@@ -62,7 +62,7 @@ void EngineerChassisSKD::update_target_current() {
         // BR, -vx, -vy, -w
 
         target_velocity[FR] = (+target_vx - target_vy - target_w * w_to_v_ratio_) * v_to_wheel_angular_velocity_;
-        EngineerChassisIF::motors[FR].target_current = (int16_t) pid[FR].calc(EngineerChassisIF::motors[FR].actual_velocity,
+        ChassisIF::motors[FR].target_current = (int16_t) pid[FR].calc(EngineerChassisIF::motors[FR].actual_velocity,
                                                                                target_velocity[FR]);
 //        LOG("%d",EngineerChassisIF::motors[FR].target_current);
         target_velocity[FL] = (+target_vx + target_vy - target_w * w_to_v_ratio_) * v_to_wheel_angular_velocity_;
@@ -124,7 +124,7 @@ void EngineerChassisSKD::EngineerChassisThread::main() {
         }
 
         update_target_current();
-        EngineerChassisIF::send_currents();
+        ChassisIF::send_chassis_currents();
         sleep(TIME_MS2I(2));
     }
 }

@@ -8,15 +8,15 @@
 #include "ch.hpp"
 #include "hal.h"
 
-#include "engineer_chassis_interface.h"
+#include "chassis_interface.h"
 #include "pid_controller.hpp"
-#include "vehicle/engineer/vehicle_engineer.h"
+//#include "vehicle/engineer/vehicle_engineer.h"
 
 /**
  * @name EngineerChassisSKD
  * @note +X is right, +Y is front, +w is counter-clockwise
  */
-class EngineerChassisSKD {
+class EngineerChassisSKD : public ChassisBase {
 
 public:
 
