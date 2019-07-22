@@ -5,7 +5,7 @@
 #include "engineer_chassis_skd.h"
 
 float EngineerChassisSKD::target_velocity[MOTOR_COUNT];
-bool EngineerChassisSKD::unlocked;
+bool EngineerChassisSKD::enabled;
 
 float EngineerChassisSKD::target_vx;
 float EngineerChassisSKD::target_vy;
@@ -35,15 +35,17 @@ void EngineerChassisSKD::start(float wheel_base, float wheel_tread, float wheel_
 }
 
 void EngineerChassisSKD::lock() {
-    if (unlocked) {
-        unlocked = false;
+    if (enabled) {
+        LOG("EChassis Lock");
+        enabled = false;
         target_vx = target_vy = target_w = 0;
     }
 }
 
 void EngineerChassisSKD::unlock() {
-    if (!unlocked) {
-        unlocked = true;
+    if (!enabled) {
+        LOG("EChassis Unlock");
+        enabled = true;
         set_velocity(0, 0, 0);
         for (size_t i = 0; i < MOTOR_COUNT; i++) {
             pid[i].clear_i_out();
@@ -52,7 +54,7 @@ void EngineerChassisSKD::unlock() {
 }
 
 bool EngineerChassisSKD::is_locked() {
-    return (!unlocked);
+    return (!enabled);
 }
 
 void EngineerChassisSKD::load_pid_params(PIDControllerBase::pid_params_t v2i_pid_params) {
@@ -98,7 +100,7 @@ void EngineerChassisSKD::SKDThread::main() {
 
     while (!shouldTerminate()) {
 
-        if (unlocked) {
+        if (enabled) {
 
             // FR, +vx, -vy, -w
             // FL, +vx, +vy, -w, since the motor is installed in the opposite direction
@@ -117,6 +119,8 @@ void EngineerChassisSKD::SKDThread::main() {
             target_velocity[BR] = (-target_vx - target_vy - target_w * w_to_v_ratio_) * v_to_wheel_angular_velocity_;
             ChassisIF::target_current[BR] = (int16_t) pid[BR].calc(ChassisIF::feedback[BR].actual_velocity,
                                                                    target_velocity[BR]);
+
+            LOG("%d", ChassisIF::target_current[FR]);
         } else {
 
             for (size_t i = 0; i < MOTOR_COUNT; i++) {
@@ -124,6 +128,8 @@ void EngineerChassisSKD::SKDThread::main() {
             }
 
         }
+
+
 
         ChassisIF::send_chassis_currents();
         sleep(TIME_MS2I(SKD_THREAD_INTERVAL));

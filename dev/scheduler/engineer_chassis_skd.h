@@ -51,7 +51,7 @@ public:
 
 private:
 
-    static bool unlocked;
+    static bool enabled;
 
     static float target_vx;
     static float target_vy;

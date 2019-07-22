@@ -74,7 +74,7 @@ void UserE::UserThread::main() {
 
         /// Remote chassis, left FBLR, right turn
         else if (Remote::rc.s1 == Remote::S_UP && Remote::rc.s2 == Remote::S_MIDDLE) {
-            LOG("remote chassis");
+//            LOG("remote chassis");
             EngineerChassisSKD::unlock();
             EngineerElevatorLG::set_action_lock();
             EngineerChassisSKD::set_velocity(
@@ -91,6 +91,8 @@ void UserE::UserThread::main() {
             EngineerChassisSKD::lock();
             EngineerElevatorLG::set_action_free();
             // and disable Robotic arm
+
+
             if (Remote::rc.ch1 > 0.5 || Remote::rc.ch1 < -0.5) {
                 EngineerElevatorSKD::elevator_enable(true);
                 EngineerElevatorSKD::aided_motor_enable(false);
@@ -108,6 +110,9 @@ void UserE::UserThread::main() {
                 EngineerElevatorSKD::elevator_enable(false);
                 EngineerElevatorSKD::aided_motor_enable(true);
                 EngineerElevatorSKD::set_aided_motor_velocity(0, Remote::rc.ch3 * ENGINEER_AIDED_MOTOR_VELOCITY);
+            } else {
+                EngineerElevatorSKD::elevator_enable(false);
+                EngineerElevatorSKD::aided_motor_enable(false);
             }
         }
 
