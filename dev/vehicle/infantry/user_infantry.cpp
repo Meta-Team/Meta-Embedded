@@ -95,13 +95,13 @@ void UserI::UserThread::main() {
                     yaw_sensitivity = gimbal_pc_yaw_sensitivity[0];
                     pitch_sensitivity = gimbal_pc_pitch_sensitivity[0];
 
-                    // Slow speed, 3 lights from right
+                    // Slow speed, 1 lights from right
                     set_user_client_speed_light_(1);
                 } else if (Remote::key.shift) {
                     yaw_sensitivity = gimbal_pc_yaw_sensitivity[2];
                     pitch_sensitivity = gimbal_pc_pitch_sensitivity[2];
 
-                    // High speed, 1 light from right
+                    // High speed, 3 light from right
                     set_user_client_speed_light_(3);
                 } else {
                     yaw_sensitivity = gimbal_pc_yaw_sensitivity[1];

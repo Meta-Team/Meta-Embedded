@@ -40,7 +40,9 @@ public:
         float present_angle; // [degree]
         float actual_velocity; // [degree/s]
         int16_t actual_current;
-        time_msecs_t last_update_time;
+
+        time_msecs_t last_update_time = 0;
+
         int16_t target_current;
 
         /** @brief set current actual angle as 0 degree */
@@ -55,7 +57,9 @@ public:
 
     struct aided_motor_t {
         float actual_velocity; // [degree/s]
-        time_msecs_t last_update_time;
+
+        time_msecs_t last_update_time = 0;
+
         int16_t target_current;
     };
 

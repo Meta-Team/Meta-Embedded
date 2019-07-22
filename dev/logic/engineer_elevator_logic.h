@@ -13,6 +13,7 @@
 #include "dms_interface.h"
 #include "referee_interface.h"
 
+// TODO: embed as constants
 #define FF_SWITCH_PAD GPIOB
 #define FFL_SWITCH_PIN_ID GPIOB_PIN0    // PB0 - L2
 #define FFR_SWITCH_PIN_ID GPIOB_PIN1    // PB1 - M2

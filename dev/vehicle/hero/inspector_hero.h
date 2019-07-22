@@ -20,7 +20,7 @@
 #if defined(HERO)
 #include "vehicle_hero.h"
 #else
-#error "Files inspector.h/cpp should only be used for Hero main program"
+#error "Files inspector_hero.h/cpp should only be used for Hero main program"
 #endif
 
 class InspectorH {

@@ -16,6 +16,12 @@
 #include "gimbal_interface.h"
 #include "vehicle_sentry.h"
 
+#if defined(SENTRY)
+#include "vehicle_sentry.h"
+#else
+#error "Files inspector_sentry.h/cpp should only be used for Sentry main program"
+#endif
+
 class InspectorS {
 
 public:

@@ -250,9 +250,9 @@ void EngineerElevatorLG::going_down() {
             state = ASCENDING;
         }
         else if ( BL_hanging && !BR_hanging )
-            EngineerChassisSKD::pivot_turn(BL, -0.3 * ENGINEER_CHASSIS_W_MAX);
+            EngineerChassisSKD::pivot_turn(EngineerChassisSKD::BL, -0.3 * ENGINEER_CHASSIS_W_MAX);
         else if ( !BL_hanging && BR_hanging )
-            EngineerChassisSKD::pivot_turn(BR, +0.3 * ENGINEER_CHASSIS_VELOCITY_MAX);
+            EngineerChassisSKD::pivot_turn(EngineerChassisSKD::BR, +0.3 * ENGINEER_CHASSIS_VELOCITY_MAX);
         else
             EngineerChassisSKD::set_velocity(0, -0.02 *ENGINEER_CHASSIS_VELOCITY_MAX, 0);
     }
