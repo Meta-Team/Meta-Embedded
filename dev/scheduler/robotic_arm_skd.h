@@ -59,14 +59,15 @@ public:
 
 private:
 
-    static void init();
-
 public:
 
     /**
      * @brief perform action on clamp
      * @param target_status
      */
+
+    static void start(tprio_t skd_thread_prio);
+
     static void next_step();
     static void prev_step();
 
