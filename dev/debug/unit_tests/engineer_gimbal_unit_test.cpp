@@ -5,9 +5,9 @@
 #include "ch.hpp"
 #include "hal.h"
 #include "led.h"
-#include "serial_shell.h"
+#include "shell.h"
 #include "buzzer.h"
-#include "vehicle/engineer/engineer_gimbal.h"
+#include "engineer_gimbal.h"
 
 #include "remote_interpreter.h"
 
@@ -47,7 +47,7 @@ int main(void) {
     Shell::start(HIGHPRIO);
 
     /** Basic IO Setup **/
-//    Remote::start();
+    Remote::start();
 
 
     /*** ------------ Period 2. Calibration and Start Logic Control Thread ----------- ***/

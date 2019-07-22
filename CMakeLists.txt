@@ -352,7 +352,7 @@ add_executable(ut_elevator_interface
         dev/debug/unit_tests/ut_elevator_IF.cpp)
 
 add_executable(ut_engineer_gimbal
-        dev/vehicle/engineer/engineer_gimbal.cpp
+        dev/interface/engineer_gimbal.cpp
         dev/interface/remote_interpreter.cpp
         dev/debug/unit_tests/engineer_gimbal_unit_test.cpp)
 
