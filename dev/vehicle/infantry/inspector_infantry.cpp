@@ -135,7 +135,7 @@ bool InspectorI::check_gimbal_failure() {
     for (unsigned i = 0; i < 3; i++) {
         if (not WITHIN_RECENT_TIME(GimbalIF::feedback[i].last_update_time, 20)) {
             if (!gimbal_failure_) {  // avoid repeating printing
-                LOG_ERR("Gimbal motor %u offline", i);
+                LOG_ERR("Gimbal motor %u offline (at %u)", i, GimbalIF::feedback[i].last_update_time);
                 ret = true;
             }
         }
@@ -148,7 +148,7 @@ bool InspectorI::check_chassis_failure() {
     for (unsigned i = 0; i < ChassisIF::MOTOR_COUNT; i++) {
         if (not WITHIN_RECENT_TIME(ChassisIF::feedback[i].last_update_time, 20)) {
             if (!chassis_failure_) {  // avoid repeating printing
-                LOG_ERR("Chassis motor %u offline", i);
+                LOG_ERR("Chassis motor %u offline (at %u)", i, ChassisIF::feedback[i].last_update_time);
                 ret = true;
             }
         }
@@ -180,7 +180,7 @@ void InspectorI::InspectorThread::main() {
             remote_failure_ = false;
         }
 
-        remote_failure_ = (not WITHIN_RECENT_TIME(Remote::last_update_time, 30));
+        remote_failure_ = (not WITHIN_RECENT_TIME(Remote::last_update_time, 50));
         if (remote_failure_) LED::led_off(DEV_BOARD_LED_REMOTE);
         else LED::led_on(DEV_BOARD_LED_REMOTE);
 
