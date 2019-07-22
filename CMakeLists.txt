@@ -194,7 +194,6 @@ add_executable(ENGINEER
         dev/interface/can_interface.cpp
         dev/interface/chassis_interface.cpp
         dev/interface/remote_interpreter.cpp
-        dev/interface/elevator_interface.cpp
         dev/interface/robotic_arm_interface.cpp
 #        dev/control/chassis.cpp
         dev/vehicle/engineer/state_machine_bullet_fetch.cpp
@@ -230,8 +229,7 @@ add_executable(AERIAL
 
 add_executable(ENGINEER_TEST
         dev/vehicle/engineer/main_engineer_test.cpp
-        dev/control/engineer_chassis_skd.cpp
-        dev/interface/engineer_chassis_interface.cpp
+        dev/scheduler/engineer_chassis_skd.cpp
         dev/control/engineer_elevator_logic.cpp
         dev/control/engineer_elevator_skd.cpp
         dev/interface/engineer_elevator_interface.cpp
@@ -246,8 +244,7 @@ add_executable(ENGINEER_TEST
 
 add_executable(ut_engineer
         dev/debug/unit_tests/engineer_unit_test.cpp
-        dev/control/engineer_chassis_skd.cpp
-        dev/interface/engineer_chassis_interface.cpp
+        dev/scheduler/engineer_chassis_skd.cpp
         dev/control/engineer_elevator_logic.cpp
         dev/control/engineer_elevator_skd.cpp
         dev/interface/engineer_elevator_interface.cpp
@@ -351,7 +348,6 @@ target_link_libraries(pa_chassis ${PROJECT_SOURCE_DIR}/dev/interface/ahrs/ahrs_l
 # Elevator Interface: include CANInterface, ElevatorInterface, and the unit test modules.
 add_executable(ut_elevator_interface
         dev/interface/can_interface.cpp
-        dev/interface/elevator_interface.cpp
         dev/debug/unit_tests/ut_elevator_IF.cpp)
 
 # Elevator: include CANInterface, ElevatorInterface, ElevatorController, and the unit test modules.
@@ -366,8 +362,7 @@ add_executable(pa_elevator
 add_executable(pa_engineer_chassis
         dev/interface/can_interface.cpp
         dev/module/pid_controller.hpp
-        dev/control/engineer_chassis_skd.cpp
-        dev/interface/engineer_chassis_interface.cpp
+        dev/scheduler/engineer_chassis_skd.cpp
         dev/debug/unit_tests/engineer_chassis_param_adjust.cpp)
 
 # Robotic Arm

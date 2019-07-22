@@ -274,7 +274,7 @@ int main(void) {
     /*** ------------ Period 2. Calibration and Start Logic Control Thread ----------- ***/
 
     /*** Parameters Set up***/
-    EngineerChassisIF::init(&can1);
+    ChassisIF::init(&can1);
     EngineerElevatorIF::init(&can2);
     RoboticArmIF::init(&can2);
 

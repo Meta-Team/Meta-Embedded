@@ -8,7 +8,7 @@
 #include "ch.hpp"
 #include "hal.h"
 #include "common_macro.h"
-#include "vehicle/engineer/vehicle_engineer.h"
+
 #include "engineer_elevator_interface.h"
 #include "pid_controller.hpp"
 
@@ -20,50 +20,46 @@ class EngineerElevatorSKD {
 
 public:
 
-    // Engineer elevator chassis thread
-    class EngineerElevatorThread: public chibios_rt::BaseStaticThread<512>{
-        void main()final;
-    };
-
-    static EngineerElevatorThread engineerElevatorThread;
-
-private:
-
-    static void init();
-
-public:
+    static void start(tprio_t thread_prio);
 
     static void elevator_enable(bool enable);
 
     static void aided_motor_enable(bool enable);
 
-    static void change_pid_params(int pid_id, PIDControllerBase::pid_params_t pid_params);
 
-    static void set_target_height(float new_height);        // cm
+    static void load_pid_params(PIDControllerBase::pid_params_t elevator_a2v,
+                                PIDControllerBase::pid_params_t elevator_v2i,
+                                PIDControllerBase::pid_params_t aided_v2i,
+                                PIDControllerBase::pid_params_t balance_a2v);
+
+    static void set_target_height(float new_height);  // [cm], positive height - chassis lift up
+    static float get_target_height();
 
     static void set_aided_motor_velocity(float target_velocity_L, float target_velocity_R);
 
-    static float target_height;
 
-    // Size: 4; index 0 and 1 for elevator motors, index 2 and 3 for auxiliary motors
-    static float target_velocity[];
+
 
 private:
 
     static bool elevator_enabled;
-
     static bool aided_motor_enabled;
 
-    // Size: 4; index 0 and 1 for elevator motors, index 2 and 3 for auxiliary motors
-    static PIDController v2i_pid[];
+    static float target_height;
+    static float target_velocity[4];  // 0 and 1 for elevator motors, 2 and 3 for auxiliary motors
 
-    // Size: 2; index 0 and 1 for elevator motors
-    static PIDController a2v_pid[];
-
+    static PIDController v2i_pid[4];  // 0 and 1 for elevator motors, 2 and 3 for auxiliary motors
+    static PIDController a2v_pid[2];  // 0 and 1 for elevator motors
     static PIDController counter_balance_pid;
 
-    friend void cmd_elevator_echo_parameters(BaseSequentialStream *chp, int argc, char *argv[]);
+    class SKDThread : public chibios_rt::BaseStaticThread<512> {
+        static constexpr unsigned int SKD_THREAD_INTERVAL = 2; // PID calculation interval [ms]
+        void main() final;
+    };
 
+    static SKDThread skdThread;
+
+    friend void cmd_elevator_echo_parameters(BaseSequentialStream *chp, int argc, char *argv[]);
     friend void cmd_elevator_set_target_velocities(BaseSequentialStream *chp, int argc, char *argv[]);
 };
 

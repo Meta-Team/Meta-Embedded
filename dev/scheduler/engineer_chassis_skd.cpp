@@ -126,6 +126,6 @@ void EngineerChassisSKD::SKDThread::main() {
         }
 
         ChassisIF::send_chassis_currents();
-        sleep(TIME_MS2I(2));
+        sleep(TIME_MS2I(SKD_THREAD_INTERVAL));
     }
 }

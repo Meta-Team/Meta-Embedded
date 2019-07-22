@@ -57,10 +57,9 @@ private:
     static float target_vy;
     static float target_w;
 
+    static float target_velocity[MOTOR_COUNT];
 
-    static float target_velocity[];
-
-    static PIDController pid[];
+    static PIDController pid[MOTOR_COUNT];
 
     static float wheel_base_;  // distance between front axle and the back axle [mm]
     static float wheel_tread_;  // distance between left and right wheels [mm]
@@ -75,7 +74,6 @@ private:
     };
 
     static SKDThread skdThread;
-
 };
 
 

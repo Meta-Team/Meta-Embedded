@@ -115,7 +115,9 @@ void ChassisSKD::pivot_turn(motor_id_t id, float w) {
 
     float vx = point_y * target_w;
     float vy = -point_x * target_w;
-    set_velocity(vx, vy, w);
+
+    // TODO: can't compatible with current frame yet.
+//    set_velocity(vx, vy, w);
 }
 
 void ChassisSKD::SKDThread::main() {
