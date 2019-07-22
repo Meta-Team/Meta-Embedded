@@ -33,6 +33,10 @@ void EngineerElevatorLG::init(tprio_t logic_thread_prio) {
     hanging_trigger = 1800;     //TODO need to determine
     landed_trigger = 2300;      //TODO need to determine
 
+    a_t_backward = false;
+    a_t_forward = false;
+    delay_time = 0;
+
     engineerLogicThread.start(logic_thread_prio);
 }
 
@@ -260,9 +264,9 @@ void EngineerElevatorLG::going_down() {
             state = ASCENDING;
         }
         else if ( BL_hanging && !BR_hanging )
-            EngineerChassisSKD::pivot_turn(EngineerChassisSKD::BL, -0.01 * ENGINEER_CHASSIS_W_MAX);
+            EngineerChassisSKD::pivot_turn(EngineerChassisSKD::BL, -0.005 * ENGINEER_CHASSIS_W_MAX);
         else if ( !BL_hanging && BR_hanging )
-            EngineerChassisSKD::pivot_turn(EngineerChassisSKD::BR, +0.01 * ENGINEER_CHASSIS_W_MAX);
+            EngineerChassisSKD::pivot_turn(EngineerChassisSKD::BR, +0.005 * ENGINEER_CHASSIS_W_MAX);
         else
             EngineerChassisSKD::set_velocity(0, -0.02 *ENGINEER_CHASSIS_VELOCITY_MAX, 0);
     }
@@ -317,6 +321,33 @@ void EngineerElevatorLG::going_down() {
 }
 
 
+///////// for finding better aided motor params
+void EngineerElevatorLG::aided_motor_test_forward() {
+    adcsample_t data[4];
+    DMSInterface::get_raw_sample(data);
+    bool back_landed = data[DMSInterface::BL] > landed_trigger && data[DMSInterface::BR] > landed_trigger;
+
+    if (!back_landed)
+        EngineerElevatorSKD::set_aided_motor_velocity(0.7*ENGINEER_AIDED_MOTOR_VELOCITY, 0.7*ENGINEER_AIDED_MOTOR_VELOCITY);
+    else
+        EngineerElevatorSKD::set_aided_motor_velocity(0,0);
+
+}
+
+void EngineerElevatorLG::aided_motor_test_backward() {
+    adcsample_t data[4];
+    DMSInterface::get_raw_sample(data);
+    bool front_leave_stage = data[DMSInterface::FL] < hanging_trigger && data[DMSInterface::FR] < hanging_trigger;
+
+    if (!front_leave_stage)
+        EngineerElevatorSKD::set_aided_motor_velocity(-0.5*ENGINEER_AIDED_MOTOR_VELOCITY, -0.5*ENGINEER_AIDED_MOTOR_VELOCITY);
+    else {
+        chThdSleepMilliseconds(delay_time);
+        EngineerElevatorSKD::set_aided_motor_velocity(0, 0);
+    }
+}
+
+
 void EngineerElevatorLG::EngineerElevatorLGThread::main() {
     setName("ElevatorLG");
 
@@ -325,6 +356,13 @@ void EngineerElevatorLG::EngineerElevatorLGThread::main() {
     while (!shouldTerminate()) {
 
         update_hanging_status();
+
+        if (a_t_forward) {
+            aided_motor_test_forward();
+        }
+        if (a_t_backward) {
+            aided_motor_test_backward();
+        }
 
         if (action == LOCK || action == PAUSE) {
             EngineerElevatorSKD::elevator_enable(false);

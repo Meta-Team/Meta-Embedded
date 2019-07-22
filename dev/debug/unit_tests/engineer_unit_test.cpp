@@ -275,39 +275,28 @@ static void cmd_chassis_pivot_turn(BaseSequentialStream *chp, int argc, char *ar
         return;
     }
     int i = Shell::atoi(argv[0]);
-    if (i==0) EngineerChassisSKD::pivot_turn(ChassisBase::BL, -0.5*ENGINEER_CHASSIS_W_MAX);
-    if (i==1) EngineerChassisSKD::pivot_turn(ChassisBase::BR, 0.5*ENGINEER_CHASSIS_W_MAX);
+    if (i==0) EngineerChassisSKD::pivot_turn(ChassisBase::BL, -0.05*ENGINEER_CHASSIS_W_MAX);
+    if (i==1) EngineerChassisSKD::pivot_turn(ChassisBase::BR, 0.05*ENGINEER_CHASSIS_W_MAX);
 }
 
 static void cmd_aided_motor_test(BaseSequentialStream *chp, int argc, char *argv[]){
     (void) argv;
-    if (argc != 1) {
-        shellUsage(chp, "ttt 0(forward) / 1(backward)");
+    if (argc != 2) {
+        shellUsage(chp, "ttt 0(forward) / 1(backward) / 2(stop) delay_time[ms] ");
         return;
     }
 
-    float landed_trigger = 1800;
-    float hanging_trigger = 2300;
-    adcsample_t data[4];
-    DMSInterface::get_raw_sample(data);
-
+    EngineerElevatorLG::delay_time = Shell::atoi(argv[1]);
     int i = Shell::atoi(argv[0]);
+
     if (i==0) {
-
-        bool BL_landed = data[DMSInterface::BL] > landed_trigger;
-        bool BR_landed = data[DMSInterface::BR] > landed_trigger;
-        bool back_landed = BR_landed && BL_landed;
-        while (back_landed)
-            EngineerElevatorSKD::set_aided_motor_velocity(0.7*ENGINEER_AIDED_MOTOR_VELOCITY, 0.7*ENGINEER_AIDED_MOTOR_VELOCITY);
-
-    }
-    if (i==1) {
-        bool BL_hanging = data[DMSInterface::BL] < hanging_trigger;
-        bool BR_hanging = data[DMSInterface::BR] < hanging_trigger;
-        bool back_edged = BR_hanging && BL_hanging;
-        while (back_edged)
-            EngineerElevatorSKD::set_aided_motor_velocity(-0.5*ENGINEER_AIDED_MOTOR_VELOCITY, -0.5*ENGINEER_AIDED_MOTOR_VELOCITY);
-
+        EngineerElevatorLG::a_t_forward = true;
+        EngineerElevatorLG::a_t_backward = false;
+    } else if (i==1) {
+       EngineerElevatorLG::a_t_forward = false;
+       EngineerElevatorLG::a_t_backward = true;
+    } else if (i==2) {
+        EngineerElevatorLG::a_t_forward = EngineerElevatorLG::a_t_backward = false;
     }
 }
 

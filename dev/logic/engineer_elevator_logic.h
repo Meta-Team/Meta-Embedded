@@ -16,7 +16,7 @@
 // TODO: embed as constants
 #define FF_SWITCH_PAD GPIOB
 #define FFL_SWITCH_PIN_ID GPIOB_PIN0    // PB0 - L2
-#define FFR_SWITCH_PIN_ID GPIOB_PIN1    // PB1 - M2x
+#define FFR_SWITCH_PIN_ID GPIOB_PIN1    // PB1 - M2
 #define SWITCH_TOUCH_PAL_STATUS PAL_HIGH
 
 /** @note for the switch: BLACK -> GPIO; RED -> GND; BLUE -> VCC */
@@ -65,6 +65,14 @@ public:
     /** @brief Quit prev_action by reversing from PAUSE. */
     static void quit_action();
 
+
+    ///////// for finding better aided motor params
+    static void aided_motor_test_forward();
+    static void aided_motor_test_backward();
+    static bool a_t_forward;
+    static bool a_t_backward;
+
+    static uint32_t delay_time;     // ms
 
 
     // both the two sensors in front detect the stage, can start to go up-stairs
