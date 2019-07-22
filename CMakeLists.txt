@@ -204,6 +204,11 @@ add_executable(ut_elevator_interface
         dev/interface/elevator_interface.cpp
         dev/debug/unit_tests/elevator_interface_unit_test.cpp)
 
+add_executable(ut_engineer_gimbal
+        dev/vehicle/engineer/engineer_gimbal.cpp
+        dev/interface/remote_interpreter.cpp
+        dev/debug/unit_tests/engineer_gimbal_unit_test.cpp)
+
 # Elevator: include CANInterface, ElevatorInterface, ElevatorController, and the unit test modules.
 add_executable(pa_elevator
         dev/module/can_interface.cpp
