@@ -25,6 +25,9 @@ float ChassisSKD::target_w;
 float ChassisSKD::target_velocity[MOTOR_COUNT];
 int ChassisSKD::target_current[MOTOR_COUNT];
 
+float ChassisSKD::wheel_base_ = 0;
+float ChassisSKD::wheel_tread_ = 0;
+float ChassisSKD::wheel_circumference_ = 0;
 float ChassisSKD::w_to_v_ratio_ = 0.0f;
 float ChassisSKD::v_to_wheel_angular_velocity_ = 0.0f;
 float ChassisSKD::chassis_gimbal_offset_ = 0.0f;
@@ -36,6 +39,11 @@ ChassisSKD::SKDThread ChassisSKD::skdThread;
 
 void ChassisSKD::start(float wheel_base, float wheel_tread, float wheel_circumference, install_mode_t install_mode,
                        float chassis_gimbal_offset, tprio_t thread_prio) {
+
+    wheel_base_ = wheel_base;
+    wheel_tread_ = wheel_tread;
+    wheel_circumference_ = wheel_circumference;
+
     w_to_v_ratio_ = (wheel_base + wheel_tread) / 2.0f / 360.0f * 3.14159f;
     v_to_wheel_angular_velocity_ = (360.0f / wheel_circumference);
     chassis_gimbal_offset_ = chassis_gimbal_offset;
@@ -84,6 +92,30 @@ void ChassisSKD::velocity_decompose_(float vx, float vy, float w) {
 
     target_velocity[BR] = install_mode_ * (-vx - vy + w * w_to_v_ratio_) * v_to_wheel_angular_velocity_;
     target_current[BR] = (int) v2i_pid[BR].calc(ChassisIF::feedback[BR].actual_velocity, target_velocity[BR]);
+}
+
+void ChassisSKD::pivot_turn(motor_id_t id, float w) {
+
+    float point_x = 0;
+    float point_y = 0;
+
+    if (id == FR) {
+        point_x = 0.5 * wheel_tread_;
+        point_y = 0.5 * wheel_base_;
+    } else if (id == FL) {
+        point_x = -0.5 * wheel_tread_;
+        point_y = 0.5 * wheel_base_;
+    } else if (id == BL) {
+        point_x = -0.5 * wheel_tread_;
+        point_y = -0.5 * wheel_base_;
+    } else if (id == BR) {
+        point_x = 0.5 * wheel_tread_;
+        point_y = -0.5 * wheel_base_;
+    }
+
+    float vx = point_y * target_w;
+    float vy = -point_x * target_w;
+    set_velocity(vx, vy, w);
 }
 
 void ChassisSKD::SKDThread::main() {

@@ -10,7 +10,6 @@
 
 #include "chassis_interface.h"
 #include "pid_controller.hpp"
-//#include "vehicle/engineer/vehicle_engineer.h"
 
 /**
  * @name EngineerChassisSKD
@@ -20,75 +19,62 @@ class EngineerChassisSKD : public ChassisBase {
 
 public:
 
-    // Engineer chassis thread
-    class EngineerChassisThread: public chibios_rt::BaseStaticThread<512>{
-        void main()final;
-    };
-
-    static EngineerChassisThread engineerChassisThread;
-
-    static float target_velocity[];
-
-private:
     /**
      * Initialize ChassisInterface and this calculator
-     * @param wheel_base
-     * @param wheel_tread
-     * @param wheel_circumference
+     * @param wheel_base              Distance between front axle and the back axle [mm]
+     * @param wheel_tread             Distance between left and right wheels [mm]
+     * @param wheel_circumference     Circumference of wheels [mm]
+     * @param thread_prio             Priority of PID calculation thread
      */
-    static void init();
+    static void start(float wheel_base, float wheel_tread, float wheel_circumference, tprio_t thread_prio);
 
-public:
+    /**
+     * Change PID parameters of PID controller
+     * @param v2i_pid_params       Velocity to current parameters of every motor (shared parameters)
+     */
+    static void load_pid_params(PIDController::pid_params_t v2i_pid_params);
 
     static void lock();
 
     static void unlock();
 
-    static void set_test_end_time(time_msecs_t run_time);
-
-    /**
-     * Change parameters of PID controller of every motor
-     * @param pid_params
-     */
-    static void change_pid_params(PIDControllerBase::pid_params_t pid_params);
-
-    static void print_pid();
+    static bool is_locked();
 
     static void set_velocity(float target_vx_, float target_vy_, float target_w_);
 
-    /** rotate about a given wheel, used when one wheel is edged */
-    static void pivot_turn(engr_motor_id_t id, float w);
-
     /**
-     * Calculate current for all chassis motors and fill target_velocity[] (in this class) and target_current[]
-     * (in ChassisInterface)
-     * @param target_vx: target velocity along the x axis with respect to the front of the chassis (mm/s)
-     * @param target_vy: target velocity along the y axis with respect to the front of the chassis (mm/s)
-     * @param target_w: target angular with respect to the front of the chassis (degree/s, negative value for clockwise)
+     * Set target values of turning around an wheel
+     * @param id   Motor id as pivot
+     * @param w    Angular velocity
      */
-    static void update_target_current();
+    static void pivot_turn(motor_id_t id, float w);
 
 private:
 
-    static bool enable;
-
-    static bool time_control;
-    static time_msecs_t test_end_time; // [ms]
+    static bool unlocked;
 
     static float target_vx;
     static float target_vy;
     static float target_w;
 
-    /**
-     * PID controller for each motor
-     */
+
+    static float target_velocity[];
+
     static PIDController pid[];
 
-    // Angular velocity (degree/s) to velocity (mm/s, based on mechanism structure)
-    static float constexpr w_to_v_ratio_ = (CHASSIS_WHEEL_BASE + CHASSIS_WHEEL_TREAD) / 2.0f / 360.0f * 3.14159f;;
+    static float wheel_base_;  // distance between front axle and the back axle [mm]
+    static float wheel_tread_;  // distance between left and right wheels [mm]
+    static float wheel_circumference_;  // circumference of wheels [mm]
 
-    // Wheel speed (mm/s) to wheel angular velocity (degree/s)
-    static float constexpr v_to_wheel_angular_velocity_ = 360.0f / CHASSIS_WHEEL_CIRCUMFERENCE;
+    static float w_to_v_ratio_;  // Angular velocity (degree/s) to velocity (mm/s, based on mechanism structure)
+    static float v_to_wheel_angular_velocity_;  // Wheel speed (mm/s) to wheel angular velocity (degree/s)
+
+    class SKDThread : public chibios_rt::BaseStaticThread<512> {
+        static constexpr unsigned int SKD_THREAD_INTERVAL = 2; // PID calculation interval [ms]
+        void main() final;
+    };
+
+    static SKDThread skdThread;
 
 };
 

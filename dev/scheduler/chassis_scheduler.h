@@ -51,6 +51,7 @@ public:
      * @param wheel_base              Distance between front axle and the back axle [mm]
      * @param wheel_tread             Distance between left and right wheels [mm]
      * @param wheel_circumference     Circumference of wheels [mm]
+     * @param install_mode            Whether chassis motors are reversed with some mechanism
      * @param chassis_gimbal_offset   Distance between gimbal and chassis [mm, + for gimbal at "front"]
      * @param thread_prio             Priority of PID calculation thread
      */
@@ -77,6 +78,13 @@ public:
      * @param theta  Target angle difference between gimbal coordinate and chassis coordinate [degree]
      */
     static void set_target(float vx, float vy, float theta);
+
+    /**
+     * Set target values of turning around an wheel
+     * @param id   Motor id as pivot
+     * @param w    Angular velocity
+     */
+    static void pivot_turn(motor_id_t id, float w);
 
     /**
      * Get actual angle difference between gimbal coordinate and chassis coordinate [degree]
@@ -119,13 +127,14 @@ private:
     static float target_velocity[MOTOR_COUNT];  // target velocity for each motor (middle value for two-ring PID)
     static int target_current[MOTOR_COUNT];     // local storage of target current of each motor
 
-    // Angular velocity (degree/s) to velocity (mm/s, based on mechanism structure)
-    static float w_to_v_ratio_;
+    static float wheel_base_;  // distance between front axle and the back axle [mm]
+    static float wheel_tread_;  // distance between left and right wheels [mm]
+    static float wheel_circumference_;  // circumference of wheels [mm]
 
-    // Wheel speed (mm/s) to wheel angular velocity (degree/s)
-    static float v_to_wheel_angular_velocity_;
+    static float w_to_v_ratio_;  // Angular velocity (degree/s) to velocity (mm/s, based on mechanism structure)
+    static float v_to_wheel_angular_velocity_;  // Wheel speed (mm/s) to wheel angular velocity (degree/s)
 
-    static float chassis_gimbal_offset_;
+    static float chassis_gimbal_offset_;  // distance between gimbal and chassis [mm, + for gimbal at "front"]
 
     static install_mode_t install_mode_;
 
