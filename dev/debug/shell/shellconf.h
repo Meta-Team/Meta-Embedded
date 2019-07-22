@@ -34,6 +34,25 @@
 // Enlarge the maximum number of arguments
 #define SHELL_MAX_ARGUMENTS                 10
 
+
+#if !defined(BUILD_TARGET_NAME)
+#define BUILD_TARGET_NAME "Unknown"
+#endif
+
+#define SHELL_WELCOME_STR                   SHELL_NEWLINE_STR SHELL_NEWLINE_STR \
+                                            " ======== Welcome to Meta Shell ========" SHELL_NEWLINE_STR \
+                                                                                       SHELL_NEWLINE_STR \
+                                            "                /\\  /\\"                 SHELL_NEWLINE_STR \
+                                            "               /  \\/  \\  /"             SHELL_NEWLINE_STR \
+                                            "              /   /\\   \\/"              SHELL_NEWLINE_STR \
+                                            "             /   /  \\  /\\"              SHELL_NEWLINE_STR \
+                                            "                     \\/"                 SHELL_NEWLINE_STR \
+                                            SHELL_NEWLINE_STR \
+                                            "     Current Program: " BUILD_TARGET_NAME SHELL_NEWLINE_STR \
+                                            SHELL_NEWLINE_STR \
+
+
+
 #endif
 
 /** @} */

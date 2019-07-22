@@ -451,6 +451,8 @@ set(ELF_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/build)
 set(ELF_OUTPUT_NAME meta.elf)
 message("[Notice] All executables are built to ${ELF_OUTPUT_PATH}/${ELF_OUTPUT_NAME}")
 
+add_definitions(-DBUILD_TARGET_NAME="$<TARGET_PROPERTY:NAME>")
+
 get_directory_property(TARGER_LIST BUILDSYSTEM_TARGETS)
 foreach (target ${TARGER_LIST})
     if (NOT ${target} STREQUAL "ChibiOS_OBJ")  # OBJECT library doesn't have PRE_BUILD or POST_BUILD

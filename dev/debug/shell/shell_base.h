@@ -133,6 +133,13 @@
 #define SHELL_NEWLINE_STR            "\r\n"
 #endif
 
+/**
+ * @brief   Welcome string
+ */
+#if !defined(SHELL_WELCOME_STR) || defined(__DOXYGEN__)
+#define SHELL_WELCOME_STR            "> ChibiOS/RT Shell <"
+#endif
+
 /*===========================================================================*/
 /* Derived constants and error checks.                                       */
 /*===========================================================================*/
