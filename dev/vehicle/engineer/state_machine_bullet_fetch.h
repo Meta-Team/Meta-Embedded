@@ -13,7 +13,7 @@
 #include "ch.hpp"
 #include "hal.h"
 #include "common_macro.h"
-#include "robotic_arm.h"
+#include "robotic_arm_interface.h"
 
 #define BULLET_FETCH_STATE_MACHINE_WORKING_AREA_SIZE 1024
 

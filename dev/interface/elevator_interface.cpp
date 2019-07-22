@@ -53,7 +53,7 @@ void ElevatorInterface::process_elevator_feedback(CANRxFrame const *rxmsg) {
         angle_movement -= 8192;
     }
 
-    feedback[motor_id].accmulate_angle += angle_movement * 360.0f / 8192.0f / 19.2f;
+    feedback[motor_id].accumulate_angle += angle_movement * 360.0f / 8192.0f / 19.2f;
 
     feedback[motor_id].actual_angle_raw = new_angle_raw;
 
@@ -69,7 +69,8 @@ void ElevatorInterface::process_elevator_feedback(CANRxFrame const *rxmsg) {
 
 void ElevatorInterface::init(CANInterface *can_interface) {
     can = can_interface;
-    can->register_callback(0x205, 0x208, process_elevator_feedback);
+    //can->register_callback(0x205, 0x208, process_elevator_feedback);
+    //TODO: determine the number of motors
     for (int i = 0; i < MOTOR_COUNT; i++) {
         feedback[i].id = (motor_id_t) i;
         feedback[i].last_update_time = 0;
@@ -83,6 +84,6 @@ void ElevatorInterface::init(CANInterface *can_interface) {
 }
 
 void ElevatorInterface::motor_feedback_t::clear_accmulate_angle() {
-    accmulate_angle = 0;
+    accumulate_angle = 0;
 }
 

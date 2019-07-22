@@ -1,18 +1,18 @@
 //
 // Created by liuzikai on 2019-02-24.
+// Modified by Zhu Kerui on 2019-07-13
 //
 
 #include "ch.hpp"
 #include "hal.h"
-
 #include "led.h"
 #include "debug/shell/shell.h"
 #include "can_interface.h"
-#include "robotic_arm.h"
-
-#include "vehicle/engineer/state_machine_bullet_fetch.h"
-
+#include "common_macro.h"
 #include "buzzer.h"
+
+#include "robotic_arm_interface.h"
+#include "robotic_arm_skd.h"
 
 #if defined(BOARD_RM_2018_A)
 #define STARTUP_BUTTON_PAD GPIOB
@@ -23,30 +23,30 @@
 #endif
 
 CANInterface can1(&CAND1);
-BulletFetchStateMachine roboticArmThread;
+CANInterface can2(&CAND2);
 
-static void cmd_robotic_clamp_action(BaseSequentialStream *chp, int argc, char *argv[]) {
-    (void) argv;
-    if (argc != 1) {
-        shellUsage(chp, "clamp 0(relax)/1(clamped)");
-        return;
-    }
-    if (Shell::atoi(argv[0]) == 0) {
-        RoboticArm::clamp_action(RoboticArm::CLAMP_RELAX);
-    } else {
-        RoboticArm::clamp_action(RoboticArm::CLAMP_CLAMPED);
-    }
-}
-
-static void cmd_robotic_arm_action(BaseSequentialStream *chp, int argc, char *argv[]) {
-    (void) argv;
-    if (argc != 0) {
-        shellUsage(chp, "engi_fetch");
-        return;
-    }
-    int ret = roboticArmThread.start_initial_outward(NORMALPRIO);
-    chprintf(chp, "Start up action = %d" SHELL_NEWLINE_STR, ret);
-}
+//static void cmd_robotic_clamp_action(BaseSequentialStream *chp, int argc, char *argv[]) {
+//    (void) argv;
+//    if (argc != 1) {
+//        shellUsage(chp, "clamp 0(relax)/1(clamped)");
+//        return;
+//    }
+//    if (Shell::atoi(argv[0]) == 0) {
+//        RoboticArmSKD::set_clamp_action(RoboticArmSKD::CLAMP_RELAX);
+//    } else {
+//        RoboticArmSKD::set_clamp_action(RoboticArmSKD::CLAMP_CLAMPED);
+//    }
+//}
+//
+//static void cmd_robotic_arm_action(BaseSequentialStream *chp, int argc, char *argv[]) {
+//    (void) argv;
+//    if (argc != 1) {
+//        shellUsage(chp, "rotate 0(pull_back)/1(stretch_out)");
+//        return;
+//    }
+//    if (Shell::atoi(argv[0])) RoboticArmSKD::stretch_out();
+//    else RoboticArmSKD::pull_back();
+//}
 
 static void cmd_robotic_arm_emergency_stop(BaseSequentialStream *chp, int argc, char *argv[]) {
     (void) argv;
@@ -54,14 +54,41 @@ static void cmd_robotic_arm_emergency_stop(BaseSequentialStream *chp, int argc, 
         shellUsage(chp, "s (emergency stop)");
         return;
     }
-    roboticArmThread.emergency_stop();
+    RoboticArmSKD::released = true;
     chprintf(chp, "EMERGENCY STOP" SHELL_NEWLINE_STR);
 }
 
+void cmd_robotic_arm_set_v2i(BaseSequentialStream *chp, int argc, char *argv[]) {
+    (void) argv;
+    if (argc != 5) {
+        shellUsage(chp, "set_v2i kp ki kd i_limit out_limit");
+        return;
+    }
+    RoboticArmSKD::v2i_pid.change_parameters({Shell::atof(argv[0]),
+                                              Shell::atof(argv[1]),
+                                              Shell::atof(argv[2]),
+                                              Shell::atof(argv[3]),
+                                              Shell::atof(argv[4])});
+    LOG("pass!");
+}
+
+static void cmd_robotic_arm_next(BaseSequentialStream *chp, int argc, char *argv[]) {
+    (void) argv;
+    RoboticArmSKD::next_step();
+}
+
+static void cmd_robotic_arm_prev(BaseSequentialStream *chp, int argc, char *argv[]) {
+    (void) argv;
+    RoboticArmSKD::prev_step();
+}
+
 ShellCommand roboticArmCommands[] = {
-        {"clamp", cmd_robotic_clamp_action},
-        {"engi_fetch", cmd_robotic_arm_action},
+//        {"clamp", cmd_robotic_clamp_action},
+//        {"rotate", cmd_robotic_arm_action},
         {"s", cmd_robotic_arm_emergency_stop},
+        {"set_v2i", cmd_robotic_arm_set_v2i},
+        {"next", cmd_robotic_arm_next},
+        {"prev", cmd_robotic_arm_prev},
         {nullptr, nullptr}
 };
 
@@ -69,8 +96,8 @@ class FeedbackThread : public chibios_rt::BaseStaticThread<512> {
     void main() final {
         setName("robotic_arm_fb");
         while(!shouldTerminate()) {
-            Shell::printf("rotation motor pos = %f" SHELL_NEWLINE_STR, RoboticArm::get_motor_actual_angle());
-            sleep(TIME_MS2I(2000));
+            LOG("rotation motor pos = %f rotation motor v = %f" SHELL_NEWLINE_STR, RoboticArmIF::present_angle, RoboticArmIF::present_velocity);
+            sleep(TIME_MS2I(200));
         }
     }
 } feedbackThread;
@@ -86,10 +113,9 @@ int main(void) {
     LED::green_off();
 
     can1.start(HIGHPRIO - 1);
-    RoboticArm::init(&can1);
-
-    chThdSleepMilliseconds(2000);
-    RoboticArm::reset_front_angle();
+    can2.start(HIGHPRIO - 2);
+    RoboticArmIF::init(&can2);
+    RoboticArmSKD::roboticArmThread.start(HIGHPRIO - 3);
 
     while (palReadPad(STARTUP_BUTTON_PAD, STARTUP_BUTTON_PIN_ID) != STARTUP_BUTTON_PRESS_PAL_STATUS) {
         // Wait for the button to be pressed
@@ -97,9 +123,7 @@ int main(void) {
         chThdSleepMilliseconds(300);
     }
 
-//    feedbackThread.start(NORMALPRIO);
-
-    roboticArmThread.start_initial_outward(NORMALPRIO);
+    feedbackThread.start(NORMALPRIO);
 
     Buzzer::play_sound(Buzzer::sound_startup, LOWPRIO);
 

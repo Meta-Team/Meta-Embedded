@@ -13,7 +13,7 @@
 
 #include "buzzer.h"
 #include "remote_interpreter.h"
-#include "robotic_arm.h"
+#include "robotic_arm_interface.h"
 
 #include "scheduler/chassis_scheduler.h"
 #include "elevator.h"
@@ -108,7 +108,7 @@ int main(void) {
     // LED 4 on now
 
     /** Setup RoboticArm */
-    RoboticArm::init(&can1);
+    RoboticArmIF::init(&can1);
     chThdSleepMilliseconds(10);
     startupCheckRoboticArmFeedback();  // check chassis motors has continuous feedback. Block for 50 ms
     StateHandler::echoEvent(StateHandler::ROBOTIC_ARM_CONNECT);
@@ -134,7 +134,7 @@ int main(void) {
 
     /*** ------------ Period 2. Calibration and Start Logic Control Thread ----------- ***/
 
-    RoboticArm::reset_front_angle();
+    RoboticArmIF::clear_angle();
 
     chassisThread.start(NORMALPRIO);
     elevatorThread.start(NORMALPRIO - 1);

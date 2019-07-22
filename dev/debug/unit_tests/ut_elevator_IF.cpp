@@ -27,21 +27,15 @@ static void cmd_elevator_echo(BaseSequentialStream *chp, int argc, char *argv[])
         shellUsage(chp, "c_echo");
         return;
     }
-    chprintf(chp, "accmulate_angle: FR = %d, FL = %d, BL = %d, BR = %d" SHELL_NEWLINE_STR,
-             ElevatorInterface::feedback[ElevatorInterface::FR].accmulate_angle,
-             ElevatorInterface::feedback[ElevatorInterface::FL].accmulate_angle,
-             ElevatorInterface::feedback[ElevatorInterface::BL].accmulate_angle,
-             ElevatorInterface::feedback[ElevatorInterface::BR].accmulate_angle);
-    chprintf(chp, "actual_velocity: FR = %.2f, FL = %.2f, BL = %.2f, BR = %.2f" SHELL_NEWLINE_STR,
-             ElevatorInterface::feedback[ElevatorInterface::FR].actual_velocity,
-             ElevatorInterface::feedback[ElevatorInterface::FL].actual_velocity,
-             ElevatorInterface::feedback[ElevatorInterface::BL].actual_velocity,
-             ElevatorInterface::feedback[ElevatorInterface::BR].actual_velocity);
-    chprintf(chp, "target_current: FR = %d, FL = %d, BL = %d, BR = %d" SHELL_NEWLINE_STR,
-             ElevatorInterface::target_current[ElevatorInterface::FR],
-             ElevatorInterface::target_current[ElevatorInterface::FL],
-             ElevatorInterface::target_current[ElevatorInterface::BL],
-             ElevatorInterface::target_current[ElevatorInterface::BR]);
+    chprintf(chp, "accumulate_angle: R = %d, L = %d" SHELL_NEWLINE_STR,
+             ElevatorInterface::feedback[ElevatorInterface::R].accumulate_angle,
+             ElevatorInterface::feedback[ElevatorInterface::L].accumulate_angle);
+    chprintf(chp, "actual_velocity: R = %.2f, L = %.2f" SHELL_NEWLINE_STR,
+             ElevatorInterface::feedback[ElevatorInterface::R].actual_velocity,
+             ElevatorInterface::feedback[ElevatorInterface::L].actual_velocity);
+    chprintf(chp, "target_current: R = %d, L = %d" SHELL_NEWLINE_STR,
+             ElevatorInterface::target_current[ElevatorInterface::R],
+             ElevatorInterface::target_current[ElevatorInterface::L]);
 }
 
 /**
@@ -52,20 +46,16 @@ static void cmd_elevator_echo(BaseSequentialStream *chp, int argc, char *argv[])
  */
 static void cmd_elevator_set_target_currents(BaseSequentialStream *chp, int argc, char *argv[]) {
     (void) argv;
-    if (argc != 4) {
-        shellUsage(chp, "c_set_current FR FL BL BR");
+    if (argc != 2) {
+        shellUsage(chp, "c_set_current R L");
         return;
     }
 
-    ElevatorInterface::target_current[ElevatorInterface::FR] = Shell::atoi(argv[0]);
-    ElevatorInterface::target_current[ElevatorInterface::FL] = Shell::atoi(argv[1]);
-    ElevatorInterface::target_current[ElevatorInterface::BL] = Shell::atoi(argv[2]);
-    ElevatorInterface::target_current[ElevatorInterface::BR] = Shell::atoi(argv[3]);
-    chprintf(chp, "target_current: FR = %d, FL = %d, BL = %d, BR = %d" SHELL_NEWLINE_STR,
-             ElevatorInterface::target_current[ElevatorInterface::FR],
-             ElevatorInterface::target_current[ElevatorInterface::FL],
-             ElevatorInterface::target_current[ElevatorInterface::BL],
-             ElevatorInterface::target_current[ElevatorInterface::BR]);
+    ElevatorInterface::target_current[ElevatorInterface::R] = Shell::atoi(argv[0]);
+    ElevatorInterface::target_current[ElevatorInterface::L] = Shell::atoi(argv[1]);
+    chprintf(chp, "target_current: R = %d, L = %d" SHELL_NEWLINE_STR,
+             ElevatorInterface::target_current[ElevatorInterface::R],
+             ElevatorInterface::target_current[ElevatorInterface::L]);
 
     ElevatorInterface::send_elevator_currents();
     chprintf(chp, "Elevator target_current sent" SHELL_NEWLINE_STR);
