@@ -45,7 +45,6 @@ void EngineerElevatorLG::set_action_free() {
 }
 
 void EngineerElevatorLG::set_action_lock() {
-    EngineerChassisSKD::lock();
     action = LOCK;
     state = STOP;
 }
@@ -308,7 +307,7 @@ void EngineerElevatorLG::going_down() {
 
 
 void EngineerElevatorLG::EngineerElevatorLGThread::main() {
-    setName("engineer_elevator_logic");
+    setName("ElevatorLG");
 
     DMSInterface::init(4);
 
