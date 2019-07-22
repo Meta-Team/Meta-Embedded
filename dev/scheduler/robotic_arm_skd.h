@@ -21,7 +21,6 @@
  *          when reaching a trigger angle, release the box
  */
 
-// TODO: embed as constants
 #define DOOR_PAD GPIOE_PIN4
 #define LIFT_PAD GPIOE_PIN5
 #define EXTEND_PAD GPIOE_PIN6
@@ -32,9 +31,15 @@ class RoboticArmSKD {
 
 public:
 
+    class RoboticArmThread: public chibios_rt::BaseStaticThread<256>{
+        void main()final;
+    };
+
+    static RoboticArmThread roboticArmThread;
+
     enum digital_status_t {
-        LOW_STATUS = PAL_LOW,
-        HIGH_STATUS = PAL_HIGH
+        LOW_STATUS = PAL_HIGH,
+        HIGH_STATUS = PAL_LOW
     };
 
     enum robotic_arm_state_t {
@@ -52,7 +57,11 @@ public:
 
     //TODO: lock()
 
-    static void start(tprio_t skd_thread_prio);
+private:
+
+    static void init();
+
+public:
 
     /**
      * @brief perform action on clamp
@@ -63,18 +72,24 @@ public:
 
     static void change_extend();
     static void change_door();
+    static void change_clamp();
 
     static digital_status_t door_state, lift_state, extend_state, clamp_state;
 
     static void change_digital_status(digital_status_t& status, uint8_t pad);
 
     static void set_digital_status(digital_status_t& status, uint8_t pad, digital_status_t state);
-
-private:
-
     static robotic_arm_state_t state;
 
     static bullet_state_t bullet_state;
+
+    static void stretch_out();
+
+    static void pull_back();
+
+private:
+
+
 
     static float trigger_angle;
 
@@ -85,15 +100,6 @@ private:
 
     static void update_target_current();
 
-    static void stretch_out();
-
-    static void pull_back();
-
-    class RoboticArmThread: public chibios_rt::BaseStaticThread<256>{
-        void main()final;
-    };
-
-    static RoboticArmThread roboticArmThread;
 
     friend void cmd_robotic_arm_set_v2i(BaseSequentialStream *chp, int argc, char *argv[]);
 

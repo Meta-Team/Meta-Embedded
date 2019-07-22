@@ -19,10 +19,7 @@ float RoboticArmSKD::target_velocity;
 PIDController RoboticArmSKD::v2i_pid;
 
 
-void RoboticArmSKD::start(tprio_t skd_thread_prio) {
-    set_digital_status(extend_state, EXTEND_PAD, LOW_STATUS);
-    set_digital_status(lift_state, LIFT_PAD, LOW_STATUS);
-    set_digital_status(clamp_state, CLAMP_PAD, LOW_STATUS);
+void RoboticArmSKD::init() {
 
     state = NORMAL;
     bullet_state = WAITING;
@@ -31,7 +28,16 @@ void RoboticArmSKD::start(tprio_t skd_thread_prio) {
     v2i_pid.change_parameters(ROBOTIC_ARM_PID_V2I_PARAMS);
     v2i_pid.clear_i_out();
 
-    roboticArmThread.start(skd_thread_prio);
+    palClearPad(GPIOH, POWER_PAD);
+    extend_state = LOW_STATUS;
+    lift_state = LOW_STATUS;
+    door_state = LOW_STATUS;
+    clamp_state = LOW_STATUS;
+    palSetPad(GPIOE, EXTEND_PAD);
+    palSetPad(GPIOE, LIFT_PAD);
+    palSetPad(GPIOE, DOOR_PAD);
+    palSetPad(GPIOE, CLAMP_PAD);
+
 }
 
 void RoboticArmSKD::stretch_out() {
@@ -55,31 +61,36 @@ void RoboticArmSKD::change_extend() {
 }
 
 void RoboticArmSKD::change_door() {
-    if (released) {
-        if (door_state == HIGH_STATUS) {
-            EngineerElevatorSKD::set_target_height(2);
-            change_digital_status(door_state, DOOR_PAD);
-        }
-        else {
-            change_digital_status(door_state, DOOR_PAD);
-            EngineerElevatorSKD::set_target_height(0);
-        }
+    if (door_state == LOW_STATUS) {
+        EngineerElevatorSKD::set_target_height(2);
+        chThdSleepMilliseconds(1000);
+        change_digital_status(door_state, DOOR_PAD);
     }
+    else {
+        change_digital_status(door_state, DOOR_PAD);
+        EngineerElevatorSKD::set_target_height(0);
+    }
+}
 
+void RoboticArmSKD::change_clamp() {
+    if (clamp_state==HIGH_STATUS) { clamp_state = LOW_STATUS;}
+    else  { clamp_state = HIGH_STATUS;}
+    palWritePad(GPIOE, CLAMP_PAD, clamp_state);
 }
 
 void RoboticArmSKD::change_digital_status(digital_status_t& status, uint8_t pad) {
     if (released) {
-        if (status == HIGH_STATUS) status = LOW_STATUS;
-        else status = HIGH_STATUS;
-        palWritePad(GPIOH, pad, status);
+        if (status == HIGH_STATUS) {LOG("LOW"); status = LOW_STATUS;}
+        else { LOG("HIGH"); status = HIGH_STATUS;}
+        palWritePad(GPIOE, pad, status);
     }
 }
 
 void RoboticArmSKD::set_digital_status(digital_status_t& status, uint8_t pad, digital_status_t d_state) {
     if (released && status != d_state) {
         status = d_state;
-        palWritePad(GPIOH, pad, d_state);
+        LOG("set %d to %d\n",pad, d_state);
+        palWritePad(GPIOE, pad, d_state);
     }
 }
 
@@ -87,19 +98,19 @@ void RoboticArmSKD::next_step() {
     if (!released) return;
     if (state == NORMAL) {
         palSetPad(GPIOH, GPIOH_POWER4_CTRL);
+        state = COLLECT_BULLET;
         chThdSleepMilliseconds(1000);
         set_digital_status(extend_state, EXTEND_PAD, LOW_STATUS);
         set_digital_status(lift_state, LIFT_PAD, HIGH_STATUS);
         set_digital_status(clamp_state, CLAMP_PAD, LOW_STATUS);
         chThdSleepMilliseconds(1000);
         stretch_out();
-        state = COLLECT_BULLET;
     }
     else {
         switch (bullet_state) {
             case WAITING:
-                set_digital_status(clamp_state, CLAMP_PAD, HIGH_STATUS);
                 bullet_state = BOX_CLAMPED;
+                set_digital_status(clamp_state, CLAMP_PAD, HIGH_STATUS);
                 break;
             case BOX_CLAMPED:
                 set_digital_status(extend_state, EXTEND_PAD, LOW_STATUS);
@@ -156,7 +167,7 @@ void RoboticArmSKD::update_target_current() {
     if (!released){
         if (target_velocity * (RoboticArmIF::present_angle - trigger_angle) > 0)
             target_velocity = 0;
-        if (target_velocity == 0 && ABS_IN_RANGE(RoboticArmIF::present_velocity, ROBOTIC_ARM_TRIGGER_VELOCITY)){
+        if (target_velocity == 0 && abs(RoboticArmIF::present_velocity) < ROBOTIC_ARM_TRIGGER_VELOCITY){
             released = true;
             v2i_pid.clear_i_out();
         }
@@ -168,8 +179,11 @@ void RoboticArmSKD::update_target_current() {
 
 void RoboticArmSKD::RoboticArmThread::main() {
     setName("robotic_arm");
+    init();
     while (!shouldTerminate()){
         update_target_current();
+       // LOG("%d %d %d\n", clamp_state, lift_state, extend_state);
+       // LOG("angle: %f     velocity: %f\n", RoboticArmIF::present_angle, RoboticArmIF::present_velocity);
         RoboticArmIF::send_current();
         sleep(TIME_MS2I(2));
     }
