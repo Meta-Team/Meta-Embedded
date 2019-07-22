@@ -12,23 +12,22 @@ class EngineerGimbalIF {
 
 public:
 
+    enum gimbal_id_t{
+        YAW,
+        PIT
+    };
+
     static constexpr float MAX_ANGLE = 300.0f;
 
     static void init();
 
     static void set_target_angle(float yaw_angle_, float pitch_angle_);
 
-    enum gimbal_t{
-        YAW,
-        PIT
-    };
+    static float get_target_angle(gimbal_id_t id);
 
-    static float yaw_angle;
+private:
 
-    static float pitch_angle;
-
-    static void send_current();
-
+    static float target_angle[2];
 };
 
 

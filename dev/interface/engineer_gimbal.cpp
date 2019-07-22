@@ -4,8 +4,7 @@
 
 #include "engineer_gimbal.h"
 
-float EngineerGimbalIF::yaw_angle;
-float EngineerGimbalIF::pitch_angle;
+float EngineerGimbalIF::target_angle[2];
 
 const PWMConfig FRICTION_WHEELS_PWM_CFG = {
         50000,   // frequency
@@ -22,18 +21,18 @@ const PWMConfig FRICTION_WHEELS_PWM_CFG = {
 };
 
 void EngineerGimbalIF::set_target_angle(float yaw_angle_, float pitch_angle_) {
-    yaw_angle = yaw_angle_;
-    pitch_angle = pitch_angle_;
-}
-
-void EngineerGimbalIF::send_current() {
-
-    pwmEnableChannel(&PWMD8, YAW, PWM_PERCENTAGE_TO_WIDTH(&PWMD8, yaw_angle / MAX_ANGLE * 500 + 500));
-    pwmEnableChannel(&PWMD8, PIT, PWM_PERCENTAGE_TO_WIDTH(&PWMD8, pitch_angle / MAX_ANGLE * 500 + 500));
+    target_angle[YAW] = yaw_angle_;
+    target_angle[PIT] = pitch_angle_;
+    pwmEnableChannel(&PWMD8, YAW, PWM_PERCENTAGE_TO_WIDTH(&PWMD8, target_angle[YAW] / MAX_ANGLE * 500 + 500));
+    pwmEnableChannel(&PWMD8, PIT, PWM_PERCENTAGE_TO_WIDTH(&PWMD8, target_angle[PIT] / MAX_ANGLE * 500 + 500));
 }
 
 void EngineerGimbalIF::init() {
     pwmStart(&PWMD8, &FRICTION_WHEELS_PWM_CFG);
-    yaw_angle = MAX_ANGLE / 2;
-    pitch_angle = MAX_ANGLE / 2;
+    target_angle[YAW] = MAX_ANGLE / 2;
+    target_angle[PIT] = MAX_ANGLE / 2;
+}
+
+float EngineerGimbalIF::get_target_angle(EngineerGimbalIF::gimbal_id_t id) {
+    return target_angle[id];
 }

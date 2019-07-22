@@ -26,7 +26,6 @@ class EngineerGimbalThread: public chibios_rt::BaseStaticThread<256>{
                 EngineerGimbalIF::set_target_angle(EngineerGimbalIF::MAX_ANGLE / 2, EngineerGimbalIF::MAX_ANGLE / 2);
                 LOG("DOWN");
             }
-            EngineerGimbalIF::send_current();
             sleep(TIME_MS2I(5));
         }
     }

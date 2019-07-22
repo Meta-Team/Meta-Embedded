@@ -12,6 +12,7 @@
 
 #include "engineer_elevator_logic.h"
 #include "engineer_chassis_skd.h"
+#include "engineer_gimbal.h"
 
 #include "inspector_engineer.h"
 
@@ -24,11 +25,11 @@ public:
 private:
 
     /// Gimbal Config
-    static float gimbal_pc_yaw_sensitivity[];  // [Ctrl, Normal, Shift] [degree/s]
+    static float gimbal_pc_yaw_sensitivity;  // [Ctrl, Normal, Shift] [degree/s]
     static float gimbal_yaw_min_angle; // down range for pitch [degree]
     static float gimbal_yaw_max_angle; //  up range for pitch [degree]
 
-    static float gimbal_pc_pitch_sensitivity[];   // rotation speed when mouse moves fastest [degree/s]
+    static float gimbal_pc_pitch_sensitivity;   // rotation speed when mouse moves fastest [degree/s]
     static float gimbal_pitch_min_angle; // down range for pitch [degree]
     static float gimbal_pitch_max_angle; //  up range for pitch [degree]
 
