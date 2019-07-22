@@ -21,6 +21,7 @@
  *          when reaching a trigger angle, release the box
  */
 
+// TODO: embed as constants
 #define DOOR_PAD GPIOE_PIN4
 #define LIFT_PAD GPIOE_PIN5
 #define EXTEND_PAD GPIOE_PIN6
