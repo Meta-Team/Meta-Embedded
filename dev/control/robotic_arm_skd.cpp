@@ -55,13 +55,15 @@ void RoboticArmSKD::change_extend() {
 void RoboticArmSKD::change_door() {
     if (released) {
         if (door_state == HIGH_STATUS) {
-
+            EngineerElevatorSKD::set_target_height(2);
+            change_digital_status(door_state, DOOR_PAD);
         }
         else {
-
+            change_digital_status(door_state, DOOR_PAD);
+            EngineerElevatorSKD::set_target_height(0);
         }
     }
-    change_digital_status(door_state, DOOR_PAD);
+
 }
 
 void RoboticArmSKD::change_digital_status(digital_status_t& status, uint8_t pad) {

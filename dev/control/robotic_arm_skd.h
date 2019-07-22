@@ -73,9 +73,13 @@ public:
     static void change_extend();
     static void change_door();
 
-private:
-
     static digital_status_t door_state, lift_state, extend_state, clamp_state;
+
+    static void change_digital_status(digital_status_t& status, uint8_t pad);
+
+    static void set_digital_status(digital_status_t& status, uint8_t pad, digital_status_t state);
+
+private:
 
     static robotic_arm_state_t state;
 
@@ -87,9 +91,6 @@ private:
 
     static PIDController v2i_pid;
 
-    static void change_digital_status(digital_status_t& status, uint8_t pad);
-
-    static void set_digital_status(digital_status_t& status, uint8_t pad, digital_status_t state);
 
     static void update_target_current();
 
