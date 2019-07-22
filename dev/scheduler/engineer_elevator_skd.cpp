@@ -22,14 +22,15 @@ void EngineerElevatorSKD::start(tprio_t thread_prio) {
 
 void EngineerElevatorSKD::elevator_enable(bool enable) {
     if (elevator_enabled != enable) {  // avoid setting repeatedly
-        set_target_height( EngineerElevatorIF::get_current_height() );  // fixed the position at the time of switching
+        // elevator should be fixed when disabled
+        set_target_height( EngineerElevatorIF::get_current_height() );
         elevator_enabled = enable;
     }
 }
 
 void EngineerElevatorSKD::aided_motor_enable(bool enable) {
     if (aided_motor_enabled != enable) {  // avoid setting repeatedly
-        set_aided_motor_velocity(0,0);  // stop the motor at the time of switching
+        set_aided_motor_velocity(0,0);  // clear target velocity
         aided_motor_enabled = enable;
     }
 }
@@ -69,8 +70,8 @@ float EngineerElevatorSKD::get_target_height() {
 
 void EngineerElevatorSKD::set_aided_motor_velocity(float target_velocity_L, float target_velocity_R) {
     if (aided_motor_enabled) {
-        target_velocity[2] = target_velocity_R;
-        target_velocity[3] = target_velocity_L;
+        target_velocity[2] = -target_velocity_R;
+        target_velocity[3] = -target_velocity_L;
     }
     else {
         LOG("aided motor disabled");
@@ -91,8 +92,12 @@ void EngineerElevatorSKD::SKDThread::main() {
         EngineerElevatorIF::elevatorMotor[1].target_current = (int16_t) v2i_pid[1].calc(EngineerElevatorIF::elevatorMotor[1].actual_velocity, target_velocity[1]);
 
         /// Aided motor
-        EngineerElevatorIF::aidedMotor[0].target_current = (int16_t ) v2i_pid[2].calc(EngineerElevatorIF::aidedMotor[0].actual_velocity, target_velocity[2]);
-        EngineerElevatorIF::aidedMotor[1].target_current = (int16_t ) v2i_pid[3].calc(EngineerElevatorIF::aidedMotor[1].actual_velocity, - target_velocity[3]);
+        if (aided_motor_enabled) {
+            EngineerElevatorIF::aidedMotor[0].target_current = (int16_t ) v2i_pid[2].calc(EngineerElevatorIF::aidedMotor[0].actual_velocity, target_velocity[2]);
+            EngineerElevatorIF::aidedMotor[1].target_current = (int16_t ) v2i_pid[3].calc(EngineerElevatorIF::aidedMotor[1].actual_velocity, - target_velocity[3]);
+        } else {
+            EngineerElevatorIF::aidedMotor[0].target_current = EngineerElevatorIF::aidedMotor[1].target_current = 0;
+        }
 
         /// Apply changes
         EngineerElevatorIF::send_currents();

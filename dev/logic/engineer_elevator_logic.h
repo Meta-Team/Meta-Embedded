@@ -16,7 +16,7 @@
 // TODO: embed as constants
 #define FF_SWITCH_PAD GPIOB
 #define FFL_SWITCH_PIN_ID GPIOB_PIN0    // PB0 - L2
-#define FFR_SWITCH_PIN_ID GPIOB_PIN1    // PB1 - M2
+#define FFR_SWITCH_PIN_ID GPIOB_PIN1    // PB1 - M2x
 #define SWITCH_TOUCH_PAL_STATUS PAL_HIGH
 
 /** @note for the switch: BLACK -> GPIO; RED -> GND; BLUE -> VCC */

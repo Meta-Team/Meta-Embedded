@@ -8,7 +8,7 @@
 #include "hal.h"
 
 #include "led.h"
-#include "serial_shell.h"
+#include "shell.h"
 
 #include "dms_interface.h"
 
@@ -23,8 +23,8 @@ private:
     void main() final {
         setName("adc_echo");
         DMSInterface::init(4);
-        uint16_t hanging_trigger = 1500;
-        uint16_t landed_trigger = 2500;
+//        uint16_t hanging_trigger = 1500;
+//        uint16_t landed_trigger = 2500;
         while (!shouldTerminate()) {
              LOG("%u %u %u %u", DMSInterface::get_raw_sample(DMSInterface::FR), DMSInterface::get_raw_sample(DMSInterface::FL),
                  DMSInterface::get_raw_sample(DMSInterface::BL), DMSInterface::get_raw_sample(DMSInterface::BR));

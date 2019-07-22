@@ -7,11 +7,11 @@
 #include "hal.h"
 
 #include "led.h"
-#include "serial_shell.h"
+#include "shell.h"
 #include "can_interface.h"
 #include "common_macro.h"
 
-#include "engineer_chassis_interface.h"
+#include "chassis_interface.h"
 #include "engineer_elevator_interface.h"
 #include "robotic_arm_interface.h"
 
@@ -35,33 +35,17 @@ public:
         setName("EngineerFeedback");
         while (!shouldTerminate()){
             if (chassis){
-                LOG("%.2f, %.2f, %d, %d", EngineerChassisIF::motors[0].actual_velocity, EngineerChassisSKD::target_velocity[0],
-                    EngineerChassisIF::motors[0].actual_current_raw, EngineerChassisIF::motors[0].target_current);
+                LOG("act_v, tgt_v, act_I, tgt_I: %.2f, %.2f, %d, %d", ChassisIF::feedback[0].actual_velocity, EngineerChassisSKD::target_velocity[0],
+                    ChassisIF::feedback[0].actual_current_raw, ChassisIF::target_current[0]);
             } else if (elevator){
-                LOG("%.2f, %.2f, %.2f, %d, %d", EngineerElevatorIF::get_current_height(), EngineerElevatorIF::elevatorMotor[0].actual_velocity, EngineerElevatorSKD::target_velocity[0],
+                LOG("act_h, act_v, tgt_v, act_I, tgt_I: %.2f, %.2f, %.2f, %d, %d", EngineerElevatorIF::get_current_height(), EngineerElevatorIF::elevatorMotor[0].actual_velocity, EngineerElevatorSKD::target_velocity[0],
                     EngineerElevatorIF::elevatorMotor[0].actual_current, EngineerElevatorIF::elevatorMotor[0].target_current);
             } else if (aided_motor){
-                LOG("%.2f, %.2f, %d", EngineerElevatorIF::aidedMotor[0].actual_velocity, EngineerElevatorSKD::target_velocity[2], EngineerElevatorIF::aidedMotor[0].target_current);
+                LOG("act_v, tgt_v, tgt_I, %.2f, %.2f, %d", EngineerElevatorIF::aidedMotor[0].actual_velocity, EngineerElevatorSKD::target_velocity[2], EngineerElevatorIF::aidedMotor[0].target_current);
             } else if (dms){
-//                unsigned print = 9000000;
-//                uint16_t landed_trigger = 2500;
-//                uint16_t hanging_trigger = 1500;
-//                if ( DMSInterface::get_raw_sample(DMSInterface::FR) > landed_trigger)           print += 1000;
-//                else if ( DMSInterface::get_raw_sample(DMSInterface::FR) < hanging_trigger )    print += 2000;
-//                if ( DMSInterface::get_raw_sample(DMSInterface::FL) > landed_trigger)           print += 100;
-//                else if ( DMSInterface::get_raw_sample(DMSInterface::FL) < hanging_trigger )    print += 200;
-//                if ( DMSInterface::get_raw_sample(DMSInterface::BR) > landed_trigger)           print += 10;
-//                else if ( DMSInterface::get_raw_sample(DMSInterface::BR) < hanging_trigger )    print += 20;
-//                if ( DMSInterface::get_raw_sample(DMSInterface::BL) > landed_trigger)           print += 1;
-//                else if ( DMSInterface::get_raw_sample(DMSInterface::BL) < hanging_trigger )    print += 2;
-//                if ( palReadPad(FF_SWITCH_PAD, FFL_SWITCH_PIN_ID) == SWITCH_TOUCH_PAL_STATUS )  print += 100000;
-//                if ( palReadPad(FF_SWITCH_PAD, FFR_SWITCH_PIN_ID) == SWITCH_TOUCH_PAL_STATUS )  print += 10000;
-//                LOG("FFL|FFR|FR|FL|BL|BR 1reach 2hanging 1landed 0 %u", print);
-
-                LOG("%u %u %u %u", DMSInterface::get_raw_sample(DMSInterface::FR), DMSInterface::get_raw_sample(DMSInterface::FL),
+                LOG("FR, FL, BL, BR: %u %u %u %u", DMSInterface::get_raw_sample(DMSInterface::FR), DMSInterface::get_raw_sample(DMSInterface::FL),
                     DMSInterface::get_raw_sample(DMSInterface::BL), DMSInterface::get_raw_sample(DMSInterface::BR));
-                
-                //dms = false;
+                dms = false;
             }
             sleep(TIME_MS2I(100));
         }
@@ -116,43 +100,44 @@ static void cmd_stop_echo_fb(BaseSequentialStream *chp, int argc, char *argv[]){
 }
 
 static void cmd_set_v2i(BaseSequentialStream *chp, int argc, char **argv) {
-    (void) argv;
-    if (argc != 6) {
-        shellUsage(chp, "set_v2i 0(chassis)/1(elevator)/2(aided_motor) kp ki kd i_limit out_limit");
-        return;
-    }
-    int i = Shell::atoi(argv[0]);
-    if (i == 0)
-        EngineerChassisSKD::change_pid_params({c_kp = Shell::atof(argv[1]),
-                                               c_ki = Shell::atof(argv[2]),
-                                               c_kd = Shell::atof(argv[3]),
-                                               c_i_limit = Shell::atof(argv[4]),
-                                               c_out_limit = Shell::atof(argv[5])});
-    else if (i == 1)
-        EngineerElevatorSKD::change_pid_params(0, {e_kp = Shell::atof(argv[1]),
-                                                   e_ki = Shell::atof(argv[2]),
-                                                   e_kd = Shell::atof(argv[3]),
-                                                   e_i_limit = Shell::atof(argv[4]),
-                                                   e_out_limit = Shell::atof(argv[5])});
-    else if (i == 2)
-        EngineerElevatorSKD::change_pid_params(1, {a_kp = Shell::atof(argv[1]),
-                                                   a_ki = Shell::atof(argv[2]),
-                                                   a_kd = Shell::atof(argv[3]),
-                                                   a_i_limit = Shell::atof(argv[4]),
-                                                   a_out_limit = Shell::atof(argv[5])});
-    LOG("pass!");
+//    (void) argv;
+//    if (argc != 6) {
+//        shellUsage(chp, "set_v2i 0(chassis)/1(elevator)/2(aided_motor) kp ki kd i_limit out_limit");
+//        return;
+//    }
+//    int i = Shell::atoi(argv[0]);
+//    if (i == 0)
+//        EngineerChassisSKD::load_pid_params({c_kp = Shell::atof(argv[1]),
+//                                             c_ki = Shell::atof(argv[2]),
+//                                             c_kd = Shell::atof(argv[3]),
+//                                             c_i_limit = Shell::atof(argv[4]),
+//                                             c_out_limit = Shell::atof(argv[5])});
+//    else if (i == 1)
+//        EngineerElevatorSKD::change_pid_params(0, {e_kp = Shell::atof(argv[1]),
+//                                                   e_ki = Shell::atof(argv[2]),
+//                                                   e_kd = Shell::atof(argv[3]),
+//                                                   e_i_limit = Shell::atof(argv[4]),
+//                                                   e_out_limit = Shell::atof(argv[5])});
+//    else if (i == 2)
+//        EngineerElevatorSKD::change_pid_params(1, {a_kp = Shell::atof(argv[1]),
+//                                                   a_ki = Shell::atof(argv[2]),
+//                                                   a_kd = Shell::atof(argv[3]),
+//                                                   a_i_limit = Shell::atof(argv[4]),
+//                                                   a_out_limit = Shell::atof(argv[5])});
+    LOG("not available!");
 }
 
 static void cmd_echo_v2i(BaseSequentialStream *chp, int argc, char *argv[]){
-    (void) argv;
-    if (argc != 1) {
-        shellUsage(chp, "echo_v2i 0(chassis)/1(elevator)/2(aided_motor)");
-        return;
-    }
-    int i = Shell::atoi(argv[0]);
-    if (i == 0) LOG("%.2f, %.2f, %.2f, %.2f, %.2f", c_kp, c_ki, c_kd, c_i_limit, c_out_limit);
-    else if (i == 1) LOG("%.2f, %.2f, %.2f, %.2f, %.2f", e_kp, e_ki, e_kd, e_i_limit, e_out_limit);
-    else if (i == 2) LOG("%.2f, %.2f, %.2f, %.2f, %.2f", a_kp, a_ki, a_kd, a_i_limit, a_out_limit);
+//    (void) argv;
+//    if (argc != 1) {
+//        shellUsage(chp, "echo_v2i 0(chassis)/1(elevator)/2(aided_motor)");
+//        return;
+//    }
+//    int i = Shell::atoi(argv[0]);
+//    if (i == 0) LOG("%.2f, %.2f, %.2f, %.2f, %.2f", c_kp, c_ki, c_kd, c_i_limit, c_out_limit);
+//    else if (i == 1) LOG("%.2f, %.2f, %.2f, %.2f, %.2f", e_kp, e_ki, e_kd, e_i_limit, e_out_limit);
+//    else if (i == 2) LOG("%.2f, %.2f, %.2f, %.2f, %.2f", a_kp, a_ki, a_kd, a_i_limit, a_out_limit);
+    LOG("not available");
 }
 
 
@@ -177,13 +162,12 @@ static void cmd_chassis_set_velocity(BaseSequentialStream *chp, int argc, char *
 
 static void cmd_aided_motor_set_velocity(BaseSequentialStream *chp, int argc, char *argv[]){
     (void) argv;
-    if (argc != 2) {
-        shellUsage(chp, "a_set_v v_right v_left (degree/s)");
+    if (argc != 1) {
+        shellUsage(chp, "a_set_v v (degree/s)");
         return;
     }
-    float vr = Shell::atof(argv[0]);
-    float vl = Shell::atof(argv[1]);
-    EngineerElevatorSKD::set_aided_motor_velocity( vr, vl );
+    float v = Shell::atof(argv[0]);
+    EngineerElevatorSKD::set_aided_motor_velocity(v, v);
 }
 
 static void cmd_elevator_set_height(BaseSequentialStream *chp, int argc, char *argv[]){
@@ -287,8 +271,8 @@ static void cmd_chassis_pivot_turn(BaseSequentialStream *chp, int argc, char *ar
         return;
     }
     int i = Shell::atoi(argv[0]);
-    if (i==0) EngineerChassisSKD::pivot_turn(BL, -0.5*ENGINEER_CHASSIS_W_MAX);
-    if (i==1) EngineerChassisSKD::pivot_turn(BR, 0.5*ENGINEER_CHASSIS_W_MAX);
+    if (i==0) EngineerChassisSKD::pivot_turn(ChassisBase::BL, -0.5*ENGINEER_CHASSIS_W_MAX);
+    if (i==1) EngineerChassisSKD::pivot_turn(ChassisBase::BR, 0.5*ENGINEER_CHASSIS_W_MAX);
 }
 
 
@@ -330,13 +314,21 @@ int main(){
 
     can1.start(HIGHPRIO - 1);
     can2.start(HIGHPRIO - 2);
-    EngineerChassisIF::init(&can1);
+
+    DMSInterface::init(4);
+
+    ChassisIF::init(&can1);
     EngineerElevatorIF::init(&can2);
-    RoboticArmIF::init(&can2);
-    EngineerChassisSKD::engineerChassisThread.start(NORMALPRIO);
-    EngineerElevatorSKD::engineerElevatorThread.start(NORMALPRIO - 1);
-    RoboticArmSKD::roboticArmThread.start(NORMALPRIO - 2);
-    EngineerElevatorLG::engineerLogicThread.start(NORMALPRIO - 3);
+    //RoboticArmIF::init(&can2);
+
+    EngineerChassisSKD::start(CHASSIS_WHEEL_BASE, CHASSIS_WHEEL_TREAD, CHASSIS_WHEEL_CIRCUMFERENCE, THREAD_CHASSIS_SKD_PRIO);
+    EngineerChassisSKD::load_pid_params(CHASSIS_PID_V2I_PARAMS);
+    EngineerElevatorSKD::start(THREAD_ELEVATOR_SKD_PRIO);
+    EngineerElevatorSKD::load_pid_params(ELEVATOR_PID_A2V_PARAMS, ELEVATOR_PID_V2I_PARAMS, AIDED_MOTOR_PID_V2I_PARAMS, {0, 0, 0, 0, 0});
+
+    //RoboticArmSKD::roboticArmThread.start(NORMALPRIO - 2);
+
+    EngineerElevatorLG::init(THREAD_ELEVATOR_LG_PRIO);
 
     engineerFeedbackThread.start(HIGHPRIO - 2);
 

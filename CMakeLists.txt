@@ -226,6 +226,7 @@ add_executable(ENGINEER
         dev/interface/chassis_interface.cpp
         dev/interface/dms_interface.cpp
         dev/interface/engineer_elevator_interface.cpp
+        dev/interface/engineer_gimbal.cpp
 
         dev/scheduler/engineer_chassis_skd.cpp
         dev/scheduler/engineer_elevator_skd.cpp
@@ -250,6 +251,7 @@ add_executable(ut_engineer
         dev/scheduler/engineer_elevator_skd.cpp
         dev/interface/engineer_elevator_interface.cpp
         dev/control/robotic_arm_skd.cpp
+        dev/interface/chassis_interface.cpp
         dev/interface/robotic_arm_interface.cpp
         dev/interface/dms_interface.cpp
         dev/interface/referee_interface.cpp

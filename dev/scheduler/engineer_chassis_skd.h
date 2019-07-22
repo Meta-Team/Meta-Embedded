@@ -74,6 +74,9 @@ private:
     };
 
     static SKDThread skdThread;
+
+    friend class EngineerFeedbackThread;
+
 };
 
 
