@@ -38,15 +38,15 @@ CANInterface can2(&CAND2);
 //    }
 //}
 //
-//static void cmd_robotic_arm_action(BaseSequentialStream *chp, int argc, char *argv[]) {
-//    (void) argv;
-//    if (argc != 1) {
-//        shellUsage(chp, "rotate 0(pull_back)/1(stretch_out)");
-//        return;
-//    }
-//    if (Shell::atoi(argv[0])) RoboticArmSKD::stretch_out();
-//    else RoboticArmSKD::pull_back();
-//}
+static void cmd_robotic_arm_action(BaseSequentialStream *chp, int argc, char *argv[]) {
+    (void) argv;
+    if (argc != 1) {
+        shellUsage(chp, "rotate 0(pull_back)/1(stretch_out)");
+        return;
+    }
+    if (Shell::atoi(argv[0])) RoboticArmSKD::stretch_out();
+    else RoboticArmSKD::pull_back();
+}
 
 static void cmd_clamp_test(BaseSequentialStream *chp, int argc, char *argv[]) {
     (void) argv;
@@ -54,7 +54,28 @@ static void cmd_clamp_test(BaseSequentialStream *chp, int argc, char *argv[]) {
         shellUsage(chp, "s (emergency stop)");
         return;
     }
-    RoboticArmSKD::change_digital_status(RoboticArmSKD::clamp_state, CLAMP_PAD);
+    RoboticArmSKD::change_clamp();
+}
+
+static void cmd_power_on(BaseSequentialStream *chp, int argc, char *argv[]) {
+    (void) argv;
+    if (argc!=0) {
+        shellUsage(chp, "fail");
+        return;
+    }
+    palSetPad(GPIOH, POWER_PAD);
+    RoboticArmSKD::state = RoboticArmSKD::COLLECT_BULLET;
+    RoboticArmSKD::bullet_state = RoboticArmSKD::BOX_CLAMPED;
+}
+
+static void cmd_power_off(BaseSequentialStream *chp, int argc, char *argv[]) {
+    (void) argv;
+    if (argc!=0) {
+        shellUsage(chp, "fail");
+        return;
+    }
+    palClearPad(GPIOH, POWER_PAD);
+    RoboticArmSKD::state = RoboticArmSKD::NORMAL;
 }
 
 static void cmd_robotic_arm_emergency_stop(BaseSequentialStream *chp, int argc, char *argv[]) {
@@ -83,21 +104,51 @@ void cmd_robotic_arm_set_v2i(BaseSequentialStream *chp, int argc, char *argv[]) 
 
 static void cmd_robotic_arm_next(BaseSequentialStream *chp, int argc, char *argv[]) {
     (void) argv;
+    if (argc!=0) {
+        shellUsage(chp, "fail");
+        return;
+    }
     RoboticArmSKD::next_step();
 }
 
 static void cmd_robotic_arm_prev(BaseSequentialStream *chp, int argc, char *argv[]) {
     (void) argv;
+    if (argc!=0) {
+        shellUsage(chp, "fail");
+        return;
+    }
     RoboticArmSKD::prev_step();
+}
+
+static void cmd_extend(BaseSequentialStream *chp, int argc, char *argv[]) {
+    (void) argv;
+    if (argc!=0) {
+        shellUsage(chp, "fail");
+        return;
+    }
+    RoboticArmSKD::set_digital_status(RoboticArmSKD::extend_state, EXTEND_PAD, RoboticArmSKD::LOW_STATUS);
+}
+
+static void cmd_extend_2(BaseSequentialStream *chp, int argc, char *argv[]) {
+    (void) argv;
+    if (argc!=0) {
+        shellUsage(chp, "fail");
+        return;
+    }
+    RoboticArmSKD::set_digital_status(RoboticArmSKD::extend_state, EXTEND_PAD, RoboticArmSKD::HIGH_STATUS);
 }
 
 ShellCommand roboticArmCommands[] = {
         {"clamp", cmd_clamp_test},
-//        {"rotate", cmd_robotic_arm_action},
+        {"rotate", cmd_robotic_arm_action},
+        {"extend", cmd_extend},
+        {"extend2", cmd_extend_2},
         {"s", cmd_robotic_arm_emergency_stop},
         {"set_v2i", cmd_robotic_arm_set_v2i},
         {"next", cmd_robotic_arm_next},
         {"prev", cmd_robotic_arm_prev},
+        {"on", cmd_power_on},
+        {"off", cmd_power_off},
         {nullptr, nullptr}
 };
 

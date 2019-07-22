@@ -62,6 +62,7 @@ int main() {
     /// Setup Shell
     Shell::start(THREAD_SHELL_PRIO);
     Shell::addCommands(mainProgramCommands);
+    chThdSleepMilliseconds(50);  // wait for logo to print :)
 
     /// Setup SDCard
     if (SDCard::init()) {

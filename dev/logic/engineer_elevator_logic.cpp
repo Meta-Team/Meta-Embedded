@@ -21,6 +21,10 @@ float EngineerElevatorLG::prev_e_tg_h;
 float EngineerElevatorLG::prev_aR_tg_v;
 float EngineerElevatorLG::prev_aL_tg_v;
 
+bool EngineerElevatorLG::a_t_forward;
+bool EngineerElevatorLG::a_t_backward;
+uint32_t EngineerElevatorLG::delay_time;
+
 
 void EngineerElevatorLG::init(tprio_t logic_thread_prio) {
     action = LOCK;

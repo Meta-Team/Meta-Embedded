@@ -19,7 +19,7 @@
 
 #include "chassis_interface.h"
 #include "engineer_elevator_interface.h"
-//#include "robotic_arm_interface.h"
+#include "robotic_arm_interface.h"
 
 #include "engineer_chassis_skd.h"
 #include "engineer_elevator_skd.h"
@@ -49,6 +49,12 @@ int main() {
     halInit();
     chibios_rt::System::init();
 
+    // Enable power
+    palSetPadMode(GPIOH, GPIOH_POWER1_CTRL, PAL_MODE_OUTPUT_PUSHPULL);
+    palSetPad(GPIOH, GPIOH_POWER1_CTRL);
+    palSetPadMode(GPIOH, GPIOH_POWER2_CTRL, PAL_MODE_OUTPUT_PUSHPULL);
+    palSetPad(GPIOH, GPIOH_POWER2_CTRL);
+
     /*** ---------------------- Period 1. Modules Setup and Self-Check ---------------------- ***/
 
     /// Preparation of Period 1
@@ -58,6 +64,7 @@ int main() {
     /// Setup Shell
     Shell::start(THREAD_SHELL_PRIO);
     Shell::addCommands(mainProgramCommands);
+    chThdSleepMilliseconds(50);  // wait for logo to print :)
 
     /// Setup SDCard
     if (SDCard::init()) {
@@ -76,19 +83,20 @@ int main() {
 
     /// Start DMS Interface
     DMSInterface::init(4);
-    // TODO: check DMS
-    LED::led_on(DEV_BOARD_LED_DMS);  // LED 3 on now
 
     /// Setup Remote
     Remote::start();
     InspectorE::startup_check_remote();  // check Remote has signal. Block for 50 ms
-    LED::led_on(DEV_BOARD_LED_REMOTE);  // LED 4 on now
+    LED::led_on(DEV_BOARD_LED_REMOTE);  // LED 3 on now
 
     /// Setup GimbalIF
     EngineerGimbalIF::init();
 
-    /// Setup Robotic Arm
-    // TODO: write robotic arm
+    /// Setup RoboticArmIF
+    RoboticArmIF::init(&can2);
+    chThdSleepMicroseconds(10);
+    InspectorE::startup_check_robotic_arm_feedback();
+    LED::led_on(DEV_BOARD_LED_ROBOTIC_ARM);  // LED 4 on now
 
     /// Setup ElevatorIF
     EngineerElevatorIF::init(&can2);
@@ -116,6 +124,7 @@ int main() {
     EngineerChassisSKD::load_pid_params(CHASSIS_PID_V2I_PARAMS);
     EngineerElevatorSKD::start(THREAD_ELEVATOR_SKD_PRIO);
     EngineerElevatorSKD::load_pid_params(ELEVATOR_PID_A2V_PARAMS, ELEVATOR_PID_V2I_PARAMS, AIDED_MOTOR_PID_V2I_PARAMS, {0, 0, 0, 0, 0});
+    RoboticArmSKD::start(THREAD_ROBOTIC_ARM_SKD_PRIO);
 
     /// Start LGs
     EngineerElevatorLG::init(THREAD_ELEVATOR_LG_PRIO);

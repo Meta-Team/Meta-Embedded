@@ -13,6 +13,7 @@
 #include "engineer_elevator_logic.h"
 #include "engineer_chassis_skd.h"
 #include "engineer_gimbal.h"
+#include "robotic_arm_skd.h"
 
 #include "inspector_engineer.h"
 

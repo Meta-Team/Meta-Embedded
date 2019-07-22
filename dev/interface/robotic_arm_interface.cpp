@@ -40,9 +40,9 @@ void RoboticArmIF::process_feedback(CANRxFrame const *rxmsg) {
         angle_movement -= 8192;
     }
 
-    present_angle = present_angle + angle_movement * 360.0f / 8192 / motor_decelerate_ratio;
+    present_angle = present_angle - angle_movement * 360.0f / 8192 / motor_decelerate_ratio;
 
-    present_velocity = ((int16_t) (rxmsg->data8[2] << 8 | rxmsg->data8[3])) / motor_decelerate_ratio * 360.0f / 60.0f;
+    present_velocity = -((int16_t) (rxmsg->data8[2] << 8 | rxmsg->data8[3])) / motor_decelerate_ratio * 360.0f / 60.0f;
 
     motor_last_update_time = SYSTIME;
 }
@@ -59,8 +59,8 @@ bool RoboticArmIF::send_current() {
     txmsg.RTR = CAN_RTR_DATA;
     txmsg.DLC = 0x08;
 
-    txmsg.data8[0] = (uint8_t) (motor_target_current >> 8);
-    txmsg.data8[1] = (uint8_t) motor_target_current;
+    txmsg.data8[0] = (uint8_t) ((-motor_target_current) >> 8);
+    txmsg.data8[1] = (uint8_t) (-motor_target_current);
     txmsg.data8[2] = txmsg.data8[3] = txmsg.data8[4] = txmsg.data8[5] = txmsg.data8[6] = txmsg.data8[7] = 0;
 
     can->send_msg(&txmsg);
