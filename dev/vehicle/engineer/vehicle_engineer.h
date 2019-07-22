@@ -88,8 +88,8 @@
 /// Dev Board LED Usage List
 #define DEV_BOARD_LED_SYSTEM_INIT 1
 #define DEV_BOARD_LED_CAN         2
-#define DEV_BOARD_LED_DMS         3
-#define DEV_BOARD_LED_REMOTE      4
+#define DEV_BOARD_LED_REMOTE      3
+#define DEV_BOARD_LED_ROBOTIC_ARM 4
 #define DEV_BOARD_LED_ELEVATOR    5
 #define DEV_BOARD_LED_CHASSIS     6
 #define DEV_BOARD_LED_REFEREE     7  // used in infantry ShootLG BulletCounterThread

@@ -15,6 +15,7 @@
 
 #include "chassis_interface.h"
 #include "engineer_elevator_interface.h"
+#include "robotic_arm_interface.h"
 
 #if defined(ENGINEER)
 #include "vehicle_engineer.h"
@@ -34,9 +35,11 @@ public:
     static void startup_check_remote();
     static void startup_check_chassis_feedback();
     static void startup_check_elevator_feedback();
+    static void startup_check_robotic_arm_feedback();
 
     static bool chassis_failure();
     static bool elevator_failure();
+    static bool robotic_arm_failure();
     static bool remote_failure();
 
 private:
@@ -46,10 +49,12 @@ private:
 
     static bool chassis_failure_;
     static bool elevator_failure_;
+    static bool robotic_arm_failure_;
     static bool remote_failure_;
 
     static bool check_chassis_failure();
     static bool check_elevator_failure();
+    static bool check_robotic_arm_failure();
     static bool check_remote_data_error();
 
     /// Inspector Thread
