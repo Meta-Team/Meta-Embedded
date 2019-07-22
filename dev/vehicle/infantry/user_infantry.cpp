@@ -352,7 +352,7 @@ void UserI::ClientDataSendingThread::main() {
 
         /// Super Capacitor
         // TODO: determine feedback interval
-        if (SYSTIME - SuperCapacitor::last_feedback_time < 1000) {
+        if (WITHIN_RECENT_TIME(SuperCapacitor::last_feedback_time, 1000)) {
 //            Referee::set_client_number(USER_CLIENT_ACTUAL_POWER_NUM, SuperCapacitor::feedback.output_power);
             Referee::set_client_number(USER_CLIENT_SUPER_CAPACITOR_VOLTAGE_NUM,
                                        SuperCapacitor::feedback.capacitor_voltage);

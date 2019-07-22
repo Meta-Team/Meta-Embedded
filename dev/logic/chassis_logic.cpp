@@ -51,12 +51,12 @@ void ChassisLG::set_action(ChassisLG::action_t value) {
         ChassisSKD::set_mode(ChassisSKD::GIMBAL_COORDINATE_MODE);
         target_theta = dodge_mode_theta_;
         // Resume the thread
-        chSysLock();  /// ---------------------------------- Enter Critical Zone ----------------------------------
+        chSysLock();  /// --- ENTER S-Locked state. DO NOT use LOG, printf, non S/I-Class functions or return ---
         if (!dodgeModeSwitchThread.started) {
             dodgeModeSwitchThread.started = true;
             chSchWakeupS(dodgeThreadReference.getInner(), 0);
         }
-        chSysUnlock();  /// ---------------------------------- Exit Critical Zone ----------------------------------
+        chSysUnlock();  /// --- EXIT S-Locked state ---
     }
     Referee::set_client_light(USER_CLIENT_DODGE_MODE_LIGHT, (action == DODGE_MODE));
     // Sending client data will be complete by higher level thread
@@ -81,12 +81,12 @@ void ChassisLG::DodgeModeSwitchThread::main() {
     setName("Chassis_Dodge");
     while(!shouldTerminate()) {
 
-        chSysLock();  /// ---------------------------------- Enter Critical Zone ----------------------------------
+        chSysLock();  /// --- ENTER S-Locked state. DO NOT use LOG, printf, non S/I-Class functions or return ---
         if (action != DODGE_MODE) {
             started = false;
             chSchGoSleepS(CH_STATE_SUSPENDED);
         }
-        chSysUnlock();  /// ---------------------------------- Exit Critical Zone ----------------------------------
+        chSysUnlock();  /// --- EXIT S-Locked state ---
 
         if (!ABS_IN_RANGE(ChassisSKD::get_actual_theta() - (-target_theta), 10)) {
             target_theta = -target_theta;

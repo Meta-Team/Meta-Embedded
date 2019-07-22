@@ -47,8 +47,6 @@ void ChassisIF::process_chassis_feedback(CANRxFrame const *rxmsg) {
 
     if (rxmsg->SID > 0x204 || rxmsg->SID < 0x201) return;
 
-    chSysLock();  /// ---------------------------------- Enter Critical Zone ----------------------------------
-
     int motor_id = (int) (rxmsg->SID - 0x201);
 
     feedback[motor_id].actual_angle_raw = (uint16_t) (rxmsg->data8[0] << 8 | rxmsg->data8[1]);
@@ -61,8 +59,6 @@ void ChassisIF::process_chassis_feedback(CANRxFrame const *rxmsg) {
             feedback[motor_id].actual_rpm_raw / CHASSIS_MOTOR_DECELERATE_RATIO * 360.0f / 60.0f;
 
     feedback[motor_id].last_update_time = SYSTIME;
-
-    chSysUnlock();  /// ---------------------------------- Exit Critical Zone ----------------------------------
 
 }
 

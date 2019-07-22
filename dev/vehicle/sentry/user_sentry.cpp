@@ -228,12 +228,12 @@ void UserS::set_mode(UserS::sentry_mode_t mode) {
         SGimbalLG::set_action(SGimbalLG::ABS_ANGLE_MODE);
         if (sentryMode == AUTO_MODE) {
             // Resume the thread
-            chSysLock();  /// ---------------------------------- Enter Critical Zone ----------------------------------
+            chSysLock();  /// --- ENTER S-Locked state. DO NOT use LOG, printf, non S/I-Class functions or return ---
             if (!vitualUserThread.started) {
                 vitualUserThread.started = true;
                 chSchWakeupS(vitualUserThreadReference.getInner(), 0);
             }
-            chSysUnlock();  /// ---------------------------------- Exit Critical Zone ----------------------------------
+            chSysUnlock();  /// --- EXIT S-Locked state ---
         }
     }
 }
@@ -243,19 +243,19 @@ void UserS::VitualUserThread::main() {
     setName("Sentry_Gimbal_Auto");
 
     while (!shouldTerminate()) {
-        chSysLock();  /// ---------------------------------- Enter Critical Zone ----------------------------------
+        chSysLock();  /// --- ENTER S-Locked state. DO NOT use LOG, printf, non S/I-Class functions or return ---
         if (sentryMode != AUTO_MODE) {
             started = false;
             chSchGoSleepS(CH_STATE_SUSPENDED);
         }
-        chSysUnlock();  /// ---------------------------------- Exit Critical Zone ----------------------------------
+        chSysUnlock();  /// --- EXIT S-Locked state ---
 
         VisionPort::send_gimbal(SGimbalLG::get_accumulated_angle(SGimbalLG::YAW),
                                 SGimbalLG::get_accumulated_angle(SGimbalLG::PITCH));
 
         VisionPort::send_enemy_color(Referee::game_robot_state.robot_id < 10);
 
-        enemy_spotted = SYSTIME - VisionPort::last_update_time > 50;
+        enemy_spotted = not WITHIN_RECENT_TIME(VisionPort::last_update_time, 50);
 
         /*** ---------------------------------- Gimbal + Shooter --------------------------------- ***/
 

@@ -36,12 +36,12 @@ void GimbalLG::set_action(GimbalLG::action_t value) {
     } else if (action == VISION_MODE) {
         GimbalSKD::set_mode(GimbalSKD::ABS_ANGLE_MODE);
         // Resume the thread
-        chSysLock();  /// ---------------------------------- Enter Critical Zone ----------------------------------
+        chSysLock();  /// --- ENTER S-Locked state. DO NOT use LOG, printf, non S/I-Class functions or return ---
         if (!visionThread.started) {
             visionThread.started = true;
             chSchWakeupS(visionThreadReference.getInner(), 0);
         }
-        chSysUnlock();  /// ---------------------------------- Exit Critical Zone ----------------------------------
+        chSysUnlock();  /// --- EXIT S-Locked state ---
     }
 }
 
@@ -61,12 +61,12 @@ void GimbalLG::VisionThread::main() {
     setName("Vision");
     while (!shouldTerminate()) {
 
-        chSysLock();  /// ---------------------------------- Enter Critical Zone ----------------------------------
+        chSysLock();  /// --- ENTER S-Locked state. DO NOT use LOG, printf, non S/I-Class functions or return ---
         if (action != VISION_MODE) {
             started = false;
             chSchGoSleepS(CH_STATE_SUSPENDED);
         }
-        chSysUnlock();  /// ---------------------------------- Exit Critical Zone ----------------------------------
+        chSysUnlock();  /// --- EXIT S-Locked state ---
 
 //        VisionPort::send_gimbal(0, 0);
 

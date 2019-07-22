@@ -104,8 +104,6 @@ void MPUOnBoard::update() {
     spiReleaseBus(&MPU6500_SPI_DRIVER);
 
 
-    chSysLock();  /// ---------------------------------- Enter Critical Zone ----------------------------------
-
     /// Decode data
 
     accel_orig = Vector3D((int16_t) (rx_buf[0] << 8 | rx_buf[1]),
@@ -182,7 +180,6 @@ void MPUOnBoard::update() {
         last_calibration_time = SYSTIME;
     }
 
-    chSysUnlock();  /// ---------------------------------- Exit Critical Zone ----------------------------------
 }
 
 

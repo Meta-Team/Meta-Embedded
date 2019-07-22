@@ -26,8 +26,8 @@ void Inspector::start_inspection(tprio_t thread_prio) {
 
 void Inspector::startup_check_can() {
     time_msecs_t t = SYSTIME;
-    while (SYSTIME - t < 100) {
-        if (SYSTIME - can1->last_error_time < 5 || SYSTIME - can2->last_error_time < 5) {  // can error occurs
+    while (WITHIN_RECENT_TIME(t, 100)) {
+        if (WITHIN_RECENT_TIME(can1->last_error_time, 5) || WITHIN_RECENT_TIME(can2->last_error_time, 5)) {  // can error occurs
             t = SYSTIME;  // reset the counter
         }
         chThdSleepMilliseconds(5);
@@ -36,8 +36,8 @@ void Inspector::startup_check_can() {
 
 void Inspector::startup_check_mpu() {
     time_msecs_t t = SYSTIME;
-    while (SYSTIME - t < 20) {
-        if (SYSTIME - ahrs->get_mpu_update_time() > 5) {  // No signal in last 5 ms (normal interval 1 ms for on-board MPU)
+    while (WITHIN_RECENT_TIME(t, 20)) {
+        if (not WITHIN_RECENT_TIME(ahrs->get_mpu_update_time(), 5)) {  // No signal in last 5 ms (normal interval 1 ms for on-board MPU)
             t = SYSTIME;  // reset the counter
         }
         chThdSleepMilliseconds(5);
@@ -46,8 +46,8 @@ void Inspector::startup_check_mpu() {
 
 void Inspector::startup_check_ist() {
     time_msecs_t t = SYSTIME;
-    while (SYSTIME - t < 20) {
-        if (SYSTIME - ahrs->get_ist_update_time() > 5) {  // No signal in last 5 ms (normal interval 1 ms for on-board MPU)
+    while (WITHIN_RECENT_TIME(t, 20)) {
+        if (not WITHIN_RECENT_TIME(ahrs->get_ist_update_time(), 5)) {  // No signal in last 5 ms (normal interval 1 ms for on-board MPU)
             t = SYSTIME;  // reset the counter
         }
         chThdSleepMilliseconds(5);
@@ -56,23 +56,23 @@ void Inspector::startup_check_ist() {
 
 void Inspector::startup_check_chassis_feedback() {
     time_msecs_t t = SYSTIME;
-    while (SYSTIME - t < 20) {
-        if (SYSTIME - ChassisIF::feedback[ChassisIF::FR].last_update_time > 5) {
+    while (WITHIN_RECENT_TIME(t, 20)) {
+        if (not WITHIN_RECENT_TIME(ChassisIF::feedback[ChassisIF::FR].last_update_time, 5)) {
             // No feedback in last 5 ms (normal 1 ms)
             LOG_ERR("Startup - Chassis FR offline.");
             t = SYSTIME;  // reset the counter
         }
-        if (SYSTIME - ChassisIF::feedback[ChassisIF::FL].last_update_time > 5) {
+        if (not WITHIN_RECENT_TIME(ChassisIF::feedback[ChassisIF::FL].last_update_time, 5)) {
             // No feedback in last 5 ms (normal 1 ms)
             LOG_ERR("Startup - Chassis FL offline.");
             t = SYSTIME;  // reset the counter
         }
-        if (SYSTIME - ChassisIF::feedback[ChassisIF::BL].last_update_time > 5) {
+        if (not WITHIN_RECENT_TIME(ChassisIF::feedback[ChassisIF::BL].last_update_time, 5)) {
             // No feedback in last 5 ms (normal 1 ms)
             LOG_ERR("Startup - Chassis BL offline.");
             t = SYSTIME;  // reset the counter
         }
-        if (SYSTIME - ChassisIF::feedback[ChassisIF::BR].last_update_time > 5) {
+        if (not WITHIN_RECENT_TIME(ChassisIF::feedback[ChassisIF::BR].last_update_time, 5)) {
             // No feedback in last 5 ms (normal 1 ms)
             LOG_ERR("Startup - Chassis BR offline.");
             t = SYSTIME;  // reset the counter
@@ -83,18 +83,18 @@ void Inspector::startup_check_chassis_feedback() {
 
 void Inspector::startup_check_gimbal_feedback() {
     time_msecs_t t = SYSTIME;
-    while (SYSTIME - t < 20) {
-        if (SYSTIME - GimbalIF::feedback[GimbalIF::YAW].last_update_time > 5) {
+    while (WITHIN_RECENT_TIME(t, 20)) {
+        if (not WITHIN_RECENT_TIME(GimbalIF::feedback[GimbalIF::YAW].last_update_time, 5)) {
             // No feedback in last 5 ms (normal 1 ms)
             LOG_ERR("Startup - Gimbal Yaw offline.");
             t = SYSTIME;  // reset the counter
         }
-        if (SYSTIME - GimbalIF::feedback[GimbalIF::PITCH].last_update_time > 5) {
+        if (not WITHIN_RECENT_TIME(GimbalIF::feedback[GimbalIF::PITCH].last_update_time, 5)) {
             // No feedback in last 5 ms (normal 1 ms)
             LOG_ERR("Startup - Gimbal Pitch offline.");
             t = SYSTIME;  // reset the counter
         }
-        if (SYSTIME - GimbalIF::feedback[GimbalIF::BULLET].last_update_time > 5) {
+        if (not WITHIN_RECENT_TIME(GimbalIF::feedback[GimbalIF::BULLET].last_update_time, 5)) {
             // No feedback in last 5 ms (normal 1 ms)
             LOG_ERR("Startup - Gimbal Bullet offline.");
             t = SYSTIME;  // reset the counter
@@ -114,7 +114,7 @@ bool Inspector::chassis_failure() {
 bool Inspector::check_gimbal_failure() {
     bool ret = false;
     for (unsigned i = 0 ; i < 3; i++) {
-        if (SYSTIME - GimbalIF::feedback[i].last_update_time > 20) {
+        if (not WITHIN_RECENT_TIME(GimbalIF::feedback[i].last_update_time, 20)) {
             if (!gimbal_failure_) {  // avoid repeating printing
                 LOG_ERR("Gimbal motor %u offline");
                 ret = true;
@@ -127,7 +127,7 @@ bool Inspector::check_gimbal_failure() {
 bool Inspector::check_chassis_failure() {
     bool ret = false;
     for (unsigned i = 0; i < ChassisIF::MOTOR_COUNT; i++) {
-        if (SYSTIME - ChassisIF::feedback[i].last_update_time > 20) {
+        if (not WITHIN_RECENT_TIME(ChassisIF::feedback[i].last_update_time, 20)) {
             if (!chassis_failure_) {  // avoid repeating printing
                 LOG_ERR("Chassis motor %u offline", i);
                 ret = true;

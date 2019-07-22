@@ -36,7 +36,6 @@ void AHRSExt::update(CANRxFrame const *rxmsg) {
 
 
         // Perform gyro process only after final package
-        chSysLock();  /// ---------------------------------- Enter Critical Zone ----------------------------------
 
         Vector3D new_gyro_orig = Vector3D((int16_t) rxmsg->data16[1],
                                           (int16_t) rxmsg->data16[2],
@@ -67,7 +66,6 @@ void AHRSExt::update(CANRxFrame const *rxmsg) {
             last_calibration_time = SYSTIME;
         }
 
-        chSysUnlock();  /// ---------------------------------- Exit Critical Zone ----------------------------------
     }
 
 }

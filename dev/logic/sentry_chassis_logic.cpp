@@ -44,12 +44,12 @@ void SChassisLG::set_mode(SChassisLG::mode_t value) {
         } else if (mode == SHUTTLE_MODE || mode == FINAL_AUTO_MODE) {
 
             // Resume the thread
-            chSysLock();  /// ---------------------------------- Enter Critical Zone ----------------------------------
+            chSysLock();  /// --- ENTER S-Locked state. DO NOT use LOG, printf, non S/I-Class functions or return ---
             if (!directionSwitchThread.started) {
                 directionSwitchThread.started = true;
                 chSchWakeupS(directionThreadReference.getInner(), 0);
             }
-            chSysUnlock();  /// ---------------------------------- Exit Critical Zone ----------------------------------
+            chSysUnlock();  /// --- EXIT S-Locked state ---
 
             if (mode == SHUTTLE_MODE) {
                 SChassisSKD::set_destination(radius);
@@ -136,12 +136,12 @@ void SChassisLG::DirectionSwitchThread::main() {
     setName("Chassis_Switch");
     while (!shouldTerminate()) {
 
-        chSysLock();  /// ---------------------------------- Enter Critical Zone ----------------------------------
+        chSysLock();  /// --- ENTER S-Locked state. DO NOT use LOG, printf, non S/I-Class functions or return ---
         if (mode != SHUTTLE_MODE && mode != FINAL_AUTO_MODE) {
             started = false;
             chSchGoSleepS(CH_STATE_SUSPENDED);
         }
-        chSysUnlock();  /// ---------------------------------- Exit Critical Zone ----------------------------------
+        chSysUnlock();  /// --- EXIT S-Locked state ---
 
         float present_position = SChassisSKD::present_position();
 

@@ -68,13 +68,13 @@ void ShootLG::shoot(float number_of_bullet, float number_per_second) {
     ShootSKD::set_loader_target_angle(shoot_target_number * angle_per_bullet);
     ShootSKD::set_loader_target_velocity(number_per_second * angle_per_bullet);
 
-    chSysLock();  /// ---------------------------------- Enter Critical Zone ----------------------------------
+    chSysLock();  /// --- ENTER S-Locked state. DO NOT use LOG, printf, non S/I-Class functions or return ---
     if (!stuckDetector.started) {
         stuckDetector.started = true;
         stuckDetector.waited = false;
         chSchWakeupS(stuckDetectorReference.getInner(), 0);
     }
-    chSysUnlock();  /// ---------------------------------- Exit Critical Zone ----------------------------------
+    chSysUnlock();  /// --- EXIT S-Locked state ---
 }
 
 void ShootLG::stop() {
@@ -87,12 +87,12 @@ void ShootLG::StuckDetectorThread::main() {
     setName("Shoot_Stuck");
     while (!shouldTerminate()) {
 
-        chSysLock();  /// ---------------------------------- Enter Critical Zone ----------------------------------
+        chSysLock();  /// --- ENTER S-Locked state. DO NOT use LOG, printf, non S/I-Class functions or return ---
         if (shooter_state != SHOOTING) {
             started = false;
             chSchGoSleepS(CH_STATE_SUSPENDED);
         }
-        chSysUnlock();  /// ---------------------------------- Exit Critical Zone ----------------------------------
+        chSysUnlock();  /// --- EXIT S-Locked state ---
 
         if (!waited) {
             sleep(TIME_MS2I(STUCK_DETECTOR_INITIAL_WAIT_INTERVAL));

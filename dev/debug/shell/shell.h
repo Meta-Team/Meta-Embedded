@@ -42,10 +42,10 @@
 
 #define VA_ARGS(...) , ##__VA_ARGS__
 
-#define LOG(fmt, ...) Shell::printf("[%u] " fmt SHELL_NEWLINE_STR, TIME_I2MS(chVTGetSystemTime()) VA_ARGS(__VA_ARGS__))
-#define LOG_USER(fmt, ...) Shell::printf("[%u] USER " fmt SHELL_NEWLINE_STR, TIME_I2MS(chVTGetSystemTime()) VA_ARGS(__VA_ARGS__))
-#define LOG_ERR(fmt, ...) Shell::printf("[%u] ERR " fmt SHELL_NEWLINE_STR, TIME_I2MS(chVTGetSystemTime()) VA_ARGS(__VA_ARGS__))
-#define LOG_WARN(fmt, ...) Shell::printf("[%u] WARN " fmt SHELL_NEWLINE_STR, TIME_I2MS(chVTGetSystemTime()) VA_ARGS(__VA_ARGS__))
+#define LOG(fmt, ...) Shell::printf("[%u] " fmt SHELL_NEWLINE_STR, SYSTIME VA_ARGS(__VA_ARGS__))
+#define LOG_USER(fmt, ...) Shell::printf("[%u] USER " fmt SHELL_NEWLINE_STR, SYSTIME VA_ARGS(__VA_ARGS__))
+#define LOG_ERR(fmt, ...) Shell::printf("[%u] ERR " fmt SHELL_NEWLINE_STR, SYSTIME VA_ARGS(__VA_ARGS__))
+#define LOG_WARN(fmt, ...) Shell::printf("[%u] WARN " fmt SHELL_NEWLINE_STR, SYSTIME VA_ARGS(__VA_ARGS__))
 #define DBPRINTF(fmt, ...) Shell::printf("%s:%d:%s(): " fmt SHELL_NEWLINE_STR, __FILE__, __LINE__, __func__ VA_ARGS(__VA_ARGS__))
 
 

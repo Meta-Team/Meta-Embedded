@@ -60,7 +60,7 @@ void Remote::uart_received_callback_(UARTDriver *uartp) {
 
     if (synchronizing) return;
 
-    chSysLockFromISR();  /// ---------------------------------- Enter Critical Zone ----------------------------------
+    chSysLockFromISR();  /// --- ENTER I-Locked state. DO NOT use LOG, printf, non I-Class functions or return ---
 
     /// RC
 
@@ -157,7 +157,7 @@ void Remote::uart_received_callback_(UARTDriver *uartp) {
     // Restart the receive
     uartStartReceiveI(uartp, RX_FRAME_SIZE, rx_buf_);
 
-    chSysUnlockFromISR();  /// ---------------------------------- Exit Critical Zone ----------------------------------
+    chSysUnlockFromISR();  /// --- EXIT S-Locked state ---
 }
 
 void Remote::uart_synchronize() {

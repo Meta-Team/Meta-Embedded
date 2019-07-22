@@ -97,7 +97,7 @@ int main() {
 
     /// Setup On-Board AHRS
     Vector3D ahrs_bias;
-    if (SDCard::get_data(MPU6500_BIAS_DATA_ID, &ahrs_bias, sizeof(ahrs_bias))) {
+    if (SDCard::get_data(MPU6500_BIAS_DATA_ID, &ahrs_bias, sizeof(ahrs_bias)) == SDCard::OK) {
         ahrs.load_calibration_data(ahrs_bias);
         LOG("Use AHRS bias in SD Card");
     } else {
@@ -142,7 +142,7 @@ int main() {
     VisionPort::init();
 
     /// Setup SuperCapacitor Port
-    SuperCapacitor::init(&can1);
+    SuperCapacitor::init(&can2);
 
     /// Complete Period 1
     LED::green_on();  // LED Green on now

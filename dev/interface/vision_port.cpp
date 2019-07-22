@@ -79,7 +79,7 @@ void VisionPort::uart_rx_callback(UARTDriver *uartp) {
 
     (void) uartp;
 
-    chSysLockFromISR();  /// ---------------------------------- Enter Critical Zone ----------------------------------
+    chSysLockFromISR();  /// --- ENTER I-Locked state. DO NOT use LOG, printf, non I-Class functions or return ---
 
     uint8_t *pak_uint8 = (uint8_t *) &pak;
 
@@ -132,7 +132,7 @@ void VisionPort::uart_rx_callback(UARTDriver *uartp) {
             break;
     }
 
-    chSysUnlockFromISR();  /// ---------------------------------- Exit Critical Zone ----------------------------------
+    chSysUnlockFromISR();  /// --- EXIT S-Locked state ---
 
 }
 
