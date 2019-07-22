@@ -121,7 +121,7 @@ int main() {
     EngineerElevatorLG::init(THREAD_ELEVATOR_LG_PRIO);
 
     /// Start Inspector and User Threads
-    InspectorE::start_inspection(THREAD_INSPECTOR_PRIO);
+    InspectorE::start_inspection(THREAD_INSPECTOR_PRIO, THREAD_INSPECTOR_REFEREE_PRIO);
     UserE::start(THREAD_USER_PRIO, THREAD_USER_ACTION_PRIO, THREAD_USER_CLIENT_DATA_SEND_PRIO);
 
     /// Complete Period 2

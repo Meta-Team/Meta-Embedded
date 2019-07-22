@@ -80,6 +80,7 @@
 #define THREAD_USER_ACTION_PRIO             (NORMALPRIO - 1)
 #define THREAD_ELEVATOR_LG_PRIO             (NORMALPRIO - 2)
 #define THREAD_INSPECTOR_PRIO               (NORMALPRIO - 10)
+#define THREAD_INSPECTOR_REFEREE_PRIO       (NORMALPRIO - 11)
 #define THREAD_USER_CLIENT_DATA_SEND_PRIO   (LOWPRIO + 6)
 #define THREAD_SHELL_PRIO                   (LOWPRIO + 5)
 #define THREAD_BUZZER_PRIO                  (LOWPRIO)

@@ -12,14 +12,16 @@ bool InspectorE::elevator_failure_ = false;
 bool InspectorE::remote_failure_ = false;
 
 InspectorE::InspectorThread InspectorE::inspectorThread;
+InspectorE::RefereeInspectorThread InspectorE::refereeInspectorThread;
 
 void InspectorE::init(CANInterface *can1_, CANInterface *can2_) {
     can1 = can1_;
     can2 = can2_;
 }
 
-void InspectorE::start_inspection(tprio_t thread_prio) {
+void InspectorE::start_inspection(tprio_t thread_prio, tprio_t referee_inspector_prio) {
     inspectorThread.start(thread_prio);
+    refereeInspectorThread.start(referee_inspector_prio);
 }
 
 void InspectorE::startup_check_can() {
@@ -202,5 +204,22 @@ void InspectorE::InspectorThread::main() {
         chSysUnlock();  /// ---------------------------------- Exit Critical Zone ----------------------------------
 
         sleep(TIME_MS2I(INSPECTOR_THREAD_INTERVAL));
+    }
+}
+
+void InspectorE::RefereeInspectorThread::main() {
+    setName("InspectorH_Referee");
+
+    chEvtRegisterMask(&Referee::data_received_event, &data_received_listener, DATA_RECEIVED_EVENTMASK);
+
+    while (!shouldTerminate()) {
+
+        chEvtWaitAny(DATA_RECEIVED_EVENTMASK);
+
+        eventflags_t flags = chEvtGetAndClearFlags(&data_received_listener);
+        (void) flags;
+
+        // Toggle Referee LED if any data is received
+        LED::led_toggle(DEV_BOARD_LED_REFEREE);
     }
 }
