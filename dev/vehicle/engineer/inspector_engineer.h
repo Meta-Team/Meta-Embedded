@@ -53,7 +53,7 @@ private:
     static bool check_remote_data_error();
 
     /// Inspector Thread
-    class InspectorThread : public chibios_rt::BaseStaticThread<512> {
+    class InspectorThread : public chibios_rt::BaseStaticThread<1024> {
         static constexpr unsigned INSPECTOR_THREAD_INTERVAL = 20;  // [ms]
         void main();
     };

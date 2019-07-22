@@ -186,13 +186,13 @@ void InspectorS::InspectorThread::main() {
         if (chassis_failure_) LED::led_off(DEV_BOARD_LED_CHASSIS);
         else LED::led_on(DEV_BOARD_LED_CHASSIS);
 
+        chSysUnlock();  /// ---------------------------------- Exit Critical Zone ----------------------------------
+
         if (remote_failure_ || gimbal_failure_ || chassis_failure_) {
             if (!Buzzer::alerting()) Buzzer::alert_on();
         } else {
             if (Buzzer::alerting()) Buzzer::alert_off();
         }
-
-        chSysUnlock();  /// ---------------------------------- Exit Critical Zone ----------------------------------
 
         sleep(TIME_MS2I(INSPECTOR_THREAD_INTERVAL));
     }

@@ -55,7 +55,7 @@ private:
 
     /// User Thread
     static constexpr unsigned USER_THREAD_INTERVAL = 7;  // [ms]
-    class UserThread : public chibios_rt::BaseStaticThread<512> {
+    class UserThread : public chibios_rt::BaseStaticThread<1024> {
         void main() final;
     };
 

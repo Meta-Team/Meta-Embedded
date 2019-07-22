@@ -85,7 +85,7 @@ int main() {
     LED::led_on(DEV_BOARD_LED_REMOTE);  // LED 4 on now
 
     /// Setup GimbalIF
-    // TODO: write gimbal
+    EngineerGimbalIF::init();
 
     /// Setup Robotic Arm
     // TODO: write robotic arm
