@@ -22,7 +22,7 @@ float EngineerElevatorLG::prev_aR_tg_v;
 float EngineerElevatorLG::prev_aL_tg_v;
 
 
-void EngineerElevatorLG::init() {
+void EngineerElevatorLG::init(tprio_t logic_thread_prio) {
     action = LOCK;
     prev_action = LOCK;
     state = STOP;
@@ -32,6 +32,8 @@ void EngineerElevatorLG::init() {
     front_leave_stage = false;
     hanging_trigger = 1800;     //TODO need to determine
     landed_trigger = 2500;      //TODO need to determine
+
+    engineerLogicThread.start(logic_thread_prio);
 }
 
 void EngineerElevatorLG::set_action_free() {
@@ -309,7 +311,6 @@ void EngineerElevatorLG::EngineerElevatorLGThread::main() {
     setName("engineer_elevator_logic");
 
     DMSInterface::init(4);
-    EngineerElevatorLG::init();
 
     while (!shouldTerminate()) {
 

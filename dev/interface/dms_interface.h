@@ -5,12 +5,14 @@
 
 #ifndef META_INFANTRY_DMS_INTERFACE_H
 #define META_INFANTRY_DMS_INTERFACE_H
-#include <interface/buzzer.h>
+
 #include "ch.h"
 #include "hal.h"
 #include "common_macro.h"
+
 #include "led.h"
-#include "serial_shell.h"
+#include "shell.h"
+#include "buzzer.h"
 
 #define ADC_GRP1_NUM_CHANNELS   4
 #define ADC_GRP1_BUF_DEPTH      1

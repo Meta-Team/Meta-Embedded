@@ -118,7 +118,7 @@ int main() {
     EngineerElevatorSKD::load_pid_params(ELEVATOR_PID_A2V_PARAMS, ELEVATOR_PID_V2I_PARAMS, AIDED_MOTOR_PID_V2I_PARAMS, {0, 0, 0, 0, 0});
 
     /// Start LGs
-    EngineerElevatorLG::start(THREAD_ELEVATOR_LG_PRIO);
+    EngineerElevatorLG::init(THREAD_ELEVATOR_LG_PRIO);
 
     /// Start Inspector and User Threads
     InspectorE::start_inspection(THREAD_INSPECTOR_PRIO);

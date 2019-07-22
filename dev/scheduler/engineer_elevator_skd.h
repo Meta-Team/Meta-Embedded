@@ -37,7 +37,9 @@ public:
 
     static void set_aided_motor_velocity(float target_velocity_L, float target_velocity_R);
 
-
+    // TODO: make it private
+    static float target_height;
+    static float target_velocity[4];  // 0 and 1 for elevator motors, 2 and 3 for auxiliary motors
 
 
 private:
@@ -45,8 +47,7 @@ private:
     static bool elevator_enabled;
     static bool aided_motor_enabled;
 
-    static float target_height;
-    static float target_velocity[4];  // 0 and 1 for elevator motors, 2 and 3 for auxiliary motors
+
 
     static PIDController v2i_pid[4];  // 0 and 1 for elevator motors, 2 and 3 for auxiliary motors
     static PIDController a2v_pid[2];  // 0 and 1 for elevator motors

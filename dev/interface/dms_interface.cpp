@@ -26,6 +26,8 @@ adcsample_t DMSInterface::get_raw_sample(DMS_id_t id) {
 
 void DMSInterface::adccallback(ADCDriver *adcp, adcsample_t *buffer, size_t n) {
     (void) adcp;
+    (void) buffer;
+    (void) n;
 }
 
 void DMSInterface::adcerrorcallback(ADCDriver *adcp, adcerror_t err){

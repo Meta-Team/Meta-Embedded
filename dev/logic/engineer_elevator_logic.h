@@ -33,7 +33,7 @@ public:
         DOWNWARD,       // going down stairs
     };
 
-    static void init();
+    static void init(tprio_t logic_thread_prio);
 
     static action_t get_action() {      return action;      }
     static action_t get_prev_action() { return prev_action; }
@@ -76,6 +76,8 @@ public:
     // both the two sensors at the front wheels leave the stage, enter the last step of going down-stairs
     static bool front_leave_stage;
 
+private:
+
     class EngineerElevatorLGThread: public chibios_rt::BaseStaticThread<512>{
 
         static constexpr unsigned ELEVATOR_LG_INTERVAL = 5;  // [ms]
@@ -87,8 +89,6 @@ public:
     // TODO
     // static bool ignore_DMS;
 
-
-private:
 
     enum elevator_state_t{
         STOP,           // not using elevator

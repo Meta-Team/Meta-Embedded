@@ -219,6 +219,7 @@ add_executable(ENGINEER
         dev/interface/can_interface.cpp
         dev/interface/remote_interpreter.cpp
         dev/interface/referee_interface.cpp
+        dev/interface/sd_card_interface.cpp
         dev/common/CRC8.cpp
         dev/common/CRC16.cpp
 
