@@ -124,6 +124,7 @@ int main() {
     EngineerChassisSKD::load_pid_params(CHASSIS_PID_V2I_PARAMS);
     EngineerElevatorSKD::start(THREAD_ELEVATOR_SKD_PRIO);
     EngineerElevatorSKD::load_pid_params(ELEVATOR_PID_A2V_PARAMS, ELEVATOR_PID_V2I_PARAMS, AIDED_MOTOR_PID_V2I_PARAMS, {0, 0, 0, 0, 0});
+    RoboticArmSKD::start(THREAD_ROBOTIC_ARM_SKD_PRIO);
 
     /// Start LGs
     EngineerElevatorLG::init(THREAD_ELEVATOR_LG_PRIO);

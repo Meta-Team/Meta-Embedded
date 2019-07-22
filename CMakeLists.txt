@@ -227,9 +227,11 @@ add_executable(ENGINEER
         dev/interface/dms_interface.cpp
         dev/interface/engineer_elevator_interface.cpp
         dev/interface/engineer_gimbal.cpp
+        dev/interface/robotic_arm_interface.cpp
 
         dev/scheduler/engineer_chassis_skd.cpp
         dev/scheduler/engineer_elevator_skd.cpp
+        dev/scheduler/robotic_arm_skd.cpp
 
         dev/logic/engineer_elevator_logic.cpp
 
@@ -250,7 +252,7 @@ add_executable(ut_engineer
         dev/logic/engineer_elevator_logic.cpp
         dev/scheduler/engineer_elevator_skd.cpp
         dev/interface/engineer_elevator_interface.cpp
-        dev/control/robotic_arm_skd.cpp
+        dev/scheduler/robotic_arm_skd.cpp
         dev/interface/chassis_interface.cpp
         dev/interface/robotic_arm_interface.cpp
         dev/interface/dms_interface.cpp
@@ -378,7 +380,7 @@ add_executable(ut_robotic_arm
         dev/debug/unit_tests/engineer_robotic_arm_unit_test.cpp
         dev/interface/can_interface.cpp
         dev/interface/robotic_arm_interface.cpp
-        dev/control/robotic_arm_skd.cpp)
+        dev/scheduler/robotic_arm_skd.cpp)
 
 # Adjust Params of Skywalker-20A for friction wheels
 add_executable(pa_skywalker

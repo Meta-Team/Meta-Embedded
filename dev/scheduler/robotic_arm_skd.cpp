@@ -19,7 +19,7 @@ float RoboticArmSKD::target_velocity;
 PIDController RoboticArmSKD::v2i_pid;
 
 
-void RoboticArmSKD::init() {
+void RoboticArmSKD::start(tprio_t skd_thread_prio) {
     set_digital_status(extend_state, EXTEND_PAD, LOW_STATUS);
     set_digital_status(lift_state, LIFT_PAD, LOW_STATUS);
     set_digital_status(clamp_state, CLAMP_PAD, LOW_STATUS);
@@ -30,6 +30,8 @@ void RoboticArmSKD::init() {
     target_velocity = 0;
     v2i_pid.change_parameters(ROBOTIC_ARM_PID_V2I_PARAMS);
     v2i_pid.clear_i_out();
+
+    roboticArmThread.start(skd_thread_prio);
 }
 
 void RoboticArmSKD::stretch_out() {
@@ -154,7 +156,7 @@ void RoboticArmSKD::update_target_current() {
     if (!released){
         if (target_velocity * (RoboticArmIF::present_angle - trigger_angle) > 0)
             target_velocity = 0;
-        if (target_velocity == 0 && abs(RoboticArmIF::present_velocity) < ROBOTIC_ARM_TRIGGER_VELOCITY){
+        if (target_velocity == 0 && ABS_IN_RANGE(RoboticArmIF::present_velocity, ROBOTIC_ARM_TRIGGER_VELOCITY)){
             released = true;
             v2i_pid.clear_i_out();
         }
@@ -166,7 +168,6 @@ void RoboticArmSKD::update_target_current() {
 
 void RoboticArmSKD::RoboticArmThread::main() {
     setName("robotic_arm");
-    init();
     while (!shouldTerminate()){
         update_target_current();
         RoboticArmIF::send_current();

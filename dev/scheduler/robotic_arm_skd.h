@@ -32,12 +32,6 @@ class RoboticArmSKD {
 
 public:
 
-    class RoboticArmThread: public chibios_rt::BaseStaticThread<256>{
-        void main()final;
-    };
-
-    static RoboticArmThread roboticArmThread;
-
     enum digital_status_t {
         LOW_STATUS = PAL_LOW,
         HIGH_STATUS = PAL_HIGH
@@ -58,11 +52,7 @@ public:
 
     //TODO: lock()
 
-private:
-
-    static void init();
-
-public:
+    static void start(tprio_t skd_thread_prio);
 
     /**
      * @brief perform action on clamp
@@ -98,6 +88,12 @@ private:
     static void stretch_out();
 
     static void pull_back();
+
+    class RoboticArmThread: public chibios_rt::BaseStaticThread<256>{
+        void main()final;
+    };
+
+    static RoboticArmThread roboticArmThread;
 
     friend void cmd_robotic_arm_set_v2i(BaseSequentialStream *chp, int argc, char *argv[]);
 

@@ -9,6 +9,7 @@ CANInterface *InspectorE::can2 = nullptr;
 
 bool InspectorE::chassis_failure_ = false;
 bool InspectorE::elevator_failure_ = false;
+bool InspectorE::robotic_arm_failure_ = false;
 bool InspectorE::remote_failure_ = false;
 
 InspectorE::InspectorThread InspectorE::inspectorThread;
