@@ -25,39 +25,28 @@
 CANInterface can1(&CAND1);
 CANInterface can2(&CAND2);
 
-static void cmd_robotic_clamp_action(BaseSequentialStream *chp, int argc, char *argv[]) {
-    (void) argv;
-    if (argc != 1) {
-        shellUsage(chp, "clamp 0(relax)/1(clamped)");
-        return;
-    }
-    if (Shell::atoi(argv[0]) == 0) {
-        RoboticArmSKD::set_clamp_action(RoboticArmSKD::CLAMP_RELAX);
-    } else {
-        RoboticArmSKD::set_clamp_action(RoboticArmSKD::CLAMP_CLAMPED);
-    }
-}
-
-static void cmd_robotic_arm_action(BaseSequentialStream *chp, int argc, char *argv[]) {
-    (void) argv;
-    if (argc != 1) {
-        shellUsage(chp, "rotate 0(pull_back)/1(stretch_out)");
-        return;
-    }
-    if (Shell::atoi(argv[0])) RoboticArmSKD::stretch_out();
-    else RoboticArmSKD::pull_back();
-}
-
-static void cmd_robotic_arm_status(BaseSequentialStream *chp, int argc, char *argv[]) {
-    (void) argv;
-    if (argc != 1) {
-        shellUsage(chp, "0(door)/1(extend)/2(lift)");
-        return;
-    }
-    if (Shell::atoi(argv[0]) == 0) RoboticArmSKD::change_status(RoboticArmSKD::door_state, DOOR_PAD);
-    else if (Shell::atoi(argv[0]) == 1) RoboticArmSKD::change_status(RoboticArmSKD::extend_state, EXTEND_PAD);
-    else if (Shell::atoi(argv[0]) == 2) RoboticArmSKD::change_status(RoboticArmSKD::lift_state, LIFT_PAD);
-}
+//static void cmd_robotic_clamp_action(BaseSequentialStream *chp, int argc, char *argv[]) {
+//    (void) argv;
+//    if (argc != 1) {
+//        shellUsage(chp, "clamp 0(relax)/1(clamped)");
+//        return;
+//    }
+//    if (Shell::atoi(argv[0]) == 0) {
+//        RoboticArmSKD::set_clamp_action(RoboticArmSKD::CLAMP_RELAX);
+//    } else {
+//        RoboticArmSKD::set_clamp_action(RoboticArmSKD::CLAMP_CLAMPED);
+//    }
+//}
+//
+//static void cmd_robotic_arm_action(BaseSequentialStream *chp, int argc, char *argv[]) {
+//    (void) argv;
+//    if (argc != 1) {
+//        shellUsage(chp, "rotate 0(pull_back)/1(stretch_out)");
+//        return;
+//    }
+//    if (Shell::atoi(argv[0])) RoboticArmSKD::stretch_out();
+//    else RoboticArmSKD::pull_back();
+//}
 
 static void cmd_robotic_arm_emergency_stop(BaseSequentialStream *chp, int argc, char *argv[]) {
     (void) argv;
@@ -83,12 +72,23 @@ void cmd_robotic_arm_set_v2i(BaseSequentialStream *chp, int argc, char *argv[]) 
     LOG("pass!");
 }
 
+static void cmd_robotic_arm_next(BaseSequentialStream *chp, int argc, char *argv[]) {
+    (void) argv;
+    RoboticArmSKD::next_step();
+}
+
+static void cmd_robotic_arm_prev(BaseSequentialStream *chp, int argc, char *argv[]) {
+    (void) argv;
+    RoboticArmSKD::prev_step();
+}
+
 ShellCommand roboticArmCommands[] = {
-        {"clamp", cmd_robotic_clamp_action},
-        {"rotate", cmd_robotic_arm_action},
+//        {"clamp", cmd_robotic_clamp_action},
+//        {"rotate", cmd_robotic_arm_action},
         {"s", cmd_robotic_arm_emergency_stop},
         {"set_v2i", cmd_robotic_arm_set_v2i},
-        {"change", cmd_robotic_arm_status},
+        {"next", cmd_robotic_arm_next},
+        {"prev", cmd_robotic_arm_prev},
         {nullptr, nullptr}
 };
 

@@ -25,6 +25,7 @@
 #define LIFT_PAD GPIOE_PIN5
 #define EXTEND_PAD GPIOE_PIN6
 #define CLAMP_PAD GPIOE_PIN12
+#define POWER_PAD GPIOH_POWER4_CTRL
 
 class RoboticArmSKD {
 
@@ -36,24 +37,20 @@ public:
 
     static RoboticArmThread roboticArmThread;
 
-    enum clamp_status_t {
-        CLAMP_RELAX = PAL_LOW,
-        CLAMP_CLAMPED = PAL_HIGH
-    }; //GPIOH_POWER2
-
     enum digital_status_t {
         LOW_STATUS = PAL_LOW,
         HIGH_STATUS = PAL_HIGH
     };
 
-    enum robotic_arm_state_t{
+    enum robotic_arm_state_t {
+        NORMAL,
+        COLLECT_BULLET
+    };
+
+    enum bullet_state_t{
         WAITING,
-        LIFT,
         BOX_CLAMPED,
-        TAKING_BOX,
-        TAKING_BULLET,
-        THROW_AWAY,
-        DOWN
+        TAKING_BULLET
     };
 
     static bool released;
@@ -70,26 +67,19 @@ public:
      * @brief perform action on clamp
      * @param target_status
      */
-    static void set_clamp_action(clamp_status_t target_status);
-
-    static void stretch_out();
-
-    static void pull_back();
-
-    static void  change_status(digital_status_t& status, uint8_t pad);
-
-    static void set_status(digital_status_t& status, uint8_t pad, digital_status_t state);
-
     static void next_step();
     static void prev_step();
 
     static void change_extend();
+    static void change_door();
 
 private:
 
-    static digital_status_t door_state, lift_state, extend_state;
+    static digital_status_t door_state, lift_state, extend_state, clamp_state;
 
     static robotic_arm_state_t state;
+
+    static bullet_state_t bullet_state;
 
     static float trigger_angle;
 
@@ -97,8 +87,16 @@ private:
 
     static PIDController v2i_pid;
 
+    static void change_digital_status(digital_status_t& status, uint8_t pad);
+
+    static void set_digital_status(digital_status_t& status, uint8_t pad, digital_status_t state);
+
     static void update_target_current();
-    
+
+    static void stretch_out();
+
+    static void pull_back();
+
     friend void cmd_robotic_arm_set_v2i(BaseSequentialStream *chp, int argc, char *argv[]);
 
 };
