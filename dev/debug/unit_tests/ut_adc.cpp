@@ -23,36 +23,30 @@ private:
     void main() final {
         setName("adc_echo");
         DMSInterface::init(4);
-        uint16_t hanging_trigger = 2000;
-        uint16_t landed_trigger = 3000;
+        uint16_t hanging_trigger = 1500;
+        uint16_t landed_trigger = 2500;
         while (!shouldTerminate()) {
-//             LOG("%u %u %u", DMSInterface::get_raw_sample(DMSInterface::FR), DMSInterface::get_raw_sample(DMSInterface::FL),
-//                 DMSInterface::get_raw_sample(DMSInterface::BL));
+             LOG("%u %u %u %u", DMSInterface::get_raw_sample(DMSInterface::FR), DMSInterface::get_raw_sample(DMSInterface::FL),
+                 DMSInterface::get_raw_sample(DMSInterface::BL), DMSInterface::get_raw_sample(DMSInterface::BR));
 
-            if ( DMSInterface::get_raw_sample(DMSInterface::FR) > landed_trigger)
-                LOG("FR landed");
-            if ( DMSInterface::get_raw_sample(DMSInterface::FL) > landed_trigger)
-                LOG("FL landed");
-
-            if ( DMSInterface::get_raw_sample(DMSInterface::FR) < hanging_trigger)
-                LOG("FR hanging");
-            if ( DMSInterface::get_raw_sample(DMSInterface::FL) < hanging_trigger)
-                LOG("FL hanging");
-
-//            if ( DMSInterface::get_raw_sample(DMSInterface::BR) > landed_trigger)
-//                LOG("BR landed");
-//            if ( DMSInterface::get_raw_sample(DMSInterface::BL) > landed_trigger)
-//                LOG("BL landed");
+//            unsigned print = 9000000;
 //
-//            if ( DMSInterface::get_raw_sample(DMSInterface::BR) < hanging_trigger)
-//                LOG("BR hanging");
-//            if ( DMSInterface::get_raw_sample(DMSInterface::BL) < hanging_trigger)
-//                LOG("BL hanging");
-
-//            if ( palReadPad(FF_SWITCH_PAD, FFL_SWITCH_PIN_ID) == SWITCH_TOUCH_PAL_STATUS )
-//                LOG("FFL reaches stage");
-//            if ( palReadPad(FF_SWITCH_PAD, FFR_SWITCH_PIN_ID) == SWITCH_TOUCH_PAL_STATUS )
-//                LOG("FFR reaches stage");
+//            if ( DMSInterface::get_raw_sample(DMSInterface::FR) > landed_trigger)           print += 1000;
+//            else if ( DMSInterface::get_raw_sample(DMSInterface::FR) < hanging_trigger )    print += 2000;
+//
+//            if ( DMSInterface::get_raw_sample(DMSInterface::FL) > landed_trigger)           print += 100;
+//            else if ( DMSInterface::get_raw_sample(DMSInterface::FL) < hanging_trigger )    print += 200;
+//
+//            if ( DMSInterface::get_raw_sample(DMSInterface::BR) > landed_trigger)           print += 10;
+//            else if ( DMSInterface::get_raw_sample(DMSInterface::BR) < hanging_trigger )    print += 20;
+//
+//            if ( DMSInterface::get_raw_sample(DMSInterface::BL) > landed_trigger)           print += 1;
+//            else if ( DMSInterface::get_raw_sample(DMSInterface::BL) < hanging_trigger )    print += 2;
+//
+//            if ( palReadPad(FF_SWITCH_PAD, FFL_SWITCH_PIN_ID) == SWITCH_TOUCH_PAL_STATUS )  print += 100000;
+//            if ( palReadPad(FF_SWITCH_PAD, FFR_SWITCH_PIN_ID) == SWITCH_TOUCH_PAL_STATUS )  print += 10000;
+//
+//            LOG("FFL|FFR|FR|FL|BL|BR 1reach 2hanging 1landed 0 %u", print);
 
             sleep(TIME_MS2I(250));
         }

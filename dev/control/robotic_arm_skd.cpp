@@ -7,9 +7,11 @@
 
 RoboticArmSKD::RoboticArmThread RoboticArmSKD::roboticArmThread;
 RoboticArmSKD::robotic_arm_state_t RoboticArmSKD::state;
+RoboticArmSKD::bullet_state_t RoboticArmSKD::bullet_state;
 RoboticArmSKD::digital_status_t RoboticArmSKD::door_state;
 RoboticArmSKD::digital_status_t RoboticArmSKD::lift_state;
 RoboticArmSKD::digital_status_t RoboticArmSKD::extend_state;
+RoboticArmSKD::digital_status_t RoboticArmSKD::clamp_state;
 bool RoboticArmSKD::released;
 float RoboticArmSKD::trigger_angle;
 float RoboticArmSKD::target_velocity;
@@ -27,7 +29,6 @@ void RoboticArmSKD::init() {
     target_velocity = 0;
     v2i_pid.change_parameters(ROBOTIC_ARM_PID_V2I_PARAMS);
     v2i_pid.clear_i_out();
-
 }
 
 void RoboticArmSKD::stretch_out() {

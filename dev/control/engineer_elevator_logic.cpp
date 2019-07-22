@@ -30,14 +30,15 @@ void EngineerElevatorLG::init() {
     back_landed = true;
     back_edged = false;
     front_leave_stage = false;
-    hanging_trigger = 2000;
-    landed_trigger = 3000;
+    hanging_trigger = 1800;     //TODO need to determine
+    landed_trigger = 2500;      //TODO need to determine
 }
 
 void EngineerElevatorLG::set_action_free() {
     if (action == LOCK || action == PAUSE) {
         action = FREE;
         state = STOP;
+        LOG("set free!");
     }
 }
 
@@ -167,10 +168,11 @@ void EngineerElevatorLG::going_up() {
         EngineerChassisSKD::unlock();
         EngineerElevatorSKD::elevator_enable(false);
         EngineerElevatorSKD::aided_motor_enable(false);
-        EngineerChassisSKD::set_velocity(0, 0.3*ENGINEER_CHASSIS_VELOCITY_MAX, 0);  //TODO speed up?
+        EngineerChassisSKD::set_velocity(0, 0.05*ENGINEER_CHASSIS_VELOCITY_MAX, 0);  //TODO speed up?
 
         reach_stage = ( palReadPad(FF_SWITCH_PAD, FFL_SWITCH_PIN_ID) == SWITCH_TOUCH_PAL_STATUS )
                     && ( palReadPad(FF_SWITCH_PAD, FFR_SWITCH_PIN_ID) == SWITCH_TOUCH_PAL_STATUS ) ;
+
         if ( reach_stage ) {
             LOG("ascending");
             state = ASCENDING;
@@ -193,11 +195,13 @@ void EngineerElevatorLG::going_up() {
         EngineerChassisSKD::lock();
         EngineerElevatorSKD::elevator_enable(false);
         EngineerElevatorSKD::aided_motor_enable(true);
-        EngineerElevatorSKD::set_aided_motor_velocity(0.3*ENGINEER_AIDED_MOTOR_VELOCITY, 0.3*ENGINEER_AIDED_MOTOR_VELOCITY);
+        EngineerElevatorSKD::set_aided_motor_velocity(-1.4 * ENGINEER_AIDED_MOTOR_VELOCITY, -1.4 * ENGINEER_AIDED_MOTOR_VELOCITY);
 
         bool BL_landed = DMSInterface::get_raw_sample(DMSInterface::BL) > landed_trigger;
         bool BR_landed = DMSInterface::get_raw_sample(DMSInterface::BR) > landed_trigger;
-        back_landed = BL_landed && BR_landed;
+
+        back_landed = BR_landed;    //TODO
+
         if ( back_landed ) {
             LOG("descending");
             state = DESCENDING;
@@ -209,7 +213,7 @@ void EngineerElevatorLG::going_up() {
         EngineerElevatorSKD::aided_motor_enable(false);
         EngineerElevatorSKD::set_target_height(0);
 
-        if ( 0.05 >= EngineerElevatorIF::get_current_height() ) {
+        if ( 0.5 >= EngineerElevatorIF::get_current_height() ) {
             LOG("stop");
             state = STOP;
             EngineerChassisSKD::unlock();
@@ -239,7 +243,8 @@ void EngineerElevatorLG::going_down() {
         bool BL_hanging = DMSInterface::get_raw_sample(DMSInterface::BL) < hanging_trigger;
         bool BR_hanging = DMSInterface::get_raw_sample(DMSInterface::BR) < hanging_trigger;
 
-        back_edged = BL_hanging && BR_hanging;
+        back_edged = BR_hanging;
+
         if ( back_edged ) {
             LOG("ascending");
             state = ASCENDING;
@@ -249,7 +254,7 @@ void EngineerElevatorLG::going_down() {
         else if ( !BL_hanging && BR_hanging )
             EngineerChassisSKD::pivot_turn(BR, +0.3 * ENGINEER_CHASSIS_VELOCITY_MAX);
         else
-            EngineerChassisSKD::set_velocity(0, -0.3 *ENGINEER_CHASSIS_VELOCITY_MAX, 0);
+            EngineerChassisSKD::set_velocity(0, -0.02 *ENGINEER_CHASSIS_VELOCITY_MAX, 0);
     }
     else if (state == ASCENDING) {
         back_edged = false;
@@ -259,7 +264,7 @@ void EngineerElevatorLG::going_down() {
         EngineerElevatorSKD::aided_motor_enable(false);
         EngineerElevatorSKD::set_target_height(STAGE_HEIGHT);
 
-        if ( STAGE_HEIGHT - 0.05 <= EngineerElevatorIF::get_current_height() ) {
+        if ( STAGE_HEIGHT - 0.7 <= EngineerElevatorIF::get_current_height() ) {
             LOG("aiding");
             state = AIDING;
         }
@@ -268,11 +273,13 @@ void EngineerElevatorLG::going_down() {
         EngineerChassisSKD::lock();
         EngineerElevatorSKD::elevator_enable(false);
         EngineerElevatorSKD::aided_motor_enable(true);
-        EngineerElevatorSKD::set_aided_motor_velocity(-0.5*ENGINEER_AIDED_MOTOR_VELOCITY, -0.5*ENGINEER_AIDED_MOTOR_VELOCITY);
+        EngineerElevatorSKD::set_aided_motor_velocity(ENGINEER_AIDED_MOTOR_VELOCITY, ENGINEER_AIDED_MOTOR_VELOCITY);
 
         bool FL_hanging = DMSInterface::get_raw_sample(DMSInterface::FL) < hanging_trigger;
         bool FR_hanging = DMSInterface::get_raw_sample(DMSInterface::FR) < hanging_trigger;
-        front_leave_stage = FL_hanging && FR_hanging;
+
+        front_leave_stage = FL_hanging;     //TODO
+
         if ( front_leave_stage ) {
             LOG("descending");
             state = DESCENDING;
@@ -284,7 +291,7 @@ void EngineerElevatorLG::going_down() {
         EngineerElevatorSKD::aided_motor_enable(false);
         EngineerElevatorSKD::set_target_height(0);
 
-        if ( 0.05 >= EngineerElevatorIF::get_current_height() ) {
+        if ( 0.3 >= EngineerElevatorIF::get_current_height() ) {
             LOG("stop");
             state = STOP;
             EngineerChassisSKD::unlock();

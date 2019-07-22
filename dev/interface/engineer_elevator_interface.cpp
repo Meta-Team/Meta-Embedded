@@ -50,7 +50,6 @@ bool EngineerElevatorIF::send_currents() {
     txmsg.data8[6] = (uint8_t) (aidedMotor[L].target_current >> 8);
     txmsg.data8[7] = (uint8_t) (aidedMotor[L].target_current);
 
-
     can->send_msg(&txmsg);
     return true;
 }
