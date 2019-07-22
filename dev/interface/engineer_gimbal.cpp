@@ -23,8 +23,9 @@ const PWMConfig FRICTION_WHEELS_PWM_CFG = {
 void EngineerGimbalIF::set_target_angle(float yaw_angle_, float pitch_angle_) {
     target_angle[YAW] = yaw_angle_;
     target_angle[PIT] = pitch_angle_;
-    pwmEnableChannel(&PWMD8, YAW, PWM_PERCENTAGE_TO_WIDTH(&PWMD8, target_angle[YAW] / MAX_ANGLE * 500 + 500));
-    pwmEnableChannel(&PWMD8, PIT, PWM_PERCENTAGE_TO_WIDTH(&PWMD8, target_angle[PIT] / MAX_ANGLE * 500 + 500));
+    pwmEnableChannel(&PWMD8, YAW, PWM_PERCENTAGE_TO_WIDTH(&PWMD8, target_angle[YAW] / MAX_ANGLE * 1000 + 250));
+    pwmEnableChannel(&PWMD8, PIT, PWM_PERCENTAGE_TO_WIDTH(&PWMD8, target_angle[PIT] / MAX_ANGLE * 1000 + 250));
+
 }
 
 void EngineerGimbalIF::init() {

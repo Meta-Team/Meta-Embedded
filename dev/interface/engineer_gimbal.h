@@ -7,6 +7,7 @@
 
 #include "ch.hpp"
 #include "hal.h"
+#include "shell.h"
 
 class EngineerGimbalIF {
 
