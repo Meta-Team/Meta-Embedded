@@ -137,6 +137,7 @@
 
 #define CHASSIS_DODGE_MODE_THETA   45
 #define CHASSIS_DODGE_MODE_INTERVAL   700
+#define CHASSIS_BIASED_ANGLE 0
     
 /// Thread Priority List
 #define THREAD_CAN1_PRIO                    (HIGHPRIO - 1)

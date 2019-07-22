@@ -19,14 +19,16 @@ float ChassisLG::target_vy;
 float ChassisLG::target_theta;
 
 float ChassisLG::dodge_mode_theta_ = 0;
+float ChassisLG::biased_angle_ = 0;
 tprio_t ChassisLG::dodge_thread_prio;
 ChassisLG::DodgeModeSwitchThread ChassisLG::dodgeModeSwitchThread;
 chibios_rt::ThreadReference ChassisLG::dodgeThreadReference;
 
 
-void ChassisLG::init(tprio_t dodge_thread_prio_, float dodge_mode_theta) {
+void ChassisLG::init(tprio_t dodge_thread_prio_, float dodge_mode_theta, float biased_angle) {
     dodge_thread_prio = dodge_thread_prio_;
     dodge_mode_theta_ = dodge_mode_theta;
+    biased_angle_ = biased_angle;
     dodgeModeSwitchThread.started = true;
     dodgeThreadReference = dodgeModeSwitchThread.start(dodge_thread_prio);
 }
@@ -89,7 +91,7 @@ void ChassisLG::DodgeModeSwitchThread::main() {
         chSysUnlock();  /// --- EXIT S-Locked state ---
 
         if (!ABS_IN_RANGE(ChassisSKD::get_actual_theta() - (-target_theta), 10)) {
-            target_theta = -target_theta;
+            target_theta = -biased_angle_ - target_theta;
         }
         /**
          * If next target_theta is too close to current theta (may due to gimbal rotation), do not switch target to

@@ -42,7 +42,7 @@ public:
      * @param dodge_thread_prio_   Thread priority for dodge thread
      * @param dodge_mode_theta     Rotation angle (theta) in DODGE_MODE [degree]
      */
-    static void init(tprio_t dodge_thread_prio_, float dodge_mode_theta);
+    static void init(tprio_t dodge_thread_prio_, float dodge_mode_theta, float biased_angle);
 
     enum action_t {
         FORCED_RELAX_MODE,
@@ -78,6 +78,7 @@ private:
 
     static void apply_target();  // helper function to apply target values to ChassisSKD
     static float dodge_mode_theta_;  // rotation angle (theta) in DODGE_MODE [degree]
+    static float biased_angle_;    // gimbal angle in dodge mode set up for Hero
 
     static tprio_t dodge_thread_prio;
 
