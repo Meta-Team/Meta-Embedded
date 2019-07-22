@@ -17,19 +17,60 @@ class EngineerGimbalThread: public chibios_rt::BaseStaticThread<256>{
         while (!shouldTerminate()){
             if (Remote::rc.s1 == Remote::S_UP){
                 EngineerGimbalIF::set_target_angle(0,0);
-                LOG("UP");
             } else if (Remote::rc.s1 == Remote::S_MIDDLE){
                 EngineerGimbalIF::set_target_angle((Remote::rc.ch0 / 2 + 0.5) * EngineerGimbalIF::MAX_ANGLE,
                         (Remote::rc.ch1 / 2 + 0.5) * EngineerGimbalIF::MAX_ANGLE);
-                LOG("MIDDLE");
             } else{
                 EngineerGimbalIF::set_target_angle(EngineerGimbalIF::MAX_ANGLE / 2, EngineerGimbalIF::MAX_ANGLE / 2);
-                LOG("DOWN");
             }
             sleep(TIME_MS2I(5));
         }
     }
 }engineerGimbalThread;
+
+static void g_set_base(BaseSequentialStream *chp, int argc, char *argv[]) {
+    (void) argv;
+    if (argc != 1) {
+        shellUsage(chp, "set_b base");
+        return;
+    }
+    EngineerGimbalIF::base = Shell::atoi(argv[0]);
+}
+
+static void g_set_interval(BaseSequentialStream *chp, int argc, char *argv[]) {
+    (void) argv;
+    if (argc != 1) {
+        shellUsage(chp, "set_i interval");
+        return;
+    }
+    EngineerGimbalIF::interval = Shell::atoi(argv[0]);
+}
+
+static void g_echo(BaseSequentialStream *chp, int argc, char *argv[]) {
+    (void) argv;
+    if (argc != 0) {
+        shellUsage(chp, "echo");
+        return;
+    }
+    LOG("base: %d, interval: %d", EngineerGimbalIF::base, EngineerGimbalIF::interval);
+}
+
+static void g_echo_angle(BaseSequentialStream *chp, int argc, char *argv[]) {
+    (void) argv;
+    if (argc != 0) {
+        shellUsage(chp, "a");
+        return;
+    }
+    LOG("%d", (int)(EngineerGimbalIF::get_target_angle(EngineerGimbalIF::YAW) / EngineerGimbalIF::MAX_ANGLE * EngineerGimbalIF::interval + EngineerGimbalIF::base));
+}
+
+ShellCommand engineerGimbalCommand[]{
+        {"set_b",   g_set_base},
+        {"set_i",   g_set_interval},
+        {"echo",    g_echo},
+        {"a",       g_echo_angle},
+        {nullptr, nullptr}
+};
 
 int main(void) {
 
@@ -44,6 +85,7 @@ int main(void) {
 
     /** Debug Setup **/
     Shell::start(HIGHPRIO);
+    Shell::addCommands(engineerGimbalCommand);
 
     /** Basic IO Setup **/
     Remote::start();
