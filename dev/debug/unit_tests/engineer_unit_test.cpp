@@ -25,6 +25,8 @@ float c_kp, c_ki, c_kd, c_i_limit, c_out_limit;
 float e_kp, e_ki, e_kd, e_i_limit, e_out_limit;
 float a_kp, a_ki, a_kd, a_i_limit, a_out_limit;
 
+adcsample_t data[4];
+
 CANInterface can1(&CAND1);
 CANInterface can2(&CAND2);
 
@@ -34,6 +36,9 @@ public:
     void main()final {
         setName("EngineerFeedback");
         while (!shouldTerminate()){
+
+            DMSInterface::get_raw_sample(data);
+
             if (chassis){
                 LOG("act_v, tgt_v, act_I, tgt_I: %.2f, %.2f, %d, %d", ChassisIF::feedback[0].actual_velocity, EngineerChassisSKD::target_velocity[0],
                     ChassisIF::feedback[0].actual_current_raw, ChassisIF::target_current[0]);
@@ -43,8 +48,7 @@ public:
             } else if (aided_motor){
                 LOG("act_v, tgt_v, tgt_I, %.2f, %.2f, %d", EngineerElevatorIF::aidedMotor[0].actual_velocity, EngineerElevatorSKD::target_velocity[2], EngineerElevatorIF::aidedMotor[0].target_current);
             } else if (dms){
-                LOG("FR, FL, BL, BR: %u %u %u %u", DMSInterface::get_raw_sample(DMSInterface::FR), DMSInterface::get_raw_sample(DMSInterface::FL),
-                    DMSInterface::get_raw_sample(DMSInterface::BL), DMSInterface::get_raw_sample(DMSInterface::BR));
+                LOG("FR, FL, BL, BR: %u %u %u %u", data[DMSInterface::FR], data[DMSInterface::FL], data[DMSInterface::BL], data[DMSInterface::BR]);
                 dms = false;
             }
             sleep(TIME_MS2I(100));
@@ -100,31 +104,31 @@ static void cmd_stop_echo_fb(BaseSequentialStream *chp, int argc, char *argv[]){
 }
 
 static void cmd_set_v2i(BaseSequentialStream *chp, int argc, char **argv) {
-//    (void) argv;
-//    if (argc != 6) {
-//        shellUsage(chp, "set_v2i 0(chassis)/1(elevator)/2(aided_motor) kp ki kd i_limit out_limit");
-//        return;
-//    }
-//    int i = Shell::atoi(argv[0]);
-//    if (i == 0)
-//        EngineerChassisSKD::load_pid_params({c_kp = Shell::atof(argv[1]),
-//                                             c_ki = Shell::atof(argv[2]),
-//                                             c_kd = Shell::atof(argv[3]),
-//                                             c_i_limit = Shell::atof(argv[4]),
-//                                             c_out_limit = Shell::atof(argv[5])});
+    (void) argv;
+    if (argc != 6) {
+        shellUsage(chp, "set_v2i 0(chassis)/1(elevator)/2(aided_motor) kp ki kd i_limit out_limit");
+        return;
+    }
+    int i = Shell::atoi(argv[0]);
+    if (i == 0)
+        EngineerChassisSKD::load_pid_params({c_kp = Shell::atof(argv[1]),
+                                             c_ki = Shell::atof(argv[2]),
+                                             c_kd = Shell::atof(argv[3]),
+                                             c_i_limit = Shell::atof(argv[4]),
+                                             c_out_limit = Shell::atof(argv[5])});
 //    else if (i == 1)
 //        EngineerElevatorSKD::change_pid_params(0, {e_kp = Shell::atof(argv[1]),
 //                                                   e_ki = Shell::atof(argv[2]),
 //                                                   e_kd = Shell::atof(argv[3]),
 //                                                   e_i_limit = Shell::atof(argv[4]),
 //                                                   e_out_limit = Shell::atof(argv[5])});
-//    else if (i == 2)
-//        EngineerElevatorSKD::change_pid_params(1, {a_kp = Shell::atof(argv[1]),
-//                                                   a_ki = Shell::atof(argv[2]),
-//                                                   a_kd = Shell::atof(argv[3]),
-//                                                   a_i_limit = Shell::atof(argv[4]),
-//                                                   a_out_limit = Shell::atof(argv[5])});
-    LOG("not available!");
+    else if (i == 2)
+        EngineerElevatorSKD::set_aided_pid_params( {a_kp = Shell::atof(argv[1]),
+                                                   a_ki = Shell::atof(argv[2]),
+                                                   a_kd = Shell::atof(argv[3]),
+                                                   a_i_limit = Shell::atof(argv[4]),
+                                                   a_out_limit = Shell::atof(argv[5])});
+//    LOG("not available!");
 }
 
 static void cmd_echo_v2i(BaseSequentialStream *chp, int argc, char *argv[]){
@@ -275,6 +279,38 @@ static void cmd_chassis_pivot_turn(BaseSequentialStream *chp, int argc, char *ar
     if (i==1) EngineerChassisSKD::pivot_turn(ChassisBase::BR, 0.5*ENGINEER_CHASSIS_W_MAX);
 }
 
+static void cmd_aided_motor_test(BaseSequentialStream *chp, int argc, char *argv[]){
+    (void) argv;
+    if (argc != 1) {
+        shellUsage(chp, "ttt 0(forward) / 1(backward)");
+        return;
+    }
+
+    float landed_trigger = 1800;
+    float hanging_trigger = 2300;
+    adcsample_t data[4];
+    DMSInterface::get_raw_sample(data);
+
+    int i = Shell::atoi(argv[0]);
+    if (i==0) {
+
+        bool BL_landed = data[DMSInterface::BL] > landed_trigger;
+        bool BR_landed = data[DMSInterface::BR] > landed_trigger;
+        bool back_landed = BR_landed && BL_landed;
+        while (back_landed)
+            EngineerElevatorSKD::set_aided_motor_velocity(0.7*ENGINEER_AIDED_MOTOR_VELOCITY, 0.7*ENGINEER_AIDED_MOTOR_VELOCITY);
+
+    }
+    if (i==1) {
+        bool BL_hanging = data[DMSInterface::BL] < hanging_trigger;
+        bool BR_hanging = data[DMSInterface::BR] < hanging_trigger;
+        bool back_edged = BR_hanging && BL_hanging;
+        while (back_edged)
+            EngineerElevatorSKD::set_aided_motor_velocity(-0.5*ENGINEER_AIDED_MOTOR_VELOCITY, -0.5*ENGINEER_AIDED_MOTOR_VELOCITY);
+
+    }
+}
+
 
 ShellCommand chassisCommands[] = {
         {"enable",          cmd_enable},
@@ -299,6 +335,8 @@ ShellCommand chassisCommands[] = {
         {"down",            cmd_auto_down},
         {"sensor",          cmd_set_sensor_state},
         {"pivot",           cmd_chassis_pivot_turn},
+
+        {"ttt",             cmd_aided_motor_test},
 
         {nullptr,    nullptr}
 };

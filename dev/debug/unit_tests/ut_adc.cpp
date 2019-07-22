@@ -26,8 +26,10 @@ private:
 //        uint16_t hanging_trigger = 1500;
 //        uint16_t landed_trigger = 2500;
         while (!shouldTerminate()) {
-             LOG("%u %u %u %u", DMSInterface::get_raw_sample(DMSInterface::FR), DMSInterface::get_raw_sample(DMSInterface::FL),
-                 DMSInterface::get_raw_sample(DMSInterface::BL), DMSInterface::get_raw_sample(DMSInterface::BR));
+            adcsample_t data[4];
+            DMSInterface::get_raw_sample(data);
+            LOG("%u %u %u %u", data[DMSInterface::FR], data[DMSInterface::FL],
+                 data[DMSInterface::BL], data[DMSInterface::BR]);
 
 //            unsigned print = 9000000;
 //

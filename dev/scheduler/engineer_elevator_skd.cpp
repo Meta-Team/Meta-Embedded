@@ -59,6 +59,13 @@ void EngineerElevatorSKD::load_pid_params(PIDControllerBase::pid_params_t elevat
     counter_balance_pid.clear_i_out();
 }
 
+void EngineerElevatorSKD::set_aided_pid_params(PIDControllerBase::pid_params_t aided_v2i) {
+    v2i_pid[2].change_parameters(aided_v2i);
+    v2i_pid[3].change_parameters(aided_v2i);
+    v2i_pid[2].clear_i_out();
+    v2i_pid[3].clear_i_out();
+}
+
 void EngineerElevatorSKD::set_target_height(float new_height) {
     if (elevator_enabled)
         target_height = - new_height;  // target_height should take the negative value due to the direction

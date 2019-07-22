@@ -32,6 +32,9 @@ public:
                                 PIDControllerBase::pid_params_t aided_v2i,
                                 PIDControllerBase::pid_params_t balance_a2v);
 
+    // for debug
+    static void set_aided_pid_params(PIDControllerBase::pid_params_t aided_v2i);
+
     static void set_target_height(float new_height);  // [cm], positive height - chassis lift up
     static float get_target_height();
 

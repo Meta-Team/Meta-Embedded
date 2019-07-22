@@ -43,9 +43,9 @@ public:
     static void init(int sensor_num);
 
     /**
-     * @brief return the raw sample value from the DMS at the given index.
+     * @brief return the raw sample value from the DMS as an array.
      */
-    static adcsample_t get_raw_sample(DMS_id_t id);
+    static void get_raw_sample(adcsample_t * sample);
 
 private:
 

@@ -19,9 +19,11 @@ void DMSInterface::init(int sensor_num) {
     adcSTM32EnableTSVREFE();
 }
 
-adcsample_t DMSInterface::get_raw_sample(DMS_id_t id) {
+void DMSInterface::get_raw_sample(adcsample_t * sample) {
     adcConvert(&ADCD1, &adcgrpcfg, samples, ADC_GRP1_BUF_DEPTH);
-    return samples[id];
+    for (int i = 0; i < num; i++ ) {
+        sample[i] = samples[i];
+    }
 }
 
 void DMSInterface::adccallback(ADCDriver *adcp, adcsample_t *buffer, size_t n) {

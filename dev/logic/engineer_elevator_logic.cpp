@@ -31,7 +31,7 @@ void EngineerElevatorLG::init(tprio_t logic_thread_prio) {
     back_edged = false;
     front_leave_stage = false;
     hanging_trigger = 1800;     //TODO need to determine
-    landed_trigger = 2500;      //TODO need to determine
+    landed_trigger = 2300;      //TODO need to determine
 
     engineerLogicThread.start(logic_thread_prio);
 }
@@ -136,10 +136,13 @@ void EngineerElevatorLG::update_hanging_status() {
     // in chassis interface, motor_id : FR - 0, FL - 1, BL - 2, BR - 3
     // light the client lights when the wheel is hanging
 
-    bool FL_hanging = DMSInterface::get_raw_sample(DMSInterface::FL) < hanging_trigger;
-    bool BL_hanging = DMSInterface::get_raw_sample(DMSInterface::BL) < hanging_trigger;
-    bool BR_hanging = DMSInterface::get_raw_sample(DMSInterface::BR) < hanging_trigger;
-    bool FR_hanging = DMSInterface::get_raw_sample(DMSInterface::FR) < hanging_trigger;
+    adcsample_t data[4];
+    DMSInterface::get_raw_sample(data);
+
+    bool FL_hanging = data[DMSInterface::FL] < hanging_trigger;
+    bool BL_hanging = data[DMSInterface::BL] < hanging_trigger;
+    bool BR_hanging = data[DMSInterface::BR] < hanging_trigger;
+    bool FR_hanging = data[DMSInterface::FR] < hanging_trigger;
 
     // FL
     if ( FL_hanging )   Referee::set_client_light(0, true);
@@ -197,10 +200,13 @@ void EngineerElevatorLG::going_up() {
         EngineerChassisSKD::lock();
         EngineerElevatorSKD::elevator_enable(false);
         EngineerElevatorSKD::aided_motor_enable(true);
-        EngineerElevatorSKD::set_aided_motor_velocity( 0.5*ENGINEER_AIDED_MOTOR_VELOCITY, 0.5*ENGINEER_AIDED_MOTOR_VELOCITY);
+        EngineerElevatorSKD::set_aided_motor_velocity( 0.7*ENGINEER_AIDED_MOTOR_VELOCITY, 0.7*ENGINEER_AIDED_MOTOR_VELOCITY);
 
-        bool BL_landed = DMSInterface::get_raw_sample(DMSInterface::BL) > landed_trigger;
-        bool BR_landed = DMSInterface::get_raw_sample(DMSInterface::BR) > landed_trigger;
+        adcsample_t data[4];
+        DMSInterface::get_raw_sample(data);
+
+        bool BL_landed = data[DMSInterface::BL] > landed_trigger;
+        bool BR_landed = data[DMSInterface::BR] > landed_trigger;
 
         back_landed = BR_landed && BL_landed;
 
@@ -242,8 +248,10 @@ void EngineerElevatorLG::going_down() {
         EngineerElevatorSKD::elevator_enable(false);
         EngineerElevatorSKD::aided_motor_enable(false);
 
-        bool BL_hanging = DMSInterface::get_raw_sample(DMSInterface::BL) < hanging_trigger;
-        bool BR_hanging = DMSInterface::get_raw_sample(DMSInterface::BR) < hanging_trigger;
+        adcsample_t data[4];
+        DMSInterface::get_raw_sample(data);
+        bool BL_hanging = data[DMSInterface::BL] < hanging_trigger;
+        bool BR_hanging = data[DMSInterface::BR] < hanging_trigger;
 
         back_edged = BR_hanging && BL_hanging;
 
@@ -252,9 +260,9 @@ void EngineerElevatorLG::going_down() {
             state = ASCENDING;
         }
         else if ( BL_hanging && !BR_hanging )
-            EngineerChassisSKD::pivot_turn(EngineerChassisSKD::BL, -0.03 * ENGINEER_CHASSIS_W_MAX);
+            EngineerChassisSKD::pivot_turn(EngineerChassisSKD::BL, -0.01 * ENGINEER_CHASSIS_W_MAX);
         else if ( !BL_hanging && BR_hanging )
-            EngineerChassisSKD::pivot_turn(EngineerChassisSKD::BR, +0.03 * ENGINEER_CHASSIS_W_MAX);
+            EngineerChassisSKD::pivot_turn(EngineerChassisSKD::BR, +0.01 * ENGINEER_CHASSIS_W_MAX);
         else
             EngineerChassisSKD::set_velocity(0, -0.02 *ENGINEER_CHASSIS_VELOCITY_MAX, 0);
     }
@@ -275,10 +283,12 @@ void EngineerElevatorLG::going_down() {
         EngineerChassisSKD::lock();
         EngineerElevatorSKD::elevator_enable(false);
         EngineerElevatorSKD::aided_motor_enable(true);
-        EngineerElevatorSKD::set_aided_motor_velocity(-ENGINEER_AIDED_MOTOR_VELOCITY, -ENGINEER_AIDED_MOTOR_VELOCITY);
+        EngineerElevatorSKD::set_aided_motor_velocity(-0.5*ENGINEER_AIDED_MOTOR_VELOCITY, -0.5*ENGINEER_AIDED_MOTOR_VELOCITY);
 
-        bool FL_hanging = DMSInterface::get_raw_sample(DMSInterface::FL) < hanging_trigger;
-        bool FR_hanging = DMSInterface::get_raw_sample(DMSInterface::FR) < hanging_trigger;
+        adcsample_t data[4];
+        DMSInterface::get_raw_sample(data);
+        bool FL_hanging = data[DMSInterface::FL] < hanging_trigger;
+        bool FR_hanging = data[DMSInterface::FR] < hanging_trigger;
 
         front_leave_stage = FL_hanging && FR_hanging ;
 
