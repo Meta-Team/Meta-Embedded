@@ -71,6 +71,8 @@ void EngineerElevatorSKD::set_target_height(float new_height) {
     if (elevator_enabled) {
         target_height = - new_height;  // target_height should take the negative value due to the direction
 //        LOG("ElevatorSKD: set target %f", new_height);
+    } else {
+//        LOG("elevator disabled");
     }
 }
 

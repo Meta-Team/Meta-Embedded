@@ -112,24 +112,19 @@ void UserE::UserThread::main() {
             EngineerElevatorSKD::aided_motor_enable(true);
 
             // right elevator
-            if (Remote::rc.ch1 > 0.5 || Remote::rc.ch1 < -0.5) {
-//                EngineerElevatorSKD::elevator_enable(true);
-//                EngineerElevatorSKD::aided_motor_enable(false);
+            if (Remote::rc.ch1 > 0.5 || Remote::rc.ch1 < -0.5)
                 EngineerElevatorSKD::set_target_height(EngineerElevatorIF::get_current_height() + Remote::rc.ch1 * 0.5);
-            }
+            else
+                EngineerElevatorSKD::set_target_height(EngineerElevatorIF::get_current_height());
 
             // left aided motor
-            if (Remote::rc.ch3 > 0.2 || Remote::rc.ch3 < -0.2) {
-//                EngineerElevatorSKD::elevator_enable(false);
-//                EngineerElevatorSKD::aided_motor_enable(true);
+            if (Remote::rc.ch3 > 0.2 || Remote::rc.ch3 < -0.2)
                 EngineerElevatorSKD::set_aided_motor_velocity(Remote::rc.ch3 * 0.7 * ENGINEER_AIDED_MOTOR_VELOCITY,
                                                               Remote::rc.ch3 * 0.7 * ENGINEER_AIDED_MOTOR_VELOCITY);
-            } else {
-//                EngineerElevatorSKD::elevator_enable(false);
-//                EngineerElevatorSKD::aided_motor_enable(false);
-//                EngineerElevatorSKD::set_target_height(EngineerElevatorIF::get_current_height());
+            else
                 EngineerElevatorSKD::set_aided_motor_velocity(0, 0);
-            }
+
+
         } else if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_UP) {
 
             /// Remote auto elevating. RIGHT.

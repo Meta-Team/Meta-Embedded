@@ -300,6 +300,10 @@ static void cmd_aided_motor_test(BaseSequentialStream *chp, int argc, char *argv
     }
 }
 
+static void cmd_change_door(BaseSequentialStream *chp, int argc, char *argv[]){
+    RoboticArmSKD::change_door();
+}
+
 
 ShellCommand chassisCommands[] = {
         {"enable",          cmd_enable},
@@ -327,6 +331,8 @@ ShellCommand chassisCommands[] = {
 
         {"ttt",             cmd_aided_motor_test},
 
+        {"door",            cmd_change_door},
+
         {nullptr,    nullptr}
 };
 
@@ -353,7 +359,7 @@ int main(){
     EngineerElevatorSKD::start(THREAD_ELEVATOR_SKD_PRIO);
     EngineerElevatorSKD::load_pid_params(ELEVATOR_PID_A2V_PARAMS, ELEVATOR_PID_V2I_PARAMS, AIDED_MOTOR_PID_V2I_PARAMS, {0, 0, 0, 0, 0});
 
-    //RoboticArmSKD::roboticArmThread.start(NORMALPRIO - 2);
+    RoboticArmSKD::roboticArmThread.start(NORMALPRIO - 2);
 
     EngineerElevatorLG::init(THREAD_ELEVATOR_LG_PRIO);
 

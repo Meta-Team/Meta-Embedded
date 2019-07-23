@@ -64,13 +64,15 @@ void RoboticArmSKD::change_extend() {
 
 void RoboticArmSKD::change_door() {
     if (door_state == LOW_STATUS) {
-//        EngineerElevatorSKD::set_target_height(2);
-//        chThdSleepMilliseconds(1000);
+        EngineerElevatorSKD::elevator_enable(true);
+        EngineerElevatorSKD::set_target_height(3);
+        chThdSleepMilliseconds(1000);
         change_digital_status(door_state, DOOR_PAD);
     }
     else {
         change_digital_status(door_state, DOOR_PAD);
-//        EngineerElevatorSKD::set_target_height(0);
+        EngineerElevatorSKD::elevator_enable(true);
+        EngineerElevatorSKD::set_target_height(0);
     }
 }
 

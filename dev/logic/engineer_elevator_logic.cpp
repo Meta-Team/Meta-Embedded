@@ -327,31 +327,31 @@ void EngineerElevatorLG::going_down() {
 }
 
 
-///////// for finding better aided motor params
-void EngineerElevatorLG::aided_motor_test_forward() {
-    adcsample_t data[4];
-    DMSInterface::get_raw_sample(data);
-    bool back_landed = data[DMSInterface::BL] > landed_trigger && data[DMSInterface::BR] > landed_trigger;
-
-    if (!back_landed)
-        EngineerElevatorSKD::set_aided_motor_velocity(0.7*ENGINEER_AIDED_MOTOR_VELOCITY, 0.7*ENGINEER_AIDED_MOTOR_VELOCITY);
-    else
-        EngineerElevatorSKD::set_aided_motor_velocity(0,0);
-
-}
-
-void EngineerElevatorLG::aided_motor_test_backward() {
-    adcsample_t data[4];
-    DMSInterface::get_raw_sample(data);
-    bool front_leave_stage = data[DMSInterface::FL] < hanging_trigger && data[DMSInterface::FR] < hanging_trigger;
-
-    if (!front_leave_stage)
-        EngineerElevatorSKD::set_aided_motor_velocity(-0.5*ENGINEER_AIDED_MOTOR_VELOCITY, -0.5*ENGINEER_AIDED_MOTOR_VELOCITY);
-    else {
-        chThdSleepMilliseconds(delay_time);
-        EngineerElevatorSKD::set_aided_motor_velocity(0, 0);
-    }
-}
+/////////// for finding better aided motor params
+//void EngineerElevatorLG::aided_motor_test_forward() {
+//    adcsample_t data[4];
+//    DMSInterface::get_raw_sample(data);
+//    bool back_landed = data[DMSInterface::BL] > landed_trigger && data[DMSInterface::BR] > landed_trigger;
+//
+//    if (!back_landed)
+//        EngineerElevatorSKD::set_aided_motor_velocity(0.7*ENGINEER_AIDED_MOTOR_VELOCITY, 0.7*ENGINEER_AIDED_MOTOR_VELOCITY);
+//    else
+//        EngineerElevatorSKD::set_aided_motor_velocity(0,0);
+//
+//}
+//
+//void EngineerElevatorLG::aided_motor_test_backward() {
+//    adcsample_t data[4];
+//    DMSInterface::get_raw_sample(data);
+//    bool front_leave_stage = data[DMSInterface::FL] < hanging_trigger && data[DMSInterface::FR] < hanging_trigger;
+//
+//    if (!front_leave_stage)
+//        EngineerElevatorSKD::set_aided_motor_velocity(-0.5*ENGINEER_AIDED_MOTOR_VELOCITY, -0.5*ENGINEER_AIDED_MOTOR_VELOCITY);
+//    else {
+//        chThdSleepMilliseconds(delay_time);
+//        EngineerElevatorSKD::set_aided_motor_velocity(0, 0);
+//    }
+//}
 
 
 void EngineerElevatorLG::EngineerElevatorLGThread::main() {
@@ -363,16 +363,16 @@ void EngineerElevatorLG::EngineerElevatorLGThread::main() {
 
         update_hanging_status();
 
-        if (a_t_forward) {
-            aided_motor_test_forward();
-        }
-        if (a_t_backward) {
-            aided_motor_test_backward();
-        }
+//        if (a_t_forward) {
+//            aided_motor_test_forward();
+//        }
+//        if (a_t_backward) {
+//            aided_motor_test_backward();
+//        }
 
         if (action == LOCK || action == PAUSE) {
-            EngineerElevatorSKD::elevator_enable(false);
-            EngineerElevatorSKD::aided_motor_enable(false);
+//            EngineerElevatorSKD::elevator_enable(false);
+//            EngineerElevatorSKD::aided_motor_enable(false);
         } else if (action == UPWARD) {
             going_up();
         } else if (action == DOWNWARD) {

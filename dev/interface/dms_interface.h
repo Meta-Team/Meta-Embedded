@@ -58,7 +58,7 @@ private:
     static void adcerrorcallback(ADCDriver *adcp, adcerror_t err);
 
     static constexpr ADCConversionGroup adcgrpcfg = {
-            TRUE,
+            FALSE,
             ADC_GRP1_NUM_CHANNELS,
             adccallback,
             adcerrorcallback,

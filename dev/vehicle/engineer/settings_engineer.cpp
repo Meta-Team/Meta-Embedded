@@ -16,8 +16,13 @@ void cmd_echo_dms(BaseSequentialStream *chp, int argc, char *argv[]) {
              data[DMSInterface::BL], data[DMSInterface::BR]);
 }
 
+void cmd_change_door(BaseSequentialStream *chp, int argc, char *argv[]){
+    RoboticArmSKD::change_door();
+}
+
 
 ShellCommand mainProgramCommands[] = {
         {"echo_dms", cmd_echo_dms},
+        {"door", cmd_change_door},
         {nullptr,    nullptr}
 };
