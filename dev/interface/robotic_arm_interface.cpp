@@ -1,12 +1,10 @@
 //
 // Created by Ye Anbang on 2019/2/2.
 //
-#include "ch.hpp"
 #include "robotic_arm_interface.h"
-#include "common_macro.h"
 
 
-float RoboticArmIF::present_angle;
+float RoboticArmIF::present_angle = 0;
 float RoboticArmIF::present_velocity;
 time_msecs_t RoboticArmIF::motor_last_update_time;
 int16_t RoboticArmIF::motor_target_current;

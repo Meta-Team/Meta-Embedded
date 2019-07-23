@@ -19,7 +19,7 @@ float RoboticArmSKD::target_velocity;
 PIDController RoboticArmSKD::v2i_pid;
 
 
-void RoboticArmSKD::init() {
+void RoboticArmSKD::start(tprio_t skd_thread_prio) {
 
     state = NORMAL;
     bullet_state = WAITING;
@@ -37,6 +37,8 @@ void RoboticArmSKD::init() {
     palSetPad(GPIOE, LIFT_PAD);
     palSetPad(GPIOE, DOOR_PAD);
     palSetPad(GPIOE, CLAMP_PAD);
+
+    roboticArmThread.start(skd_thread_prio);
 
 }
 
@@ -179,11 +181,8 @@ void RoboticArmSKD::update_target_current() {
 
 void RoboticArmSKD::RoboticArmThread::main() {
     setName("robotic_arm");
-    init();
     while (!shouldTerminate()){
         update_target_current();
-       // LOG("%d %d %d\n", clamp_state, lift_state, extend_state);
-       // LOG("angle: %f     velocity: %f\n", RoboticArmIF::present_angle, RoboticArmIF::present_velocity);
         RoboticArmIF::send_current();
         sleep(TIME_MS2I(2));
     }
