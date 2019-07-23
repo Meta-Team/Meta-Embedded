@@ -16,8 +16,8 @@ float UserE::gimbal_pitch_max_angle = 45; //  up range for pitch [degree]
 
 /// Chassis Config
 float UserE::chassis_v_left_right = 300.0f;  // [mm/s]
-float UserE::chassis_v_forward = 600.0f;     // [mm/s]
-float UserE::chassis_v_backward = 600.0f;    // [mm/s]
+float UserE::chassis_v_forward = 800.0f;     // [mm/s]
+float UserE::chassis_v_backward = 800.0f;    // [mm/s]
 float UserE::chassis_w = 150.0f;    // [degree/s]
 
 float UserE::chassis_pc_shift_ratio = 1.5f;  // 150% when Shift is pressed
