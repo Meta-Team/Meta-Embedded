@@ -14,4 +14,10 @@
 
 extern ShellCommand mainProgramCommands[];
 
+void cmd_echo_dms(BaseSequentialStream *chp, int argc, char *argv[]);
+
+
+
+
+
 #endif //META_INFANTRY_SETTINGS_INFANTRY_H

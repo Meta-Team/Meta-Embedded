@@ -169,7 +169,7 @@ void RoboticArmSKD::update_target_current() {
     if (!released){
         if (target_velocity * (RoboticArmIF::present_angle - trigger_angle) > 0)
             target_velocity = 0;
-        if (target_velocity == 0 && abs(RoboticArmIF::present_velocity) < ROBOTIC_ARM_TRIGGER_VELOCITY){
+        if (target_velocity == 0 && ABS_IN_RANGE(RoboticArmIF::present_velocity, ROBOTIC_ARM_TRIGGER_VELOCITY)){
             released = true;
             v2i_pid.clear_i_out();
         }

@@ -88,7 +88,7 @@ private:
 
     class EngineerElevatorLGThread: public chibios_rt::BaseStaticThread<512>{
 
-        static constexpr unsigned ELEVATOR_LG_INTERVAL = 5;  // [ms]
+        static constexpr unsigned ELEVATOR_LG_INTERVAL = 2;  // [ms]
         void main()final ;
     };
 
