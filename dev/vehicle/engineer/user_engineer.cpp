@@ -115,7 +115,7 @@ void UserE::UserThread::main() {
             if (Remote::rc.ch1 > 0.5 || Remote::rc.ch1 < -0.5) {
 //                EngineerElevatorSKD::elevator_enable(true);
 //                EngineerElevatorSKD::aided_motor_enable(false);
-                EngineerElevatorSKD::set_target_height(EngineerElevatorIF::get_current_height() + Remote::rc.ch1 * 2);
+                EngineerElevatorSKD::set_target_height(EngineerElevatorIF::get_current_height() + Remote::rc.ch1 * 0.5);
             }
 
             // left aided motor
