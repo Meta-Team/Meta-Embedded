@@ -120,7 +120,6 @@ void EngineerChassisSKD::SKDThread::main() {
             ChassisIF::target_current[BR] = (int16_t) pid[BR].calc(ChassisIF::feedback[BR].actual_velocity,
                                                                    target_velocity[BR]);
 
-            LOG("%d", ChassisIF::target_current[FR]);
         } else {
 
             for (size_t i = 0; i < MOTOR_COUNT; i++) {

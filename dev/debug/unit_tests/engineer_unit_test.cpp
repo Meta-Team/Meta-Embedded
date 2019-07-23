@@ -30,7 +30,7 @@ adcsample_t data[4];
 CANInterface can1(&CAND1);
 CANInterface can2(&CAND2);
 
-class EngineerFeedbackThread: public chibios_rt::BaseStaticThread<256>{
+class EngineerFeedbackThread: public chibios_rt::BaseStaticThread<512>{
 public:
     bool chassis = false, elevator = false, aided_motor = false, dms = false;
     void main()final {
@@ -309,16 +309,16 @@ ShellCommand chassisCommands[] = {
         {"set_v2i",         cmd_set_v2i},
         {"echo_v2i",        cmd_echo_v2i},
 
-        {"free",            cmd_elevator_set_free},
-        {"c_set_v",         cmd_chassis_set_velocity},
-        {"a_set_v",         cmd_aided_motor_set_velocity},
-        {"e_set_h",         cmd_elevator_set_height},
-        {"e_clear_h",       cmd_elevator_clear_height},
-
-        {"s",               cmd_stop_elev},
-        {"cont",            cmd_elevator_cont_action},
-        {"quit",            cmd_elevator_quit_action},
-        {"reset",           cmd_reset_elev},
+//        {"free",            cmd_elevator_set_free},
+//        {"c_set_v",         cmd_chassis_set_velocity},
+//        {"a_set_v",         cmd_aided_motor_set_velocity},
+//        {"e_set_h",         cmd_elevator_set_height},
+//        {"e_clear_h",       cmd_elevator_clear_height},
+//
+//        {"s",               cmd_stop_elev},
+//        {"cont",            cmd_elevator_cont_action},
+//        {"quit",            cmd_elevator_quit_action},
+//        {"reset",           cmd_reset_elev},
 
         {"up",              cmd_auto_up},
         {"down",            cmd_auto_down},

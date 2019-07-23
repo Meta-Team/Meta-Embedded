@@ -216,7 +216,7 @@ void EngineerElevatorLG::going_up() {
         bool BL_landed = data[DMSInterface::BL] > landed_trigger;
         bool BR_landed = data[DMSInterface::BR] > landed_trigger;
 
-        back_landed = BR_landed && BL_landed;
+        back_landed = BR_landed || BL_landed;
 
         if ( back_landed ) {
             LOG("descending");
@@ -261,17 +261,19 @@ void EngineerElevatorLG::going_down() {
         bool BL_hanging = data[DMSInterface::BL] < hanging_trigger;
         bool BR_hanging = data[DMSInterface::BR] < hanging_trigger;
 
-        back_edged = BR_hanging && BL_hanging;
+        // FIXME: change to &&
+        back_edged = BR_hanging/* && BL_hanging*/;
 
         if ( back_edged ) {
             LOG("ascending");
             state = ASCENDING;
         }
-        else if ( BL_hanging && !BR_hanging )
+        // FIXME: re-enable
+        /*else if ( BL_hanging && !BR_hanging )
             EngineerChassisSKD::pivot_turn(EngineerChassisSKD::BL, -0.005 * ENGINEER_CHASSIS_W_MAX);
         else if ( !BL_hanging && BR_hanging )
             EngineerChassisSKD::pivot_turn(EngineerChassisSKD::BR, +0.005 * ENGINEER_CHASSIS_W_MAX);
-        else
+        else*/
             EngineerChassisSKD::set_velocity(0, -0.02 *ENGINEER_CHASSIS_VELOCITY_MAX, 0);
     }
     else if (state == ASCENDING) {

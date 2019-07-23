@@ -25,6 +25,7 @@ void EngineerElevatorSKD::elevator_enable(bool enable) {
         // elevator should be fixed when disabled
         set_target_height( EngineerElevatorIF::get_current_height() );
         elevator_enabled = enable;
+        LOG("ElevatorSKD: enable = %d", elevator_enabled);
     }
 }
 
@@ -67,8 +68,10 @@ void EngineerElevatorSKD::set_aided_pid_params(PIDControllerBase::pid_params_t a
 }
 
 void EngineerElevatorSKD::set_target_height(float new_height) {
-    if (elevator_enabled)
+    if (elevator_enabled) {
         target_height = - new_height;  // target_height should take the negative value due to the direction
+//        LOG("ElevatorSKD: set target %f", new_height);
+    }
 }
 
 float EngineerElevatorSKD::get_target_height() {
@@ -81,7 +84,7 @@ void EngineerElevatorSKD::set_aided_motor_velocity(float target_velocity_L, floa
         target_velocity[3] = -target_velocity_L;
     }
     else {
-        LOG("aided motor disabled");
+        LOG_ERR("ElevatorSKD: aided motor disabled now");
     }
 }
 

@@ -82,10 +82,10 @@ void UserE::UserThread::main() {
         } else {
             gimbal_pc_yaw_target_angle_ = gimbal_pc_pitch_target_angle_ = 0;
         }
-        
+
         EngineerGimbalIF::set_target_angle(gimbal_pc_yaw_target_angle_, gimbal_pc_pitch_target_angle_);
 
-        
+
         if (Remote::rc.s1 == Remote::S_UP && Remote::rc.s2 == Remote::S_UP) {
             /// Safe mode
             EngineerChassisSKD::lock();
@@ -103,7 +103,7 @@ void UserE::UserThread::main() {
             );
         } else if (Remote::rc.s1 == Remote::S_UP && Remote::rc.s2 == Remote::S_DOWN) {
             /// Remote elevator, left aided motor, right elevator
-            
+
             EngineerChassisSKD::lock();
             EngineerElevatorLG::set_action_free();
             // and disable Robotic arm
@@ -115,8 +115,9 @@ void UserE::UserThread::main() {
             if (Remote::rc.ch1 > 0.5 || Remote::rc.ch1 < -0.5) {
 //                EngineerElevatorSKD::elevator_enable(true);
 //                EngineerElevatorSKD::aided_motor_enable(false);
-                EngineerElevatorSKD::set_target_height(EngineerElevatorIF::get_current_height() + Remote::rc.ch1 * 2);
+                EngineerElevatorSKD::set_target_height(EngineerElevatorIF::get_current_height() + Remote::rc.ch1 * 0.5);
             }
+
             // left aided motor
             if (Remote::rc.ch3 > 0.2 || Remote::rc.ch3 < -0.2) {
 //                EngineerElevatorSKD::elevator_enable(false);
@@ -126,7 +127,7 @@ void UserE::UserThread::main() {
             } else {
 //                EngineerElevatorSKD::elevator_enable(false);
 //                EngineerElevatorSKD::aided_motor_enable(false);
-                EngineerElevatorSKD::set_target_height(EngineerElevatorIF::get_current_height());
+//                EngineerElevatorSKD::set_target_height(EngineerElevatorIF::get_current_height());
                 EngineerElevatorSKD::set_aided_motor_velocity(0, 0);
             }
         } else if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_UP) {
@@ -193,7 +194,7 @@ void UserE::UserThread::main() {
         } else if (Remote::rc.s1 == Remote::S_DOWN && Remote::rc.s2 == Remote::S_DOWN) {
 
             /// PC control
-            
+
             /// Chassis WSQE, AD, ctrl, shift
             float target_vx, target_vy, target_w;
 
@@ -253,9 +254,10 @@ void UserE::UserThread::main() {
 
             }
 
-            /// Final
-            sleep(TIME_MS2I(USER_THREAD_INTERVAL));
         }
+
+        /// Final
+        sleep(TIME_MS2I(USER_THREAD_INTERVAL));
     }
 }
 

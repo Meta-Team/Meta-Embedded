@@ -17,6 +17,7 @@ void DMSInterface::init(int sensor_num) {
     palSetPadMode(GPIOC, GPIOC_ADC1_IN15, PAL_MODE_INPUT_ANALOG);
     adcStart(&ADCD1, nullptr);
     adcSTM32EnableTSVREFE();
+//    adcStartConversion(&ADCD1, &adcgrpcfg, samples, ADC_GRP1_BUF_DEPTH);
 }
 
 void DMSInterface::get_raw_sample(adcsample_t * sample) {
