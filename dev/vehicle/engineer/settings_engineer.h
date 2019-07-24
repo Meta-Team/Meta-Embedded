@@ -18,7 +18,9 @@ void cmd_echo_dms(BaseSequentialStream *chp, int argc, char *argv[]);
 
 void cmd_change_door(BaseSequentialStream *chp, int argc, char *argv[]);
 
+void cmd_echo_sdcard(BaseSequentialStream *chp, int argc, char *argv[]);
 
+void cmd_clear_sdcard(BaseSequentialStream *chp, int argc, char *argv[]);
 
 
 

@@ -99,10 +99,18 @@ int main() {
     LED::led_on(DEV_BOARD_LED_ROBOTIC_ARM);  // LED 4 on now
 
     /// Setup ElevatorIF
-    EngineerElevatorIF::init(&can2);
+    float init_angle;
+    if (SDCard::get_data(ELEVATOR_ANGLE_DATA_ID, &init_angle, sizeof(init_angle)) == SDCard::OK) {
+        EngineerElevatorIF::init(&can2, init_angle);
+        LOG("using init angle in SDCard, init angle: %.2f", init_angle);
+    } else {
+        EngineerElevatorIF::init(&can2, 0);
+        LOG("present angle is set as 0");
+    }
     chThdSleepMilliseconds(10);
     InspectorE::startup_check_elevator_feedback();  // check elevator motors has continuous feedback. Block for 20 ms
     LED::led_on(DEV_BOARD_LED_ELEVATOR);  // LED 5 on now
+    EngineerElevatorSKD::set_target_height(0);
 
     /// Setup ChassisIF
     ChassisIF::init(&can1);

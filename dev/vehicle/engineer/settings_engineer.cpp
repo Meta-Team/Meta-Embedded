@@ -20,9 +20,19 @@ void cmd_change_door(BaseSequentialStream *chp, int argc, char *argv[]){
     RoboticArmSKD::change_door();
 }
 
+void cmd_echo_sdcard(BaseSequentialStream *chp, int argc, char *argv[]){
+    float present_angle;
+    chprintf(chp, "%d , present angle: %d, present height: %d" SHELL_NEWLINE_STR, SDCard::get_data(ELEVATOR_ANGLE_DATA_ID, &present_angle, sizeof(present_angle)), present_angle, present_angle/ANGLE_HEIGHT_RATIO);
+}
+
+void cmd_clear_sdcard(BaseSequentialStream *chp, int argc, char *argv[]){
+    chprintf(chp, "%d" SHELL_NEWLINE_STR, SDCard::erase());
+}
 
 ShellCommand mainProgramCommands[] = {
         {"echo_dms", cmd_echo_dms},
         {"door", cmd_change_door},
+        {"echo_sd", cmd_echo_sdcard},
+        {"clear_sd", cmd_clear_sdcard},
         {nullptr,    nullptr}
 };

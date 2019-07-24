@@ -10,6 +10,7 @@
 #include "can_interface.h"
 #include "common_macro.h"
 #include "../vehicle/engineer/vehicle_engineer.h"
+#include "sd_card_interface.h"
 
 /**
  * @name EngineerElevatorIF
@@ -24,6 +25,8 @@
 class EngineerElevatorIF {
 
 public:
+
+    static void start(tprio_t thread_prio);
 
     enum motor_id_t {
         R, // right motor, 0
@@ -48,6 +51,9 @@ public:
         /** @brief set current actual angle as 0 degree */
         void clear_accumulate_angle();
 
+        /** @brief set present actual angle as given degree, used to init with param */
+        void set_present_angle(float given_angle);
+
     private:
         uint16_t actual_angle_raw;
         int16_t actual_rpm_raw;
@@ -71,7 +77,7 @@ public:
      * @brief set CAN interface for receiving and sending
      * @param can_interface
      */
-    static void init(CANInterface* can_interface);
+    static void init(CANInterface* can_interface, float init_angle);
 
     static float get_current_height();
 
@@ -88,6 +94,12 @@ private:
     static void process_feedback(CANRxFrame const*rxmsg);
 
     friend CANInterface;
+
+    class IFSDCardThread : public chibios_rt::BaseStaticThread<512> {
+        static constexpr unsigned int IF_SDCARD_THREAD_INTERVAL = 500; // SDCard writing interval, [ms]
+        void main() final;
+    };
+    static IFSDCardThread sdThread;
 
 private:
 
