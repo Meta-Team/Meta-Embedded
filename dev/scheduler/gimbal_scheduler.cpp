@@ -24,12 +24,13 @@ float GimbalSKD::last_angle[2] = {0, 0};
 float GimbalSKD::accumulated_angle[2] = {0, 0};
 PIDController GimbalSKD::a2v_pid[2];
 PIDController GimbalSKD::v2i_pid[2];
+bool GimbalSKD::yaw_ahrs_enabled = true;
 GimbalSKD::SKDThread GimbalSKD::skdThread;
 AbstractAHRS *GimbalSKD::gimbal_ahrs = nullptr;
 
 void
 GimbalSKD::start(AbstractAHRS *gimbal_ahrs_, const Matrix33 ahrs_angle_rotation_, const Matrix33 ahrs_gyro_rotation_,
-                 install_direction_t yaw_install_, install_direction_t pitch_install_, tprio_t thread_prio) {
+                 install_direction_t yaw_install_, install_direction_t pitch_install_, tprio_t thread_prio, bool yaw_ahrs_enabled_) {
     gimbal_ahrs = gimbal_ahrs_;
     yaw_install = yaw_install_;
     pitch_install = pitch_install_;
@@ -43,8 +44,11 @@ GimbalSKD::start(AbstractAHRS *gimbal_ahrs_, const Matrix33 ahrs_angle_rotation_
 
     // Initialize last_angle, to use current pointing direction as startup direction
     Vector3D ahrs_angle = gimbal_ahrs->get_angle() * ahrs_angle_rotation;
+
     last_angle[YAW] = ahrs_angle.x;
     last_angle[PITCH] = ahrs_angle.y;
+
+    yaw_ahrs_enabled = yaw_ahrs_enabled_;
 
 
     skdThread.start(thread_prio);
@@ -107,13 +111,17 @@ void GimbalSKD::SKDThread::main() {
 
         if (mode == ABS_ANGLE_MODE) {
 
-            // YAW, use AHRS accumulated_angle and AHRS velocity
-            target_velocity[YAW] = a2v_pid[YAW].calc(accumulated_angle[YAW], target_angle[YAW]);
-            target_current[YAW] = (int) v2i_pid[YAW].calc(velocity[YAW], target_velocity[YAW]);
+            if (yaw_ahrs_enabled){
+                target_velocity[YAW] = a2v_pid[YAW].calc(accumulated_angle[YAW], target_angle[YAW]);
+                target_current[YAW] = (int) v2i_pid[YAW].calc(velocity[YAW], target_velocity[YAW]);
+            } else{
+                target_velocity[YAW] = a2v_pid[YAW].calc(GimbalIF::feedback[YAW].accumulated_angle() * yaw_install, target_angle[YAW]);
+                target_current[YAW] = (int) v2i_pid[YAW].calc(GimbalIF::feedback[YAW].actual_velocity * yaw_install, target_velocity[YAW]);
+            }
 
             // PITCH, use AHRS feedback angle and AHRS velocity
 #if GIMBAL_SKD_USE_AHRS_PITCH_ANGLE
-            target_velocity[PITCH] = a2v_pid[PITCH].calc(angle[PITCH], target_angle[PITCH]);
+            target_velocity[PITCH] = a2v_pid[PITCH].calc(GimbalIF::feedback[PITCH].accumulated_angle() * pitch_install, target_angle[PITCH]);
 #else
             target_velocity[PITCH] = a2v_pid[PITCH].calc(GimbalIF::feedback[PITCH].actual_angle, target_angle[PITCH]);
 #endif
@@ -135,7 +143,12 @@ void GimbalSKD::SKDThread::main() {
 }
 
 float GimbalSKD::get_accumulated_angle(GimbalBase::motor_id_t motor) {
-    if (motor == YAW) return accumulated_angle[YAW];
+    if (motor == YAW) {
+        if (yaw_ahrs_enabled)
+            return accumulated_angle[YAW];
+        else
+            return GimbalIF::feedback[YAW].actual_angle;
+    }
     if (motor == PITCH) return (gimbal_ahrs->get_angle() * ahrs_angle_rotation).y;
     return 0;
 }

@@ -6,6 +6,7 @@
 #define META_INFANTRY_SENTRY_CHASSIS_LOGIC_H
 
 #include "ch.hpp"
+#include "common_macro.h"
 
 class SChassisLG {
 
