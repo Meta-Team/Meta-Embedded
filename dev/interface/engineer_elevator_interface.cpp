@@ -8,13 +8,19 @@ EngineerElevatorIF::elevator_motor_t EngineerElevatorIF::elevatorMotor[MOTOR_COU
 EngineerElevatorIF::aided_motor_t EngineerElevatorIF::aidedMotor[MOTOR_COUNT];
 CANInterface* EngineerElevatorIF::can = nullptr;
 
+EngineerElevatorIF::IFSDCardThread EngineerElevatorIF::sdThread;
 
-void EngineerElevatorIF::init(CANInterface *can_interface) {
+void EngineerElevatorIF::start(tprio_t thread_prio) {
+    sdThread.start(thread_prio);
+}
+
+
+void EngineerElevatorIF::init(CANInterface *can_interface, float init_angle) {
     can = can_interface;
     can->register_callback(0x201, 0x204, process_feedback);
     for (int i = 0; i < 2; i++) {
         elevatorMotor[i].last_update_time = SYSTIME;
-        elevatorMotor[i].clear_accumulate_angle();
+        elevatorMotor[i].set_present_angle(init_angle);
         elevatorMotor[i].target_current = 0;
     }
     for (int i = 0; i < 2; i++){
@@ -96,4 +102,18 @@ void EngineerElevatorIF::process_feedback(CANRxFrame const *rxmsg) {
 
 void EngineerElevatorIF::elevator_motor_t::clear_accumulate_angle() {
     present_angle = 0;
+}
+
+void EngineerElevatorIF::elevator_motor_t::set_present_angle(float given_angle) {
+    present_angle = given_angle;
+}
+
+
+void EngineerElevatorIF::IFSDCardThread::main() {
+    setName("ElevatorIF-SDCard");
+    while (!shouldTerminate()){
+        float present_angle;
+        SDCard::write_data(ELEVATOR_ANGLE_DATA_ID, &present_angle, sizeof(present_angle));
+        sleep(TIME_MS2I(IF_SDCARD_THREAD_INTERVAL));
+    }
 }
