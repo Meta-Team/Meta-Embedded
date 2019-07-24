@@ -112,7 +112,7 @@ void UserS::UserThread::main() {
             } else if (Remote::rc.s1 == Remote::S_DOWN && Remote::rc.s2 == Remote::S_UP) {
 
                 set_mode(AUTO_MODE);
-                vitualUserThread.set_v_user_mode(VitualUserThread::VISION_ONLY_MODE);
+                vitualUserThread.set_v_user_mode(VitualUserThread::FINAL_AUTO_MODE);
 
             } else if (Remote::rc.s1 == Remote::S_DOWN) {
 
@@ -259,7 +259,7 @@ void UserS::VitualUserThread::main() {
 
         /*** ---------------------------------- Gimbal + Shooter --------------------------------- ***/
 
-        if ((v_user_mode == FINAL_AUTO_MODE && enemy_spotted) || v_user_mode == VISION_ONLY_MODE) {
+        if (v_user_mode == FINAL_AUTO_MODE && enemy_spotted) {
             if (enemy_spotted)LOG("ENEMY SPOTTED");
 
             float yaw_delta = VisionPort::enemy_info.yaw_angle - gimbal_yaw_target_angle_,
@@ -267,11 +267,11 @@ void UserS::VitualUserThread::main() {
 
             if (!ABS_IN_RANGE(yaw_delta, GIMBAL_YAW_TARGET_FAST_TRIGGER)) {
                 gimbal_yaw_target_angle_ +=
-                        -SIGN(yaw_delta) * (yaw_sensitivity[TARGET_FAST] * AUTO_CONTROL_INTERVAL / 1000.0f);
+                        SIGN(yaw_delta) * (yaw_sensitivity[TARGET_FAST] * AUTO_CONTROL_INTERVAL / 1000.0f);
                 fire = false;
             } else {
                 gimbal_yaw_target_angle_ +=
-                        -SIGN(yaw_delta) * (yaw_sensitivity[TARGET_SLOW] * AUTO_CONTROL_INTERVAL / 1000.0f);
+                        SIGN(yaw_delta) * (yaw_sensitivity[TARGET_SLOW] * AUTO_CONTROL_INTERVAL / 1000.0f);
                 fire = true;
             }
 

@@ -5,8 +5,6 @@
 #include "engineer_gimbal.h"
 
 float EngineerGimbalIF::target_angle[2];
-int EngineerGimbalIF::base = 250;
-int EngineerGimbalIF::interval = 1000;
 
 const PWMConfig FRICTION_WHEELS_PWM_CFG = {
         50000,   // frequency
@@ -25,8 +23,8 @@ const PWMConfig FRICTION_WHEELS_PWM_CFG = {
 void EngineerGimbalIF::set_target_angle(float yaw_angle_, float pitch_angle_) {
     target_angle[YAW] = yaw_angle_;
     target_angle[PIT] = pitch_angle_;
-    pwmEnableChannel(&PWMD8, YAW, PWM_PERCENTAGE_TO_WIDTH(&PWMD8, target_angle[YAW] / MAX_ANGLE * interval + base));
-    pwmEnableChannel(&PWMD8, PIT, PWM_PERCENTAGE_TO_WIDTH(&PWMD8, target_angle[PIT] / MAX_ANGLE * interval + base));
+    pwmEnableChannel(&PWMD8, YAW, PWM_PERCENTAGE_TO_WIDTH(&PWMD8, target_angle[YAW] / MAX_ANGLE * 1000 + 250));
+    pwmEnableChannel(&PWMD8, PIT, PWM_PERCENTAGE_TO_WIDTH(&PWMD8, target_angle[PIT] / MAX_ANGLE * 1000 + 250));
 
 }
 

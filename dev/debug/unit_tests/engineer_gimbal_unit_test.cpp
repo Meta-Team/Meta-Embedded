@@ -28,31 +28,13 @@ class EngineerGimbalThread: public chibios_rt::BaseStaticThread<256>{
     }
 }engineerGimbalThread;
 
-static void g_set_base(BaseSequentialStream *chp, int argc, char *argv[]) {
+static void g_set_angle(BaseSequentialStream *chp, int argc, char *argv[]) {
     (void) argv;
-    if (argc != 1) {
-        shellUsage(chp, "set_b base");
+    if (argc != 2) {
+        shellUsage(chp, "set_a yaw pitch");
         return;
     }
-    EngineerGimbalIF::base = Shell::atoi(argv[0]);
-}
-
-static void g_set_interval(BaseSequentialStream *chp, int argc, char *argv[]) {
-    (void) argv;
-    if (argc != 1) {
-        shellUsage(chp, "set_i interval");
-        return;
-    }
-    EngineerGimbalIF::interval = Shell::atoi(argv[0]);
-}
-
-static void g_echo(BaseSequentialStream *chp, int argc, char *argv[]) {
-    (void) argv;
-    if (argc != 0) {
-        shellUsage(chp, "echo");
-        return;
-    }
-    LOG("base: %d, interval: %d", EngineerGimbalIF::base, EngineerGimbalIF::interval);
+    EngineerGimbalIF::set_target_angle(Shell::atof(argv[0]), Shell::atof(argv[1]));
 }
 
 static void g_echo_angle(BaseSequentialStream *chp, int argc, char *argv[]) {
@@ -61,13 +43,11 @@ static void g_echo_angle(BaseSequentialStream *chp, int argc, char *argv[]) {
         shellUsage(chp, "a");
         return;
     }
-    LOG("%d", (int)(EngineerGimbalIF::get_target_angle(EngineerGimbalIF::YAW) / EngineerGimbalIF::MAX_ANGLE * EngineerGimbalIF::interval + EngineerGimbalIF::base));
+    LOG("%d", (int)(EngineerGimbalIF::get_target_angle(EngineerGimbalIF::YAW) / EngineerGimbalIF::MAX_ANGLE * 1000 + 250));
 }
 
 ShellCommand engineerGimbalCommand[]{
-        {"set_b",   g_set_base},
-        {"set_i",   g_set_interval},
-        {"echo",    g_echo},
+        {"set_a",   g_set_angle},
         {"a",       g_echo_angle},
         {nullptr, nullptr}
 };

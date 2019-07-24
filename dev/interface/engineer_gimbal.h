@@ -18,8 +18,6 @@ public:
         PIT
     };
 
-    static int base, interval;
-
     static constexpr float MAX_ANGLE = 300.0f;
 
     static void init();

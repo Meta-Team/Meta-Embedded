@@ -80,7 +80,6 @@ private:
     public:
 
         enum vitual_user_mode_t{
-            VISION_ONLY_MODE,
             CRUISING_ONLY_MODE,
             FINAL_AUTO_MODE
         };
