@@ -68,7 +68,7 @@ void VisionPort::send_enemy_color(bool is_blue){
     tx_pak.header.seq = tx_seq++;
     Append_CRC8_Check_Sum((uint8_t *) &tx_pak, FRAME_HEADER_SIZE);
 
-    tx_pak.cmd_id = 0xFF00;
+    tx_pak.cmd_id = 0xFF01;
     tx_pak.enemy_color_.is_blue = is_blue;
     Append_CRC16_Check_Sum((uint8_t *) &tx_pak, tx_pak_size);
 

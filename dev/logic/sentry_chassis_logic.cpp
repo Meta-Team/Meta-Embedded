@@ -130,6 +130,8 @@ void SChassisLG::stop_escaping() {
         next_terminal = 5;
     else
         next_terminal = 0;
+
+    SChassisSKD::set_destination(terminals[next_terminal]);
 }
 
 void SChassisLG::DirectionSwitchThread::main() {
@@ -154,7 +156,7 @@ void SChassisLG::DirectionSwitchThread::main() {
             }
         } else if (mode == FINAL_AUTO_MODE) {
             
-            if (random_mode && SYSTIME - last_attack_time > STOP_ESCAPING_AFTER) stop_escaping();
+            if (random_mode && not WITHIN_RECENT_TIME(last_attack_time, STOP_ESCAPING_AFTER)) stop_escaping();
 
             if (ABS_IN_RANGE(present_position - terminals[next_terminal], DEST_TOLERANT_RANGE)) {
                 update_next_terminal();

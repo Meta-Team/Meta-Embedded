@@ -8,7 +8,7 @@ UserS::sentry_mode_t UserS::sentryMode = FORCED_RELAX_MODE;
 
 /// Gimbal Config
 float UserS::yaw_sensitivity[3] = {40, 60, 90};  // [Slow, Normal, Fast] [degree/s]
-float UserS::pitch_sensitivity[3] = {20, 30, 40};   // [Slow, Normal, Fast] [degree/s]
+float UserS::pitch_sensitivity[3] = {30, 40, 50};   // [Slow, Normal, Fast] [degree/s]
 float UserS::gimbal_yaw_target_angle_ = 0;
 float UserS::gimbal_pitch_target_angle_ = 0;
 float UserS::gimbal_yaw_min_angle = -160; // left range for yaw [degree]
@@ -255,11 +255,12 @@ void UserS::VitualUserThread::main() {
 
         VisionPort::send_enemy_color(Referee::game_robot_state.robot_id < 10);
 
-        enemy_spotted = not WITHIN_RECENT_TIME(VisionPort::last_update_time, 50);
+        enemy_spotted = WITHIN_RECENT_TIME(VisionPort::last_update_time, 50);
 
         /*** ---------------------------------- Gimbal + Shooter --------------------------------- ***/
 
         if ((v_user_mode == FINAL_AUTO_MODE && enemy_spotted) || v_user_mode == VISION_ONLY_MODE) {
+            if (enemy_spotted)LOG("ENEMY SPOTTED");
 
             float yaw_delta = VisionPort::enemy_info.yaw_angle - gimbal_yaw_target_angle_,
                     pitch_delta = VisionPort::enemy_info.pitch_angle - gimbal_pitch_target_angle_;
@@ -286,19 +287,21 @@ void UserS::VitualUserThread::main() {
             VAL_CROP(gimbal_pitch_target_angle_, gimbal_pitch_max_angle, gimbal_pitch_min_angle);
 
         } else if ((v_user_mode == FINAL_AUTO_MODE && !enemy_spotted) || v_user_mode == CRUISING_ONLY_MODE) {
-            if (gimbal_yaw_target_angle_ < yaw_terminal)
+            if (gimbal_yaw_target_angle_ < yaw_terminal){
                 gimbal_yaw_target_angle_ +=
-                        -(yaw_sensitivity[CRUISING] * AUTO_CONTROL_INTERVAL / 1000.0f);
-            else
+                        (yaw_sensitivity[CRUISING] * AUTO_CONTROL_INTERVAL / 1000.0f);
+            }else{
                 gimbal_yaw_target_angle_ -=
-                        -(yaw_sensitivity[CRUISING] * AUTO_CONTROL_INTERVAL / 1000.0f);
+                        (yaw_sensitivity[CRUISING] * AUTO_CONTROL_INTERVAL / 1000.0f);
+            }
 
-            if (gimbal_pitch_target_angle_ < pitch_terminal)
+            if (gimbal_pitch_target_angle_ < pitch_terminal){
                 gimbal_pitch_target_angle_ +=
                         (pitch_sensitivity[CRUISING] * AUTO_CONTROL_INTERVAL / 1000.0f);
-            else
+            }else{
                 gimbal_pitch_target_angle_ -=
                         (pitch_sensitivity[CRUISING] * AUTO_CONTROL_INTERVAL / 1000.0f);
+            }
 
             if (gimbal_yaw_target_angle_ >= gimbal_yaw_max_angle) yaw_terminal = gimbal_yaw_min_angle;
             else if (gimbal_yaw_target_angle_ <= gimbal_yaw_min_angle) yaw_terminal = gimbal_yaw_max_angle;
