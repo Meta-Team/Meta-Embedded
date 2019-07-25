@@ -257,8 +257,13 @@ void UserS::VitualUserThread::main() {
 
         enemy_spotted = WITHIN_RECENT_TIME(VisionPort::last_update_time, 50);
 
+        if (enemy_spotted){
+            LOG("%.2f, %.2f   yaw: %.2f, pitch: %%.2f, distance: %.2f", SGimbalLG::get_accumulated_angle(SGimbalLG::YAW), SGimbalLG::get_accumulated_angle(SGimbalLG::PITCH), VisionPort::enemy_info.yaw_angle, VisionPort::enemy_info.pitch_angle, VisionPort::enemy_info.distance);
+        }
+
         /*** ---------------------------------- Gimbal + Shooter --------------------------------- ***/
 
+        /*
         if (v_user_mode == FINAL_AUTO_MODE && enemy_spotted) {
             if (enemy_spotted)LOG("ENEMY SPOTTED");
 
@@ -311,15 +316,15 @@ void UserS::VitualUserThread::main() {
         }
 
         SGimbalLG::set_target(gimbal_yaw_target_angle_, gimbal_pitch_target_angle_);
-
+         */
         /*** ---------------------------------- Chassis --------------------------------- ***/
-
+/*
         if ((v_user_mode == FINAL_AUTO_MODE) && (enemy_spotted || Referee::robot_hurt.armor_id > 0)) {
             if (!SChassisLG::get_escaping_status()) {
                 SChassisLG::start_escaping();
             }
         }
-
+*/
 
         sleep(TIME_MS2I(AUTO_CONTROL_INTERVAL));
     }
