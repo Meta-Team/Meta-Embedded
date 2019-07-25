@@ -91,6 +91,11 @@
     SHOOT_PID_BULLET_LOADER_V2I_I_LIMIT, SHOOT_PID_BULLET_LOADER_V2I_OUT_LIMIT}
 
 
+#define STUCK_THRESHOLD_CURRENT    1500  // lower current to trigger stuck handling [mA]
+#define STUCK_THRESHOLD_VELOCITY   5     // upper velocity to trigger stuck handling [degree/s]
+#define STUCK_REVERSE_TIME         1000  // time to stay in reverse turing state [ms]
+#define STUCK_REVERSE_ANGLE        10    // reverse turning target angle when stuck [degree]
+
 /// Chassis Mechanism Parameters
 #define CHASSIS_WHEEL_BASE  420.0f                     // distance between front axle and the back axle [mm]
 #define CHASSIS_WHEEL_TREAD 372.0f                     // distance between left and right wheels [mm]

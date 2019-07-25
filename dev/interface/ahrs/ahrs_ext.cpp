@@ -47,7 +47,6 @@ void AHRSExt::update(CANRxFrame const *rxmsg) {
             static_measurement_count++;
             temp_gyro_bias = temp_gyro_bias - new_gyro_orig;
         } else {
-            LED::red_toggle();
             static_measurement_count = 0;
             temp_gyro_bias = Vector3D(0, 0, 0);
         }
@@ -59,7 +58,6 @@ void AHRSExt::update(CANRxFrame const *rxmsg) {
         mpu_update_time = ist_update_time = ahrs_update_time = SYSTIME;
 
         if (static_measurement_count >= BIAS_SAMPLE_COUNT) {
-            LED::green_toggle();
             gyro_bias = temp_gyro_bias / BIAS_SAMPLE_COUNT;
             static_measurement_count = 0;
             temp_gyro_bias = Vector3D(0, 0, 0);
