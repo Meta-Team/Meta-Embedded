@@ -107,6 +107,14 @@ void UserA::UserThread::main() {
 
                 GimbalLG::set_target(gimbal_yaw_target_angle_, gimbal_pc_pitch_target_angle_);
 
+                if (Remote::key.g){
+                    Referee::sentry_guiding_direction_s.direction_mask = 0;
+                    if (Remote::key.a) Referee::sentry_guiding_direction_s.direction_mask |= 1U << 1U;
+                    if (Remote::key.w) Referee::sentry_guiding_direction_s.direction_mask |= 1U << 2U;
+                    if (Remote::key.s) Referee::sentry_guiding_direction_s.direction_mask |= 1U << 3U;
+                    if (Remote::key.d) Referee::sentry_guiding_direction_s.direction_mask |= 1U << 4U;
+                }
+
             } else {
                 /// Safe Mode
                 GimbalLG::set_action(GimbalLG::FORCED_RELAX_MODE);

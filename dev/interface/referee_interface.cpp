@@ -25,11 +25,12 @@ Referee::buff_musk_t Referee::buff_musk;
 Referee::aerial_robot_energy_t Referee::aerial_robot_energy;
 Referee::robot_hurt_t Referee::robot_hurt;
 Referee::shoot_data_t Referee::shoot_data;
-Referee::robot_interactive_data_t Referee::robot_data_receive;
 Referee::bullet_remaining_t Referee::bullet_remaining;
+Referee::aerial_to_sentry_t Referee::sentry_guiding_direction_r;
 
 Referee::client_custom_data_t Referee::client_custom_data;
 Referee::robot_interactive_data_t Referee::robot_data_send;
+Referee::aerial_to_sentry_t Referee::sentry_guiding_direction_s;
 
 #if REFEREE_USE_EVENTS
 // See macro EVENTSOURCE_DECL() for initialization style
@@ -154,7 +155,10 @@ void Referee::uart_rx_callback(UARTDriver *uartp) {
                         // Check whether the message is for this robot
                         if (game_robot_state.robot_id != pak.robot_interactive_data_.header.receiver_ID) break;
                         // If the message pass the check, record it in the corresponding place
-                        robot_data_receive = pak.robot_interactive_data_;
+                        switch (pak.robot_interactive_data_.header.data_cmd_id){
+                            case AERIAL_TO_SENTRY:
+                                sentry_guiding_direction_r = pak.robot_interactive_data_.aerial_to_sentry_;
+                        }
                         //switch (robot_data_receive.)
                         break;
 
@@ -187,7 +191,7 @@ void Referee::uart_rx_callback(UARTDriver *uartp) {
 
 }
 
-void Referee::send_data(receiver_index_t receiver_id, uint16_t data_cmd_id) {
+void Referee::send_data(receiver_index_t receiver_id, interactive_cmd_id_t data_cmd_id) {
     if (game_robot_state.robot_id == 0)
         return;
     package_t tx_pak;
@@ -195,28 +199,35 @@ void Referee::send_data(receiver_index_t receiver_id, uint16_t data_cmd_id) {
     if (receiver_id == CLIENT) {
         tx_pak.header.data_length = sizeof(client_custom_data_t);
     } else {
-        if (data_cmd_id == 0) return;
-        tx_pak.header.data_length = sizeof(robot_interactive_data_t);
+        switch (data_cmd_id){
+            case AERIAL_TO_SENTRY:
+                tx_pak.header.data_length = sizeof(student_interactive_header_data_t) + sizeof(aerial_to_sentry_t);
+                break;
+            case NOTHING:
+            default:
+                return;
+        }
     }
     tx_pak.header.seq = tx_seq++;
     Append_CRC8_Check_Sum((uint8_t *)&tx_pak, FRAME_HEADER_SIZE);
+
     tx_pak.cmd_id = 0x0301;
-    size_t tx_pak_size;
+
+    size_t tx_pak_size = 0;
     if (receiver_id == CLIENT){
         tx_pak.client_custom_data_ = client_custom_data;
         tx_pak_size = FRAME_HEADER_SIZE + CMD_ID_SIZE + sizeof(client_custom_data_t) + FRAME_TAIL_SIZE;
     } else{
         robot_data_send.header.receiver_ID = (game_robot_state.robot_id / 10) * 10 + receiver_id;
         robot_data_send.header.data_cmd_id = data_cmd_id;
-        tx_pak.robot_interactive_data_ = robot_data_send;
-        tx_pak_size = FRAME_HEADER_SIZE + CMD_ID_SIZE + sizeof(robot_interactive_data_t) + FRAME_TAIL_SIZE;
+
+        if (data_cmd_id == AERIAL_TO_SENTRY){
+                tx_pak.robot_interactive_data_.aerial_to_sentry_ = sentry_guiding_direction_s;
+                tx_pak_size = FRAME_HEADER_SIZE + CMD_ID_SIZE + sizeof(student_interactive_header_data_t) + sizeof(aerial_to_sentry_t) + FRAME_TAIL_SIZE;
+        }
     }
     Append_CRC16_Check_Sum((uint8_t *)&tx_pak, tx_pak_size);
     uartSendTimeout(UART_DRIVER, &tx_pak_size, &tx_pak, TIME_MS2I(20));
-}
-
-void Referee::set_interactive_data(Referee::robot_interactive_data_t data) {
-    robot_data_send = data;
 }
 
 void Referee::set_client_number(unsigned index, float data) {

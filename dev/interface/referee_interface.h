@@ -180,8 +180,14 @@ public:
      * ---------------------------------------------------------------------------------------------------------------------
      *  0x0210      Sentry          Hero & Standards    Base Alarm              0: Alarm free; otherwise: Alarm triggered
      *  0x0211      Hero/Standards  Engineer            Robot Die               The position of the dead robot
+     *  0x0212      Aerial          Sentry              Attack Instruction      The guide of Sentry gimbal movement
      * ---------------------------------------------------------------------------------------------------------------------
      */
+
+    enum interactive_cmd_id_t{
+        NOTHING = 0,
+        AERIAL_TO_SENTRY = 0x0212
+    };
 
     static const uint16_t INTERACTIVE_DATA_CMD_ID = 0x0301;
 
@@ -199,12 +205,20 @@ public:
         uint8_t masks;
     };
 
-    __PACKED_STRUCT robot_interactive_data_t {
-        student_interactive_header_data_t header;
-        uint8_t dataTBD[3];
+    __PACKED_STRUCT aerial_to_sentry_t{
+        uint8_t direction_mask : 4;
     };
 
-    /** Received Data **/
+    __PACKED_STRUCT robot_interactive_data_t {
+        student_interactive_header_data_t header;
+        union{
+            aerial_to_sentry_t aerial_to_sentry_;
+        };
+    };
+
+    /*** Received Data ***/
+
+    /** Referee Data **/
     static game_state_t game_state;
     static game_result_t game_result;
     static game_robot_HP_t game_robot_HP;
@@ -219,8 +233,14 @@ public:
     static aerial_robot_energy_t aerial_robot_energy;
     static robot_hurt_t robot_hurt;
     static shoot_data_t shoot_data;
-    static robot_interactive_data_t robot_data_receive;
     static bullet_remaining_t bullet_remaining;
+
+    /** Interactive Data **/
+    static aerial_to_sentry_t sentry_guiding_direction_r;
+
+    /*** Send Data ***/
+    static robot_interactive_data_t robot_data_send;
+    static aerial_to_sentry_t sentry_guiding_direction_s;
 
     /**
      * Start referee interface
@@ -232,12 +252,6 @@ public:
      * @return   game_robot_state.robot_id
      */
     static uint8_t get_self_id();
-
-    /**
-     * Set interactive data with other robots
-     * @param data   Interactive data with other robots
-     */
-    static void set_interactive_data(robot_interactive_data_t data);
 
     /**
      * Set float numbers to be sent to client
@@ -258,7 +272,7 @@ public:
      * @param receiver_id   CLIENT or robot ID
      * @param data_cmd_id   Command ID in data section, only available when sending data to other robots
      */
-    static void send_data(receiver_index_t receiver_id, uint16_t data_cmd_id = 0);
+    static void send_data(receiver_index_t receiver_id, interactive_cmd_id_t data_cmd_id = NOTHING);
 
 #if REFEREE_USE_EVENTS
 
@@ -273,7 +287,6 @@ private:
 
     /** Send Data **/
     static client_custom_data_t client_custom_data;
-    static robot_interactive_data_t robot_data_send;
 
     enum rx_status_t {
         WAIT_STARTING_BYTE,  // receive bytes one by one, waiting for 0xA5
@@ -311,7 +324,9 @@ private:
             robot_hurt_t robot_hurt_;
             shoot_data_t shoot_data_;
             bullet_remaining_t bullet_remaining_;
+
             robot_interactive_data_t robot_interactive_data_;
+
             client_custom_data_t client_custom_data_;
         };
         uint16_t tail;
