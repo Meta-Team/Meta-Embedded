@@ -37,8 +37,6 @@
  *       (by multiple to install_direction_t) be performed based on yaw_install and pitch_install
  */
 
-#define GIMBAL_SKD_USE_AHRS_PITCH_ANGLE   TRUE
-
 class GimbalSKD : public GimbalBase, public PIDControllerBase {
 
 public:
@@ -65,7 +63,7 @@ public:
      */
     static void
     start(AbstractAHRS *gimbal_ahrs_, const Matrix33 ahrs_angle_rotation_, const Matrix33 ahrs_gyro_rotation_,
-          install_direction_t yaw_install_, install_direction_t pitch_install_, tprio_t thread_prio, bool yaw_ahrs_enabled_);
+          install_direction_t yaw_install_, install_direction_t pitch_install_, tprio_t thread_prio);
 
     /**
      * Set PID parameters of yaw and pitch
@@ -124,8 +122,6 @@ private:
 
     static PIDController a2v_pid[2];
     static PIDController v2i_pid[2];
-
-    static bool yaw_ahrs_enabled;
 
 
     static constexpr unsigned int SKD_THREAD_INTERVAL = 1; // PID calculation interval [ms]

@@ -90,12 +90,6 @@
     {SHOOT_PID_BULLET_LOADER_V2I_KP, SHOOT_PID_BULLET_LOADER_V2I_KI, SHOOT_PID_BULLET_LOADER_V2I_KD, \
     SHOOT_PID_BULLET_LOADER_V2I_I_LIMIT, SHOOT_PID_BULLET_LOADER_V2I_OUT_LIMIT}
 
-
-#define STUCK_THRESHOLD_CURRENT    1500  // lower current to trigger stuck handling [mA]
-#define STUCK_THRESHOLD_VELOCITY   5     // upper velocity to trigger stuck handling [degree/s]
-#define STUCK_REVERSE_TIME         1000  // time to stay in reverse turing state [ms]
-#define STUCK_REVERSE_ANGLE        10    // reverse turning target angle when stuck [degree]
-
 /// Chassis Mechanism Parameters
 #define CHASSIS_WHEEL_BASE  420.0f                     // distance between front axle and the back axle [mm]
 #define CHASSIS_WHEEL_TREAD 372.0f                     // distance between left and right wheels [mm]
@@ -158,6 +152,7 @@
 #define THREAD_CHASSIS_LG_DODGE_PRIO        (NORMALPRIO - 2)
 #define THREAD_SHOOT_LG_STUCK_DETECT_PRIO   (NORMALPRIO - 3)
 #define THREAD_GIMBAL_LG_VISION_PRIO        (NORMALPRIO - 4)
+#define THREAD_REFEREE_SENDING_PRIO         (NORMALPRIO - 5)
 #define THREAD_INSPECTOR_PRIO               (NORMALPRIO - 10)
 #define THREAD_SHOOT_BULLET_COUNTER_PRIO    (LOWPRIO + 7)
 #define THREAD_USER_CLIENT_DATA_SEND_PRIO   (LOWPRIO + 6)

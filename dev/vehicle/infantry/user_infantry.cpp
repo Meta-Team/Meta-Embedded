@@ -369,7 +369,7 @@ void UserI::ClientDataSendingThread::main() {
         Referee::set_client_light(USER_CLIENT_SUPER_CAPACITOR_STATUS_LIGHT, super_capacitor_light_status_);
 
         /// Send data
-        Referee::send_data(Referee::CLIENT);
+        Referee::request_to_send(Referee::CLIENT);
 
         sleep(TIME_MS2I(CLIENT_DATA_SENDING_THREAD_INTERVAL));
     }

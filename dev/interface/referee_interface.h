@@ -245,7 +245,7 @@ public:
     /**
      * Start referee interface
      */
-    static void init();
+    static void init(tprio_t sending_thread_prio);
 
     /**
      * Get current robotic ID
@@ -268,11 +268,13 @@ public:
     static void set_client_light(unsigned signal_light, bool turn_on);
 
     /**
-     * Send data to client or other robots
+     * Request to send data
      * @param receiver_id   CLIENT or robot ID
      * @param data_cmd_id   Command ID in data section, only available when sending data to other robots
+     * @return   Whether the request is valid
      */
-    static void send_data(receiver_index_t receiver_id, interactive_cmd_id_t data_cmd_id = NOTHING);
+    static bool request_to_send(receiver_index_t receiver_id, interactive_cmd_id_t data_cmd_id = NOTHING);
+
 
 #if REFEREE_USE_EVENTS
 
@@ -285,8 +287,23 @@ public:
 
 private:
 
-    /** Send Data **/
     static client_custom_data_t client_custom_data;
+
+    /**
+     * Send data to client or other robots
+     * @param receiver_id   CLIENT or robot ID
+     * @param data_cmd_id   Command ID in data section, only available when sending data to other robots
+     */
+    static void send_data_(receiver_index_t receiver_id, interactive_cmd_id_t data_cmd_id = NOTHING);
+
+    static bool to_send_client;
+    static bool to_send_aerial_to_sentry;
+
+    class DataSendingThread : public chibios_rt::BaseStaticThread<512> {
+        void main() final;
+    };
+
+    static DataSendingThread dataSendingThread;
 
     enum rx_status_t {
         WAIT_STARTING_BYTE,  // receive bytes one by one, waiting for 0xA5

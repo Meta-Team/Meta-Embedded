@@ -119,7 +119,7 @@ int main() {
     LED::led_on(DEV_BOARD_LED_CHASSIS);  // LED 6 on now
 
     /// Setup Referee
-    Referee::init();
+    Referee::init(THREAD_REFEREE_SENDING_PRIO);
 
     /// Complete Period 1
     LED::green_on();  // LED Green on now

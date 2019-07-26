@@ -137,7 +137,7 @@ int main() {
     palSetPad(GPIOG, GPIOG_RED_SPOT_LASER);  // enable the red spot laser
 
     /// Setup Referee
-    Referee::init();
+    Referee::init(THREAD_REFEREE_SENDING_PRIO);
 
     /// Setup VisionPort
     VisionPort::init();

@@ -32,6 +32,11 @@ Referee::client_custom_data_t Referee::client_custom_data;
 Referee::robot_interactive_data_t Referee::robot_data_send;
 Referee::aerial_to_sentry_t Referee::sentry_guiding_direction_s;
 
+bool Referee::to_send_client = false;
+bool Referee::to_send_aerial_to_sentry = false;
+
+Referee::DataSendingThread Referee::dataSendingThread;
+
 #if REFEREE_USE_EVENTS
 // See macro EVENTSOURCE_DECL() for initialization style
 event_source_t Referee::data_received_event = {(event_listener_t *)(&Referee::data_received_event)};;
@@ -54,7 +59,7 @@ const UARTConfig Referee::UART_CONFIG = {
         0,
 };
 
-void Referee::init() {
+void Referee::init(tprio_t sending_thread_prio) {
     // Start uart driver
     uartStart(UART_DRIVER, &UART_CONFIG);
 
@@ -62,6 +67,8 @@ void Referee::init() {
     rx_status = WAIT_STARTING_BYTE;
     game_robot_state.robot_id = 0;
     uartStartReceive(UART_DRIVER, FRAME_SOF_SIZE, &pak);
+
+    dataSendingThread.start(sending_thread_prio);
 }
 
 uint8_t Referee::get_self_id() {
@@ -191,7 +198,40 @@ void Referee::uart_rx_callback(UARTDriver *uartp) {
 
 }
 
-void Referee::send_data(receiver_index_t receiver_id, interactive_cmd_id_t data_cmd_id) {
+bool Referee::request_to_send(Referee::receiver_index_t receiver_id, Referee::interactive_cmd_id_t data_cmd_id) {
+    if (receiver_id == CLIENT) {
+        to_send_client = true;
+    } else {
+        switch (data_cmd_id){
+            case AERIAL_TO_SENTRY:
+                to_send_aerial_to_sentry = true;
+                break;
+            default:
+                return false;
+        }
+    }
+    return true;
+}
+
+void Referee::DataSendingThread::main() {
+    setName("RefereeSend");
+    while (!shouldTerminate()) {
+
+        // The following order indicates priority of message
+
+        if (to_send_aerial_to_sentry) {
+            send_data_(SENTRY_EMB, AERIAL_TO_SENTRY);
+            to_send_aerial_to_sentry = false;
+        } else if (to_send_client) {
+            send_data_(CLIENT);
+            to_send_client = false;
+        }
+
+        sleep(TIME_MS2I(100));  // maximum sending interval 10 Hz
+    }
+}
+
+void Referee::send_data_(receiver_index_t receiver_id, interactive_cmd_id_t data_cmd_id) {
     if (game_robot_state.robot_id == 0)
         return;
     package_t tx_pak;

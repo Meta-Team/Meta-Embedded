@@ -314,7 +314,7 @@ void UserE::ClientDataSendingThread::main() {
     while (!shouldTerminate()) {
 
         /// Send data
-        Referee::send_data(Referee::CLIENT);
+        Referee::request_to_send(Referee::CLIENT);
 
         sleep(TIME_MS2I(CLIENT_DATA_SENDING_THREAD_INTERVAL));
     }
