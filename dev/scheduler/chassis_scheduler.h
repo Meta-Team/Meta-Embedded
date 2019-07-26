@@ -80,13 +80,6 @@ public:
     static void set_target(float vx, float vy, float theta);
 
     /**
-     * Set target values of turning around an wheel
-     * @param id   Motor id as pivot
-     * @param w    Angular velocity
-     */
-    static void pivot_turn(motor_id_t id, float w);
-
-    /**
      * Get actual angle difference between gimbal coordinate and chassis coordinate [degree]
      * @return Theta value
      */

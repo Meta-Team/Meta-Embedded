@@ -94,32 +94,6 @@ void ChassisSKD::velocity_decompose_(float vx, float vy, float w) {
     target_current[BR] = (int) v2i_pid[BR].calc(ChassisIF::feedback[BR].actual_velocity, target_velocity[BR]);
 }
 
-void ChassisSKD::pivot_turn(motor_id_t id, float w) {
-
-    float point_x = 0;
-    float point_y = 0;
-
-    if (id == FR) {
-        point_x = 0.5 * wheel_tread_;
-        point_y = 0.5 * wheel_base_;
-    } else if (id == FL) {
-        point_x = -0.5 * wheel_tread_;
-        point_y = 0.5 * wheel_base_;
-    } else if (id == BL) {
-        point_x = -0.5 * wheel_tread_;
-        point_y = -0.5 * wheel_base_;
-    } else if (id == BR) {
-        point_x = 0.5 * wheel_tread_;
-        point_y = -0.5 * wheel_base_;
-    }
-
-    float vx = point_y * target_w;
-    float vy = -point_x * target_w;
-
-    // TODO: can't compatible with current frame yet.
-//    set_velocity(vx, vy, w);
-}
-
 void ChassisSKD::SKDThread::main() {
     setName("Chassis_SKD");
     while (!shouldTerminate()) {
