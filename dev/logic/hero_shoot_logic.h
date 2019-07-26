@@ -95,7 +95,7 @@ private:
 
         static constexpr unsigned STUCK_DETECTOR_THREAD_INTERVAL = 10;
 
-        static constexpr unsigned STUCK_REVERSE_TIME = 250;
+        static constexpr unsigned STUCK_REVERSE_TIME = 300;
 
         static constexpr int LOADER_STUCK_THRESHOLD_CURRENT = 1500;
         static constexpr int LOADER_STUCK_THRESHOLD_VELOCITY = 2;

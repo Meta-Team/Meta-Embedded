@@ -101,14 +101,14 @@ void HeroShootLG::StuckDetectorThread::main() {
             ShootSKD::get_loader_actual_velocity() < LOADER_STUCK_THRESHOLD_VELOCITY) {
             loaderState = STUCK;
             ShootSKD::set_loader_target_angle(
-                    ShootSKD::get_loader_accumulated_angle() - 10.0f);  // Back up to ample space
+                    ShootSKD::get_loader_accumulated_angle() - 20.0f);  // Back up to ample space
         }
         if(plateState == LOADING &&
            ShootSKD::get_plate_target_current() > PLATE_STUCK_THRESHOLD_CURRENT &&
            ShootSKD::get_plate_actual_velocity() < PLATE_STUCK_THRESHOLD_VELOCITY &&
            load_bullet_count != 0) {
             plateState = STUCK;
-            ShootSKD::set_plate_target_angle(ShootSKD::get_plate_accumulated_angle() - 7.0f);  // Back up to ample space
+            ShootSKD::set_plate_target_angle(ShootSKD::get_plate_accumulated_angle() - 10.0f);  // Back up to ample space
         }
         if (loaderState == STUCK || plateState == STUCK) {
 
