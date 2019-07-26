@@ -126,7 +126,7 @@
 #define CHASSIS_WHEEL_BASE 492.4f                      // distance between front axle and the back axle [mm]
 #define CHASSIS_WHEEL_TREAD 472.76f                    // distance between left and right wheels [mm]
 #define CHASSIS_WHEEL_CIRCUMFERENCE 478.0f             // circumference of wheels [mm]
-#define CHASSIS_GIMBAL_OFFSET 42.0f                    // distance between center of gimbal and the center of chassis
+#define CHASSIS_GIMBAL_OFFSET 52.0f                    // distance between center of gimbal and the center of chassis
 
 /// Chassis PID Parameters
 #define CHASSIS_PID_V2I_KP 46.0f
@@ -165,9 +165,9 @@
     {CHASSIS_FOLLOW_PID_THETA2V_KP, CHASSIS_FOLLOW_PID_THETA2V_KI, CHASSIS_FOLLOW_PID_THETA2V_KD, \
     CHASSIS_FOLLOW_PID_THETA2V_I_LIMIT, CHASSIS_FOLLOW_PID_THETA2V_OUT_LIMIT}
 
-#define CHASSIS_DODGE_MODE_THETA   23
+#define CHASSIS_DODGE_MODE_THETA   25
 #define CHASSIS_DODGE_MODE_INTERVAL 800
-#define CHASSIS_BIASED_ANGLE 25
+#define CHASSIS_BIASED_ANGLE 20
     
 /// Thread Priority List
 #define THREAD_CAN1_PRIO                    (HIGHPRIO - 1)
