@@ -75,7 +75,7 @@ int main(void) {
     can1.start(HIGHPRIO);
     can2.start(HIGHPRIO - 1);
 
-    ahrs.load_calibration_data({-0.984146595, 1.359451293, 0.020426832});
+//    ahrs.load_calibration_data({-0.984146595, 1.359451293, 0.020426832});
     ahrs.start(&can2);
     Buzzer::play_sound(Buzzer::sound_startup, LOWPRIO);
 

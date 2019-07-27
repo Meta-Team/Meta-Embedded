@@ -201,6 +201,7 @@ add_executable(AERIAL
         dev/interface/referee_interface.cpp
         dev/common/CRC8.cpp
         dev/common/CRC16.cpp
+        dev/interface/vision_port.cpp
 
         dev/interface/ahrs/ahrs_ext.cpp
 

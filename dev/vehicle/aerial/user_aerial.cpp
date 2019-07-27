@@ -7,10 +7,13 @@
 /// Gimbal Config
 float UserA::gimbal_rc_yaw_max_speed = 90;  // [degree/s]
 float UserA::gimbal_pc_yaw_sensitivity[3] = {50000, 100000, 150000};  // [Slow, Normal, Fast] [degree/s]
+float UserA::gimbal_yaw_max_angle = 200;  // [degree]
+float UserA::gimbal_yaw_min_angle = -200;  // [degree]
 
 float UserA::gimbal_pc_pitch_sensitivity[3] = {20000, 50000, 60000};   // [Slow, Normal, Fast] [degree/s]
-float UserA::gimbal_pitch_min_angle = -10; // down range for pitch [degree]
-float UserA::gimbal_pitch_max_angle = 45; //  up range for pitch [degree]
+float UserA::gimbal_pitch_min_angle = -60; // down range for pitch [degree]
+float UserA::gimbal_pitch_max_angle = 10; //  up range for pitch [degree]
+
 /// Shoot Config
 float UserA::shoot_launch_left_count = 5;
 float UserA::shoot_launch_right_count = 999;
@@ -58,6 +61,8 @@ void UserA::UserThread::main() {
                         -Remote::rc.ch0 * (gimbal_rc_yaw_max_speed * USER_THREAD_INTERVAL / 1000.0f);
                 // ch0 use right as positive direction, while GimbalLG use CCW (left) as positive direction
 
+                VAL_CROP(gimbal_yaw_target_angle_, gimbal_yaw_max_angle, gimbal_yaw_min_angle);
+
                 float pitch_target;
                 if (Remote::rc.ch1 > 0) pitch_target = Remote::rc.ch1 * gimbal_pitch_max_angle;
                 else pitch_target = -Remote::rc.ch1 * gimbal_pitch_min_angle;  // GIMBAL_PITCH_MIN_ANGLE is negative
@@ -97,6 +102,7 @@ void UserA::UserThread::main() {
                 gimbal_yaw_target_angle_ += -Remote::mouse.x * (yaw_sensitivity * USER_THREAD_INTERVAL / 1000.0f);
                 // mouse.x use right as positive direction, while GimbalLG use CCW (left) as positive direction
 
+                VAL_CROP(gimbal_yaw_target_angle_, gimbal_yaw_max_angle, gimbal_yaw_min_angle);
 
                 gimbal_pc_pitch_target_angle_ +=
                         -Remote::mouse.y * (pitch_sensitivity * USER_THREAD_INTERVAL / 1000.0f);

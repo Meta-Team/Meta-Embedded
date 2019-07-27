@@ -151,6 +151,8 @@ if (feedback[YAW].type != RM6623) {
     pwmEnableChannel(&PWMD8, FW_LEFT, PWM_PERCENTAGE_TO_WIDTH(&PWMD8, fw_duty_cycle * 500 + 500));
     pwmEnableChannel(&PWMD8, FW_RIGHT, PWM_PERCENTAGE_TO_WIDTH(&PWMD8, fw_duty_cycle * 500 + 500));
 
+//    LOG("FW %f", fw_duty_cycle);
+
 }
 
 void GimbalIF::process_motor_feedback(CANRxFrame const *rxmsg) {

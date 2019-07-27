@@ -58,12 +58,16 @@ private:
                 if (!has_set_right) {
                     pwmEnableChannel(FRICTION_WHEEL_PWM_DRIVER, FW_RIGHT,
                                      PWM_PERCENTAGE_TO_WIDTH(FRICTION_WHEEL_PWM_DRIVER, 0 * 500 + 500));
+                    pwmEnableChannel(FRICTION_WHEEL_PWM_DRIVER, FW_LEFT,
+                                     PWM_PERCENTAGE_TO_WIDTH(FRICTION_WHEEL_PWM_DRIVER, 0 * 500 + 500));
                     LOG("RIGHT low");
                     has_set_right = true;
                 }
             } else if (Remote::rc.ch1 > 0.5) {
                 if (!has_set_right){
                     pwmEnableChannel(FRICTION_WHEEL_PWM_DRIVER, FW_RIGHT,
+                                     PWM_PERCENTAGE_TO_WIDTH(FRICTION_WHEEL_PWM_DRIVER, 1 * 500 + 500));
+                    pwmEnableChannel(FRICTION_WHEEL_PWM_DRIVER, FW_LEFT,
                                      PWM_PERCENTAGE_TO_WIDTH(FRICTION_WHEEL_PWM_DRIVER, 1 * 500 + 500));
                     LOG("RIGHT high");
                     has_set_right = true;
@@ -72,31 +76,10 @@ private:
                 if (has_set_right) {
                     pwmEnableChannel(FRICTION_WHEEL_PWM_DRIVER, FW_RIGHT,
                                      PWM_PERCENTAGE_TO_WIDTH(FRICTION_WHEEL_PWM_DRIVER, 0.5 * 500 + 500));
-                    LOG("RIGHT middle");
-                    has_set_right = false;
-                }
-            }
-
-            if (Remote::rc.ch3 < -0.5) {
-                if (!has_set_left) {
-                    pwmEnableChannel(FRICTION_WHEEL_PWM_DRIVER, FW_LEFT,
-                                     PWM_PERCENTAGE_TO_WIDTH(FRICTION_WHEEL_PWM_DRIVER, 0 * 500 + 500));
-                    LOG("LEFT low");
-                    has_set_left = true;
-                }
-            } else if (Remote::rc.ch3 > 0.5) {
-                if (!has_set_left){
-                    pwmEnableChannel(FRICTION_WHEEL_PWM_DRIVER, FW_LEFT,
-                                     PWM_PERCENTAGE_TO_WIDTH(FRICTION_WHEEL_PWM_DRIVER, 1 * 500 + 500));
-                    LOG("LEFT high");
-                    has_set_left = true;
-                }
-            } else {
-                if (has_set_left) {
                     pwmEnableChannel(FRICTION_WHEEL_PWM_DRIVER, FW_LEFT,
                                      PWM_PERCENTAGE_TO_WIDTH(FRICTION_WHEEL_PWM_DRIVER, 0.5 * 500 + 500));
-                    LOG("LEFT middle");
-                    has_set_left = false;
+                    LOG("RIGHT middle");
+                    has_set_right = false;
                 }
             }
 
