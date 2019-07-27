@@ -16,8 +16,8 @@ float UserH::gimbal_pitch_max_angle = 45; //  up range for pitch [degree]
 
 /// Chassis Config
 float UserH::chassis_v_left_right = 1000.0f;  // [mm/s]
-float UserH::chassis_v_forward = 2000.0f;     // [mm/s]
-float UserH::chassis_v_backward = 2000.0f;    // [mm/s]
+float UserH::chassis_v_forward = 1000.0f;     // [mm/s]
+float UserH::chassis_v_backward = 1000.0f;    // [mm/s]
 
 float UserH::chassis_pc_shift_ratio = 1.5f;  // 150% when Shift is pressed
 float UserH::chassis_pc_ctrl_ratio = 0.5;    // 50% when Ctrl is pressed
@@ -30,7 +30,7 @@ float UserH::shoot_launch_right_count = 999;
 
 float UserH::shoot_launch_speed = 5.0f;
 
-float UserH::shoot_common_duty_cycle = 0.6;
+float UserH::shoot_common_duty_cycle = 0.1;
 
 Remote::key_t UserH::shoot_fw_switch = Remote::KEY_Z;
 
