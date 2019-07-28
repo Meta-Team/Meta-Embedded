@@ -26,6 +26,8 @@ private:
     /// Gimbal Config
     static float gimbal_rc_yaw_max_speed;  // [degree/s]
     static float gimbal_pc_yaw_sensitivity[];  // [Ctrl, Normal, Shift] [degree/s]
+    static float gimbal_yaw_max_angle;  // [degree]
+    static float gimbal_yaw_min_angle;  // [degree]
 
     static float gimbal_pc_pitch_sensitivity[];   // rotation speed when mouse moves fastest [degree/s]
     static float gimbal_pitch_min_angle; // down range for pitch [degree]

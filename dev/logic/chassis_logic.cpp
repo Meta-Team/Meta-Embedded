@@ -12,6 +12,7 @@
 
 #include "chassis_logic.h"
 #include "chassis_scheduler.h"
+#include "remote_interpreter.h"
 
 ChassisLG::action_t ChassisLG::action = FORCED_RELAX_MODE;
 float ChassisLG::target_vx;
@@ -49,7 +50,7 @@ void ChassisLG::set_action(ChassisLG::action_t value) {
         ChassisSKD::set_mode(ChassisSKD::GIMBAL_COORDINATE_MODE);
         apply_target();
     } else if (action == DODGE_MODE) {
-        ChassisSKD::load_pid_params(CHASSIS_DODGE_PID_THETA2V_PARAMS, CHASSIS_CLIP_PID_V2I_PARAMS);
+        ChassisSKD::load_pid_params(CHASSIS_CLIP_PID_THETA2V_PARAMS, CHASSIS_CLIP_PID_V2I_PARAMS);
         ChassisSKD::set_mode(ChassisSKD::GIMBAL_COORDINATE_MODE);
         target_theta = dodge_mode_theta_;
         // Resume the thread
@@ -97,7 +98,11 @@ void ChassisLG::DodgeModeSwitchThread::main() {
          * If next target_theta is too close to current theta (may due to gimbal rotation), do not switch target to
          * create large difference to avoid pause
          */
-
+        if (Remote::key.w || Remote::key.s || Remote::key.a || Remote::key.d ) {
+            ChassisSKD::load_pid_params(CHASSIS_DODGE_PID_THETA2V_PARAMS, CHASSIS_PID_V2I_PARAMS);
+        } else {
+            ChassisSKD::load_pid_params(CHASSIS_CLIP_PID_THETA2V_PARAMS, CHASSIS_CLIP_PID_V2I_PARAMS);
+        }
         apply_target();
 
         sleep(TIME_MS2I(DODGE_MODE_SWITCH_INTERVAL));

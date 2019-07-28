@@ -15,6 +15,7 @@
 #include "ahrs_ext.h"
 #include "remote_interpreter.h"
 #include "sd_card_interface.h"
+#include "vision_port.h"
 
 #include "gimbal_interface.h"
 #include "gimbal_scheduler.h"
@@ -101,7 +102,6 @@ int main() {
 
 
     /// Setup GimbalIF (for Gimbal and Shoot)
-    chThdSleepMilliseconds(2000);  // wait for C610 to be online
     GimbalIF::init(&can1, GIMBAL_YAW_FRONT_ANGLE_RAW, GIMBAL_PITCH_FRONT_ANGLE_RAW,
                    GIMBAL_YAW_MOTOR_TYPE, GIMBAL_PITCH_MOTOR_TYPE, SHOOT_BULLET_MOTOR_TYPE);
     chThdSleepMilliseconds(10);
@@ -145,7 +145,7 @@ int main() {
 
 
     /// Start Inspector and User Threads
-    InspectorA::start_inspection(THREAD_INSPECTOR_PRIO);
+//    InspectorA::start_inspection(THREAD_INSPECTOR_PRIO);
     UserA::start(THREAD_USER_PRIO, THREAD_USER_ACTION_PRIO, THREAD_USER_CLIENT_DATA_SEND_PRIO);
 
     /// Complete Period 2
