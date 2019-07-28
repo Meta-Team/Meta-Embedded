@@ -7,6 +7,7 @@
 #include "shell.h"
 #include "referee_interface.h"
 #include "shoot_scheduler.h"
+#include "string.h"
 
 float HeroShootLG::loader_angle_per_bullet = 0.0f;
 float HeroShootLG::plate_angle_per_bullet = 0.0f;
@@ -21,6 +22,7 @@ HeroShootLG::loader_state_t HeroShootLG::plateState = STOP;
 
 HeroShootLG::AutoLoaderThread HeroShootLG::autoLoader;
 HeroShootLG::StuckDetectorThread HeroShootLG::stuckDetector;
+HeroShootLG::plateLoadAttempt HeroShootLG::PlateLoadAttempt;
 
 void HeroShootLG::init(float loader_angle_per_bullet_, float plate_angle_per_bullet_,
                        tprio_t stuck_detector_thread_prio, tprio_t auto_loader_thread_prio) {
@@ -132,8 +134,23 @@ void HeroShootLG::StuckDetectorThread::main() {
 
 void HeroShootLG::AutoLoaderThread::main() {
     setName("Automation");
+    PlateLoadAttempt.wait_time = SYSTIME;
+    PlateLoadAttempt.attempt_number = 0;
+    PlateLoadAttempt.task_status = LOAD_SUCCESS;
+    int ball_in_tunnel = 0;
+    int ball_in_loader = 0;
+
+    bool PlateMouthStatus[2] = {false, false};
+    bool LoaderMouthStatus[2] = {false, false};
 
     while (!shouldTerminate()) {
+
+        // Update the MouthStates
+        PlateMouthStatus[0] = PlateMouthStatus[1];
+        PlateMouthStatus[1] = (bool) palReadPad(GPIOE, GPIOE_PIN5);
+
+        LoaderMouthStatus[0] = LoaderMouthStatus[1];
+        LoaderMouthStatus[1] = (bool) palReadPad(GPIOE, GPIOE_PIN4);
 
         // Update the loader State
         if (loader_target_angle - ShootSKD::get_loader_accumulated_angle() > 5.0f && loaderState != STUCK) {
@@ -171,16 +188,69 @@ void HeroShootLG::AutoLoaderThread::main() {
             // Maybe no need to update the loaded_bullet[2] as the loaded_bullet[2] will refresh real timely.
         }
 
-        // Plate load automatically.
-        if (plateState == STOP && ( (!loaded_bullet[2]) || (loaded_bullet[2] && !loaded_bullet[3] && loaded_bullet[0] && !loaded_bullet[1]) )) {
-            ShootSKD::set_mode(ShootSKD::LIMITED_SHOOTING_MODE);
+        /**             Plate Auto Load*/
 
-            // If top bullet place is (about to) be empty due to auto loading
-            plate_target_angle += plate_angle_per_bullet;
-            ShootSKD::set_plate_target_angle(plate_target_angle);
-            // No need to update the sequence. The special situation has already been considered.
-            plateState = LOADING;
-            load_bullet_count++;
+        // Set for load numbers.
+        if (plateState == STOP){
+            // Situation I: Previous Load Success and now need to load
+            if (PlateLoadAttempt.task_status == LOAD_SUCCESS){
+                // If the last place is false
+                if(loaded_bullet[2] == false) {
+
+                    PlateLoadAttempt.task_status = LOAD_RUNNING;
+
+                    // Situations for load two bullets:
+                    // true, false, false (shoot will turn 144 degree)
+                    // false, false, false
+                    if (loaded_bullet[1] == false && loaded_bullet[2] == false){
+                        PlateLoadAttempt.attempt_number = 2;
+                        memcpy(PlateLoadAttempt.bullet_status, loaded_bullet, sizeof(loaded_bullet));
+                    } else if (loaded_bullet[1] == true && loaded_bullet[2] == false) {
+                        PlateLoadAttempt.attempt_number = 1;
+                        memcpy(PlateLoadAttempt.bullet_status, loaded_bullet, sizeof(loaded_bullet));
+                    }
+                    ball_in_loader = ball_in_tunnel = 0;
+                }
+            }
+            // Situation II: Previous Load Failed and need to reload. (Ball has slipped away.)
+            else if (PlateLoadAttempt.task_status == LOAD_WAITING){
+                // wait_time has beyond the tolerable time.
+                if(SYSTIME - PlateLoadAttempt.wait_time > 500) {
+                    PlateLoadAttempt.attempt_number = PlateLoadAttempt.attempt_number - ball_in_tunnel;
+                    PlateLoadAttempt.task_status = LOAD_RUNNING;
+                    ball_in_tunnel = 0;
+                    ball_in_loader = 0;
+                }
+            }
+            // Situation III: Load is running, handle the task
+            else if (PlateLoadAttempt.task_status == LOAD_RUNNING){
+                ShootSKD::set_mode(ShootSKD::LIMITED_SHOOTING_MODE);
+                if(ball_in_tunnel + ball_in_loader < PlateLoadAttempt.attempt_number){
+                    ShootSKD::set_plate_target_angle(plate_target_angle);
+                } else if (ball_in_tunnel + ball_in_loader >= PlateLoadAttempt.attempt_number) {
+                    PlateLoadAttempt.task_status = LOAD_WAITING;
+                }
+            }
+        }
+
+        // Update the ball in tunnel
+        if (PlateMouthStatus[0] && !PlateMouthStatus[1]) {
+            ball_in_tunnel += 1;
+        }
+        if (!LoaderMouthStatus[0] && LoaderMouthStatus[1]) {
+            ball_in_tunnel -= 1;
+            ball_in_loader += 1;
+            PlateLoadAttempt.wait_time = SYSTIME;
+        }
+        // Once the a bullet was in, refresh the wait time.
+        if (PlateLoadAttempt.task_status == LOAD_WAITING && (bool)palReadPad(GPIOE, GPIOE_PIN4)) PlateLoadAttempt.wait_time = SYSTIME;
+
+        // Update wait time.
+
+
+        // Check load success or not.
+        if (ball_in_loader >= PlateLoadAttempt.attempt_number) {
+            PlateLoadAttempt.task_status = LOAD_SUCCESS;
         }
 
         sleep(TIME_MS2I(AUTO_LOADER_THREAD_INTERVAL));
