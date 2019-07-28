@@ -17,7 +17,7 @@
 #include "chassis_logic.h"
 
 #include "inspector_hero.h"
-
+#include "common_macro.h"
 class UserH {
 
 public:
