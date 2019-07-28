@@ -16,7 +16,7 @@ class RefereeEchoThread : public BaseStaticThread <2048> {
 private:
     void main() final {
         setName("referee_echo");
-        Referee::init();
+        Referee::init(NORMALPRIO);
         Referee::set_client_number(1, 36);
         bool test = true;
         while(!shouldTerminate()) {
@@ -40,7 +40,7 @@ private:
 
             Referee::set_client_light(0, test);
             test = !test;
-            Referee::send_data(Referee::CLIENT);
+            Referee::request_to_send(Referee::CLIENT);
             sleep(TIME_MS2I(2000));
         }
     }

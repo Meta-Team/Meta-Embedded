@@ -136,8 +136,8 @@ bool InspectorE::check_chassis_failure() {
         if (not WITHIN_RECENT_TIME(ChassisIF::feedback[i].last_update_time, 20)) {
             if (!chassis_failure_) {  // avoid repeating printing
                 LOG_ERR("Chassis motor %u offline", i);
-                ret = true;
             }
+            ret = true;
         }
     }
     return ret;
@@ -148,26 +148,26 @@ bool InspectorE::check_elevator_failure() {
     if (not WITHIN_RECENT_TIME(EngineerElevatorIF::elevatorMotor[EngineerElevatorIF::R].last_update_time, 20)) {
         if (!elevator_failure_) {  // avoid repeating printing
             LOG_ERR("Elevator R offline.");
-            ret = true;
         }
+        ret = true;
     }
     if (not WITHIN_RECENT_TIME(EngineerElevatorIF::elevatorMotor[EngineerElevatorIF::L].last_update_time, 20)) {
         if (!elevator_failure_) {  // avoid repeating printing
             LOG_ERR("Elevator L offline.");
-            ret = true;
         }
+        ret = true;
     }
     if (not WITHIN_RECENT_TIME(EngineerElevatorIF::aidedMotor[EngineerElevatorIF::R].last_update_time, 20)) {
         if (!elevator_failure_) {  // avoid repeating printing
             LOG_ERR("Aided R offline.");
-            ret = true;
         }
+        ret = true;
     }
     if (not WITHIN_RECENT_TIME(EngineerElevatorIF::aidedMotor[EngineerElevatorIF::L].last_update_time, 20)) {
         if (!elevator_failure_) {  // avoid repeating printing
             LOG_ERR("Aided L offline.");
-            ret = true;
         }
+        ret = true;
     }
     return ret;
 }
@@ -177,8 +177,8 @@ bool InspectorE::check_robotic_arm_failure() {
     if (not WITHIN_RECENT_TIME(RoboticArmIF::motor_last_update_time, 20)) {
         if (!robotic_arm_failure_) {  // avoid repeating printing
             LOG_ERR("Robotic Arm motor offline.");
-            ret = true;
         }
+        ret = true;
     }
     return ret;
 }

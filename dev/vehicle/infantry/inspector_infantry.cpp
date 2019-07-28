@@ -136,8 +136,8 @@ bool InspectorI::check_gimbal_failure() {
         if (not WITHIN_RECENT_TIME(GimbalIF::feedback[i].last_update_time, 20)) {
             if (!gimbal_failure_) {  // avoid repeating printing
                 LOG_ERR("Gimbal motor %u offline (at %u)", i, GimbalIF::feedback[i].last_update_time);
-                ret = true;
             }
+            ret = true;
         }
     }
     return ret;
@@ -149,8 +149,8 @@ bool InspectorI::check_chassis_failure() {
         if (not WITHIN_RECENT_TIME(ChassisIF::feedback[i].last_update_time, 20)) {
             if (!chassis_failure_) {  // avoid repeating printing
                 LOG_ERR("Chassis motor %u offline (at %u)", i, ChassisIF::feedback[i].last_update_time);
-                ret = true;
             }
+            ret = true;
         }
     }
     return ret;

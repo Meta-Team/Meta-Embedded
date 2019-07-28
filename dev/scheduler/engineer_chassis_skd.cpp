@@ -34,23 +34,19 @@ void EngineerChassisSKD::start(float wheel_base, float wheel_tread, float wheel_
     skdThread.start(thread_prio);
 }
 
-void EngineerChassisSKD::lock() {
-    if (enabled) {
-        LOG("EChassis Lock");
-        enabled = false;
-        target_vx = target_vy = target_w = 0;
-    }
-}
-
-void EngineerChassisSKD::unlock() {
-    if (!enabled) {
+void EngineerChassisSKD::enable(bool enable_) {
+    if (enable_){
         LOG("EChassis Unlock");
-        enabled = true;
-        set_velocity(0, 0, 0);
-        for (size_t i = 0; i < MOTOR_COUNT; i++) {
-            pid[i].clear_i_out();
+        if (!enabled) {
+            set_velocity(0, 0, 0);
+            for (size_t i = 0; i < MOTOR_COUNT; i++) {
+                pid[i].clear_i_out();
+            }
         }
+    } else{
+        LOG("EChassis Lock");
     }
+    enabled = enable_;
 }
 
 bool EngineerChassisSKD::is_locked() {

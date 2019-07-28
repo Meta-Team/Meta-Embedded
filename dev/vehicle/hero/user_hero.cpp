@@ -8,16 +8,16 @@
 
 /// Gimbal Config
 float UserH::gimbal_rc_yaw_max_speed = 90;  // [degree/s]
-float UserH::gimbal_pc_yaw_sensitivity[3] = {20000, 60000, 100000};  // [Slow, Normal, Fast] [degree/s]
+float UserH::gimbal_pc_yaw_sensitivity[3] = {25000, 75000, 125000};  // [Slow, Normal, Fast] [degree/s]
 
-float UserH::gimbal_pc_pitch_sensitivity[3] = {15000, 40000, 50000};   // [Slow, Normal, Fast] [degree/s]
+float UserH::gimbal_pc_pitch_sensitivity[3] = {18000, 48000, 60000};   // [Slow, Normal, Fast] [degree/s]
 float UserH::gimbal_pitch_min_angle = -10; // down range for pitch [degree]
 float UserH::gimbal_pitch_max_angle = 45; //  up range for pitch [degree]
 
 /// Chassis Config
-float UserH::chassis_v_left_right = 1200.0f;  // [mm/s]      //TODO:
-float UserH::chassis_v_forward = 1800.0f;     // [mm/s]
-float UserH::chassis_v_backward = 1800.0f;    // [mm/s]
+float UserH::chassis_v_left_right = 1100.0f;  // [mm/s]      //TODO:
+float UserH::chassis_v_forward = 1600.0f;     // [mm/s]
+float UserH::chassis_v_backward = 1600.0f;    // [mm/s]
 
 float UserH::chassis_pc_shift_ratio = 1.5f;  // 150% when Shift is pressed
 float UserH::chassis_pc_ctrl_ratio = 0.5;    // 50% when Ctrl is pressed
@@ -111,7 +111,13 @@ void UserH::UserThread::main() {
                 }
                 // Referee client data will be sent by ClientDataSendingThread
 
-                gimbal_yaw_target_angle_ += -Remote::mouse.x * (yaw_sensitivity * USER_THREAD_INTERVAL / 1000.0f);
+                if (Remote::mouse.x * (yaw_sensitivity * USER_THREAD_INTERVAL / 1000.0f) > 120) {
+                    gimbal_yaw_target_angle_ += -120;
+                } else if (Remote::mouse.x * (yaw_sensitivity * USER_THREAD_INTERVAL / 1000.0f) < -120) {
+                    gimbal_yaw_target_angle_ += 120;
+                } else {
+                    gimbal_yaw_target_angle_ += -Remote::mouse.x * (yaw_sensitivity * USER_THREAD_INTERVAL / 1000.0f);
+                }
                 // mouse.x use right as positive direction, while GimbalLG use CCW (left) as positive direction
 
 
