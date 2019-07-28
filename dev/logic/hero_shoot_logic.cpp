@@ -7,6 +7,7 @@
 #include "shell.h"
 #include "referee_interface.h"
 #include "shoot_scheduler.h"
+#include "string.h"
 
 float HeroShootLG::loader_angle_per_bullet = 0.0f;
 float HeroShootLG::plate_angle_per_bullet = 0.0f;
@@ -172,15 +173,45 @@ void HeroShootLG::AutoLoaderThread::main() {
         }
 
         // Plate load automatically.
-        if (plateState == STOP && ( (!loaded_bullet[2]) || (loaded_bullet[2] && !loaded_bullet[3] && loaded_bullet[0] && !loaded_bullet[1]) )) {
-            ShootSKD::set_mode(ShootSKD::LIMITED_SHOOTING_MODE);
+        if (plateState == STOP) {
+            if (SYSTIME - PlateLoadAttempt.attempt_time > 2000 &&
+                loaded_bullet[0] == PlateLoadAttempt.bullet_status[0] &&
+                loaded_bullet[1] == PlateLoadAttempt.bullet_status[1] &&
+                loaded_bullet[2] == PlateLoadAttempt.bullet_status[2] &&
+                loaded_bullet[3] == PlateLoadAttempt.bullet_status[3] &&
+                loaded_bullet[2]) {
+                if (!loaded_bullet[2]||!loaded_bullet[0] && PlateLoadAttempt.attempt_number == 0){
+                    PlateLoadAttempt.attempt_number = 1;
+                    PlateLoadAttempt.attempt_time = SYSTIME;
 
-            // If top bullet place is (about to) be empty due to auto loading
-            plate_target_angle += plate_angle_per_bullet;
-            ShootSKD::set_plate_target_angle(plate_target_angle);
-            // No need to update the sequence. The special situation has already been considered.
-            plateState = LOADING;
-            load_bullet_count++;
+                    // Record the status
+                    memcpy(PlateLoadAttempt.bullet_status, loaded_bullet, sizeof(loaded_bullet));
+
+                } else if ((loaded_bullet[0]&&!loaded_bullet[1]&&!loaded_bullet[2]) && (PlateLoadAttempt.attempt_number == 0)) {
+                    PlateLoadAttempt.attempt_number = 2;
+                    PlateLoadAttempt.attempt_time = SYSTIME;
+
+                    // Record the status
+                    memcpy(PlateLoadAttempt.bullet_status, loaded_bullet, sizeof(loaded_bullet));
+                }
+            }
+            if (PlateLoadAttempt.attempt_number > 0 && plateState == STOP){
+                ShootSKD::set_mode(ShootSKD::LIMITED_SHOOTING_MODE);
+
+                // If top bullet place is (about to) be empty due to auto loading
+                plate_target_angle += plate_angle_per_bullet;
+                ShootSKD::set_plate_target_angle(plate_target_angle);
+                // No need to update the sequence. The special situation has already been considered.
+                plateState = LOADING;
+            }
+            if (PlateLoadAttempt.attempt_number > 0) {
+                if ((bool) palReadPad(GPIOE,GPIOE_PIN5)) PlateLoadAttempt.attempt_number -= 1;
+            }
+        }
+
+        // Update the attempt.
+        if((bool) palReadPad(GPIOE,GPIOE_PIN5) && PlateLoadAttempt.attempt_number > 0) {
+            PlateLoadAttempt.attempt_number -= 1;
         }
 
         sleep(TIME_MS2I(AUTO_LOADER_THREAD_INTERVAL));
