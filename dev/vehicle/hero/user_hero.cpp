@@ -11,7 +11,7 @@ float UserH::gimbal_rc_yaw_max_speed = 90;  // [degree/s]
 float UserH::gimbal_pc_yaw_sensitivity[3] = {20000, 60000, 100000};  // [Slow, Normal, Fast] [degree/s]
 
 float UserH::gimbal_pc_pitch_sensitivity[3] = {15000, 40000, 50000};   // [Slow, Normal, Fast] [degree/s]
-float UserH::gimbal_pitch_min_angle = -10; // down range for pitch [degree]
+float UserH::gimbal_pitch_min_angle = -15; // down range for pitch [degree]
 float UserH::gimbal_pitch_max_angle = 45; //  up range for pitch [degree]
 
 /// Chassis Config

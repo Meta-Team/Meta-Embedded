@@ -209,6 +209,7 @@ void HeroShootLG::AutoLoaderThread::main() {
                         PlateLoadAttempt.attempt_number = 1;
                         memcpy(PlateLoadAttempt.bullet_status, loaded_bullet, sizeof(loaded_bullet));
                     }
+                    ball_in_loader = ball_in_tunnel = 0;
                 }
             }
             // Situation II: Previous Load Failed and need to reload. (Ball has slipped away.)
@@ -218,6 +219,7 @@ void HeroShootLG::AutoLoaderThread::main() {
                     PlateLoadAttempt.attempt_number = PlateLoadAttempt.attempt_number - ball_in_tunnel;
                     PlateLoadAttempt.task_status = LOAD_RUNNING;
                     ball_in_tunnel = 0;
+                    ball_in_loader = 0;
                 }
             }
             // Situation III: Load is running, handle the task
