@@ -25,6 +25,7 @@ float UserA::shoot_launch_speed = 15.0f;
 
 float UserA::shoot_common_duty_cycle = 0.6;
 float UserA::shoot_debug_duty_cycle = 0.1;
+float UserA::shoot_full_power_duty_cycle = 1.0;
 
 Remote::key_t UserA::shoot_fw_switch = Remote::KEY_Z;
 
@@ -163,6 +164,8 @@ void UserA::UserThread::main() {
 
                 if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_DOWN) {
                     ShootLG::set_friction_wheels(shoot_debug_duty_cycle);
+                } else if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_UP) {
+                    ShootLG::set_friction_wheels(shoot_full_power_duty_cycle);
                 } else {
                     ShootLG::set_friction_wheels(shoot_common_duty_cycle);
                 }

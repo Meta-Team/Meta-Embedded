@@ -41,6 +41,7 @@ private:
 
     static float shoot_common_duty_cycle;
     static float shoot_debug_duty_cycle;
+    static float shoot_full_power_duty_cycle;
 
     static Remote::key_t shoot_fw_switch;
 
