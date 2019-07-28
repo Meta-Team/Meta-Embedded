@@ -18,11 +18,13 @@ float UserA::gimbal_pitch_max_angle = 10; //  up range for pitch [degree]
 float UserA::shoot_launch_left_count = 5;
 float UserA::shoot_launch_right_count = 999;
 
-float UserA::shoot_launch_speed = 5.0f;
+float UserA::shoot_launch_speed = 15.0f;
 
 float UserA::shoot_common_duty_cycle = 0.6;
+float UserA::shoot_debug_duty_cycle = 0.1;
 
 Remote::key_t UserA::shoot_fw_switch = Remote::KEY_Z;
+
 
 
 /// Variables
@@ -50,7 +52,8 @@ void UserA::UserThread::main() {
         if (!InspectorA::remote_failure() /*&& !InspectorI::chassis_failure()*/ && !InspectorA::gimbal_failure()) {
 
             if ((Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_UP) ||
-                (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_MIDDLE)) {
+                (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_MIDDLE) ||
+                (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_DOWN)) {
 
                 /// Remote - Yaw + Pitch
 
@@ -136,8 +139,8 @@ void UserA::UserThread::main() {
 
         if (!InspectorA::remote_failure() /*&& !InspectorI::chassis_failure()*/ && !InspectorA::gimbal_failure()) {
             if ((Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_UP) ||
-                (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_MIDDLE) /*||
-                (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_DOWN)*/) {
+                (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_MIDDLE) ||
+                (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_DOWN)) {
 
                 /// Remote - Shoot with Scrolling Wheel
 
@@ -155,7 +158,12 @@ void UserA::UserThread::main() {
                     }
                 }
 
-                ShootLG::set_friction_wheels(shoot_common_duty_cycle);
+                if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_DOWN) {
+                    ShootLG::set_friction_wheels(shoot_debug_duty_cycle);
+                } else {
+                    ShootLG::set_friction_wheels(shoot_common_duty_cycle);
+                }
+
 
             } else if (Remote::rc.s1 == Remote::S_DOWN) {
 
@@ -218,7 +226,7 @@ void UserA::UserActionThread::main() {
                 ShootLG::shoot(shoot_launch_left_count, shoot_launch_speed);
             } else if (mouse_flag & (1U << Remote::MOUSE_RIGHT)) {
                 ShootLG::shoot(shoot_launch_right_count, shoot_launch_speed);
-            }
+            } 
         } else {  // releasing one while pressing another won't result in stopping
             if (events & MOUSE_RELEASE_EVENTMASK) {
                 ShootLG::stop();
