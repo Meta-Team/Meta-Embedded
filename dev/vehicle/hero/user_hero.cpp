@@ -15,9 +15,9 @@ float UserH::gimbal_pitch_min_angle = -10; // down range for pitch [degree]
 float UserH::gimbal_pitch_max_angle = 45; //  up range for pitch [degree]
 
 /// Chassis Config
-float UserH::chassis_v_left_right = 1000.0f;  // [mm/s]
-float UserH::chassis_v_forward = 1000.0f;     // [mm/s]
-float UserH::chassis_v_backward = 1000.0f;    // [mm/s]
+float UserH::chassis_v_left_right = 1200.0f;  // [mm/s]      //TODO:
+float UserH::chassis_v_forward = 1800.0f;     // [mm/s]
+float UserH::chassis_v_backward = 1800.0f;    // [mm/s]
 
 float UserH::chassis_pc_shift_ratio = 1.5f;  // 150% when Shift is pressed
 float UserH::chassis_pc_ctrl_ratio = 0.5;    // 50% when Ctrl is pressed
@@ -30,7 +30,7 @@ float UserH::shoot_launch_right_count = 999;
 
 float UserH::shoot_launch_speed = 5.0f;
 
-float UserH::shoot_common_duty_cycle = 0.1;
+float UserH::shoot_common_duty_cycle = 0.1f;             //TODO:
 
 Remote::key_t UserH::shoot_fw_switch = Remote::KEY_Z;
 
@@ -186,9 +186,8 @@ void UserH::UserThread::main() {
                 ChassisLG::set_action(ChassisLG::FOLLOW_MODE);
                 ChassisLG::set_target(Remote::rc.ch2 * chassis_v_left_right,  // Both use right as positive direction
                                       (Remote::rc.ch3 > 0 ?
-                                       // FIXME: revert back to common velocity
-                                       Remote::rc.ch3 * 1000 :
-                                       Remote::rc.ch3 * 800)   // Both use up    as positive direction
+                                       Remote::rc.ch3 * chassis_v_forward :
+                                       Remote::rc.ch3 * chassis_v_backward)   // Both use up    as positive direction
                 );
 
             } else if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_MIDDLE) {
@@ -197,9 +196,8 @@ void UserH::UserThread::main() {
                 ChassisLG::set_action(ChassisLG::DODGE_MODE);
                 ChassisLG::set_target(Remote::rc.ch2 * chassis_v_left_right,  // Both use right as positive direction
                                       (Remote::rc.ch3 > 0 ?
-                                       // FIXME: revert back to common velocity
-                                       Remote::rc.ch3 * 1000 :
-                                       Remote::rc.ch3 * 800)   // Both use up    as positive direction
+                                       Remote::rc.ch3 * chassis_v_forward :
+                                       Remote::rc.ch3 * chassis_v_backward)   // Both use up    as positive direction
                 );
             } /*else if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_DOWN) {
 

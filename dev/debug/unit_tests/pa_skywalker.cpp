@@ -49,38 +49,25 @@ private:
 
         pwmStart(FRICTION_WHEEL_PWM_DRIVER, &FRICTION_WHEELS_PWM_CFG);
 
-        bool has_set_right = false;
-        bool has_set_left = false;
+        bool has_set = false;
 
         while (!shouldTerminate()) {
 
-            if (Remote::rc.ch1 < -0.5) {
-                if (!has_set_right) {
+            if (Remote::rc.s1 == Remote::S_DOWN) {
                     pwmEnableChannel(FRICTION_WHEEL_PWM_DRIVER, FW_RIGHT,
                                      PWM_PERCENTAGE_TO_WIDTH(FRICTION_WHEEL_PWM_DRIVER, 0 * 500 + 500));
                     pwmEnableChannel(FRICTION_WHEEL_PWM_DRIVER, FW_LEFT,
                                      PWM_PERCENTAGE_TO_WIDTH(FRICTION_WHEEL_PWM_DRIVER, 0 * 500 + 500));
-                    LOG("RIGHT low");
-                    has_set_right = true;
-                }
-            } else if (Remote::rc.ch1 > 0.5) {
-                if (!has_set_right){
-                    pwmEnableChannel(FRICTION_WHEEL_PWM_DRIVER, FW_RIGHT,
-                                     PWM_PERCENTAGE_TO_WIDTH(FRICTION_WHEEL_PWM_DRIVER, 1 * 500 + 500));
-                    pwmEnableChannel(FRICTION_WHEEL_PWM_DRIVER, FW_LEFT,
-                                     PWM_PERCENTAGE_TO_WIDTH(FRICTION_WHEEL_PWM_DRIVER, 1 * 500 + 500));
-                    LOG("RIGHT high");
-                    has_set_right = true;
-                }
-            } else {
-                if (has_set_right) {
-                    pwmEnableChannel(FRICTION_WHEEL_PWM_DRIVER, FW_RIGHT,
-                                     PWM_PERCENTAGE_TO_WIDTH(FRICTION_WHEEL_PWM_DRIVER, 0.5 * 500 + 500));
-                    pwmEnableChannel(FRICTION_WHEEL_PWM_DRIVER, FW_LEFT,
-                                     PWM_PERCENTAGE_TO_WIDTH(FRICTION_WHEEL_PWM_DRIVER, 0.5 * 500 + 500));
-                    LOG("RIGHT middle");
-                    has_set_right = false;
-                }
+                    LED::red_on();
+                    LED::green_off();
+            } else if (Remote::rc.s1 == Remote::S_UP) {
+                pwmEnableChannel(FRICTION_WHEEL_PWM_DRIVER, FW_RIGHT,
+                                 PWM_PERCENTAGE_TO_WIDTH(FRICTION_WHEEL_PWM_DRIVER, 1 * 500 + 500));
+                pwmEnableChannel(FRICTION_WHEEL_PWM_DRIVER, FW_LEFT,
+                                 PWM_PERCENTAGE_TO_WIDTH(FRICTION_WHEEL_PWM_DRIVER, 1 * 500 + 500));
+                LED::green_on();
+                LED::red_off();
+
             }
 
             sleep(TIME_MS2I(100));
