@@ -101,9 +101,9 @@ bool InspectorA::remote_failure() {
 bool InspectorA::check_gimbal_failure() {
     bool ret = false;
     for (unsigned i = 0; i < 3; i++) {
-        if (not WITHIN_RECENT_TIME(GimbalIF::feedback[i].last_update_time, 50)) {
+        if (not WITHIN_RECENT_TIME(GimbalIF::feedback[i].last_update_time, 20)) {
             if (!gimbal_failure_) {  // avoid repeating printing
-                LOG_ERR("Gimbal motor %u offline", i);
+                LOG_ERR("Gimbal motor %u offline (at %u)", i, GimbalIF::feedback[i].last_update_time);
                 ret = true;
             }
         }
@@ -112,12 +112,14 @@ bool InspectorA::check_gimbal_failure() {
 }
 
 bool InspectorA::check_remote_data_error() {
-    return (!ABS_IN_RANGE(Remote::rc.ch0, 1.1) || !ABS_IN_RANGE(Remote::rc.ch1, 1.1) ||
-            !ABS_IN_RANGE(Remote::rc.ch2, 1.1) || !ABS_IN_RANGE(Remote::rc.ch3, 1.1) ||
-            !(Remote::rc.s1 >= 1 && Remote::rc.s1 <= 3) || !(Remote::rc.s2 >= 1 && Remote::rc.s2 <= 3) ||
-            !ABS_IN_RANGE(Remote::mouse.x, 1.1) || !ABS_IN_RANGE(Remote::mouse.y, 1.1) ||
-            !ABS_IN_RANGE(Remote::mouse.z, 1.1) ||
-            Remote::rx_buf_[12] > 1 || Remote::rx_buf_[13] > 1);
+    bool ret = (!ABS_IN_RANGE(Remote::rc.ch0, 1.1) || !ABS_IN_RANGE(Remote::rc.ch1, 1.1) ||
+                !ABS_IN_RANGE(Remote::rc.ch2, 1.1) || !ABS_IN_RANGE(Remote::rc.ch3, 1.1) ||
+                !(Remote::rc.s1 >= 1 && Remote::rc.s1 <= 3) || !(Remote::rc.s2 >= 1 && Remote::rc.s2 <= 3) ||
+                !ABS_IN_RANGE(Remote::mouse.x, 1.1) || !ABS_IN_RANGE(Remote::mouse.y, 1.1) ||
+                !ABS_IN_RANGE(Remote::mouse.z, 1.1) ||
+                Remote::rx_buf_[12] > 1 || Remote::rx_buf_[13] > 1);
+    return ret;
+
 }
 
 void InspectorA::InspectorThread::main() {

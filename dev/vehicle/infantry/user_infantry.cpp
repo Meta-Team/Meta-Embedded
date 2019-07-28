@@ -189,8 +189,9 @@ void UserI::UserThread::main() {
                 ChassisLG::set_action(ChassisLG::FOLLOW_MODE);
                 ChassisLG::set_target(Remote::rc.ch2 * chassis_v_left_right,  // Both use right as positive direction
                                       (Remote::rc.ch3 > 0 ?
-                                       Remote::rc.ch3 * chassis_v_forward :
-                                       Remote::rc.ch3 * chassis_v_backward)   // Both use up    as positive direction
+                                       // FIXME: revert back to common velocity
+                                       Remote::rc.ch3 * 1000 :
+                                       Remote::rc.ch3 * 800)   // Both use up    as positive direction
                 );
 
             } else if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_MIDDLE) {
@@ -199,8 +200,9 @@ void UserI::UserThread::main() {
                 ChassisLG::set_action(ChassisLG::DODGE_MODE);
                 ChassisLG::set_target(Remote::rc.ch2 * chassis_v_left_right,  // Both use right as positive direction
                                       (Remote::rc.ch3 > 0 ?
-                                       Remote::rc.ch3 * chassis_v_forward :
-                                       Remote::rc.ch3 * chassis_v_backward)   // Both use up    as positive direction
+                                      // FIXME: revert back to common velocity
+                                       Remote::rc.ch3 * 1000 :
+                                       Remote::rc.ch3 * 800)   // Both use up    as positive direction
                 );
             } /*else if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_DOWN) {
 
