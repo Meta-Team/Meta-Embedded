@@ -44,8 +44,18 @@ void cmd_clear_sdcard(BaseSequentialStream *chp, int argc, char *argv[]){
     chprintf(chp, "%d" SHELL_NEWLINE_STR, SDCard::erase());
 }
 
+void cmd_next_step(BaseSequentialStream *chp, int argc, char *argv[]) {
+    (void) argv;
+    if (argc != 0) {
+        shellUsage(chp, "clear_sd");
+        return;
+    }
+    RoboticArmSKD::next_step();
+}
+
 ShellCommand mainProgramCommands[] = {
         {"echo_dms", cmd_echo_dms},
+        {"next", cmd_next_step},
         {"door", cmd_change_door},
         {"echo_sd", cmd_echo_sdcard},
         {"clear_sd", cmd_clear_sdcard},
