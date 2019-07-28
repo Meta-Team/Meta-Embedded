@@ -77,6 +77,19 @@ public:
 //    static HeroShootLG::loader_state_t get_plate_status();
 
 private:
+    enum task_status_t{
+        LOAD_RUNNING,
+        LOAD_WAITING,
+        LOAD_SUCCESS,
+    };
+
+    struct plateLoadAttempt {
+        int wait_time;
+        int attempt_number;
+        bool bullet_status[4];
+        task_status_t task_status;
+    };
+    static plateLoadAttempt PlateLoadAttempt;
     static int load_bullet_count;
     static float loader_angle_per_bullet;
     static float loader_target_angle;
