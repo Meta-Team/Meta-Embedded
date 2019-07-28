@@ -31,8 +31,10 @@ void EngineerElevatorSKD::elevator_enable(bool enable) {
 
 void EngineerElevatorSKD::aided_motor_enable(bool enable) {
     if (aided_motor_enabled != enable) {  // avoid setting repeatedly
-        set_aided_motor_velocity(0,0);  // clear target velocity
         aided_motor_enabled = enable;
+
+        set_aided_motor_velocity(0,0);  // clear target velocity
+        LOG("Aided motor: enable= %d", aided_motor_enabled);
     }
 }
 

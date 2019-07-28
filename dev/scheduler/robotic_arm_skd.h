@@ -38,8 +38,8 @@ public:
     static RoboticArmThread roboticArmThread;
 
     enum digital_status_t {
-        LOW_STATUS = PAL_HIGH,
-        HIGH_STATUS = PAL_LOW
+        LOW_STATUS = PAL_LOW,
+        HIGH_STATUS = PAL_HIGH
     };
 
     enum robotic_arm_state_t {
