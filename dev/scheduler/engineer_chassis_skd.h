@@ -34,9 +34,7 @@ public:
      */
     static void load_pid_params(PIDController::pid_params_t v2i_pid_params);
 
-    static void lock();
-
-    static void unlock();
+    static void enable(bool enable_);
 
     static bool is_locked();
 
