@@ -22,6 +22,7 @@ HeroShootLG::loader_state_t HeroShootLG::plateState = STOP;
 
 HeroShootLG::AutoLoaderThread HeroShootLG::autoLoader;
 HeroShootLG::StuckDetectorThread HeroShootLG::stuckDetector;
+HeroShootLG::plateLoadAttempt HeroShootLG::PlateLoadAttempt;
 
 void HeroShootLG::init(float loader_angle_per_bullet_, float plate_angle_per_bullet_,
                        tprio_t stuck_detector_thread_prio, tprio_t auto_loader_thread_prio) {
@@ -133,7 +134,7 @@ void HeroShootLG::StuckDetectorThread::main() {
 
 void HeroShootLG::AutoLoaderThread::main() {
     setName("Automation");
-
+    PlateLoadAttempt.attempt_time = SYSTIME;
     while (!shouldTerminate()) {
 
         // Update the loader State
@@ -175,19 +176,18 @@ void HeroShootLG::AutoLoaderThread::main() {
         // Plate load automatically.
         if (plateState == STOP) {
             if (SYSTIME - PlateLoadAttempt.attempt_time > 2000 &&
-                loaded_bullet[0] == PlateLoadAttempt.bullet_status[0] &&
-                loaded_bullet[1] == PlateLoadAttempt.bullet_status[1] &&
-                loaded_bullet[2] == PlateLoadAttempt.bullet_status[2] &&
-                loaded_bullet[3] == PlateLoadAttempt.bullet_status[3] &&
-                loaded_bullet[2]) {
-                if (!loaded_bullet[2]||!loaded_bullet[0] && PlateLoadAttempt.attempt_number == 0){
+                ((loaded_bullet[0] == PlateLoadAttempt.bullet_status[0] &&
+                  loaded_bullet[1] == PlateLoadAttempt.bullet_status[1] &&
+                  loaded_bullet[2] == PlateLoadAttempt.bullet_status[2] &&
+                  loaded_bullet[3] == PlateLoadAttempt.bullet_status[3])|| !loaded_bullet[2])) {
+                if (!loaded_bullet[2] && !loaded_bullet[0] && PlateLoadAttempt.attempt_number == 0){
                     PlateLoadAttempt.attempt_number = 1;
                     PlateLoadAttempt.attempt_time = SYSTIME;
 
                     // Record the status
                     memcpy(PlateLoadAttempt.bullet_status, loaded_bullet, sizeof(loaded_bullet));
 
-                } else if ((loaded_bullet[0]&&!loaded_bullet[1]&&!loaded_bullet[2]) && (PlateLoadAttempt.attempt_number == 0)) {
+                } else if ((loaded_bullet[0] && !loaded_bullet[1]&&!loaded_bullet[2]) && (PlateLoadAttempt.attempt_number == 0)) {
                     PlateLoadAttempt.attempt_number = 2;
                     PlateLoadAttempt.attempt_time = SYSTIME;
 
