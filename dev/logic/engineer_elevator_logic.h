@@ -25,33 +25,31 @@ class EngineerElevatorLG {
 
 public:
 
-    enum action_t {
-        FREE,           // free to control, for debug
-        LOCK,           // not elevating
-        PAUSE,          // from pause_action
-        UPWARD,         // going upstairs
-        DOWNWARD,       // going down stairs
+    enum elevator_state_t{
+        STOP,           // not using elevator
+        PREPARING,      // preparing to elevate, move forward to reach the stage or backward to reach the edge
+        ASCENDING,      // elevator standing up
+        DESCENDING,     // elevator squatting down
+        AIDING,         // aided motor moving
     };
 
     static void init(tprio_t logic_thread_prio);
 
-    static action_t get_action() {      return action;      }
-    static action_t get_prev_action() { return prev_action; }
+    static void elevator_enable(bool enable_);
 
-    /** @brief Set action as FREE, only for debugging each part of the process separately.
-     *  @note Can only be set free when LOCK OR PAUSE */
-    static void set_action_free();
+    static void set_elevator_height(float new_height);
 
-    /** @brief LOCK anyway, for safe mode.
-     *  @note need to reset manually by setting FREE. */
-    static void set_action_lock();
+    static float get_elevator_height();
+
+    static void set_aided_motor_velocity(float target_velocity);
+
+    static void set_auto_elevating(bool auto_elevating_);
 
     /** @brief Start an auto process of going up-stairs */
-    static void start_going_up();
+    static void going_up();
 
     /** @brief Start an auto process of going down-stairs */
-    static void start_going_down();
-
+    static void going_down();
 
     /**
      * @pre action == UPWARD || action == DOWNWARD || action == FREE
@@ -62,9 +60,7 @@ public:
     /** @brief Continue prev_action from PAUSE. */
     static void continue_action();
 
-    /** @brief Quit prev_action by reversing from PAUSE. */
-    static void quit_action();
-
+    static void next_step();
 
     ///////// for finding better aided motor params
     static void aided_motor_test_forward();
@@ -74,17 +70,9 @@ public:
 
     static uint32_t delay_time;     // ms
 
-
-    // both the two sensors in front detect the stage, can start to go up-stairs
-    static bool reach_stage;
-    // both the two sensors at the back wheels landed on stage, enter the last step of going up-stairs
-    static bool back_landed;
-    // both the two sensors at the back wheels reach the edge, can start to go down-stairs
-    static bool back_edged;
-    // both the two sensors at the front wheels leave the stage, enter the last step of going down-stairs
-    static bool front_leave_stage;
-
 private:
+
+    static bool test_mode;
 
     class EngineerElevatorLGThread: public chibios_rt::BaseStaticThread<512>{
 
@@ -94,49 +82,18 @@ private:
 
     static EngineerElevatorLGThread engineerLogicThread;
 
-    // TODO
-    // static bool ignore_DMS;
-
-
-    enum elevator_state_t{
-        STOP,           // not using elevator
-        PREPARING,      // preparing to elevate, move forward to reach the stage or backward to reach the edge
-        ASCENDING,      // elevator standing up
-        DESCENDING,     // elevator squatting down
-        AIDING,         // aided motor moving
-    };
-
-    static action_t action;
-
-    static action_t prev_action;    // keep record of the action before forced stop, used for cont or quit
-
     static elevator_state_t state;
 
-    static uint16_t hanging_trigger;
-    static uint16_t landed_trigger;
+    static bool pause;
 
-    // for debugging, support pause and resume
-    static float prev_e_tg_h;
-    static float prev_aR_tg_v;
-    static float prev_aL_tg_v;
+    static float pause_height;
 
-    /**
-     * @brief light up the client light if the wheel is hanging
-     * @note the client lights are arranged in this way: [FL BL BR FR]
-     */
-    static void update_hanging_status();
+    static bool going_up_;
 
-    /**
-     * @brief the automatic movements of going up-stairs
-     * @pre near the stage
-     */
-    static void going_up();
+    static bool auto_elevating;
 
-    /**
-     * @brief the automatic movements of going down-stairs
-     * @pre near the edge
-     */
-    static void going_down();
+    static constexpr uint16_t hanging_trigger = 1800;//TODO need to determine
+    static constexpr uint16_t landed_trigger = 2300;//TODO need to determine
 
 };
 
