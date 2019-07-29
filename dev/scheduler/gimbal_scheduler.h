@@ -63,7 +63,8 @@ public:
      */
     static void
     start(AbstractAHRS *gimbal_ahrs_, const Matrix33 ahrs_angle_rotation_, const Matrix33 ahrs_gyro_rotation_,
-          install_direction_t yaw_install_, install_direction_t pitch_install_, tprio_t thread_prio);
+          install_direction_t yaw_install_, install_direction_t pitch_install_, tprio_t thread_prio,
+          float pitch_max_angle, float pitch_min_angle, float yaw_max_angle, float yaw_min_angle);
 
     /**
      * Set PID parameters of yaw and pitch
@@ -109,6 +110,12 @@ private:
     static Matrix33 ahrs_gyro_rotation;
     static install_direction_t yaw_install;
     static install_direction_t pitch_install;
+
+    //limit setting
+    static float _pitch_max_angle;
+    static float _pitch_min_angle;
+    static float _yaw_max_angle;
+    static float _yaw_min_angle;
 
     // Local storage
     static mode_t mode;
