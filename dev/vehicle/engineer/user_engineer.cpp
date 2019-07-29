@@ -186,10 +186,16 @@ void UserE::UserActionThread::main() {
             eventflags_t key_flag = chEvtGetAndClearFlags(&key_press_listener);
 
             /// Robotic Arm
-            if (key_flag & (1U << Remote::KEY_Z)) {
-                RoboticArmSKD::next_step();
-            } else if (key_flag & (1U << Remote::KEY_X)) {
-                RoboticArmSKD::prev_step();
+
+            /// Mouse Press
+            if (events & MOUSE_PRESS_EVENTMASK) {
+
+                eventflags_t mouse_flag = chEvtGetAndClearFlags(&mouse_press_listener);
+                if (mouse_flag & (1U << Remote::MOUSE_LEFT)) {
+                    RoboticArmSKD::next_step();
+                } else if (mouse_flag & (1U << Remote::MOUSE_RIGHT)) {
+                    RoboticArmSKD::prev_step();
+                }
             }
 
             if (key_flag & (1U << Remote::KEY_C)) {
@@ -198,6 +204,7 @@ void UserE::UserActionThread::main() {
 
             if (key_flag & (1U << Remote::KEY_V)) {
                 RoboticArmSKD::change_door();
+                EngineerElevatorLG::give_bullet();
             }
 
             if (key_flag & (1u << Remote::KEY_R)){
