@@ -31,12 +31,14 @@ public:
      * Initial GimbalLG
      * @param vision_thread_prio_   Priority of Vision thread. 0 for no initialization
      */
-    static void init(tprio_t vision_thread_prio_);
+    static void init(float yaw_min_angle_ = -MAXFLOAT, float yaw_max_angle_ = MAXFLOAT,
+                     float pitch_min_angle_ = -MAXFLOAT, float pitch_max_angle_ = MAXFLOAT);
 
     enum action_t {
         FORCED_RELAX_MODE,
         ABS_ANGLE_MODE,
-        VISION_MODE
+        SENTRY_MODE,
+        AERIAL_MODE,
     };
 
     /**
@@ -69,22 +71,12 @@ private:
 
     static action_t action;
 
-    class VisionThread : public chibios_rt::BaseStaticThread<256> {
-    public:
-
-        bool started = false;
-
-    private:
-
-        time_msecs_t last_apply_time = 0;
-
-        static constexpr unsigned VISION_FEED_INTERVAL = 5;  // thread interval [ms]
-
-        void main() final;
-    };
-
-    static VisionThread visionThread;
-    static chibios_rt::ThreadReference visionThreadReference;
+    static float pitch_max_angle;
+    static float pitch_min_angle;
+    static float yaw_max_angle;
+    static float yaw_min_angle;
+    
+    static constexpr float AERIAL_LIMIT_ANGLE_TOLORANCE = 2.0f;
 
 };
 

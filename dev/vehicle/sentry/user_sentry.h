@@ -11,7 +11,7 @@
 #include "referee_interface.h"
 #include "super_capacitor_port.h"
 
-#include "sentry_gimbal_logic.h"
+#include "gimbal_logic.h"
 #include "shoot_logic.h"
 #include "sentry_chassis_logic.h"
 
