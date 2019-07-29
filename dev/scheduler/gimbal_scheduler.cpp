@@ -50,7 +50,9 @@ GimbalSKD::start(AbstractAHRS *gimbal_ahrs_, const Matrix33 ahrs_angle_rotation_
     // Initialize last_angle, to use current pointing direction as startup direction
     Vector3D ahrs_angle = gimbal_ahrs->get_angle() * ahrs_angle_rotation;
 
-    last_angle[YAW] = GimbalIF::feedback[GimbalIF::YAW].actual_angle;
+    last_angle[YAW] = ahrs_angle.x - GimbalIF::feedback[GimbalIF::YAW].actual_angle;
+    // For initial moment, angle_movement = ahrs_angle.x - last_angle[YAW] = GimbalIF::feedback[YAW].actual_angle
+
     last_angle[PITCH] = ahrs_angle.y;
 
     skdThread.start(thread_prio);
