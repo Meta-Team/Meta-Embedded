@@ -4,16 +4,6 @@
 
 #include "user_engineer.h"
 
-
-/// Gimbal Config
-float UserE::gimbal_pc_yaw_sensitivity = 50000;  // [Slow, Normal, Fast] [degree/s]
-float UserE::gimbal_yaw_min_angle = -EngineerGimbalIF::MAX_ANGLE / 2; // down range for yaw [degree]
-float UserE::gimbal_yaw_max_angle = EngineerGimbalIF::MAX_ANGLE / 2; //  up range for yaw [degree]
-
-float UserE::gimbal_pc_pitch_sensitivity = 20000;   // [Slow, Normal, Fast] [degree/s]
-float UserE::gimbal_pitch_min_angle = -10; // down range for pitch [degree]
-float UserE::gimbal_pitch_max_angle = 45; //  up range for pitch [degree]
-
 /// Chassis Config
 float UserE::chassis_v_left_right = 300.0f;  // [mm/s]
 float UserE::chassis_v_forward = 800.0f;     // [mm/s]
@@ -22,9 +12,6 @@ float UserE::chassis_w = 150.0f;    // [degree/s]
 
 float UserE::chassis_pc_shift_ratio = 1.5f;  // 150% when Shift is pressed
 float UserE::chassis_pc_ctrl_ratio = 0.2;    // 20% when Ctrl is pressed
-
-/// Elevator Config
-float UserE::aided_motor_v = 600.0f;  // [mm/s]
 
 /// Variables
 float UserE::gimbal_pc_yaw_target_angle_ = 0;
@@ -48,15 +35,13 @@ void UserE::start(tprio_t user_thd_prio, tprio_t user_action_thd_prio, tprio_t c
  * ------------------------------------------------------------
  * Left  Right  Mode
  * ------------------------------------------------------------
- *  UP    UP    Safe
- *  UP    MID   Remote - Chassis remote controlling
- *  UP    DOWN  Remote - Elevator remote controlling
- *  MID   UP    Remote - Auto elevating
- *  MID   MID   Remote - Gimbal remote controlling
- *  MID   DOWN  Remote - Robotic Arm test
- *  DOWN  UP    ***
- *  DOWN  MID   PC     - Gimbal PC controlling
- *  DOWN  DOWN  Final PC MODE
+ *  UP    *     Safe
+ *  MID   UP    Remote - Chassis remote controlling
+ *  MID   MID   Remote - Elevator remote controlling
+ *  MID   DOWN  Remote - Gimbal remote controlling
+ *  DOWN  UP    Safe
+ *  DOWN  MID   PC     - USER_CONTROL ELEVATING
+ *  DOWN  DOWN  PC     - AUTO_ELEVATING
  *  -Others-    Safe
  * ------------------------------------------------------------
  */
@@ -66,27 +51,16 @@ void UserE::UserThread::main() {
     while (!shouldTerminate()) {
 
         ///Gimbal
-        if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_MIDDLE) {
+        if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_DOWN) {
             /// Remote Control
             gimbal_pc_yaw_target_angle_ = (Remote::rc.ch0 / 2 + 0.5) * EngineerGimbalIF::MAX_ANGLE;
             gimbal_pc_pitch_target_angle_ = (Remote::rc.ch1 / 2 + 0.5) * EngineerGimbalIF::MAX_ANGLE;
-        } else if (Remote::rc.s1 == Remote::S_DOWN && Remote::rc.s2 != Remote::S_UP) {
-            /// PC Control
-            gimbal_pc_yaw_target_angle_ = Remote::mouse.x * gimbal_pc_yaw_sensitivity * USER_THREAD_INTERVAL / 1000 +
-                                          EngineerGimbalIF::get_target_angle(EngineerGimbalIF::YAW);
-            gimbal_pc_pitch_target_angle_ =
-                    Remote::mouse.y * gimbal_pc_pitch_sensitivity * USER_THREAD_INTERVAL / 1000 +
-                    EngineerGimbalIF::get_target_angle(EngineerGimbalIF::PIT);
-            VAL_CROP(gimbal_pc_yaw_target_angle_, gimbal_yaw_max_angle, gimbal_yaw_min_angle);
-            VAL_CROP(gimbal_pc_pitch_target_angle_, gimbal_pitch_max_angle, gimbal_pitch_min_angle);
-        } else {
-            gimbal_pc_yaw_target_angle_ = gimbal_pc_pitch_target_angle_ = 0;
         }
 
         EngineerGimbalIF::set_target_angle(gimbal_pc_yaw_target_angle_, gimbal_pc_pitch_target_angle_);
 
-
-        if (Remote::rc.s1 == Remote::S_UP && Remote::rc.s2 == Remote::S_MIDDLE) {
+        /// Elevator and Chassis
+        if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_UP) {
             /// Remote chassis, left FBLR, right turn
             EngineerChassisSKD::enable(true);
             EngineerElevatorLG::elevator_enable(false);
@@ -97,7 +71,7 @@ void UserE::UserThread::main() {
                      Remote::rc.ch3 * chassis_v_backward),  // Both use up    as positive direction
                     -Remote::rc.ch0 * chassis_w             // ch0 use right as positive direction, while GimbalLG use CCW (left) as positive direction
             );
-        } else if (Remote::rc.s1 == Remote::S_UP && Remote::rc.s2 == Remote::S_DOWN) {
+        } else if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_MIDDLE) {
             /// Remote elevator, left aided motor, right elevator
 
             EngineerChassisSKD::enable(false);
@@ -115,9 +89,28 @@ void UserE::UserThread::main() {
             else
                 EngineerElevatorLG::set_aided_motor_velocity(0);
 
-        } else if (Remote::rc.s1 == Remote::S_DOWN && Remote::rc.s2 == Remote::S_DOWN) {
+        } else if (Remote::rc.s1 == Remote::S_DOWN && Remote::rc.s2 != Remote::S_UP) {
 
             /// PC control
+
+            /**
+             * PC Key Table:
+             * ------------------------------------------------------------
+             * Key      Function
+             * ------------------------------------------------------------
+             * QWES     LEFT, UP, RIGHT, DOWN
+             * AD       CCW, CW
+             * RF       PAUSE + UP-STAIR, DOWN-STAIR
+             * CTRL     SLOW MOVEMENT
+             * SHIFT    FAST MOVEMENT
+             * V        OPEN/CLOSE DOOR
+             * C        TURN AROUND
+             * MOUSE_L  ROBOTIC_ARM NEXT STEP
+             * MOUSE_R  ROBOTIC_ARM PREV STEP
+             * ------------------------------------------------------------
+             */
+
+            EngineerElevatorLG::set_auto_elevating(Remote::rc.s2 == Remote::S_DOWN);
 
             /// Chassis WSQE, AD, ctrl, shift
             float target_vx, target_vy, target_w;
@@ -200,7 +193,7 @@ void UserE::UserActionThread::main() {
             }
 
             if (key_flag & (1U << Remote::KEY_C)) {
-                RoboticArmSKD::change_extend();
+                EngineerGimbalIF::set_target_angle(((int)(EngineerGimbalIF::get_target_angle(EngineerGimbalIF::YAW) + 180.0f)) % 360, 0);
             }
 
             if (key_flag & (1U << Remote::KEY_V)) {
