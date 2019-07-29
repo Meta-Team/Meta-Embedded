@@ -9,11 +9,11 @@ bool EngineerElevatorLG::test_mode;
 EngineerElevatorLG::EngineerElevatorLGThread EngineerElevatorLG::engineerLogicThread;
 EngineerElevatorLG::elevator_state_t EngineerElevatorLG::state;
 
-
+/*
 bool EngineerElevatorLG::a_t_forward;
 bool EngineerElevatorLG::a_t_backward;
 uint32_t EngineerElevatorLG::delay_time;
-
+*/
 bool EngineerElevatorLG::pause;
 float EngineerElevatorLG::pause_height;
 bool EngineerElevatorLG::going_up_;
@@ -23,11 +23,11 @@ bool EngineerElevatorLG::auto_elevating;
 void EngineerElevatorLG::init(tprio_t logic_thread_prio) {
     test_mode = true;
     state = STOP;
-
+/*
     a_t_backward = false;
     a_t_forward = false;
     delay_time = 0;
-
+*/
     pause = false;
     pause_height = 0;
     going_up_ = true;
@@ -46,7 +46,7 @@ void EngineerElevatorLG::going_up() {
     if (!pause){
         pause_action();
     } else{
-        if (state == STOP) next_step();
+        if (going_up_) next_step();
         else if (!going_up_ && state == PREPARING){
             LOG("stop");
             state = STOP;
@@ -67,7 +67,7 @@ void EngineerElevatorLG::going_down() {
     if (!pause){
         pause_action();
     } else{
-        if (state == STOP) next_step();
+        if (!going_up_) next_step();
         else if (going_up_ && state == PREPARING){
             LOG("stop");
             state = STOP;
@@ -101,22 +101,26 @@ void EngineerElevatorLG::next_step() {
      * (near the stage)
      * STOP -> PREPARING -> ASCENDING -> AIDING -> DESCENDING -> STOP
      */
+     pause_action();
+
      if(state == STOP){
          state = PREPARING;
          LOG("preparing");
      }else if (state == PREPARING) {
-        state = ASCENDING;
-        LOG("ascending");
+         state = ASCENDING;
+         LOG("ascending");
      }else if (state == ASCENDING) {
-        state = AIDING;
-        LOG("aiding");
-    }else if (state == AIDING) {
-        state = DESCENDING;
-        LOG("descending");
-    }else if (state == DESCENDING) {
-        state = STOP;
-        LOG("stop");
-    }
+         state = AIDING;
+         LOG("aiding");
+     }else if (state == AIDING) {
+         state = DESCENDING;
+         LOG("descending");
+     }else if (state == DESCENDING) {
+         state = STOP;
+         LOG("stop");
+     }
+
+     continue_action();
 }
 
 void EngineerElevatorLG::elevator_enable(bool enable_) {
@@ -215,7 +219,7 @@ void EngineerElevatorLG::EngineerElevatorLGThread::main() {
                                          && ( palReadPad(FF_SWITCH_PAD, FFR_SWITCH_PIN_ID) == SWITCH_TOUCH_PAL_STATUS ) ;
 
                             if ( reach_edge ) {
-                                EngineerChassisSKD::set_velocity(0,0,0);
+                                pause_action();
                                 if (auto_elevating) next_step();
                             } else{
                                 EngineerChassisSKD::set_velocity(0, 0.05*ENGINEER_CHASSIS_VELOCITY_MAX, 0);
@@ -224,10 +228,10 @@ void EngineerElevatorLG::EngineerElevatorLGThread::main() {
 
                             // FIXME: change to &&
                             // both the two sensors at the back wheels reach the edge, can start to go down-stairs
-                            reach_edge = BR_hanging/* && BL_hanging*/;
+                            reach_edge = BR_hanging && BL_hanging;
 
                             if ( reach_edge ) {
-                                EngineerChassisSKD::set_velocity(0,0,0);
+                                pause_action();
                                 if (auto_elevating) next_step();
                             }
                                 // FIXME: re-enable
@@ -245,7 +249,7 @@ void EngineerElevatorLG::EngineerElevatorLGThread::main() {
                     case ASCENDING:
                         EngineerElevatorSKD::set_target_height(STAGE_HEIGHT);
 
-                        if ( STAGE_HEIGHT - 0.5 <= EngineerElevatorIF::get_current_height() ) {
+                        if ( ABS_IN_RANGE(STAGE_HEIGHT - EngineerElevatorSKD::get_current_height(), 0.5)) {
                             if (auto_elevating) next_step();
                         }
                         break;
@@ -267,8 +271,8 @@ void EngineerElevatorLG::EngineerElevatorLGThread::main() {
                         }
 
                         if ( reach_edge ) {
+                            pause_action();
                             if (auto_elevating) next_step();
-                            EngineerElevatorSKD::set_aided_motor_velocity(0);
                         }
                         break;
 
@@ -276,7 +280,7 @@ void EngineerElevatorLG::EngineerElevatorLGThread::main() {
 
                         EngineerElevatorSKD::set_target_height(0);
 
-                        if ( 0.3 >= EngineerElevatorIF::get_current_height() ) {
+                        if (ABS_IN_RANGE(EngineerElevatorSKD::get_current_height(), 0.3)) {
                             next_step();
                         }
                         break;

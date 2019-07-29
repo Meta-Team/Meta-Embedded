@@ -37,31 +37,27 @@ public:
 
     static void elevator_enable(bool enable_);
 
+    /** @brief Set target height */
     static void set_elevator_height(float new_height);
 
+    /** @brief Get current height */
     static float get_elevator_height();
 
+    /** @brief Set target aided_motor velocity */
     static void set_aided_motor_velocity(float target_velocity);
 
+    /** @brief Set auto elevating mode or user controlling step-by-step mode */
     static void set_auto_elevating(bool auto_elevating_);
 
-    /** @brief Start an auto process of going up-stairs */
+    /** @brief Switch the process to going up-stairs state */
     static void going_up();
 
-    /** @brief Start an auto process of going down-stairs */
+    /** @brief Switch the process to going down-stairs state */
     static void going_down();
 
-    /**
-     * @pre action == UPWARD || action == DOWNWARD || action == FREE
-     * @brief Force the elevator to stop during going UPWARD or going DOWNWARD
-     */
-    static void pause_action();
-
-    /** @brief Continue prev_action from PAUSE. */
-    static void continue_action();
-
+    /** @brief Force the elevator to move into the next step */
     static void next_step();
-
+/*
     ///////// for finding better aided motor params
     static void aided_motor_test_forward();
     static void aided_motor_test_backward();
@@ -69,7 +65,7 @@ public:
     static bool a_t_backward;
 
     static uint32_t delay_time;     // ms
-
+*/
 private:
 
     static bool test_mode;
@@ -94,6 +90,14 @@ private:
 
     static constexpr uint16_t hanging_trigger = 1800;//TODO need to determine
     static constexpr uint16_t landed_trigger = 2300;//TODO need to determine
+
+    /**
+ * @brief Force the elevator to stop
+ */
+    static void pause_action();
+
+    /** @brief Continue to move. */
+    static void continue_action();
 
 };
 

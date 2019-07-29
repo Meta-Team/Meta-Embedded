@@ -25,15 +25,6 @@ public:
 
 private:
 
-    /// Gimbal Config
-    static float gimbal_pc_yaw_sensitivity;  // [Ctrl, Normal, Shift] [degree/s]
-    static float gimbal_yaw_min_angle; // down range for pitch [degree]
-    static float gimbal_yaw_max_angle; //  up range for pitch [degree]
-
-    static float gimbal_pc_pitch_sensitivity;   // rotation speed when mouse moves fastest [degree/s]
-    static float gimbal_pitch_min_angle; // down range for pitch [degree]
-    static float gimbal_pitch_max_angle; //  up range for pitch [degree]
-
     /// Chassis Config
     static float chassis_v_left_right;  // [mm/s]
     static float chassis_v_forward;     // [mm/s]
@@ -42,9 +33,6 @@ private:
 
     static float chassis_pc_shift_ratio;  // 150% when Shift is pressed
     static float chassis_pc_ctrl_ratio;   // 20% when Ctrl is pressed
-
-    /// Elevator Config
-    static float aided_motor_v;
 
     /// Helpers
     static void set_user_client_speed_light_(int level);
