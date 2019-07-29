@@ -60,10 +60,12 @@ void UserE::UserThread::main() {
         EngineerGimbalIF::set_target_angle(gimbal_pc_yaw_target_angle_, gimbal_pc_pitch_target_angle_);
 
         /// Elevator and Chassis
+
+        EngineerChassisSKD::enable(true);
+        EngineerElevatorLG::elevator_enable(true);
+
         if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_UP) {
             /// Remote chassis, left FBLR, right turn
-            EngineerChassisSKD::enable(true);
-            EngineerElevatorLG::elevator_enable(false);
             EngineerChassisSKD::set_velocity(
                     Remote::rc.ch2 * chassis_v_left_right,  // Both use right as positive direction
                     (Remote::rc.ch3 > 0 ?
@@ -74,7 +76,7 @@ void UserE::UserThread::main() {
         } else if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_MIDDLE) {
             /// Remote elevator, left aided motor, right elevator
 
-            EngineerChassisSKD::enable(false);
+            EngineerChassisSKD::enable(true);
             EngineerElevatorLG::elevator_enable(true);
 
             // right elevator
@@ -90,6 +92,9 @@ void UserE::UserThread::main() {
                 EngineerElevatorLG::set_aided_motor_velocity(0);
 
         } else if (Remote::rc.s1 == Remote::S_DOWN && Remote::rc.s2 != Remote::S_UP) {
+
+            EngineerChassisSKD::enable(true);
+            EngineerElevatorLG::elevator_enable(true);
 
             /// PC control
 
@@ -115,7 +120,10 @@ void UserE::UserThread::main() {
             /// Chassis WSQE, AD, ctrl, shift
             float target_vx, target_vy, target_w;
 
-            if (Remote::key.w) target_vy = chassis_v_forward;
+            if (Remote::key.w) {
+                target_vy = chassis_v_forward;
+                LOG("W");
+            }
             else if (Remote::key.s) target_vy = -chassis_v_backward;
             else target_vy = 0;
 
@@ -180,22 +188,22 @@ void UserE::UserActionThread::main() {
          * NOTICE: use flag instead of direct accessing variable in Remote, since event can be trigger by other key, etc
          */
 
+        /// Mouse Press
+        if (events & MOUSE_PRESS_EVENTMASK) {
+            eventflags_t mouse_flag = chEvtGetAndClearFlags(&mouse_press_listener);
+            if (mouse_flag & (1U << Remote::MOUSE_LEFT)) {
+                RoboticArmSKD::next_step();
+            } else if (mouse_flag & (1U << Remote::MOUSE_RIGHT)) {
+                RoboticArmSKD::prev_step();
+            }
+        }
+        
         /// Key Press
         if (events & KEY_PRESS_EVENTMASK) {
 
             eventflags_t key_flag = chEvtGetAndClearFlags(&key_press_listener);
 
             /// Robotic Arm
-
-            /// Mouse Press
-            if (events & MOUSE_PRESS_EVENTMASK) {
-                eventflags_t mouse_flag = chEvtGetAndClearFlags(&mouse_press_listener);
-                if (mouse_flag & (1U << Remote::MOUSE_LEFT)) {
-                    RoboticArmSKD::next_step();
-                } else if (mouse_flag & (1U << Remote::MOUSE_RIGHT)) {
-                    RoboticArmSKD::prev_step();
-                }
-            }
 
             if (key_flag & (1U << Remote::KEY_C)) {
                 EngineerGimbalIF::set_target_angle(((int)(EngineerGimbalIF::get_target_angle(EngineerGimbalIF::YAW) + 180.0f)) % 360, 0);

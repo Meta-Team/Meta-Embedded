@@ -26,6 +26,7 @@ void RoboticArmSKD::start(tprio_t skd_thread_prio) {
     palClearPad(GPIOE, LIFT_PAD);
     palClearPad(GPIOE, DOOR_PAD);
     palClearPad(GPIOE, CLAMP_PAD);
+    palClearPad(GPIOE, EXTEND_PAD);
     LOG("Yes!");
     roboticArmThread.start(skd_thread_prio);
     palSetPad(GPIOH, POWER_PAD);
