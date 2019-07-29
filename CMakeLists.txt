@@ -174,7 +174,7 @@ add_executable(SENTRY
 
         dev/interface/gimbal_interface.cpp
         dev/scheduler/gimbal_scheduler.cpp
-        dev/logic/sentry_gimbal_logic.cpp
+        dev/logic/gimbal_logic.cpp
 
         dev/scheduler/shoot_scheduler.cpp
         dev/logic/shoot_logic.cpp

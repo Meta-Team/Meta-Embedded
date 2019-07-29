@@ -85,7 +85,7 @@ void UserS::UserThread::main() {
                 // ch1 use up as positive direction, while GimbalLG also use up as positive direction
 
 
-                SGimbalLG::set_target(gimbal_yaw_target_angle_, gimbal_pitch_target_angle_);
+                GimbalLG::set_target(gimbal_yaw_target_angle_, gimbal_pitch_target_angle_);
 
             } else if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_MIDDLE) {
 
@@ -104,7 +104,7 @@ void UserS::UserThread::main() {
                 VAL_CROP(gimbal_yaw_target_angle_, gimbal_yaw_max_angle, gimbal_yaw_min_angle);
                 VAL_CROP(gimbal_pitch_target_angle_, gimbal_pitch_max_angle, gimbal_pitch_min_angle);
 
-                SGimbalLG::set_target(gimbal_yaw_target_angle_, gimbal_pitch_target_angle_);
+                GimbalLG::set_target(gimbal_yaw_target_angle_, gimbal_pitch_target_angle_);
 
             } else if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_DOWN) {
 
@@ -225,9 +225,9 @@ void UserS::set_mode(UserS::sentry_mode_t mode) {
 
     sentryMode = mode;
 
-    if (sentryMode == FORCED_RELAX_MODE) SGimbalLG::set_action(SGimbalLG::FORCED_RELAX_MODE);
+    if (sentryMode == FORCED_RELAX_MODE) GimbalLG::set_action(GimbalLG::FORCED_RELAX_MODE);
     else {
-        SGimbalLG::set_action(SGimbalLG::ABS_ANGLE_MODE);
+        GimbalLG::set_action(GimbalLG::SENTRY_MODE);
         if (sentryMode == AUTO_MODE) {
             // Resume the thread
             blind_mode_start_time = SYSTIME;
@@ -254,15 +254,15 @@ void UserS::VitualUserThread::main() {
         }
         chSysUnlock();  /// --- EXIT S-Locked state ---
 
-        VisionPort::send_gimbal(SGimbalLG::get_accumulated_angle(SGimbalLG::YAW),
-                                SGimbalLG::get_accumulated_angle(SGimbalLG::PITCH));
+        VisionPort::send_gimbal(GimbalLG::get_accumulated_angle(GimbalLG::YAW),
+                                GimbalLG::get_accumulated_angle(GimbalLG::PITCH));
 
         VisionPort::send_enemy_color(Referee::game_robot_state.robot_id < 10);
 
         enemy_spotted = WITHIN_RECENT_TIME(VisionPort::last_update_time, 50);
 
         if (enemy_spotted){
-            LOG("%.2f, %.2f   yaw: %.2f, pitch: %%.2f, distance: %.2f", SGimbalLG::get_accumulated_angle(SGimbalLG::YAW), SGimbalLG::get_accumulated_angle(SGimbalLG::PITCH), VisionPort::enemy_info.yaw_angle, VisionPort::enemy_info.pitch_angle, VisionPort::enemy_info.distance);
+            LOG("%.2f, %.2f   yaw: %.2f, pitch: %%.2f, distance: %.2f", GimbalLG::get_accumulated_angle(GimbalLG::YAW), GimbalLG::get_accumulated_angle(GimbalLG::PITCH), VisionPort::enemy_info.yaw_angle, VisionPort::enemy_info.pitch_angle, VisionPort::enemy_info.distance);
         }
 
         /*** ---------------------------------- Gimbal + Shooter --------------------------------- ***/
@@ -316,7 +316,7 @@ void UserS::VitualUserThread::main() {
             else if (gimbal_pitch_target_angle_ <= gimbal_pitch_min_angle) pitch_terminal = gimbal_pitch_max_angle;
         }
 
-        SGimbalLG::set_target(gimbal_yaw_target_angle_, gimbal_pitch_target_angle_);
+        GimbalLG::set_target(gimbal_yaw_target_angle_, gimbal_pitch_target_angle_);
 
         /*** ---------------------------------- Chassis --------------------------------- ***/
 

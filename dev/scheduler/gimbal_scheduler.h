@@ -32,9 +32,13 @@
  *        2. set_mode() and set_target_angle() as needed
  *        3. Leave the rest of the work to this SKD
  * @note ABOUT COORDINATE
- *       All components in this SKD use gimbal coordinate (Yaw: CCW as positive, Pitch: Up as positive), including
- *       targets and PID controllers. Only when reading from or writing to GimbalIF will coordinate transform
- *       (by multiple to install_direction_t) be performed based on yaw_install and pitch_install
+ *       All components in this SKD use GIMBAL coordinate (rather than those of motors,
+ *       Yaw: CCW as positive, Pitch: Up as positive), including targets and PID controllers. Only when reading from or
+ *       writing to GimbalIF will coordinate transform (by multiple to install_direction_t) be performed based on
+ *       yaw_install and pitch_install
+ * @note ABOUT TARGET ANGLES
+ *       APIs use angles of GIMBAL (rather than those of motors). But for local storage, deceleration_ratio is included.
+ *       Conversions are performed when APIs are invoked.
  */
 
 class GimbalSKD : public GimbalBase, public PIDControllerBase {
@@ -42,9 +46,9 @@ class GimbalSKD : public GimbalBase, public PIDControllerBase {
 public:
 
     enum mode_t {
-        FORCED_RELAX_MODE,   // zero force (Still taking control of GimbalIF. External writing to target currents
-                             // will leads to conflicts.)
+        FORCED_RELAX_MODE,   // zero force (but still taking control of GimbalIF)
         ABS_ANGLE_MODE,      // target_angle of yaw is relative to ground
+        SENTRY_MODE,         //
     }; // no support for RELATIVE_ANGLE_MODE
 
     enum install_direction_t {
@@ -54,17 +58,19 @@ public:
 
     /**
      * Start this scheduler
-     * @param gimbal_ahrs_           Pointer to an initialized AHRS on gimbal
-     * @param ahrs_angle_rotation_   Rotation matrix for AHRS angle
-     * @param ahrs_gyro_rotation_    Rotation matrix for AHRS gyro
-     * @param yaw_install_           Yaw motor install direction
-     * @param pitch_install_         Pitch motor install direction
-     * @param thread_prio            Priority of PID calculating thread
+     * @param gimbal_ahrs_                Pointer to an initialized AHRS on gimbal
+     * @param ahrs_angle_rotation_        Rotation matrix for AHRS angle
+     * @param ahrs_gyro_rotation_         Rotation matrix for AHRS gyro
+     * @param yaw_install_                Yaw motor install direction
+     * @param pitch_install_              Pitch motor install direction
+     * @param thread_prio                 Priority of PID calculating thread
+     * @param yaw_deceleration_ratio_     Deceleration ratio of yaw motor
+     * @param pitch_deceleration_ratio_   Deceleration ratio of pitch motor
      */
     static void
     start(AbstractAHRS *gimbal_ahrs_, const Matrix33 ahrs_angle_rotation_, const Matrix33 ahrs_gyro_rotation_,
           install_direction_t yaw_install_, install_direction_t pitch_install_, tprio_t thread_prio,
-          float pitch_max_angle, float pitch_min_angle, float yaw_max_angle, float yaw_min_angle);
+          float yaw_deceleration_ratio_ = 1, float pitch_deceleration_ratio_ = 1);
 
     /**
      * Set PID parameters of yaw and pitch
@@ -91,15 +97,22 @@ public:
 
     /**
      * Set target angles
-     * @param yaw_target_angle    Yaw target ACCUMULATED angle on ground coordinate [degree]
-     * @param pitch_target_angle  Pitch target ACCUMULATED angle on ground coordinate [degree]
+     * @param yaw_target_angle    GIMBAL yaw target ACCUMULATED angle on ground coordinate [degree]
+     * @param pitch_target_angle  GIMBAL pitch target ACCUMULATED angle on ground coordinate [degree]
      */
     static void set_target_angle(float yaw_target_angle, float pitch_target_angle);
 
     /**
+     * Get current target angle data
+     * @param motor   YAW or PITCH
+     * @return Current target angle of GIMBAL
+     */
+    static float get_target_angle(motor_id_t motor);
+
+    /**
      * Get accumulated angle maintained by this SKD
      * @param motor   YAW or PITCH
-     * @return Accumulated angle
+     * @return Accumulated angle of GIMBAL
      */
     static float get_accumulated_angle(motor_id_t motor);
 
@@ -110,19 +123,15 @@ private:
     static Matrix33 ahrs_gyro_rotation;
     static install_direction_t yaw_install;
     static install_direction_t pitch_install;
-
-    //limit setting
-    static float _pitch_max_angle;
-    static float _pitch_min_angle;
-    static float _yaw_max_angle;
-    static float _yaw_min_angle;
+    static float yaw_deceleration_ratio;
+    static float pitch_deceleration_ratio;
 
     // Local storage
     static mode_t mode;
-    static float target_angle[2];
+    static float target_angle[2];  // angles of MOTORS (NOTICE: different from target_angle in set_target_angle())
 
     static float last_angle[2];  // last angle data of yaw and pitch from AHRS
-    static float accumulated_angle[2];  // accumulated angle of yaw and pitch, since the start of this SKD
+    static float accumulated_angle[2];  // accumulated angle of yaw and pitch motors, since the start of this SKD
 
     static float target_velocity[2];  // calculated target velocity, middle values
     static int target_current[2];     // local storage
