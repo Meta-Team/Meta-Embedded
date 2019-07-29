@@ -93,7 +93,7 @@ void HeroShootLG::StuckDetectorThread::main() {
     float loader_angle[4] = {0.0f,0.0f,0.0f,0.0f};
     int last_loader_update_time = SYSTIME;
     while (!shouldTerminate()) {
-        if(SYSTIME - last_loader_update_time > 125) {
+        if(SYSTIME - last_loader_update_time > 200) {
             loader_angle[0] = loader_angle[1];
             loader_angle[1] = loader_angle[2];
             loader_angle[2] = loader_angle[3];
@@ -101,9 +101,9 @@ void HeroShootLG::StuckDetectorThread::main() {
             last_loader_update_time= SYSTIME;
         }
         if (loaderState == LOADING &&
-            fabs(loader_angle[0] - loader_angle[3]) < 1.0f &&
-            fabs(loader_angle[1] - loader_angle[3]) < 1.0f &&
-            fabs(loader_angle[2] - loader_angle[3]) < 1.0f) {
+            fabs(loader_angle[0] - loader_angle[3]) < 0.5f &&
+            fabs(loader_angle[1] - loader_angle[3]) < 0.5f &&
+            fabs(loader_angle[2] - loader_angle[3]) < 0.5f) {
             loaderState = STUCK;
             ShootSKD::set_loader_target_angle(
                     ShootSKD::get_loader_accumulated_angle() - 20.0f);  // Back up to ample space
