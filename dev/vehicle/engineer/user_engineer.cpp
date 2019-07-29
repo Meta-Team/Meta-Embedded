@@ -53,9 +53,8 @@ void UserE::UserThread::main() {
             /// Remote Control
             gimbal_pc_yaw_target_angle_ = (Remote::rc.ch0 / 2 + 0.5) * EngineerGimbalIF::MAX_ANGLE;
             gimbal_pc_pitch_target_angle_ = (Remote::rc.ch1 / 2 + 0.5) * EngineerGimbalIF::MAX_ANGLE;
+            EngineerGimbalIF::set_target_angle(gimbal_pc_yaw_target_angle_, gimbal_pc_pitch_target_angle_);
         }
-
-        EngineerGimbalIF::set_target_angle(gimbal_pc_yaw_target_angle_, gimbal_pc_pitch_target_angle_);
 
         /// Elevator and Chassis
 
@@ -212,8 +211,12 @@ void UserE::UserActionThread::main() {
             /// Robotic Arm
 
             if (key_flag & (1U << Remote::KEY_C)) {
+                LOG("Now Yaw is %.2f \n Change to : %d \n Set YAW Angle to: %d", EngineerGimbalIF::get_target_angle(EngineerGimbalIF::YAW),
+                    ((int) (EngineerGimbalIF::get_target_angle(EngineerGimbalIF::YAW) + 180.0f)),
+                    ((int) (EngineerGimbalIF::get_target_angle(EngineerGimbalIF::YAW) + 180.0f)) % 360);
                 EngineerGimbalIF::set_target_angle(
                         ((int) (EngineerGimbalIF::get_target_angle(EngineerGimbalIF::YAW) + 180.0f)) % 360, 0);
+
             } else if (key_flag & (1U << Remote::KEY_V)) {
                 EngineerElevatorLG::give_bullet();
                 RoboticArmSKD::change_door();
