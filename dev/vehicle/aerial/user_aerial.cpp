@@ -11,8 +11,6 @@ float UserA::gimbal_yaw_max_angle = 200;  // [degree]
 float UserA::gimbal_yaw_min_angle = -200;  // [degree]
 
 
-
-
 float UserA::gimbal_pc_pitch_sensitivity[3] = {20000, 50000, 60000};   // [Slow, Normal, Fast] [degree/s]
 float UserA::gimbal_pitch_min_angle = -70; // down range for pitch [degree]
 float UserA::gimbal_pitch_max_angle = 0; //  up range for pitch [degree]

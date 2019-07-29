@@ -15,7 +15,7 @@ void EngineerElevatorIF::start(tprio_t thread_prio) {
 }
 
 
-void EngineerElevatorIF::init(CANInterface *can_interface, float init_angle) {
+void EngineerElevatorIF:: init(CANInterface *can_interface, float init_angle) {
     can = can_interface;
     can->register_callback(0x201, 0x204, process_feedback);
     for (int i = 0; i < 2; i++) {

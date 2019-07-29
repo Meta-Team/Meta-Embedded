@@ -7,7 +7,7 @@
 #include "shell.h"
 #include "referee_interface.h"
 #include "shoot_scheduler.h"
-#include "string.h"
+#include "math.h"
 
 float HeroShootLG::loader_angle_per_bullet = 0.0f;
 float HeroShootLG::plate_angle_per_bullet = 0.0f;
@@ -90,10 +90,20 @@ void HeroShootLG::force_stop() {
 
 void HeroShootLG::StuckDetectorThread::main() {
     setName("Stuck_Detector");
+    float loader_angle[4] = {0.0f,0.0f,0.0f,0.0f};
+    int last_loader_update_time = SYSTIME;
     while (!shouldTerminate()) {
+        if(SYSTIME - last_loader_update_time > 200) {
+            loader_angle[0] = loader_angle[1];
+            loader_angle[1] = loader_angle[2];
+            loader_angle[2] = loader_angle[3];
+            loader_angle[3] = ShootSKD::get_loader_accumulated_angle();
+            last_loader_update_time= SYSTIME;
+        }
         if (loaderState == LOADING &&
-            ShootSKD::get_loader_target_current() > LOADER_STUCK_THRESHOLD_CURRENT &&
-            ShootSKD::get_loader_actual_velocity() < LOADER_STUCK_THRESHOLD_VELOCITY) {
+            fabs(loader_angle[0] - loader_angle[3]) < 0.5f &&
+            fabs(loader_angle[1] - loader_angle[3]) < 0.5f &&
+            fabs(loader_angle[2] - loader_angle[3]) < 0.5f) {
             loaderState = STUCK;
             ShootSKD::set_loader_target_angle(
                     ShootSKD::get_loader_accumulated_angle() - 20.0f);  // Back up to ample space
@@ -161,7 +171,7 @@ void HeroShootLG::AutoLoaderThread::main() {
             }
         }
 
-        // IV. Update the loader states
+        // IV. Update the loaders' states
 
         //     Loader
         if(loaderState != STUCK && loader_target_angle - ShootSKD::get_loader_accumulated_angle() <= 5.0f) {
@@ -242,7 +252,7 @@ void HeroShootLG::AutoLoaderThread::main() {
                 if (ball_in_loader >= PlateLoadAttempt.attempt_number) {
                     PlateLoadAttempt.task_status = LOAD_SUCCESS;
                 }
-                if (SYSTIME - PlateLoadAttempt.wait_time > 5000) {
+                if (SYSTIME - PlateLoadAttempt.wait_time > 1500) {
                     PlateLoadAttempt.task_status = LOAD_SUCCESS;
                 } // After Replace the tunnel, no bullet would leave.
             }
