@@ -54,6 +54,7 @@ int main() {
     palSetPad(GPIOH, GPIOH_POWER1_CTRL);
     palSetPadMode(GPIOH, GPIOH_POWER2_CTRL, PAL_MODE_OUTPUT_PUSHPULL);
     palSetPad(GPIOH, GPIOH_POWER2_CTRL);
+    palClearPad(GPIOH, GPIOH_POWER4_CTRL);
 
     /*** ---------------------- Period 1. Modules Setup and Self-Check ---------------------- ***/
 

@@ -21,9 +21,9 @@
  *          when reaching a trigger angle, release the box
  */
 
-#define DOOR_PAD GPIOE_PIN4
+#define EXTEND_PAD GPIOE_PIN4
 #define LIFT_PAD GPIOE_PIN5
-#define EXTEND_PAD GPIOE_PIN6
+#define DOOR_PAD GPIOE_PIN6
 #define CLAMP_PAD GPIOE_PIN12
 #define POWER_PAD GPIOH_POWER4_CTRL
 

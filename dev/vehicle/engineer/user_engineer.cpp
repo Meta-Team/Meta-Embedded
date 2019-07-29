@@ -16,8 +16,8 @@ float UserE::gimbal_pitch_max_angle = 45; //  up range for pitch [degree]
 
 /// Chassis Config
 float UserE::chassis_v_left_right = 300.0f;  // [mm/s]
-float UserE::chassis_v_forward = 800.0f;     // [mm/s]
-float UserE::chassis_v_backward = 800.0f;    // [mm/s]
+float UserE::chassis_v_forward = 300.0f;     // [mm/s]
+float UserE::chassis_v_backward = 300.0f;    // [mm/s]
 float UserE::chassis_w = 150.0f;    // [degree/s]
 
 float UserE::chassis_pc_shift_ratio = 1.5f;  // 150% when Shift is pressed
@@ -68,8 +68,8 @@ void UserE::UserThread::main() {
         ///Gimbal
         if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_MIDDLE) {
             /// Remote Control
-            gimbal_pc_yaw_target_angle_ = (Remote::rc.ch0 / 2 + 0.5) * EngineerGimbalIF::MAX_ANGLE;
-            gimbal_pc_pitch_target_angle_ = (Remote::rc.ch1 / 2 + 0.5) * EngineerGimbalIF::MAX_ANGLE;
+            gimbal_pc_yaw_target_angle_ = (Remote::rc.ch0 / 2 + 0.5f) * EngineerGimbalIF::MAX_ANGLE;
+            gimbal_pc_pitch_target_angle_ = (Remote::rc.ch1 / 2 + 0.5f) * EngineerGimbalIF::MAX_ANGLE;
         } else if (Remote::rc.s1 == Remote::S_DOWN && Remote::rc.s2 != Remote::S_UP) {
             /// PC Control
             gimbal_pc_yaw_target_angle_ = Remote::mouse.x * gimbal_pc_yaw_sensitivity * USER_THREAD_INTERVAL / 1000 +
@@ -113,20 +113,19 @@ void UserE::UserThread::main() {
 
             // right elevator
             if (Remote::rc.ch1 > 0.5 || Remote::rc.ch1 < -0.5)
-                EngineerElevatorSKD::set_target_height(EngineerElevatorIF::get_current_height() + Remote::rc.ch1 * 0.5);
+                EngineerElevatorSKD::set_target_height(EngineerElevatorIF::get_current_height() + Remote::rc.ch1 * 0.5f);
             else
                 EngineerElevatorSKD::set_target_height(EngineerElevatorIF::get_current_height());
 
             // left aided motor
             if (Remote::rc.ch3 > 0.2 || Remote::rc.ch3 < -0.2)
-                EngineerElevatorSKD::set_aided_motor_velocity(Remote::rc.ch3 * 0.7 * ENGINEER_AIDED_MOTOR_VELOCITY,
-                                                              Remote::rc.ch3 * 0.7 * ENGINEER_AIDED_MOTOR_VELOCITY);
+                EngineerElevatorSKD::set_aided_motor_velocity(Remote::rc.ch3 * 0.7f * ENGINEER_AIDED_MOTOR_VELOCITY,
+                                                              Remote::rc.ch3 * 0.7f * ENGINEER_AIDED_MOTOR_VELOCITY);
             else
                 EngineerElevatorSKD::set_aided_motor_velocity(0, 0);
 
 
         } else if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_UP) {
-
             /// Remote auto elevating. RIGHT.
             ///                               |-UP -> nothing happens
             ///                               |
@@ -191,14 +190,15 @@ void UserE::UserThread::main() {
             /// PC control
 
             /// Chassis WSQE, AD, ctrl, shift
+            EngineerChassisSKD::unlock();
             float target_vx, target_vy, target_w;
 
             if (Remote::key.w) target_vy = chassis_v_forward;
             else if (Remote::key.s) target_vy = -chassis_v_backward;
             else target_vy = 0;
 
-            if (Remote::key.q) target_vx = chassis_v_left_right;
-            else if (Remote::key.e) target_vx = -chassis_v_left_right;
+            if (Remote::key.e) target_vx = chassis_v_left_right;
+            else if (Remote::key.q) target_vx = -chassis_v_left_right;
             else target_vx = 0;
 
             if (Remote::key.a) target_w = chassis_w;
@@ -285,23 +285,28 @@ void UserE::UserActionThread::main() {
             eventflags_t key_flag = chEvtGetAndClearFlags(&key_press_listener);
 
             /// Robotic Arm
-            if (key_flag & (1U << Remote::KEY_Z)) {
-                RoboticArmSKD::next_step();
-            } else if (key_flag & (1U << Remote::KEY_X)) {
-                RoboticArmSKD::prev_step();
-            }
-
             if (key_flag & (1U << Remote::KEY_C)) {
                 RoboticArmSKD::change_extend();
             }
 
-            if (key_flag & (1U << Remote::KEY_V)) {
+            else if (key_flag & (1U << Remote::KEY_V)) {
                 RoboticArmSKD::change_door();
             }
         }
 
         // If more event type is added, remember to modify chEvtWaitAny() above
+        else if (events & MOUSE_PRESS_EVENTMASK) {
+            eventflags_t mouse_flag = chEvtGetAndClearFlags(&mouse_press_listener);
 
+            /// Robotic Arm
+            if (mouse_flag & (1U << Remote::MOUSE_LEFT)) {
+                RoboticArmSKD::next_step();
+            }
+            else if (mouse_flag & (1U << Remote::MOUSE_RIGHT)) {
+                RoboticArmSKD::prev_step();
+            }
+
+        }
         // Referee client data will be sent by ClientDataSendingThread
 
     }
