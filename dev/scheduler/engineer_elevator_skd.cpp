@@ -31,42 +31,37 @@ void EngineerElevatorSKD::elevator_enable(bool enable) {
 
 void EngineerElevatorSKD::aided_motor_enable(bool enable) {
     if (aided_motor_enabled != enable) {  // avoid setting repeatedly
+        set_aided_motor_velocity(0);  // clear target velocity
         aided_motor_enabled = enable;
-
-        set_aided_motor_velocity(0,0);  // clear target velocity
-        LOG("Aided motor: enable= %d", aided_motor_enabled);
     }
 }
 
-void EngineerElevatorSKD::load_pid_params(PIDControllerBase::pid_params_t elevator_a2v,
-                                          PIDControllerBase::pid_params_t elevator_v2i,
-                                          PIDControllerBase::pid_params_t aided_v2i,
-                                          PIDControllerBase::pid_params_t balance_a2v) {
-
-    a2v_pid[0].change_parameters(elevator_a2v);
-    a2v_pid[1].change_parameters(elevator_a2v);
-    a2v_pid[0].clear_i_out();
-    a2v_pid[1].clear_i_out();
-
-    v2i_pid[0].change_parameters(elevator_v2i);
-    v2i_pid[1].change_parameters(elevator_v2i);
-    v2i_pid[0].clear_i_out();
-    v2i_pid[1].clear_i_out();
-
-    v2i_pid[2].change_parameters(aided_v2i);
-    v2i_pid[3].change_parameters(aided_v2i);
-    v2i_pid[2].clear_i_out();
-    v2i_pid[3].clear_i_out();
-
-    counter_balance_pid.change_parameters(balance_a2v);
-    counter_balance_pid.clear_i_out();
-}
-
-void EngineerElevatorSKD::set_aided_pid_params(PIDControllerBase::pid_params_t aided_v2i) {
-    v2i_pid[2].change_parameters(aided_v2i);
-    v2i_pid[3].change_parameters(aided_v2i);
-    v2i_pid[2].clear_i_out();
-    v2i_pid[3].clear_i_out();
+void EngineerElevatorSKD::load_pid_params(pid_id_t pid_id, PIDControllerBase::pid_params_t pid_params) {
+    switch (pid_id){
+        case ELEVATOR_A2V:
+            a2v_pid[0].change_parameters(pid_params);
+            a2v_pid[1].change_parameters(pid_params);
+            a2v_pid[0].clear_i_out();
+            a2v_pid[1].clear_i_out();
+            break;
+        case ELEVATOR_V2I:
+            v2i_pid[0].change_parameters(pid_params);
+            v2i_pid[1].change_parameters(pid_params);
+            v2i_pid[0].clear_i_out();
+            v2i_pid[1].clear_i_out();
+            break;
+        case AIDED_WHEEL_V2I:
+            v2i_pid[2].change_parameters(pid_params);
+            v2i_pid[3].change_parameters(pid_params);
+            v2i_pid[2].clear_i_out();
+            v2i_pid[3].clear_i_out();
+            break;
+        case BALANCE_PID:
+            counter_balance_pid.change_parameters(pid_params);
+            counter_balance_pid.clear_i_out();
+        default:
+            break;
+    }
 }
 
 void EngineerElevatorSKD::set_target_height(float new_height) {
@@ -78,18 +73,15 @@ void EngineerElevatorSKD::set_target_height(float new_height) {
     }
 }
 
-float EngineerElevatorSKD::get_target_height() {
-    return target_height;
+void EngineerElevatorSKD::set_aided_motor_velocity(float target_velocity_) {
+    if (aided_motor_enabled)
+        target_velocity[2] = target_velocity[3] = - target_velocity_;
+    else
+        LOG_ERR("ElevatorSKD: aided motor disabled now");
 }
 
-void EngineerElevatorSKD::set_aided_motor_velocity(float target_velocity_L, float target_velocity_R) {
-    if (aided_motor_enabled) {
-        target_velocity[2] = -target_velocity_R;
-        target_velocity[3] = -target_velocity_L;
-    }
-    else {
-        LOG_ERR("ElevatorSKD: aided motor disabled now");
-    }
+float EngineerElevatorSKD::get_current_height() {
+    return EngineerElevatorIF::get_current_height();
 }
 
 void EngineerElevatorSKD::SKDThread::main() {

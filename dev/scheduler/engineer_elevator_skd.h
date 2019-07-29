@@ -20,25 +20,34 @@ class EngineerElevatorSKD {
 
 public:
 
+    enum pid_id_t{
+        ELEVATOR_A2V,
+        ELEVATOR_V2I,
+        AIDED_WHEEL_V2I,
+        BALANCE_PID
+    };
+
     static void start(tprio_t thread_prio);
 
     static void elevator_enable(bool enable);
 
     static void aided_motor_enable(bool enable);
 
-
-    static void load_pid_params(PIDControllerBase::pid_params_t elevator_a2v,
-                                PIDControllerBase::pid_params_t elevator_v2i,
-                                PIDControllerBase::pid_params_t aided_v2i,
-                                PIDControllerBase::pid_params_t balance_a2v);
-
-    // for debug
-    static void set_aided_pid_params(PIDControllerBase::pid_params_t aided_v2i);
+    /**
+     * @param pid_id
+     * 0: elevator_a2v
+     * 1: elevator_v2i
+     * 2:  aided_v2i
+     * 3: balance_a2v
+     * @param pid_params
+     */
+    static void load_pid_params(pid_id_t pid_id, PIDControllerBase::pid_params_t pid_params);
 
     static void set_target_height(float new_height);  // [cm], positive height - chassis lift up
-    static float get_target_height();
 
-    static void set_aided_motor_velocity(float target_velocity_L, float target_velocity_R);
+    static float get_current_height();
+
+    static void set_aided_motor_velocity(float target_velocity_);
 
     // TODO: make it private
     static float target_height;

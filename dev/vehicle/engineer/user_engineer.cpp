@@ -4,16 +4,6 @@
 
 #include "user_engineer.h"
 
-
-/// Gimbal Config
-float UserE::gimbal_pc_yaw_sensitivity = 50000;  // [Slow, Normal, Fast] [degree/s]
-float UserE::gimbal_yaw_min_angle = -EngineerGimbalIF::MAX_ANGLE / 2; // down range for yaw [degree]
-float UserE::gimbal_yaw_max_angle = EngineerGimbalIF::MAX_ANGLE / 2; //  up range for yaw [degree]
-
-float UserE::gimbal_pc_pitch_sensitivity = 20000;   // [Slow, Normal, Fast] [degree/s]
-float UserE::gimbal_pitch_min_angle = -10; // down range for pitch [degree]
-float UserE::gimbal_pitch_max_angle = 45; //  up range for pitch [degree]
-
 /// Chassis Config
 float UserE::chassis_v_left_right = 300.0f;  // [mm/s]
 float UserE::chassis_v_forward = 300.0f;     // [mm/s]
@@ -22,9 +12,6 @@ float UserE::chassis_w = 150.0f;    // [degree/s]
 
 float UserE::chassis_pc_shift_ratio = 1.5f;  // 150% when Shift is pressed
 float UserE::chassis_pc_ctrl_ratio = 0.2;    // 20% when Ctrl is pressed
-
-/// Elevator Config
-float UserE::aided_motor_v = 600.0f;  // [mm/s]
 
 /// Variables
 float UserE::gimbal_pc_yaw_target_angle_ = 0;
@@ -48,15 +35,13 @@ void UserE::start(tprio_t user_thd_prio, tprio_t user_action_thd_prio, tprio_t c
  * ------------------------------------------------------------
  * Left  Right  Mode
  * ------------------------------------------------------------
- *  UP    UP    Safe
- *  UP    MID   Remote - Chassis remote controlling
- *  UP    DOWN  Remote - Elevator remote controlling
- *  MID   UP    Remote - Auto elevating
- *  MID   MID   Remote - Gimbal remote controlling
- *  MID   DOWN  Remote - Robotic Arm test
- *  DOWN  UP    ***
- *  DOWN  MID   PC     - Gimbal PC controlling
- *  DOWN  DOWN  Final PC MODE
+ *  UP    *     Safe
+ *  MID   UP    Remote - Chassis remote controlling
+ *  MID   MID   Remote - Elevator remote controlling
+ *  MID   DOWN  Remote - Gimbal remote controlling
+ *  DOWN  UP    Safe
+ *  DOWN  MID   PC     - USER_CONTROL ELEVATING
+ *  DOWN  DOWN  PC     - AUTO_ELEVATING
  *  -Others-    Safe
  * ------------------------------------------------------------
  */
@@ -66,34 +51,19 @@ void UserE::UserThread::main() {
     while (!shouldTerminate()) {
 
         ///Gimbal
-        if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_MIDDLE) {
+        if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_DOWN) {
             /// Remote Control
-            gimbal_pc_yaw_target_angle_ = (Remote::rc.ch0 / 2 + 0.5f) * EngineerGimbalIF::MAX_ANGLE;
-            gimbal_pc_pitch_target_angle_ = (Remote::rc.ch1 / 2 + 0.5f) * EngineerGimbalIF::MAX_ANGLE;
-        } else if (Remote::rc.s1 == Remote::S_DOWN && Remote::rc.s2 != Remote::S_UP) {
-            /// PC Control
-            gimbal_pc_yaw_target_angle_ = Remote::mouse.x * gimbal_pc_yaw_sensitivity * USER_THREAD_INTERVAL / 1000 +
-                                          EngineerGimbalIF::get_target_angle(EngineerGimbalIF::YAW);
-            gimbal_pc_pitch_target_angle_ =
-                    Remote::mouse.y * gimbal_pc_pitch_sensitivity * USER_THREAD_INTERVAL / 1000 +
-                    EngineerGimbalIF::get_target_angle(EngineerGimbalIF::PIT);
-            VAL_CROP(gimbal_pc_yaw_target_angle_, gimbal_yaw_max_angle, gimbal_yaw_min_angle);
-            VAL_CROP(gimbal_pc_pitch_target_angle_, gimbal_pitch_max_angle, gimbal_pitch_min_angle);
-        } else {
-            gimbal_pc_yaw_target_angle_ = gimbal_pc_pitch_target_angle_ = 0;
+            gimbal_pc_yaw_target_angle_ = (Remote::rc.ch0 / 2 + 0.5) * EngineerGimbalIF::MAX_ANGLE;
+            gimbal_pc_pitch_target_angle_ = (Remote::rc.ch1 / 2 + 0.5) * EngineerGimbalIF::MAX_ANGLE;
         }
 
         EngineerGimbalIF::set_target_angle(gimbal_pc_yaw_target_angle_, gimbal_pc_pitch_target_angle_);
 
-
-        if (Remote::rc.s1 == Remote::S_UP && Remote::rc.s2 == Remote::S_UP) {
-            /// Safe mode
-            EngineerChassisSKD::lock();
-            EngineerElevatorLG::set_action_lock();
-        } else if (Remote::rc.s1 == Remote::S_UP && Remote::rc.s2 == Remote::S_MIDDLE) {
+        /// Elevator and Chassis
+        if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_UP) {
             /// Remote chassis, left FBLR, right turn
-            EngineerChassisSKD::unlock();
-            EngineerElevatorLG::set_action_lock();
+            EngineerChassisSKD::enable(true);
+            EngineerElevatorLG::elevator_enable(false);
             EngineerChassisSKD::set_velocity(
                     Remote::rc.ch2 * chassis_v_left_right,  // Both use right as positive direction
                     (Remote::rc.ch3 > 0 ?
@@ -101,96 +71,48 @@ void UserE::UserThread::main() {
                      Remote::rc.ch3 * chassis_v_backward),  // Both use up    as positive direction
                     -Remote::rc.ch0 * chassis_w             // ch0 use right as positive direction, while GimbalLG use CCW (left) as positive direction
             );
-        } else if (Remote::rc.s1 == Remote::S_UP && Remote::rc.s2 == Remote::S_DOWN) {
+        } else if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_MIDDLE) {
             /// Remote elevator, left aided motor, right elevator
 
-            EngineerChassisSKD::lock();
-            EngineerElevatorLG::set_action_free();
-            // and disable Robotic arm
-
-            EngineerElevatorSKD::elevator_enable(true);
-            EngineerElevatorSKD::aided_motor_enable(true);
+            EngineerChassisSKD::enable(false);
+            EngineerElevatorLG::elevator_enable(true);
 
             // right elevator
             if (Remote::rc.ch1 > 0.5 || Remote::rc.ch1 < -0.5)
-                EngineerElevatorSKD::set_target_height(EngineerElevatorIF::get_current_height() + Remote::rc.ch1 * 0.5f);
+                EngineerElevatorLG::set_elevator_height(EngineerElevatorLG::get_elevator_height() + Remote::rc.ch1 * 0.5);
             else
-                EngineerElevatorSKD::set_target_height(EngineerElevatorIF::get_current_height());
+                EngineerElevatorSKD::set_target_height(EngineerElevatorLG::get_elevator_height());
 
             // left aided motor
             if (Remote::rc.ch3 > 0.2 || Remote::rc.ch3 < -0.2)
-                EngineerElevatorSKD::set_aided_motor_velocity(Remote::rc.ch3 * 0.7f * ENGINEER_AIDED_MOTOR_VELOCITY,
-                                                              Remote::rc.ch3 * 0.7f * ENGINEER_AIDED_MOTOR_VELOCITY);
+                EngineerElevatorLG::set_aided_motor_velocity(Remote::rc.ch3 * 0.7 * ENGINEER_AIDED_MOTOR_VELOCITY);
             else
-                EngineerElevatorSKD::set_aided_motor_velocity(0, 0);
+                EngineerElevatorLG::set_aided_motor_velocity(0);
 
-
-        } else if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_UP) {
-            /// Remote auto elevating. RIGHT.
-            ///                               |-UP -> nothing happens
-            ///                               |
-            ///       |-UP -> start going-up -|                |-UP -> con't
-            ///       |                       |-DOWN -> pause -|
-            ///       |                                        |-DOWN -> quit
-            /// stop -|
-            ///       |                                          |-UP -> quit
-            ///       |                           |-UP -> pause -|
-            ///       |-DOWN -> start going-down -|              |-DOWN -> con't
-            ///                                   |
-            ///                                   |-DOWN -> nothing happens
-            ///
-
-//            LOG("elevating");
-
-            if (EngineerElevatorLG::get_action() == EngineerElevatorLG::LOCK) {
-                if (Remote::rc.ch1 > 0.5)
-                    EngineerElevatorLG::start_going_up();
-                else if (Remote::rc.ch1 < -0.5)
-                    EngineerElevatorLG::start_going_down();
-            }
-//            else if (EngineerElevatorLG::get_action() == EngineerElevatorLG::UPWARD) {
-//                if (Remote::rc.ch1 < -0.5)
-//                    EngineerElevatorLG::pause_action();
-//            } else if (EngineerElevatorLG::get_action() == EngineerElevatorLG::DOWNWARD) {
-//                if (Remote::rc.ch1 > 0.5)
-//                    EngineerElevatorLG::pause_action();
-//            }
-//            else if (EngineerElevatorLG::get_action() == EngineerElevatorLG::PAUSE) {
-//                if ((EngineerElevatorLG::get_prev_action() == EngineerElevatorLG::UPWARD && Remote::rc.ch1 > 0.5) ||
-//                    (EngineerElevatorLG::get_prev_action() == EngineerElevatorLG::DOWNWARD && Remote::rc.ch1 < -0.5))
-//                    EngineerElevatorLG::continue_action();
-//                else if ((EngineerElevatorLG::get_prev_action() == EngineerElevatorLG::UPWARD &&
-//                          Remote::rc.ch1 < -0.5) ||
-//                         (EngineerElevatorLG::get_prev_action() == EngineerElevatorLG::DOWNWARD &&
-//                          Remote::rc.ch1 > 0.5))
-//                    EngineerElevatorLG::quit_action();
-//            }
-
-        } else if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_MIDDLE) {
-            /// Safe
-
-            // Set as safe currently
-            EngineerChassisSKD::lock();
-            EngineerElevatorLG::set_action_lock();
-        } else if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_DOWN) {
-            /// Remote Robotic arm test
-
-//            if (Remote::rc.ch1 > 0.5) RoboticArmSKD::next_step();
-//            else if (Remote::rc.ch1 < -0.5) RoboticArmSKD::prev_step();
-//            else if (Remote::rc.ch0 > 0.5) RoboticArmSKD::change_extend();
-//            else if (Remote::rc.ch0 < -0.5) RoboticArmSKD::change_door();
-        } else if (Remote::rc.s1 == Remote::S_DOWN && Remote::rc.s2 != Remote::S_DOWN) {
-            /// Safe
-
-            // the same as UP-UP
-            EngineerChassisSKD::lock();
-            EngineerElevatorLG::set_action_lock();
-        } else if (Remote::rc.s1 == Remote::S_DOWN && Remote::rc.s2 == Remote::S_DOWN) {
+        } else if (Remote::rc.s1 == Remote::S_DOWN && Remote::rc.s2 != Remote::S_UP) {
 
             /// PC control
 
+            /**
+             * PC Key Table:
+             * ------------------------------------------------------------
+             * Key      Function
+             * ------------------------------------------------------------
+             * QWES     LEFT, UP, RIGHT, DOWN
+             * AD       CCW, CW
+             * RF       PAUSE + UP-STAIR, DOWN-STAIR
+             * CTRL     SLOW MOVEMENT
+             * SHIFT    FAST MOVEMENT
+             * V        OPEN/CLOSE DOOR
+             * C        TURN AROUND
+             * MOUSE_L  ROBOTIC_ARM NEXT STEP
+             * MOUSE_R  ROBOTIC_ARM PREV STEP
+             * ------------------------------------------------------------
+             */
+
+            EngineerElevatorLG::set_auto_elevating(Remote::rc.s2 == Remote::S_DOWN);
+
             /// Chassis WSQE, AD, ctrl, shift
-            EngineerChassisSKD::unlock();
             float target_vx, target_vy, target_w;
 
             if (Remote::key.w) target_vy = chassis_v_forward;
@@ -224,31 +146,10 @@ void UserE::UserThread::main() {
 
             EngineerChassisSKD::set_velocity(target_vx, target_vy, target_w);
 
-
-            /// Elevator, RF
-            // TODO: move this into action trigger
-            if (EngineerElevatorLG::get_action() == EngineerElevatorLG::LOCK) {
-                if (Remote::key.r) {
-                    EngineerElevatorLG::start_going_up();
-                } else if (Remote::key.f) {
-                    EngineerElevatorLG::start_going_down();
-                }
-//            } else if (EngineerElevatorLG::get_action() == EngineerElevatorLG::UPWARD) {
-//                if (Remote::key.f) EngineerElevatorLG::pause_action();
-//            } else if (EngineerElevatorLG::get_action() == EngineerElevatorLG::DOWNWARD) {
-//                if (Remote::key.r) EngineerElevatorLG::pause_action();
-//            } else if (EngineerElevatorLG::get_action() == EngineerElevatorLG::PAUSE) {
-//                if (EngineerElevatorLG::get_prev_action() == EngineerElevatorLG::UPWARD) {
-//                    if (Remote::key.r) EngineerElevatorLG::continue_action();
-//                    else if (Remote::key.f) EngineerElevatorLG::quit_action();
-//                } else if (EngineerElevatorLG::get_prev_action() == EngineerElevatorLG::DOWNWARD) {
-//                    if (Remote::key.r) EngineerElevatorLG::quit_action();
-//                    else if (Remote::key.f) EngineerElevatorLG::continue_action();
-//                }
-//            }
-
-            }
-
+        } else{
+            /// Safe mode
+            EngineerChassisSKD::enable(false);
+            EngineerElevatorLG::elevator_enable(false);
         }
 
         /// Final
@@ -285,28 +186,36 @@ void UserE::UserActionThread::main() {
             eventflags_t key_flag = chEvtGetAndClearFlags(&key_press_listener);
 
             /// Robotic Arm
+
+            /// Mouse Press
+            if (events & MOUSE_PRESS_EVENTMASK) {
+                eventflags_t mouse_flag = chEvtGetAndClearFlags(&mouse_press_listener);
+                if (mouse_flag & (1U << Remote::MOUSE_LEFT)) {
+                    RoboticArmSKD::next_step();
+                } else if (mouse_flag & (1U << Remote::MOUSE_RIGHT)) {
+                    RoboticArmSKD::prev_step();
+                }
+            }
+
             if (key_flag & (1U << Remote::KEY_C)) {
-                RoboticArmSKD::change_extend();
+                EngineerGimbalIF::set_target_angle(((int)(EngineerGimbalIF::get_target_angle(EngineerGimbalIF::YAW) + 180.0f)) % 360, 0);
             }
 
             else if (key_flag & (1U << Remote::KEY_V)) {
                 RoboticArmSKD::change_door();
+                EngineerElevatorLG::give_bullet();
+            }
+
+            if (key_flag & (1u << Remote::KEY_R)){
+                EngineerElevatorLG::going_up();
+            }
+
+            if (key_flag & (1U << Remote::KEY_F)){
+                EngineerElevatorLG::going_down();
             }
         }
 
         // If more event type is added, remember to modify chEvtWaitAny() above
-        else if (events & MOUSE_PRESS_EVENTMASK) {
-            eventflags_t mouse_flag = chEvtGetAndClearFlags(&mouse_press_listener);
-
-            /// Robotic Arm
-            if (mouse_flag & (1U << Remote::MOUSE_LEFT)) {
-                RoboticArmSKD::next_step();
-            }
-            else if (mouse_flag & (1U << Remote::MOUSE_RIGHT)) {
-                RoboticArmSKD::prev_step();
-            }
-
-        }
         // Referee client data will be sent by ClientDataSendingThread
 
     }

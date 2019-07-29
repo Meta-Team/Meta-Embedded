@@ -3,7 +3,6 @@
 //
 
 #include "robotic_arm_skd.h"
-#include "engineer_elevator_skd.h"
 #include "math.h"
 
 RoboticArmSKD::RoboticArmThread RoboticArmSKD::roboticArmThread;
@@ -48,21 +47,17 @@ void RoboticArmSKD::pull_back() {
     }
 }
 
-void RoboticArmSKD::change_extend() {
+/*void RoboticArmSKD::change_extend() {
     change_digital_status(extend_state, EXTEND_PAD);
-}
+}*/
 
 void RoboticArmSKD::change_door() {
-    if (door_state == LOW_STATUS) {
-        EngineerElevatorSKD::elevator_enable(true);
-        EngineerElevatorSKD::set_target_height(1.5);
+    if (door_state == HIGH_STATUS) {
         chThdSleepMilliseconds(1000);
         change_digital_status(door_state, DOOR_PAD);
     }
     else {
         change_digital_status(door_state, DOOR_PAD);
-        EngineerElevatorSKD::elevator_enable(true);
-        EngineerElevatorSKD::set_target_height(0);
     }
 }
 

@@ -22,6 +22,8 @@ class UserS {
 
 public:
 
+    static time_msecs_t blind_mode_start_time;
+
     static void start(tprio_t user_thd_prio, tprio_t v_user_thd_prio);
 
 private:

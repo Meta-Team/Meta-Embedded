@@ -27,6 +27,10 @@ class GimbalLG : public GimbalBase {
 
 public:
 
+    /**
+     * Initial GimbalLG
+     * @param vision_thread_prio_   Priority of Vision thread. 0 for no initialization
+     */
     static void init(tprio_t vision_thread_prio_);
 
     enum action_t {

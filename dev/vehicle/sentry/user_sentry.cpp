@@ -4,6 +4,8 @@
 
 #include "user_sentry.h"
 
+time_msecs_t UserS::blind_mode_start_time;
+
 UserS::sentry_mode_t UserS::sentryMode = FORCED_RELAX_MODE;
 
 /// Gimbal Config
@@ -228,6 +230,7 @@ void UserS::set_mode(UserS::sentry_mode_t mode) {
         SGimbalLG::set_action(SGimbalLG::ABS_ANGLE_MODE);
         if (sentryMode == AUTO_MODE) {
             // Resume the thread
+            blind_mode_start_time = SYSTIME;
             chSysLock();  /// --- ENTER S-Locked state. DO NOT use LOG, printf, non S/I-Class functions or return ---
             if (!vitualUserThread.started) {
                 vitualUserThread.started = true;
@@ -243,6 +246,7 @@ void UserS::VitualUserThread::main() {
     setName("Sentry_Gimbal_Auto");
 
     while (!shouldTerminate()) {
+
         chSysLock();  /// --- ENTER S-Locked state. DO NOT use LOG, printf, non S/I-Class functions or return ---
         if (sentryMode != AUTO_MODE) {
             started = false;
@@ -263,10 +267,7 @@ void UserS::VitualUserThread::main() {
 
         /*** ---------------------------------- Gimbal + Shooter --------------------------------- ***/
 
-        /*
         if (v_user_mode == FINAL_AUTO_MODE && enemy_spotted) {
-            if (enemy_spotted)LOG("ENEMY SPOTTED");
-
             float yaw_delta = VisionPort::enemy_info.yaw_angle - gimbal_yaw_target_angle_,
                     pitch_delta = VisionPort::enemy_info.pitch_angle - gimbal_pitch_target_angle_;
 
@@ -316,15 +317,14 @@ void UserS::VitualUserThread::main() {
         }
 
         SGimbalLG::set_target(gimbal_yaw_target_angle_, gimbal_pitch_target_angle_);
-         */
+
         /*** ---------------------------------- Chassis --------------------------------- ***/
-/*
+
         if ((v_user_mode == FINAL_AUTO_MODE) && (enemy_spotted || Referee::robot_hurt.armor_id > 0)) {
             if (!SChassisLG::get_escaping_status()) {
                 SChassisLG::start_escaping();
             }
         }
-*/
 
         sleep(TIME_MS2I(AUTO_CONTROL_INTERVAL));
     }
