@@ -86,15 +86,17 @@ private:
     struct plateLoadAttempt {
         int wait_time;
         int attempt_number;
-        bool bullet_status[4];
         task_status_t task_status;
     };
+
     static plateLoadAttempt PlateLoadAttempt;
     static int load_bullet_count;
     static float loader_angle_per_bullet;
     static float loader_target_angle;
     static float plate_angle_per_bullet;
     static float plate_target_angle;
+    static float plate_angle_increment;
+    static float loader_angle_increment;
 
     // Another Idea: Check whether the motor is stuck based on the motor response time.
     static int loader_runtime;
@@ -110,7 +112,7 @@ private:
 
         static constexpr unsigned STUCK_REVERSE_TIME = 300;
 
-        static constexpr int LOADER_STUCK_THRESHOLD_CURRENT = 2000;
+        static constexpr int LOADER_STUCK_THRESHOLD_CURRENT = 4000;
         static constexpr int LOADER_STUCK_THRESHOLD_VELOCITY = 2;
 
         static constexpr int PLATE_STUCK_THRESHOLD_CURRENT = 3000;
