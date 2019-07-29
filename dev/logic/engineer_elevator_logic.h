@@ -31,6 +31,7 @@ public:
         ASCENDING,      // elevator standing up
         DESCENDING,     // elevator squatting down
         AIDING,         // aided motor moving
+        GIVING_BULLET
     };
 
     static void init(tprio_t logic_thread_prio);
@@ -57,6 +58,8 @@ public:
 
     /** @brief Force the elevator to move into the next step */
     static void next_step();
+
+    static void give_bullet();
 /*
     ///////// for finding better aided motor params
     static void aided_motor_test_forward();

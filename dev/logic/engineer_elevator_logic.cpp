@@ -140,6 +140,13 @@ void EngineerElevatorLG::set_aided_motor_velocity(float target_velocity) {
     EngineerElevatorSKD::set_aided_motor_velocity(target_velocity);
 }
 
+void EngineerElevatorLG::give_bullet() {
+    if (state == GIVING_BULLET)
+        state = STOP;
+    else
+        state = GIVING_BULLET;
+}
+
 
 /////////// for finding better aided motor params
 //void EngineerElevatorLG::aided_motor_test_forward() {
@@ -283,6 +290,10 @@ void EngineerElevatorLG::EngineerElevatorLGThread::main() {
                         if (ABS_IN_RANGE(EngineerElevatorSKD::get_current_height(), 0.3)) {
                             next_step();
                         }
+                        break;
+
+                    case GIVING_BULLET:
+                        EngineerElevatorSKD::set_target_height(1.5);
                         break;
 
                     case STOP:
