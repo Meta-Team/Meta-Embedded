@@ -252,7 +252,7 @@ void HeroShootLG::AutoLoaderThread::main() {
                 if (ball_in_loader >= PlateLoadAttempt.attempt_number) {
                     PlateLoadAttempt.task_status = LOAD_SUCCESS;
                 }
-                if (SYSTIME - PlateLoadAttempt.wait_time > 5000) {
+                if (SYSTIME - PlateLoadAttempt.wait_time > 1500) {
                     PlateLoadAttempt.task_status = LOAD_SUCCESS;
                 } // After Replace the tunnel, no bullet would leave.
             }

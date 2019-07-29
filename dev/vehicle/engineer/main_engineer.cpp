@@ -54,6 +54,7 @@ int main() {
     palSetPad(GPIOH, GPIOH_POWER1_CTRL);
     palSetPadMode(GPIOH, GPIOH_POWER2_CTRL, PAL_MODE_OUTPUT_PUSHPULL);
     palSetPad(GPIOH, GPIOH_POWER2_CTRL);
+    palClearPad(GPIOH, GPIOH_POWER4_CTRL);
 
     /*** ---------------------- Period 1. Modules Setup and Self-Check ---------------------- ***/
 
@@ -131,7 +132,10 @@ int main() {
     EngineerChassisSKD::start(CHASSIS_WHEEL_BASE, CHASSIS_WHEEL_TREAD, CHASSIS_WHEEL_CIRCUMFERENCE, THREAD_CHASSIS_SKD_PRIO);
     EngineerChassisSKD::load_pid_params(CHASSIS_PID_V2I_PARAMS);
     EngineerElevatorSKD::start(THREAD_ELEVATOR_SKD_PRIO);
-    EngineerElevatorSKD::load_pid_params(ELEVATOR_PID_A2V_PARAMS, ELEVATOR_PID_V2I_PARAMS, AIDED_MOTOR_PID_V2I_PARAMS, {0, 0, 0, 0, 0});
+    EngineerElevatorSKD::load_pid_params(EngineerElevatorSKD::ELEVATOR_A2V, ELEVATOR_PID_A2V_PARAMS);
+    EngineerElevatorSKD::load_pid_params(EngineerElevatorSKD::ELEVATOR_V2I, ELEVATOR_PID_V2I_PARAMS);
+    EngineerElevatorSKD::load_pid_params(EngineerElevatorSKD::AIDED_WHEEL_V2I, AIDED_MOTOR_PID_V2I_PARAMS);
+    EngineerElevatorSKD::load_pid_params(EngineerElevatorSKD::BALANCE_PID, {0, 0, 0, 0, 0});
     RoboticArmSKD::start(THREAD_ROBOTIC_ARM_SKD_PRIO);
 
     /// Start LGs
