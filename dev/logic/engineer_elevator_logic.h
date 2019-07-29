@@ -52,11 +52,8 @@ public:
     /** @brief Set auto elevating mode or user controlling step-by-step mode */
     static void set_auto_elevating(bool auto_elevating_);
 
-    /** @brief Switch the process to going up-stairs state */
-    static void going_up();
-
     /** @brief Switch the process to going down-stairs state */
-    static void going_down();
+    static void set_elevate_dir(bool going_up_);
 
     /** @brief Force the elevator to move into the next step */
     static void next_step();
@@ -87,9 +84,8 @@ private:
 
     static bool pause;
 
-    static float pause_height;
+    static bool going_up;
 
-    static bool going_up_;
 
     static bool auto_elevating;
 
