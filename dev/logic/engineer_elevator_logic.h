@@ -29,10 +29,12 @@ public:
         STOP,           // not using elevator
         PREPARING,      // preparing to elevate, move forward to reach the stage or backward to reach the edge
         ASCENDING,      // elevator standing up
-        DESCENDING,     // elevator squatting down
         AIDING,         // aided motor moving
+        DESCENDING,     // elevator squatting down
         GIVING_BULLET
     };
+
+    static elevator_state_t get_current_state();
 
     static void init(tprio_t logic_thread_prio);
 
@@ -49,26 +51,14 @@ public:
     /** @brief Set target aided_motor velocity */
     static void set_aided_motor_velocity(float target_velocity);
 
-    /** @brief Set auto elevating mode or user controlling step-by-step mode */
-    static void set_auto_elevating(bool auto_elevating_);
-
     /** @brief Switch the process to going down-stairs state */
     static void set_elevate_dir(bool going_up_);
 
-    /** @brief Force the elevator to move into the next step */
-    static void next_step();
-
     static void give_bullet();
-/*
-    ///////// for finding better aided motor params
-    static void aided_motor_test_forward();
-    static void aided_motor_test_backward();
-    static bool a_t_forward;
-    static bool a_t_backward;
 
-    static uint32_t delay_time;     // ms
-*/
 private:
+
+    static void set_state(elevator_state_t new_state);
 
     static bool test_mode;
 
@@ -82,24 +72,10 @@ private:
 
     static elevator_state_t state;
 
-    static bool pause;
-
     static bool going_up;
-
-
-    static bool auto_elevating;
 
     static constexpr uint16_t hanging_trigger = 1800;//TODO need to determine
     static constexpr uint16_t landed_trigger = 2300;//TODO need to determine
-
-    /**
- * @brief Force the elevator to stop
- */
-    static void pause_action();
-
-    /** @brief Continue to move. */
-    static void continue_action();
-
 };
 
 

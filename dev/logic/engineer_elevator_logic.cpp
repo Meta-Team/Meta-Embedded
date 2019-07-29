@@ -9,33 +9,18 @@ bool EngineerElevatorLG::test_mode;
 EngineerElevatorLG::EngineerElevatorLGThread EngineerElevatorLG::engineerLogicThread;
 EngineerElevatorLG::elevator_state_t EngineerElevatorLG::state;
 
-/*
-bool EngineerElevatorLG::a_t_forward;
-bool EngineerElevatorLG::a_t_backward;
-uint32_t EngineerElevatorLG::delay_time;
-*/
 bool EngineerElevatorLG::going_up = true;
-bool EngineerElevatorLG::auto_elevating;
 
 
 void EngineerElevatorLG::init(tprio_t logic_thread_prio) {
     test_mode = true;
     state = STOP;
-/*
-    a_t_backward = false;
-    a_t_forward = false;
-    delay_time = 0;
-*/
-    pause = false;
-    auto_elevating = false;
-
-    set_auto_elevating(false);
 
     engineerLogicThread.start(logic_thread_prio);
 }
 
-void EngineerElevatorLG::set_auto_elevating(bool auto_elevating_) {
-    auto_elevating = auto_elevating_;
+EngineerElevatorLG::elevator_state_t EngineerElevatorLG::get_current_state() {
+    return state;
 }
 
 void EngineerElevatorLG::set_test_mode(bool test_mode_) {
@@ -43,69 +28,35 @@ void EngineerElevatorLG::set_test_mode(bool test_mode_) {
 }
 
 void EngineerElevatorLG::set_elevate_dir(bool going_up_) {
-    if (state == STOP) {
-        state = PREPARING;
-    } else{
 
-    }
-    if (going_up_ == going_up) {
-        next_step();
-    } else {
-        if (going_up_ && state == PREPARING) {
-            LOG("stop");
-            state = STOP;
-        } else if (going_up_ && state == ASCENDING) {
-            LOG("descending");
-            state = DESCENDING;
-        } else if (going_up_ && state == DESCENDING) {
-            LOG("ascending");
-            state = ASCENDING;
+    if (state == STOP) {  // normal
+
+        going_up = going_up_;
+        set_state(PREPARING);
+
+    } else {  // abnormal state
+
+        if (going_up_ == going_up) {
+
+            set_state((elevator_state_t) ((state + 1) % 5));
+
+        } else {  // going_up_ != going_up
+
+            going_up = !going_up;  // reverse direction
+
+            if (state == PREPARING) {
+                set_state(STOP);
+            } else if (state == ASCENDING) {
+                set_state(DESCENDING);
+            } else if (state == DESCENDING) {
+                set_state(ASCENDING);
+            } else if (state == AIDING) {
+                set_state(AIDING);
+            }
         }
 
-        going_up_ = false;
-        continue_action();
-    }
-}
-
-void EngineerElevatorLG::pause_action() {
-    LOG("pause");
-    pause = true;
-    EngineerElevatorSKD::set_target_height(EngineerElevatorIF::get_current_height());
-    EngineerElevatorSKD::set_aided_motor_velocity(0);
-    EngineerChassisSKD::set_velocity(0, 0, 0);
-}
-
-void EngineerElevatorLG::continue_action() {
-    LOG("continue");
-    pause = false;
-}
-
-void EngineerElevatorLG::next_step() {
-    /**
-     * On-Stage or Off-Stage Logic
-     * (near the stage)
-     * STOP -> PREPARING -> ASCENDING -> AIDING -> DESCENDING -> STOP
-     */
-    pause_action();
-
-    if (state == STOP) {
-        state = PREPARING;
-        LOG("preparing");
-    } else if (state == PREPARING) {
-        state = ASCENDING;
-        LOG("ascending");
-    } else if (state == ASCENDING) {
-        state = AIDING;
-        LOG("aiding");
-    } else if (state == AIDING) {
-        state = DESCENDING;
-        LOG("descending");
-    } else if (state == DESCENDING) {
-        state = STOP;
-        LOG("stop");
     }
 
-    continue_action();
 }
 
 void EngineerElevatorLG::elevator_enable(bool enable_) {
@@ -127,39 +78,56 @@ void EngineerElevatorLG::set_aided_motor_velocity(float target_velocity) {
 
 void EngineerElevatorLG::give_bullet() {
     if (state == GIVING_BULLET)
-        state = STOP;
+        set_state(STOP);
     else
-        state = GIVING_BULLET;
+        set_state(GIVING_BULLET);
 }
 
-/////////// for finding better aided motor params
-//void EngineerElevatorLG::aided_motor_test_forward() {
-//    adcsample_t data[4];
-//    DMSInterface::get_raw_sample(data);
-//    bool back_landed = data[DMSInterface::BL] > landed_trigger && data[DMSInterface::BR] > landed_trigger;
-//
-//    if (!back_landed)
-//        EngineerElevatorSKD::set_aided_motor_velocity(0.7*ENGINEER_AIDED_MOTOR_VELOCITY, 0.7*ENGINEER_AIDED_MOTOR_VELOCITY);
-//    else
-//        EngineerElevatorSKD::set_aided_motor_velocity(0,0);
-//
-//}
-//
-//void EngineerElevatorLG::aided_motor_test_backward() {
-//    adcsample_t data[4];
-//    DMSInterface::get_raw_sample(data);
-//    bool front_leave_stage = data[DMSInterface::FL] < hanging_trigger && data[DMSInterface::FR] < hanging_trigger;
-//
-//    if (!front_leave_stage)
-//        EngineerElevatorSKD::set_aided_motor_velocity(-0.5*ENGINEER_AIDED_MOTOR_VELOCITY, -0.5*ENGINEER_AIDED_MOTOR_VELOCITY);
-//    else {
-//        chThdSleepMilliseconds(delay_time);
-//        EngineerElevatorSKD::set_aided_motor_velocity(0, 0);
-//    }
-//}
 
+void EngineerElevatorLG::set_state(EngineerElevatorLG::elevator_state_t new_state) {
+    state = new_state;
+    switch (state) {
+        case STOP:
+            EngineerElevatorSKD::set_target_height(0);
+            EngineerElevatorSKD::set_aided_motor_velocity(0);
+            EngineerChassisSKD::set_velocity(0, 0, 0);
+            LOG("ELE STOP");
+            break;
+        case PREPARING:
+            if (going_up) {
+                EngineerChassisSKD::set_velocity(0, 0.05 * ENGINEER_CHASSIS_VELOCITY_MAX, 0);
+            } else {
+                EngineerChassisSKD::set_velocity(0, -0.02 * ENGINEER_CHASSIS_VELOCITY_MAX, 0);
+            }
+            LOG("ELE PREPARING");
+            break;
+        case ASCENDING:
+            EngineerChassisSKD::set_velocity(0, 0, 0);
+            EngineerElevatorSKD::set_target_height(STAGE_HEIGHT);
+            LOG("ELE ASCENDING");
+            break;
+        case AIDING:
+            if (going_up) {
+                EngineerElevatorSKD::set_aided_motor_velocity(0.7 * ENGINEER_AIDED_MOTOR_VELOCITY);
+            } else {
+                EngineerElevatorSKD::set_aided_motor_velocity(-0.5 * ENGINEER_AIDED_MOTOR_VELOCITY);
+            }
+            LOG("ELE AIDING");
+            break;
+        case DESCENDING:
+            EngineerElevatorSKD::set_target_height(0);
+            EngineerElevatorSKD::set_aided_motor_velocity(0);
+            LOG("ELE DESCENDING");
+            break;
+        case GIVING_BULLET:
+            EngineerElevatorSKD::set_target_height(1.5);
+            LOG("ELE GIVING_BULLET");
+            break;
+    }
+}
 
 void EngineerElevatorLG::EngineerElevatorLGThread::main() {
+
     setName("ElevatorLG");
 
     DMSInterface::init(4);
@@ -180,113 +148,86 @@ void EngineerElevatorLG::EngineerElevatorLGThread::main() {
         bool BR_hanging = data[DMSInterface::BR] < hanging_trigger;
         bool FR_hanging = data[DMSInterface::FR] < hanging_trigger;
 
-        // FL
+
         Referee::set_client_light(0, FL_hanging);
-        // BL
         Referee::set_client_light(1, BL_hanging);
-        // BR
         Referee::set_client_light(2, BR_hanging);
-        // FR
         Referee::set_client_light(3, FR_hanging);
 
         if (!test_mode) {
 
-            if (!pause) {
-                /*** update elevator status ***/
+            switch (state) {
 
-                bool reach_edge;
+                case PREPARING:
 
-                switch (state) {
+                    if (going_up) {
 
-                    case PREPARING:
+                        if ((palReadPad(FF_SWITCH_PAD, FFL_SWITCH_PIN_ID) == SWITCH_TOUCH_PAL_STATUS)
+                            && (palReadPad(FF_SWITCH_PAD, FFR_SWITCH_PIN_ID) == SWITCH_TOUCH_PAL_STATUS)) {
+                            // Both the two sensors in front detect the stage, can start to go up-stair
 
-                        if (going_up_) {
-                            // both the two sensors in front detect the stage, can start to go up-stairs
-                            reach_edge = (palReadPad(FF_SWITCH_PAD, FFL_SWITCH_PIN_ID) == SWITCH_TOUCH_PAL_STATUS)
-                                         && (palReadPad(FF_SWITCH_PAD, FFR_SWITCH_PIN_ID) == SWITCH_TOUCH_PAL_STATUS);
-
-                            if (reach_edge) {
-                                pause_action();
-                                if (auto_elevating) next_step();
-                            } else {
-                                EngineerChassisSKD::set_velocity(0, 0.05 * ENGINEER_CHASSIS_VELOCITY_MAX, 0);
-                            }
-                        } else {
-
-                            // FIXME: change to &&
-                            // both the two sensors at the back wheels reach the edge, can start to go down-stairs
-                            reach_edge = BR_hanging && BL_hanging;
-
-                            if (reach_edge) {
-                                pause_action();
-                                if (auto_elevating) next_step();
-                            }
-                                // FIXME: re-enable
-                                /*else if ( BL_hanging && !BR_hanging )
-                                    EngineerChassisSKD::pivot_turn(EngineerChassisSKD::BL, -0.005 * ENGINEER_CHASSIS_W_MAX);
-                                else if ( !BL_hanging && BR_hanging )
-                                    EngineerChassisSKD::pivot_turn(EngineerChassisSKD::BR, +0.005 * ENGINEER_CHASSIS_W_MAX);
-                                    */
-                            else {
-                                EngineerChassisSKD::set_velocity(0, -0.02 * ENGINEER_CHASSIS_VELOCITY_MAX, 0);
-                            }
-                        }
-                        break;
-
-                    case ASCENDING:
-                        EngineerElevatorSKD::set_target_height(STAGE_HEIGHT);
-
-                        if (ABS_IN_RANGE(STAGE_HEIGHT - EngineerElevatorSKD::get_current_height(), 0.5)) {
-                            if (auto_elevating) next_step();
-                        }
-                        break;
-
-                    case AIDING:
-
-                        if (going_up_) {
-                            EngineerElevatorSKD::set_aided_motor_velocity(0.7 * ENGINEER_AIDED_MOTOR_VELOCITY);
-
-                            // both the two sensors at the back wheels landed on stage, enter the last step of going up-stairs
-                            reach_edge =
-                                    data[DMSInterface::BR] > landed_trigger || data[DMSInterface::BL] > landed_trigger;
-
-                        } else {
-                            EngineerElevatorSKD::set_aided_motor_velocity(-0.5 * ENGINEER_AIDED_MOTOR_VELOCITY);
-
-                            // both the two sensors at the front wheels leave the stage, enter the last step of going down-stairs
-                            reach_edge = FL_hanging && FR_hanging;
-
+                            set_state(ASCENDING);
                         }
 
-                        if (reach_edge) {
-                            pause_action();
-                            if (auto_elevating) next_step();
+                    } else {
+
+                        if (BR_hanging && BL_hanging) {
+                            // Both the two sensors at the back wheels reach the edge, can start to go down-stairs
+                            set_state(ASCENDING);
                         }
-                        break;
+                        // FIXME: re-enable
+                        /*else if ( BL_hanging && !BR_hanging )
+                            EngineerChassisSKD::pivot_turn(EngineerChassisSKD::BL, -0.005 * ENGINEER_CHASSIS_W_MAX);
+                        else if ( !BL_hanging && BR_hanging )
+                            EngineerChassisSKD::pivot_turn(EngineerChassisSKD::BR, +0.005 * ENGINEER_CHASSIS_W_MAX);
+                            */
 
-                    case DESCENDING:
+                    }
+                    break;
+                case ASCENDING:
 
-                        EngineerElevatorSKD::set_target_height(0);
+                    if (ABS_IN_RANGE(STAGE_HEIGHT - EngineerElevatorSKD::get_current_height(), 0.5)) {
+                        set_state(AIDING);
+                    }
 
-                        if (ABS_IN_RANGE(EngineerElevatorSKD::get_current_height(), 0.3)) {
-                            next_step();
+                    break;
+                case AIDING:
+
+                    if (going_up) {
+
+                        if (data[DMSInterface::BR] > landed_trigger || data[DMSInterface::BL] > landed_trigger) {
+                            // Both the two sensors at the back wheels landed on stage, enter the last step of going up-stairs
+                            set_state(DESCENDING);
                         }
-                        break;
 
-                    case GIVING_BULLET:
-                        EngineerElevatorSKD::set_target_height(1.5);
-                        break;
+                    } else {
 
-                    case STOP:
-                        EngineerElevatorSKD::set_target_height(0);
-                    default:
-                        break;
-                }
+                        if (FL_hanging && FR_hanging) {
+                            // Both the two sensors at the front wheels leave the stage, enter the last step of going down-stairs
+                            set_state(DESCENDING);
+                        }
+
+                    }
+
+                    break;
+                case DESCENDING:
+
+                    if (ABS_IN_RANGE(EngineerElevatorSKD::get_current_height(), 0.3)) {
+                        set_state(STOP);
+                    }
+
+                    break;
+                case GIVING_BULLET:
+
+                    // No need to judge
+
+                    break;
+                default:
+                    break;
             }
         }
 
         sleep(TIME_MS2I(ELEVATOR_LG_INTERVAL));
-
     }
 
 }

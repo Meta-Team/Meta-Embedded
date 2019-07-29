@@ -39,9 +39,7 @@ void UserE::start(tprio_t user_thd_prio, tprio_t user_action_thd_prio, tprio_t c
  *  MID   UP    Remote - Chassis remote controlling
  *  MID   MID   Remote - Elevator remote controlling
  *  MID   DOWN  Remote - Gimbal remote controlling
- *  DOWN  UP    Safe
- *  DOWN  MID   PC     - USER_CONTROL ELEVATING
- *  DOWN  DOWN  PC     - AUTO_ELEVATING
+ *  DOWN  *     PC     - AUTO_ELEVATING
  *  -Others-    Safe
  * ------------------------------------------------------------
  */
@@ -74,7 +72,8 @@ void UserE::UserThread::main() {
                     (Remote::rc.ch3 > 0 ?
                      Remote::rc.ch3 * chassis_v_forward :
                      Remote::rc.ch3 * chassis_v_backward),  // Both use up    as positive direction
-                    -Remote::rc.ch0 * chassis_w             // ch0 use right as positive direction, while GimbalLG use CCW (left) as positive direction
+                    -Remote::rc.ch0 *
+                    chassis_w             // ch0 use right as positive direction, while GimbalLG use CCW (left) as positive direction
             );
         } else if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_MIDDLE) {
             /// Remote elevator, left aided motor, right elevator
@@ -86,7 +85,8 @@ void UserE::UserThread::main() {
 
             // right elevator
             if (Remote::rc.ch1 > 0.5 || Remote::rc.ch1 < -0.5)
-                EngineerElevatorLG::set_elevator_height(EngineerElevatorLG::get_elevator_height() + Remote::rc.ch1 * 0.5);
+                EngineerElevatorLG::set_elevator_height(
+                        EngineerElevatorLG::get_elevator_height() + Remote::rc.ch1 * 0.5);
             else
                 EngineerElevatorSKD::set_target_height(EngineerElevatorLG::get_elevator_height());
 
@@ -96,7 +96,7 @@ void UserE::UserThread::main() {
             else
                 EngineerElevatorLG::set_aided_motor_velocity(0);
 
-        } else if (Remote::rc.s1 == Remote::S_DOWN && Remote::rc.s2 != Remote::S_UP) {
+        } else if (Remote::rc.s1 == Remote::S_DOWN) {
 
             EngineerElevatorLG::set_test_mode(false);
 
@@ -105,62 +105,62 @@ void UserE::UserThread::main() {
 
             /// PC control
 
-            /**
-             * PC Key Table:
-             * ------------------------------------------------------------
-             * Key      Function
-             * ------------------------------------------------------------
-             * QWES     LEFT, UP, RIGHT, DOWN
-             * AD       CCW, CW
-             * RF       PAUSE + UP-STAIR, DOWN-STAIR
-             * CTRL     SLOW MOVEMENT
-             * SHIFT    FAST MOVEMENT
-             * V        OPEN/CLOSE DOOR
-             * C        TURN AROUND
-             * MOUSE_L  ROBOTIC_ARM NEXT STEP
-             * MOUSE_R  ROBOTIC_ARM PREV STEP
-             * ------------------------------------------------------------
-             */
+            if (EngineerElevatorLG::get_current_state() == EngineerElevatorLG::STOP) {
 
-            EngineerElevatorLG::set_auto_elevating(Remote::rc.s2 == Remote::S_DOWN);
+                /**
+                 * PC Key Table:
+                 * ------------------------------------------------------------
+                 * Key      Function
+                 * ------------------------------------------------------------
+                 * QWES     LEFT, UP, RIGHT, DOWN
+                 * AD       CCW, CW
+                 * RF       PAUSE + UP-STAIR, DOWN-STAIR
+                 * CTRL     SLOW MOVEMENT
+                 * SHIFT    FAST MOVEMENT
+                 * V        OPEN/CLOSE DOOR
+                 * C        TURN AROUND
+                 * MOUSE_L  ROBOTIC_ARM NEXT STEP
+                 * MOUSE_R  ROBOTIC_ARM PREV STEP
+                 * ------------------------------------------------------------
+                 */
 
-            /// Chassis WSQE, AD, ctrl, shift
-            float target_vx, target_vy, target_w;
+                /// Chassis WSQE, AD, ctrl, shift
+                float target_vx, target_vy, target_w;
 
-            if (Remote::key.w) {
-                target_vy = chassis_v_forward;
+                if (Remote::key.w) {
+                    target_vy = chassis_v_forward;
+                } else if (Remote::key.s) target_vy = -chassis_v_backward;
+                else target_vy = 0;
+
+                if (Remote::key.e) target_vx = chassis_v_left_right;
+                else if (Remote::key.q) target_vx = -chassis_v_left_right;
+                else target_vx = 0;
+
+                if (Remote::key.a) target_w = chassis_w;
+                else if (Remote::key.d) target_w = -chassis_w;
+                else target_w = 0;
+
+                if (Remote::key.ctrl) {
+                    target_vx *= chassis_pc_ctrl_ratio;
+                    target_vy *= chassis_pc_ctrl_ratio;
+
+                    // Slow speed, 1 lights from right
+                    set_user_client_speed_light_(1);
+                } else if (Remote::key.shift) {
+                    target_vx *= chassis_pc_shift_ratio;
+                    target_vy *= chassis_pc_shift_ratio;
+
+                    // Fast speed, 3 lights from right
+                    set_user_client_speed_light_(3);
+                } else {
+                    // Normal speed, 2 lights from right
+                    set_user_client_speed_light_(2);
+                }
+
+                EngineerChassisSKD::set_velocity(target_vx, target_vy, target_w);
             }
-            else if (Remote::key.s) target_vy = -chassis_v_backward;
-            else target_vy = 0;
 
-            if (Remote::key.e) target_vx = chassis_v_left_right;
-            else if (Remote::key.q) target_vx = -chassis_v_left_right;
-            else target_vx = 0;
-
-            if (Remote::key.a) target_w = chassis_w;
-            else if (Remote::key.d) target_w = -chassis_w;
-            else target_w = 0;
-
-            if (Remote::key.ctrl) {
-                target_vx *= chassis_pc_ctrl_ratio;
-                target_vy *= chassis_pc_ctrl_ratio;
-
-                // Slow speed, 1 lights from right
-                set_user_client_speed_light_(1);
-            } else if (Remote::key.shift) {
-                target_vx *= chassis_pc_shift_ratio;
-                target_vy *= chassis_pc_shift_ratio;
-
-                // Fast speed, 3 lights from right
-                set_user_client_speed_light_(3);
-            } else {
-                // Normal speed, 2 lights from right
-                set_user_client_speed_light_(2);
-            }
-
-            EngineerChassisSKD::set_velocity(target_vx, target_vy, target_w);
-
-        } else{
+        } else {
             /// Safe mode
             EngineerChassisSKD::enable(false);
             EngineerElevatorLG::elevator_enable(false);
@@ -212,20 +212,19 @@ void UserE::UserActionThread::main() {
             /// Robotic Arm
 
             if (key_flag & (1U << Remote::KEY_C)) {
-                EngineerGimbalIF::set_target_angle(((int)(EngineerGimbalIF::get_target_angle(EngineerGimbalIF::YAW) + 180.0f)) % 360, 0);
-            }
-
-            else if (key_flag & (1U << Remote::KEY_V)) {
+                EngineerGimbalIF::set_target_angle(
+                        ((int) (EngineerGimbalIF::get_target_angle(EngineerGimbalIF::YAW) + 180.0f)) % 360, 0);
+            } else if (key_flag & (1U << Remote::KEY_V)) {
                 EngineerElevatorLG::give_bullet();
                 RoboticArmSKD::change_door();
             }
 
-            if (key_flag & (1u << Remote::KEY_R)){
-                EngineerElevatorLG::going_up();
+            if (key_flag & (1u << Remote::KEY_R)) {
+                EngineerElevatorLG::set_elevate_dir(true);
             }
 
-            if (key_flag & (1U << Remote::KEY_F)){
-                EngineerElevatorLG::going_down();
+            if (key_flag & (1U << Remote::KEY_F)) {
+                EngineerElevatorLG::set_elevate_dir(false);
             }
         }
 
