@@ -140,11 +140,12 @@ int main() {
                               {0, 0, 0, 0, 0} /* of no use */, {0, 0, 0, 0, 0} /* of no use */);
 
     /// Start LGs
-    //GimbalLG::init(THREAD_GIMBAL_LG_VISION_PRIO);
+    GimbalLG::init(0);
     ShootLG::init(SHOOT_DEGREE_PER_BULLET, THREAD_SHOOT_LG_STUCK_DETECT_PRIO, THREAD_SHOOT_BULLET_COUNTER_PRIO);
 
 
     /// Start Inspector and User Threads
+    // FIXME: Re-enable InspectorA
 //    InspectorA::start_inspection(THREAD_INSPECTOR_PRIO);
     UserA::start(THREAD_USER_PRIO, THREAD_USER_ACTION_PRIO, THREAD_USER_CLIENT_DATA_SEND_PRIO);
 
