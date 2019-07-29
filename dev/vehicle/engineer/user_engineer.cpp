@@ -50,7 +50,7 @@ void UserE::UserThread::main() {
     setName("UserE");
     while (!shouldTerminate()) {
 
-        ///Gimbal
+        /// Gimbal
         if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_DOWN) {
             /// Remote Control
             gimbal_pc_yaw_target_angle_ = (Remote::rc.ch0 / 2 + 0.5) * EngineerGimbalIF::MAX_ANGLE;
@@ -61,10 +61,13 @@ void UserE::UserThread::main() {
 
         /// Elevator and Chassis
 
-        EngineerChassisSKD::enable(true);
-        EngineerElevatorLG::elevator_enable(true);
-
         if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_UP) {
+
+            EngineerElevatorLG::set_test_mode(true);
+
+            EngineerChassisSKD::enable(true);
+            EngineerElevatorLG::elevator_enable(true);
+
             /// Remote chassis, left FBLR, right turn
             EngineerChassisSKD::set_velocity(
                     Remote::rc.ch2 * chassis_v_left_right,  // Both use right as positive direction
@@ -75,6 +78,8 @@ void UserE::UserThread::main() {
             );
         } else if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_MIDDLE) {
             /// Remote elevator, left aided motor, right elevator
+
+            EngineerElevatorLG::set_test_mode(true);
 
             EngineerChassisSKD::enable(true);
             EngineerElevatorLG::elevator_enable(true);
@@ -92,6 +97,8 @@ void UserE::UserThread::main() {
                 EngineerElevatorLG::set_aided_motor_velocity(0);
 
         } else if (Remote::rc.s1 == Remote::S_DOWN && Remote::rc.s2 != Remote::S_UP) {
+
+            EngineerElevatorLG::set_test_mode(false);
 
             EngineerChassisSKD::enable(true);
             EngineerElevatorLG::elevator_enable(true);
@@ -196,7 +203,7 @@ void UserE::UserActionThread::main() {
                 RoboticArmSKD::prev_step();
             }
         }
-        
+
         /// Key Press
         if (events & KEY_PRESS_EVENTMASK) {
 
@@ -209,8 +216,8 @@ void UserE::UserActionThread::main() {
             }
 
             else if (key_flag & (1U << Remote::KEY_V)) {
-                RoboticArmSKD::change_door();
                 EngineerElevatorLG::give_bullet();
+                RoboticArmSKD::change_door();
             }
 
             if (key_flag & (1u << Remote::KEY_R)){

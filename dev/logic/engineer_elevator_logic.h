@@ -38,6 +38,8 @@ public:
 
     static void elevator_enable(bool enable_);
 
+    static void set_test_mode(bool test_mode_);
+
     /** @brief Set target height */
     static void set_elevator_height(float new_height);
 

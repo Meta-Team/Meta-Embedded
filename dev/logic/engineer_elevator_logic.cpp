@@ -42,6 +42,10 @@ void EngineerElevatorLG::set_auto_elevating(bool auto_elevating_) {
     auto_elevating = auto_elevating_;
 }
 
+void EngineerElevatorLG::set_test_mode(bool test_mode_) {
+    test_mode = test_mode_;
+}
+
 void EngineerElevatorLG::going_up() {
     if (!pause){
         pause_action();
@@ -146,7 +150,6 @@ void EngineerElevatorLG::give_bullet() {
     else
         state = GIVING_BULLET;
 }
-
 
 /////////// for finding better aided motor params
 //void EngineerElevatorLG::aided_motor_test_forward() {

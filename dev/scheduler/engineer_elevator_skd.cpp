@@ -25,10 +25,7 @@ void EngineerElevatorSKD::elevator_enable(bool enable) {
 }
 
 void EngineerElevatorSKD::aided_motor_enable(bool enable) {
-    if (aided_motor_enabled != enable) {  // avoid setting repeatedly
-        set_aided_motor_velocity(0);  // clear target velocity
-        aided_motor_enabled = enable;
-    }
+    aided_motor_enabled = enable;
 }
 
 void EngineerElevatorSKD::load_pid_params(pid_id_t pid_id, PIDControllerBase::pid_params_t pid_params) {
@@ -64,10 +61,7 @@ void EngineerElevatorSKD::set_target_height(float new_height) {
 }
 
 void EngineerElevatorSKD::set_aided_motor_velocity(float target_velocity_) {
-    if (aided_motor_enabled)
-        target_velocity[2] = target_velocity[3] = - target_velocity_;
-    else
-        LOG_ERR("ElevatorSKD: aided motor disabled now");
+    target_velocity[2] = target_velocity[3] = - target_velocity_;
 }
 
 float EngineerElevatorSKD::get_current_height() {
