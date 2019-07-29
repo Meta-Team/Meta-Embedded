@@ -122,7 +122,6 @@ void UserE::UserThread::main() {
 
             if (Remote::key.w) {
                 target_vy = chassis_v_forward;
-                LOG("W");
             }
             else if (Remote::key.s) target_vy = -chassis_v_backward;
             else target_vy = 0;
