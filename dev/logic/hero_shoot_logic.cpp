@@ -44,7 +44,7 @@ void HeroShootLG::shoot() {
 
     if (loaderState == STOP) {
         ShootSKD::set_mode(ShootSKD::LIMITED_SHOOTING_MODE);
-        if (loaded_bullet[0] && loaded_bullet[1]) {    // if the next bullet place is loaded
+        if (loaded_bullet[0]) {    // if the next bullet place is loaded
 
             loader_target_angle += loader_angle_per_bullet;
             ShootSKD::set_loader_target_angle(loader_target_angle);
@@ -56,7 +56,7 @@ void HeroShootLG::shoot() {
             loaded_bullet[2] = loaded_bullet[3];
             loaded_bullet[3] = false;
 
-        } else if (loaded_bullet[0] && !loaded_bullet[1]) {    // if the next bullet place is empty
+        } else if (!loaded_bullet[0] && loaded_bullet[1]) {    // if the next bullet place is empty
 
             loader_target_angle += (2 * loader_angle_per_bullet);
             ShootSKD::set_loader_target_angle(loader_target_angle);
@@ -66,17 +66,6 @@ void HeroShootLG::shoot() {
             loaded_bullet[0] = loaded_bullet[2];
             loaded_bullet[1] = loaded_bullet[3];
             loaded_bullet[3] = false;
-
-        } else if (!loaded_bullet[0]) {
-            loader_target_angle += (2 * loader_angle_per_bullet);
-            ShootSKD::set_loader_target_angle(loader_target_angle);
-            loaderState = LOADING;
-
-            // Update the status
-            loaded_bullet[0] = loaded_bullet[2];
-            loaded_bullet[1] = loaded_bullet[3];
-            loaded_bullet[3] = false;
-            loaded_bullet[2] = (bool) palReadPad(GPIOE, GPIOE_PIN5);
         }
     }
 }
@@ -166,14 +155,7 @@ void HeroShootLG::AutoLoaderThread::main() {
             plateState = STOP;
         }
 
-        // Update sequence by detecting the last bullet place
         loaded_bullet[2] = (bool) palReadPad(GPIOE, GPIOE_PIN4);
-
-        // When loaded_bullet[2] is true and an extra loading bullet is detected
-        if (loaded_bullet[2] && (bool) palReadPad(GPIOE, GPIOE_PIN5)) {
-            loaded_bullet[3] = true;
-        }
-
         // loader load automatically.
         if (!loaded_bullet[0] && loaded_bullet[2] && loaderState == STOP) {
             ShootSKD::set_mode(ShootSKD::LIMITED_SHOOTING_MODE);
@@ -183,12 +165,11 @@ void HeroShootLG::AutoLoaderThread::main() {
             loaderState = LOADING;
             loaded_bullet[0] = loaded_bullet[1];
             loaded_bullet[1] = loaded_bullet[2];
-            loaded_bullet[2] = loaded_bullet[3];
-            loaded_bullet[3] = false;
+            loaded_bullet[2] = false;
             // Maybe no need to update the loaded_bullet[2] as the loaded_bullet[2] will refresh real timely.
         }
 
-        /**             Plate Auto Load*/
+        /**-------------Plate Auto Load-------------*/
 
         // Set for load numbers.
         if (plateState == STOP){
@@ -205,27 +186,31 @@ void HeroShootLG::AutoLoaderThread::main() {
                     if (loaded_bullet[1] == false && loaded_bullet[2] == false){
                         PlateLoadAttempt.attempt_number = 2;
                         memcpy(PlateLoadAttempt.bullet_status, loaded_bullet, sizeof(loaded_bullet));
+                        ball_in_loader = ball_in_tunnel = 0;
                     } else if (loaded_bullet[1] == true && loaded_bullet[2] == false) {
                         PlateLoadAttempt.attempt_number = 1;
                         memcpy(PlateLoadAttempt.bullet_status, loaded_bullet, sizeof(loaded_bullet));
+                        ball_in_loader = ball_in_tunnel = 0;
                     }
-                    ball_in_loader = ball_in_tunnel = 0;
                 }
             }
             // Situation II: Previous Load Failed and need to reload. (Ball has slipped away.)
             else if (PlateLoadAttempt.task_status == LOAD_WAITING){
                 // wait_time has beyond the tolerable time.
-                if(SYSTIME - PlateLoadAttempt.wait_time > 500) {
-                    PlateLoadAttempt.attempt_number = PlateLoadAttempt.attempt_number - ball_in_tunnel;
-                    PlateLoadAttempt.task_status = LOAD_RUNNING;
-                    ball_in_tunnel = 0;
-                    ball_in_loader = 0;
-                }
+                if(ball_in_loader >= PlateLoadAttempt.attempt_number) PlateLoadAttempt.task_status = LOAD_SUCCESS;
+//                if(SYSTIME - PlateLoadAttempt.wait_time > 1000) {
+//                    PlateLoadAttempt.attempt_number = PlateLoadAttempt.attempt_number - ball_in_tunnel;
+//                    PlateLoadAttempt.task_status = LOAD_RUNNING;
+//                    ball_in_tunnel = 0;
+//                    ball_in_loader = 0;
+//                }
             }
             // Situation III: Load is running, handle the task
             else if (PlateLoadAttempt.task_status == LOAD_RUNNING){
+
                 ShootSKD::set_mode(ShootSKD::LIMITED_SHOOTING_MODE);
                 if(ball_in_tunnel + ball_in_loader < PlateLoadAttempt.attempt_number){
+                    plate_target_angle += plate_angle_per_bullet;
                     ShootSKD::set_plate_target_angle(plate_target_angle);
                 } else if (ball_in_tunnel + ball_in_loader >= PlateLoadAttempt.attempt_number) {
                     PlateLoadAttempt.task_status = LOAD_WAITING;
@@ -237,15 +222,18 @@ void HeroShootLG::AutoLoaderThread::main() {
         if (PlateMouthStatus[0] && !PlateMouthStatus[1]) {
             ball_in_tunnel += 1;
         }
-        if (!LoaderMouthStatus[0] && LoaderMouthStatus[1]) {
+        // Once the a bullet was in, refresh the wait time.
+        if (LoaderMouthStatus[0] && !LoaderMouthStatus[1]) {
             ball_in_tunnel -= 1;
             ball_in_loader += 1;
             PlateLoadAttempt.wait_time = SYSTIME;
+            if(loaded_bullet[2]) {
+                loaded_bullet[3] = true;
+            }
         }
-        // Once the a bullet was in, refresh the wait time.
-        if (PlateLoadAttempt.task_status == LOAD_WAITING && (bool)palReadPad(GPIOE, GPIOE_PIN4)) PlateLoadAttempt.wait_time = SYSTIME;
 
-        // Update wait time.
+        // Refresh the wait time.
+        if (PlateLoadAttempt.task_status == LOAD_WAITING && (bool)palReadPad(GPIOE, GPIOE_PIN4)) PlateLoadAttempt.wait_time = SYSTIME;
 
 
         // Check load success or not.

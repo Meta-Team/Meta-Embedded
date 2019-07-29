@@ -110,7 +110,7 @@ private:
 
         static constexpr unsigned STUCK_REVERSE_TIME = 300;
 
-        static constexpr int LOADER_STUCK_THRESHOLD_CURRENT = 1500;
+        static constexpr int LOADER_STUCK_THRESHOLD_CURRENT = 2000;
         static constexpr int LOADER_STUCK_THRESHOLD_VELOCITY = 2;
 
         static constexpr int PLATE_STUCK_THRESHOLD_CURRENT = 3000;

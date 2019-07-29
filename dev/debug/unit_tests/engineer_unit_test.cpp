@@ -243,7 +243,7 @@ static void cmd_auto_up(BaseSequentialStream *chp, int argc, char *argv[]){
         shellUsage(chp, "up");
         return;
     }
-    EngineerElevatorLG::start_going_up();
+    EngineerElevatorLG::going_up();
 }
 
 static void cmd_auto_down(BaseSequentialStream *chp, int argc, char *argv[]){
@@ -252,7 +252,7 @@ static void cmd_auto_down(BaseSequentialStream *chp, int argc, char *argv[]){
         shellUsage(chp, "down");
         return;
     }
-    EngineerElevatorLG::start_going_down();
+    EngineerElevatorLG::going_down();
 }
 
 static void cmd_set_sensor_state(BaseSequentialStream *chp, int argc, char *argv[]){
