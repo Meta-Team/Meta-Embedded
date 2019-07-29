@@ -3,7 +3,6 @@
 //
 
 #include "robotic_arm_skd.h"
-#include "engineer_elevator_skd.h"
 #include "math.h"
 
 RoboticArmSKD::RoboticArmThread RoboticArmSKD::roboticArmThread;
