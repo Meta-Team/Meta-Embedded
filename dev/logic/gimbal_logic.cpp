@@ -17,8 +17,10 @@ GimbalLG::VisionThread GimbalLG::visionThread;
 chibios_rt::ThreadReference GimbalLG::visionThreadReference;
 
 void GimbalLG::init(tprio_t vision_thread_prio_) {
-    visionThread.started = true;
-    visionThreadReference = visionThread.start(vision_thread_prio_);
+    if (vision_thread_prio_ != 0) {
+        visionThread.started = true;
+        visionThreadReference = visionThread.start(vision_thread_prio_);
+    }
 }
 
 GimbalLG::action_t GimbalLG::get_action() {
