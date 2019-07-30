@@ -51,8 +51,13 @@ private:
     static float shoot_launch_speed;
 
     static float shoot_common_duty_cycle;
+    static float badass_duty_cycle;
+
+    static float common_plate_target_range;
+    static float badass_plate_target_range;
 
     static Remote::key_t shoot_fw_switch;
+    static Remote::key_t shoot_weapon_switch;
 
     /// Helpers
     static void set_user_client_speed_light_(int level);
