@@ -8,7 +8,6 @@
 #include "ch.hpp"
 #include "hal.h"
 
-
 class VisionPort {
 
 public:

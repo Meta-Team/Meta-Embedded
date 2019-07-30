@@ -58,7 +58,7 @@ void VisionPort::send_gimbal(float yaw, float pitch) {
 //    uartStartSend(UART_DRIVER, tx_pak_size, (uint8_t *) &tx_pak);  // it has some problem
 }
 
-void VisionPort::send_enemy_color(bool is_blue){
+void VisionPort::send_enemy_color(bool is_blue) {
     package_t tx_pak;
 
     size_t tx_pak_size = FRAME_HEADER_SIZE + CMD_ID_SIZE + sizeof(enemy_color_t) + FRAME_TAIL_SIZE;
@@ -82,6 +82,11 @@ void VisionPort::uart_rx_callback(UARTDriver *uartp) {
     chSysLockFromISR();  /// --- ENTER I-Locked state. DO NOT use LOG, printf, non I-Class functions or return ---
 
     uint8_t *pak_uint8 = (uint8_t *) &pak;
+
+#ifdef VISION_PORT_DEBUG
+    LED::red_toggle();
+#warning "VisionPort: in debug mode now"
+#endif
 
     switch (rx_status) {
 
@@ -108,8 +113,11 @@ void VisionPort::uart_rx_callback(UARTDriver *uartp) {
                 switch (pak.cmd_id) {
                     case 0xFF01:
                         enemy_info = pak.enemy_info_;
-                        LED::red_toggle();
                         last_update_time = SYSTIME;
+#ifdef VISION_PORT_DEBUG
+                        LED::green_toggle();
+#warning "VisionPort: in debug mode now"
+#endif
                         break;
                 }
             }
@@ -139,9 +147,12 @@ void VisionPort::uart_rx_callback(UARTDriver *uartp) {
 void VisionPort::uart_err_callback(UARTDriver *uartp, uartflags_t e) {
     (void) uartp;
     (void) e;
-    /*for (unsigned i = 0; i < 8; i++) {
+#ifdef VISION_PORT_DEBUG
+    for (unsigned i = 0; i < 8; i++) {
         if (e & (1U << i)) LED::led_toggle(i + 1);
-    }*/
+    }
+#warning "VisionPort: in debug mode now"
+#endif
 }
 
 void VisionPort::uart_char_callback(UARTDriver *uartp, uint16_t c) {

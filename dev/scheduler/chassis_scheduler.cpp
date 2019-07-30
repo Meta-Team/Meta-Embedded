@@ -44,6 +44,11 @@ void ChassisSKD::start(float wheel_base, float wheel_tread, float wheel_circumfe
     wheel_tread_ = wheel_tread;
     wheel_circumference_ = wheel_circumference;
 
+    /*
+     * FIXME: in the following lines, it should be 180.0f instead of 360.0f. However, this revision will affect
+     *        many aspects, including Theta2W PID parameters for chassis dodge mode. It should be fixed after
+     *        season 2019.
+     */
     w_to_v_ratio_ = (wheel_base + wheel_tread) / 2.0f / 360.0f * 3.14159f;
     v_to_wheel_angular_velocity_ = (360.0f / wheel_circumference);
     chassis_gimbal_offset_ = chassis_gimbal_offset;
