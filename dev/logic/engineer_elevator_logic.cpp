@@ -174,13 +174,10 @@ void EngineerElevatorLG::EngineerElevatorLGThread::main() {
                         if (BR_hanging && BL_hanging) {
                             // Both the two sensors at the back wheels reach the edge, can start to go down-stairs
                             set_state(ASCENDING);
-                        }
-                        // FIXME: re-enable
-                        /*else if ( BL_hanging && !BR_hanging )
-                            EngineerChassisSKD::pivot_turn(EngineerChassisSKD::BL, -0.005 * ENGINEER_CHASSIS_W_MAX);
+                        }else if ( BL_hanging && !BR_hanging )
+                            EngineerChassisSKD::pivot_turn(- CHASSIS_WIDTH / 2, - CHASSIS_LENGTH / 2, -0.005 * ENGINEER_CHASSIS_W_MAX);
                         else if ( !BL_hanging && BR_hanging )
-                            EngineerChassisSKD::pivot_turn(EngineerChassisSKD::BR, +0.005 * ENGINEER_CHASSIS_W_MAX);
-                            */
+                            EngineerChassisSKD::pivot_turn(+ CHASSIS_WIDTH / 2, - CHASSIS_LENGTH / 2, +0.005 * ENGINEER_CHASSIS_W_MAX);
 
                     }
                     break;

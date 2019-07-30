@@ -45,7 +45,7 @@ public:
      * @param id   Motor id as pivot
      * @param w    Angular velocity
      */
-    static void pivot_turn(motor_id_t id, float w);
+    static void pivot_turn(float x, float y, float w);
 
 private:
 
