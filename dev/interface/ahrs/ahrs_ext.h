@@ -82,7 +82,7 @@ private:
     Vector3D temp_gyro_bias;   // temp sum of gyro for calibration
 
     // If changes in x, y, z of gyro is in this range MPU6500 is regarded as "static"
-    const float STATIC_RANGE = 0.5f;
+    const float STATIC_RANGE = 0.2f;
 
     const unsigned BIAS_SAMPLE_COUNT = 500;
     // When static_measurement_count reaches BIAS_SAMPLE_COUNT, calibration is performed.

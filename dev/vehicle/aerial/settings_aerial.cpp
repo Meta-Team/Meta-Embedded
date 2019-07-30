@@ -20,7 +20,7 @@ void gimbal_get_config(BaseSequentialStream *chp, int argc, char *argv[]) {
     }
     chprintf(chp, "!sg,%f,%f,%f,%f,%f,%f,%f,%f" SHELL_NEWLINE_STR,
              UserA::gimbal_pc_yaw_sensitivity[0], UserA::gimbal_pc_yaw_sensitivity[1], UserA::gimbal_pc_yaw_sensitivity[2],
-             UserA::gimbal_pitch_max_angle, UserA::gimbal_pitch_min_angle,
+             0, 0,
              UserA::gimbal_pc_pitch_sensitivity[0], UserA::gimbal_pc_pitch_sensitivity[1],
              UserA::gimbal_pc_pitch_sensitivity[2]);
 }
@@ -34,8 +34,8 @@ void gimbal_set_config(BaseSequentialStream *chp, int argc, char *argv[]) {
     UserA::gimbal_pc_yaw_sensitivity[0] = Shell::atof(argv[0]);
     UserA::gimbal_pc_yaw_sensitivity[1] = Shell::atof(argv[1]);
     UserA::gimbal_pc_yaw_sensitivity[2] = Shell::atof(argv[2]);
-    UserA::gimbal_pitch_max_angle = Shell::atof(argv[3]);
-    UserA::gimbal_pitch_min_angle = Shell::atof(argv[4]);
+//    UserA::gimbal_pitch_max_angle = Shell::atof(argv[3]);
+//    UserA::gimbal_pitch_min_angle = Shell::atof(argv[4]);
     UserA::gimbal_pc_pitch_sensitivity[0] = Shell::atof(argv[5]);
     UserA::gimbal_pc_pitch_sensitivity[1] = Shell::atof(argv[6]);
     UserA::gimbal_pc_pitch_sensitivity[2] = Shell::atof(argv[7]);
