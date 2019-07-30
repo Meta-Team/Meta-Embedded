@@ -421,6 +421,12 @@ add_executable(ut_sd_card
 add_executable(ut_adc
         dev/debug/unit_tests/ut_adc.cpp
         dev/interface/dms_interface.cpp)
+
+add_executable(ut_sensors_sound
+        dev/debug/unit_tests/ut_sensors_sound.cpp
+        dev/logic/engineer_elevator_logic.cpp
+        )
+
 add_executable(ca_ahrs_infantry
         dev/interface/ahrs/ahrs_math.hpp
         dev/interface/ahrs/mpu6500.cpp
