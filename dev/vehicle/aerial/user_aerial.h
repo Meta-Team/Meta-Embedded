@@ -26,12 +26,13 @@ private:
     /// Gimbal Config
     static float gimbal_rc_yaw_max_speed;  // [degree/s]
     static float gimbal_pc_yaw_sensitivity[];  // [Ctrl, Normal, Shift] [degree/s]
-    static float gimbal_yaw_max_angle;  // [degree]
-    static float gimbal_yaw_min_angle;  // [degree]
+//    static float gimbal_yaw_max_angle;  // [degree]
+//    static float gimbal_yaw_min_angle;  // [degree]
 
+    static float gimbal_rc_pitch_max_speed;  // [degree/s]
     static float gimbal_pc_pitch_sensitivity[];   // rotation speed when mouse moves fastest [degree/s]
-    static float gimbal_pitch_min_angle; // down range for pitch [degree]
-    static float gimbal_pitch_max_angle; //  up range for pitch [degree]
+//    static float gimbal_pitch_min_angle; // down range for pitch [degree]
+//    static float gimbal_pitch_max_angle; //  up range for pitch [degree]
 
     /// Shoot Config
     static float shoot_launch_left_count;
@@ -51,7 +52,7 @@ private:
     /// Runtime variables
 
     static float gimbal_yaw_target_angle_;
-    static float gimbal_pc_pitch_target_angle_;
+    static float gimbal_pitch_target_angle_;
 
     /// User Thread
     static constexpr unsigned USER_THREAD_INTERVAL = 7;  // [ms]

@@ -7,13 +7,9 @@
 /// Gimbal Config
 float UserA::gimbal_rc_yaw_max_speed = 90;  // [degree/s]
 float UserA::gimbal_pc_yaw_sensitivity[3] = {50000, 100000, 150000};  // [Slow, Normal, Fast] [degree/s]
-float UserA::gimbal_yaw_max_angle = 200;  // [degree]
-float UserA::gimbal_yaw_min_angle = -200;  // [degree]
 
-
+float UserA::gimbal_rc_pitch_max_speed = 30;  // [degree/s]
 float UserA::gimbal_pc_pitch_sensitivity[3] = {20000, 50000, 60000};   // [Slow, Normal, Fast] [degree/s]
-float UserA::gimbal_pitch_min_angle = -70; // down range for pitch [degree]
-float UserA::gimbal_pitch_max_angle = 0; //  up range for pitch [degree]
 
 /// Shoot Config
 float UserA::shoot_launch_left_count = 5;
@@ -23,15 +19,13 @@ float UserA::shoot_launch_speed = 15.0f;
 
 float UserA::shoot_common_duty_cycle = 0.6;
 float UserA::shoot_debug_duty_cycle = 0.1;
-float UserA::shoot_full_power_duty_cycle = 1.0;
+float UserA::shoot_full_power_duty_cycle = 0.9;
 
 Remote::key_t UserA::shoot_fw_switch = Remote::KEY_Z;
 
-
-
 /// Variables
 float UserA::gimbal_yaw_target_angle_ = 0;
-float UserA::gimbal_pc_pitch_target_angle_ = 0;
+float UserA::gimbal_pitch_target_angle_ = 0;
 UserA::UserThread UserA::userThread;
 UserA::UserActionThread UserA::userActionThread;
 UserA::ClientDataSendingThread UserA::clientDataSendingThread;
@@ -53,9 +47,7 @@ void UserA::UserThread::main() {
 
         if (!InspectorA::remote_failure() /*&& !InspectorI::chassis_failure()*/ && !InspectorA::gimbal_failure()) {
 
-            if ((Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_UP) ||
-                (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_MIDDLE) ||
-                (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_DOWN)) {
+            if (Remote::rc.s1 == Remote::S_MIDDLE) {
 
                 /// Remote - Yaw + Pitch
 
@@ -66,15 +58,13 @@ void UserA::UserThread::main() {
                         -Remote::rc.ch0 * (gimbal_rc_yaw_max_speed * USER_THREAD_INTERVAL / 1000.0f);
                 // ch0 use right as positive direction, while GimbalLG use CCW (left) as positive direction
 
-                VAL_CROP(gimbal_yaw_target_angle_, gimbal_yaw_max_angle, gimbal_yaw_min_angle);
-
-                float pitch_target;
-                if (Remote::rc.ch1 > 0) pitch_target = Remote::rc.ch1 * gimbal_pitch_max_angle;
-                else pitch_target = -Remote::rc.ch1 * gimbal_pitch_min_angle;  // GIMBAL_PITCH_MIN_ANGLE is negative
+                gimbal_pitch_target_angle_ +=
+                        Remote::rc.ch1 * (gimbal_rc_pitch_max_speed * USER_THREAD_INTERVAL / 1000.0f);
                 // ch1 use up as positive direction, while GimbalLG also use up as positive direction
 
 
-                GimbalLG::set_target(gimbal_yaw_target_angle_, pitch_target);
+                GimbalLG::set_target(gimbal_yaw_target_angle_, gimbal_pitch_target_angle_);
+                // Crop will be performed inside
 
             } else if (Remote::rc.s1 == Remote::S_DOWN) {
 
@@ -107,16 +97,12 @@ void UserA::UserThread::main() {
                 gimbal_yaw_target_angle_ += -Remote::mouse.x * (yaw_sensitivity * USER_THREAD_INTERVAL / 1000.0f);
                 // mouse.x use right as positive direction, while GimbalLG use CCW (left) as positive direction
 
-                VAL_CROP(gimbal_yaw_target_angle_, gimbal_yaw_max_angle, gimbal_yaw_min_angle);
-
-                gimbal_pc_pitch_target_angle_ +=
+                gimbal_pitch_target_angle_ +=
                         -Remote::mouse.y * (pitch_sensitivity * USER_THREAD_INTERVAL / 1000.0f);
                 // mouse.y use down as positive direction, while GimbalLG use CCW (left) as positive direction
 
-                VAL_CROP(gimbal_pc_pitch_target_angle_, gimbal_pitch_max_angle, gimbal_pitch_min_angle);
-
-
-                GimbalLG::set_target(gimbal_yaw_target_angle_, gimbal_pc_pitch_target_angle_);
+                GimbalLG::set_target(gimbal_yaw_target_angle_, gimbal_pitch_target_angle_);
+                // Crop will be performed inside
 
                 if (Remote::key.g){
                     Referee::sentry_guiding_direction_s.direction_mask = 0;
@@ -244,10 +230,10 @@ void UserA::UserActionThread::main() {
 
             if (key_flag & (1U << Remote::KEY_Q)) {
                 gimbal_yaw_target_angle_ += 90.0f;
-                GimbalLG::set_target(gimbal_yaw_target_angle_, gimbal_pc_pitch_target_angle_);
+                GimbalLG::set_target(gimbal_yaw_target_angle_, gimbal_pitch_target_angle_);
             } else if (key_flag & (1U << Remote::KEY_E)) {
                 gimbal_yaw_target_angle_ -= 90.0f;
-                GimbalLG::set_target(gimbal_yaw_target_angle_, gimbal_pc_pitch_target_angle_);
+                GimbalLG::set_target(gimbal_yaw_target_angle_, gimbal_pitch_target_angle_);
             }
 
             /// Shoot

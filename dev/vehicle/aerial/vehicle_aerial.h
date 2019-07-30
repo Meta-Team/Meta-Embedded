@@ -31,7 +31,7 @@
                                          {0.0f,  1.0f,  0.0f}, \
                                          {1.0f,  0.0f,  0.0f}}
 
-#define EXT_AHRS_STORED_BIAS {-0.984146595, 2.501706600f, -0.840857326}
+#define EXT_AHRS_STORED_BIAS {1.3440283535, 2.464632034, -0.769026935}
 
 #define MPU6500_BIAS_DATA_ID 0x0001
 
