@@ -35,17 +35,6 @@ void EngineerChassisSKD::start(float wheel_base, float wheel_tread, float wheel_
 }
 
 void EngineerChassisSKD::enable(bool enable_) {
-    if (enable_){
-        LOG("EChassis Unlock");
-        if (!enabled) {
-            set_velocity(0, 0, 0);
-            for (size_t i = 0; i < MOTOR_COUNT; i++) {
-                pid[i].clear_i_out();
-            }
-        }
-    } else{
-        LOG("EChassis Lock");
-    }
     enabled = enable_;
 }
 

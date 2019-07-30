@@ -30,8 +30,7 @@ void EngineerGimbalIF::set_target_angle(float yaw_angle_, float pitch_angle_) {
 
 void EngineerGimbalIF::init() {
     pwmStart(&PWMD8, &FRICTION_WHEELS_PWM_CFG);
-    target_angle[YAW] = MAX_ANGLE / 2;
-    target_angle[PIT] = MAX_ANGLE / 2;
+    set_target_angle(283.0f, 283.0f);
 }
 
 float EngineerGimbalIF::get_target_angle(EngineerGimbalIF::gimbal_id_t id) {

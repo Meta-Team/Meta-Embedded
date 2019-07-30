@@ -21,19 +21,11 @@ void EngineerElevatorSKD::start(tprio_t thread_prio) {
 }
 
 void EngineerElevatorSKD::elevator_enable(bool enable) {
-    if (elevator_enabled != enable) {  // avoid setting repeatedly
-        // elevator should be fixed when disabled
-        set_target_height( EngineerElevatorIF::get_current_height() );
-        elevator_enabled = enable;
-        LOG("ElevatorSKD: enable = %d", elevator_enabled);
-    }
+    elevator_enabled = enable;
 }
 
 void EngineerElevatorSKD::aided_motor_enable(bool enable) {
-    if (aided_motor_enabled != enable) {  // avoid setting repeatedly
-        set_aided_motor_velocity(0);  // clear target velocity
-        aided_motor_enabled = enable;
-    }
+    aided_motor_enabled = enable;
 }
 
 void EngineerElevatorSKD::load_pid_params(pid_id_t pid_id, PIDControllerBase::pid_params_t pid_params) {
@@ -65,19 +57,11 @@ void EngineerElevatorSKD::load_pid_params(pid_id_t pid_id, PIDControllerBase::pi
 }
 
 void EngineerElevatorSKD::set_target_height(float new_height) {
-    if (elevator_enabled) {
-        target_height = - new_height;  // target_height should take the negative value due to the direction
-//        LOG("ElevatorSKD: set target %f", new_height);
-    } else {
-//        LOG("elevator disabled");
-    }
+    target_height = - new_height;
 }
 
 void EngineerElevatorSKD::set_aided_motor_velocity(float target_velocity_) {
-    if (aided_motor_enabled)
-        target_velocity[2] = target_velocity[3] = - target_velocity_;
-    else
-        LOG_ERR("ElevatorSKD: aided motor disabled now");
+    target_velocity[2] = target_velocity[3] = - target_velocity_;
 }
 
 float EngineerElevatorSKD::get_current_height() {
@@ -90,12 +74,19 @@ void EngineerElevatorSKD::SKDThread::main() {
     while (!shouldTerminate()){
 
         /// Elevator
-        float angle_0 = EngineerElevatorIF::elevatorMotor[0].present_angle;
-        float angle_1 = EngineerElevatorIF::elevatorMotor[1].present_angle;
-        target_velocity[0] = a2v_pid[0].calc(angle_0, target_height * ANGLE_HEIGHT_RATIO);
-        target_velocity[1] = a2v_pid[1].calc(angle_0, target_height * ANGLE_HEIGHT_RATIO) + counter_balance_pid.calc(angle_1, angle_0);
-        EngineerElevatorIF::elevatorMotor[0].target_current = (int16_t) v2i_pid[0].calc(EngineerElevatorIF::elevatorMotor[0].actual_velocity, target_velocity[0]);
-        EngineerElevatorIF::elevatorMotor[1].target_current = (int16_t) v2i_pid[1].calc(EngineerElevatorIF::elevatorMotor[1].actual_velocity, target_velocity[1]);
+        if (elevator_enabled) {
+            float angle_0 = EngineerElevatorIF::elevatorMotor[0].present_angle;
+            float angle_1 = EngineerElevatorIF::elevatorMotor[1].present_angle;
+            target_velocity[0] = a2v_pid[0].calc(angle_0, target_height * ANGLE_HEIGHT_RATIO);
+            target_velocity[1] = a2v_pid[1].calc(angle_0, target_height * ANGLE_HEIGHT_RATIO) +
+                                 counter_balance_pid.calc(angle_1, angle_0);
+            EngineerElevatorIF::elevatorMotor[0].target_current = (int16_t) v2i_pid[0].calc(
+                    EngineerElevatorIF::elevatorMotor[0].actual_velocity, target_velocity[0]);
+            EngineerElevatorIF::elevatorMotor[1].target_current = (int16_t) v2i_pid[1].calc(
+                    EngineerElevatorIF::elevatorMotor[1].actual_velocity, target_velocity[1]);
+        } else{
+            EngineerElevatorIF::elevatorMotor[0].target_current = EngineerElevatorIF::elevatorMotor[1].target_current = 0;
+        }
 
         /// Aided motor
         if (aided_motor_enabled) {

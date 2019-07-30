@@ -25,6 +25,15 @@ void cmd_change_door(BaseSequentialStream *chp, int argc, char *argv[]){
     RoboticArmSKD::change_door();
 }
 
+void cmd_robotic_prev(BaseSequentialStream *chp, int argc, char *argv[]){
+    (void) argv;
+    if (argc != 0) {
+        shellUsage(chp, "prev");
+        return;
+    }
+    RoboticArmSKD::prev_step();
+}
+
 void cmd_echo_sdcard(BaseSequentialStream *chp, int argc, char *argv[]){
     (void) argv;
     if (argc != 0) {
@@ -56,6 +65,7 @@ void cmd_next_step(BaseSequentialStream *chp, int argc, char *argv[]) {
 ShellCommand mainProgramCommands[] = {
         {"echo_dms", cmd_echo_dms},
         {"next", cmd_next_step},
+        {"prev", cmd_robotic_prev},
         {"door", cmd_change_door},
         {"echo_sd", cmd_echo_sdcard},
         {"clear_sd", cmd_clear_sdcard},

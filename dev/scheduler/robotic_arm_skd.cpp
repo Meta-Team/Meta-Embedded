@@ -27,24 +27,23 @@ void RoboticArmSKD::start(tprio_t skd_thread_prio) {
     v2i_pid.change_parameters(ROBOTIC_ARM_PID_V2I_PARAMS);
     v2i_pid.clear_i_out();
 
-    palSetPad(GPIOH, POWER_PAD);
-    extend_state = HIGH_STATUS;
-    lift_state = HIGH_STATUS;
-    door_state = HIGH_STATUS;
+    lift_state = LOW_STATUS;
+    door_state = LOW_STATUS;
+    extend_state = LOW_STATUS;
     clamp_state = LOW_STATUS;
-    palSetPad(GPIOE, EXTEND_PAD);
-    palSetPad(GPIOE, LIFT_PAD);
-    palSetPad(GPIOE, DOOR_PAD);
+    palClearPad(GPIOE, LIFT_PAD);
+    palClearPad(GPIOE, DOOR_PAD);
     palClearPad(GPIOE, CLAMP_PAD);
-    LOG("Yes!");
+    palClearPad(GPIOE, EXTEND_PAD);
     roboticArmThread.start(skd_thread_prio);
+    palSetPad(GPIOH, POWER_PAD);
 }
 
 void RoboticArmSKD::stretch_out() {
     if (released && RoboticArmIF::present_angle < ROBOTIC_ARM_PULL_BACK_ANGLE){
         released = false;
         trigger_angle = ROBOTIC_ARM_STRETCH_OUT_ANGLE;
-        target_velocity = ROBOTIC_ARM_ROTATE_VELOCITY + 100;
+        target_velocity = ROBOTIC_ARM_ROTATE_VELOCITY + 200;
     }
 }
 
@@ -56,12 +55,12 @@ void RoboticArmSKD::pull_back() {
     }
 }
 
-void RoboticArmSKD::change_extend() {
+/*void RoboticArmSKD::change_extend() {
     change_digital_status(extend_state, EXTEND_PAD);
-}
+}*/
 
 void RoboticArmSKD::change_door() {
-    if (door_state == HIGH_STATUS) {
+    if (door_state == LOW_STATUS) {
         chThdSleepMilliseconds(1000);
         change_digital_status(door_state, DOOR_PAD);
     }
@@ -93,8 +92,8 @@ void RoboticArmSKD::next_step() {
     if (state == NORMAL) {
         state = COLLECT_BULLET;
         chThdSleepMilliseconds(1000);
-        set_digital_status(extend_state, EXTEND_PAD, HIGH_STATUS);
-        set_digital_status(lift_state, LIFT_PAD, LOW_STATUS);
+        set_digital_status(extend_state, EXTEND_PAD, LOW_STATUS);
+        set_digital_status(lift_state, LIFT_PAD, HIGH_STATUS);
         set_digital_status(clamp_state, CLAMP_PAD, LOW_STATUS);
         chThdSleepMilliseconds(1000);
         stretch_out();
@@ -106,7 +105,7 @@ void RoboticArmSKD::next_step() {
                 set_digital_status(clamp_state, CLAMP_PAD, HIGH_STATUS);
                 break;
             case BOX_CLAMPED:
-                set_digital_status(extend_state, EXTEND_PAD, HIGH_STATUS);
+                set_digital_status(extend_state, EXTEND_PAD, LOW_STATUS);
                 pull_back();
                 bullet_state = TAKING_BULLET;
                 break;
@@ -144,7 +143,7 @@ void RoboticArmSKD::update_target_current() {
                     set_digital_status(clamp_state, CLAMP_PAD, LOW_STATUS);
                     break;
                 case TAKING_BULLET:
-                    chThdSleepMilliseconds(4000);
+                    chThdSleepMilliseconds(2000);
                     stretch_out();
                     bullet_state = WAITING;
                     break;
@@ -153,8 +152,8 @@ void RoboticArmSKD::update_target_current() {
             }
         }
         else {
-            set_digital_status(extend_state, EXTEND_PAD, HIGH_STATUS);
-            set_digital_status(lift_state, LIFT_PAD, HIGH_STATUS);
+            set_digital_status(extend_state, EXTEND_PAD, LOW_STATUS);
+            set_digital_status(lift_state, LIFT_PAD, LOW_STATUS);
             set_digital_status(clamp_state, CLAMP_PAD, LOW_STATUS);
         }
     }
@@ -171,6 +170,7 @@ void RoboticArmSKD::update_target_current() {
             palClearPad(GPIOE, CLAMP_PAD);
         }
         RoboticArmIF::motor_target_current = (int16_t ) v2i_pid.calc(RoboticArmIF::present_velocity, target_velocity);
+
     } else{
         RoboticArmIF::motor_target_current = 0;
     }

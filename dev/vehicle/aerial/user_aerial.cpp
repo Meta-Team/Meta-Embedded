@@ -59,7 +59,7 @@ void UserA::UserThread::main() {
 
                 /// Remote - Yaw + Pitch
 
-                GimbalLG::set_action(GimbalLG::ABS_ANGLE_MODE);
+                GimbalLG::set_action(GimbalLG::AERIAL_MODE);
 
 
                 gimbal_yaw_target_angle_ +=
@@ -80,7 +80,7 @@ void UserA::UserThread::main() {
 
                 /// PC control mode
 
-                GimbalLG::set_action(GimbalLG::ABS_ANGLE_MODE);
+                GimbalLG::set_action(GimbalLG::AERIAL_MODE);
 
                 float yaw_sensitivity, pitch_sensitivity;
                 if (Remote::key.ctrl) {
