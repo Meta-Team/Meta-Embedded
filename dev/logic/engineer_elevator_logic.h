@@ -12,6 +12,7 @@
 #include "engineer_chassis_skd.h"
 #include "dms_interface.h"
 #include "referee_interface.h"
+#include "vehicle_engineer.h"
 
 // TODO: embed as constants
 #define FF_SWITCH_PAD GPIOB

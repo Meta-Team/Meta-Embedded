@@ -425,7 +425,6 @@ add_executable(ut_adc
 
 add_executable(ut_sensors_sound
         dev/debug/unit_tests/ut_sensors_sound.cpp
-        dev/logic/engineer_elevator_logic.cpp
         )
 
 add_executable(ca_ahrs_infantry

@@ -3,6 +3,7 @@
 //
 
 #include "engineer_chassis_skd.h"
+#include "math.h"
 
 float EngineerChassisSKD::target_velocity[MOTOR_COUNT];
 bool EngineerChassisSKD::enabled;
@@ -28,7 +29,7 @@ void EngineerChassisSKD::start(float wheel_base, float wheel_tread, float wheel_
     wheel_tread_ = wheel_tread;
     wheel_circumference_ = wheel_circumference;
 
-    w_to_v_ratio_ = (wheel_base + wheel_tread) / 2.0f / 360.0f * 3.14159f;
+    w_to_v_ratio_ = (wheel_base + wheel_tread) / 2.0f / 180.0f * M_PI;
     v_to_wheel_angular_velocity_ = (360.0f / wheel_circumference);
 
     skdThread.start(thread_prio);
@@ -55,29 +56,8 @@ void EngineerChassisSKD::set_velocity(float target_vx_, float target_vy_, float 
     target_w = target_w_;
 }
 
-void EngineerChassisSKD::pivot_turn(motor_id_t id, float w) {
-
-    float point_x = 0;
-    float point_y = 0;
-
-    if (id == FR) {
-        point_x = 0.5 * wheel_tread_;
-        point_y = 0.5 * wheel_base_;
-    } else if (id == FL) {
-        point_x = -0.5 * wheel_tread_;
-        point_y = 0.5 * wheel_base_;
-    } else if (id == BL) {
-        point_x = -0.5 * wheel_tread_;
-        point_y = -0.5 * wheel_base_;
-    } else if (id == BR) {
-        point_x = 0.5 * wheel_tread_;
-        point_y = -0.5 * wheel_base_;
-    }
-
-    float vx = point_y * target_w;
-    float vy = -point_x * target_w;
-    set_velocity(vx, vy, w);
-
+void EngineerChassisSKD::pivot_turn(float x, float y, float w) {
+    set_velocity(w * M_PI / 180.0f * y, - w * M_PI / 180.0f * x, w);
 }
 
 void EngineerChassisSKD::SKDThread::main() {

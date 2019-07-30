@@ -9,10 +9,12 @@
 #define CHASSIS_WHEEL_BASE  485.0f  // distance between front axle and the back axle, mm
 #define CHASSIS_WHEEL_TREAD 460.0f  // distance between left and right wheels, mm
 #define CHASSIS_WHEEL_CIRCUMFERENCE 479.1f  // mm
+#define CHASSIS_WIDTH 650.0f
+#define CHASSIS_LENGTH 680.0f
 
 // TODO: embed as constant
 #define ENGINEER_CHASSIS_VELOCITY_MAX 1000.0f
-#define ENGINEER_CHASSIS_W_MAX 150.0f
+#define ENGINEER_CHASSIS_W_MAX 90.0f
 #define ENGINEER_AIDED_MOTOR_VELOCITY 600.0f
 #define ANGLE_HEIGHT_RATIO 358.2f   // [degree/cm]
 #define STAGE_HEIGHT 24.0f          // cm // TODO need to measure

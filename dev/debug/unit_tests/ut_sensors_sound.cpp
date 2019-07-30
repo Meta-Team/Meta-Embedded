@@ -10,8 +10,6 @@
 #include "common_macro.h"
 #include "buzzer.h"
 
-#include "engineer_elevator_logic.h"
-
 ShellCommand sensorsCommands[] = {
         {nullptr, nullptr}
 };
@@ -20,10 +18,13 @@ class FeedbackThread : public chibios_rt::BaseStaticThread<512> {
     void main() final {
         setName("sensors_fb");
         while(!shouldTerminate()) {
-            if (palReadPad(FF_SWITCH_PAD, FFL_SWITCH_PIN_ID) == SWITCH_TOUCH_PAL_STATUS) {
+            LOG("sett")
+            if (palReadPad(GPIOB, GPIOB_PIN0) == PAL_HIGH) {
+                LOG("0");
                 Buzzer::play_sound(Buzzer::sound_alert, LOWPRIO);
             }
-            if (palReadPad(FF_SWITCH_PAD, FFR_SWITCH_PIN_ID) == SWITCH_TOUCH_PAL_STATUS) {
+            if (palReadPad(GPIOB, GPIOB_PIN1) == PAL_LOW) {
+                LOG("1");
                 Buzzer::play_sound(Buzzer::sound_alert, LOWPRIO);
             }
             sleep(TIME_MS2I(200));
@@ -32,6 +33,7 @@ class FeedbackThread : public chibios_rt::BaseStaticThread<512> {
 } feedbackThread;
 
 int main(void) {
+    LOG("start");
     halInit();
     chibios_rt::System::init();
 
@@ -40,6 +42,7 @@ int main(void) {
 
     LED::red_off();
     LED::green_off();
+    palClearPad(GPIOH, GPIOH_POWER4_CTRL);
 
     feedbackThread.start(NORMALPRIO);
 
