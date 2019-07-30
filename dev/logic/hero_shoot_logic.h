@@ -25,7 +25,12 @@
 
 class HeroShootLG {
 public:
+    enum bullet_type_t {
+        WHITE,
+        TRANSPARENT,
+    };
 
+    static bullet_type_t bulletType;
     /**
      * Initialize this module
      * @param loader_angle_per_bullet_     Angle for bullet loader to rotate to fill one bullet [degree]
@@ -65,18 +70,12 @@ public:
     static loader_state_t loaderState;
     static loader_state_t plateState;
 
-//    /**
-//     * Update and get bullet loader status
-//     * @return loaderState
-//     */
-//    static HeroShootLG::loader_state_t get_loader_status();
-//    /**
-//     * Update and get bullet plate status
-//     * @return PlateState
-//     */
-//    static HeroShootLG::loader_state_t get_plate_status();
 
 private:
+
+    static bool get_loader_mouth_status();
+    static bool get_plate_mouth_status();
+
     enum task_status_t{
         LOAD_RUNNING,
         LOAD_WAITING,

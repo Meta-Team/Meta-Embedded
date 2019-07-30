@@ -16,6 +16,9 @@ float HeroShootLG::plate_target_angle = 0.0f;
 int  HeroShootLG::plate_runtime = 0;
 float HeroShootLG::plate_angle_increment = 0.0f;
 float HeroShootLG::loader_angle_increment = 0.0f;
+
+HeroShootLG::bullet_type_t HeroShootLG::bulletType = TRANSPARENT;
+
 bool HeroShootLG::loaded_bullet[4] = {false, false, false, false};
 // loaded_bullet[0] is the closest bullet place to the friction wheel.
 int HeroShootLG::load_bullet_count = 0;
@@ -40,6 +43,22 @@ void HeroShootLG::init(float loader_angle_per_bullet_, float plate_angle_per_bul
 
     stuckDetector.start(stuck_detector_thread_prio);
     autoLoader.start(auto_loader_thread_prio);
+}
+
+bool HeroShootLG::get_loader_mouth_status() {
+    if (bulletType == TRANSPARENT) {
+        return !(bool) palReadPad(GPIOF, GPIOF_PIN0);
+    } else if (bulletType == WHITE){
+        return  (bool) palReadPad(GPIOF, GPIOF_PIN0);
+    }
+}
+
+bool HeroShootLG::get_plate_mouth_status() {
+    if (bulletType == TRANSPARENT) {
+        return !(bool) palReadPad(GPIOF, GPIOF_PIN1);
+    } else if (bulletType == WHITE) {
+        return  (bool) palReadPad(GPIOF, GPIOF_PIN1);
+    }
 }
 
 void HeroShootLG::shoot() {
@@ -69,7 +88,7 @@ void HeroShootLG::shoot() {
             loaded_bullet[1] = false; // this status will be updated in Automation thread.
             loaded_bullet[2] = false;
 
-            loader_angle_increment = loader_angle_per_bullet;
+            loader_angle_increment = 2 * loader_angle_per_bullet;
         }
     }
 }
@@ -152,13 +171,13 @@ void HeroShootLG::AutoLoaderThread::main() {
         // I.Detect the Mouths
         //   Loader Mouth
         LoaderMouthStatus[0] = LoaderMouthStatus[1];
-        LoaderMouthStatus[1] = (bool) palReadPad(GPIOE,GPIOE_PIN4);
+        LoaderMouthStatus[1] = get_loader_mouth_status();
         //   Plate Mouth
         PlateMouthStatus[0] = PlateMouthStatus[1];
-        PlateMouthStatus[1] = (bool) palReadPad(GPIOE, GPIOE_PIN5);
+        PlateMouthStatus[1] = get_plate_mouth_status();
 
         // II.The last place of loader
-        loaded_bullet[2] = (bool) palReadPad(GPIOE, GPIOE_PIN4);
+        loaded_bullet[2] = get_loader_mouth_status();
 
         // III.Detect the extra bullet in loading. (Should Only enabled when load 2 places, to detect the extra bullet)
         //     When a bullet passed by while loading, it means the extra bullet was successfully loaded.
@@ -202,7 +221,7 @@ void HeroShootLG::AutoLoaderThread::main() {
         // I. Loader Auto Load
         //    Read the pin and auto Load.
         if (loaderState == STOP) {
-            if ((bool) palReadPad(GPIOE, GPIOE_PIN4) && !loaded_bullet[0]) {
+            if (get_loader_mouth_status() && !loaded_bullet[0]) {
                 ShootSKD::set_mode(ShootSKD::LIMITED_SHOOTING_MODE);
                 loader_target_angle += loader_angle_per_bullet;
                 ShootSKD::set_loader_target_angle(loader_target_angle);
@@ -211,14 +230,14 @@ void HeroShootLG::AutoLoaderThread::main() {
                 // Update the status.
                 loaded_bullet[0] = loaded_bullet[1];
                 loaded_bullet[1] = loaded_bullet[2];
-                loaded_bullet[2] = (bool) palReadPad(GPIOE, GPIOE_PIN4);
+                loaded_bullet[2] =  get_loader_mouth_status();
 
                 loader_angle_increment = loader_angle_per_bullet;
             }
         }
         // II.Plate Auto Load
         if (plateState == STOP) {
-            if ((bool) palReadPad(GPIOE, GPIOE_PIN4) && PlateLoadAttempt.task_status == LOAD_SUCCESS) {
+            if (get_loader_mouth_status() && PlateLoadAttempt.task_status == LOAD_SUCCESS) {
                 if (loaded_bullet[0] && loaded_bullet[1] && !loaded_bullet[2]) {
                     PlateLoadAttempt.task_status = LOAD_RUNNING;
                     PlateLoadAttempt.attempt_number = 1;
@@ -243,7 +262,7 @@ void HeroShootLG::AutoLoaderThread::main() {
                     plate_target_angle += plate_angle_per_bullet;
                     plate_angle_increment = plate_angle_per_bullet;
                     ShootSKD::set_plate_target_angle(plate_target_angle);
-                } else {
+                } else if (ball_in_loader + ball_in_tunnel > PlateLoadAttempt.attempt_number) {
                     PlateLoadAttempt.task_status = LOAD_WAITING;
                     PlateLoadAttempt.wait_time = SYSTIME;
                 }
