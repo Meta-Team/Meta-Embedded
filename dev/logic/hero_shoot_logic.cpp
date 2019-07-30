@@ -32,8 +32,7 @@ HeroShootLG::plateLoadAttempt HeroShootLG::PlateLoadAttempt;
 void HeroShootLG::init(float loader_angle_per_bullet_, float plate_angle_per_bullet_,
                        tprio_t stuck_detector_thread_prio, tprio_t auto_loader_thread_prio) {
 
-    // Initialize pa
-    // rameters
+    // Initialize parameters
     loader_angle_per_bullet = loader_angle_per_bullet_;
     plate_angle_per_bullet = plate_angle_per_bullet_;
 
