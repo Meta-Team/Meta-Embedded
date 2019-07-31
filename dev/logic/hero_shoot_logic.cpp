@@ -16,6 +16,8 @@ float HeroShootLG::plate_target_angle = 0.0f;
 int  HeroShootLG::plate_runtime = 0;
 float HeroShootLG::plate_angle_increment = 0.0f;
 float HeroShootLG::loader_angle_increment = 0.0f;
+int HeroShootLG::ball_in_tunnel = 0;
+int HeroShootLG::ball_in_loader = 0;
 
 HeroShootLG::bullet_type_t HeroShootLG::bulletType = TRANSPARENT;
 
@@ -47,7 +49,7 @@ void HeroShootLG::init(float loader_angle_per_bullet_, float plate_angle_per_bul
 bool HeroShootLG::get_loader_mouth_status() {
     if (bulletType == TRANSPARENT) {
         return !(bool) palReadPad(GPIOF, GPIOF_PIN0);
-    } else if (bulletType == WHITE){
+    } else {
         return  (bool) palReadPad(GPIOF, GPIOF_PIN0);
     }
 }
@@ -55,16 +57,15 @@ bool HeroShootLG::get_loader_mouth_status() {
 bool HeroShootLG::get_plate_mouth_status() {
     if (bulletType == TRANSPARENT) {
         return !(bool) palReadPad(GPIOF, GPIOF_PIN1);
-    } else if (bulletType == WHITE) {
+    } else {
         return  (bool) palReadPad(GPIOF, GPIOF_PIN1);
     }
 }
 
 void HeroShootLG::shoot() {
-
     if (loaderState == STOP) {
         ShootSKD::set_mode(ShootSKD::LIMITED_SHOOTING_MODE);
-        if (loaded_bullet[0] && loaded_bullet[1]) {    // if the next bullet place is loaded
+        if (loaded_bullet[0]) {    // if the next bullet place is loaded
 
             loader_target_angle += loader_angle_per_bullet;
             ShootSKD::set_loader_target_angle(loader_target_angle);
@@ -76,7 +77,7 @@ void HeroShootLG::shoot() {
             loaded_bullet[2] = false;
 
             loader_angle_increment = loader_angle_per_bullet;
-        } else if (loaded_bullet[0] && !loaded_bullet[1]) {
+        } else if (!loaded_bullet[0]) {
 
             loader_target_angle += (2 * loader_angle_per_bullet);
             ShootSKD::set_loader_target_angle(loader_target_angle);
@@ -86,7 +87,6 @@ void HeroShootLG::shoot() {
             loaded_bullet[0] = loaded_bullet[2];
             loaded_bullet[1] = false; // this status will be updated in Automation thread.
             loaded_bullet[2] = false;
-
             loader_angle_increment = 2 * loader_angle_per_bullet;
         }
     }
@@ -108,23 +108,23 @@ void HeroShootLG::force_stop() {
 
 void HeroShootLG::StuckDetectorThread::main() {
     setName("Stuck_Detector");
-    float loader_angle[4] = {0.0f,0.0f,0.0f,0.0f};
-    int last_loader_update_time = SYSTIME;
+
+    int load_stuck_pend_time;
+
     while (!shouldTerminate()) {
-        if(SYSTIME - last_loader_update_time > 200) {
-            loader_angle[0] = loader_angle[1];
-            loader_angle[1] = loader_angle[2];
-            loader_angle[2] = loader_angle[3];
-            loader_angle[3] = ShootSKD::get_loader_accumulated_angle();
-            last_loader_update_time= SYSTIME;
-        }
+
         if (loaderState == LOADING &&
-            fabs(loader_angle[0] - loader_angle[3]) < 0.5f &&
-            fabs(loader_angle[1] - loader_angle[3]) < 0.5f &&
-            fabs(loader_angle[2] - loader_angle[3]) < 0.5f) {
+            (ShootSKD::get_loader_target_current() > LOADER_STUCK_THRESHOLD_CURRENT ||
+             ShootSKD::get_loader_actual_velocity() < PLATE_STUCK_THRESHOLD_VELOCITY )) {
+                   load_stuck_pend_time++;// Back up to ample space
+        } else if(loaderState == LOADING &&
+                  ShootSKD::get_loader_target_current() <= LOADER_STUCK_THRESHOLD_CURRENT &&
+                  ShootSKD::get_loader_actual_velocity() > PLATE_STUCK_THRESHOLD_VELOCITY) {
+                   load_stuck_pend_time = 0;
+        }
+        if(load_stuck_pend_time > 80) {
             loaderState = STUCK;
-            ShootSKD::set_loader_target_angle(
-                    ShootSKD::get_loader_accumulated_angle() - 20.0f);  // Back up to ample space
+            ShootSKD::set_loader_target_angle(ShootSKD::get_loader_accumulated_angle() - 20.0f);
         }
         if(plateState == LOADING &&
            ShootSKD::get_plate_target_current() > PLATE_STUCK_THRESHOLD_CURRENT &&
@@ -158,8 +158,7 @@ void HeroShootLG::AutoLoaderThread::main() {
     PlateLoadAttempt.wait_time = SYSTIME;
     PlateLoadAttempt.attempt_number = 0;
     PlateLoadAttempt.task_status = LOAD_SUCCESS;
-    int ball_in_tunnel = 0;
-    int ball_in_loader = 0;
+
 
     bool PlateMouthStatus[2] = {false, false};
     bool LoaderMouthStatus[2] = {false, false};
@@ -204,15 +203,22 @@ void HeroShootLG::AutoLoaderThread::main() {
             plateState = LOADING;
         }
 
+        if(get_loader_mouth_status()) {
+            PlateLoadAttempt.wait_time = SYSTIME;
+        }
+
         // V. Update the ball in tunnel and ball in loader.
         //    Ball in loader
-        if (!LoaderMouthStatus[0] && LoaderMouthStatus[1]) {
-            ball_in_loader += 1;
-            ball_in_tunnel -= 1;
-        }
+
         //    Ball in tunnel
-        if (PlateMouthStatus[0] && !PlateMouthStatus[1]) {
+        if (PlateMouthStatus[0] && !PlateMouthStatus[1] && PlateLoadAttempt.task_status == LOAD_RUNNING) {
             ball_in_tunnel += 1;
+        }
+
+        // VI. Update the ball_in_loader
+        ball_in_loader = 0;
+        for(int i = 0; i < 3; i++) {
+            if (loaded_bullet[i]) ball_in_loader++;
         }
 
         /***-----------2.Auto-Load-Loaders-----------***/
@@ -231,28 +237,16 @@ void HeroShootLG::AutoLoaderThread::main() {
                 loaded_bullet[1] = loaded_bullet[2];
                 loaded_bullet[2] =  get_loader_mouth_status();
 
+                ball_in_tunnel -= 1;
+
                 loader_angle_increment = loader_angle_per_bullet;
             }
         }
         // II.Plate Auto Load
         if (plateState == STOP) {
-            if (get_loader_mouth_status() && PlateLoadAttempt.task_status == LOAD_SUCCESS) {
-                if (loaded_bullet[0] && loaded_bullet[1] && !loaded_bullet[2]) {
-                    PlateLoadAttempt.task_status = LOAD_RUNNING;
-                    PlateLoadAttempt.attempt_number = 1;
-                    ball_in_loader = 0;
-                    ball_in_tunnel = 0;
-                } else if (loaded_bullet[0] && !loaded_bullet[1] && !loaded_bullet[2]) {
-                    PlateLoadAttempt.task_status = LOAD_RUNNING;
-                    PlateLoadAttempt.attempt_number = 2;
-                    ball_in_loader = 0;
-                    ball_in_tunnel = 0;
-                } else if (!loaded_bullet[0] && !loaded_bullet[1] && !loaded_bullet[2]) {
-                    PlateLoadAttempt.task_status = LOAD_RUNNING;
-                    PlateLoadAttempt.attempt_number = 3;
-                    ball_in_loader = 0;
-                    ball_in_tunnel = 0;
-                }
+            if (ball_in_loader + ball_in_tunnel < 3 && PlateLoadAttempt.task_status == LOAD_SUCCESS) {
+                PlateLoadAttempt.task_status = LOAD_RUNNING;
+                PlateLoadAttempt.attempt_number = 3 - ball_in_loader - ball_in_tunnel;
             }
             if (PlateLoadAttempt.task_status == LOAD_RUNNING) {
                 if (ball_in_loader + ball_in_tunnel < PlateLoadAttempt.attempt_number) {
@@ -261,7 +255,7 @@ void HeroShootLG::AutoLoaderThread::main() {
                     plate_target_angle += plate_angle_per_bullet;
                     plate_angle_increment = plate_angle_per_bullet;
                     ShootSKD::set_plate_target_angle(plate_target_angle);
-                } else if (ball_in_loader + ball_in_tunnel > PlateLoadAttempt.attempt_number) {
+                } else if (ball_in_loader + ball_in_tunnel >= PlateLoadAttempt.attempt_number) {
                     PlateLoadAttempt.task_status = LOAD_WAITING;
                     PlateLoadAttempt.wait_time = SYSTIME;
                 }
@@ -270,7 +264,7 @@ void HeroShootLG::AutoLoaderThread::main() {
                 if (ball_in_loader >= PlateLoadAttempt.attempt_number) {
                     PlateLoadAttempt.task_status = LOAD_SUCCESS;
                 }
-                if (SYSTIME - PlateLoadAttempt.wait_time > 1500) {
+                if (SYSTIME - PlateLoadAttempt.wait_time > 2000) {
                     PlateLoadAttempt.task_status = LOAD_SUCCESS;
                 } // After Replace the tunnel, no bullet would leave.
             }
