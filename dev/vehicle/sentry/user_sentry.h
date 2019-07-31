@@ -78,7 +78,7 @@ private:
 
     static UserThread userThread;
 
-    class VitualUserThread : public chibios_rt::BaseStaticThread<256> {
+    class VitualUserThread : public chibios_rt::BaseStaticThread<2048> {
     public:
 
         enum vitual_user_mode_t{

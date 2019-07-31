@@ -9,8 +9,8 @@ time_msecs_t UserS::blind_mode_start_time;
 UserS::sentry_mode_t UserS::sentryMode = FORCED_RELAX_MODE;
 
 /// Gimbal Config
-float UserS::yaw_sensitivity[3] = {40, 60, 90};  // [Slow, Normal, Fast] [degree/s]
-float UserS::pitch_sensitivity[3] = {30, 40, 50};   // [Slow, Normal, Fast] [degree/s]
+float UserS::yaw_sensitivity[3] = {20, 60, 90};  // [Slow, Normal, Fast] [degree/s]
+float UserS::pitch_sensitivity[3] = {10, 20, 30};   // [Slow, Normal, Fast] [degree/s]
 float UserS::gimbal_yaw_target_angle_ = 0;
 float UserS::gimbal_pitch_target_angle_ = 0;
 float UserS::gimbal_yaw_min_angle = -160; // left range for yaw [degree]
@@ -27,7 +27,7 @@ float UserS::shoot_launch_right_count = 999;
 
 float UserS::shoot_launch_speed = 5.0f;
 
-float UserS::shoot_common_duty_cycle = 0.6;
+float UserS::shoot_common_duty_cycle = 0.3;
 
 bool UserS::fire = false;
 
@@ -257,7 +257,7 @@ void UserS::VitualUserThread::main() {
         VisionPort::send_gimbal(GimbalLG::get_accumulated_angle(GimbalLG::YAW),
                                 GimbalLG::get_accumulated_angle(GimbalLG::PITCH));
 
-        VisionPort::send_enemy_color(Referee::game_robot_state.robot_id < 10);
+//        VisionPort::send_enemy_color(Referee::game_robot_state.robot_id < 10);
 
         enemy_spotted = WITHIN_RECENT_TIME(VisionPort::last_update_time, 50);
 
@@ -268,8 +268,8 @@ void UserS::VitualUserThread::main() {
         /*** ---------------------------------- Gimbal + Shooter --------------------------------- ***/
 
         if (v_user_mode == FINAL_AUTO_MODE && enemy_spotted) {
-            float yaw_delta = VisionPort::enemy_info.yaw_angle - gimbal_yaw_target_angle_,
-                    pitch_delta = VisionPort::enemy_info.pitch_angle - gimbal_pitch_target_angle_;
+            float yaw_delta = VisionPort::enemy_info.yaw_angle + 17 - gimbal_yaw_target_angle_,
+                    pitch_delta = VisionPort::enemy_info.pitch_angle - 12 - gimbal_pitch_target_angle_;
 
             if (!ABS_IN_RANGE(yaw_delta, GIMBAL_YAW_TARGET_FAST_TRIGGER)) {
                 gimbal_yaw_target_angle_ +=
@@ -293,6 +293,7 @@ void UserS::VitualUserThread::main() {
             VAL_CROP(gimbal_pitch_target_angle_, gimbal_pitch_max_angle, gimbal_pitch_min_angle);
 
         } else if ((v_user_mode == FINAL_AUTO_MODE && !enemy_spotted) || v_user_mode == CRUISING_ONLY_MODE) {
+
             if (gimbal_yaw_target_angle_ < yaw_terminal){
                 gimbal_yaw_target_angle_ +=
                         (yaw_sensitivity[CRUISING] * AUTO_CONTROL_INTERVAL / 1000.0f);
@@ -314,6 +315,8 @@ void UserS::VitualUserThread::main() {
 
             if (gimbal_pitch_target_angle_ >= gimbal_pitch_max_angle) pitch_terminal = gimbal_pitch_min_angle;
             else if (gimbal_pitch_target_angle_ <= gimbal_pitch_min_angle) pitch_terminal = gimbal_pitch_max_angle;
+
+            fire = false;
         }
 
         GimbalLG::set_target(gimbal_yaw_target_angle_, gimbal_pitch_target_angle_);

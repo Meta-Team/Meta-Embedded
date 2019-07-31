@@ -22,7 +22,7 @@ const UARTConfig VisionPort::UART_CONFIG = {
         VisionPort::uart_rx_callback,  // callback function when the buffer is filled
         VisionPort::uart_char_callback,
         VisionPort::uart_err_callback,
-        115200, // speed
+        230400, // speed
         0,
         0,
         0
@@ -54,7 +54,7 @@ void VisionPort::send_gimbal(float yaw, float pitch) {
     tx_pak.gimbal_current_.pitch = pitch;
     Append_CRC16_Check_Sum((uint8_t *) &tx_pak, tx_pak_size);
 
-    uartSendFullTimeout(UART_DRIVER, &tx_pak_size, &tx_pak, TIME_MS2I(10));
+    uartSendFullTimeout(UART_DRIVER, &tx_pak_size, &tx_pak, TIME_MS2I(7));
 //    uartStartSend(UART_DRIVER, tx_pak_size, (uint8_t *) &tx_pak);  // it has some problem
 }
 

@@ -19,7 +19,7 @@
 
 #include "gimbal_interface.h"
 #include "gimbal_scheduler.h"
-#include "sentry_gimbal_logic.h"
+#include "gimbal_logic.h"
 #include "shoot_scheduler.h"
 #include "shoot_logic.h"
 
