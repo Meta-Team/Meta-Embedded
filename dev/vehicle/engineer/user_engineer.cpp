@@ -5,10 +5,10 @@
 #include "user_engineer.h"
 
 /// Chassis Config
-float UserE::chassis_v_left_right = 300.0f;  // [mm/s]
-float UserE::chassis_v_forward = 300.0f;     // [mm/s]
-float UserE::chassis_v_backward = 300.0f;    // [mm/s]
-float UserE::chassis_w = 150.0f;    // [degree/s]
+float UserE::chassis_v_left_right = 600.0f;  // [mm/s]
+float UserE::chassis_v_forward = 1000.0f;     // [mm/s]
+float UserE::chassis_v_backward = 1000.0f;    // [mm/s]
+float UserE::chassis_w = 90.0f;    // [degree/s]
 
 float UserE::chassis_pc_shift_ratio = 1.5f;  // 150% when Shift is pressed
 float UserE::chassis_pc_ctrl_ratio = 0.2;    // 20% when Ctrl is pressed
