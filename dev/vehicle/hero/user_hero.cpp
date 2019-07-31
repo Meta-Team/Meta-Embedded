@@ -31,7 +31,7 @@ float UserH::shoot_launch_right_count = 999;
 float UserH::shoot_launch_speed = 5.0f;
 
 float UserH::shoot_common_duty_cycle = 0.11f;
-float UserH::badass_duty_cycle = 0.08;
+float UserH::badass_duty_cycle = 0.07;
 
 float UserH::common_plate_target_range = 1.0f;
 float UserH::badass_plate_target_range = 2.0f;
