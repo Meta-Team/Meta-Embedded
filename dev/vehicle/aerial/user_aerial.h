@@ -35,6 +35,7 @@ private:
 //    static float gimbal_pitch_max_angle; //  up range for pitch [degree]
 
     /// Shoot Config
+    static bool shoot_power_on;
     static float shoot_launch_left_count;
     static float shoot_launch_right_count;
 

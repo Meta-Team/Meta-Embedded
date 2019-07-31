@@ -63,6 +63,7 @@ bool HeroShootLG::get_plate_exit_status() {
 }
 
 void HeroShootLG::shoot() {
+    if(ShootSKD::get_mode() != ShootSKD::LIMITED_SHOOTING_MODE) ShootSKD::set_mode(ShootSKD::LIMITED_SHOOTING_MODE);
     if (loader_state == STOP && get_loader_exit_status()) {
         should_shoot = true;
     }
@@ -161,10 +162,10 @@ void HeroShootLG::LoaderThread::main() {
 
         if (loader_state != STUCK) {
 
-            if (ABS_IN_RANGE(loader_target_angle - ShootSKD::get_loader_accumulated_angle(), LOADER_THREAD_INTERVAL)) {
+            if (ABS_IN_RANGE(loader_target_angle - ShootSKD::get_loader_accumulated_angle(), LOADER_REACH_TARGET_RANGE)) {
                 loader_state = STOP;
-            } else if (ABS_IN_RANGE(loader_target_angle - ShootSKD::get_loader_accumulated_angle(),
-                                    LOADER_THREAD_INTERVAL)) {
+            } else if (!ABS_IN_RANGE(loader_target_angle - ShootSKD::get_loader_accumulated_angle(),
+                                    LOADER_REACH_TARGET_RANGE)) {
                 loader_state = LOADING;
             }
 
@@ -201,7 +202,7 @@ void HeroShootLG::PlateThread::main() {
 
             if (ABS_IN_RANGE(plate_target_angle - ShootSKD::get_plate_accumulated_angle(), PLATE_REACH_TARGET_RANGE)) {
                 plate_state = STOP;
-            } else if (ABS_IN_RANGE(plate_target_angle - ShootSKD::get_plate_accumulated_angle(),
+            } else if (!ABS_IN_RANGE(plate_target_angle - ShootSKD::get_plate_accumulated_angle(),
                                     PLATE_REACH_TARGET_RANGE)) {
                 plate_state = LOADING;
             }
