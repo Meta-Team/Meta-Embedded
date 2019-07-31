@@ -116,6 +116,13 @@ public:
      */
     static float get_accumulated_angle(motor_id_t motor);
 
+    /**
+    * Get relative angle maintained by this SKD
+    * @param motor   YAW or PITCH
+    * @return Accumulated angle of MOTOR
+    */
+    static float get_relative_angle(motor_id_t motor);
+
 private:
 
     static AbstractAHRS *gimbal_ahrs;

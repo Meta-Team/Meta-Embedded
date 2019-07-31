@@ -180,4 +180,13 @@ float GimbalSKD::get_accumulated_angle(motor_id_t motor) {
     return 0;
 }
 
+float GimbalSKD::get_relative_angle(GimbalBase::motor_id_t motor) {
+    if (motor == YAW) {
+        return GimbalIF::feedback[YAW].accumulated_angle() * yaw_install / yaw_deceleration_ratio;
+    } else if (motor == PITCH) {
+        return GimbalIF::feedback[PITCH].accumulated_angle() * pitch_install / pitch_deceleration_ratio;
+    }
+    return 0;
+}
+
 /** @} */
