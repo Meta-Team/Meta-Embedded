@@ -13,7 +13,6 @@ float HeroShootLG::plate_angle_per_bullet = 0.0f;
 float HeroShootLG::loader_target_angle = 0.0f;
 float HeroShootLG::plate_target_angle = 0.0f;
 
-HeroShootLG::bullet_type_t HeroShootLG::bullet_type = TRANSPARENT;
 int HeroShootLG::bullet_in_tube = 0;
 bool HeroShootLG::should_shoot = false;
 
@@ -47,23 +46,15 @@ void HeroShootLG::init(float loader_angle_per_bullet_, float plate_angle_per_bul
 }
 
 bool HeroShootLG::get_loader_exit_status() {
-    if (bullet_type == TRANSPARENT) {
-        return !(bool) palReadPad(GPIOF, GPIOF_PIN0);
-    } else {
-        return (bool) palReadPad(GPIOF, GPIOF_PIN0);
-    }
+    return !(bool) palReadPad(GPIOF, GPIOF_PIN0);
 }
 
 bool HeroShootLG::get_plate_exit_status() {
-    if (bullet_type == TRANSPARENT) {
-        return !(bool) palReadPad(GPIOF, GPIOF_PIN1);
-    } else {
-        return (bool) palReadPad(GPIOF, GPIOF_PIN1);
-    }
+    return !(bool) palReadPad(GPIOF, GPIOF_PIN1);
 }
 
 void HeroShootLG::shoot() {
-    if(ShootSKD::get_mode() != ShootSKD::LIMITED_SHOOTING_MODE) ShootSKD::set_mode(ShootSKD::LIMITED_SHOOTING_MODE);
+    if (ShootSKD::get_mode() != ShootSKD::LIMITED_SHOOTING_MODE) ShootSKD::set_mode(ShootSKD::LIMITED_SHOOTING_MODE);
     if (loader_state == STOP && get_loader_exit_status()) {
         should_shoot = true;
     }
@@ -81,6 +72,15 @@ float HeroShootLG::get_friction_wheels_duty_cycle() {
 
 void HeroShootLG::force_stop() {
     ShootSKD::set_mode(ShootSKD::FORCED_RELAX_MODE);
+}
+
+float HeroShootLG::measure_loader_exit_status() {
+    int cnt = 0;
+    for (int i = 0; i < 5; i++) {
+        cnt += get_loader_exit_status();
+        chThdSleepMicroseconds(200    );
+    }
+    return (float) cnt / 5.0f;
 }
 
 void HeroShootLG::LoaderStuckDetectorThread::main() {
@@ -162,18 +162,23 @@ void HeroShootLG::LoaderThread::main() {
 
         if (loader_state != STUCK) {
 
-            if (ABS_IN_RANGE(loader_target_angle - ShootSKD::get_loader_accumulated_angle(), LOADER_REACH_TARGET_RANGE)) {
+            if (ABS_IN_RANGE(loader_target_angle - ShootSKD::get_loader_accumulated_angle(),
+                             LOADER_REACH_TARGET_RANGE)) {
                 loader_state = STOP;
-            } else if (!ABS_IN_RANGE(loader_target_angle - ShootSKD::get_loader_accumulated_angle(),
-                                    LOADER_REACH_TARGET_RANGE)) {
+            } else {
                 loader_state = LOADING;
             }
 
             if (loader_state == STOP) {
+                unsigned cnt = 0;
+                while (!should_shoot && cnt < 1000) {
+                    sleep(TIME_MS2I(1));
+                    cnt++;
+                }
                 if (should_shoot || !get_loader_exit_status()) {
-                    if (should_shoot && get_loader_exit_status()) {
+                    if (should_shoot) {
                         should_shoot = false;
-                        bullet_in_tube--;
+                        if(bullet_in_tube > 0) bullet_in_tube--;
                     }
                     loader_target_angle += loader_angle_per_bullet;
                     ShootSKD::set_loader_target_angle(loader_target_angle);
@@ -191,6 +196,8 @@ void HeroShootLG::PlateThread::main() {
 
     setName("HeroShootPlate");
 
+    int last_load_time = SYSTIME;
+
     while (!shouldTerminate()) {
 
         if (plate_state != STUCK) {
@@ -202,15 +209,16 @@ void HeroShootLG::PlateThread::main() {
 
             if (ABS_IN_RANGE(plate_target_angle - ShootSKD::get_plate_accumulated_angle(), PLATE_REACH_TARGET_RANGE)) {
                 plate_state = STOP;
-            } else if (!ABS_IN_RANGE(plate_target_angle - ShootSKD::get_plate_accumulated_angle(),
-                                    PLATE_REACH_TARGET_RANGE)) {
+            } else {
                 plate_state = LOADING;
             }
 
             if (plate_state == STOP) {
-                if (bullet_in_tube < 3) {
+//                sleep(TIME_MS2I(200));
+                if (bullet_in_tube < 3 && SYSTIME - last_load_time > 500) {
                     plate_target_angle += plate_angle_per_bullet;
                     ShootSKD::set_plate_target_angle(plate_target_angle);
+                    last_load_time = SYSTIME;
                 }
             }
 
