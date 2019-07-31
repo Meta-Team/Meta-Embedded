@@ -12,6 +12,7 @@ float UserA::gimbal_rc_pitch_max_speed = 30;  // [degree/s]
 float UserA::gimbal_pc_pitch_sensitivity[3] = {20000, 50000, 60000};   // [Slow, Normal, Fast] [degree/s]
 
 /// Shoot Config
+bool UserA::shoot_power_on = true;
 float UserA::shoot_launch_left_count = 5;
 float UserA::shoot_launch_right_count = 999;
 
@@ -150,6 +151,16 @@ void UserA::UserThread::main() {
 
 
         /*** ---------------------------------- Shoot --------------------------------- ***/
+
+        if (!shoot_power_on){
+            if (Referee::game_robot_state.mains_power_shooter_output == 1){
+                float pre_duty = ShootLG::get_friction_wheels_duty_cycle();
+                ShootLG::set_friction_wheels(0);
+                sleep(TIME_MS2I(2000));
+                ShootLG::set_friction_wheels(pre_duty);
+                LOG("POWER ON AGAIN");
+            }
+        }
 
         if (!InspectorA::remote_failure() /*&& !InspectorI::chassis_failure()*/ && !InspectorA::gimbal_failure()) {
             if ((Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_UP) ||
