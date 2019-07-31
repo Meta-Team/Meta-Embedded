@@ -122,7 +122,7 @@ void HeroShootLG::StuckDetectorThread::main() {
                   ShootSKD::get_loader_actual_velocity() > PLATE_STUCK_THRESHOLD_VELOCITY) {
                    load_stuck_pend_time = 0;
         }
-        if(load_stuck_pend_time > 80) {
+        if(load_stuck_pend_time > 200) {
             loaderState = STUCK;
             ShootSKD::set_loader_target_angle(ShootSKD::get_loader_accumulated_angle() - 20.0f);
         }
@@ -185,6 +185,7 @@ void HeroShootLG::AutoLoaderThread::main() {
             // Only add the when the previous bullet has passed.
             if (loader_target_angle - ShootSKD::get_loader_accumulated_angle() <114.0f) {
                 if(!loaded_bullet[1]) loaded_bullet[1] = true;
+                if (ball_in_tunnel > 0) ball_in_tunnel -= 1;
             }
         }
 
@@ -237,7 +238,7 @@ void HeroShootLG::AutoLoaderThread::main() {
                 loaded_bullet[1] = loaded_bullet[2];
                 loaded_bullet[2] =  get_loader_mouth_status();
 
-                ball_in_tunnel -= 1;
+                if (ball_in_tunnel > 0) ball_in_tunnel -= 1;
 
                 loader_angle_increment = loader_angle_per_bullet;
             }
