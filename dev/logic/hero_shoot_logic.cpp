@@ -114,7 +114,7 @@ void HeroShootLG::StuckDetectorThread::main() {
     while (!shouldTerminate()) {
 
         if (loaderState == LOADING &&
-            (ShootSKD::get_loader_target_current() > LOADER_STUCK_THRESHOLD_CURRENT ||
+            (ShootSKD::get_loader_target_current() > LOADER_STUCK_THRESHOLD_CURRENT &&
              ShootSKD::get_loader_actual_velocity() < PLATE_STUCK_THRESHOLD_VELOCITY )) {
                    load_stuck_pend_time++;// Back up to ample space
         } else if(loaderState == LOADING &&
