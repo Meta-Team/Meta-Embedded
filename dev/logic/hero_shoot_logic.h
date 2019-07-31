@@ -30,16 +30,20 @@ public:
         TRANSPARENT,
     };
 
-    static bullet_type_t bulletType;
+    static bullet_type_t bullet_type;
+
     /**
      * Initialize this module
      * @param loader_angle_per_bullet_     Angle for bullet loader to rotate to fill one bullet [degree]
      * @param plate_angle_per_bullet_      Angle for bullet plate to rotate to fill one bullet [degree]
+     * @param loader_thread_prio           Thread priority for loader thread
+     * @param plate_thread_prio            Thread priority for plate thread
      * @param stuck_detector_thread_prio   Thread priority for stuck detector thread
-     * @param auto_loader_thread_prio        Thread priority for auto loader thread
      */
-    static void init(float loader_angle_per_bullet_, float plate_angle_per_bullet_, tprio_t stuck_detector_thread_prio,
-                     tprio_t auto_loader_thread_prio);
+    static void init(float loader_angle_per_bullet_, float plate_angle_per_bullet_,
+            tprio_t loader_thread_prio, tprio_t plate_thread_prio,
+            tprio_t loader_stuck_detector_prio, tprio_t plate_stuck_detector_prio);
+
 
     static void shoot();
 
@@ -60,80 +64,72 @@ public:
      */
     static float get_friction_wheels_duty_cycle();
 
-    enum loader_state_t{
+    enum motor_state_t{
         LOADING,
         STOP,
         STUCK,
-        FORCEDSTOP,
     };
 
-    static loader_state_t loaderState;
-    static loader_state_t plateState;
-
+    static motor_state_t loader_state;
+    static motor_state_t plate_state;
 
 private:
 
-    static bool get_loader_mouth_status();
-    static bool get_plate_mouth_status();
+    static bool get_loader_exit_status();
+    static bool get_plate_exit_status();
 
-    enum task_status_t{
-        LOAD_RUNNING,
-        LOAD_WAITING,
-        LOAD_SUCCESS,
-    };
-
-    struct plateLoadAttempt {
-        int wait_time;
-        int attempt_number;
-        task_status_t task_status;
-    };
-
-    static plateLoadAttempt PlateLoadAttempt;
-    static int load_bullet_count;
     static float loader_angle_per_bullet;
     static float loader_target_angle;
     static float plate_angle_per_bullet;
     static float plate_target_angle;
-    static float plate_angle_increment;
-    static float loader_angle_increment;
-    static int ball_in_tunnel;
-    static int ball_in_loader;
 
-    // Another Idea: Check whether the motor is stuck based on the motor response time.
-    static int loader_runtime;
-    static int plate_runtime;
+    static int bullet_in_tube;
+    static bool should_shoot;
 
-    static bool loaded_bullet[4];
-
-    /// Stuck Detector
-
-    class StuckDetectorThread : public chibios_rt::BaseStaticThread<512> {
-
+    /// Loader Stuck Detector
+    class LoaderStuckDetectorThread : public chibios_rt::BaseStaticThread<512> {
         static constexpr unsigned STUCK_DETECTOR_THREAD_INTERVAL = 10;
 
         static constexpr unsigned STUCK_REVERSE_TIME = 300;
+        static constexpr unsigned STUCK_REVERSE_ANGLE = 15;   // reverse turning target angle when stuck [degree]
 
         static constexpr int LOADER_STUCK_THRESHOLD_CURRENT = 3200;
         static constexpr int LOADER_STUCK_THRESHOLD_VELOCITY = 2;
+
+        void main() final;
+    };
+    static LoaderStuckDetectorThread loaderStuckDetector;
+
+    /// Plate Stuck Detector
+    class PlateStuckDetectorThread : public chibios_rt::BaseStaticThread<512> {
+        static constexpr unsigned STUCK_DETECTOR_THREAD_INTERVAL = 10;
+
+        static constexpr unsigned STUCK_REVERSE_TIME = 300;
+        static constexpr unsigned STUCK_REVERSE_ANGLE = 15;   // reverse turning target angle when stuck [degree]
 
         static constexpr int PLATE_STUCK_THRESHOLD_CURRENT = 3500;
         static constexpr int PLATE_STUCK_THRESHOLD_VELOCITY = 2;
 
         void main() final;
     };
-    static StuckDetectorThread stuckDetector;
+    static PlateStuckDetectorThread plateStuckDetector;
 
-    /**
-     * Auto Loading Thread
-     * Control motions of the plate as well as the loader.
-     */
-    class AutoLoaderThread : public chibios_rt::BaseStaticThread<512> {
-
-        static constexpr unsigned AUTO_LOADER_THREAD_INTERVAL = 5;
-
+    /// Loader Thread
+    class LoaderThread : public chibios_rt::BaseStaticThread<512> {
+        static constexpr unsigned LOADER_THREAD_INTERVAL = 5;  // [ms]
+        static constexpr float LOADER_REACH_TARGET_RANGE = 5.0f;  // [degree]
         void main() final;
     };
-    static AutoLoaderThread autoLoader;
+    static LoaderThread loaderThread;
+
+    /// Plate Thread
+    class PlateThread : public chibios_rt::BaseStaticThread<512> {
+        static constexpr unsigned PLATE_THREAD_INTERVAL = 5;  // [ms]
+        static constexpr float PLATE_REACH_TARGET_RANGE = 3.0f;  // [degree]
+        bool last_plate_exit_status = false;
+        void main() final;
+    };
+    static PlateThread plateThread;
 
 };
 
