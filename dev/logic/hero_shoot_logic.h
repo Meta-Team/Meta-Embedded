@@ -96,6 +96,8 @@ private:
     static float plate_target_angle;
     static float plate_angle_increment;
     static float loader_angle_increment;
+    static int ball_in_tunnel;
+    static int ball_in_loader;
 
     // Another Idea: Check whether the motor is stuck based on the motor response time.
     static int loader_runtime;
@@ -111,10 +113,10 @@ private:
 
         static constexpr unsigned STUCK_REVERSE_TIME = 300;
 
-        static constexpr int LOADER_STUCK_THRESHOLD_CURRENT = 4000;
+        static constexpr int LOADER_STUCK_THRESHOLD_CURRENT = 3200;
         static constexpr int LOADER_STUCK_THRESHOLD_VELOCITY = 2;
 
-        static constexpr int PLATE_STUCK_THRESHOLD_CURRENT = 3000;
+        static constexpr int PLATE_STUCK_THRESHOLD_CURRENT = 3500;
         static constexpr int PLATE_STUCK_THRESHOLD_VELOCITY = 2;
 
         void main() final;
