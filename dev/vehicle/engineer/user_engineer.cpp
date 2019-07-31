@@ -143,6 +143,12 @@ void UserE::UserThread::main() {
                 /// Chassis WSQE, AD, ctrl, shift
                 float target_vx, target_vy, target_w;
 
+                EngineerGimbalIF::set_target_angle(EngineerGimbalIF::get_target_angle(EngineerGimbalIF::YAW)
+                                                   + Remote::mouse.x * 500000 * USER_THREAD_INTERVAL / 1000,
+                                                   EngineerGimbalIF::get_target_angle(EngineerGimbalIF::PIT)
+                                                   + Remote::mouse.y * 500000 * USER_THREAD_INTERVAL / 1000);
+                // LOG("%.2f", EngineerGimbalIF::get_target_angle(EngineerGimbalIF::YAW));
+
                 if (Remote::key.w) {
                     target_vy = chassis_v_forward;
                 } else if (Remote::key.s) target_vy = -chassis_v_backward;
@@ -231,8 +237,8 @@ void UserE::UserActionThread::main() {
                 LOG("Now Yaw is %.2f \n Change to : %d \n Set YAW Angle to: %d", EngineerGimbalIF::get_target_angle(EngineerGimbalIF::YAW),
                     ((int) (EngineerGimbalIF::get_target_angle(EngineerGimbalIF::YAW) + 180.0f)),
                     ((int) (EngineerGimbalIF::get_target_angle(EngineerGimbalIF::YAW) + 180.0f)) % 360);
-                EngineerGimbalIF::set_target_angle(
-                        ((int) (EngineerGimbalIF::get_target_angle(EngineerGimbalIF::YAW) + 180.0f)) % 360, 0);
+                if (EngineerGimbalIF::get_target_angle(EngineerGimbalIF::YAW) != 105.0f) EngineerGimbalIF::set_target_angle(105.0f, 0);
+                else EngineerGimbalIF::set_target_angle(((int) (EngineerGimbalIF::get_target_angle(EngineerGimbalIF::YAW) + 180.0f)) % 360, 0);
 
             } else if (key_flag & (1U << Remote::KEY_V)) {
                 EngineerElevatorLG::give_bullet();
@@ -245,6 +251,12 @@ void UserE::UserActionThread::main() {
 
             if (key_flag & (1U << Remote::KEY_F)) {
                 EngineerElevatorLG::set_elevate_dir(false);
+            }
+
+            if ((key_flag & (1U << Remote::KEY_G)) &&
+                (key_flag & (1U << Remote::KEY_SHIFT)) &&
+                (key_flag & (1U << Remote::KEY_CTRL))) {
+                EngineerElevatorLG::change_auto_status();
             }
         }
 

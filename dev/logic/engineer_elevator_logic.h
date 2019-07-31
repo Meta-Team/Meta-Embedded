@@ -57,6 +57,8 @@ public:
 
     static void give_bullet();
 
+    static void change_auto_status();
+
 private:
 
     static void set_state(elevator_state_t new_state);
@@ -74,6 +76,8 @@ private:
     static elevator_state_t state;
 
     static bool going_up;
+
+    static bool auto_elevator;
 
     static constexpr uint16_t hanging_trigger = 1800;//TODO need to determine
     static constexpr uint16_t landed_trigger = 2300;//TODO need to determine
