@@ -22,6 +22,7 @@ float UserS::gimbal_pitch_max_angle = 0; //  up range for pitch [degree]
 float UserS::chassis_v = 80.0f;  // [cm/s]
 
 /// Shoot Config
+bool UserS::shoot_power_on = true;
 float UserS::shoot_launch_left_count = 5;
 float UserS::shoot_launch_right_count = 999;
 
@@ -133,6 +134,17 @@ void UserS::UserThread::main() {
 
 
         /*** ---------------------------------- Shoot --------------------------------- ***/
+
+        if (!shoot_power_on){
+            if (Referee::game_robot_state.mains_power_shooter_output == 1){
+                float pre_duty = ShootLG::get_friction_wheels_duty_cycle();
+                ShootLG::set_friction_wheels(0);
+                sleep(TIME_MS2I(2000));
+                ShootLG::set_friction_wheels(pre_duty);
+                LOG("POWER ON AGAIN");
+            }
+        }
+        shoot_power_on = (Referee::game_robot_state.mains_power_shooter_output == 1);
 
         if (!InspectorS::remote_failure() /*&& !InspectorS::chassis_failure()*/ && !InspectorS::gimbal_failure()) {
             if ((Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_UP) ||
@@ -274,12 +286,12 @@ void UserS::VitualUserThread::main() {
             if (!ABS_IN_RANGE(yaw_delta, GIMBAL_YAW_TARGET_FAST_TRIGGER)) {
                 gimbal_yaw_target_angle_ +=
                         SIGN(yaw_delta) * (yaw_sensitivity[TARGET_FAST] * AUTO_CONTROL_INTERVAL / 1000.0f);
-                fire = false;
             } else {
                 gimbal_yaw_target_angle_ +=
                         SIGN(yaw_delta) * (yaw_sensitivity[TARGET_SLOW] * AUTO_CONTROL_INTERVAL / 1000.0f);
-                fire = true;
             }
+
+            fire = (ABS_IN_RANGE(yaw_delta, GIMBAL_YAW_SHOOT_TRIGGER_ANGLE) && ABS_IN_RANGE(pitch_delta, GIMBAL_PIT_SHOOT_TRIGGER_ANGLE));
 
 
             if (!ABS_IN_RANGE(pitch_delta, GIMBAL_PITCH_TARGET_FAST_TRIGGER))

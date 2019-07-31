@@ -58,6 +58,7 @@ private:
     static float chassis_v;  // [mm/s]
 
     /// Shoot Config
+    static bool shoot_power_on;
     static float shoot_launch_left_count;
     static float shoot_launch_right_count;
 
@@ -97,6 +98,8 @@ private:
         static constexpr unsigned AUTO_CONTROL_INTERVAL = 5;
         static constexpr float GIMBAL_YAW_TARGET_FAST_TRIGGER = 10.0f;
         static constexpr float GIMBAL_PITCH_TARGET_FAST_TRIGGER = 5.0f;
+        static constexpr float GIMBAL_YAW_SHOOT_TRIGGER_ANGLE = 30.0f;
+        static constexpr float GIMBAL_PIT_SHOOT_TRIGGER_ANGLE = 10.0f;
 
         void main() final;
     };
