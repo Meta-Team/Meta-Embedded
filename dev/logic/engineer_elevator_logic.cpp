@@ -128,7 +128,7 @@ void EngineerElevatorLG::set_state(EngineerElevatorLG::elevator_state_t new_stat
             LOG("ELE DESCENDING");
             break;
         case GIVING_BULLET:
-            EngineerElevatorSKD::set_target_height(3);
+            EngineerElevatorSKD::set_target_height(ELEVATOR_ORIGIN_HEIGHT + 2.5);
             LOG("ELE GIVING_BULLET");
             break;
     }
