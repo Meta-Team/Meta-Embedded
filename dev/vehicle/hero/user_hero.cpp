@@ -364,6 +364,7 @@ void UserH::ClientDataSendingThread::main() {
                 super_capacitor_light_status_ = not super_capacitor_light_status_;  // blink voltage light
             }
         } else {
+            Referee::set_client_number(HeroShootLG::get_friction_wheels_duty_cycle(), 1);
 //            Referee::set_client_number(USER_CLIENT_ACTUAL_POWER_NUM, 0);
 //            Referee::set_client_number(USER_CLIENT_SUPER_CAPACITOR_VOLTAGE_NUM, 0);
             super_capacitor_light_status_ = false;

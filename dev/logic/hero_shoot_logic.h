@@ -85,7 +85,7 @@ private:
     /// Loader Calibrate Thread.
 
     class LoaderCalibrateThread : public chibios_rt::BaseStaticThread<512> {
-        static constexpr int CALIBRATE_THREAD_INTERVAL = 10;
+        static constexpr int CALIBRATE_THREAD_INTERVAL = 5;
         void main() final;
     };
 
