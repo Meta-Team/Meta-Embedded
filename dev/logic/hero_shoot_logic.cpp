@@ -19,12 +19,13 @@ bool HeroShootLG::should_shoot = false;
 HeroShootLG::motor_state_t HeroShootLG::loader_state = STOP;
 HeroShootLG::motor_state_t HeroShootLG::plate_state = STOP;
 
+HeroShootLG::LoaderCalibrateThread HeroShootLG::loaderCalibrateThread;
 HeroShootLG::LoaderStuckDetectorThread HeroShootLG::loaderStuckDetector;
 HeroShootLG::PlateStuckDetectorThread HeroShootLG::plateStuckDetector;
 HeroShootLG::LoaderThread HeroShootLG::loaderThread;
 HeroShootLG::PlateThread HeroShootLG::plateThread;
 
-void HeroShootLG::init(float loader_angle_per_bullet_, float plate_angle_per_bullet_,
+void HeroShootLG::init(float loader_angle_per_bullet_, float plate_angle_per_bullet_, tprio_t loader_calibrate_prio,
                        tprio_t loader_thread_prio, tprio_t plate_thread_prio,
                        tprio_t loader_stuck_detector_prio, tprio_t plate_stuck_detector_prio) {
 
@@ -38,6 +39,8 @@ void HeroShootLG::init(float loader_angle_per_bullet_, float plate_angle_per_bul
 
     ShootSKD::set_mode(ShootSKD::LIMITED_SHOOTING_MODE);
 
+    loaderCalibrateThread.start(loader_calibrate_prio);
+    chThdSleepMilliseconds(5000);// wait loader to calibrate
     loaderThread.start(loader_thread_prio);
     plateThread.start(plate_thread_prio);
     loaderStuckDetector.start(loader_stuck_detector_prio);
@@ -81,6 +84,27 @@ float HeroShootLG::measure_loader_exit_status() {
         chThdSleepMicroseconds(200    );
     }
     return (float) cnt / 5.0f;
+}
+void HeroShootLG::LoaderCalibrateThread::main() {
+    setName("LoaderCalibrate");
+    while(!shouldTerminate()) {
+        if(!get_loader_exit_status()) {
+            ShootSKD::set_loader_target_velocity(60.0f);
+        } else if(get_loader_exit_status() && loader_target_angle == 0.0f){
+            ShootSKD::set_loader_target_velocity(0.0f);
+            ShootSKD::load_pid_params(SHOOT_PID_BULLET_LOADER_A2V_PARAMS,SHOOT_PID_BULLET_LOADER_V2I_PARAMS,SHOOT_PID_BULLET_PLATE_A2V_PARAMS,SHOOT_PID_BULLET_PLATE_V2I_PARAMS);
+            ShootSKD::set_loader_target_angle(ShootSKD::get_loader_accumulated_angle()+ 30.0f);
+        }
+        if (loader_target_angle != 0.0f && ABS_IN_RANGE(loader_target_angle - ShootSKD::get_loader_accumulated_angle(),3.0f)){
+            ShootSKD::reset_loader_accumulated_angle();
+            loader_target_angle = 0.0f;
+
+            chSysLock();  /// --- ENTER S-Locked state. DO NOT use LOG, printf, non S/I-Class functions or return ---
+            chSchGoSleepS(CH_STATE_SUSPENDED);
+            chSysUnlock();  /// --- EXIT S-Locked state ---
+        }
+        sleep(CALIBRATE_THREAD_INTERVAL);
+    }
 }
 
 void HeroShootLG::LoaderStuckDetectorThread::main() {

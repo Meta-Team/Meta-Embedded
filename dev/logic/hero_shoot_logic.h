@@ -34,7 +34,7 @@ public:
      * @param plate_thread_prio            Thread priority for plate thread
      * @param stuck_detector_thread_prio   Thread priority for stuck detector thread
      */
-    static void init(float loader_angle_per_bullet_, float plate_angle_per_bullet_,
+    static void init(float loader_angle_per_bullet_, float plate_angle_per_bullet_, tprio_t loader_calibrate_prio,
             tprio_t loader_thread_prio, tprio_t plate_thread_prio,
             tprio_t loader_stuck_detector_prio, tprio_t plate_stuck_detector_prio);
 
@@ -81,6 +81,15 @@ private:
 
     static int bullet_in_tube;
     static bool should_shoot;
+
+    /// Loader Calibrate Thread.
+
+    class LoaderCalibrateThread : public chibios_rt::BaseStaticThread<512> {
+        static constexpr int CALIBRATE_THREAD_INTERVAL = 10;
+        void main() final;
+    };
+
+    static LoaderCalibrateThread loaderCalibrateThread;
 
     /// Loader Stuck Detector
     class LoaderStuckDetectorThread : public chibios_rt::BaseStaticThread<512> {
