@@ -232,7 +232,7 @@ static void cmd_reset_elev(BaseSequentialStream *chp, int argc, char *argv[]){
     EngineerElevatorLG::set_action_free();
     EngineerElevatorSKD::aided_motor_enable(false);
     EngineerElevatorSKD::elevator_enable(true);
-    EngineerElevatorSKD::set_target_height(1);
+    EngineerElevatorSKD::set_target_height(ELEVATOR_ORIGIN_HEIGHT);
 }
 
 
