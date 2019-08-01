@@ -25,12 +25,6 @@
 
 class HeroShootLG {
 public:
-    enum bullet_type_t {
-        WHITE,
-        TRANSPARENT,
-    };
-
-    static bullet_type_t bullet_type;
 
     /**
      * Initialize this module
@@ -40,7 +34,7 @@ public:
      * @param plate_thread_prio            Thread priority for plate thread
      * @param stuck_detector_thread_prio   Thread priority for stuck detector thread
      */
-    static void init(float loader_angle_per_bullet_, float plate_angle_per_bullet_,
+    static void init(float loader_angle_per_bullet_, float plate_angle_per_bullet_, tprio_t loader_calibrate_prio,
             tprio_t loader_thread_prio, tprio_t plate_thread_prio,
             tprio_t loader_stuck_detector_prio, tprio_t plate_stuck_detector_prio);
 
@@ -78,6 +72,8 @@ private:
     static bool get_loader_exit_status();
     static bool get_plate_exit_status();
 
+    static float measure_loader_exit_status();
+
     static float loader_angle_per_bullet;
     static float loader_target_angle;
     static float plate_angle_per_bullet;
@@ -86,14 +82,23 @@ private:
     static int bullet_in_tube;
     static bool should_shoot;
 
+    /// Loader Calibrate Thread.
+
+    class LoaderCalibrateThread : public chibios_rt::BaseStaticThread<512> {
+        static constexpr int CALIBRATE_THREAD_INTERVAL = 10;
+        void main() final;
+    };
+
+    static LoaderCalibrateThread loaderCalibrateThread;
+
     /// Loader Stuck Detector
     class LoaderStuckDetectorThread : public chibios_rt::BaseStaticThread<512> {
         static constexpr unsigned STUCK_DETECTOR_THREAD_INTERVAL = 10;
 
-        static constexpr unsigned STUCK_REVERSE_TIME = 300;
+        static constexpr unsigned STUCK_REVERSE_TIME = 1000;
         static constexpr unsigned STUCK_REVERSE_ANGLE = 15;   // reverse turning target angle when stuck [degree]
 
-        static constexpr int LOADER_STUCK_THRESHOLD_CURRENT = 3200;
+        static constexpr int LOADER_STUCK_THRESHOLD_CURRENT = 2500;
         static constexpr int LOADER_STUCK_THRESHOLD_VELOCITY = 2;
 
         void main() final;
@@ -104,10 +109,10 @@ private:
     class PlateStuckDetectorThread : public chibios_rt::BaseStaticThread<512> {
         static constexpr unsigned STUCK_DETECTOR_THREAD_INTERVAL = 10;
 
-        static constexpr unsigned STUCK_REVERSE_TIME = 300;
+        static constexpr unsigned STUCK_REVERSE_TIME = 1000;
         static constexpr unsigned STUCK_REVERSE_ANGLE = 15;   // reverse turning target angle when stuck [degree]
 
-        static constexpr int PLATE_STUCK_THRESHOLD_CURRENT = 3500;
+        static constexpr int PLATE_STUCK_THRESHOLD_CURRENT = 3000;
         static constexpr int PLATE_STUCK_THRESHOLD_VELOCITY = 2;
 
         void main() final;
@@ -117,7 +122,7 @@ private:
     /// Loader Thread
     class LoaderThread : public chibios_rt::BaseStaticThread<512> {
         static constexpr unsigned LOADER_THREAD_INTERVAL = 5;  // [ms]
-        static constexpr float LOADER_REACH_TARGET_RANGE = 7.50f;  // [degree]
+        static constexpr float LOADER_REACH_TARGET_RANGE = 3.0f;  // [degree]
         void main() final;
     };
     static LoaderThread loaderThread;
