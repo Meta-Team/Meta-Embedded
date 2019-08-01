@@ -13,7 +13,7 @@ const PWMConfig FRICTION_WHEELS_PWM_CFG = {
         {
                 {PWM_OUTPUT_ACTIVE_HIGH, nullptr}, // CH0
                 {PWM_OUTPUT_ACTIVE_HIGH, nullptr}, // CH1
-                {PWM_OUTPUT_DISABLED, nullptr},    // CH2
+                {PWM_OUTPUT_ACTIVE_HIGH, nullptr},    // CH2
                 {PWM_OUTPUT_DISABLED, nullptr}     // CH3
         },
         0,
@@ -21,7 +21,7 @@ const PWMConfig FRICTION_WHEELS_PWM_CFG = {
 };
 
 void EngineerGimbalIF::set_target_angle(float yaw_angle_, float pitch_angle_) {
-    VAL_CROP(yaw_angle_, MAX_ANGLE, 0);s
+    VAL_CROP(yaw_angle_, MAX_ANGLE, 0);
     VAL_CROP(pitch_angle_, 20.0f, 0);
 
     target_angle[YAW] = yaw_angle_;

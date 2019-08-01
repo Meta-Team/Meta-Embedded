@@ -86,8 +86,7 @@ void EngineerElevatorLG::give_bullet() {
     if (state == GIVING_BULLET)
         set_state(STOP);
     else {
-        EngineerElevatorSKD::set_target_height(1.5);
-        chThdSleepMilliseconds(2000);
+//        chThdSleepMilliseconds(2000);
         set_state(GIVING_BULLET);
     }
 }
@@ -97,39 +96,39 @@ void EngineerElevatorLG::set_state(EngineerElevatorLG::elevator_state_t new_stat
     state = new_state;
     switch (state) {
         case STOP:
-            EngineerElevatorSKD::set_target_height(0);
+            EngineerElevatorSKD::set_target_height(ELEVATOR_ORIGIN_HEIGHT);
             EngineerElevatorSKD::set_aided_motor_velocity(0);
             EngineerChassisSKD::set_velocity(0, 0, 0);
             LOG("ELE STOP");
             break;
         case PREPARING:
             if (going_up) {
-                EngineerChassisSKD::set_velocity(0, 0.05 * ENGINEER_CHASSIS_VELOCITY_MAX, 0);
+                EngineerChassisSKD::set_velocity(0, 0.10 * ENGINEER_CHASSIS_VELOCITY_MAX, 0);
             } else {
-                EngineerChassisSKD::set_velocity(0, -0.02 * ENGINEER_CHASSIS_VELOCITY_MAX, 0);
+                EngineerChassisSKD::set_velocity(0, -0.05 * ENGINEER_CHASSIS_VELOCITY_MAX, 0);
             }
             LOG("ELE PREPARING");
             break;
         case ASCENDING:
             EngineerChassisSKD::set_velocity(0, 0, 0);
-            EngineerElevatorSKD::set_target_height(STAGE_HEIGHT);
+            EngineerElevatorSKD::set_target_height(STAGE_HEIGHT + ELEVATOR_ORIGIN_HEIGHT);
             LOG("ELE ASCENDING");
             break;
         case AIDING:
             if (going_up) {
-                EngineerElevatorSKD::set_aided_motor_velocity(0.7 * ENGINEER_AIDED_MOTOR_VELOCITY);
+                EngineerElevatorSKD::set_aided_motor_velocity(2.0 * ENGINEER_AIDED_MOTOR_VELOCITY);
             } else {
                 EngineerElevatorSKD::set_aided_motor_velocity(-0.5 * ENGINEER_AIDED_MOTOR_VELOCITY);
             }
             LOG("ELE AIDING");
             break;
         case DESCENDING:
-            EngineerElevatorSKD::set_target_height(0);
+            EngineerElevatorSKD::set_target_height(ELEVATOR_ORIGIN_HEIGHT);
             EngineerElevatorSKD::set_aided_motor_velocity(0);
             LOG("ELE DESCENDING");
             break;
         case GIVING_BULLET:
-
+            EngineerElevatorSKD::set_target_height(ELEVATOR_ORIGIN_HEIGHT + 2.5);
             LOG("ELE GIVING_BULLET");
             break;
     }
@@ -193,7 +192,7 @@ void EngineerElevatorLG::EngineerElevatorLGThread::main() {
                     break;
                 case ASCENDING:
 
-                    if (ABS_IN_RANGE(STAGE_HEIGHT - EngineerElevatorSKD::get_current_height(), 0.5)) {
+                    if (ABS_IN_RANGE(STAGE_HEIGHT + ELEVATOR_ORIGIN_HEIGHT - EngineerElevatorSKD::get_current_height(), 0.5)) {
                         set_state(AIDING);
                     }
 
@@ -219,16 +218,16 @@ void EngineerElevatorLG::EngineerElevatorLGThread::main() {
                     break;
                 case DESCENDING:
 
-                    if (ABS_IN_RANGE(EngineerElevatorSKD::get_current_height(), 0.3)) {
+                    if (ABS_IN_RANGE(EngineerElevatorSKD::get_current_height() - ELEVATOR_ORIGIN_HEIGHT, 0.3)) {
                         set_state(STOP);
                     }
 
                     break;
                 case GIVING_BULLET:
 
-                    sign = -sign;
-                    EngineerChassisSKD::pivot_turn(0, - CHASSIS_LENGTH / 2, sign * ENGINEER_CHASSIS_W_MAX);
-                    chThdSleepMilliseconds(500);
+//                    sign = -sign;
+//                    EngineerChassisSKD::pivot_turn(0, - CHASSIS_LENGTH / 2, sign * ENGINEER_CHASSIS_W_MAX);
+//                    chThdSleepMilliseconds(500);
 
                     break;
                 default:
