@@ -11,7 +11,7 @@ const PWMConfig FRICTION_WHEELS_PWM_CFG = {
         1000,    // period
         nullptr, // callback
         {
-                {PWM_OUTPUT_ACTIVE_HIGH, nullptr}, // CH0
+                {PWM_OUTPUT_DISABLED, nullptr}, // CH0
                 {PWM_OUTPUT_ACTIVE_HIGH, nullptr}, // CH1
                 {PWM_OUTPUT_ACTIVE_HIGH, nullptr},    // CH2
                 {PWM_OUTPUT_DISABLED, nullptr}     // CH3
