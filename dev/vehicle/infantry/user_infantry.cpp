@@ -107,12 +107,17 @@ void UserI::UserThread::main() {
                 }
                 // Referee client data will be sent by ClientDataSendingThread
 
-                gimbal_yaw_target_angle_ += -Remote::mouse.x * (yaw_sensitivity * USER_THREAD_INTERVAL / 1000.0f);
+                float yaw_delta = -Remote::mouse.x * (yaw_sensitivity * USER_THREAD_INTERVAL / 1000.0f);
+                float pitch_delta = -Remote::mouse.y * (pitch_sensitivity * USER_THREAD_INTERVAL / 1000.0f);
+
+                VAL_CROP(yaw_delta, -1.5, 1.5);
+                VAL_CROP(pitch_delta, -1, 1);
+
+                gimbal_yaw_target_angle_ += yaw_delta;
                 // mouse.x use right as positive direction, while GimbalLG use CCW (left) as positive direction
 
 
-                gimbal_pc_pitch_target_angle_ +=
-                        -Remote::mouse.y * (pitch_sensitivity * USER_THREAD_INTERVAL / 1000.0f);
+                gimbal_pc_pitch_target_angle_ += pitch_delta;
                 // mouse.y use down as positive direction, while GimbalLG use CCW (left) as positive direction
 
                 VAL_CROP(gimbal_pc_pitch_target_angle_, gimbal_pitch_max_angle, gimbal_pitch_min_angle);

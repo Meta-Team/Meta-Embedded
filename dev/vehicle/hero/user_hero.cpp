@@ -79,13 +79,7 @@ void UserH::UserThread::main() {
 
                 GimbalLG::set_target(gimbal_yaw_target_angle_, pitch_target);
 
-            } /*else if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_DOWN) {
-
-                /// Remote - Vision
-
-                GimbalLG::set_action(GimbalLG::VISION_MODE);
-
-            }*/ else if (Remote::rc.s1 == Remote::S_DOWN) {
+            } else if (Remote::rc.s1 == Remote::S_DOWN) {
 
                 /// PC control mode
 
@@ -113,14 +107,17 @@ void UserH::UserThread::main() {
                 }
                 // Referee client data will be sent by ClientDataSendingThread
 
-                gimbal_yaw_target_angle_ +=
-                        -Remote::mouse.x * (yaw_sensitivity * USER_THREAD_INTERVAL / 1000.0f);
+                float yaw_delta = -Remote::mouse.x * (yaw_sensitivity * USER_THREAD_INTERVAL / 1000.0f);
+                float pitch_delta = -Remote::mouse.y * (pitch_sensitivity * USER_THREAD_INTERVAL / 1000.0f);
 
+                VAL_CROP(yaw_delta, -1.5, 1.5);
+                VAL_CROP(pitch_delta, -1, 1);
+
+                gimbal_yaw_target_angle_ += yaw_delta;
                 // mouse.x use right as positive direction, while GimbalLG use CCW (left) as positive direction
 
 
-                gimbal_pc_pitch_target_angle_ +=
-                        -Remote::mouse.y * (pitch_sensitivity * USER_THREAD_INTERVAL / 1000.0f);
+                gimbal_pc_pitch_target_angle_ += pitch_delta;
                 // mouse.y use down as positive direction, while GimbalLG use CCW (left) as positive direction
 
                 VAL_CROP(gimbal_pc_pitch_target_angle_, gimbal_pitch_max_angle, gimbal_pitch_min_angle);
@@ -352,8 +349,8 @@ void UserH::ClientDataSendingThread::main() {
         // TODO: determine feedback interval
         if (WITHIN_RECENT_TIME(SuperCapacitor::last_feedback_time, 1000)) {
 //            Referee::set_client_number(USER_CLIENT_ACTUAL_POWER_NUM, SuperCapacitor::feedback.output_power);
-//            Referee::set_client_number(USER_CLIENT_SUPER_CAPACITOR_VOLTAGE_NUM,
-//                                       SuperCapacitor::feedback.capacitor_voltage);
+            Referee::set_client_number(USER_CLIENT_SUPER_CAPACITOR_VOLTAGE_NUM,
+                                       SuperCapacitor::feedback.capacitor_voltage);
             if (SuperCapacitor::feedback.capacitor_voltage > SUPER_CAPACITOR_WARNING_VOLTAGE) {
                 super_capacitor_light_status_ = true;
             } else {
@@ -362,7 +359,7 @@ void UserH::ClientDataSendingThread::main() {
         } else {
             Referee::set_client_number(HeroShootLG::get_friction_wheels_duty_cycle(), 1);
 //            Referee::set_client_number(USER_CLIENT_ACTUAL_POWER_NUM, 0);
-//            Referee::set_client_number(USER_CLIENT_SUPER_CAPACITOR_VOLTAGE_NUM, 0);
+            Referee::set_client_number(USER_CLIENT_SUPER_CAPACITOR_VOLTAGE_NUM, 0);
             super_capacitor_light_status_ = false;
         }
         Referee::set_client_light(USER_CLIENT_SUPER_CAPACITOR_STATUS_LIGHT, super_capacitor_light_status_);
