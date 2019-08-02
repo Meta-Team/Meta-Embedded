@@ -87,17 +87,29 @@ float HeroShootLG::measure_loader_exit_status() {
 }
 void HeroShootLG::LoaderCalibrateThread::main() {
     setName("LoaderCalibrate");
+    bool calibrate_success = false;
+    bool loader_exit_status_sequence[2] = {false, false};
+    ShootSKD::load_pid_params(CALIBRATE_PID_BULLET_LOADER_A2V_PARAMS, SHOOT_PID_BULLET_LOADER_V2I_PARAMS,SHOOT_PID_BULLET_PLATE_A2V_PARAMS,SHOOT_PID_BULLET_PLATE_V2I_PARAMS);
     while(!shouldTerminate()) {
-        if(!get_loader_exit_status()) {
-            ShootSKD::set_loader_target_velocity(60.0f);
-        } else if(get_loader_exit_status() && loader_target_angle == 0.0f){
-            ShootSKD::set_loader_target_velocity(0.0f);
-            ShootSKD::load_pid_params(SHOOT_PID_BULLET_LOADER_A2V_PARAMS,SHOOT_PID_BULLET_LOADER_V2I_PARAMS,SHOOT_PID_BULLET_PLATE_A2V_PARAMS,SHOOT_PID_BULLET_PLATE_V2I_PARAMS);
-            ShootSKD::set_loader_target_angle(ShootSKD::get_loader_accumulated_angle()+ 30.0f);
+        loader_exit_status_sequence[0] = loader_exit_status_sequence[1];
+        loader_exit_status_sequence[1] = get_loader_exit_status();
+        if(!calibrate_success && loader_target_angle == 0.0f ){
+            ShootSKD::set_mode(ShootSKD::LIMITED_SHOOTING_MODE);
+            loader_target_angle = 666.6f;
+            ShootSKD::set_loader_target_angle(loader_target_angle);
         }
-        if (loader_target_angle != 0.0f && ABS_IN_RANGE(loader_target_angle - ShootSKD::get_loader_accumulated_angle(),3.0f)){
+        if((loader_exit_status_sequence[0] && !loader_exit_status_sequence[1]) && loader_target_angle == 666.6f){
+            loader_target_angle = ShootSKD::get_loader_accumulated_angle();
+            ShootSKD::set_loader_target_angle(loader_target_angle);
+            ShootSKD::load_pid_params(SHOOT_PID_BULLET_LOADER_A2V_PARAMS,SHOOT_PID_BULLET_LOADER_V2I_PARAMS,SHOOT_PID_BULLET_PLATE_A2V_PARAMS,SHOOT_PID_BULLET_PLATE_V2I_PARAMS);
+            loader_target_angle += 40.0f;
+            ShootSKD::set_loader_target_angle(loader_target_angle);
+        }
+        if (loader_target_angle != 666.6f && ABS_IN_RANGE(loader_target_angle - ShootSKD::get_loader_accumulated_angle(),3.0f)){
             ShootSKD::reset_loader_accumulated_angle();
+            ShootSKD::set_loader_target_angle(0);
             loader_target_angle = 0.0f;
+            calibrate_success = true;
 
             chSysLock();  /// --- ENTER S-Locked state. DO NOT use LOG, printf, non S/I-Class functions or return ---
             chSchGoSleepS(CH_STATE_SUSPENDED);

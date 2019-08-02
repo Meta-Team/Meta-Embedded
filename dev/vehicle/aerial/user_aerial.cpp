@@ -171,6 +171,7 @@ void UserA::UserThread::main() {
                 LOG("POWER ON AGAIN");
             }
         }
+        shoot_power_on = (Referee::game_robot_state.mains_power_shooter_output == 1);
 
         if (!InspectorA::remote_failure() /*&& !InspectorI::chassis_failure()*/ && !InspectorA::gimbal_failure()) {
             if ((Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_UP) ||
