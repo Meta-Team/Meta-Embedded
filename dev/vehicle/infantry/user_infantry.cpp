@@ -110,8 +110,8 @@ void UserI::UserThread::main() {
                 float yaw_delta = -Remote::mouse.x * (yaw_sensitivity * USER_THREAD_INTERVAL / 1000.0f);
                 float pitch_delta = -Remote::mouse.y * (pitch_sensitivity * USER_THREAD_INTERVAL / 1000.0f);
 
-                VAL_CROP(yaw_delta, -1.5, 1.5);
-                VAL_CROP(pitch_delta, -1, 1);
+                VAL_CROP(yaw_delta, 1.5, -1.5);
+                VAL_CROP(pitch_delta, 1, -1);
 
                 gimbal_yaw_target_angle_ += yaw_delta;
                 // mouse.x use right as positive direction, while GimbalLG use CCW (left) as positive direction
