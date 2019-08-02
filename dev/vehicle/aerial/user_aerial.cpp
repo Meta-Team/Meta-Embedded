@@ -11,6 +11,11 @@ float UserA::gimbal_pc_yaw_sensitivity[3] = {50000, 100000, 150000};  // [Slow, 
 float UserA::gimbal_rc_pitch_max_speed = 60;  // [degree/s]
 float UserA::gimbal_pc_pitch_sensitivity[3] = {30000, 70000, 90000};   // [Slow, Normal, Fast] [degree/s]
 
+float UserA::gimbal_yaw_min_angle = -200; // left range for yaw [degree]
+float UserA::gimbal_yaw_max_angle = 200; // right range for yaw [degree]
+float UserA::gimbal_pitch_min_angle = -60; // down range for pitch [degree]
+float UserA::gimbal_pitch_max_angle = 0; //  up range for pitch [degree]
+
 /// Shoot Config
 bool UserA::shoot_power_on = true;
 float UserA::shoot_launch_left_count = 5;
@@ -18,8 +23,8 @@ float UserA::shoot_launch_right_count = 999;
 
 float UserA::shoot_launch_speed = 15.0f;
 
-float UserA::shoot_common_duty_cycle = 0.6;
-float UserA::shoot_debug_duty_cycle = 0.1;
+float UserA::shoot_common_duty_cycle = 0.9;
+float UserA::shoot_debug_duty_cycle = 0.05;
 float UserA::shoot_full_power_duty_cycle = 0.9;
 
 Remote::key_t UserA::shoot_fw_switch = Remote::KEY_Z;
@@ -50,10 +55,11 @@ void UserA::UserThread::main() {
 
             if (Remote::rc.s1 == Remote::S_MIDDLE || Remote::rc.s1 == Remote::S_DOWN) {
 
-                GimbalLG::set_action(GimbalLG::AERIAL_MODE);
+                // FIXME: now use SENTRY_MODE
+                GimbalLG::set_action(GimbalLG::SENTRY_MODE);
 
-                float orig_yaw_target_angle = gimbal_yaw_target_angle_;
-                float orig_pitch_target_angle = gimbal_pitch_target_angle_;
+                /*float orig_yaw_target_angle = gimbal_yaw_target_angle_;
+                float orig_pitch_target_angle = gimbal_pitch_target_angle_;*/
 
                 if (Remote::rc.s1 == Remote::S_MIDDLE) {
 
@@ -116,9 +122,9 @@ void UserA::UserThread::main() {
                 }
 
 
-
                 /// Perform clips
-                float yaw_current_angle = GimbalLG::get_relative_angle(GimbalLG::YAW);
+
+                /*float yaw_current_angle = GimbalLG::get_relative_angle(GimbalLG::YAW);
                 float pitch_current_angle = GimbalLG::get_relative_angle(GimbalLG::PITCH);
 
                 LOG("Pitch from %f to %f, cur = %f", orig_pitch_target_angle, gimbal_pitch_target_angle_, pitch_current_angle);
@@ -145,7 +151,10 @@ void UserA::UserThread::main() {
                     LOG("Pitch give up from %f to %f", orig_pitch_target_angle, gimbal_pitch_target_angle_);
 
                     gimbal_pitch_target_angle_ = orig_pitch_target_angle;  // give up change
-                }
+                }*/
+
+                VAL_CROP(gimbal_yaw_target_angle_, gimbal_yaw_max_angle, gimbal_yaw_min_angle);
+                VAL_CROP(gimbal_pitch_target_angle_, gimbal_pitch_max_angle, gimbal_pitch_min_angle);
 
                 GimbalLG::set_target(gimbal_yaw_target_angle_, gimbal_pitch_target_angle_);
 
@@ -278,9 +287,11 @@ void UserA::UserActionThread::main() {
 
             if (key_flag & (1U << Remote::KEY_Q)) {
                 gimbal_yaw_target_angle_ += 90.0f;
+                VAL_CROP(gimbal_yaw_target_angle_, gimbal_yaw_max_angle, gimbal_yaw_min_angle);
                 GimbalLG::set_target(gimbal_yaw_target_angle_, gimbal_pitch_target_angle_);
             } else if (key_flag & (1U << Remote::KEY_E)) {
                 gimbal_yaw_target_angle_ -= 90.0f;
+                VAL_CROP(gimbal_yaw_target_angle_, gimbal_yaw_max_angle, gimbal_yaw_min_angle);
                 GimbalLG::set_target(gimbal_yaw_target_angle_, gimbal_pitch_target_angle_);
             }
 
