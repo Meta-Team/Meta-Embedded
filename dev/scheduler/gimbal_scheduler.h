@@ -109,6 +109,16 @@ public:
      */
     static float get_target_angle(motor_id_t motor);
 
+#if defined(HERO)
+    /**
+     * Set yaw limit angle.
+     * @param angle_left left limit
+     * @param angle_right right limit
+     * there's no sign. The program will automatically convert the sign.*/
+
+    static void set_yaw_limit(float angle_left_ = - 30.0f, float angle_right_ = 90.0f, int limit_velocity_ = 2);
+#endif
+
     /**
      * Get accumulated angle maintained by this SKD
      * @param motor   YAW or PITCH
@@ -116,7 +126,21 @@ public:
      */
     static float get_accumulated_angle(motor_id_t motor);
 
+    /**
+    * Get relative angle maintained by this SKD
+    * @param motor   YAW or PITCH
+    * @return Accumulated angle of MOTOR
+    */
+    static float get_relative_angle(motor_id_t motor);
+
 private:
+#if defined(HERO)
+    static float yaw_limit_angle[2]; // YAW limited angle. 0: left, 1: right
+    // YAW limit velocity.
+    // once the YAW limit angle was exceeded, the yaw limit velocity will automatically replaced by this variable.
+    // the direction will automatically converted.
+    static float yaw_limit_velocity;
+#endif
 
     static AbstractAHRS *gimbal_ahrs;
     static Matrix33 ahrs_angle_rotation;
