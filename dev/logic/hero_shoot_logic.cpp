@@ -7,31 +7,29 @@
 #include "shell.h"
 #include "referee_interface.h"
 #include "shoot_scheduler.h"
-#include "math.h"
 
 float HeroShootLG::loader_angle_per_bullet = 0.0f;
 float HeroShootLG::plate_angle_per_bullet = 0.0f;
 float HeroShootLG::loader_target_angle = 0.0f;
 float HeroShootLG::plate_target_angle = 0.0f;
-int  HeroShootLG::plate_runtime = 0;
-float HeroShootLG::plate_angle_increment = 0.0f;
-float HeroShootLG::loader_angle_increment = 0.0f;
-float HeroShootLG::plate_target_range = 3.0f;
-bool HeroShootLG::loaded_bullet[4] = {false, false, false, false};
-// loaded_bullet[0] is the closest bullet place to the friction wheel.
-int HeroShootLG::load_bullet_count = 0;
-HeroShootLG::loader_state_t HeroShootLG::loaderState = STOP;
-HeroShootLG::loader_state_t HeroShootLG::plateState = STOP;
 
-HeroShootLG::AutoLoaderThread HeroShootLG::autoLoader;
-HeroShootLG::StuckDetectorThread HeroShootLG::stuckDetector;
-HeroShootLG::plateLoadAttempt HeroShootLG::PlateLoadAttempt;
+int HeroShootLG::bullet_in_tube = 0;
+bool HeroShootLG::should_shoot = false;
 
-void HeroShootLG::init(float loader_angle_per_bullet_, float plate_angle_per_bullet_,
-                       tprio_t stuck_detector_thread_prio, tprio_t auto_loader_thread_prio) {
+HeroShootLG::motor_state_t HeroShootLG::loader_state = STOP;
+HeroShootLG::motor_state_t HeroShootLG::plate_state = STOP;
 
-    // Initialize pa
-    // rameters
+HeroShootLG::LoaderCalibrateThread HeroShootLG::loaderCalibrateThread;
+HeroShootLG::LoaderStuckDetectorThread HeroShootLG::loaderStuckDetector;
+HeroShootLG::PlateStuckDetectorThread HeroShootLG::plateStuckDetector;
+HeroShootLG::LoaderThread HeroShootLG::loaderThread;
+HeroShootLG::PlateThread HeroShootLG::plateThread;
+
+void HeroShootLG::init(float loader_angle_per_bullet_, float plate_angle_per_bullet_, tprio_t loader_calibrate_prio,
+                       tprio_t loader_thread_prio, tprio_t plate_thread_prio,
+                       tprio_t loader_stuck_detector_prio, tprio_t plate_stuck_detector_prio) {
+
+    // Initialize parameters
     loader_angle_per_bullet = loader_angle_per_bullet_;
     plate_angle_per_bullet = plate_angle_per_bullet_;
 
@@ -39,39 +37,29 @@ void HeroShootLG::init(float loader_angle_per_bullet_, float plate_angle_per_bul
     ShootSKD::reset_loader_accumulated_angle();
     ShootSKD::reset_plate_accumulated_angle();
 
-    stuckDetector.start(stuck_detector_thread_prio);
-    autoLoader.start(auto_loader_thread_prio);
+    ShootSKD::set_mode(ShootSKD::LIMITED_SHOOTING_MODE);
+
+    loaderCalibrateThread.start(loader_calibrate_prio);
+    chThdSleepMilliseconds(5000);// wait loader to calibrate
+    loaderThread.start(loader_thread_prio);
+    plateThread.start(plate_thread_prio);
+    loaderStuckDetector.start(loader_stuck_detector_prio);
+    plateStuckDetector.start(plate_stuck_detector_prio);
+
+}
+
+bool HeroShootLG::get_loader_exit_status() {
+    return !(bool) palReadPad(GPIOF, GPIOF_PIN0);
+}
+
+bool HeroShootLG::get_plate_exit_status() {
+    return !(bool) palReadPad(GPIOF, GPIOF_PIN1);
 }
 
 void HeroShootLG::shoot() {
-
-    if (loaderState == STOP) {
-        ShootSKD::set_mode(ShootSKD::LIMITED_SHOOTING_MODE);
-        if (loaded_bullet[0] && loaded_bullet[1]) {    // if the next bullet place is loaded
-
-            loader_target_angle += loader_angle_per_bullet;
-            ShootSKD::set_loader_target_angle(loader_target_angle);
-            loaderState = LOADING;
-
-            // Update the status
-            loaded_bullet[0] = loaded_bullet[1];
-            loaded_bullet[1] = loaded_bullet[2];
-            loaded_bullet[2] = false;
-
-            loader_angle_increment = loader_angle_per_bullet;
-        } else if (loaded_bullet[0] && !loaded_bullet[1]) {
-
-            loader_target_angle += (2 * loader_angle_per_bullet);
-            ShootSKD::set_loader_target_angle(loader_target_angle);
-            loaderState = LOADING;
-
-            // Update the status
-            loaded_bullet[0] = loaded_bullet[2];
-            loaded_bullet[1] = false; // this status will be updated in Automation thread.
-            loaded_bullet[2] = false;
-
-            loader_angle_increment = 2 * loader_angle_per_bullet;
-        }
+    if (ShootSKD::get_mode() != ShootSKD::LIMITED_SHOOTING_MODE) ShootSKD::set_mode(ShootSKD::LIMITED_SHOOTING_MODE);
+    if (loader_state == STOP && get_loader_exit_status()) {
+        should_shoot = true;
     }
 }
 
@@ -79,10 +67,6 @@ void HeroShootLG::set_friction_wheels(float duty_cycle) {
     ShootSKD::set_friction_wheels(duty_cycle);
     Referee::set_client_light(USER_CLIENT_FW_STATE_LIGHT, (duty_cycle != 0));
     // Sending client data will be complete by higher level thread
-}
-
-void HeroShootLG::set_plate_range(float target_range) {
-    HeroShootLG::plate_target_range = target_range;
 }
 
 float HeroShootLG::get_friction_wheels_duty_cycle() {
@@ -93,176 +77,190 @@ void HeroShootLG::force_stop() {
     ShootSKD::set_mode(ShootSKD::FORCED_RELAX_MODE);
 }
 
-void HeroShootLG::StuckDetectorThread::main() {
-    setName("Stuck_Detector");
-    float loader_angle[4] = {0.0f,0.0f,0.0f,0.0f};
-    int last_loader_update_time = SYSTIME;
-    while (!shouldTerminate()) {
-        if(SYSTIME - last_loader_update_time > 100) {
-            loader_angle[0] = loader_angle[1];
-            loader_angle[1] = loader_angle[2];
-            loader_angle[2] = loader_angle[3];
-            loader_angle[3] = ShootSKD::get_loader_accumulated_angle();
-            last_loader_update_time= SYSTIME;
+float HeroShootLG::measure_loader_exit_status() {
+    int cnt = 0;
+    for (int i = 0; i < 5; i++) {
+        cnt += get_loader_exit_status();
+        chThdSleepMicroseconds(200    );
+    }
+    return (float) cnt / 5.0f;
+}
+void HeroShootLG::LoaderCalibrateThread::main() {
+    setName("LoaderCalibrate");
+    bool calibrate_success = false;
+    bool loader_exit_status_sequence[2] = {false, false};
+    ShootSKD::load_pid_params(CALIBRATE_PID_BULLET_LOADER_A2V_PARAMS, SHOOT_PID_BULLET_LOADER_V2I_PARAMS,SHOOT_PID_BULLET_PLATE_A2V_PARAMS,SHOOT_PID_BULLET_PLATE_V2I_PARAMS);
+    while(!shouldTerminate()) {
+        loader_exit_status_sequence[0] = loader_exit_status_sequence[1];
+        loader_exit_status_sequence[1] = get_loader_exit_status();
+        if(!calibrate_success && loader_target_angle == 0.0f ){
+            ShootSKD::set_mode(ShootSKD::LIMITED_SHOOTING_MODE);
+            loader_target_angle = 666.6f;
+            ShootSKD::set_loader_target_angle(loader_target_angle);
         }
-        if (loaderState == LOADING &&
-            fabs(loader_angle[0] - loader_angle[3]) < 0.2f &&
-            fabs(loader_angle[1] - loader_angle[3]) < 0.2f &&
-            fabs(loader_angle[2] - loader_angle[3]) < 0.2f) {
-            loaderState = STUCK;
-            ShootSKD::set_loader_target_angle(
-                    ShootSKD::get_loader_accumulated_angle() - 20.0f);  // Back up to ample space
+        if((loader_exit_status_sequence[0] && !loader_exit_status_sequence[1]) && loader_target_angle == 666.6f){
+            loader_target_angle = ShootSKD::get_loader_accumulated_angle();
+            ShootSKD::set_loader_target_angle(loader_target_angle);
+            ShootSKD::load_pid_params(SHOOT_PID_BULLET_LOADER_A2V_PARAMS,SHOOT_PID_BULLET_LOADER_V2I_PARAMS,SHOOT_PID_BULLET_PLATE_A2V_PARAMS,SHOOT_PID_BULLET_PLATE_V2I_PARAMS);
+            loader_target_angle += 40.0f;
+            ShootSKD::set_loader_target_angle(loader_target_angle);
         }
-        if(plateState == LOADING &&
-           ShootSKD::get_plate_target_current() > PLATE_STUCK_THRESHOLD_CURRENT &&
-           ShootSKD::get_plate_actual_velocity() < PLATE_STUCK_THRESHOLD_VELOCITY &&
-           load_bullet_count != 0) {
-            plateState = STUCK;
-            ShootSKD::set_plate_target_angle(ShootSKD::get_plate_accumulated_angle() - 10.0f);  // Back up to ample space
-        }
-        if (loaderState == STUCK || plateState == STUCK) {
+        if (loader_target_angle != 666.6f && ABS_IN_RANGE(loader_target_angle - ShootSKD::get_loader_accumulated_angle(),3.0f)){
+            ShootSKD::reset_loader_accumulated_angle();
+            ShootSKD::set_loader_target_angle(0);
+            loader_target_angle = 0.0f;
+            calibrate_success = true;
 
-            // Give some time to let the loaders to reverse.
+            chSysLock();  /// --- ENTER S-Locked state. DO NOT use LOG, printf, non S/I-Class functions or return ---
+            chSchGoSleepS(CH_STATE_SUSPENDED);
+            chSysUnlock();  /// --- EXIT S-Locked state ---
+        }
+        sleep(CALIBRATE_THREAD_INTERVAL);
+    }
+}
+
+void HeroShootLG::LoaderStuckDetectorThread::main() {
+    setName("StuckDetector1");
+
+    int stuck_pend_time = 0;
+
+    while (!shouldTerminate()) {
+
+        if (loader_state == LOADING) {
+            if (ShootSKD::get_loader_target_current() > LOADER_STUCK_THRESHOLD_CURRENT &&
+                ShootSKD::get_loader_actual_velocity() < LOADER_STUCK_THRESHOLD_VELOCITY) {
+
+                stuck_pend_time++;  // Back up to ample space
+
+            } else {
+
+                stuck_pend_time = 0;
+            }
+        }
+
+        if (stuck_pend_time > 200) {
+            loader_state = STUCK;
+            ShootSKD::set_loader_target_angle(ShootSKD::get_loader_accumulated_angle() - STUCK_REVERSE_ANGLE);
+
             sleep(TIME_MS2I(STUCK_REVERSE_TIME));
 
-            // Update the loaders' states & reset the target angle.
-            if(loaderState == STUCK) {
-                loaderState = LOADING;
-                ShootSKD::set_loader_target_angle(loader_target_angle);
-            }
-            if(plateState == STUCK) {
-                plateState = LOADING;
-                ShootSKD::set_plate_target_angle(plate_target_angle);
-            }
+            loader_state = LOADING;
+            ShootSKD::set_loader_target_angle(loader_target_angle);
 
+            stuck_pend_time = 0;
         }
+
         sleep(TIME_MS2I(STUCK_DETECTOR_THREAD_INTERVAL));
     }
 }
 
-void HeroShootLG::AutoLoaderThread::main() {
-    setName("Automation");
-    PlateLoadAttempt.wait_time = SYSTIME;
-    PlateLoadAttempt.attempt_number = 0;
-    PlateLoadAttempt.task_status = LOAD_SUCCESS;
-    int ball_in_tunnel = 0;
-    int ball_in_loader = 0;
+void HeroShootLG::PlateStuckDetectorThread::main() {
 
-    bool PlateMouthStatus[2] = {false, false};
-    bool LoaderMouthStatus[2] = {false, false};
+    setName("StuckDetector2");
+
+    int stuck_pend_time = 0;
 
     while (!shouldTerminate()) {
-        /***-----------1.Update-the-status-----------***/
 
-        // I.Detect the Mouths
-        //   Loader Mouth
-        LoaderMouthStatus[0] = LoaderMouthStatus[1];
-        LoaderMouthStatus[1] = !((bool) palReadPad(GPIOE,GPIOE_PIN4));
-        //   Plate Mouth
-        PlateMouthStatus[0] = PlateMouthStatus[1];
-        PlateMouthStatus[1] = !((bool) palReadPad(GPIOE, GPIOE_PIN5));
+        if (plate_state == LOADING) {
+            if (ShootSKD::get_plate_target_current() > PLATE_STUCK_THRESHOLD_CURRENT &&
+                ShootSKD::get_plate_actual_velocity() < PLATE_STUCK_THRESHOLD_VELOCITY) {
 
-        // II.The last place of loader
-        loaded_bullet[2] = !((bool) palReadPad(GPIOE, GPIOE_PIN4));
+                stuck_pend_time++;  // Back up to ample space
 
-        // III.Detect the extra bullet in loading. (Should Only enabled when load 2 places, to detect the extra bullet)
-        //     When a bullet passed by while loading, it means the extra bullet was successfully loaded.
+            } else {
 
-        if (loaderState == LOADING && loader_angle_increment == 144.0f &&    //TODO:
-            !LoaderMouthStatus[0] && LoaderMouthStatus[1]) {
-            // Only add the when the previous bullet has passed.
-            if (loader_target_angle - ShootSKD::get_loader_accumulated_angle() <114.0f) {
-                if(!loaded_bullet[1]) loaded_bullet[1] = true;
+                stuck_pend_time = 0;
             }
         }
 
-        // IV. Update the loaders' states
+        if (stuck_pend_time > 200) {
+            plate_state = STUCK;
+            ShootSKD::set_plate_target_angle(ShootSKD::get_plate_accumulated_angle() - STUCK_REVERSE_ANGLE);
 
-        //     Loader
-        if(loaderState != STUCK && loader_target_angle - ShootSKD::get_loader_accumulated_angle() <= 5.0f) {
-            loaderState = STOP;
-        } else if (loaderState != STUCK && loader_target_angle - ShootSKD::get_loader_accumulated_angle() >5.0f ){
-            loaderState = LOADING;
-        }
-        //     Plate
-        if(plateState != STUCK && plate_target_angle - ShootSKD::get_plate_accumulated_angle() <= plate_target_range) {
-            plateState = STOP;
-        } else if (plateState != STUCK && plate_target_angle - ShootSKD::get_plate_accumulated_angle() > plate_target_range) {
-            plateState = LOADING;
+            sleep(TIME_MS2I(STUCK_REVERSE_TIME));
+
+            plate_state = LOADING;
+            ShootSKD::set_plate_target_angle(plate_target_angle);
+
+            stuck_pend_time = 0;
         }
 
-        // V. Update the ball in tunnel and ball in loader.
-        //    Ball in loader
-        if (!LoaderMouthStatus[0] && LoaderMouthStatus[1]) {  //TODO:
-            ball_in_loader += 1;
-            ball_in_tunnel -= 1;
-        }
-        //    Ball in tunnel
-        if (PlateMouthStatus[0] && !PlateMouthStatus[1]) {
-            ball_in_tunnel += 1;
-        }
+        sleep(TIME_MS2I(STUCK_DETECTOR_THREAD_INTERVAL));
+    }
+}
 
-        /***-----------2.Auto-Load-Loaders-----------***/
+void HeroShootLG::LoaderThread::main() {
 
-        // I. Loader Auto Load
-        //    Read the pin and auto Load.
-        if (loaderState == STOP) {
-            if ( !((bool) palReadPad(GPIOE, GPIOE_PIN4)) && !loaded_bullet[0]) {
-                ShootSKD::set_mode(ShootSKD::LIMITED_SHOOTING_MODE);
-                loader_target_angle += loader_angle_per_bullet;
-                ShootSKD::set_loader_target_angle(loader_target_angle);
-                loaderState = LOADING;
+    setName("HeroShootLoader");
 
-                // Update the status.
-                loaded_bullet[0] = loaded_bullet[1];
-                loaded_bullet[1] = loaded_bullet[2];
-                loaded_bullet[2] = !((bool) palReadPad(GPIOE, GPIOE_PIN4));
+    while (!shouldTerminate()) {
 
-                loader_angle_increment = loader_angle_per_bullet;
+        if (loader_state != STUCK) {
+
+            if (ABS_IN_RANGE(loader_target_angle - ShootSKD::get_loader_accumulated_angle(),
+                             LOADER_REACH_TARGET_RANGE)) {
+                loader_state = STOP;
+            } else {
+                loader_state = LOADING;
             }
-        }
-        // II.Plate Auto Load
-        if (plateState == STOP) {
-            if ( (bool) palReadPad(GPIOE, GPIOE_PIN4) && PlateLoadAttempt.task_status == LOAD_SUCCESS) {
-                if (loaded_bullet[0] && loaded_bullet[1] && !loaded_bullet[2]) {
-                    PlateLoadAttempt.task_status = LOAD_RUNNING;
-                    PlateLoadAttempt.attempt_number = 1;
-                    ball_in_loader = 0;
-                    ball_in_tunnel = 0;
-                } else if (loaded_bullet[0] && !loaded_bullet[1] && !loaded_bullet[2]) {
-                    PlateLoadAttempt.task_status = LOAD_RUNNING;
-                    PlateLoadAttempt.attempt_number = 2;
-                    ball_in_loader = 0;
-                    ball_in_tunnel = 0;
-                } else if (!loaded_bullet[0] && !loaded_bullet[1] && !loaded_bullet[2]) {
-                    PlateLoadAttempt.task_status = LOAD_RUNNING;
-                    PlateLoadAttempt.attempt_number = 3;
-                    ball_in_loader = 0;
-                    ball_in_tunnel = 0;
+
+            if (loader_state == STOP) {
+                unsigned cnt = 0;
+                while (!should_shoot && cnt < 1000) {
+                    sleep(TIME_MS2I(1));
+                    cnt++;
+                }
+                if (should_shoot || !get_loader_exit_status()) {
+                    if (should_shoot) {
+                        should_shoot = false;
+                        if(bullet_in_tube > 0) bullet_in_tube--;
+                    }
+                    loader_target_angle += loader_angle_per_bullet;
+                    ShootSKD::set_loader_target_angle(loader_target_angle);
                 }
             }
-            if (PlateLoadAttempt.task_status == LOAD_RUNNING) {
-                if (ball_in_loader + ball_in_tunnel < PlateLoadAttempt.attempt_number) {
-                    // if the ball in tunnel was less than the number we set, just load.
-                    ShootSKD::set_mode(ShootSKD::LIMITED_SHOOTING_MODE);
+
+        }
+
+        sleep(TIME_MS2I(LOADER_THREAD_INTERVAL));
+    }
+
+}
+
+void HeroShootLG::PlateThread::main() {
+
+    setName("HeroShootPlate");
+
+    int last_load_time = SYSTIME;
+
+    while (!shouldTerminate()) {
+
+        if (plate_state != STUCK) {
+
+            if (!last_plate_exit_status && get_plate_exit_status()) {
+                bullet_in_tube++;
+            }
+            last_plate_exit_status = get_plate_exit_status();
+
+            if (ABS_IN_RANGE(plate_target_angle - ShootSKD::get_plate_accumulated_angle(), PLATE_REACH_TARGET_RANGE)) {
+                plate_state = STOP;
+            } else {
+                plate_state = LOADING;
+            }
+
+            if (plate_state == STOP) {
+//                sleep(TIME_MS2I(200));
+                if (bullet_in_tube < 3 && SYSTIME - last_load_time > 500) {
                     plate_target_angle += plate_angle_per_bullet;
-                    plate_angle_increment = plate_angle_per_bullet;
                     ShootSKD::set_plate_target_angle(plate_target_angle);
-                } else {
-                    PlateLoadAttempt.task_status = LOAD_WAITING;
-                    PlateLoadAttempt.wait_time = SYSTIME;
+                    last_load_time = SYSTIME;
                 }
             }
-            if (PlateLoadAttempt.task_status == LOAD_WAITING) {
-                if (ball_in_loader >= PlateLoadAttempt.attempt_number) {
-                    PlateLoadAttempt.task_status = LOAD_SUCCESS;
-                }
-                if (SYSTIME - PlateLoadAttempt.wait_time > 1500) {
-                    PlateLoadAttempt.task_status = LOAD_SUCCESS;
-                } // After Replace the tunnel, no bullet would leave.
-            }
+
         }
-        sleep(TIME_MS2I(AUTO_LOADER_THREAD_INTERVAL));
+
+        sleep(TIME_MS2I(PLATE_THREAD_INTERVAL));
     }
 
 }

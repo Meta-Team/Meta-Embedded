@@ -11,7 +11,7 @@ float UserH::gimbal_rc_yaw_max_speed = 90;  // [degree/s]
 float UserH::gimbal_pc_yaw_sensitivity[3] = {25000, 75000, 125000};  // [Slow, Normal, Fast] [degree/s]
 
 float UserH::gimbal_pc_pitch_sensitivity[3] = {18000, 48000, 60000};   // [Slow, Normal, Fast] [degree/s]
-float UserH::gimbal_pitch_min_angle = -15; // down range for pitch [degree]
+float UserH::gimbal_pitch_min_angle = -10; // down range for pitch [degree]
 float UserH::gimbal_pitch_max_angle = 45; //  up range for pitch [degree]
 
 /// Chassis Config
@@ -30,14 +30,12 @@ float UserH::shoot_launch_right_count = 999;
 
 float UserH::shoot_launch_speed = 5.0f;
 
-float UserH::shoot_common_duty_cycle = 0.11f;
-float UserH::badass_duty_cycle = 0.07;
-
-float UserH::common_plate_target_range = 1.0f;
-float UserH::badass_plate_target_range = 2.0f;
+float UserH::shoot_badass_duty_cycle = 0.1f;
+float UserH::shoot_common_duty_cycle = 0.13f;             //TODO:
 
 Remote::key_t UserH::shoot_fw_switch = Remote::KEY_Z;
-Remote::key_t UserH::shoot_weapon_switch = Remote::KEY_F;
+Remote::key_t UserH::shoot_weapon_switch = Remote::KEY_Q;
+
 
 /// Variables
 UserH::UserThread UserH::userThread;
@@ -324,15 +322,14 @@ void UserH::UserActionThread::main() {
                 }
             }
             if (key_flag & (1U << shoot_weapon_switch)) {
-                if (HeroShootLG::get_friction_wheels_duty_cycle() > 0.09) {
-                    HeroShootLG::set_friction_wheels(badass_duty_cycle);
-                    HeroShootLG::set_plate_range(badass_plate_target_range);
-                } else {
+                if(HeroShootLG::get_friction_wheels_duty_cycle() == shoot_common_duty_cycle){
+                    HeroShootLG::set_friction_wheels(shoot_badass_duty_cycle);
+                    Referee::set_client_number(1, shoot_badass_duty_cycle);
+                } else if (HeroShootLG::get_friction_wheels_duty_cycle() == shoot_badass_duty_cycle){
                     HeroShootLG::set_friction_wheels(shoot_common_duty_cycle);
-                    HeroShootLG::set_plate_range(common_plate_target_range);
+                    Referee::set_client_number(1, shoot_common_duty_cycle);
                 }
             }
-
         }
 
         // If more event type is added, remember to modify chEvtWaitAny() above
@@ -367,6 +364,7 @@ void UserH::ClientDataSendingThread::main() {
                 super_capacitor_light_status_ = not super_capacitor_light_status_;  // blink voltage light
             }
         } else {
+            Referee::set_client_number(HeroShootLG::get_friction_wheels_duty_cycle(), 1);
 //            Referee::set_client_number(USER_CLIENT_ACTUAL_POWER_NUM, 0);
 //            Referee::set_client_number(USER_CLIENT_SUPER_CAPACITOR_VOLTAGE_NUM, 0);
             super_capacitor_light_status_ = false;

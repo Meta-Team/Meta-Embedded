@@ -50,6 +50,7 @@ private:
 
     static float shoot_launch_speed;
 
+    static float shoot_badass_duty_cycle;
     static float shoot_common_duty_cycle;
     static float badass_duty_cycle;
 

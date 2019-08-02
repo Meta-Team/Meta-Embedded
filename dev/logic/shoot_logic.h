@@ -125,7 +125,7 @@ private:
         static constexpr float STUCK_THRESHOLD_VELOCITY = 15;  // upper velocity to trigger stuck handling [degree/s]
 
         static constexpr unsigned STUCK_REVERSE_TIME = 1000;  // time to stay in reverse turing state [ms]
-        static constexpr unsigned STUCK_REVERSE_ANGLE = 10;   // reverse turning target angle when stuck [degree]
+        static constexpr unsigned STUCK_REVERSE_ANGLE = 15;   // reverse turning target angle when stuck [degree]
 
         void main() final;
     };

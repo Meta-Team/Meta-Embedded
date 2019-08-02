@@ -104,7 +104,7 @@ int main() {
     /// Setup GimbalIF (for Gimbal and Shoot)
     GimbalIF::init(&can1, GIMBAL_YAW_FRONT_ANGLE_RAW, GIMBAL_PITCH_FRONT_ANGLE_RAW,
                    GIMBAL_YAW_MOTOR_TYPE, GIMBAL_PITCH_MOTOR_TYPE, SHOOT_BULLET_MOTOR_TYPE);
-    chThdSleepMilliseconds(10);
+    chThdSleepMilliseconds(1000); // wait for friction wheel to reset
     InspectorA::startup_check_gimbal_feedback(); // check gimbal motors has continuous feedback. Block for 20 ms
     LED::led_on(DEV_BOARD_LED_GIMBAL);  // LED 5 on now
 
@@ -141,7 +141,7 @@ int main() {
                               {0, 0, 0, 0, 0} /* of no use */, {0, 0, 0, 0, 0} /* of no use */);
 
     /// Start LGs
-    GimbalLG::init(GIMBAL_YAW_MIN_ANGLE, GIMBAL_YAW_MAX_ANGLE, GIMBAL_PITCH_MIN_ANGLE, GIMBAL_PITCH_MAX_ANGLE);
+    GimbalLG::init();
     ShootLG::init(SHOOT_DEGREE_PER_BULLET, THREAD_SHOOT_LG_STUCK_DETECT_PRIO, THREAD_SHOOT_BULLET_COUNTER_PRIO);
 
 

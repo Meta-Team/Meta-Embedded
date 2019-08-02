@@ -8,6 +8,7 @@
 bool EngineerElevatorLG::test_mode;
 EngineerElevatorLG::EngineerElevatorLGThread EngineerElevatorLG::engineerLogicThread;
 EngineerElevatorLG::elevator_state_t EngineerElevatorLG::state;
+bool EngineerElevatorLG::auto_elevator;
 
 bool EngineerElevatorLG::going_up = true;
 
@@ -15,6 +16,7 @@ bool EngineerElevatorLG::going_up = true;
 void EngineerElevatorLG::init(tprio_t logic_thread_prio) {
     test_mode = true;
     state = STOP;
+    auto_elevator = true;
 
     engineerLogicThread.start(logic_thread_prio);
 }
@@ -22,6 +24,10 @@ void EngineerElevatorLG::init(tprio_t logic_thread_prio) {
 EngineerElevatorLG::elevator_state_t EngineerElevatorLG::get_current_state() {
     return state;
 }
+
+void EngineerElevatorLG::change_auto_status() {
+    auto_elevator = !auto_elevator;
+};
 
 void EngineerElevatorLG::set_test_mode(bool test_mode_) {
     test_mode = test_mode_;
@@ -79,8 +85,10 @@ void EngineerElevatorLG::set_aided_motor_velocity(float target_velocity) {
 void EngineerElevatorLG::give_bullet() {
     if (state == GIVING_BULLET)
         set_state(STOP);
-    else
+    else {
+//        chThdSleepMilliseconds(2000);
         set_state(GIVING_BULLET);
+    }
 }
 
 
@@ -88,39 +96,39 @@ void EngineerElevatorLG::set_state(EngineerElevatorLG::elevator_state_t new_stat
     state = new_state;
     switch (state) {
         case STOP:
-            EngineerElevatorSKD::set_target_height(0);
+            EngineerElevatorSKD::set_target_height(ELEVATOR_ORIGIN_HEIGHT);
             EngineerElevatorSKD::set_aided_motor_velocity(0);
             EngineerChassisSKD::set_velocity(0, 0, 0);
             LOG("ELE STOP");
             break;
         case PREPARING:
             if (going_up) {
-                EngineerChassisSKD::set_velocity(0, 0.05 * ENGINEER_CHASSIS_VELOCITY_MAX, 0);
+                EngineerChassisSKD::set_velocity(0, 0.10f * ENGINEER_CHASSIS_VELOCITY_MAX, 0);
             } else {
-                EngineerChassisSKD::set_velocity(0, -0.02 * ENGINEER_CHASSIS_VELOCITY_MAX, 0);
+                EngineerChassisSKD::set_velocity(0, -0.05f * ENGINEER_CHASSIS_VELOCITY_MAX, 0);
             }
             LOG("ELE PREPARING");
             break;
         case ASCENDING:
             EngineerChassisSKD::set_velocity(0, 0, 0);
-            EngineerElevatorSKD::set_target_height(STAGE_HEIGHT);
+            EngineerElevatorSKD::set_target_height(STAGE_HEIGHT + ELEVATOR_ORIGIN_HEIGHT);
             LOG("ELE ASCENDING");
             break;
         case AIDING:
             if (going_up) {
-                EngineerElevatorSKD::set_aided_motor_velocity(0.7 * ENGINEER_AIDED_MOTOR_VELOCITY);
+                EngineerElevatorSKD::set_aided_motor_velocity(2.0f * ENGINEER_AIDED_MOTOR_VELOCITY);
             } else {
-                EngineerElevatorSKD::set_aided_motor_velocity(-0.5 * ENGINEER_AIDED_MOTOR_VELOCITY);
+                EngineerElevatorSKD::set_aided_motor_velocity(-0.5f * ENGINEER_AIDED_MOTOR_VELOCITY);
             }
             LOG("ELE AIDING");
             break;
         case DESCENDING:
-            EngineerElevatorSKD::set_target_height(0);
+            EngineerElevatorSKD::set_target_height(ELEVATOR_ORIGIN_HEIGHT);
             EngineerElevatorSKD::set_aided_motor_velocity(0);
             LOG("ELE DESCENDING");
             break;
         case GIVING_BULLET:
-            EngineerElevatorSKD::set_target_height(1.5);
+            EngineerElevatorSKD::set_target_height(ELEVATOR_ORIGIN_HEIGHT + 2.5f);
             LOG("ELE GIVING_BULLET");
             break;
     }
@@ -154,7 +162,9 @@ void EngineerElevatorLG::EngineerElevatorLGThread::main() {
         Referee::set_client_light(2, BR_hanging);
         Referee::set_client_light(3, FR_hanging);
 
-        if (!test_mode) {
+//        bool sign = -1;
+
+        if (!test_mode && auto_elevator) {
 
             switch (state) {
 
@@ -170,23 +180,19 @@ void EngineerElevatorLG::EngineerElevatorLGThread::main() {
                         }
 
                     } else {
-
                         if (BR_hanging && BL_hanging) {
                             // Both the two sensors at the back wheels reach the edge, can start to go down-stairs
                             set_state(ASCENDING);
-                        }
-                        // FIXME: re-enable
-                        /*else if ( BL_hanging && !BR_hanging )
-                            EngineerChassisSKD::pivot_turn(EngineerChassisSKD::BL, -0.005 * ENGINEER_CHASSIS_W_MAX);
+                        }else if ( BL_hanging && !BR_hanging )
+                            EngineerChassisSKD::pivot_turn(- CHASSIS_WIDTH / 2, - CHASSIS_LENGTH / 2, -0.05 * ENGINEER_CHASSIS_W_MAX);
                         else if ( !BL_hanging && BR_hanging )
-                            EngineerChassisSKD::pivot_turn(EngineerChassisSKD::BR, +0.005 * ENGINEER_CHASSIS_W_MAX);
-                            */
+                            EngineerChassisSKD::pivot_turn(+ CHASSIS_WIDTH / 2, - CHASSIS_LENGTH / 2, +0.05 * ENGINEER_CHASSIS_W_MAX);
 
                     }
                     break;
                 case ASCENDING:
 
-                    if (ABS_IN_RANGE(STAGE_HEIGHT - EngineerElevatorSKD::get_current_height(), 0.5)) {
+                    if (ABS_IN_RANGE(STAGE_HEIGHT + ELEVATOR_ORIGIN_HEIGHT - EngineerElevatorSKD::get_current_height(), 0.5)) {
                         set_state(AIDING);
                     }
 
@@ -212,14 +218,16 @@ void EngineerElevatorLG::EngineerElevatorLGThread::main() {
                     break;
                 case DESCENDING:
 
-                    if (ABS_IN_RANGE(EngineerElevatorSKD::get_current_height(), 0.3)) {
+                    if (ABS_IN_RANGE(EngineerElevatorSKD::get_current_height() - ELEVATOR_ORIGIN_HEIGHT, 0.3)) {
                         set_state(STOP);
                     }
 
                     break;
                 case GIVING_BULLET:
 
-                    // No need to judge
+//                    sign = -sign;
+//                    EngineerChassisSKD::pivot_turn(0, - CHASSIS_LENGTH / 2, sign * ENGINEER_CHASSIS_W_MAX);
+//                    chThdSleepMilliseconds(500);
 
                     break;
                 default:

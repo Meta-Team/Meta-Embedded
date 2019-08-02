@@ -1234,9 +1234,9 @@
  * PI2  - PIN2                      (input floating).
  * PI3  - PIN3                      (input floating).
  * PI4  - PIN4                      (input floating).
- * PI5  - PIN5                      (alternate 3, PWMD8 channel 0).
+ * PI5  - PIN5                      (input floating).
  * PI6  - PIN6                      (alternate 3, PWMD8 channel 1).
- * PI7  - PIN7                      (input floating).
+ * PI7  - PIN7                      (alternate 3, PWMD8 channel 2).
  * PI8  - PIN8                      (input floating).
  * PI9  - PIN9                      (input floating).
  * PI10 - PIN10                     (input floating).
@@ -1251,9 +1251,9 @@
                                      PIN_MODE_INPUT(GPIOI_PIN2) |           \
                                      PIN_MODE_INPUT(GPIOI_PIN3) |           \
                                      PIN_MODE_INPUT(GPIOI_PIN4) |           \
-                                     PIN_MODE_ALTERNATE(GPIOI_PIN5) |           \
+                                     PIN_MODE_INPUT(GPIOI_PIN5) |           \
                                      PIN_MODE_ALTERNATE(GPIOI_PIN6) |           \
-                                     PIN_MODE_INPUT(GPIOI_PIN7) |           \
+                                     PIN_MODE_ALTERNATE(GPIOI_PIN7) |           \
                                      PIN_MODE_INPUT(GPIOI_PIN8) |           \
                                      PIN_MODE_INPUT(GPIOI_PIN9) |           \
                                      PIN_MODE_INPUT(GPIOI_PIN10) |          \
@@ -1331,9 +1331,9 @@
                                      PIN_AFIO_AF(GPIOI_PIN2, 0U) |          \
                                      PIN_AFIO_AF(GPIOI_PIN3, 0U) |          \
                                      PIN_AFIO_AF(GPIOI_PIN4, 0U) |          \
-                                     PIN_AFIO_AF(GPIOI_PIN5, 3U) |          \
+                                     PIN_AFIO_AF(GPIOI_PIN5, 0U) |          \
                                      PIN_AFIO_AF(GPIOI_PIN6, 3U) |          \
-                                     PIN_AFIO_AF(GPIOI_PIN7, 0U))
+                                     PIN_AFIO_AF(GPIOI_PIN7, 3U))
 #define VAL_GPIOI_AFRH              (PIN_AFIO_AF(GPIOI_PIN8, 0U) |          \
                                      PIN_AFIO_AF(GPIOI_PIN9, 0U) |          \
                                      PIN_AFIO_AF(GPIOI_PIN10, 0U) |         \

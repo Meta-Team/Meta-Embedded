@@ -5,10 +5,10 @@
 #include "user_engineer.h"
 
 /// Chassis Config
-float UserE::chassis_v_left_right = 300.0f;  // [mm/s]
-float UserE::chassis_v_forward = 300.0f;     // [mm/s]
-float UserE::chassis_v_backward = 300.0f;    // [mm/s]
-float UserE::chassis_w = 150.0f;    // [degree/s]
+float UserE::chassis_v_left_right = 600.0f;  // [mm/s]
+float UserE::chassis_v_forward = 1000.0f;     // [mm/s]
+float UserE::chassis_v_backward = 1000.0f;    // [mm/s]
+float UserE::chassis_w = 90.0f;    // [degree/s]
 
 float UserE::chassis_pc_shift_ratio = 1.5f;  // 150% when Shift is pressed
 float UserE::chassis_pc_ctrl_ratio = 0.2;    // 20% when Ctrl is pressed
@@ -33,14 +33,15 @@ void UserE::start(tprio_t user_thd_prio, tprio_t user_action_thd_prio, tprio_t c
 /**
  * Mode Table:
  * ------------------------------------------------------------
- * Left  Right  Mode
+ * Left  Right   Mode
  * ------------------------------------------------------------
- *  UP    *     Safe
- *  MID   UP    Remote - Chassis remote controlling
- *  MID   MID   Remote - Elevator remote controlling
- *  MID   DOWN  Remote - Gimbal remote controlling
- *  DOWN  *     PC     - AUTO_ELEVATING
- *  -Others-    Safe
+ *  UP    UP/MID Safe
+ *  UP    DOWN   Sensors & Swithces Test Mode
+ *  MID   UP     Remote - Chassis remote controlling
+ *  MID   MID    Remote - Elevator remote controlling
+ *  MID   DOWN   Remote - Gimbal remote controlling
+ *  DOWN  *      PC     - AUTO_ELEVATING
+ *  -Others-     Safe
  * ------------------------------------------------------------
  */
 
@@ -48,13 +49,16 @@ void UserE::UserThread::main() {
     setName("UserE");
     while (!shouldTerminate()) {
 
-        /// Gimbal
-        if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_DOWN) {
-            /// Remote Control
-            gimbal_pc_yaw_target_angle_ = (Remote::rc.ch0 / 2 + 0.5) * EngineerGimbalIF::MAX_ANGLE;
-            gimbal_pc_pitch_target_angle_ = (Remote::rc.ch1 / 2 + 0.5) * EngineerGimbalIF::MAX_ANGLE;
-            EngineerGimbalIF::set_target_angle(gimbal_pc_yaw_target_angle_, gimbal_pc_pitch_target_angle_);
+
+        /// Sensors and Switches Test
+        if (Remote::rc.s1 == Remote::S_UP && Remote::rc.s2 == Remote::S_DOWN) {
+            if (palReadPad(FF_SWITCH_PAD, FFL_SWITCH_PIN_ID) == SWITCH_TOUCH_PAL_STATUS ||
+            palReadPad(FF_SWITCH_PAD, FFR_SWITCH_PIN_ID) == SWITCH_TOUCH_PAL_STATUS) {
+                LED::red_toggle();
+            }
+            else { LED::red_off(); }
         }
+
 
         /// Elevator and Chassis
 
@@ -95,7 +99,20 @@ void UserE::UserThread::main() {
             else
                 EngineerElevatorLG::set_aided_motor_velocity(0);
 
-        } else if (Remote::rc.s1 == Remote::S_DOWN) {
+        }
+        else if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_DOWN) {
+            EngineerElevatorLG::set_test_mode(true);
+
+            EngineerChassisSKD::enable(true);
+            EngineerElevatorLG::elevator_enable(true);
+
+            if (Remote::rc.ch1 > 0.5 || Remote::rc.ch1 < -0.5){
+                EngineerChassisSKD::pivot_turn(CHASSIS_WIDTH / 2, SIGN(Remote::rc.ch1) * CHASSIS_LENGTH / 2, -0.1 * Remote::rc.ch0 * chassis_w);
+            } else if (Remote::rc.ch3 > 0.5 || Remote::rc.ch3 < -0.5)
+                EngineerChassisSKD::pivot_turn(- CHASSIS_WIDTH / 2, SIGN(Remote::rc.ch3) * CHASSIS_LENGTH / 2, -0.1 * Remote::rc.ch2 * chassis_w);
+            else
+                EngineerChassisSKD::set_velocity(0,0,0);
+        }else if (Remote::rc.s1 == Remote::S_DOWN) {
 
             EngineerElevatorLG::set_test_mode(false);
 
@@ -104,7 +121,8 @@ void UserE::UserThread::main() {
 
             /// PC control
 
-            if (EngineerElevatorLG::get_current_state() == EngineerElevatorLG::STOP) {
+            if (EngineerElevatorLG::get_current_state() == EngineerElevatorLG::STOP ||
+                EngineerElevatorLG::get_current_state() == EngineerElevatorLG::GIVING_BULLET) {
 
                 /**
                  * PC Key Table:
@@ -125,6 +143,12 @@ void UserE::UserThread::main() {
 
                 /// Chassis WSQE, AD, ctrl, shift
                 float target_vx, target_vy, target_w;
+
+                EngineerGimbalIF::set_target_angle(EngineerGimbalIF::get_target_angle(EngineerGimbalIF::YAW)
+                                                   + Remote::mouse.x * 500000 * USER_THREAD_INTERVAL / 1000,
+                                                   EngineerGimbalIF::get_target_angle(EngineerGimbalIF::PIT)
+                                                   + Remote::mouse.y * 500000 * USER_THREAD_INTERVAL / 1000);
+                // LOG("%.2f", EngineerGimbalIF::get_target_angle(EngineerGimbalIF::YAW));
 
                 if (Remote::key.w) {
                     target_vy = chassis_v_forward;
@@ -214,8 +238,8 @@ void UserE::UserActionThread::main() {
                 LOG("Now Yaw is %.2f \n Change to : %d \n Set YAW Angle to: %d", EngineerGimbalIF::get_target_angle(EngineerGimbalIF::YAW),
                     ((int) (EngineerGimbalIF::get_target_angle(EngineerGimbalIF::YAW) + 180.0f)),
                     ((int) (EngineerGimbalIF::get_target_angle(EngineerGimbalIF::YAW) + 180.0f)) % 360);
-                EngineerGimbalIF::set_target_angle(
-                        ((int) (EngineerGimbalIF::get_target_angle(EngineerGimbalIF::YAW) + 180.0f)) % 360, 0);
+                if (EngineerGimbalIF::get_target_angle(EngineerGimbalIF::YAW) != 105.0f) EngineerGimbalIF::set_target_angle(105.0f, 0);
+                else EngineerGimbalIF::set_target_angle(((int) (EngineerGimbalIF::get_target_angle(EngineerGimbalIF::YAW) + 180.0f)) % 360, 0);
 
             } else if (key_flag & (1U << Remote::KEY_V)) {
                 EngineerElevatorLG::give_bullet();
@@ -228,6 +252,12 @@ void UserE::UserActionThread::main() {
 
             if (key_flag & (1U << Remote::KEY_F)) {
                 EngineerElevatorLG::set_elevate_dir(false);
+            }
+
+            if ((key_flag & (1U << Remote::KEY_G)) &&
+                (key_flag & (1U << Remote::KEY_SHIFT)) &&
+                (key_flag & (1U << Remote::KEY_CTRL))) {
+                EngineerElevatorLG::change_auto_status();
             }
         }
 

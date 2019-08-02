@@ -31,8 +31,7 @@ public:
      * Initial GimbalLG
      * @param vision_thread_prio_   Priority of Vision thread. 0 for no initialization
      */
-    static void init(float yaw_min_angle_ = -MAXFLOAT, float yaw_max_angle_ = MAXFLOAT,
-                     float pitch_min_angle_ = -MAXFLOAT, float pitch_max_angle_ = MAXFLOAT);
+    static void init();
 
     enum action_t {
         FORCED_RELAX_MODE,
@@ -67,16 +66,11 @@ public:
      */
     static float get_accumulated_angle(motor_id_t motor);
 
+    static float get_current_target_angle(motor_id_t motor);
+
 private:
 
     static action_t action;
-
-    static float pitch_max_angle;
-    static float pitch_min_angle;
-    static float yaw_max_angle;
-    static float yaw_min_angle;
-    
-    static constexpr float AERIAL_LIMIT_ANGLE_TOLORANCE = 2.0f;
 
 };
 

@@ -118,10 +118,9 @@ int main() {
 
 
     /// Setup GimbalIF (for Gimbal and Shoot)
-    chThdSleepMilliseconds(2000);  // wait for C610 to be online
     GimbalIF::init(&can1, GIMBAL_YAW_FRONT_ANGLE_RAW, GIMBAL_PITCH_FRONT_ANGLE_RAW,
                    GIMBAL_YAW_MOTOR_TYPE, GIMBAL_PITCH_MOTOR_TYPE, SHOOT_BULLET_MOTOR_TYPE, SHOOT_PLATE_MOTOR_TYPE);
-    chThdSleepMilliseconds(10);
+    chThdSleepMilliseconds(2000);  // wait for C610 to be online and friction wheel to reset
     InspectorH::startup_check_gimbal_feedback(); // check gimbal motors has continuous feedback. Block for 20 ms
     LED::led_on(DEV_BOARD_LED_GIMBAL);  // LED 5 on now
 
@@ -172,8 +171,9 @@ int main() {
 
     /// Start LGs
     GimbalLG::init();
-    HeroShootLG::init(LOADER_SHOOT_DEGREE_PER_BULLET, PLATE_SHOOT_DEGREE_PER_BULLET, THREAD_SHOOT_LG_STUCK_DETECT_PRIO,
-                      THREAD_SHOOT_LG_AUTOMATION_PRIO);
+    HeroShootLG::init(LOADER_SHOOT_DEGREE_PER_BULLET, PLATE_SHOOT_DEGREE_PER_BULLET, THREAD_LOADER_CALIBRATE_PRIO,
+                      THREAD_SHOOT_LG_LOADER_PRIO, THREAD_SHOOT_LG_PLATE_PRIO,
+                      THREAD_SHOOT_LG_LOADER_STUCK_DETECT_PRIO, THREAD_SHOOT_LG_PLATE_STUCK_DETECT_PRIO);
     ChassisLG::init(THREAD_CHASSIS_LG_DODGE_PRIO, CHASSIS_DODGE_MODE_THETA, CHASSIS_BIASED_ANGLE);
 
 

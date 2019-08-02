@@ -12,6 +12,7 @@ float UserA::gimbal_rc_pitch_max_speed = 30;  // [degree/s]
 float UserA::gimbal_pc_pitch_sensitivity[3] = {20000, 50000, 60000};   // [Slow, Normal, Fast] [degree/s]
 
 /// Shoot Config
+bool UserA::shoot_power_on = true;
 float UserA::shoot_launch_left_count = 5;
 float UserA::shoot_launch_right_count = 999;
 
@@ -94,6 +95,8 @@ void UserA::UserThread::main() {
                 }
                 // Referee client data will be sent by ClientDataSendingThread
 
+                
+                /// Perform increment
                 gimbal_yaw_target_angle_ += -Remote::mouse.x * (yaw_sensitivity * USER_THREAD_INTERVAL / 1000.0f);
                 // mouse.x use right as positive direction, while GimbalLG use CCW (left) as positive direction
 
@@ -101,10 +104,34 @@ void UserA::UserThread::main() {
                         -Remote::mouse.y * (pitch_sensitivity * USER_THREAD_INTERVAL / 1000.0f);
                 // mouse.y use down as positive direction, while GimbalLG use CCW (left) as positive direction
 
+                /// Perform clips
+                float orig_yaw_target_angle = GimbalLG::get_current_target_angle(GimbalLG::YAW);
+                float orig_pitch_target_angle = GimbalLG::get_current_target_angle(GimbalLG::PITCH);
+                float yaw_current_angle = GimbalLG::get_accumulated_angle(GimbalLG::YAW);
+                float pitch_current_angle = GimbalLG::get_accumulated_angle(GimbalLG::PITCH);
+
+                if ((gimbal_yaw_target_angle_ < orig_yaw_target_angle &&  // to decrease, and
+                     yaw_current_angle < GIMBAL_YAW_MIN_ANGLE + GIMBAL_LIMIT_ANGLE_TOLORANCE  // no enough space
+                    ) ||  // or
+                    (gimbal_yaw_target_angle_ > orig_yaw_target_angle &&  // to increase, and
+                     yaw_current_angle > GIMBAL_YAW_MAX_ANGLE - GIMBAL_LIMIT_ANGLE_TOLORANCE  // no enough space
+                    )) {
+                    gimbal_yaw_target_angle_ = orig_yaw_target_angle;  // give up change
+                }
+
+                if ((gimbal_pitch_target_angle_ < orig_pitch_target_angle &&  // to decrease, and
+                     pitch_current_angle < GIMBAL_PITCH_MIN_ANGLE + GIMBAL_LIMIT_ANGLE_TOLORANCE  // no enough space
+                    ) ||  // or
+                    (gimbal_pitch_target_angle_ > orig_pitch_target_angle &&  // to increase, and
+                     pitch_current_angle > GIMBAL_PITCH_MAX_ANGLE - GIMBAL_LIMIT_ANGLE_TOLORANCE  // no enough space
+                    )) {
+                    gimbal_pitch_target_angle_ = orig_pitch_target_angle;  // give up change
+                }
+
                 GimbalLG::set_target(gimbal_yaw_target_angle_, gimbal_pitch_target_angle_);
                 // Crop will be performed inside
 
-                if (Remote::key.g){
+                if (Remote::key.g) {
                     Referee::sentry_guiding_direction_s.direction_mask = 0;
                     if (Remote::key.a) Referee::sentry_guiding_direction_s.direction_mask |= 1U << 1U;
                     if (Remote::key.w) Referee::sentry_guiding_direction_s.direction_mask |= 1U << 2U;
@@ -124,6 +151,16 @@ void UserA::UserThread::main() {
 
 
         /*** ---------------------------------- Shoot --------------------------------- ***/
+
+        if (!shoot_power_on){
+            if (Referee::game_robot_state.mains_power_shooter_output == 1){
+                float pre_duty = ShootLG::get_friction_wheels_duty_cycle();
+                ShootLG::set_friction_wheels(0);
+                sleep(TIME_MS2I(2000));
+                ShootLG::set_friction_wheels(pre_duty);
+                LOG("POWER ON AGAIN");
+            }
+        }
 
         if (!InspectorA::remote_failure() /*&& !InspectorI::chassis_failure()*/ && !InspectorA::gimbal_failure()) {
             if ((Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_UP) ||
@@ -216,7 +253,7 @@ void UserA::UserActionThread::main() {
                 ShootLG::shoot(shoot_launch_left_count, shoot_launch_speed);
             } else if (mouse_flag & (1U << Remote::MOUSE_RIGHT)) {
                 ShootLG::shoot(shoot_launch_right_count, shoot_launch_speed);
-            } 
+            }
         } else {  // releasing one while pressing another won't result in stopping
             if (events & MOUSE_RELEASE_EVENTMASK) {
                 ShootLG::stop();

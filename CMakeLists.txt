@@ -59,7 +59,7 @@ set(COMMON_SRC  # common cpp sources, which are included to every tartget at pos
         dev/debug/shell/shell_dbg_cmd.cpp
         dev/interface/led.cpp
         dev/interface/buzzer.cpp
-#        dev/module/state_handler.cpp
+        #        dev/module/state_handler.cpp
         )
 
 set(AHRS_SRC
@@ -241,8 +241,8 @@ add_executable(ENGINEER
         dev/vehicle/engineer/inspector_engineer.cpp
         dev/vehicle/engineer/settings_engineer.cpp
 
-#        dev/control/robotic_arm_skd.cpp
-#        dev/interface/robotic_arm_interface.cpp
+        #        dev/control/robotic_arm_skd.cpp
+        #        dev/interface/robotic_arm_interface.cpp
         )
 target_include_directories(ENGINEER PRIVATE dev/vehicle/engineer)
 target_compile_definitions(ENGINEER PRIVATE ENGINEER)
@@ -412,6 +412,7 @@ add_executable(ut_vision_port
         dev/common/CRC16.cpp
         dev/interface/vision_port.cpp
         dev/debug/unit_tests/ut_vision_port.cpp)
+target_compile_definitions(ut_vision_port PRIVATE VISION_PORT_DEBUG)
 
 add_executable(ut_sd_card
         dev/interface/sd_card_interface.cpp
@@ -424,7 +425,6 @@ add_executable(ut_adc
 
 add_executable(ut_sensors_sound
         dev/debug/unit_tests/ut_sensors_sound.cpp
-        dev/logic/engineer_elevator_logic.cpp
         )
 
 add_executable(ca_ahrs_infantry
