@@ -30,8 +30,8 @@ float UserH::shoot_launch_right_count = 999;
 
 float UserH::shoot_launch_speed = 5.0f;
 
-float UserH::shoot_snipe_duty_cycle = 0.14f;
-float UserH::shoot_common_duty_cycle = 0.11f;             //TODO:
+float UserH::shoot_badass_duty_cycle = 0.1f;
+float UserH::shoot_common_duty_cycle = 0.13f;             //TODO:
 
 Remote::key_t UserH::shoot_fw_switch = Remote::KEY_Z;
 Remote::key_t UserH::shoot_weapon_switch = Remote::KEY_Q;
@@ -323,9 +323,9 @@ void UserH::UserActionThread::main() {
             }
             if (key_flag & (1U << shoot_weapon_switch)) {
                 if(HeroShootLG::get_friction_wheels_duty_cycle() == shoot_common_duty_cycle){
-                    HeroShootLG::set_friction_wheels(shoot_snipe_duty_cycle);
-                    Referee::set_client_number(1, shoot_snipe_duty_cycle);
-                } else if (HeroShootLG::get_friction_wheels_duty_cycle() == shoot_snipe_duty_cycle){
+                    HeroShootLG::set_friction_wheels(shoot_badass_duty_cycle);
+                    Referee::set_client_number(1, shoot_badass_duty_cycle);
+                } else if (HeroShootLG::get_friction_wheels_duty_cycle() == shoot_badass_duty_cycle){
                     HeroShootLG::set_friction_wheels(shoot_common_duty_cycle);
                     Referee::set_client_number(1, shoot_common_duty_cycle);
                 }
