@@ -40,7 +40,7 @@ void HeroShootLG::init(float loader_angle_per_bullet_, float plate_angle_per_bul
     ShootSKD::set_mode(ShootSKD::LIMITED_SHOOTING_MODE);
 
     loaderCalibrateThread.start(loader_calibrate_prio);
-    chThdSleepMilliseconds(5000);// wait loader to calibrate
+    chThdSleepMilliseconds(3000);// wait loader to calibrate
     loaderThread.start(loader_thread_prio);
     plateThread.start(plate_thread_prio);
     loaderStuckDetector.start(loader_stuck_detector_prio);
