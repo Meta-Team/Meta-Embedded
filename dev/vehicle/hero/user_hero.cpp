@@ -113,13 +113,9 @@ void UserH::UserThread::main() {
                 }
                 // Referee client data will be sent by ClientDataSendingThread
 
-                if (Remote::mouse.x * (yaw_sensitivity * USER_THREAD_INTERVAL / 1000.0f) > 120) {
-                    gimbal_yaw_target_angle_ += -120;
-                } else if (Remote::mouse.x * (yaw_sensitivity * USER_THREAD_INTERVAL / 1000.0f) < -120) {
-                    gimbal_yaw_target_angle_ += 120;
-                } else {
-                    gimbal_yaw_target_angle_ += -Remote::mouse.x * (yaw_sensitivity * USER_THREAD_INTERVAL / 1000.0f);
-                }
+                gimbal_yaw_target_angle_ +=
+                        -Remote::mouse.x * (yaw_sensitivity * USER_THREAD_INTERVAL / 1000.0f);
+
                 // mouse.x use right as positive direction, while GimbalLG use CCW (left) as positive direction
 
 
