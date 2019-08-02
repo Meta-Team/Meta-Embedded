@@ -15,7 +15,7 @@ public:
 
     enum gimbal_id_t{
         YAW = 1,
-        PIT = 0
+        PIT = 2
     };
 
     static constexpr float MAX_ANGLE = 300.0f;

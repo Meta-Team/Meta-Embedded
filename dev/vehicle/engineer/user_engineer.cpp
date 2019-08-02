@@ -121,7 +121,8 @@ void UserE::UserThread::main() {
 
             /// PC control
 
-            if (EngineerElevatorLG::get_current_state() == EngineerElevatorLG::STOP) {
+            if (EngineerElevatorLG::get_current_state() == EngineerElevatorLG::STOP ||
+                EngineerElevatorLG::get_current_state() == EngineerElevatorLG::GIVING_BULLET) {
 
                 /**
                  * PC Key Table:
