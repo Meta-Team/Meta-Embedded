@@ -112,7 +112,7 @@ private:
         static constexpr unsigned STUCK_REVERSE_TIME = 1000;
         static constexpr unsigned STUCK_REVERSE_ANGLE = 15;   // reverse turning target angle when stuck [degree]
 
-        static constexpr int PLATE_STUCK_THRESHOLD_CURRENT = 3000;
+        static constexpr int PLATE_STUCK_THRESHOLD_CURRENT = 2500;
         static constexpr int PLATE_STUCK_THRESHOLD_VELOCITY = 2;
 
         void main() final;

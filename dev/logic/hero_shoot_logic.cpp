@@ -138,7 +138,7 @@ void HeroShootLG::LoaderStuckDetectorThread::main() {
             }
         }
 
-        if (stuck_pend_time > 200) {
+        if (stuck_pend_time > 50) {
             loader_state = STUCK;
             ShootSKD::set_loader_target_angle(ShootSKD::get_loader_accumulated_angle() - STUCK_REVERSE_ANGLE);
 
@@ -174,7 +174,7 @@ void HeroShootLG::PlateStuckDetectorThread::main() {
             }
         }
 
-        if (stuck_pend_time > 200) {
+        if (stuck_pend_time > 60) {
             plate_state = STUCK;
             ShootSKD::set_plate_target_angle(ShootSKD::get_plate_accumulated_angle() - STUCK_REVERSE_ANGLE);
 
