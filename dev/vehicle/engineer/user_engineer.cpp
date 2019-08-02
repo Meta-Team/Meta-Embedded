@@ -57,6 +57,9 @@ void UserE::UserThread::main() {
                 LED::red_toggle();
             }
             else { LED::red_off(); }
+            if (Remote::rc.ch1 > 0.5) {
+                EngineerElevatorLG::set_elevator_height(0);
+            }
         }
 
 
@@ -148,8 +151,7 @@ void UserE::UserThread::main() {
                                                    + Remote::mouse.x * 500000 * USER_THREAD_INTERVAL / 1000,
                                                    EngineerGimbalIF::get_target_angle(EngineerGimbalIF::PIT)
                                                    + Remote::mouse.y * 500000 * USER_THREAD_INTERVAL / 1000);
-                // LOG("%.2f", EngineerGimbalIF::get_target_angle(EngineerGimbalIF::YAW));
-
+                LOG("%.2f", EngineerGimbalIF::get_target_angle(EngineerGimbalIF::PIT));
                 if (Remote::key.w) {
                     target_vy = chassis_v_forward;
                 } else if (Remote::key.s) target_vy = -chassis_v_backward;
@@ -238,7 +240,9 @@ void UserE::UserActionThread::main() {
                 LOG("Now Yaw is %.2f \n Change to : %d \n Set YAW Angle to: %d", EngineerGimbalIF::get_target_angle(EngineerGimbalIF::YAW),
                     ((int) (EngineerGimbalIF::get_target_angle(EngineerGimbalIF::YAW) + 180.0f)),
                     ((int) (EngineerGimbalIF::get_target_angle(EngineerGimbalIF::YAW) + 180.0f)) % 360);
-                if (EngineerGimbalIF::get_target_angle(EngineerGimbalIF::YAW) != 105.0f) EngineerGimbalIF::set_target_angle(105.0f, 0);
+                if (EngineerGimbalIF::get_target_angle(EngineerGimbalIF::YAW) != 105.0f
+                || EngineerGimbalIF::get_target_angle(EngineerGimbalIF::PIT) != 65.0f )
+                    EngineerGimbalIF::set_target_angle(105.0f, 65.0f);
                 else EngineerGimbalIF::set_target_angle(((int) (EngineerGimbalIF::get_target_angle(EngineerGimbalIF::YAW) + 180.0f)) % 360, 0);
 
             } else if (key_flag & (1U << Remote::KEY_V)) {

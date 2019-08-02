@@ -52,7 +52,7 @@ private:
     static float gimbal_yaw_min_angle; // left range for yaw [degree]
     static float gimbal_yaw_max_angle; // right range for yaw [degree]
     static float gimbal_pitch_min_angle; // down range for pitch [degree]
-    static float gimbal_pitch_max_angle; //  up range for pitch [degree]
+    static float gimbal_pitch_max_angle; // up range for pitch [degree]
 
     /// Chassis Config
     static float chassis_v;  // [mm/s]

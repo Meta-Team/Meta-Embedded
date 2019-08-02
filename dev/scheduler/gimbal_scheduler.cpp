@@ -55,8 +55,13 @@ void GimbalSKD::start(AbstractAHRS *gimbal_ahrs_, const Matrix33 ahrs_angle_rota
     // Initialize last_angle, to use current pointing direction as startup direction
     Vector3D ahrs_angle = gimbal_ahrs->get_angle() * ahrs_angle_rotation;
 
+    // FIXME: find a more elegant way to handle this
+#if defined(SENTRY) || defined(AERIAL)
+    last_angle[YAW] = GimbalIF::feedback[GimbalIF::YAW].actual_angle * yaw_install;
+#else
     last_angle[YAW] = ahrs_angle.x - GimbalIF::feedback[GimbalIF::YAW].actual_angle * yaw_install;
     // For initial moment, angle_movement = ahrs_angle.x - last_angle[YAW] = GimbalIF::feedback[YAW].actual_angle
+#endif
 
     last_angle[PITCH] = ahrs_angle.y;
 
@@ -201,6 +206,15 @@ float GimbalSKD::get_accumulated_angle(motor_id_t motor) {
         } else {
             return (gimbal_ahrs->get_angle() * ahrs_angle_rotation).y;
         }
+    }
+    return 0;
+}
+
+float GimbalSKD::get_relative_angle(GimbalBase::motor_id_t motor) {
+    if (motor == YAW) {
+        return GimbalIF::feedback[YAW].accumulated_angle() * yaw_install / yaw_deceleration_ratio;
+    } else if (motor == PITCH) {
+        return GimbalIF::feedback[PITCH].accumulated_angle() * pitch_install / pitch_deceleration_ratio;
     }
     return 0;
 }

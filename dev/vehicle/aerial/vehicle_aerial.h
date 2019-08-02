@@ -18,7 +18,7 @@
 #define SHOOT_DEGREE_PER_BULLET 40.0f  // rotation degree of bullet loader for each bullet
 
 #define GIMBAL_PITCH_MAX_ANGLE   0.0f
-#define GIMBAL_PITCH_MIN_ANGLE   -70.0f
+#define GIMBAL_PITCH_MIN_ANGLE   -50.0f
 #define GIMBAL_YAW_MAX_ANGLE     200.0f
 #define GIMBAL_YAW_MIN_ANGLE     -200.0f
 #define GIMBAL_LIMIT_ANGLE_TOLORANCE   2.0f
@@ -36,8 +36,8 @@
 
 #define MPU6500_BIAS_DATA_ID 0x0001
 
-#define GIMBAL_YAW_FRONT_ANGLE_RAW 3628
-#define GIMBAL_PITCH_FRONT_ANGLE_RAW 1222
+#define GIMBAL_YAW_FRONT_ANGLE_RAW 3411
+#define GIMBAL_PITCH_FRONT_ANGLE_RAW 1365
 
 /// Gimbal and Shoot PID Parameters
 #define GIMBAL_PID_YAW_A2V_KP 13.0f
