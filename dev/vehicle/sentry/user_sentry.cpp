@@ -112,11 +112,6 @@ void UserS::UserThread::main() {
                 set_mode(AUTO_MODE);
                 vitualUserThread.set_v_user_mode(VitualUserThread::CRUISING_ONLY_MODE);
 
-            } else if (Remote::rc.s1 == Remote::S_DOWN && Remote::rc.s2 == Remote::S_UP) {
-
-                set_mode(AUTO_MODE);
-                vitualUserThread.set_v_user_mode(VitualUserThread::FINAL_AUTO_MODE);
-
             } else if (Remote::rc.s1 == Remote::S_DOWN) {
 
                 set_mode(AUTO_MODE);
@@ -209,6 +204,7 @@ void UserS::UserThread::main() {
             } else if (Remote::rc.s1 == Remote::S_DOWN && Remote::rc.s2 == Remote::S_MIDDLE) {
 
                 /// Remote - SHUTTLE_MODE
+                SChassisLG::set_shuttle_radius(30.0f);
                 SChassisLG::set_mode(SChassisLG::SHUTTLE_MODE);
 
             } else if (Remote::rc.s1 == Remote::S_DOWN && Remote::rc.s2 == Remote::S_DOWN) {
