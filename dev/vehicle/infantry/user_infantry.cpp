@@ -29,7 +29,7 @@ float UserI::shoot_launch_right_count = 999;
 
 float UserI::shoot_launch_speed = 5.0f;
 
-float UserI::shoot_common_duty_cycle = 0.5;
+float UserI::shoot_common_duty_cycle = 0.75;
 
 Remote::key_t UserI::shoot_fw_switch = Remote::KEY_Z;
 
