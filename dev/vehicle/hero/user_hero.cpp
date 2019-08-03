@@ -288,7 +288,7 @@ void UserH::UserActionThread::main() {
             HeroShootLG::shoot();
         } else {  // releasing one while pressing another won't result in stopping
             if (events & MOUSE_RELEASE_EVENTMASK) {
-                HeroShootLG::force_stop();
+                // HeroShootLG::force_stop();
             }
         }
 
@@ -317,10 +317,8 @@ void UserH::UserActionThread::main() {
             if (key_flag & (1U << shoot_weapon_switch)) {
                 if(HeroShootLG::get_friction_wheels_duty_cycle() == shoot_common_duty_cycle){
                     HeroShootLG::set_friction_wheels(shoot_badass_duty_cycle);
-                    Referee::set_client_number(1, shoot_badass_duty_cycle);
                 } else if (HeroShootLG::get_friction_wheels_duty_cycle() == shoot_badass_duty_cycle){
                     HeroShootLG::set_friction_wheels(shoot_common_duty_cycle);
-                    Referee::set_client_number(1, shoot_common_duty_cycle);
                 }
             }
         }
@@ -357,7 +355,6 @@ void UserH::ClientDataSendingThread::main() {
                 super_capacitor_light_status_ = not super_capacitor_light_status_;  // blink voltage light
             }
         } else {
-            Referee::set_client_number(HeroShootLG::get_friction_wheels_duty_cycle(), 1);
 //            Referee::set_client_number(USER_CLIENT_ACTUAL_POWER_NUM, 0);
             Referee::set_client_number(USER_CLIENT_SUPER_CAPACITOR_VOLTAGE_NUM, 0);
             super_capacitor_light_status_ = false;
