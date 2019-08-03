@@ -10,10 +10,11 @@ void cmd_echo_dms(BaseSequentialStream *chp, int argc, char *argv[]) {
         shellUsage(chp, "echo_dms");
         return;
     }
-    adcsample_t data[4];
-    DMSInterface::get_raw_sample(data);
-    chprintf(chp, "FR, FL, BL, BR: %u %u %u %u" SHELL_NEWLINE_STR, data[DMSInterface::FR], data[DMSInterface::FL],
-             data[DMSInterface::BL], data[DMSInterface::BR]);
+    chprintf(chp, "FR, FL, BL, BR: %u %u %u %u" SHELL_NEWLINE_STR,
+            palReadPad(GPIOC, GPIOC_PIN2),
+            palReadPad(GPIOC, GPIOA_PIN3),
+            palReadPad(GPIOC, GPIOC_PIN4),
+            palReadPad(GPIOC, GPIOC_PIN5));
 }
 
 void cmd_change_door(BaseSequentialStream *chp, int argc, char *argv[]){

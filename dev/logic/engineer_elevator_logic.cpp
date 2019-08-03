@@ -116,9 +116,9 @@ void EngineerElevatorLG::set_state(EngineerElevatorLG::elevator_state_t new_stat
             break;
         case AIDING:
             if (going_up) {
-                EngineerElevatorSKD::set_aided_motor_velocity(2.0f * ENGINEER_AIDED_MOTOR_VELOCITY);
+                EngineerElevatorSKD::set_aided_motor_velocity(1.0f * ENGINEER_AIDED_MOTOR_VELOCITY);
             } else {
-                EngineerElevatorSKD::set_aided_motor_velocity(-0.5f * ENGINEER_AIDED_MOTOR_VELOCITY);
+                EngineerElevatorSKD::set_aided_motor_velocity(-0.2f * ENGINEER_AIDED_MOTOR_VELOCITY);
             }
             LOG("ELE AIDING");
             break;
@@ -128,7 +128,7 @@ void EngineerElevatorLG::set_state(EngineerElevatorLG::elevator_state_t new_stat
             LOG("ELE DESCENDING");
             break;
         case GIVING_BULLET:
-            EngineerElevatorSKD::set_target_height(ELEVATOR_ORIGIN_HEIGHT + 2.5f);
+            EngineerElevatorSKD::set_target_height(3.5f - ELEVATOR_ORIGIN_HEIGHT);
             LOG("ELE GIVING_BULLET");
             break;
     }
@@ -138,23 +138,17 @@ void EngineerElevatorLG::EngineerElevatorLGThread::main() {
 
     setName("ElevatorLG");
 
-    DMSInterface::init(4);
-
     while (!shouldTerminate()) {
 
         /*** update_hanging_status ***/
-
-        adcsample_t data[4];
-        DMSInterface::get_raw_sample(data);
-
         // client lights are arranged in this way: [FL BL BR FR]
         // in chassis interface, motor_id : FR - 0, FL - 1, BL - 2, BR - 3
         // light the client lights when the wheel is hanging
 
-        bool FL_hanging = data[DMSInterface::FL] < hanging_trigger;
-        bool BL_hanging = data[DMSInterface::BL] < hanging_trigger;
-        bool BR_hanging = data[DMSInterface::BR] < hanging_trigger;
-        bool FR_hanging = data[DMSInterface::FR] < hanging_trigger;
+        bool FL_hanging = !palReadPad(GPIOC, FR_SENSOR);
+        bool BL_hanging = !palReadPad(GPIOC, BL_SENSOR);
+        bool BR_hanging = !palReadPad(GPIOC, BR_SENSOR);
+        bool FR_hanging = !palReadPad(GPIOC, FL_SENSOR);
 
 
         Referee::set_client_light(0, FL_hanging);
@@ -183,7 +177,8 @@ void EngineerElevatorLG::EngineerElevatorLGThread::main() {
                         if (BR_hanging && BL_hanging) {
                             // Both the two sensors at the back wheels reach the edge, can start to go down-stairs
                             set_state(ASCENDING);
-                        }else if ( BL_hanging && !BR_hanging )
+                        }
+                        else if ( BL_hanging && !BR_hanging )
                             EngineerChassisSKD::pivot_turn(- CHASSIS_WIDTH / 2, - CHASSIS_LENGTH / 2, -0.05 * ENGINEER_CHASSIS_W_MAX);
                         else if ( !BL_hanging && BR_hanging )
                             EngineerChassisSKD::pivot_turn(+ CHASSIS_WIDTH / 2, - CHASSIS_LENGTH / 2, +0.05 * ENGINEER_CHASSIS_W_MAX);
@@ -200,8 +195,7 @@ void EngineerElevatorLG::EngineerElevatorLGThread::main() {
                 case AIDING:
 
                     if (going_up) {
-
-                        if (data[DMSInterface::BR] > landed_trigger || data[DMSInterface::BL] > landed_trigger) {
+                        if (!BR_hanging || !BL_hanging) {
                             // Both the two sensors at the back wheels landed on stage, enter the last step of going up-stairs
                             set_state(DESCENDING);
                         }
@@ -232,9 +226,12 @@ void EngineerElevatorLG::EngineerElevatorLGThread::main() {
                     break;
                 default:
                     break;
+                case STOP:
+                    break;
             }
         }
 
+ //       LOG("FR, FL, BL, BR: %u %u %u %u", !FR_hanging, !FL_hanging, !BL_hanging, !BR_hanging);
         sleep(TIME_MS2I(ELEVATOR_LG_INTERVAL));
     }
 

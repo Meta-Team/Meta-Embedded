@@ -82,9 +82,6 @@ int main() {
     InspectorE::startup_check_can();  // check no persistent CAN Error. Block for 100 ms
     LED::led_on(DEV_BOARD_LED_CAN);  // LED 2 on now
 
-    /// Start DMS Interface
-    DMSInterface::init(4);
-
     /// Setup Remote
     Remote::start();
     InspectorE::startup_check_remote();  // check Remote has signal. Block for 50 ms

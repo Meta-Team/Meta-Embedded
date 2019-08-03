@@ -10,7 +10,6 @@
 #include "engineer_elevator_skd.h"
 #include "engineer_elevator_interface.h"
 #include "engineer_chassis_skd.h"
-#include "dms_interface.h"
 #include "referee_interface.h"
 #include "vehicle_engineer.h"
 
@@ -19,6 +18,11 @@
 #define FFL_SWITCH_PIN_ID GPIOB_PIN0    // PB0 - L2
 #define FFR_SWITCH_PIN_ID GPIOB_PIN1    // PB1 - M2
 #define SWITCH_TOUCH_PAL_STATUS PAL_HIGH
+#define FR_SENSOR GPIOC_PIN2
+#define FL_SENSOR GPIOC_PIN3
+#define BL_SENSOR GPIOC_PIN4
+#define BR_SENSOR GPIOC_PIN5
+
 
 /** @note for the switch: BLACK -> GPIO; RED -> GND; BLUE -> VCC */
 
@@ -65,7 +69,7 @@ private:
 
     static bool test_mode;
 
-    class EngineerElevatorLGThread: public chibios_rt::BaseStaticThread<512>{
+    class EngineerElevatorLGThread: public chibios_rt::BaseStaticThread<2048>{
 
         static constexpr unsigned ELEVATOR_LG_INTERVAL = 2;  // [ms]
         void main()final ;

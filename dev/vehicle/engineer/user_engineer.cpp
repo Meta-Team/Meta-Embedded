@@ -52,14 +52,15 @@ void UserE::UserThread::main() {
 
         /// Sensors and Switches Test
         if (Remote::rc.s1 == Remote::S_UP && Remote::rc.s2 == Remote::S_DOWN) {
-            if (palReadPad(FF_SWITCH_PAD, FFL_SWITCH_PIN_ID) == SWITCH_TOUCH_PAL_STATUS ||
-            palReadPad(FF_SWITCH_PAD, FFR_SWITCH_PIN_ID) == SWITCH_TOUCH_PAL_STATUS) {
+            if (palReadPad(FF_SWITCH_PAD, FFL_SWITCH_PIN_ID) == SWITCH_TOUCH_PAL_STATUS) {
                 LED::red_toggle();
+                LOG("LEFT SWITCH ON!");
+            }
+            if (palReadPad(FF_SWITCH_PAD, FFR_SWITCH_PIN_ID) == SWITCH_TOUCH_PAL_STATUS) {
+                LED::red_toggle();
+                LOG("RIGHT  SWITCH ON!");
             }
             else { LED::red_off(); }
-            if (Remote::rc.ch1 > 0.5) {
-                EngineerElevatorLG::set_elevator_height(0);
-            }
         }
 
 
@@ -151,7 +152,6 @@ void UserE::UserThread::main() {
                                                    + Remote::mouse.x * 500000 * USER_THREAD_INTERVAL / 1000,
                                                    EngineerGimbalIF::get_target_angle(EngineerGimbalIF::PIT)
                                                    + Remote::mouse.y * 500000 * USER_THREAD_INTERVAL / 1000);
-                LOG("%.2f", EngineerGimbalIF::get_target_angle(EngineerGimbalIF::PIT));
                 if (Remote::key.w) {
                     target_vy = chassis_v_forward;
                 } else if (Remote::key.s) target_vy = -chassis_v_backward;
@@ -168,6 +168,7 @@ void UserE::UserThread::main() {
                 if (Remote::key.ctrl) {
                     target_vx *= chassis_pc_ctrl_ratio;
                     target_vy *= chassis_pc_ctrl_ratio;
+                    target_w *= chassis_pc_ctrl_ratio;
 
                     // Slow speed, 1 lights from right
                     set_user_client_speed_light_(1);
@@ -237,14 +238,10 @@ void UserE::UserActionThread::main() {
             /// Robotic Arm
 
             if (key_flag & (1U << Remote::KEY_C)) {
-                LOG("Now Yaw is %.2f \n Change to : %d \n Set YAW Angle to: %d", EngineerGimbalIF::get_target_angle(EngineerGimbalIF::YAW),
-                    ((int) (EngineerGimbalIF::get_target_angle(EngineerGimbalIF::YAW) + 180.0f)),
-                    ((int) (EngineerGimbalIF::get_target_angle(EngineerGimbalIF::YAW) + 180.0f)) % 360);
-                if (EngineerGimbalIF::get_target_angle(EngineerGimbalIF::YAW) != 105.0f
-                || EngineerGimbalIF::get_target_angle(EngineerGimbalIF::PIT) != 65.0f )
-                    EngineerGimbalIF::set_target_angle(105.0f, 65.0f);
-                else EngineerGimbalIF::set_target_angle(((int) (EngineerGimbalIF::get_target_angle(EngineerGimbalIF::YAW) + 180.0f)) % 360, 0);
-
+                if (EngineerGimbalIF::get_target_angle(EngineerGimbalIF::YAW) != 108.0f
+                || EngineerGimbalIF::get_target_angle(EngineerGimbalIF::PIT) != 62.0f )
+                    EngineerGimbalIF::set_target_angle(108.0f, 62.0f);
+                else EngineerGimbalIF::set_target_angle(288.0f, 110.0f);
             } else if (key_flag & (1U << Remote::KEY_V)) {
                 EngineerElevatorLG::give_bullet();
                 RoboticArmSKD::change_door();
@@ -262,6 +259,10 @@ void UserE::UserActionThread::main() {
                 (key_flag & (1U << Remote::KEY_SHIFT)) &&
                 (key_flag & (1U << Remote::KEY_CTRL))) {
                 EngineerElevatorLG::change_auto_status();
+            }
+
+            if (key_flag & (1U << Remote::KEY_Z)) {
+                RoboticArmSKD::change_extend();
             }
         }
 
