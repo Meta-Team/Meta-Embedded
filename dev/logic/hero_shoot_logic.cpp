@@ -206,18 +206,24 @@ void HeroShootLG::LoaderThread::main() {
             }
 
             if (loader_state == STOP) {
-                unsigned cnt = 0;
-                while (!should_shoot && cnt < 1000) {
+                unsigned cnt1 = 0;
+                while (!should_shoot && cnt1 < 600) {
                     sleep(TIME_MS2I(1));
-                    cnt++;
+                    cnt1++;
                 }
                 if (should_shoot || !get_loader_exit_status()) {
+                    unsigned cnt2 = 0;
                     if (should_shoot) {
                         should_shoot = false;
                         if(bullet_in_tube > 0) bullet_in_tube--;
                     }
                     loader_target_angle += loader_angle_per_bullet;
+                    loader_state = LOADING;
                     ShootSKD::set_loader_target_angle(loader_target_angle);
+                    while (cnt2 < 400) {
+                        sleep(TIME_MS2I(1));
+                        cnt2++;
+                    }
                 }
             }
 

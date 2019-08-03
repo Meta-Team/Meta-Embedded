@@ -122,7 +122,7 @@ private:
     /// Loader Thread
     class LoaderThread : public chibios_rt::BaseStaticThread<512> {
         static constexpr unsigned LOADER_THREAD_INTERVAL = 5;  // [ms]
-        static constexpr float LOADER_REACH_TARGET_RANGE = 3.0f;  // [degree]
+        static constexpr float LOADER_REACH_TARGET_RANGE = 3.5f;  // [degree]
         void main() final;
     };
     static LoaderThread loaderThread;
