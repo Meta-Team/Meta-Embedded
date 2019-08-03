@@ -31,7 +31,7 @@ float UserH::shoot_launch_right_count = 999;
 float UserH::shoot_launch_speed = 5.0f;
 
 float UserH::shoot_badass_duty_cycle = 0.1f;
-float UserH::shoot_common_duty_cycle = 0.13f;             //TODO:
+float UserH::shoot_common_duty_cycle = 0.135f;             //TODO:
 
 Remote::key_t UserH::shoot_fw_switch = Remote::KEY_Z;
 Remote::key_t UserH::shoot_weapon_switch = Remote::KEY_Q;

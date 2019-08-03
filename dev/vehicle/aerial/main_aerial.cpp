@@ -148,6 +148,7 @@ int main() {
     /// Start Inspector and User Threads
     // FIXME: Re-enable InspectorA
 //    InspectorA::start_inspection(THREAD_INSPECTOR_PRIO);
+    InspectorA::start_referee_inspection(THREAD_INSPECTOR_REFEREE_PRIO);
     UserA::start(THREAD_USER_PRIO, THREAD_USER_ACTION_PRIO, THREAD_USER_CLIENT_DATA_SEND_PRIO);
 
     /// Complete Period 2

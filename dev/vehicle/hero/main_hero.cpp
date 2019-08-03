@@ -180,7 +180,7 @@ int main() {
 
 
     /// Start Inspector and User Threads
-    InspectorH::start_inspection(THREAD_INSPECTOR_PRIO, THREAD_INSPECTOR_REFEREE_PRIO);
+    //InspectorH::start_inspection(THREAD_INSPECTOR_PRIO, THREAD_INSPECTOR_REFEREE_PRIO);
     UserH::start(THREAD_USER_PRIO, THREAD_USER_ACTION_PRIO, THREAD_USER_CLIENT_DATA_SEND_PRIO);
 
     /// Complete Period 2
