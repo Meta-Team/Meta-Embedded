@@ -31,7 +31,8 @@ float UserH::shoot_launch_right_count = 999;
 float UserH::shoot_launch_speed = 5.0f;
 
 float UserH::shoot_badass_duty_cycle = 0.1f;
-float UserH::shoot_common_duty_cycle = 0.135f;             //TODO:
+float UserH::shoot_remote_duty_cycle = 0.11;
+float UserH::shoot_common_duty_cycle = 0.13f;             //TODO:
 
 Remote::key_t UserH::shoot_fw_switch = Remote::KEY_Z;
 Remote::key_t UserH::shoot_weapon_switch = Remote::KEY_Q;
@@ -147,17 +148,17 @@ void UserH::UserThread::main() {
 
                 if (Remote::rc.wheel > 0.5) {  // down
                     if (HeroShootLG::get_friction_wheels_duty_cycle() == 0) {  // force start friction wheels
-                        HeroShootLG::set_friction_wheels(shoot_common_duty_cycle);
+                        HeroShootLG::set_friction_wheels(shoot_remote_duty_cycle);
                     }
                     HeroShootLG::shoot();
                 } else if (Remote::rc.wheel < -0.5) {  // up
                     if (HeroShootLG::get_friction_wheels_duty_cycle() == 0) {  // force start friction wheels
-                        HeroShootLG::set_friction_wheels(shoot_common_duty_cycle);
+                        HeroShootLG::set_friction_wheels(shoot_remote_duty_cycle);
                     }
                     HeroShootLG::shoot();
                 }
 
-                HeroShootLG::set_friction_wheels(shoot_common_duty_cycle);
+                HeroShootLG::set_friction_wheels(shoot_remote_duty_cycle);
 
             } else if (Remote::rc.s1 == Remote::S_DOWN) {
 
