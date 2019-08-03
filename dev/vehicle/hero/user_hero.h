@@ -49,6 +49,9 @@ private:
     static float shoot_launch_right_count;
 
     static float shoot_launch_speed;
+    static uint16_t shooter_heat_log[2];
+    static uint16_t heat_per_bullet;
+
 
     static float shoot_badass_duty_cycle;
     static float shoot_remote_duty_cycle;
