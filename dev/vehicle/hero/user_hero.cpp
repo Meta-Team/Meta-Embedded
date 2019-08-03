@@ -29,6 +29,8 @@ float UserH::shoot_launch_left_count = 5;
 float UserH::shoot_launch_right_count = 999;
 
 float UserH::shoot_launch_speed = 5.0f;
+uint16_t UserH::shoot_heat_log[2] = {0,0};
+uint16_t UserH::bullet_heat = 0;
 
 float UserH::shoot_badass_duty_cycle = 0.1f;
 float UserH::shoot_remote_duty_cycle = 0.11;
@@ -138,6 +140,14 @@ void UserH::UserThread::main() {
 
 
         /*** ---------------------------------- Shoot --------------------------------- ***/
+
+        // Update the heat.
+        shoot_heat_log[0] = shoot_heat_log[1];
+        shoot_heat_log[1] = Referee::power_heat_data.shooter_heat1;
+
+        if(shoot_heat_log[1] > shoot_heat_log[0] && shoot_heat_log[1] < Referee::game_robot_state.shooter_heat1_cooling_limit + 400) {
+            bullet_heat = shoot_heat_log[1] - shoot_heat_log[0];
+        }
 
         if (!InspectorH::remote_failure() && !InspectorH::chassis_failure() && !InspectorH::gimbal_failure()) {
             if ((Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_UP) ||
@@ -286,7 +296,9 @@ void UserH::UserActionThread::main() {
             if (HeroShootLG::get_friction_wheels_duty_cycle() == 0) {  // force start friction wheels
                 HeroShootLG::set_friction_wheels(shoot_common_duty_cycle);
             }
-            HeroShootLG::shoot();
+            if(bullet_heat + shoot_heat_log[1] < Referee::game_robot_state.shooter_heat1_cooling_limit) {
+                HeroShootLG::shoot();
+            }
         } else {  // releasing one while pressing another won't result in stopping
             if (events & MOUSE_RELEASE_EVENTMASK) {
                 // HeroShootLG::force_stop();
