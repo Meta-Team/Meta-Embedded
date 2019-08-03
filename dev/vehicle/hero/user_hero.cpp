@@ -288,7 +288,7 @@ void UserH::UserActionThread::main() {
             HeroShootLG::shoot();
         } else {  // releasing one while pressing another won't result in stopping
             if (events & MOUSE_RELEASE_EVENTMASK) {
-                HeroShootLG::force_stop();
+                // HeroShootLG::force_stop();
             }
         }
 
