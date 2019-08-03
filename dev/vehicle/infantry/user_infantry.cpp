@@ -330,6 +330,14 @@ void UserI::UserActionThread::main() {
                     ShootLG::set_friction_wheels(shoot_common_duty_cycle);
                 }
             }
+
+            // TODO: re-arrange variables
+            if (key_flag & (1U << Remote::KEY_R)) {
+                ShootLG::set_friction_wheels(0.95);
+            }
+            if (key_flag & (1U << Remote::KEY_F)) {
+                ShootLG::set_friction_wheels(0.5);
+            }
         }
 
         // If more event type is added, remember to modify chEvtWaitAny() above
@@ -348,9 +356,9 @@ void UserI::ClientDataSendingThread::main() {
 
         /// Shoot
         // 17mm shooter heat
-        Referee::set_client_number(USER_CLIENT_REMAINING_HEAT_NUM,
-                                   100.0f * (1.0f - (float) Referee::power_heat_data.shooter_heat0 /
-                                                    (float) Referee::game_robot_state.shooter_heat0_cooling_limit));
+//        Referee::set_client_number(USER_CLIENT_REMAINING_HEAT_NUM,
+//                                   100.0f * (1.0f - (float) Referee::power_heat_data.shooter_heat0 /
+//                                                    (float) Referee::game_robot_state.shooter_heat0_cooling_limit));
 
         /// Super Capacitor
         // TODO: determine feedback interval
