@@ -43,7 +43,7 @@ void RoboticArmSKD::stretch_out() {
     if (released && RoboticArmIF::present_angle < ROBOTIC_ARM_PULL_BACK_ANGLE){
         released = false;
         trigger_angle = ROBOTIC_ARM_STRETCH_OUT_ANGLE;
-        target_velocity = ROBOTIC_ARM_ROTATE_VELOCITY + 200;
+        target_velocity = ROBOTIC_ARM_ROTATE_VELOCITY + 250;
     }
 }
 
@@ -55,9 +55,10 @@ void RoboticArmSKD::pull_back() {
     }
 }
 
-/*void RoboticArmSKD::change_extend() {
+void RoboticArmSKD::change_extend() {
     change_digital_status(extend_state, EXTEND_PAD);
-}*/
+    LOG("Extend Changed! Set %d to %d", EXTEND_PAD, extend_state);
+}
 
 void RoboticArmSKD::change_door() {
     if (door_state == LOW_STATUS) {
@@ -143,7 +144,7 @@ void RoboticArmSKD::update_target_current() {
                     set_digital_status(clamp_state, CLAMP_PAD, LOW_STATUS);
                     break;
                 case TAKING_BULLET:
-                    chThdSleepMilliseconds(2000);
+                    chThdSleepMilliseconds(500);
                     stretch_out();
                     bullet_state = WAITING;
                     break;

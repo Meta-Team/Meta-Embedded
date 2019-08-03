@@ -11,10 +11,10 @@ ADCConversionGroup constexpr DMSInterface::adcgrpcfg;
 
 void DMSInterface::init(int sensor_num) {
     num = sensor_num;
-    palSetPadMode(GPIOC, GPIOC_ADC1_IN12, PAL_MODE_INPUT_ANALOG);
-    palSetPadMode(GPIOC, GPIOC_ADC1_IN13, PAL_MODE_INPUT_ANALOG);
-    palSetPadMode(GPIOC, GPIOC_ADC1_IN14, PAL_MODE_INPUT_ANALOG);
-    palSetPadMode(GPIOC, GPIOC_ADC1_IN15, PAL_MODE_INPUT_ANALOG);
+    palSetPadMode(GPIOC, GPIOC_PIN2, PAL_MODE_INPUT_ANALOG);
+    palSetPadMode(GPIOC, GPIOC_PIN3, PAL_MODE_INPUT_ANALOG);
+    palSetPadMode(GPIOC, GPIOC_PIN4, PAL_MODE_INPUT_ANALOG);
+    palSetPadMode(GPIOC, GPIOC_PIN5, PAL_MODE_INPUT_ANALOG);
     adcStart(&ADCD1, nullptr);
     adcSTM32EnableTSVREFE();
 //    adcStartConversion(&ADCD1, &adcgrpcfg, samples, ADC_GRP1_BUF_DEPTH);

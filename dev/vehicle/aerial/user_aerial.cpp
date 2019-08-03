@@ -18,10 +18,10 @@ float UserA::gimbal_pitch_max_angle = 0; //  up range for pitch [degree]
 
 /// Shoot Config
 bool UserA::shoot_power_on = true;
-float UserA::shoot_launch_left_count = 5;
+float UserA::shoot_launch_left_count = 999;
 float UserA::shoot_launch_right_count = 999;
 
-float UserA::shoot_launch_speed = 15.0f;
+float UserA::shoot_launch_speed = 17.0f;
 
 float UserA::shoot_common_duty_cycle = 0.9;
 float UserA::shoot_debug_duty_cycle = 0.05;
@@ -85,13 +85,13 @@ void UserA::UserThread::main() {
                         yaw_sensitivity = gimbal_pc_yaw_sensitivity[0];
                         pitch_sensitivity = gimbal_pc_pitch_sensitivity[0];
 
-                        // Slow speed, 3 lights from right
+                        // Slow speed, 1 lights from right
                         set_user_client_speed_light_(1);
                     } else if (Remote::key.shift) {
                         yaw_sensitivity = gimbal_pc_yaw_sensitivity[2];
                         pitch_sensitivity = gimbal_pc_pitch_sensitivity[2];
 
-                        // High speed, 1 light from right
+                        // High speed, 3 light from right
                         set_user_client_speed_light_(3);
                     } else {
                         yaw_sensitivity = gimbal_pc_yaw_sensitivity[1];

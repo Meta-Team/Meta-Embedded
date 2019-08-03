@@ -40,7 +40,7 @@ void HeroShootLG::init(float loader_angle_per_bullet_, float plate_angle_per_bul
     ShootSKD::set_mode(ShootSKD::LIMITED_SHOOTING_MODE);
 
     loaderCalibrateThread.start(loader_calibrate_prio);
-    chThdSleepMilliseconds(5000);// wait loader to calibrate
+    chThdSleepMilliseconds(3000);// wait loader to calibrate
     loaderThread.start(loader_thread_prio);
     plateThread.start(plate_thread_prio);
     loaderStuckDetector.start(loader_stuck_detector_prio);
@@ -138,7 +138,7 @@ void HeroShootLG::LoaderStuckDetectorThread::main() {
             }
         }
 
-        if (stuck_pend_time > 200) {
+        if (stuck_pend_time > 50) {
             loader_state = STUCK;
             ShootSKD::set_loader_target_angle(ShootSKD::get_loader_accumulated_angle() - STUCK_REVERSE_ANGLE);
 
@@ -174,7 +174,7 @@ void HeroShootLG::PlateStuckDetectorThread::main() {
             }
         }
 
-        if (stuck_pend_time > 200) {
+        if (stuck_pend_time > 60) {
             plate_state = STUCK;
             ShootSKD::set_plate_target_angle(ShootSKD::get_plate_accumulated_angle() - STUCK_REVERSE_ANGLE);
 

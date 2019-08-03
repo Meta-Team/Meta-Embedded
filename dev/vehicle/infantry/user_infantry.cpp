@@ -29,7 +29,7 @@ float UserI::shoot_launch_right_count = 999;
 
 float UserI::shoot_launch_speed = 5.0f;
 
-float UserI::shoot_common_duty_cycle = 0.5;
+float UserI::shoot_common_duty_cycle = 0.75;
 
 Remote::key_t UserI::shoot_fw_switch = Remote::KEY_Z;
 
@@ -107,12 +107,17 @@ void UserI::UserThread::main() {
                 }
                 // Referee client data will be sent by ClientDataSendingThread
 
-                gimbal_yaw_target_angle_ += -Remote::mouse.x * (yaw_sensitivity * USER_THREAD_INTERVAL / 1000.0f);
+                float yaw_delta = -Remote::mouse.x * (yaw_sensitivity * USER_THREAD_INTERVAL / 1000.0f);
+                float pitch_delta = -Remote::mouse.y * (pitch_sensitivity * USER_THREAD_INTERVAL / 1000.0f);
+
+                VAL_CROP(yaw_delta, 1.5, -1.5);
+                VAL_CROP(pitch_delta, 1, -1);
+
+                gimbal_yaw_target_angle_ += yaw_delta;
                 // mouse.x use right as positive direction, while GimbalLG use CCW (left) as positive direction
 
 
-                gimbal_pc_pitch_target_angle_ +=
-                        -Remote::mouse.y * (pitch_sensitivity * USER_THREAD_INTERVAL / 1000.0f);
+                gimbal_pc_pitch_target_angle_ += pitch_delta;
                 // mouse.y use down as positive direction, while GimbalLG use CCW (left) as positive direction
 
                 VAL_CROP(gimbal_pc_pitch_target_angle_, gimbal_pitch_max_angle, gimbal_pitch_min_angle);
@@ -325,6 +330,14 @@ void UserI::UserActionThread::main() {
                     ShootLG::set_friction_wheels(shoot_common_duty_cycle);
                 }
             }
+
+            // TODO: re-arrange variables
+            if (key_flag & (1U << Remote::KEY_R)) {
+                ShootLG::set_friction_wheels(0.95);
+            }
+            if (key_flag & (1U << Remote::KEY_F)) {
+                ShootLG::set_friction_wheels(0.5);
+            }
         }
 
         // If more event type is added, remember to modify chEvtWaitAny() above
@@ -343,9 +356,9 @@ void UserI::ClientDataSendingThread::main() {
 
         /// Shoot
         // 17mm shooter heat
-        Referee::set_client_number(USER_CLIENT_REMAINING_HEAT_NUM,
-                                   100.0f * (1.0f - (float) Referee::power_heat_data.shooter_heat0 /
-                                                    (float) Referee::game_robot_state.shooter_heat0_cooling_limit));
+//        Referee::set_client_number(USER_CLIENT_REMAINING_HEAT_NUM,
+//                                   100.0f * (1.0f - (float) Referee::power_heat_data.shooter_heat0 /
+//                                                    (float) Referee::game_robot_state.shooter_heat0_cooling_limit));
 
         /// Super Capacitor
         // TODO: determine feedback interval

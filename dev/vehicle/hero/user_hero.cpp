@@ -31,6 +31,7 @@ float UserH::shoot_launch_right_count = 999;
 float UserH::shoot_launch_speed = 5.0f;
 
 float UserH::shoot_badass_duty_cycle = 0.1f;
+float UserH::shoot_remote_duty_cycle = 0.11;
 float UserH::shoot_common_duty_cycle = 0.13f;             //TODO:
 
 Remote::key_t UserH::shoot_fw_switch = Remote::KEY_Z;
@@ -79,13 +80,7 @@ void UserH::UserThread::main() {
 
                 GimbalLG::set_target(gimbal_yaw_target_angle_, pitch_target);
 
-            } /*else if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_DOWN) {
-
-                /// Remote - Vision
-
-                GimbalLG::set_action(GimbalLG::VISION_MODE);
-
-            }*/ else if (Remote::rc.s1 == Remote::S_DOWN) {
+            } else if (Remote::rc.s1 == Remote::S_DOWN) {
 
                 /// PC control mode
 
@@ -113,14 +108,17 @@ void UserH::UserThread::main() {
                 }
                 // Referee client data will be sent by ClientDataSendingThread
 
-                gimbal_yaw_target_angle_ +=
-                        -Remote::mouse.x * (yaw_sensitivity * USER_THREAD_INTERVAL / 1000.0f);
+                float yaw_delta = -Remote::mouse.x * (yaw_sensitivity * USER_THREAD_INTERVAL / 1000.0f);
+                float pitch_delta = -Remote::mouse.y * (pitch_sensitivity * USER_THREAD_INTERVAL / 1000.0f);
 
+                VAL_CROP(yaw_delta, 1.5, -1.5);
+                VAL_CROP(pitch_delta, 1, -1);
+
+                gimbal_yaw_target_angle_ += yaw_delta;
                 // mouse.x use right as positive direction, while GimbalLG use CCW (left) as positive direction
 
 
-                gimbal_pc_pitch_target_angle_ +=
-                        -Remote::mouse.y * (pitch_sensitivity * USER_THREAD_INTERVAL / 1000.0f);
+                gimbal_pc_pitch_target_angle_ += pitch_delta;
                 // mouse.y use down as positive direction, while GimbalLG use CCW (left) as positive direction
 
                 VAL_CROP(gimbal_pc_pitch_target_angle_, gimbal_pitch_max_angle, gimbal_pitch_min_angle);
@@ -150,17 +148,17 @@ void UserH::UserThread::main() {
 
                 if (Remote::rc.wheel > 0.5) {  // down
                     if (HeroShootLG::get_friction_wheels_duty_cycle() == 0) {  // force start friction wheels
-                        HeroShootLG::set_friction_wheels(shoot_common_duty_cycle);
+                        HeroShootLG::set_friction_wheels(shoot_remote_duty_cycle);
                     }
                     HeroShootLG::shoot();
                 } else if (Remote::rc.wheel < -0.5) {  // up
                     if (HeroShootLG::get_friction_wheels_duty_cycle() == 0) {  // force start friction wheels
-                        HeroShootLG::set_friction_wheels(shoot_common_duty_cycle);
+                        HeroShootLG::set_friction_wheels(shoot_remote_duty_cycle);
                     }
                     HeroShootLG::shoot();
                 }
 
-                HeroShootLG::set_friction_wheels(shoot_common_duty_cycle);
+                HeroShootLG::set_friction_wheels(shoot_remote_duty_cycle);
 
             } else if (Remote::rc.s1 == Remote::S_DOWN) {
 
@@ -291,7 +289,7 @@ void UserH::UserActionThread::main() {
             HeroShootLG::shoot();
         } else {  // releasing one while pressing another won't result in stopping
             if (events & MOUSE_RELEASE_EVENTMASK) {
-                HeroShootLG::force_stop();
+                // HeroShootLG::force_stop();
             }
         }
 
@@ -320,10 +318,8 @@ void UserH::UserActionThread::main() {
             if (key_flag & (1U << shoot_weapon_switch)) {
                 if(HeroShootLG::get_friction_wheels_duty_cycle() == shoot_common_duty_cycle){
                     HeroShootLG::set_friction_wheels(shoot_badass_duty_cycle);
-                    Referee::set_client_number(1, shoot_badass_duty_cycle);
                 } else if (HeroShootLG::get_friction_wheels_duty_cycle() == shoot_badass_duty_cycle){
                     HeroShootLG::set_friction_wheels(shoot_common_duty_cycle);
-                    Referee::set_client_number(1, shoot_common_duty_cycle);
                 }
             }
         }
@@ -352,17 +348,16 @@ void UserH::ClientDataSendingThread::main() {
         // TODO: determine feedback interval
         if (WITHIN_RECENT_TIME(SuperCapacitor::last_feedback_time, 1000)) {
 //            Referee::set_client_number(USER_CLIENT_ACTUAL_POWER_NUM, SuperCapacitor::feedback.output_power);
-//            Referee::set_client_number(USER_CLIENT_SUPER_CAPACITOR_VOLTAGE_NUM,
-//                                       SuperCapacitor::feedback.capacitor_voltage);
+            Referee::set_client_number(USER_CLIENT_SUPER_CAPACITOR_VOLTAGE_NUM,
+                                       SuperCapacitor::feedback.capacitor_voltage);
             if (SuperCapacitor::feedback.capacitor_voltage > SUPER_CAPACITOR_WARNING_VOLTAGE) {
                 super_capacitor_light_status_ = true;
             } else {
                 super_capacitor_light_status_ = not super_capacitor_light_status_;  // blink voltage light
             }
         } else {
-            Referee::set_client_number(HeroShootLG::get_friction_wheels_duty_cycle(), 1);
 //            Referee::set_client_number(USER_CLIENT_ACTUAL_POWER_NUM, 0);
-//            Referee::set_client_number(USER_CLIENT_SUPER_CAPACITOR_VOLTAGE_NUM, 0);
+            Referee::set_client_number(USER_CLIENT_SUPER_CAPACITOR_VOLTAGE_NUM, 0);
             super_capacitor_light_status_ = false;
         }
         Referee::set_client_light(USER_CLIENT_SUPER_CAPACITOR_STATUS_LIGHT, super_capacitor_light_status_);
