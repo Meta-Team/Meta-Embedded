@@ -13,6 +13,8 @@
 #include "ahrs_abstract.h"
 #include "remote_interpreter.h"
 #include "gimbal_interface.h"
+#include "referee_interface.h"
+
 #include "vehicle_aerial.h"
 
 class InspectorA {
@@ -22,6 +24,7 @@ public:
     static void init(CANInterface *can1_, CANInterface *can2_, AbstractAHRS *ahrs_);
 
     static void start_inspection(tprio_t thread_prio);
+    static void start_referee_inspection(tprio_t thread_prio);
 
     static void startup_check_can();
     static void startup_check_mpu();
@@ -51,6 +54,17 @@ private:
     };
 
     static InspectorThread inspectorThread;
+
+    /// Referee Inspector Thread
+    class RefereeInspectorThread : public chibios_rt::BaseStaticThread<256> {
+
+        event_listener_t data_received_listener;
+        static constexpr eventmask_t DATA_RECEIVED_EVENTMASK = (1U << 0U);
+
+        void main() final;
+    };
+
+    static RefereeInspectorThread refereeInspectorThread;
 };
 
 

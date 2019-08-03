@@ -12,6 +12,7 @@ bool InspectorA::gimbal_failure_ = false;
 bool InspectorA::remote_failure_ = false;
 
 InspectorA::InspectorThread InspectorA::inspectorThread;
+InspectorA::RefereeInspectorThread InspectorA::refereeInspectorThread;
 
 void InspectorA::init(CANInterface *can1_, CANInterface *can2_, AbstractAHRS *ahrs_) {
     can1 = can1_;
@@ -21,6 +22,10 @@ void InspectorA::init(CANInterface *can1_, CANInterface *can2_, AbstractAHRS *ah
 
 void InspectorA::start_inspection(tprio_t thread_prio) {
     inspectorThread.start(thread_prio);
+}
+
+void InspectorA::start_referee_inspection(tprio_t thread_prio) {
+    refereeInspectorThread.start(thread_prio);
 }
 
 void InspectorA::startup_check_can() {
@@ -150,5 +155,22 @@ void InspectorA::InspectorThread::main() {
         }
 
         sleep(TIME_MS2I(INSPECTOR_THREAD_INTERVAL));
+    }
+}
+
+void InspectorA::RefereeInspectorThread::main() {
+    setName("InspectorA_Referee");
+
+    chEvtRegisterMask(&Referee::data_received_event, &data_received_listener, DATA_RECEIVED_EVENTMASK);
+
+    while (!shouldTerminate()) {
+
+        chEvtWaitAny(DATA_RECEIVED_EVENTMASK);
+
+        eventflags_t flags = chEvtGetAndClearFlags(&data_received_listener);
+        (void) flags;
+
+        // Toggle Referee LED if any data is received
+        LED::led_toggle(DEV_BOARD_LED_REFEREE);
     }
 }
