@@ -12,14 +12,14 @@
 
 #include "user_sentry.h"
 
-void gimbal_get_config(BaseSequentialStream *chp, int argc, char *argv[]);
-void gimbal_set_config(BaseSequentialStream *chp, int argc, char *argv[]);
+//void gimbal_get_config(BaseSequentialStream *chp, int argc, char *argv[]);
+//void gimbal_set_config(BaseSequentialStream *chp, int argc, char *argv[]);
 
 void chassis_get_config(BaseSequentialStream *chp, int argc, char *argv[]);
 void chassis_set_config(BaseSequentialStream *chp, int argc, char *argv[]);
 
-void shoot_get_config(BaseSequentialStream *chp, int argc, char *argv[]);
-void shoot_set_config(BaseSequentialStream *chp, int argc, char *argv[]);
+//void shoot_get_config(BaseSequentialStream *chp, int argc, char *argv[]);
+//void shoot_set_config(BaseSequentialStream *chp, int argc, char *argv[]);
 
 extern ShellCommand mainProgramCommands[];
 

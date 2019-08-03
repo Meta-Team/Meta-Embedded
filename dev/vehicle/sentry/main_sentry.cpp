@@ -12,29 +12,29 @@
 
 #include "shell.h"
 #include "can_interface.h"
-#include "ahrs_ext.h"
+//#include "ahrs_ext.h"
 #include "remote_interpreter.h"
-#include "sd_card_interface.h"
-#include "vision_port.h"
+//#include "sd_card_interface.h"
+//#include "vision_port.h"
 
-#include "gimbal_interface.h"
-#include "gimbal_scheduler.h"
-#include "gimbal_logic.h"
-#include "shoot_scheduler.h"
-#include "shoot_logic.h"
+//#include "gimbal_interface.h"
+//#include "gimbal_scheduler.h"
+//#include "gimbal_logic.h"
+//#include "shoot_scheduler.h"
+//#include "shoot_logic.h"
 
 #include "sentry_chassis_interface.h"
 #include "sentry_chassis_scheduler.h"
 #include "sentry_chassis_logic.h"
 
-#include "inspector_sentry.h"
+//#include "inspector_sentry.h"
 #include "user_sentry.h"
 
 #include "settings_sentry.h"
 
 CANInterface can1(&CAND1);
 CANInterface can2(&CAND2);
-AHRSExt ahrsExt;
+//AHRSExt ahrsExt;
 
 /// Local Constants
 static const Matrix33 GIMBAL_ANGLE_INSTALLATION_MATRIX_ = GIMBAL_ANGLE_INSTALLATION_MATRIX;
@@ -54,7 +54,7 @@ int main() {
     /*** ---------------------- Period 1. Modules Setup and Self-Check ---------------------- ***/
 
     /// Preparation of Period 1
-    InspectorS::init(&can1, &can2, &ahrsExt);
+    InspectorS::init(&can1, &can2, nullptr);
     LED::all_off();
 
     /// Setup Shell
@@ -62,13 +62,13 @@ int main() {
     Shell::addCommands(mainProgramCommands);
     chThdSleepMilliseconds(50);  // wait for logo to print :)
 
-    /// Setup SDCard
+    /*/// Setup SDCard
     if (SDCard::init()) {
         SDCard::read_all();
         LED::led_on(DEV_BOARD_LED_SD_CARD);  // LED 8 on if SD card inserted
     }
 
-    LED::led_on(DEV_BOARD_LED_SYSTEM_INIT);  // LED 1 on now
+    LED::led_on(DEV_BOARD_LED_SYSTEM_INIT);  // LED 1 on now*/
 
     /// Setup CAN1
     can1.start(THREAD_CAN1_PRIO);
@@ -77,7 +77,7 @@ int main() {
     InspectorS::startup_check_can();  // check no persistent CAN Error. Block for 100 ms
     LED::led_on(DEV_BOARD_LED_CAN);  // LED 2 on now
 
-    /// Setup AHRS_EXT
+    /*/// Setup AHRS_EXT
     Vector3D ahrs_bias;
     if (SDCard::get_data(MPU6500_BIAS_DATA_ID, &ahrs_bias, sizeof(ahrs_bias)) == SDCard::OK) {
         ahrsExt.load_calibration_data(ahrs_bias);
@@ -90,7 +90,7 @@ int main() {
     chThdSleepMilliseconds(5);
     InspectorS::startup_check_mpu();  // check MPU6500 has signal. Block for 20 ms
     InspectorS::startup_check_ist();  // check IST8310 has signal. Block for 20 ms
-    LED::led_on(DEV_BOARD_LED_AHRS);  // LED 3 on now
+    LED::led_on(DEV_BOARD_LED_AHRS);  // LED 3 on now*/
 
     /// Setup Remote
     Remote::start();
@@ -98,13 +98,13 @@ int main() {
     LED::led_on(DEV_BOARD_LED_REMOTE);  // LED 4 on now
 
 
-    /// Setup GimbalIF (for Gimbal and Shoot)
+    /*/// Setup GimbalIF (for Gimbal and Shoot)
     GimbalIF::init(&can1, GIMBAL_YAW_FRONT_ANGLE_RAW, GIMBAL_PITCH_FRONT_ANGLE_RAW,
                    GIMBAL_YAW_MOTOR_TYPE, GIMBAL_PITCH_MOTOR_TYPE, SHOOT_BULLET_MOTOR_TYPE);
     chThdSleepMilliseconds(2000);
     // FIXME: re-enable startup check
     InspectorS::startup_check_gimbal_feedback(); // check gimbal motors has continuous feedback. Block for 20 ms
-    LED::led_on(DEV_BOARD_LED_GIMBAL);  // LED 5 on now
+    LED::led_on(DEV_BOARD_LED_GIMBAL);  // LED 5 on now*/
 
 
     /// Setup ChassisIF
@@ -121,7 +121,7 @@ int main() {
     Referee::init(THREAD_REFEREE_SENDING_PRIO);
 
     /// Setup VisionPort
-    VisionPort::init();
+//    VisionPort::init();
 
     /// Complete Period 1
     LED::green_on();  // LED Green on now
@@ -129,7 +129,7 @@ int main() {
 
     /*** ------------ Period 2. Calibration and Start Logic Control Thread ----------- ***/
 
-    /// Echo Gimbal Raws and Converted Angles
+    /*/// Echo Gimbal Raws and Converted Angles
     LOG("Gimbal Yaw: %u, %f, Pitch: %u, %f",
         GimbalIF::feedback[GimbalIF::YAW].last_angle_raw, GimbalIF::feedback[GimbalIF::YAW].actual_angle,
         GimbalIF::feedback[GimbalIF::PITCH].last_angle_raw, GimbalIF::feedback[GimbalIF::PITCH].actual_angle);
@@ -141,16 +141,16 @@ int main() {
     GimbalSKD::load_pid_params(GIMBAL_PID_YAW_A2V_PARAMS, GIMBAL_PID_YAW_V2I_PARAMS,
                                GIMBAL_PID_PITCH_A2V_PARAMS, GIMBAL_PID_PITCH_V2I_PARAMS);
 
-    ShootSKD::start(SHOOT_BULLET_INSTALL_DIRECTION, ShootSKD::POSITIVE /* of no use */, THREAD_SHOOT_SKD_PRIO);
+    ShootSKD::start(SHOOT_BULLET_INSTALL_DIRECTION, ShootSKD::POSITIVE *//* of no use *//*, THREAD_SHOOT_SKD_PRIO);
     ShootSKD::load_pid_params(SHOOT_PID_BULLET_LOADER_A2V_PARAMS, SHOOT_PID_BULLET_LOADER_V2I_PARAMS,
-                              {0, 0, 0, 0, 0} /* of no use */, {0, 0, 0, 0, 0} /* of no use */);
+                              {0, 0, 0, 0, 0} *//* of no use *//*, {0, 0, 0, 0, 0} *//* of no use *//*);*/
 
     SChassisSKD::start(SChassisSKD::POSITIVE, SChassisSKD::POSITIVE, THREAD_CHASSIS_SKD_PRIO);
     SChassisSKD::load_pid_params(CHASSIS_PID_A2V_PARAMS, CHASSIS_PID_V2I_PARAMS);
 
     /// Start LGs
-    GimbalLG::init();
-    ShootLG::init(SHOOT_DEGREE_PER_BULLET, THREAD_SHOOT_LG_STUCK_DETECT_PRIO, THREAD_SHOOT_BULLET_COUNTER_PRIO);
+//    GimbalLG::init();
+//    ShootLG::init(SHOOT_DEGREE_PER_BULLET, THREAD_SHOOT_LG_STUCK_DETECT_PRIO, THREAD_SHOOT_BULLET_COUNTER_PRIO);
     SChassisLG::init(THREAD_CHASSIS_LG_DODGE_PRIO);
 
 

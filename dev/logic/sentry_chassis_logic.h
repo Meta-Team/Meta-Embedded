@@ -56,7 +56,7 @@ private:
     // When difference between present_position and dest is smaller than this value, we grant that dest has been reached
     static constexpr float DEST_TOLERANT_RANGE = 3.0f;  // [cm]
 
-    static constexpr int STOP_ESCAPING_AFTER = 60000;
+    static constexpr int STOP_ESCAPING_AFTER = 9999999;
 
     /// Direction Switch Thread for SHUTTLE_MODE and FINAL_AUTO_MODE
     class DirectionSwitchThread : public chibios_rt::BaseStaticThread<512> {
