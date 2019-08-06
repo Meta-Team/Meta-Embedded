@@ -106,7 +106,8 @@ int main() {
         LOG("present angle is set as 0");
     }
     chThdSleepMilliseconds(10);
-    InspectorE::startup_check_elevator_feedback();  // check elevator motors has continuous feedback. Block for 20 ms
+    // TODO: re-enable Inspector
+//    InspectorE::startup_check_elevator_feedback();  // check elevator motors has continuous feedback. Block for 20 ms
     LED::led_on(DEV_BOARD_LED_ELEVATOR);  // LED 5 on now
     EngineerElevatorSKD::set_target_height(ELEVATOR_ORIGIN_HEIGHT);
 
