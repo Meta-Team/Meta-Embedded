@@ -212,11 +212,8 @@ void UserH::UserThread::main() {
                                        Remote::rc.ch3 * chassis_v_backward)   // Both use up    as positive direction
                 );
             } /*else if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_DOWN) {
-
                 /// Remote - Chassis Stop (with Vision)
-
                 ChassisLG::set_action(ChassisLG::FORCED_RELAX_MODE);
-
             }*/ else if (Remote::rc.s1 == Remote::S_DOWN) {
 
                 /// PC control mode
