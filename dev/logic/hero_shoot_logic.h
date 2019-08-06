@@ -63,6 +63,11 @@ public:
         STOP,
         STUCK,
     };
+    /**
+     * Get loading status
+     * @return loaded complete, true; loading/ not loaded, false.
+     */
+    static bool get_loading_status();
 
     static motor_state_t loader_state;
     static motor_state_t plate_state;

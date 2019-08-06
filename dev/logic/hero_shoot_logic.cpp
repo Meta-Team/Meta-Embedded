@@ -25,6 +25,7 @@ HeroShootLG::PlateStuckDetectorThread HeroShootLG::plateStuckDetector;
 HeroShootLG::LoaderThread HeroShootLG::loaderThread;
 HeroShootLG::PlateThread HeroShootLG::plateThread;
 
+
 void HeroShootLG::init(float loader_angle_per_bullet_, float plate_angle_per_bullet_, tprio_t loader_calibrate_prio,
                        tprio_t loader_thread_prio, tprio_t plate_thread_prio,
                        tprio_t loader_stuck_detector_prio, tprio_t plate_stuck_detector_prio) {
@@ -54,6 +55,10 @@ bool HeroShootLG::get_loader_exit_status() {
 
 bool HeroShootLG::get_plate_exit_status() {
     return !(bool) palReadPad(GPIOF, GPIOF_PIN1);
+}
+
+bool HeroShootLG::get_loading_status() {
+    return (loader_state == STOP && get_loader_exit_status());
 }
 
 void HeroShootLG::shoot() {

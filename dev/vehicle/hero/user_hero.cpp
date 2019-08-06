@@ -344,6 +344,8 @@ void UserH::ClientDataSendingThread::main() {
     setName("User_Client");
 
     bool super_capacitor_light_status_ = false;
+    int flash_time = SYSTIME;
+    bool fw_light_switch = false;
 
     while (!shouldTerminate()) {
 
@@ -352,6 +354,21 @@ void UserH::ClientDataSendingThread::main() {
         Referee::set_client_number(USER_CLIENT_REMAINING_HEAT_NUM,
                                    100.0f * (1.0f - (float) Referee::power_heat_data.shooter_heat1 /
                                                     (float) Referee::game_robot_state.shooter_heat1_cooling_limit));
+        // Launch system light. Red: Friction wheel disabled. Flash: Friction wheel enabled, loading
+        // Green: Friction wheel enabled, loaded.
+        if(HeroShootLG::get_friction_wheels_duty_cycle() == 0) {
+            Referee::set_client_light(1, false);
+        } else if(HeroShootLG::get_friction_wheels_duty_cycle() != 0) {
+            if (HeroShootLG::get_loading_status) {
+                Referee::set_client_light(1, true);
+            } else if(!HeroShootLG::get_loading_status()) {
+                if(SYSTIME - flash_time > 500) {
+                    fw_light_switch = !fw_light_switch;
+                    flash_time = SYSTIME;
+                }
+                Referee::set_client_light(1, fw_light_switch);
+            }
+        }
 
         /// Super Capacitor
         // TODO: determine feedback interval
