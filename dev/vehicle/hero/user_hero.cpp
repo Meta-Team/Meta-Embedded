@@ -359,7 +359,7 @@ void UserH::ClientDataSendingThread::main() {
         if(HeroShootLG::get_friction_wheels_duty_cycle() == 0) {
             Referee::set_client_light(1, false);
         } else if(HeroShootLG::get_friction_wheels_duty_cycle() != 0) {
-            if (HeroShootLG::get_loading_status) {
+            if (HeroShootLG::get_loading_status()) {
                 Referee::set_client_light(1, true);
             } else if(!HeroShootLG::get_loading_status()) {
                 if(SYSTIME - flash_time > 500) {
