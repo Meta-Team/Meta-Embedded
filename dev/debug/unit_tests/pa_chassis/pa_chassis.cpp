@@ -30,7 +30,7 @@
 #include "command.h"
 
 /// Vehicle Specific Configurations
-#include "hero_constants.h"
+#include "vehicle_hero.h"
 
 /// Board Guard
 #if defined(BOARD_RM_2018_A)

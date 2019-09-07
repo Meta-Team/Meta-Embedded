@@ -88,6 +88,16 @@ set(CHASSIS_SRC
         dev/scheduler/chassis_scheduler.cpp
         dev/logic/chassis_logic.cpp)
 
+set(PA_CHASSIS_SRC
+        dev/module/pid_controller.hpp
+        dev/interface/can_interface.cpp
+        dev/interface/remote_interpreter.cpp
+        ${AHRS_SRC}
+        ${CHASSIS_SRC}
+        dev/debug/unit_tests/pa_chassis/pa_chassis.cpp
+        dev/debug/unit_tests/pa_chassis/inspector.cpp
+        dev/debug/unit_tests/pa_chassis/command.cpp)
+
 include_directories(dev/board/${BOARD_NAME})  # include board configs
 
 # Reuse ChibiOS object files (without linking) to avoid repeat compile
@@ -337,19 +347,13 @@ add_executable(ut_buzzer
         dev/debug/unit_tests/ut_buzzer.cpp)
 
 # Chassis: include chassis interface, chassis controller and the unit test modules.
-add_executable(pa_chassis
-        dev/module/pid_controller.hpp
-        dev/interface/can_interface.cpp
-        dev/interface/remote_interpreter.cpp
-        ${AHRS_SRC}
+add_executable(pa_hero_chassis
+        ${PA_CHASSIS_SRC}
         ${HERO_SHOOT_SRC}
-        ${CHASSIS_SRC}
-        dev/debug/unit_tests/pa_chassis/pa_chassis.cpp
-        dev/debug/unit_tests/pa_chassis/inspector.cpp
-        dev/debug/unit_tests/pa_chassis/command.cpp)
-target_include_directories(pa_chassis PRIVATE dev/debug/unit_tests/pa_chassis)
-target_compile_definitions(pa_chassis PRIVATE pa_chassis ENABLE_STATE_HANDLE)
-target_link_libraries(pa_chassis ${PROJECT_SOURCE_DIR}/dev/interface/ahrs/ahrs_lib.lib)
+)
+target_include_directories(pa_hero_chassis PRIVATE dev/debug/unit_tests/pa_chassis)
+target_compile_definitions(pa_hero_chassis PRIVATE HERO ENABLE_STATE_HANDLE)
+target_link_libraries(pa_hero_chassis ${PROJECT_SOURCE_DIR}/dev/interface/ahrs/ahrs_lib.lib)
 
 # Elevator Interface: include CANInterface, ElevatorInterface, and the unit test modules.
 add_executable(ut_elevator_interface
