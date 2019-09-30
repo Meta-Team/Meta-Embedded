@@ -460,6 +460,44 @@ target_link_libraries(ca_ahrs_hero ${PROJECT_SOURCE_DIR}/dev/interface/ahrs/ahrs
 target_include_directories(ca_ahrs_hero PRIVATE dev/vehicle/hero)
 target_compile_definitions(ca_ahrs_hero PRIVATE HERO)
 
+#-------------------------------------------INFANTRY PARAM ADJUSTS-------------------------------------------
+set(INFANTRY
+        dev/module/pid_controller.hpp
+        dev/interface/can_interface.cpp
+        dev/interface/remote_interpreter.cpp
+        ${AHRS_SRC}
+        ${INFANTRY_SHOOT_SRC}
+        ${CHASSIS_SRC}
+        dev/interface/vision_port.cpp
+        dev/interface/super_capacitor_port.cpp
+        dev/interface/referee_interface.cpp
+        dev/interface/sd_card_interface.cpp
+        dev/common/CRC8.cpp
+        dev/common/CRC16.cpp
+        dev/debug/Param_Adjusts/pa_infantry/feedback.cpp
+        dev/debug/Param_Adjusts/pa_infantry/user_infantry.cpp
+        dev/debug/Param_Adjusts/pa_infantry/main_infantry.cpp
+        dev/debug/Param_Adjusts/pa_infantry/settings_infantry.cpp)
+
+# Main Program -- Infantry #3
+add_executable(PA_INFANTRY_THREE ${INFANTRY})
+target_include_directories(PA_INFANTRY_THREE PRIVATE dev/debug/Param_Adjusts/pa_infantry)
+target_compile_definitions(PA_INFANTRY_THREE PRIVATE INFANTRY PA_INFANTRY_FIVE)
+target_link_libraries(PA_INFANTRY_THREE ${PROJECT_SOURCE_DIR}/dev/interface/ahrs/ahrs_lib.lib)
+
+# Main Program -- Infantry #4
+add_executable(PA_INFANTRY_FOUR ${INFANTRY})
+target_include_directories(PA_INFANTRY_FOUR PRIVATE dev/debug/Param_Adjusts/pa_infantry)
+target_compile_definitions(PA_INFANTRY_FOUR PRIVATE INFANTRY PA_INFANTRY_FIVE)
+target_link_libraries(PA_INFANTRY_FOUR ${PROJECT_SOURCE_DIR}/dev/interface/ahrs/ahrs_lib.lib)
+
+# Main Program -- Infantry #5
+add_executable(PA_INFANTRY_FIVE ${INFANTRY})
+target_include_directories(PA_INFANTRY_FIVE PRIVATE dev/debug/Param_Adjusts/pa_infantry)
+target_compile_definitions(PA_INFANTRY_FIVE PRIVATE INFANTRY PA_INFANTRY_FIVE)
+target_link_libraries(PA_INFANTRY_FIVE ${PROJECT_SOURCE_DIR}/dev/interface/ahrs/ahrs_lib.lib)
+
+
 # ================================= Post Configurations for all targets =================================
 
 # Make all targets compile to this filename to allow upload script to work properly
