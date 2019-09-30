@@ -94,9 +94,9 @@ set(PA_CHASSIS_SRC
         dev/interface/remote_interpreter.cpp
         ${AHRS_SRC}
         ${CHASSIS_SRC}
-        dev/debug/unit_tests/pa_chassis/pa_chassis.cpp
-        dev/debug/unit_tests/pa_chassis/inspector.cpp
-        dev/debug/unit_tests/pa_chassis/command.cpp)
+        dev/debug/Unit_Tests/pa_chassis/pa_chassis.cpp
+        dev/debug/Unit_Tests/pa_chassis/inspector.cpp
+        dev/debug/Unit_Tests/pa_chassis/command.cpp)
 
 include_directories(dev/board/${BOARD_NAME})  # include board configs
 
@@ -267,7 +267,7 @@ target_compile_definitions(ENGINEER PRIVATE ENGINEER)
 
 # --------------------------------------- Unit Tests ---------------------------------------
 add_executable(ut_engineer
-        dev/debug/unit_tests/engineer_unit_test.cpp
+        dev/debug/Unit_Tests/ut_engineer.cpp
         dev/scheduler/engineer_chassis_skd.cpp
         dev/logic/engineer_elevator_logic.cpp
         dev/scheduler/engineer_elevator_skd.cpp
@@ -282,23 +282,23 @@ add_executable(ut_engineer
 # Blink
 add_executable(ut_blink
         dev/module/button_monitor.cpp
-        dev/debug/unit_tests/ut_led.cpp)
+        dev/debug/Unit_Tests/ut_led.cpp)
 
 # Remote Interpreter: include remote_interpreter sources and the unit test modules.
 add_executable(ut_remote_interpreter
         dev/interface/remote_interpreter.cpp
-        dev/debug/unit_tests/ut_remoteIF.cpp)
+        dev/debug/Unit_Tests/ut_remoteIF.cpp)
 
 # MPU6500: include MP6500 interface and unit test.
 add_executable(ut_mpu6500
         dev/interface/ahrs/mpu6500.cpp
-        dev/debug/unit_tests/ut_mpu6500.cpp)
+        dev/debug/Unit_Tests/ut_mpu6500.cpp)
 
 # IST8310
 add_executable(ut_ist8310
         dev/interface/ahrs/mpu6500.cpp
         dev/interface/ahrs/ist8310.cpp
-        dev/debug/unit_tests/ut_ist8310.cpp)
+        dev/debug/Unit_Tests/ut_ist8310.cpp)
 
 # IMU: include IMU interface and unit test.
 add_executable(ut_imu
@@ -306,7 +306,7 @@ add_executable(ut_imu
         dev/interface/ahrs/mpu6500.cpp
         dev/interface/ahrs/ist8310.cpp
         dev/interface/ahrs/ahrs.cpp
-        dev/debug/unit_tests/ut_ahrs.cpp)
+        dev/debug/Unit_Tests/ut_ahrs.cpp)
 
 # AHRS
 add_executable(ut_ahrs
@@ -315,34 +315,34 @@ add_executable(ut_ahrs
         dev/interface/ahrs/ist8310.cpp
         dev/interface/ahrs/ahrs_lib_middleware.c
         dev/interface/ahrs/ahrs.cpp
-        dev/debug/unit_tests/ut_ahrs.cpp)
+        dev/debug/Unit_Tests/ut_ahrs.cpp)
 target_link_libraries(ut_ahrs ${PROJECT_SOURCE_DIR}/dev/interface/ahrs/ahrs_lib.lib)
 
 # AHRSExt
 add_executable(ut_ahrs_ext
         dev/interface/can_interface.cpp
         dev/interface/ahrs/ahrs_ext.cpp
-        dev/debug/unit_tests/ut_ahrs_ext.cpp)
+        dev/debug/Unit_Tests/ut_ahrs_ext.cpp)
 
 # Buzzer: inlcude Buzzer interface and unit test.
 add_executable(ut_buzzer
         dev/interface/buzzer.cpp
-        dev/debug/unit_tests/ut_buzzer.cpp)
+        dev/debug/Unit_Tests/ut_buzzer.cpp)
 
 # Elevator Interface: include CANInterface, ElevatorInterface, and the unit test modules.
 add_executable(ut_elevator_interface
         dev/interface/can_interface.cpp
-        dev/debug/unit_tests/ut_elevator_IF.cpp)
+        dev/debug/Unit_Tests/ut_elevator_IF.cpp)
 
 # Engineer Gimbal Unit tests.
 add_executable(ut_engineer_gimbal
         dev/interface/engineer_gimbal.cpp
         dev/interface/remote_interpreter.cpp
-        dev/debug/unit_tests/engineer_gimbal_unit_test.cpp)
+        dev/debug/Unit_Tests/ut_engineer_gimbal.cpp)
 
 # Robotic Arm
 add_executable(ut_robotic_arm
-        dev/debug/unit_tests/engineer_robotic_arm_unit_test.cpp
+        dev/debug/Unit_Tests/ut_engineer_robotic_arm.cpp
         dev/interface/can_interface.cpp
         dev/interface/robotic_arm_interface.cpp
         dev/scheduler/robotic_arm_skd.cpp)
@@ -351,26 +351,26 @@ add_executable(ut_referee_interface
         dev/common/CRC8.cpp
         dev/common/CRC16.cpp
         dev/interface/referee_interface.cpp
-        dev/debug/unit_tests/ut_refereeIF.cpp)
+        dev/debug/Unit_Tests/ut_refereeIF.cpp)
 
 add_executable(ut_vision_port
         dev/common/CRC8.cpp
         dev/common/CRC16.cpp
         dev/interface/vision_port.cpp
-        dev/debug/unit_tests/ut_vision_port.cpp)
+        dev/debug/Unit_Tests/ut_vision_port.cpp)
 target_compile_definitions(ut_vision_port PRIVATE VISION_PORT_DEBUG)
 
 add_executable(ut_sd_card
         dev/interface/sd_card_interface.cpp
         dev/common/CRC16.cpp
-        dev/debug/unit_tests/ut_sd_card.cpp)
+        dev/debug/Unit_Tests/ut_sd_card.cpp)
 
 add_executable(ut_adc
-        dev/debug/unit_tests/ut_adc.cpp
+        dev/debug/Unit_Tests/ut_adc.cpp
         dev/interface/dms_interface.cpp)
 
 add_executable(ut_sensors_sound
-        dev/debug/unit_tests/ut_sensors_sound.cpp
+        dev/debug/Unit_Tests/ut_sensors_sound.cpp
         )
 
 # --------------------------------------- Param Adjusts ---------------------------------------
@@ -379,7 +379,7 @@ add_executable(ut_sensors_sound
 add_executable(pa_hero_shoot
         dev/interface/can_interface.cpp
         dev/interface/gimbal_interface.cpp
-        dev/debug/unit_tests/pa_hero_shoot.cpp)
+        dev/debug/Param_Adjusts/pa_hero_shoot.cpp)
 target_compile_definitions(pa_hero_shoot PUBLIC HERO)
 
 # Shoot: include CANInterface, GimbalIF, GimbalController, GimbalFeedbackThread and adjustment modules.
@@ -387,7 +387,7 @@ add_executable(pa_infantry_shoot
         dev/interface/can_interface.cpp
         dev/interface/gimbal_interface.cpp
         dev/scheduler/shoot_scheduler.cpp
-        dev/debug/unit_tests/pa_infantry_shoot.cpp
+        dev/debug/Param_Adjusts/pa_infantry_shoot.cpp
         dev/interface/remote_interpreter.cpp)
 
 # Gimbal: include CANInterface, GimbalInterface, GimbalController, GimbalFeedbackThread and adjustment modules.
@@ -398,17 +398,8 @@ add_executable(pa_gimbal
         dev/scheduler/gimbal_scheduler.cpp
         dev/scheduler/shoot_scheduler.cpp
         dev/interface/ahrs/mpu6500.cpp
-        dev/debug/unit_tests/pa_gimbal.cpp)
+        dev/debug/Param_Adjusts/pa_gimbal.cpp)
 target_compile_definitions(pa_gimbal PRIVATE SHELL_NO_ECHO_MODE)
-
-# Hero Chassis: include chassis interface, chassis controller and the unit test modules.
-add_executable(pa_hero_chassis
-        ${PA_CHASSIS_SRC}
-        ${HERO_SHOOT_SRC}
-)
-target_include_directories(pa_hero_chassis PRIVATE dev/debug/unit_tests/pa_chassis)
-target_compile_definitions(pa_hero_chassis PRIVATE HERO ENABLE_STATE_HANDLE)
-target_link_libraries(pa_hero_chassis ${PROJECT_SOURCE_DIR}/dev/interface/ahrs/ahrs_lib.lib)
 
 # Elevator: include CANInterface, ElevatorInterface, ElevatorController, and the unit test modules.
 add_executable(pa_elevator
@@ -417,17 +408,17 @@ add_executable(pa_elevator
         dev/logic/engineer_elevator_logic.cpp
         dev/scheduler/engineer_elevator_skd.cpp
         dev/interface/engineer_elevator_interface.cpp
-        dev/debug/unit_tests/engineer_elevator_param_adjust.cpp)
+        dev/debug/Param_Adjusts/pa_engineer_elevator.cpp)
 
 add_executable(pa_engineer_chassis
         dev/interface/can_interface.cpp
         dev/module/pid_controller.hpp
         dev/scheduler/engineer_chassis_skd.cpp
-        dev/debug/unit_tests/engineer_chassis_param_adjust.cpp)
+        dev/debug/Param_Adjusts/pa_engineer_chassis.cpp)
 
 # Adjust Params of Skywalker-20A for friction wheels
 add_executable(pa_skywalker
-        dev/debug/unit_tests/pa_skywalker.cpp
+        dev/debug/Param_Adjusts/pa_skywalker.cpp
         dev/interface/remote_interpreter.cpp
         dev/interface/buzzer.cpp)
 
@@ -438,7 +429,7 @@ add_executable(pa_sentry_chassis
         dev/module/pid_controller.hpp
         dev/interface/sentry_chassis_interface.cpp
         dev/scheduler/sentry_chassis_scheduler.cpp
-        dev/debug/unit_tests/sentry_chassis_param_adjust.cpp
+        dev/debug/Param_Adjusts/pa_sentry_chassis.cpp
         dev/interface/referee_interface.cpp
         dev/common/CRC8.cpp
         dev/common/CRC16.cpp)
@@ -451,7 +442,7 @@ add_executable(ca_ahrs_infantry
         dev/interface/ahrs/ahrs.cpp
         dev/common/CRC16.cpp
         dev/interface/sd_card_interface.cpp
-        dev/debug/unit_tests/ca_ahrs.cpp)
+        dev/debug/Unit_Tests/ca_ahrs.cpp)
 target_link_libraries(ca_ahrs_infantry ${PROJECT_SOURCE_DIR}/dev/interface/ahrs/ahrs_lib.lib)
 target_include_directories(ca_ahrs_infantry PRIVATE dev/vehicle/infantry)
 target_compile_definitions(ca_ahrs_infantry PRIVATE INFANTRY)
@@ -464,7 +455,7 @@ add_executable(ca_ahrs_hero
         dev/interface/ahrs/ahrs.cpp
         dev/common/CRC16.cpp
         dev/interface/sd_card_interface.cpp
-        dev/debug/unit_tests/ca_ahrs.cpp)
+        dev/debug/Unit_Tests/ca_ahrs.cpp)
 target_link_libraries(ca_ahrs_hero ${PROJECT_SOURCE_DIR}/dev/interface/ahrs/ahrs_lib.lib)
 target_include_directories(ca_ahrs_hero PRIVATE dev/vehicle/hero)
 target_compile_definitions(ca_ahrs_hero PRIVATE HERO)
