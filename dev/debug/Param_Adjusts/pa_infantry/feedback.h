@@ -21,7 +21,7 @@
 #error "Files inspector_infantry.h/cpp should only be used for Infantry main program"
 #endif
 
-class InspectorI {
+class Feedback {
 
 public:
 

@@ -56,7 +56,7 @@ void UserI::UserThread::main() {
 
         /*** ---------------------------------- Gimbal --------------------------------- ***/
 
-        if (!InspectorI::remote_failure() /*&& !InspectorI::chassis_failure()*/ && !InspectorI::gimbal_failure()) {
+        if (!Feedback::remote_failure() /*&& !Feedback::chassis_failure()*/ && !Feedback::gimbal_failure()) {
 
             if ((Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_UP) ||
                 (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_MIDDLE) ||
@@ -130,7 +130,7 @@ void UserI::UserThread::main() {
                 GimbalLG::set_action(GimbalLG::FORCED_RELAX_MODE);
             }
 
-        } else {  // InspectorI::remote_failure() || InspectorI::chassis_failure() || InspectorI::gimbal_failure()
+        } else {  // Feedback::remote_failure() || Feedback::chassis_failure() || Feedback::gimbal_failure()
             /// Safe Mode
             GimbalLG::set_action(GimbalLG::FORCED_RELAX_MODE);
         }
@@ -138,7 +138,7 @@ void UserI::UserThread::main() {
 
         /*** ---------------------------------- Shoot --------------------------------- ***/
 
-        if (!InspectorI::remote_failure() /*&& !InspectorI::chassis_failure()*/ && !InspectorI::gimbal_failure()) {
+        if (!Feedback::remote_failure() /*&& !Feedback::chassis_failure()*/ && !Feedback::gimbal_failure()) {
             if ((Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_UP) ||
                 (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_DOWN)) {
 
@@ -172,7 +172,7 @@ void UserI::UserThread::main() {
                 ShootLG::set_friction_wheels(0);
             }
 
-        } else {  // InspectorI::remote_failure() || InspectorI::chassis_failure() || InspectorI::gimbal_failure()
+        } else {  // Feedback::remote_failure() || Feedback::chassis_failure() || Feedback::gimbal_failure()
             /// Safe Mode
             ShootLG::stop();
             ShootLG::set_friction_wheels(0);
@@ -180,7 +180,7 @@ void UserI::UserThread::main() {
 
         /*** ---------------------------------- Chassis --------------------------------- ***/
 
-        if (!InspectorI::remote_failure() && !InspectorI::chassis_failure() /*&& !InspectorI::gimbal_failure()*/) {
+        if (!Feedback::remote_failure() && !Feedback::chassis_failure() /*&& !Feedback::gimbal_failure()*/) {
 
             if ((Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_UP) ||
                 (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_MIDDLE)) {
@@ -245,7 +245,7 @@ void UserI::UserThread::main() {
                 ChassisLG::set_action(ChassisLG::FORCED_RELAX_MODE);
             }
 
-        } else {  // InspectorI::remote_failure() || InspectorI::chassis_failure() || InspectorI::gimbal_failure()
+        } else {  // Feedback::remote_failure() || Feedback::chassis_failure() || Feedback::gimbal_failure()
             /// Safe Mode
             ChassisLG::set_action(ChassisLG::FORCED_RELAX_MODE);
         }
