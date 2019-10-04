@@ -1,0 +1,37 @@
+//
+// Created by liuzikai on 2019-05-13.
+//
+
+#ifndef META_INFANTRY_IST8310_REG_H
+#define META_INFANTRY_IST8310_REG_H
+
+/** IST8310 Register Maps **/
+
+#define IST8310_STAT1      0x02
+#define IST8310_XOUT_L     0x03
+#define IST8310_XOUT_H     0x04
+#define IST8310_YOUT_L     0x05
+#define IST8310_YOUT_H     0x06
+#define IST8310_ZOUT_L     0x07
+#define IST8310_ZOUT_H     0x08
+#define IST8310_STAT2      0x09
+#define IST8310_CTRL1      0x0A
+#define IST8310_CTRL2      0x0B
+#define IST8310_TEMP_OUT_L 0x1C
+#define IST8310_TEMP_OUT_H 0x1D
+
+#define IST8310_STAT1_DOR  0x02
+#define IST8310_STAT1_DRDY 0x01
+
+#define IST8310_CTRL2_DREN 0x08
+#define IST8310_CTRL2_DRP  0x04
+#define IST8310_CTRL2_SRST 0x01
+
+#define IST8310_PSC 0.3f
+#define IST8310_SINGLE_MEASUREMENT    0
+#define IST8310_SAMPLE_RATE_1_2HZ   255
+
+#define IST8310_IIC_ADDRESS 0x0E
+#define IST8310_IIC_READ_MSB 0x80
+
+#endif //META_INFANTRY_IST8310_REG_H

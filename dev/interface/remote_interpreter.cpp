@@ -12,7 +12,10 @@
  */
 
 #include "remote_interpreter.h"
+
+#include "common_macro.h"
 #include "led.h"
+#include "shell.h"
 
 /**
  * Hardware configurations.
@@ -25,6 +28,8 @@ Remote::rc_t Remote::rc;
 Remote::mouse_t Remote::mouse;
 Remote::keyboard_t Remote::key;
 time_msecs_t Remote::last_update_time;
+
+bool Remote::synchronizing = false;
 
 #if REMOTE_USE_EVENTS
 // See macro EVENTSOURCE_DECL() for initialization style
@@ -53,7 +58,9 @@ UARTConfig Remote::REMOTE_UART_CONFIG = {
  */
 void Remote::uart_received_callback_(UARTDriver *uartp) {
 
-    chSysLockFromISR();  /// ---------------------------------- Enter Critical Zone ----------------------------------
+    if (synchronizing) return;
+
+    chSysLockFromISR();  /// --- ENTER I-Locked state. DO NOT use LOG, printf, non I-Class functions or return ---
 
     /// RC
 
@@ -97,10 +104,8 @@ void Remote::uart_received_callback_(UARTDriver *uartp) {
     uint32_t new_mouse_code =       press_left << MOUSE_LEFT |       press_right << MOUSE_RIGHT;
     uint32_t old_mouse_code = mouse.press_left << MOUSE_LEFT | mouse.press_right << MOUSE_RIGHT;
     uint32_t diff_mouse_code = new_mouse_code ^ old_mouse_code;
-    if (diff_mouse_code) {
-        chEvtBroadcastFlagsI(&mouse_press_event, new_mouse_code & diff_mouse_code);
-        chEvtBroadcastFlagsI(&mouse_release_event, old_mouse_code & diff_mouse_code);
-    }
+    if (new_mouse_code & diff_mouse_code) chEvtBroadcastFlagsI(&mouse_press_event, new_mouse_code & diff_mouse_code);
+    if (old_mouse_code & diff_mouse_code) chEvtBroadcastFlagsI(&mouse_release_event, old_mouse_code & diff_mouse_code);
 
 #endif
 
@@ -137,10 +142,8 @@ void Remote::uart_received_callback_(UARTDriver *uartp) {
      */
 
     uint32_t diff_key_code = key_code_ ^ key.key_code_;
-    if (diff_key_code) {
-        chEvtBroadcastFlagsI(&key_press_event, key_code_ & diff_key_code);
-        chEvtBroadcastFlagsI(&key_release_event, key.key_code_ & diff_key_code);
-    }
+    if (    key_code_ & diff_key_code) chEvtBroadcastFlagsI(&key_press_event, key_code_ & diff_key_code);
+    if (key.key_code_ & diff_key_code) chEvtBroadcastFlagsI(&key_release_event, key.key_code_ & diff_key_code);
 
 #endif
 
@@ -154,23 +157,43 @@ void Remote::uart_received_callback_(UARTDriver *uartp) {
     // Restart the receive
     uartStartReceiveI(uartp, RX_FRAME_SIZE, rx_buf_);
 
-    chSysUnlockFromISR();  /// ---------------------------------- Exit Critical Zone ----------------------------------
+    chSysUnlockFromISR();  /// --- EXIT S-Locked state ---
 }
 
 void Remote::uart_synchronize() {
+    synchronizing = true;
     // Wait for no input in 5 ms, to avoid one receive starting from the middle of a frame
     while (true) {
         // For unknown reason, uartReceiveTimeout() seems not to wait for additional bytes if byte_received > 1
         size_t byte_received = 1;
-        msg_t ret = uartReceiveTimeout(&REMOTE_UART_DRIVER, &byte_received, rx_buf_, TIME_MS2I(5));
-        if (ret == MSG_TIMEOUT) break;
+        if (REMOTE_UART_DRIVER.rxstate != UART_RX_ACTIVE) {
+            msg_t ret = uartReceiveTimeout(&REMOTE_UART_DRIVER, &byte_received, rx_buf_, TIME_MS2I(5));
+            if (ret == MSG_TIMEOUT) break;
+        } else {
+            chThdSleepMicroseconds(20);  // sleep caller thread
+        }
     }
     uartStartReceive(&REMOTE_UART_DRIVER, RX_FRAME_SIZE, rx_buf_);
+    synchronizing = false;
 }
 
 void Remote::start() {
     uartStart(&REMOTE_UART_DRIVER, &REMOTE_UART_CONFIG);
     uart_synchronize();
+}
+
+Remote::key_t Remote::char2key(const char c) {
+    for (unsigned i = 0; i < KEY_COUNT; i++) {
+        if (c == KEY_CHAR_TABLE[i]) {
+            return (key_t) i;
+        }
+    }
+    return KEY_COUNT;
+}
+
+char Remote::key2char(const Remote::key_t key_index) {
+    if (key_index >= KEY_COUNT) return '\0';
+    return KEY_CHAR_TABLE[key_index];
 }
 
 /** @} */

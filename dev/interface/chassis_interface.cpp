@@ -2,13 +2,22 @@
 // Created by liuzikai on 2019-01-12.
 //
 
+/**
+ * @file    chassis_interface.cpp
+ * @brief   Interface to interact with low level driver of chassis, including processing chassis motor feedback and
+ *          sending target currents.
+ *
+ * @addtogroup chassis
+ * @{
+ */
+
 #include "chassis_interface.h"
 
-ChassisInterface::motor_feedback_t ChassisInterface::feedback[MOTOR_COUNT];
-int ChassisInterface::target_current[ChassisInterface::MOTOR_COUNT];
-CANInterface *ChassisInterface::can = nullptr;
+ChassisIF::motor_feedback_t ChassisIF::feedback[MOTOR_COUNT];
+int ChassisIF::target_current[ChassisIF::MOTOR_COUNT];
+CANInterface *ChassisIF::can = nullptr;
 
-bool ChassisInterface::send_chassis_currents() {
+bool ChassisIF::send_chassis_currents() {
 
     if (!can) return false;
 
@@ -34,11 +43,9 @@ bool ChassisInterface::send_chassis_currents() {
 
 }
 
-void ChassisInterface::process_chassis_feedback(CANRxFrame const *rxmsg) {
+void ChassisIF::process_chassis_feedback(CANRxFrame const *rxmsg) {
 
     if (rxmsg->SID > 0x204 || rxmsg->SID < 0x201) return;
-
-//    chSysLock();  // --- Enter Critical Zone ---
 
     int motor_id = (int) (rxmsg->SID - 0x201);
 
@@ -49,15 +56,13 @@ void ChassisInterface::process_chassis_feedback(CANRxFrame const *rxmsg) {
 
     // See the meaning of the motor decelerate ratio
     feedback[motor_id].actual_velocity =
-            feedback[motor_id].actual_rpm_raw / chassis_motor_decelerate_ratio * 360.0f / 60.0f;
+            feedback[motor_id].actual_rpm_raw / CHASSIS_MOTOR_DECELERATE_RATIO * 360.0f / 60.0f;
 
     feedback[motor_id].last_update_time = SYSTIME;
 
-//    chSysUnlock();  // --- Exit Critical Zone ---
-
 }
 
-void ChassisInterface::init(CANInterface *can_interface) {
+void ChassisIF::init(CANInterface *can_interface) {
     can = can_interface;
     can->register_callback(0x201, 0x204, process_chassis_feedback);
     for (int i = 0; i < MOTOR_COUNT; i++) {
@@ -66,3 +71,5 @@ void ChassisInterface::init(CANInterface *can_interface) {
         target_current[i] = 0;
     }
 }
+
+/** @} */

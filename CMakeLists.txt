@@ -38,7 +38,20 @@ set(CMAKE_VERBOSE_MAKEFILE OFF)  # Enable this if you want to see verbose log
 
 include(os/ch.cmake)  # add files and directories from ChibiOS
 
-set(COMMON_CPP_SRC  # common cpp sources, which are included to every tartget at post configuration below
+include_directories(  # common include directories
+        dev
+        dev/common
+        dev/debug
+        dev/debug/shell
+        dev/interface
+        dev/interface/ahrs
+        dev/module
+        dev/scheduler
+        dev/logic
+        # TODO: elimiate control directory someday
+        dev/control)
+
+set(COMMON_SRC  # common cpp sources, which are included to every tartget at post configuration below
         dev/debug/shell/shell_base.c
         dev/debug/shell/shell_base_cmd.c
         dev/debug/shell/printf.c
@@ -46,17 +59,44 @@ set(COMMON_CPP_SRC  # common cpp sources, which are included to every tartget at
         dev/debug/shell/shell_dbg_cmd.cpp
         dev/interface/led.cpp
         dev/interface/buzzer.cpp
-        dev/control/state_handler.cpp)
+        #        dev/module/state_handler.cpp
+        )
 
-include_directories(  # common include directories
-        dev
-        dev/common
-        dev/debug
-        dev/debug/shell
-        dev/interface
-        dev/interface/imu
-        dev/module
-        dev/control)
+set(AHRS_SRC
+        dev/interface/ahrs/ahrs_math.hpp
+        dev/interface/ahrs/ahrs.cpp
+        dev/interface/ahrs/ahrs_lib_middleware.c
+        dev/interface/ahrs/ist8310.cpp
+        dev/interface/ahrs/mpu6500.cpp)
+
+set(INFANTRY_SHOOT_SRC
+        dev/interface/gimbal_interface.cpp
+        dev/scheduler/gimbal_scheduler.cpp
+        dev/scheduler/shoot_scheduler.cpp
+        dev/logic/gimbal_logic.cpp
+        dev/logic/shoot_logic.cpp)
+
+set(HERO_SHOOT_SRC
+        dev/interface/gimbal_interface.cpp
+        dev/scheduler/gimbal_scheduler.cpp
+        dev/scheduler/shoot_scheduler.cpp
+        dev/logic/gimbal_logic.cpp
+        dev/logic/hero_shoot_logic.cpp)
+
+set(CHASSIS_SRC
+        dev/interface/chassis_interface.cpp
+        dev/scheduler/chassis_scheduler.cpp
+        dev/logic/chassis_logic.cpp)
+
+set(PA_CHASSIS_SRC
+        dev/module/pid_controller.hpp
+        dev/interface/can_interface.cpp
+        dev/interface/remote_interpreter.cpp
+        ${AHRS_SRC}
+        ${CHASSIS_SRC}
+        dev/debug/Unit_Tests/pa_chassis/pa_chassis.cpp
+        dev/debug/Unit_Tests/pa_chassis/inspector.cpp
+        dev/debug/Unit_Tests/pa_chassis/command.cpp)
 
 include_directories(dev/board/${BOARD_NAME})  # include board configs
 
@@ -65,213 +105,413 @@ include_directories(dev/board/${BOARD_NAME})  # include board configs
 add_library(ChibiOS_OBJ OBJECT ${CHIBIOS_XASM_SRC} ${CHIBIOS_C_SRC} ${CHIBIOS_CPP_SRC} dev/board/${BOARD_NAME}/board.c)
 
 
-# =========== Files and Targets Configurations ===========
+# ========================== Files and Targets Configurations ==========================
 
 # NOTICE: UPDATE README IF THE CONFIGURATIONS IS UPDATED
 
+# ========================== Robot's Control Programs ===========================
 set(INFANTRY
         dev/module/pid_controller.hpp
-        dev/module/can_interface.cpp
-        dev/interface/imu/mpu6500.cpp
-        dev/interface/gimbal_interface.cpp
-        dev/interface/chassis_interface.cpp
+        dev/interface/can_interface.cpp
         dev/interface/remote_interpreter.cpp
-        dev/control/gimbal.cpp
-        dev/control/shoot.cpp
-        dev/control/chassis.cpp
-        dev/vehicle/infantry/main_infantry.cpp)
+        ${AHRS_SRC}
+        ${INFANTRY_SHOOT_SRC}
+        ${CHASSIS_SRC}
+        dev/interface/vision_port.cpp
+        dev/interface/super_capacitor_port.cpp
+        dev/interface/referee_interface.cpp
+        dev/interface/sd_card_interface.cpp
+        dev/common/CRC8.cpp
+        dev/common/CRC16.cpp
+        dev/vehicle/infantry/inspector_infantry.cpp
+        dev/vehicle/infantry/user_infantry.cpp
+        dev/vehicle/infantry/main_infantry.cpp
+        dev/vehicle/infantry/settings_infantry.cpp)
 
-# Main Program -- Infantry #1
+# Main Program -- Infantry #3
 add_executable(INFANTRY_THREE ${INFANTRY})
 target_include_directories(INFANTRY_THREE PRIVATE dev/vehicle/infantry)
-target_compile_definitions(INFANTRY_THREE PRIVATE INFANTRY INFANTRY_THREE ENABLE_STATE_HANDLE)
+target_compile_definitions(INFANTRY_THREE PRIVATE INFANTRY INFANTRY_THREE)
+target_link_libraries(INFANTRY_THREE ${PROJECT_SOURCE_DIR}/dev/interface/ahrs/ahrs_lib.lib)
 
 # Main Program -- Infantry #4
 add_executable(INFANTRY_FOUR ${INFANTRY})
 target_include_directories(INFANTRY_FOUR PRIVATE dev/vehicle/infantry)
-target_compile_definitions(INFANTRY_FOUR PRIVATE INFANTRY INFANTRY_FOUR ENABLE_STATE_HANDLE)
+target_compile_definitions(INFANTRY_FOUR PRIVATE INFANTRY INFANTRY_FOUR)
+target_link_libraries(INFANTRY_FOUR ${PROJECT_SOURCE_DIR}/dev/interface/ahrs/ahrs_lib.lib)
 
 # Main Program -- Infantry #5
 add_executable(INFANTRY_FIVE ${INFANTRY})
 target_include_directories(INFANTRY_FIVE PRIVATE dev/vehicle/infantry)
-target_compile_definitions(INFANTRY_FIVE PRIVATE INFANTRY INFANTRY_FIVE ENABLE_STATE_HANDLE)
-
-# Main Program -- Engineer
-add_executable(ENGINEER
-        dev/module/pid_controller.hpp
-        dev/module/can_interface.cpp
-        dev/interface/chassis_interface.cpp
-        dev/interface/remote_interpreter.cpp
-        dev/interface/elevator_interface.cpp
-        dev/interface/robotic_arm.cpp
-        dev/control/chassis.cpp
-        dev/vehicle/engineer/state_machine_stage_climb.cpp
-        dev/vehicle/engineer/state_machine_bullet_fetch.cpp
-        dev/vehicle/engineer/main_engineer.cpp
-        dev/control/elevator.cpp dev/vehicle/engineer/thread_chassis.cpp dev/vehicle/engineer/thread_elevator.cpp)
-target_include_directories(ENGINEER PRIVATE dev/vehicle/engineer)
-target_compile_definitions(ENGINEER PRIVATE ENGINEER ENABLE_STATE_HANDLE)
+target_compile_definitions(INFANTRY_FIVE PRIVATE INFANTRY INFANTRY_FIVE)
+target_link_libraries(INFANTRY_FIVE ${PROJECT_SOURCE_DIR}/dev/interface/ahrs/ahrs_lib.lib)
 
 # Main Program -- Hero
 add_executable(HERO
         dev/module/pid_controller.hpp
-        dev/module/can_interface.cpp
-        dev/interface/imu/mpu6500.cpp
-        dev/interface/chassis_interface.cpp
-        dev/interface/gimbal_interface.cpp
+        dev/interface/can_interface.cpp
         dev/interface/remote_interpreter.cpp
-        dev/interface/elevator_interface.cpp
-        dev/interface/robotic_arm.cpp
-        dev/control/chassis.cpp
-        dev/control/gimbal.cpp
-        dev/control/hero_shoot.cpp
-        dev/vehicle/hero/main_hero.cpp)
+        ${AHRS_SRC}
+        ${HERO_SHOOT_SRC}
+        ${CHASSIS_SRC}
+        dev/interface/vision_port.cpp
+        dev/interface/super_capacitor_port.cpp
+        dev/interface/referee_interface.cpp
+        dev/interface/sd_card_interface.cpp
+        dev/common/CRC8.cpp
+        dev/common/CRC16.cpp
+        dev/vehicle/hero/inspector_hero.cpp
+        dev/vehicle/hero/user_hero.cpp
+        dev/vehicle/hero/main_hero.cpp
+        dev/vehicle/hero/settings_hero.cpp)
 target_include_directories(HERO PRIVATE dev/vehicle/hero)
-target_compile_definitions(HERO PUBLIC HERO ENABLE_STATE_HANDLE)
+target_compile_definitions(HERO PRIVATE HERO)
+target_link_libraries(HERO ${PROJECT_SOURCE_DIR}/dev/interface/ahrs/ahrs_lib.lib)
+
+# Main Program -- Sentry
+add_executable(SENTRY
+        dev/interface/can_interface.cpp
+        dev/interface/remote_interpreter.cpp
+        dev/interface/referee_interface.cpp
+        dev/interface/sd_card_interface.cpp
+        dev/interface/vision_port.cpp
+        dev/interface/ahrs/ahrs_ext.cpp
+        dev/common/CRC8.cpp
+        dev/common/CRC16.cpp
+
+        dev/interface/sentry_chassis_interface.cpp
+        dev/scheduler/sentry_chassis_scheduler.cpp
+        dev/logic/sentry_chassis_logic.cpp
+
+        dev/interface/gimbal_interface.cpp
+        dev/scheduler/gimbal_scheduler.cpp
+        dev/logic/gimbal_logic.cpp
+
+        dev/scheduler/shoot_scheduler.cpp
+        dev/logic/shoot_logic.cpp
+
+        dev/vehicle/sentry/main_sentry.cpp
+        dev/vehicle/sentry/inspector_sentry.cpp
+        dev/vehicle/sentry/settings_sentry.cpp
+        dev/vehicle/sentry/user_sentry.cpp
+
+        )
+target_include_directories(SENTRY PRIVATE dev/vehicle/sentry)
+target_compile_definitions(SENTRY PRIVATE SENTRY)
+
+#Main Program -- Aerial
+add_executable(AERIAL
+        dev/module/pid_controller.hpp
+        dev/interface/can_interface.cpp
+        dev/interface/remote_interpreter.cpp
+        dev/interface/sd_card_interface.cpp
+
+        dev/interface/gimbal_interface.cpp
+        dev/scheduler/gimbal_scheduler.cpp
+        dev/logic/gimbal_logic.cpp
+
+        dev/interface/referee_interface.cpp
+        dev/common/CRC8.cpp
+        dev/common/CRC16.cpp
+        dev/interface/vision_port.cpp
+
+        dev/interface/ahrs/ahrs_ext.cpp
+
+        dev/scheduler/shoot_scheduler.cpp
+        dev/logic/shoot_logic.cpp
+
+        dev/vehicle/aerial/main_aerial.cpp
+        dev/vehicle/aerial/user_aerial.cpp
+        dev/vehicle/aerial/inspector_aerial.cpp
+        dev/vehicle/aerial/settings_aerial.cpp
+        )
+target_include_directories(AERIAL PRIVATE dev/vehicle/aerial)
+target_compile_definitions(AERIAL PRIVATE AERIAL)
+
+# Main Program -- Engineer
+add_executable(ENGINEER
+        dev/interface/can_interface.cpp
+        dev/interface/remote_interpreter.cpp
+        dev/interface/referee_interface.cpp
+        dev/interface/sd_card_interface.cpp
+        dev/common/CRC8.cpp
+        dev/common/CRC16.cpp
+
+        dev/interface/chassis_interface.cpp
+        dev/interface/dms_interface.cpp
+        dev/interface/engineer_elevator_interface.cpp
+        dev/interface/engineer_gimbal.cpp
+        dev/interface/robotic_arm_interface.cpp
+
+dev/scheduler/engineer_chassis_skd.cpp
+dev/scheduler/engineer_elevator_skd.cpp
+dev/scheduler/robotic_arm_skd.cpp
+
+dev/logic/engineer_elevator_logic.cpp
+
+dev/vehicle/engineer/main_engineer.cpp
+dev/vehicle/engineer/user_engineer.cpp
+dev/vehicle/engineer/inspector_engineer.cpp
+dev/vehicle/engineer/settings_engineer.cpp
+
+#        dev/control/robotic_arm_skd.cpp
+#        dev/interface/robotic_arm_interface.cpp
+)
+target_include_directories(ENGINEER PRIVATE dev/vehicle/engineer)
+target_compile_definitions(ENGINEER PRIVATE ENGINEER)
+
+
+# ======================================= Unit Tests Programs =======================================
+
+# Includes Unit Tests and Param Adjust programs
+
+# --------------------------------------- Unit Tests ---------------------------------------
+add_executable(ut_engineer
+        dev/debug/Unit_Tests/ut_engineer.cpp
+        dev/scheduler/engineer_chassis_skd.cpp
+        dev/logic/engineer_elevator_logic.cpp
+        dev/scheduler/engineer_elevator_skd.cpp
+        dev/interface/engineer_elevator_interface.cpp
+        dev/scheduler/robotic_arm_skd.cpp
+        dev/interface/chassis_interface.cpp
+        dev/interface/robotic_arm_interface.cpp
+        dev/interface/dms_interface.cpp
+        dev/interface/referee_interface.cpp
+        dev/interface/can_interface.cpp)
 
 # Blink
 add_executable(ut_blink
         dev/module/button_monitor.cpp
-        dev/debug/unit_tests/led_unit_test.cpp)
+        dev/debug/Unit_Tests/ut_led.cpp)
 
 # Remote Interpreter: include remote_interpreter sources and the unit test modules.
 add_executable(ut_remote_interpreter
         dev/interface/remote_interpreter.cpp
-        dev/debug/unit_tests/remote_interpreter_unit_test.cpp)
-
-# Gimbal Interface: include CANInterface, GimbalInterface, GimbalFeedbackThread and the unit test modules.
-add_executable(ut_gimbal_interface
-        dev/module/can_interface.cpp
-        dev/interface/imu/mpu6500.cpp
-        dev/interface/gimbal_interface.cpp
-        dev/control/shoot.cpp
-        dev/debug/unit_tests/gimbal_interface_unit_test.cpp)
-# Hero Shoot
-add_executable(ut_hero_shoot
-        dev/module/can_interface.cpp
-        dev/interface/imu/mpu6500.cpp
-        dev/interface/gimbal_interface.cpp
-        dev/control/hero_shoot.cpp
-        dev/debug/unit_tests/hero_shoot_unit_test.cpp)
-target_compile_definitions(ut_hero_shoot PUBLIC HERO)
-
-# Hero Shoot
-add_executable(pa_hero_shoot
-        dev/module/can_interface.cpp
-        dev/interface/gimbal_interface.cpp
-        dev/control/hero_shoot.cpp
-        dev/debug/unit_tests/hero_shoot_param_adjust.cpp)
-target_compile_definitions(pa_hero_shoot PUBLIC HERO)
-
-# Shoot
-add_executable(pa_shoot
-        dev/module/can_interface.cpp
-        dev/interface/gimbal_interface.cpp
-        dev/control/shoot.cpp
-        dev/debug/unit_tests/shoot_param_adjust.cpp
-        dev/interface/remote_interpreter.cpp)
-
-# Gimbal: include CANInterface, GimbalInterface, GimbalController, GimbalFeedbackThread and adjustment modules.
-add_executable(pa_gimbal
-        dev/module/can_interface.cpp
-        dev/interface/gimbal_interface.cpp
-        dev/module/pid_controller.hpp
-        dev/control/gimbal.cpp
-        dev/control/shoot.cpp
-        dev/interface/imu/mpu6500.cpp
-        dev/debug/unit_tests/gimbal_pid_adjustment_program.cpp)
-target_compile_definitions(pa_gimbal PRIVATE SHELL_NO_ECHO_MODE)
+        dev/debug/Unit_Tests/ut_remoteIF.cpp)
 
 # MPU6500: include MP6500 interface and unit test.
 add_executable(ut_mpu6500
-        dev/interface/imu/mpu6500.cpp
-        dev/debug/unit_tests//mpu6500_unit_test.cpp)
+        dev/interface/ahrs/mpu6500.cpp
+        dev/debug/Unit_Tests/ut_mpu6500.cpp)
+
+# IST8310
+add_executable(ut_ist8310
+        dev/interface/ahrs/mpu6500.cpp
+        dev/interface/ahrs/ist8310.cpp
+        dev/debug/Unit_Tests/ut_ist8310.cpp)
 
 # IMU: include IMU interface and unit test.
 add_executable(ut_imu
-        dev/interface/imu/imu_math.hpp
-        dev/interface/imu/mpu6500.cpp
-#        dev/interface/imu/ist8310.cpp
-        dev/interface/imu/ahrs.cpp
-        dev/debug/unit_tests/imu_unit_test.cpp)
+        dev/interface/ahrs/ahrs_math.hpp
+        dev/interface/ahrs/mpu6500.cpp
+        dev/interface/ahrs/ist8310.cpp
+        dev/interface/ahrs/ahrs.cpp
+        dev/debug/Unit_Tests/ut_ahrs.cpp)
+
+# AHRS
+add_executable(ut_ahrs
+        dev/interface/ahrs/ahrs_math.hpp
+        dev/interface/ahrs/mpu6500.cpp
+        dev/interface/ahrs/ist8310.cpp
+        dev/interface/ahrs/ahrs_lib_middleware.c
+        dev/interface/ahrs/ahrs.cpp
+        dev/debug/Unit_Tests/ut_ahrs.cpp)
+target_link_libraries(ut_ahrs ${PROJECT_SOURCE_DIR}/dev/interface/ahrs/ahrs_lib.lib)
+
+# AHRSExt
+add_executable(ut_ahrs_ext
+        dev/interface/can_interface.cpp
+        dev/interface/ahrs/ahrs_ext.cpp
+        dev/debug/Unit_Tests/ut_ahrs_ext.cpp)
 
 # Buzzer: inlcude Buzzer interface and unit test.
 add_executable(ut_buzzer
         dev/interface/buzzer.cpp
-        dev/debug/unit_tests/buzzer_unit_test.cpp)
-
-# Chassis Interface: include chassis interface sources and the unit test modules.
-add_executable(ut_chassis_interface
-        dev/module/can_interface.cpp
-        dev/interface/chassis_interface.cpp
-        dev/debug/unit_tests/chassis_interface_unit_test.cpp)
-
-# Chassis: include chassis interface, chassis controller and the unit test modules.
-add_executable(ut_chassis
-        dev/module/can_interface.cpp
-        dev/interface/chassis_interface.cpp
-        dev/module/pid_controller.hpp
-        dev/control/chassis.cpp
-        dev/debug/unit_tests/chassis_unit_test.cpp)
-target_include_directories(ut_chassis PRIVATE dev/vehicle/infantry)
+        dev/debug/Unit_Tests/ut_buzzer.cpp)
 
 # Elevator Interface: include CANInterface, ElevatorInterface, and the unit test modules.
 add_executable(ut_elevator_interface
-        dev/module/can_interface.cpp
-        dev/interface/elevator_interface.cpp
-        dev/debug/unit_tests/elevator_interface_unit_test.cpp)
+        dev/interface/can_interface.cpp
+        dev/debug/Unit_Tests/ut_elevator_IF.cpp)
 
-# Elevator: include CANInterface, ElevatorInterface, ElevatorController, and the unit test modules.
-add_executable(pa_elevator
-        dev/module/can_interface.cpp
-        dev/module/pid_controller.hpp
-        dev/interface/elevator_interface.cpp
-        dev/control/elevator.cpp
-        dev/debug/unit_tests/elevator_param_adjust.cpp)
+# Engineer Gimbal Unit tests.
+add_executable(ut_engineer_gimbal
+        dev/interface/engineer_gimbal.cpp
+        dev/interface/remote_interpreter.cpp
+        dev/debug/Unit_Tests/ut_engineer_gimbal.cpp)
 
 # Robotic Arm
 add_executable(ut_robotic_arm
-        dev/module/can_interface.cpp
-        dev/interface/robotic_arm.cpp
-        dev/vehicle/engineer/state_machine_bullet_fetch.cpp
-        dev/debug/unit_tests/engineer_robotic_arm_unit_test.cpp)
+        dev/debug/Unit_Tests/ut_engineer_robotic_arm.cpp
+        dev/interface/can_interface.cpp
+        dev/interface/robotic_arm_interface.cpp
+        dev/scheduler/robotic_arm_skd.cpp)
+
+add_executable(ut_referee_interface
+        dev/common/CRC8.cpp
+        dev/common/CRC16.cpp
+        dev/interface/referee_interface.cpp
+        dev/debug/Unit_Tests/ut_refereeIF.cpp)
+
+add_executable(ut_vision_port
+        dev/common/CRC8.cpp
+        dev/common/CRC16.cpp
+        dev/interface/vision_port.cpp
+        dev/debug/Unit_Tests/ut_vision_port.cpp)
+target_compile_definitions(ut_vision_port PRIVATE VISION_PORT_DEBUG)
+
+add_executable(ut_sd_card
+        dev/interface/sd_card_interface.cpp
+        dev/common/CRC16.cpp
+        dev/debug/Unit_Tests/ut_sd_card.cpp)
+
+add_executable(ut_adc
+        dev/debug/Unit_Tests/ut_adc.cpp
+        dev/interface/dms_interface.cpp)
+
+add_executable(ut_sensors_sound
+        dev/debug/Unit_Tests/ut_sensors_sound.cpp
+        )
+
+# --------------------------------------- Param Adjusts ---------------------------------------
+
+# Hero Shoot
+add_executable(pa_hero_shoot
+        dev/interface/can_interface.cpp
+        dev/interface/gimbal_interface.cpp
+        dev/debug/Param_Adjusts/pa_hero_shoot.cpp)
+target_compile_definitions(pa_hero_shoot PUBLIC HERO)
+
+# Shoot: include CANInterface, GimbalIF, GimbalController, GimbalFeedbackThread and adjustment modules.
+add_executable(pa_infantry_shoot
+        dev/interface/can_interface.cpp
+        dev/interface/gimbal_interface.cpp
+        dev/scheduler/shoot_scheduler.cpp
+        dev/debug/Param_Adjusts/pa_infantry_shoot.cpp
+        dev/interface/remote_interpreter.cpp)
+
+# Gimbal: include CANInterface, GimbalInterface, GimbalController, GimbalFeedbackThread and adjustment modules.
+add_executable(pa_gimbal
+        dev/interface/can_interface.cpp
+        dev/interface/gimbal_interface.cpp
+        dev/module/pid_controller.hpp
+        dev/scheduler/gimbal_scheduler.cpp
+        dev/scheduler/shoot_scheduler.cpp
+        dev/interface/ahrs/mpu6500.cpp
+        dev/debug/Param_Adjusts/pa_gimbal.cpp)
+target_compile_definitions(pa_gimbal PRIVATE SHELL_NO_ECHO_MODE)
+
+# Elevator: include CANInterface, ElevatorInterface, ElevatorController, and the unit test modules.
+add_executable(pa_elevator
+        dev/interface/can_interface.cpp
+        dev/module/pid_controller.hpp
+        dev/logic/engineer_elevator_logic.cpp
+        dev/scheduler/engineer_elevator_skd.cpp
+        dev/interface/engineer_elevator_interface.cpp
+        dev/debug/Param_Adjusts/pa_engineer_elevator.cpp)
+
+add_executable(pa_engineer_chassis
+        dev/interface/can_interface.cpp
+        dev/module/pid_controller.hpp
+        dev/scheduler/engineer_chassis_skd.cpp
+        dev/debug/Param_Adjusts/pa_engineer_chassis.cpp)
 
 # Adjust Params of Skywalker-20A for friction wheels
 add_executable(pa_skywalker
-        dev/debug/unit_tests/skywalker_param_adjust.cpp
+        dev/debug/Param_Adjusts/pa_skywalker.cpp
         dev/interface/remote_interpreter.cpp
         dev/interface/buzzer.cpp)
 
-# Sentry Chassis
-add_executable(ut_sentry_chassis
-        dev/module/can_interface.cpp
+
+# Adjust Params of Sentry Chassis
+add_executable(pa_sentry_chassis
+        dev/interface/can_interface.cpp
         dev/module/pid_controller.hpp
         dev/interface/sentry_chassis_interface.cpp
-        dev/control/sentry_chassis.cpp
-        dev/debug/unit_tests/sentry_chassis_unit_test.cpp)
-
-add_executable(ut_referee_interface
-        dev/module/CRC8.cpp
-        dev/module/CRC16.cpp
+        dev/scheduler/sentry_chassis_scheduler.cpp
+        dev/debug/Param_Adjusts/pa_sentry_chassis.cpp
         dev/interface/referee_interface.cpp
-        dev/debug/unit_tests/referee_interface_unit_test.cpp)
+        dev/common/CRC8.cpp
+        dev/common/CRC16.cpp)
 
-# Template Unit Test
-add_executable(ut_template
-        dev/debug/unit_tests/unit_test_template.cpp)
+add_executable(ca_ahrs_infantry
+        dev/interface/ahrs/ahrs_math.hpp
+        dev/interface/ahrs/mpu6500.cpp
+        dev/interface/ahrs/ist8310.cpp
+        dev/interface/ahrs/ahrs_lib_middleware.c
+        dev/interface/ahrs/ahrs.cpp
+        dev/common/CRC16.cpp
+        dev/interface/sd_card_interface.cpp
+        dev/debug/Unit_Tests/ca_ahrs.cpp)
+target_link_libraries(ca_ahrs_infantry ${PROJECT_SOURCE_DIR}/dev/interface/ahrs/ahrs_lib.lib)
+target_include_directories(ca_ahrs_infantry PRIVATE dev/vehicle/infantry)
+target_compile_definitions(ca_ahrs_infantry PRIVATE INFANTRY)
 
-# =========== Post Configurations for all targets ===========
+add_executable(ca_ahrs_hero
+        dev/interface/ahrs/ahrs_math.hpp
+        dev/interface/ahrs/mpu6500.cpp
+        dev/interface/ahrs/ist8310.cpp
+        dev/interface/ahrs/ahrs_lib_middleware.c
+        dev/interface/ahrs/ahrs.cpp
+        dev/common/CRC16.cpp
+        dev/interface/sd_card_interface.cpp
+        dev/debug/Unit_Tests/ca_ahrs.cpp)
+target_link_libraries(ca_ahrs_hero ${PROJECT_SOURCE_DIR}/dev/interface/ahrs/ahrs_lib.lib)
+target_include_directories(ca_ahrs_hero PRIVATE dev/vehicle/hero)
+target_compile_definitions(ca_ahrs_hero PRIVATE HERO)
+
+#-------------------------------------------INFANTRY PARAM ADJUSTS-------------------------------------------
+set(INFANTRY
+        dev/module/pid_controller.hpp
+        dev/interface/can_interface.cpp
+        dev/interface/remote_interpreter.cpp
+        ${AHRS_SRC}
+        ${INFANTRY_SHOOT_SRC}
+        ${CHASSIS_SRC}
+        dev/interface/vision_port.cpp
+        dev/interface/super_capacitor_port.cpp
+        dev/interface/referee_interface.cpp
+        dev/interface/sd_card_interface.cpp
+        dev/common/CRC8.cpp
+        dev/common/CRC16.cpp
+        dev/debug/Param_Adjusts/pa_infantry/feedback.cpp
+        dev/debug/Param_Adjusts/pa_infantry/user_infantry.cpp
+        dev/debug/Param_Adjusts/pa_infantry/main_infantry.cpp
+        dev/debug/Param_Adjusts/pa_infantry/settings_infantry.cpp)
+
+# Main Program -- Infantry #3
+add_executable(PA_INFANTRY_THREE ${INFANTRY})
+target_include_directories(PA_INFANTRY_THREE PRIVATE dev/debug/Param_Adjusts/pa_infantry)
+target_compile_definitions(PA_INFANTRY_THREE PRIVATE INFANTRY PA_INFANTRY_FIVE)
+target_link_libraries(PA_INFANTRY_THREE ${PROJECT_SOURCE_DIR}/dev/interface/ahrs/ahrs_lib.lib)
+
+# Main Program -- Infantry #4
+add_executable(PA_INFANTRY_FOUR ${INFANTRY})
+target_include_directories(PA_INFANTRY_FOUR PRIVATE dev/debug/Param_Adjusts/pa_infantry)
+target_compile_definitions(PA_INFANTRY_FOUR PRIVATE INFANTRY PA_INFANTRY_FIVE)
+target_link_libraries(PA_INFANTRY_FOUR ${PROJECT_SOURCE_DIR}/dev/interface/ahrs/ahrs_lib.lib)
+
+# Main Program -- Infantry #5
+add_executable(PA_INFANTRY_FIVE ${INFANTRY})
+target_include_directories(PA_INFANTRY_FIVE PRIVATE dev/debug/Param_Adjusts/pa_infantry)
+target_compile_definitions(PA_INFANTRY_FIVE PRIVATE INFANTRY PA_INFANTRY_FIVE)
+target_link_libraries(PA_INFANTRY_FIVE ${PROJECT_SOURCE_DIR}/dev/interface/ahrs/ahrs_lib.lib)
+
+
+# ================================= Post Configurations for all targets =================================
 
 # Make all targets compile to this filename to allow upload script to work properly
 set(ELF_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/build)
 set(ELF_OUTPUT_NAME meta.elf)
 message("[Notice] All executables are built to ${ELF_OUTPUT_PATH}/${ELF_OUTPUT_NAME}")
 
+add_definitions(-DBUILD_TARGET_NAME="$<TARGET_PROPERTY:NAME>")
+
 get_directory_property(TARGER_LIST BUILDSYSTEM_TARGETS)
 foreach (target ${TARGER_LIST})
     if (NOT ${target} STREQUAL "ChibiOS_OBJ")  # OBJECT library doesn't have PRE_BUILD or POST_BUILD
         # Add ChibiOS files and commom sources
-        target_sources(${target} PRIVATE $<TARGET_OBJECTS:ChibiOS_OBJ> ${COMMON_CPP_SRC})
+        target_sources(${target} PRIVATE $<TARGET_OBJECTS:ChibiOS_OBJ> ${COMMON_SRC})
 
         # Echo target dev board before link
         add_custom_command(TARGET ${target} PRE_BUILD

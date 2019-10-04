@@ -16,9 +16,6 @@
 #include "ch.hpp"
 #include "hal.h"
 
-#include "common_macro.h"
-#include "debug/shell/shell.h"
-
 #if defined(BOARD_RM_2018_A)
 // PB7 USART1_RX (alternate 7)
 #define REMOTE_UART_PAD GPIOB
@@ -36,7 +33,7 @@
 #endif
 
 // TODO: event functions are not tested yet
-#define REMOTE_USE_EVENTS   FALSE
+#define REMOTE_USE_EVENTS   TRUE
 
 /**
  * @name Remote
@@ -104,6 +101,22 @@ public:
         KEY_COUNT
     };
 
+    /**
+     * Translate char to key index (key_t)
+     * @param c   Char to be translated
+     * @return Key index or KEY_COUNT if fails
+     * @note KEY_SHIFT uses '^', KEY_CTRL uses '#'
+     */
+    static key_t char2key(const char c);
+
+    /**
+     * Translate key index (key_t) to char
+     * @param key_index   Key index to be translated
+     * @return Char corresponding to the key index, or '\0' if fails
+     * @note KEY_SHIFT uses '^', KEY_CTRL uses '#'
+     */
+    static char key2char(const key_t key_index);
+
     typedef union {
         struct {
             bool w:1;
@@ -152,6 +165,8 @@ public:
 
 private:
 
+    static constexpr const char* KEY_CHAR_TABLE = "WSAD^#QERFGZXCVB";
+
     /**
      * Call back function when a frame is completely retrieved
      * @param uartp   Pointer to UART driver
@@ -159,13 +174,19 @@ private:
      */
     static void uart_received_callback_(UARTDriver *uartp);
 
+    static bool synchronizing;
+
     static char rx_buf_[]; // store buf data retrieved from UART
 
     static const int RX_FRAME_SIZE = 18;
 
     friend void uartStart(UARTDriver *uartp, const UARTConfig *config);
     friend void uartStartReceive(UARTDriver *uartp, size_t n, void *rxbuf);
-    friend class Inspector;
+    friend class InspectorI;
+    friend class InspectorH;
+    friend class InspectorS;
+    friend class InspectorA;
+    friend class InspectorE;
 
     static UARTConfig REMOTE_UART_CONFIG;
 

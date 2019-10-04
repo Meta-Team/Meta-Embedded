@@ -18,7 +18,7 @@
  * @file    shell_base.h
  * @brief   Revised CLI shell header from ChibiOS Shell.
  *
- * @addtogroup SHELL
+ * @addtogroup shell_chibios
  * @{
  */
 
@@ -74,7 +74,7 @@
  * @brief   Shell maximum input line length.
  */
 #if !defined(SHELL_MAX_LINE_LENGTH) || defined(__DOXYGEN__)
-#define SHELL_MAX_LINE_LENGTH       64
+#define SHELL_MAX_LINE_LENGTH       128
 #endif
 
 /**
@@ -131,6 +131,13 @@
  */
 #if !defined(SHELL_NEWLINE_STR) || defined(__DOXYGEN__)
 #define SHELL_NEWLINE_STR            "\r\n"
+#endif
+
+/**
+ * @brief   Welcome string
+ */
+#if !defined(SHELL_WELCOME_STR) || defined(__DOXYGEN__)
+#define SHELL_WELCOME_STR            "> ChibiOS/RT Shell <"
 #endif
 
 /*===========================================================================*/

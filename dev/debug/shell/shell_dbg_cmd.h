@@ -1,3 +1,11 @@
+/**
+ * @file    shell_dbg_cmd.cpp
+ * @brief   Our debug commands for shell.
+ *
+ * @addtogroup shell
+ * @{
+ */
+
 #ifndef META_INFANTRY_SHELL_COMMANDS_H
 #define META_INFANTRY_SHELL_COMMANDS_H
 

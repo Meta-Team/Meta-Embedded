@@ -20,9 +20,9 @@
 
 /**
  * @file    shell.c
- * @brief   Simple CLI shell code.
+ * @brief   Revised CLI shell header from ChibiOS Shell.
  *
- * @addtogroup SHELL
+ * @addtogroup shell_chibios
  * @{
  */
 
@@ -354,7 +354,7 @@ THD_FUNCTION(shellThread, p) {
 #endif
 
     chprintf(chp, SHELL_NEWLINE_STR);
-    chprintf(chp, "> ChibiOS/RT Shell <" SHELL_NEWLINE_STR);
+    chprintf(chp, SHELL_WELCOME_STR SHELL_NEWLINE_STR);
 #if SHELL_NO_ECHO_MODE == TRUE
     chprintf(chp, "NOTICE: IN NO ECHO MODE NOW. YOU WON'T GET ECHO FOR INPUT COMMANDS." SHELL_NEWLINE_STR);
 #endif

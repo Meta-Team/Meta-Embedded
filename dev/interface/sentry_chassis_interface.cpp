@@ -5,12 +5,23 @@
 #include "sentry_chassis_interface.h"
 #include "common_macro.h"
 
-SentryChassis::motor_t SentryChassis::motor[SentryChassis::MOTOR_COUNT];
+SChassisIF::motor_feedback_t SChassisIF::feedback[MOTOR_COUNT];
+int SChassisIF::target_current[MOTOR_COUNT];
+CANInterface *SChassisIF::can;
 
-CANInterface *SentryChassis::can = nullptr;
+void SChassisIF::init(CANInterface *can_interface) {
 
-bool SentryChassis::send_currents() {
+    feedback[MOTOR_LEFT].id = MOTOR_LEFT;
+    feedback[MOTOR_LEFT].clear_position();
 
+    feedback[MOTOR_RIGHT].id = MOTOR_RIGHT;
+    feedback[MOTOR_RIGHT].clear_position();
+
+    can = can_interface;
+    can->register_callback(0x201, 0x202, process_feedback);
+}
+
+bool SChassisIF::send_currents() {
     if (!can) return false;
 
     CANTxFrame txmsg;
@@ -26,73 +37,57 @@ bool SentryChassis::send_currents() {
 #if SENTRY_CHASSIS_ENABLE_CLIP
         ABS_CROP(motor[i].target_current, SENTRY_CHASSIS_MAX_CURRENT);
 #endif
-        if(i == MOTOR_LEFT){
-            txmsg.data8[i * 2] = (uint8_t) ((-motor[i].target_current) >> 8);
-            txmsg.data8[i * 2 + 1] = (uint8_t) (-motor[i].target_current);
-        } else{
-            txmsg.data8[i * 2] = (uint8_t) ((motor[i].target_current) >> 8);
-            txmsg.data8[i * 2 + 1] = (uint8_t) (motor[i].target_current);
-        }
+        txmsg.data8[i * 2] = (uint8_t) (target_current[i] >> 8);
+        txmsg.data8[i * 2 + 1] = (uint8_t) target_current[i];
     }
 
     can->send_msg(&txmsg);
     return true;
-
 }
 
-void SentryChassis::process_feedback(CANRxFrame const*rxmsg) {
+void SChassisIF::process_feedback(CANRxFrame const *rxmsg) {
 
     if (rxmsg->SID > 0x202 || rxmsg->SID < 0x201) return;
 
-    int motor_id = (int) (rxmsg->SID - 0x201);
+    unsigned id = (rxmsg->SID - 0x201);
 
-    // Update new raw angle
-    int16_t new_actual_angle_raw = (int16_t) (rxmsg->data8[0] << 8 | rxmsg->data8[1]);
+    /// Get new absolute angle value of motor
+    uint16_t new_actual_angle_raw = (rxmsg->data8[0] << 8 | rxmsg->data8[1]);
+
+    // Check whether this new raw angle is valid
     if (new_actual_angle_raw > 8191) return;
 
-    // Process angular information
-    int16_t angle_movement = new_actual_angle_raw - motor[motor_id].last_angle_raw;
+    /// Calculate the angle movement in raw data
+    // KEY IDEA: add the change of angle to actual angle
+    // We assume that the absolute value of the angle movement is smaller than 180 degrees (4096 of raw data)
+    int angle_movement = (int) new_actual_angle_raw - (int) feedback[id].last_angle_raw;
 
-    // If angle_movement is too extreme between two samples, we grant that it's caused by moving over the 0(8192) point.
-    if (angle_movement < -4096) {
-        angle_movement += 8192;
-    } else if (angle_movement > 4096) {
-        angle_movement -= 8192;
-    }
-    // Update the actual data
-    motor[motor_id].actual_rpm_raw = (int16_t) (rxmsg->data8[2] << 8 | rxmsg->data8[3]);
-    motor[motor_id].actual_current_raw = (int16_t) (rxmsg->data8[4] << 8 | rxmsg->data8[5]);
-    motor[motor_id].actual_temperature_raw = rxmsg->data8[6];
+    // Store new_actual_angle_raw for calculation of angle_movement next time
+    feedback[id].last_angle_raw = new_actual_angle_raw;
 
-    // Modify the data to the same direction, let the direction of the right wheel be the correct direction, and the left wheel is on the opposite
-    if (motor_id == MOTOR_LEFT){
-        angle_movement = - angle_movement;
-        motor[motor_id].actual_rpm_raw = - motor[motor_id].actual_rpm_raw;
-        motor[motor_id].actual_current_raw = - motor[motor_id].actual_current_raw;
-    }
-    // Update the actual angle
-    motor[motor_id].actual_angle += angle_movement;
-    // modify the actual angle and update the round count when appropriate
-    if (motor[motor_id].actual_angle >= 8192) {
-        //if the actual_angle is greater than 8192, then we can know that it has already turn a round in counterclockwise direction
-        motor[motor_id].actual_angle -= 8192;//set the angle to be within [0,8192)
-        motor[motor_id].round_count++;//round count increases 1
-    }
-    if (motor[motor_id].actual_angle <= -8192) {
-        // if the actual_angle is smaller than -8192, then we can know that it has already turn a round in clockwise direction
-        motor[motor_id].actual_angle += 8192;//set the angle to be within [0,8192)
-        motor[motor_id].round_count--;//round count decreases 1
-    }
-    // Update last angle
-    motor[motor_id].last_angle_raw = new_actual_angle_raw;
+    /// If angle_movement is too extreme between two samples, we grant that it's caused by moving over the 0(8192) point
+    if (angle_movement < -4096) angle_movement += 8192;
+    if (angle_movement > 4096) angle_movement -= 8192;
 
-    // See the meaning of the motor decelerate ratio
-    motor[motor_id].actual_angular_velocity =
-            motor[motor_id].actual_rpm_raw / chassis_motor_decelerate_ratio * 360.0f / 60.0f;
+    // raw -> cm with deceleration ratio, / 8192 / (3591/187) * DISPLACEMENT_PER_ROUND
+    feedback[id].present_position += angle_movement * 0.000006357f * DISPLACEMENT_PER_ROUND;
 
+    // rpm -> cm/s with deceleration ratio, / 60 / (3591/187) * DISPLACEMENT_PER_ROUND
+    feedback[id].present_velocity = ((int16_t) (rxmsg->data8[2] << 8 | rxmsg->data8[3]))
+                                    * 0.000867911f * DISPLACEMENT_PER_ROUND;
+
+    feedback[id].last_update_time = SYSTIME;
 }
 
-void SentryChassis::init(CANInterface *can_interface) {
-    can = can_interface;
-    can->register_callback(0x201, 0x202, process_feedback);
+float SChassisIF::present_velocity() {
+    return (feedback[MOTOR_LEFT].present_velocity + feedback[MOTOR_RIGHT].present_velocity) / 2;
+}
+
+float SChassisIF::present_position() {
+    return (feedback[MOTOR_LEFT].present_position + feedback[MOTOR_RIGHT].present_position) / 2;
+}
+
+void SChassisIF::clear_position() {
+    feedback[MOTOR_LEFT].clear_position();
+    feedback[MOTOR_RIGHT].clear_position();
 }

@@ -15,7 +15,7 @@
 */
 
 /**
- * @file    templates/halconf.h
+ * @file    halconf.h
  * @brief   HAL configuration header.
  * @details HAL configuration file, this file allows to enable or disable the
  *          various device drivers from your application. You may also use
@@ -142,7 +142,7 @@
  * @brief   Enables the SDC subsystem.
  */
 #if !defined(HAL_USE_SDC) || defined(__DOXYGEN__)
-#define HAL_USE_SDC                         FALSE
+#define HAL_USE_SDC                         TRUE
 #endif
 
 /**

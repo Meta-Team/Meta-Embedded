@@ -2,8 +2,15 @@
 using namespace chibios_rt;
 
 /**
- * cmd_hello: hello world again.
- * It's a demonstration of how to write a function for the shell.
+ * @file    shell_dbg_cmd.cpp
+ * @brief   Our debug commands for shell.
+ *
+ * @addtogroup shell
+ * @{
+ */
+
+/**
+ * A demonstration of how to write a function for the shell.
  */
 static void cmd_hello(BaseSequentialStream *chp, int argc, char *argv[]) {
     (void)argv;
@@ -41,7 +48,7 @@ static void cmd_show_thread_stats(BaseSequentialStream *chp, int argc, char *arg
     }
 
     // Print the header
-    chprintf(chp, "thread name       best    average      worst    count   all  free stack" SHELL_NEWLINE_STR);
+    chprintf(chp, "        thread name       best    average      worst    count   all  free stack" SHELL_NEWLINE_STR);
 
     // Iterate threads again and show data.
     thd_ref = reg.firstThread();
@@ -65,7 +72,7 @@ static void cmd_show_thread_stats(BaseSequentialStream *chp, int argc, char *arg
 
         unsigned long free_stack = (p - stklimit_p) * sizeof(uint32_t);
 
-        chprintf(chp, "%11s %10lu %10lu %10lu %8lu  %3u%%  %10lu" SHELL_NEWLINE_STR,
+        chprintf(chp, "%19s %10lu %10lu %10lu %8lu  %3u%%  %10lu" SHELL_NEWLINE_STR,
                  thd->name, thd->stats.best, (unsigned long)(thd->stats.cumulative / thd->stats.n),
                  thd->stats.worst, thd->stats.n, (unsigned int)(100 * thd->stats.cumulative / sum),
                  free_stack);
@@ -77,8 +84,8 @@ static void cmd_show_thread_stats(BaseSequentialStream *chp, int argc, char *arg
 
 /**
  * List of available shell commands.
- * Must be at the bottom of file, otherwise it won't find the functions.
- * {NULL, NULL} is a marker of end of list and mustn't be removed.
+ * @note Must be at the bottom of file, otherwise it won't find the functions.
+ * @note {NULL, NULL} is a marker of end of list and mustn't be removed.
  */
 ShellCommand shell_debug_commands[3] = {
     {"hello", cmd_hello},
