@@ -84,6 +84,13 @@ float ChassisSKD::get_actual_theta() {
     return GimbalIF::feedback[GimbalIF::YAW].actual_angle;
 }
 
+float ChassisSKD::get_target_velocity(ChassisBase::motor_id_t motorId) {
+    return ChassisSKD::target_velocity[motorId];
+}
+
+float ChassisSKD::get_actual_velocity(ChassisBase::motor_id_t motorId) {
+    return ChassisIF::feedback[motorId].actual_velocity;
+}
 void ChassisSKD::velocity_decompose_(float vx, float vy, float w) {
 
     // FR, +vx, -vy, +w

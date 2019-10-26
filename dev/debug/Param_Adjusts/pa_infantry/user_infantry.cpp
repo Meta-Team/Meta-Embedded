@@ -3,7 +3,9 @@
 //
 
 #include "user_infantry.h"
-
+/// Param Adjust Config
+UserI::param_mode_t UserI::Param_Adjust_Mode = TERMINAL;
+UserI::gimbal_mode_t UserI::Gimbal_Mode = YAW;
 
 /// Gimbal Config
 float UserI::gimbal_rc_yaw_max_speed = 90;  // [degree/s]
@@ -40,23 +42,89 @@ float UserI::gimbal_pc_pitch_target_angle_ = 0;
 UserI::UserThread UserI::userThread;
 UserI::UserActionThread UserI::userActionThread;
 UserI::ClientDataSendingThread UserI::clientDataSendingThread;
+UserI::FeedbackThread UserI::feedbackThread;
 
-void UserI::start(tprio_t user_thd_prio, tprio_t user_action_thd_prio, tprio_t client_data_sending_thd_prio) {
+void UserI::start(tprio_t user_thd_prio, tprio_t user_action_thd_prio, tprio_t client_data_sending_thd_prio, tprio_t feedback_thd_prio) {
     userThread.start(user_thd_prio);
     userActionThread.start(user_action_thd_prio);
     clientDataSendingThread.start(client_data_sending_thd_prio);
+    feedbackThread.start(feedback_thd_prio);
 
     // Normal speed, 2 lights from right
     set_user_client_speed_light_(2);
 }
+/**-------------------------------------Param_adjust_Shell_Commands------------------------------------------*/
+void UserI::set_mode(UserI::param_mode_t mode) {
+    Param_Adjust_Mode = mode;
+}
+
+void UserI::set_gimbal_mode(UserI::gimbal_mode_t mode) {
+    Gimbal_Mode = mode;
+}
+
+static void cmd_gimbal_enable(BaseSequentialStream *chp, int argc, char *argv[]) {
+    (void) argv;
+    if (argc != 2 || (*argv[0] != '0' && *argv[0] != '1') || (*argv[1] != '0' && *argv[1] != '1')) {
+        shellUsage(chp, "g_enable yaw(0/1) pitch(0/1)");
+        return;
+    }
+    if(*argv[0]-'0' || *argv[1]-'0'){
+        UserI::set_mode(UserI::GIMBAL);
+    }
+}
+
+static void cmd_gimbal_enable_feedback(BaseSequentialStream *chp, int argc, char *argv[]) {
+    (void) argv;
+    if (argc != 2 || (*argv[0] != '0' && *argv[0] != '1') || (*argv[1] != '0' && *argv[1] != '1')) {
+        shellUsage(chp, "g_enable_fb yaw(0/1) pitch(0/1)");
+        return;
+    }
+    if(*argv[0]-'0') {
+        UserI::set_gimbal_mode(UserI::YAW);
+    }else if(*argv[1]-'0'){
+        UserI::set_gimbal_mode(UserI::PITCH);
+    } else {
+        UserI::set_gimbal_mode(UserI::YAW); // When 1 1 or 0 0, set feedback to original (YAW). TODO: Set a New mode that make feedback Thread print nothing... IS that works?
+    }
+}
+
+static void cmd_gimbal_fix_front_angle(BaseSequentialStream *chp, int argc, char *argv[]){
+    shellUsage(chp, "There's No gimbal fix front angle anymore.");
+    return;
+    // as this version of param adjust program used infantry and hero program, we may dont need a gimbal fix_front_angle program.
+}
+
+static void cmd_gimbal_set_target_velocities(BaseSequentialStream *chp, int argc, char *argv[]) {
+    (void) argv;
+    if (argc != 2) {
+        shellUsage(chp, "g_set_v yaw_velocity pitch_velocity");
+        return;
+    }
+
+    target_v[YAW] = Shell::atof(argv[0]);
+    target_v[PITCH] = Shell::atof(argv[1]);
+    _cmd_gimbal_clear_i_out();
+
+}
+
+ShellCommand gimbalControllerCommands[] = {
+        {"g_enable",      cmd_gimbal_enable},
+        {"g_enable_fb",   cmd_gimbal_enable_feedback},
+        {"g_fix",         cmd_gimbal_fix_front_angle},
+        {"g_set_v",       cmd_gimbal_set_target_velocities},
+        {"g_set_angle",   cmd_gimbal_set_target_angle},
+        {"g_set_params",  cmd_gimbal_set_parameters},
+        {"g_echo_params", cmd_gimbal_echo_parameters},
+        {"g_enable_fw",   cmd_gimbal_enable_fw},
+        {nullptr,         nullptr}
+};
 
 void UserI::UserThread::main() {
     setName("UserI");
     while (!shouldTerminate()) {
-
         /*** ---------------------------------- Gimbal --------------------------------- ***/
 
-        if (!Feedback::remote_failure() /*&& !Feedback::chassis_failure()*/ && !Feedback::gimbal_failure()) {
+        if (!InspectorI::remote_failure() /*&& !InspectorI::chassis_failure()*/ && !InspectorI::gimbal_failure()) {
 
             if ((Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_UP) ||
                 (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_MIDDLE) ||
@@ -77,7 +145,7 @@ void UserI::UserThread::main() {
                 // ch1 use up as positive direction, while GimbalLG also use up as positive direction
 
 
-                GimbalLG::set_target(gimbal_yaw_target_angle_, pitch_target);
+                GimbalLG::set_target_angle(gimbal_yaw_target_angle_, pitch_target);
 
             } else if (Remote::rc.s1 == Remote::S_DOWN) {
 
@@ -123,14 +191,14 @@ void UserI::UserThread::main() {
                 VAL_CROP(gimbal_pc_pitch_target_angle_, gimbal_pitch_max_angle, gimbal_pitch_min_angle);
 
 
-                GimbalLG::set_target(gimbal_yaw_target_angle_, gimbal_pc_pitch_target_angle_);
+                GimbalLG::set_target_angle(gimbal_yaw_target_angle_, gimbal_pc_pitch_target_angle_);
 
             } else {
                 /// Safe Mode
                 GimbalLG::set_action(GimbalLG::FORCED_RELAX_MODE);
             }
 
-        } else {  // Feedback::remote_failure() || Feedback::chassis_failure() || Feedback::gimbal_failure()
+        } else {  // InspectorI::remote_failure() || InspectorI::chassis_failure() || InspectorI::gimbal_failure()
             /// Safe Mode
             GimbalLG::set_action(GimbalLG::FORCED_RELAX_MODE);
         }
@@ -138,7 +206,7 @@ void UserI::UserThread::main() {
 
         /*** ---------------------------------- Shoot --------------------------------- ***/
 
-        if (!Feedback::remote_failure() /*&& !Feedback::chassis_failure()*/ && !Feedback::gimbal_failure()) {
+        if (!InspectorI::remote_failure() /*&& !InspectorI::chassis_failure()*/ && !InspectorI::gimbal_failure()) {
             if ((Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_UP) ||
                 (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_DOWN)) {
 
@@ -172,7 +240,7 @@ void UserI::UserThread::main() {
                 ShootLG::set_friction_wheels(0);
             }
 
-        } else {  // Feedback::remote_failure() || Feedback::chassis_failure() || Feedback::gimbal_failure()
+        } else {  // InspectorI::remote_failure() || InspectorI::chassis_failure() || InspectorI::gimbal_failure()
             /// Safe Mode
             ShootLG::stop();
             ShootLG::set_friction_wheels(0);
@@ -180,7 +248,7 @@ void UserI::UserThread::main() {
 
         /*** ---------------------------------- Chassis --------------------------------- ***/
 
-        if (!Feedback::remote_failure() && !Feedback::chassis_failure() /*&& !Feedback::gimbal_failure()*/) {
+        if (!InspectorI::remote_failure() && !InspectorI::chassis_failure() /*&& !InspectorI::gimbal_failure()*/) {
 
             if ((Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_UP) ||
                 (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_MIDDLE)) {
@@ -245,7 +313,7 @@ void UserI::UserThread::main() {
                 ChassisLG::set_action(ChassisLG::FORCED_RELAX_MODE);
             }
 
-        } else {  // Feedback::remote_failure() || Feedback::chassis_failure() || Feedback::gimbal_failure()
+        } else {  // InspectorI::remote_failure() || InspectorI::chassis_failure() || InspectorI::gimbal_failure()
             /// Safe Mode
             ChassisLG::set_action(ChassisLG::FORCED_RELAX_MODE);
         }
@@ -253,6 +321,41 @@ void UserI::UserThread::main() {
 
         /// Final
         sleep(TIME_MS2I(USER_THREAD_INTERVAL));
+    }
+}
+
+void UserI::FeedbackThread::main() {
+    setName("Feedback");
+    while(!shouldTerminate()) {
+        if (Param_Adjust_Mode == GIMBAL){
+
+                // Update the ahrs_angle and ahrs_gyro
+                if (Gimbal_Mode == YAW){
+                    Shell::printf("!gy,%u,%.2f,%.2f,%.2f,%.2f,%d,%d" SHELL_NEWLINE_STR,
+                                  SYSTIME,
+                                  GimbalSKD::get_accumulated_angle(GimbalSKD::YAW), GimbalSKD::get_target_angle(GimbalSKD::YAW),
+                                  GimbalSKD::get_actual_velocity(GimbalSKD::YAW), GimbalSKD::get_target_velocity(GimbalSKD::YAW),
+                                  GimbalIF::feedback[YAW].actual_current, GimbalIF::target_current[YAW]);
+                } else if (Gimbal_Mode == PITCH) {
+                    Shell::printf("!gy,%u,%.2f,%.2f,%.2f,%.2f,%d,%d" SHELL_NEWLINE_STR,
+                                  SYSTIME,
+                                  GimbalSKD::get_accumulated_angle(GimbalSKD::PITCH), GimbalSKD::get_target_angle(GimbalSKD::PITCH),
+                                  GimbalSKD::get_actual_velocity(GimbalSKD::PITCH), GimbalSKD::get_target_velocity(GimbalSKD::PITCH),
+                                  GimbalIF::feedback[PITCH].actual_current, GimbalIF::target_current[PITCH]);
+                }
+
+        } else if (Param_Adjust_Mode == CHASSIS){
+            Shell::printf("!cv,%u,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f" SHELL_NEWLINE_STR,
+                          TIME_I2MS(chibios_rt::System::getTime()),
+                          ChassisLG::get_actual_velocity(ChassisSKD::FR),
+                          ChassisSKD::get_target_velocity(ChassisSKD::FR),
+                          ChassisLG::get_actual_velocity(ChassisSKD::FL),
+                          ChassisSKD::get_target_velocity(ChassisSKD::FL),
+                          ChassisLG::get_actual_velocity(ChassisSKD::BL),
+                          ChassisSKD::get_target_velocity(ChassisSKD::BL),
+                          ChassisLG::get_actual_velocity(ChassisSKD::BR),
+                          ChassisSKD::get_target_velocity(ChassisSKD::BR));
+        }
     }
 }
 
@@ -316,10 +419,10 @@ void UserI::UserActionThread::main() {
 
             if (key_flag & (1U << Remote::KEY_Q)) {
                 gimbal_yaw_target_angle_ += 90.0f;
-                GimbalLG::set_target(gimbal_yaw_target_angle_, gimbal_pc_pitch_target_angle_);
+                GimbalLG::set_target_angle(gimbal_yaw_target_angle_, gimbal_pc_pitch_target_angle_);
             } else if (key_flag & (1U << Remote::KEY_E)) {
                 gimbal_yaw_target_angle_ -= 90.0f;
-                GimbalLG::set_target(gimbal_yaw_target_angle_, gimbal_pc_pitch_target_angle_);
+                GimbalLG::set_target_angle(gimbal_yaw_target_angle_, gimbal_pc_pitch_target_angle_);
             }
 
             /// Shoot

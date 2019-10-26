@@ -2,29 +2,29 @@
 // Created by liuzikai on 2019-06-25.
 //
 
-#include "feedback.h"
+#include "InspectorI.h"
 
-AbstractAHRS *Feedback::ahrs = nullptr;
-CANInterface *Feedback::can1 = nullptr;
-CANInterface *Feedback::can2 = nullptr;
+AbstractAHRS *InspectorI::ahrs = nullptr;
+CANInterface *InspectorI::can1 = nullptr;
+CANInterface *InspectorI::can2 = nullptr;
 
-bool Feedback::gimbal_failure_ = false;
-bool Feedback::chassis_failure_ = false;
-bool Feedback::remote_failure_ = false;
+bool InspectorI::gimbal_failure_ = false;
+bool InspectorI::chassis_failure_ = false;
+bool InspectorI::remote_failure_ = false;
 
-Feedback::InspectorThread Feedback::inspectorThread;
+InspectorI::InspectorThread InspectorI::inspectorThread;
 
-void Feedback::init(CANInterface *can1_, CANInterface *can2_, AbstractAHRS *ahrs_) {
+void InspectorI::init(CANInterface *can1_, CANInterface *can2_, AbstractAHRS *ahrs_) {
     can1 = can1_;
     can2 = can2_;
     ahrs = ahrs_;
 }
 
-void Feedback::start_inspection(tprio_t thread_prio) {
+void InspectorI::start_inspection(tprio_t thread_prio) {
     inspectorThread.start(thread_prio);
 }
 
-void Feedback::startup_check_can() {
+void InspectorI::startup_check_can() {
     time_msecs_t t = SYSTIME;
     while (WITHIN_RECENT_TIME(t, 100)) {
         if (WITHIN_RECENT_TIME(can1->last_error_time, 5)) {  // can error occurs
@@ -37,7 +37,7 @@ void Feedback::startup_check_can() {
     }
 }
 
-void Feedback::startup_check_mpu() {
+void InspectorI::startup_check_mpu() {
     time_msecs_t t = SYSTIME;
     while (WITHIN_RECENT_TIME(t, 20)) {
         if (not WITHIN_RECENT_TIME(ahrs->get_mpu_update_time(), 5)) {
@@ -48,7 +48,7 @@ void Feedback::startup_check_mpu() {
     }
 }
 
-void Feedback::startup_check_ist() {
+void InspectorI::startup_check_ist() {
     time_msecs_t t = SYSTIME;
     while (WITHIN_RECENT_TIME(t, 20)) {
         if (not WITHIN_RECENT_TIME(ahrs->get_ist_update_time(), 5)) {
@@ -59,7 +59,7 @@ void Feedback::startup_check_ist() {
     }
 }
 
-void Feedback::startup_check_remote() {
+void InspectorI::startup_check_remote() {
     time_msecs_t t = SYSTIME;
     while (WITHIN_RECENT_TIME(t, 50)) {
         if (not WITHIN_RECENT_TIME(Remote::last_update_time, 25)) {  // No signal in last 25 ms (normal interval 7 ms)
@@ -69,7 +69,7 @@ void Feedback::startup_check_remote() {
     }
 }
 
-void Feedback::startup_check_chassis_feedback() {
+void InspectorI::startup_check_chassis_feedback() {
     time_msecs_t t = SYSTIME;
     while (WITHIN_RECENT_TIME(t, 20)) {
         if (not WITHIN_RECENT_TIME(ChassisIF::feedback[ChassisIF::FR].last_update_time, 5)) {
@@ -96,7 +96,7 @@ void Feedback::startup_check_chassis_feedback() {
     }
 }
 
-void Feedback::startup_check_gimbal_feedback() {
+void InspectorI::startup_check_gimbal_feedback() {
     time_msecs_t t = SYSTIME;
     while (WITHIN_RECENT_TIME(t, 20)) {
         if (not WITHIN_RECENT_TIME(GimbalIF::feedback[GimbalIF::YAW].last_update_time, 5)) {
@@ -118,19 +118,19 @@ void Feedback::startup_check_gimbal_feedback() {
     }
 }
 
-bool Feedback::gimbal_failure() {
+bool InspectorI::gimbal_failure() {
     return gimbal_failure_;
 }
 
-bool Feedback::chassis_failure() {
+bool InspectorI::chassis_failure() {
     return chassis_failure_;
 }
 
-bool Feedback::remote_failure() {
+bool InspectorI::remote_failure() {
     return remote_failure_;
 }
 
-bool Feedback::check_gimbal_failure() {
+bool InspectorI::check_gimbal_failure() {
     bool ret = false;
     for (unsigned i = 0; i < 3; i++) {
         if (not WITHIN_RECENT_TIME(GimbalIF::feedback[i].last_update_time, 20)) {
@@ -143,7 +143,7 @@ bool Feedback::check_gimbal_failure() {
     return ret;
 }
 
-bool Feedback::check_chassis_failure() {
+bool InspectorI::check_chassis_failure() {
     bool ret = false;
     for (unsigned i = 0; i < ChassisIF::MOTOR_COUNT; i++) {
         if (not WITHIN_RECENT_TIME(ChassisIF::feedback[i].last_update_time, 20)) {
@@ -156,7 +156,7 @@ bool Feedback::check_chassis_failure() {
     return ret;
 }
 
-bool Feedback::check_remote_data_error() {
+bool InspectorI::check_remote_data_error() {
     bool ret = (!ABS_IN_RANGE(Remote::rc.ch0, 1.1) || !ABS_IN_RANGE(Remote::rc.ch1, 1.1) ||
                 !ABS_IN_RANGE(Remote::rc.ch2, 1.1) || !ABS_IN_RANGE(Remote::rc.ch3, 1.1) ||
                 !(Remote::rc.s1 >= 1 && Remote::rc.s1 <= 3) || !(Remote::rc.s2 >= 1 && Remote::rc.s2 <= 3) ||
@@ -167,8 +167,8 @@ bool Feedback::check_remote_data_error() {
 
 }
 
-void Feedback::InspectorThread::main() {
-    setName("Feedback");
+void InspectorI::InspectorThread::main() {
+    setName("InspectorI");
     while (!shouldTerminate()) {
 
         if (check_remote_data_error()) {

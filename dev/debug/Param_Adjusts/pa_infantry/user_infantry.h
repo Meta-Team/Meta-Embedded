@@ -16,13 +16,31 @@
 #include "shoot_logic.h"
 #include "chassis_logic.h"
 
-#include "feedback.h"
+#include "debug/shell/shell.h"
+
+#include "InspectorI.h"
 
 class UserI {
 
 public:
 
-    static void start(tprio_t user_thd_prio, tprio_t user_action_thd_prio, tprio_t client_data_sending_thd_prio);
+    static void start(tprio_t user_thd_prio, tprio_t user_action_thd_prio, tprio_t client_data_sending_thd_prio, tprio_t feedback_thd_prio);
+
+    /// Param Adjust Mode Config
+
+    static enum param_mode_t{
+        TERMINAL,
+        GIMBAL,
+        CHASSIS,
+    } Param_Adjust_Mode;
+
+    static enum gimbal_mode_t{
+        YAW,
+        PITCH,
+    } Gimbal_Mode;
+
+    static void set_mode(param_mode_t mode);
+    static void set_gimbal_mode(gimbal_mode_t mode);
 
 private:
 
@@ -70,6 +88,15 @@ private:
 
     static UserThread userThread;
 
+    /// Feedback Thread
+    class FeedbackThread : public chibios_rt::BaseStaticThread<512> {
+    public:
+
+    private:
+        void main() final;
+    };
+
+    static FeedbackThread feedbackThread;
 
     /// User Action Thread
     class UserActionThread : public chibios_rt::BaseStaticThread<512> {

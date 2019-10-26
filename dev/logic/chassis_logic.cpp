@@ -11,8 +11,8 @@
  */
 
 #include "chassis_logic.h"
-#include "chassis_scheduler.h"
-#include "remote_interpreter.h"
+//#include "chassis_scheduler.h"
+//#include "remote_interpreter.h"
 
 ChassisLG::action_t ChassisLG::action = FORCED_RELAX_MODE;
 float ChassisLG::target_vx;
@@ -82,6 +82,10 @@ void ChassisLG::set_target(float vx, float vy) {
 
 void ChassisLG::apply_target() {
     ChassisSKD::set_target(target_vx, target_vy, target_theta);
+}
+
+float ChassisLG::get_actual_velocity(ChassisSKD::motor_id_t motor){
+    return ChassisSKD::get_actual_velocity(motor);
 }
 
 void ChassisLG::DodgeModeSwitchThread::main() {

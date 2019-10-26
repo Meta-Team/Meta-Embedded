@@ -169,7 +169,8 @@
 #define THREAD_INSPECTOR_PRIO               (NORMALPRIO - 10)
 #define THREAD_SHOOT_BULLET_COUNTER_PRIO    (LOWPRIO + 7)
 #define THREAD_USER_CLIENT_DATA_SEND_PRIO   (LOWPRIO + 6)
-#define THREAD_SHELL_PRIO                   (LOWPRIO + 5)
+#define FEEDBACK_THREAD_PRIO                (LOWPRIO + 5)
+#define THREAD_SHELL_PRIO                   (LOWPRIO + 4)
 #define THREAD_BUZZER_PRIO                  (LOWPRIO)
 
 /// Dev Board LED Usage List

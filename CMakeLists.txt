@@ -474,7 +474,7 @@ set(INFANTRY
         dev/interface/sd_card_interface.cpp
         dev/common/CRC8.cpp
         dev/common/CRC16.cpp
-        dev/debug/Param_Adjusts/pa_infantry/feedback.cpp
+        dev/debug/Param_Adjusts/pa_infantry/InspectorI.cpp
         dev/debug/Param_Adjusts/pa_infantry/user_infantry.cpp
         dev/debug/Param_Adjusts/pa_infantry/main_infantry.cpp
         dev/debug/Param_Adjusts/pa_infantry/settings_infantry.cpp)

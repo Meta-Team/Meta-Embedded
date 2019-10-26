@@ -15,6 +15,9 @@
 
 #include "ch.hpp"
 
+#include "chassis_scheduler.h"
+#include "remote_interpreter.h"
+
 #include "referee_interface.h"
 
 #if defined(INFANTRY)
@@ -69,6 +72,10 @@ public:
      */
     static void set_target(float vx, float vy);
 
+    /**
+     * Get
+     * */
+     static float get_actual_velocity(ChassisSKD::motor_id_t motor);
 private:
 
     static action_t action;

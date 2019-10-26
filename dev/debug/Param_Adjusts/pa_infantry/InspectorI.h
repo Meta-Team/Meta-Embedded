@@ -2,8 +2,8 @@
 // Created by liuzikai on 2019-06-25.
 //
 
-#ifndef META_INFANTRY_FEEDBACK_H
-#define META_INFANTRY_FEEDBACK_H
+#ifndef META_INFANTRY_INSPECTORI_H
+#define META_INFANTRY_INSPECTORI_H
 
 #include "ch.hpp"
 
@@ -21,7 +21,7 @@
 #error "Files inspector_infantry.h/cpp should only be used for Infantry main program"
 #endif
 
-class Feedback {
+class InspectorI {
 
 public:
 
@@ -65,4 +65,4 @@ private:
 };
 
 
-#endif //META_INFANTRY_FEEDBACK_H
+#endif //META_INFANTRY_INSPECTORI_H

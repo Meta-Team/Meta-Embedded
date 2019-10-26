@@ -131,6 +131,20 @@ public:
     */
     static float get_relative_angle(motor_id_t motor);
 
+    /**
+     * Get gimbal velocity maintained by this SKD
+     * @param motor  YAW or PITCH
+     * @return actual angle velocity of MOTOR
+     */
+    static float get_actual_velocity(motor_id_t motor);
+
+    /**
+     * Get gimbal target velocity maintained by this SKD
+     * @param motor  YAW or PITCH
+     * @return actual angle velocity of MOTOR
+     */
+    static float get_target_velocity(motor_id_t motor);
+
 private:
 
     static AbstractAHRS *gimbal_ahrs;

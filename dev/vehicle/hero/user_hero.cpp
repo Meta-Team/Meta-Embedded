@@ -80,7 +80,7 @@ void UserH::UserThread::main() {
                 // ch1 use up as positive direction, while GimbalLG also use up as positive direction
 
 
-                GimbalLG::set_target(gimbal_yaw_target_angle_, pitch_target);
+                GimbalLG::set_target_angle(gimbal_yaw_target_angle_, pitch_target);
 
             } else if (Remote::rc.s1 == Remote::S_DOWN) {
 
@@ -126,7 +126,7 @@ void UserH::UserThread::main() {
                 VAL_CROP(gimbal_pc_pitch_target_angle_, gimbal_pitch_max_angle, gimbal_pitch_min_angle);
 
 
-                GimbalLG::set_target(gimbal_yaw_target_angle_, gimbal_pc_pitch_target_angle_);
+                GimbalLG::set_target_angle(gimbal_yaw_target_angle_, gimbal_pc_pitch_target_angle_);
 
             } else {
                 /// Safe Mode

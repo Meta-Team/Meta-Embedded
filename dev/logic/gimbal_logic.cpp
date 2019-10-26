@@ -33,15 +33,19 @@ void GimbalLG::set_action(GimbalLG::action_t value) {
     }
 }
 
-void GimbalLG::set_target(float yaw_target_angle, float pitch_target_angle) {
+void GimbalLG::set_target_angle(float yaw_target_angle, float pitch_target_angle) {
     if (action != FORCED_RELAX_MODE) {
 
         GimbalSKD::set_target_angle(yaw_target_angle, pitch_target_angle);
 
     } else {
-        LOG_ERR("GimbalLG - set_target(): invalid mode");
+        LOG_ERR("GimbalLG - set_target_angle(): invalid mode");
     }
 }
+
+void GimbalLG::set_target_velocity(float yaw_target_velocity, float pitch_target_velocity) {
+
+};
 
 float GimbalLG::get_accumulated_angle(GimbalBase::motor_id_t motor) {
     return GimbalSKD::get_accumulated_angle(motor);
