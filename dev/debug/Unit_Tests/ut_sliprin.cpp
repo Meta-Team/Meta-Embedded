@@ -55,8 +55,8 @@ class CurrentSendThread : public chibios_rt::BaseStaticThread<512> {
 
         while (!shouldTerminate()) {
             LED::led_on(1);
-            
-            GimbalIF::target_current[0] = yawv2i.calc(GimbalIF::feedback[GimbalIF::YAW].actual_velocity * 1 / 1,yawa2v.calc(GimbalIF::feedback[GimbalIF::YAW].actual_angle,10));
+
+            GimbalIF::target_current[0] = yawv2i.calc(GimbalIF::feedback[GimbalIF::YAW].actual_velocity * 1 / 1,2);
             GimbalIF::send_gimbal_currents();
 
             if(GimbalIF::feedback[GimbalIF::YAW].actual_velocity == last_log_angle) {
