@@ -60,6 +60,134 @@ static const Matrix33 ON_BOARD_AHRS_MATRIX_ = ON_BOARD_AHRS_MATRIX;
 static const Matrix33 GIMBAL_ANGLE_INSTALLATION_MATRIX_ = GIMBAL_ANGLE_INSTALLATION_MATRIX;
 static const Matrix33 GIMBAL_GYRO_INSTALLATION_MATRIX_ = GIMBAL_GYRO_INSTALLATION_MATRIX;
 
+/**-------------------------------------Param_adjust_Shell_Commands------------------------------------------*/
+void UserI::set_mode(UserI::param_mode_t mode) {
+    Param_Adjust_Mode = mode;
+}
+
+void UserI::set_gimbal_mode(UserI::gimbal_mode_t mode) {
+    Gimbal_Mode = mode;
+}
+
+static void cmd_gimbal_enable(BaseSequentialStream *chp, int argc, char *argv[]) {
+    (void) argv;
+    if (argc != 2 || (*argv[0] != '0' && *argv[0] != '1') || (*argv[1] != '0' && *argv[1] != '1')) {
+        shellUsage(chp, "g_enable yaw(0/1) pitch(0/1)");
+        return;
+    }
+    if(*argv[0]-'0' || *argv[1]-'0'){
+        UserI::set_mode(UserI::GIMBAL);
+    }
+}
+
+static void cmd_gimbal_enable_feedback(BaseSequentialStream *chp, int argc, char *argv[]) {
+    (void) argv;
+    if (argc != 2 || (*argv[0] != '0' && *argv[0] != '1') || (*argv[1] != '0' && *argv[1] != '1')) {
+        shellUsage(chp, "g_enable_fb yaw(0/1) pitch(0/1)");
+        return;
+    }
+    if(*argv[0]-'0') {
+        UserI::set_gimbal_mode(UserI::YAW);
+    }else if(*argv[1]-'0'){
+        UserI::set_gimbal_mode(UserI::PITCH);
+    } else {
+        UserI::set_gimbal_mode(UserI::YAW); // When 1 1 or 0 0, set feedback to original (YAW). TODO: Set a New mode that make feedback Thread print nothing... IS that works?
+    }
+}
+
+static void cmd_gimbal_fix_front_angle(BaseSequentialStream *chp, int argc, char *argv[]){
+    shellUsage(chp, "There's No gimbal fix front angle anymore.");
+    return;
+    // as this version of param adjust program used infantry and hero program, we may dont need a gimbal fix_front_angle program.
+}
+
+static void cmd_gimbal_set_target_velocities(BaseSequentialStream *chp, int argc, char *argv[]) {
+    (void) argv;
+    if (argc != 2) {
+        shellUsage(chp, "g_set_v yaw_velocity pitch_velocity");
+        return;
+    }
+    float target_v[2];
+    target_v[0] = Shell::atof(argv[0]); // YAW
+    target_v[1] = Shell::atof(argv[1]); // PITCH
+    GimbalLG::set_action(GimbalLG::VELOCITY_MODE);
+    GimbalLG::set_target_velocity(target_v[0],target_v[1]);
+}
+
+static void cmd_gimbal_set_target_angle(BaseSequentialStream *chp, int argc, char *argv[]) {
+    (void) argv;
+    if (argc != 2) {
+        shellUsage(chp, "g_set_angle yaw_angle pitch_angle");
+        return;
+    }
+    GimbalLG::set_action(GimbalLG::ABS_ANGLE_MODE);
+    GimbalLG::set_target_angle(Shell::atof(argv[0]),Shell::atof(argv[1]));
+}
+
+void cmd_gimbal_set_parameters(BaseSequentialStream *chp, int argc, char *argv[]) {
+    (void) argv;
+    if (argc != 7) {
+        shellUsage(chp, "g_set_params yaw(0)/pitch(1) angle_to_v(0)/v_to_i(0) ki kp kd i_limit out_limit");
+        chprintf(chp, "!pe" SHELL_NEWLINE_STR);  // echo parameters error
+        return;
+    }
+
+    GimbalSKD::pid_params_t *p = nullptr;
+
+    if(argv[0]-'0') {           //YAW
+        if(argv[1]-'0') {       //a2v
+
+        } else {                //v2i
+
+        }
+    } else {                    //PITCH
+        if(argv[1]-'0') {       //a2v
+
+        } else {                //v2i
+
+        }
+    }
+
+    GimbalSKD::load_pid_params()
+
+    GimbalSKD::pid_params_t yaw_a2v_params = ::a2v_pid[YAW].get_parameters();
+    GimbalSKD::pid_params_t yaw_v2i_params = Gimbal::v2i_pid[YAW].get_parameters();
+    GimbalSKD::pid_params_t pitch_a2v_params = Gimbal::a2v_pid[PITCH].get_parameters();
+    GimbalSKD::pid_params_t pitch_v2i_params = Gimbal::v2i_pid[PITCH].get_parameters();
+
+    Gimbal::pid_params_t *p = nullptr;
+    if (*argv[0] == '0' && *argv[1] == '0') p = &yaw_a2v_params;
+    else if (*argv[0] == '0' && *argv[1] == '1') p = &yaw_v2i_params;
+    else if (*argv[0] == '1' && *argv[1] == '0') p = &pitch_a2v_params;
+    else if (*argv[0] == '1' && *argv[1] == '1') p = &pitch_v2i_params;
+    else {
+        chprintf(chp, "!pe" SHELL_NEWLINE_STR);  // echo parameters error
+        return;
+    }
+
+    *p = {Shell::atof(argv[2]),
+          Shell::atof(argv[3]),
+          Shell::atof(argv[4]),
+          Shell::atof(argv[5]),
+          Shell::atof(argv[6])};
+
+    Gimbal::change_pid_params(yaw_a2v_params, yaw_v2i_params, pitch_a2v_params, pitch_v2i_params);
+
+    chprintf(chp, "!ps" SHELL_NEWLINE_STR); // echo parameters set
+}
+
+ShellCommand gimbalControllerCommands[] = {
+        {"g_enable",      cmd_gimbal_enable},
+        {"g_enable_fb",   cmd_gimbal_enable_feedback},
+        {"g_fix",         cmd_gimbal_fix_front_angle},
+        {"g_set_v",       cmd_gimbal_set_target_velocities},
+        {"g_set_angle",   cmd_gimbal_set_target_angle},
+        {"g_set_params",  cmd_gimbal_set_parameters},
+        {"g_echo_params", cmd_gimbal_echo_parameters},
+        {"g_enable_fw",   cmd_gimbal_enable_fw},
+        {nullptr,         nullptr}
+};
+
 int main() {
 
     /*** --------------------------- Period 0. Fundamental Setup --------------------------- ***/
@@ -84,6 +212,7 @@ int main() {
     /// Setup Shell
     Shell::start(THREAD_SHELL_PRIO);
     Shell::addCommands(mainProgramCommands);
+    Shell::addCommands(gimbalControllerCommands);
     chThdSleepMilliseconds(50);  // wait for logo to print :)
 
     /// Setup SDCard

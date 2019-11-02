@@ -38,6 +38,7 @@ public:
         ABS_ANGLE_MODE,
         SENTRY_MODE,
         AERIAL_MODE,
+        VELOCITY_MODE,
     };
 
     /**

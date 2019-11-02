@@ -39,6 +39,7 @@ public:
         PITCH,
     } Gimbal_Mode;
 
+    static float pitch_angle_range[2];
     static void set_mode(param_mode_t mode);
     static void set_gimbal_mode(gimbal_mode_t mode);
 
@@ -90,8 +91,6 @@ private:
 
     /// Feedback Thread
     class FeedbackThread : public chibios_rt::BaseStaticThread<512> {
-    public:
-
     private:
         void main() final;
     };

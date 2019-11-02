@@ -30,6 +30,8 @@ void GimbalLG::set_action(GimbalLG::action_t value) {
         GimbalSKD::set_mode(GimbalSKD::ABS_ANGLE_MODE);
     } else if (action == SENTRY_MODE) {
         GimbalSKD::set_mode(GimbalSKD::SENTRY_MODE);
+    } else if (action == VELOCITY_MODE) {
+        GimbalSKD::set_mode(GimbalSKD::VELOCITY_MODE);
     }
 }
 
@@ -44,8 +46,11 @@ void GimbalLG::set_target_angle(float yaw_target_angle, float pitch_target_angle
 }
 
 void GimbalLG::set_target_velocity(float yaw_target_velocity, float pitch_target_velocity) {
-
-};
+    if (action != FORCED_RELAX_MODE) {
+        GimbalSKD::set_pitch_restriction(0.0f,10.0f);
+        GimbalSKD::set_target_velocity(yaw_target_velocity,pitch_target_velocity);
+    }
+}
 
 float GimbalLG::get_accumulated_angle(GimbalBase::motor_id_t motor) {
     return GimbalSKD::get_accumulated_angle(motor);

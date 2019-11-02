@@ -10,6 +10,7 @@ UserI::gimbal_mode_t UserI::Gimbal_Mode = YAW;
 /// Gimbal Config
 float UserI::gimbal_rc_yaw_max_speed = 90;  // [degree/s]
 float UserI::gimbal_pc_yaw_sensitivity[3] = {50000, 100000, 150000};  // [Slow, Normal, Fast] [degree/s]
+float UserI::pitch_angle_range[2] = {-10.0f , 40.0f};
 
 float UserI::gimbal_pc_pitch_sensitivity[3] = {20000, 50000, 60000};   // [Slow, Normal, Fast] [degree/s]
 float UserI::gimbal_pitch_min_angle = -10; // down range for pitch [degree]
@@ -53,71 +54,6 @@ void UserI::start(tprio_t user_thd_prio, tprio_t user_action_thd_prio, tprio_t c
     // Normal speed, 2 lights from right
     set_user_client_speed_light_(2);
 }
-/**-------------------------------------Param_adjust_Shell_Commands------------------------------------------*/
-void UserI::set_mode(UserI::param_mode_t mode) {
-    Param_Adjust_Mode = mode;
-}
-
-void UserI::set_gimbal_mode(UserI::gimbal_mode_t mode) {
-    Gimbal_Mode = mode;
-}
-
-static void cmd_gimbal_enable(BaseSequentialStream *chp, int argc, char *argv[]) {
-    (void) argv;
-    if (argc != 2 || (*argv[0] != '0' && *argv[0] != '1') || (*argv[1] != '0' && *argv[1] != '1')) {
-        shellUsage(chp, "g_enable yaw(0/1) pitch(0/1)");
-        return;
-    }
-    if(*argv[0]-'0' || *argv[1]-'0'){
-        UserI::set_mode(UserI::GIMBAL);
-    }
-}
-
-static void cmd_gimbal_enable_feedback(BaseSequentialStream *chp, int argc, char *argv[]) {
-    (void) argv;
-    if (argc != 2 || (*argv[0] != '0' && *argv[0] != '1') || (*argv[1] != '0' && *argv[1] != '1')) {
-        shellUsage(chp, "g_enable_fb yaw(0/1) pitch(0/1)");
-        return;
-    }
-    if(*argv[0]-'0') {
-        UserI::set_gimbal_mode(UserI::YAW);
-    }else if(*argv[1]-'0'){
-        UserI::set_gimbal_mode(UserI::PITCH);
-    } else {
-        UserI::set_gimbal_mode(UserI::YAW); // When 1 1 or 0 0, set feedback to original (YAW). TODO: Set a New mode that make feedback Thread print nothing... IS that works?
-    }
-}
-
-static void cmd_gimbal_fix_front_angle(BaseSequentialStream *chp, int argc, char *argv[]){
-    shellUsage(chp, "There's No gimbal fix front angle anymore.");
-    return;
-    // as this version of param adjust program used infantry and hero program, we may dont need a gimbal fix_front_angle program.
-}
-
-static void cmd_gimbal_set_target_velocities(BaseSequentialStream *chp, int argc, char *argv[]) {
-    (void) argv;
-    if (argc != 2) {
-        shellUsage(chp, "g_set_v yaw_velocity pitch_velocity");
-        return;
-    }
-
-    target_v[YAW] = Shell::atof(argv[0]);
-    target_v[PITCH] = Shell::atof(argv[1]);
-    _cmd_gimbal_clear_i_out();
-
-}
-
-ShellCommand gimbalControllerCommands[] = {
-        {"g_enable",      cmd_gimbal_enable},
-        {"g_enable_fb",   cmd_gimbal_enable_feedback},
-        {"g_fix",         cmd_gimbal_fix_front_angle},
-        {"g_set_v",       cmd_gimbal_set_target_velocities},
-        {"g_set_angle",   cmd_gimbal_set_target_angle},
-        {"g_set_params",  cmd_gimbal_set_parameters},
-        {"g_echo_params", cmd_gimbal_echo_parameters},
-        {"g_enable_fw",   cmd_gimbal_enable_fw},
-        {nullptr,         nullptr}
-};
 
 void UserI::UserThread::main() {
     setName("UserI");
@@ -192,6 +128,8 @@ void UserI::UserThread::main() {
 
 
                 GimbalLG::set_target_angle(gimbal_yaw_target_angle_, gimbal_pc_pitch_target_angle_);
+
+            } else if (Remote::rc.s1 == Remote::S_DOWN && Remote::rc.s2 == Remote::S_UP) {
 
             } else {
                 /// Safe Mode

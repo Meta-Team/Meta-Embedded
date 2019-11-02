@@ -49,6 +49,7 @@ public:
         FORCED_RELAX_MODE,   // zero force (but still taking control of GimbalIF)
         ABS_ANGLE_MODE,      // target_angle of yaw is relative to ground
         SENTRY_MODE,         //
+        VELOCITY_MODE        // Velocity mode for param adjust
     }; // no support for RELATIVE_ANGLE_MODE
 
     enum install_direction_t {
@@ -110,12 +111,27 @@ public:
     static float get_target_angle(motor_id_t motor);
 
     /**
+     * Set target velocities
+     * @param yaw_target_velocity    GIMBAL  yaw  target velocity on vehicle coordinate. [degree/s]
+     * @param pitch_target_velocity  GIMBAL pitch target velocity on vehicle coordinate. [degree/s]
+     */
+    static void set_target_velocity(float yaw_target_velocity, float pitch_target_velocity);
+
+    /**
      * Set yaw restriction angles
      * @param yaw_min
      * @param yaw_max
      * @param restrict_velocity
      */
     static void set_yaw_restriction(float yaw_min, float yaw_max, float restrict_velocity);
+
+    /**
+     * Set pitch restriction angles
+     * @param pitch_min
+     * @param pitch_max
+     * @param restrict_velocity
+     */
+    static void set_pitch_restriction(float pitch_min, float pitch_max);
 
     /**
      * Get accumulated angle maintained by this SKD
@@ -167,6 +183,8 @@ private:
 
     static float yaw_restrict_angle[2];
     static float yaw_restrict_velocity;
+
+    static float pitch_restrict_angle[2];
 
     static PIDController a2v_pid[2];
     static PIDController v2i_pid[2];

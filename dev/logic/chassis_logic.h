@@ -50,7 +50,8 @@ public:
     enum action_t {
         FORCED_RELAX_MODE,
         FOLLOW_MODE,
-        DODGE_MODE
+        DODGE_MODE,
+        PARAM_ADJUST_MODE
     };
 
     /**
