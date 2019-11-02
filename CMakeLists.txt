@@ -284,6 +284,14 @@ add_executable(ut_blink
         dev/module/button_monitor.cpp
         dev/debug/Unit_Tests/ut_led.cpp)
 
+# Slip Rin
+add_executable(ut_slip_rin
+        dev/interface/can_interface.cpp
+        dev/interface/chassis_interface.cpp
+        dev/interface/gimbal_interface.cpp
+        dev/interface/dms_interface.cpp
+        dev/debug/Unit_Tests/ut_sliprin.cpp)
+
 # Remote Interpreter: include remote_interpreter sources and the unit test modules.
 add_executable(ut_remote_interpreter
         dev/interface/remote_interpreter.cpp
