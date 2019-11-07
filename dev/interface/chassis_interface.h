@@ -111,7 +111,7 @@ private:
 
 private:
 
-    static float constexpr CHASSIS_MOTOR_DECELERATE_RATIO = 19.2f; // 3591/187 on the data sheet
+    static float constexpr CHASSIS_MOTOR_DECELERATE_RATIO = 1.0f; // 3591/187 on the data sheet
 
 };
 
