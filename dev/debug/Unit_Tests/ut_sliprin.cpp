@@ -48,7 +48,7 @@ class CurrentSendThread : public chibios_rt::BaseStaticThread<512> {
             ChassisIF::target_current[0] = (int) lv2i.calc(ChassisIF::feedback[ChassisIF::FR].actual_velocity,-target_velocity);
             ChassisIF::target_current[1] = (int) rv2i.calc(ChassisIF::feedback[ChassisIF::FL].actual_velocity,target_velocity);
             ChassisIF::send_chassis_currents();
-            if (SYSTIME-time>100) {
+            if (SYSTIME-time>750) {
                 if(!status) {
                     LED::led_on(5);
                     time = SYSTIME;
@@ -79,7 +79,7 @@ class FeedbackThread : public chibios_rt::BaseStaticThread<512> {
                           0.0f,
                           0.0f,
                           0.0f);
-            if (SYSTIME-time>100) {
+            if (SYSTIME-time>1000) {
                 if(!status) {
                     LED::led_on(6);
                     time = SYSTIME;
