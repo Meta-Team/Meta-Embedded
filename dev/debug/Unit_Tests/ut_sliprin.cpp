@@ -39,8 +39,6 @@ class CurrentSendThread : public chibios_rt::BaseStaticThread<512> {
     void main() final {
 
         bool a = false;
-        int last_log_time;
-        last_log_time = SYSTIME;
 
         PIDController lv2i;
         PIDController rv2i;
@@ -49,35 +47,39 @@ class CurrentSendThread : public chibios_rt::BaseStaticThread<512> {
         rv2i.change_parameters(CHASSIS_PID_V2I_PARAMS);
 
         float last_log_angle;
-//        LED::all_off();
+        LED::all_off();
         while (!shouldTerminate()) {
-            LED::led_on(1);
+            LED::led_on(3);
             ChassisIF::target_current[0] = (int) lv2i.calc(ChassisIF::feedback[0].actual_velocity,target_velocity);
-            ChassisIF::target_current[1] = (int) rv2i.calc(-ChassisIF::feedback[1].actual_velocity,-target_velocity);
+            ChassisIF::target_current[1] = (int) rv2i.calc(ChassisIF::feedback[1].actual_velocity,-target_velocity);
             ChassisIF::send_chassis_currents();
+            Shell::printf("!cv,%u,%.2f" SHELL_NEWLINE_STR,
+                          TIME_I2MS(chibios_rt::System::getTime()),
+                          ChassisIF::feedback[0].actual_velocity);
         }
         sleep(TIME_MS2I(1));
     }
 }currentSendThread;
 
-//static void cmd_set_velocity (BaseSequentialStream *chp, int argc, char *argv[]) {
-//    (void) argv;
-//    if (argc != 1) {
-//        shellUsage(chp, "set_velocity");
-//        return;
-//    }
-//    target_velocity = Shell::atof(argv[0]);
-//}
-//ShellCommand ControllerCommands[] = {
-//        {"set_velocity",   cmd_set_velocity},
-//        {nullptr,         nullptr}
-//};
-int main(){
+static void cmd_set_velocity (BaseSequentialStream *chp, int argc, char *argv[]) {
+    (void) argv;
+    if (argc != 1) {
+        shellUsage(chp, "set_velocity");
+        return;
+    }
+    target_velocity = Shell::atof(argv[0]);
+}
+
+ShellCommand ControllerCommands[] = {
+        {"set_velocity",   cmd_set_velocity},
+        {nullptr,         nullptr}
+};
+int main() {
 
     halInit();
     chibios_rt::System::init();
-//    Shell::start(HIGHPRIO);
-//    Shell::addCommands(ControllerCommands);
+    Shell::start(LOWPRIO);
+    Shell::addCommands(ControllerCommands);
     palSetPadMode(GPIOH, GPIOH_POWER1_CTRL, PAL_MODE_OUTPUT_PUSHPULL);
     palSetPad(GPIOH, GPIOH_POWER1_CTRL);
 
@@ -91,14 +93,14 @@ int main(){
         }
     }
     LED::led_on(1);
-    time_msecs_t t = SYSTIME;
-    while (WITHIN_RECENT_TIME(t, 20)) {
-        if (not WITHIN_RECENT_TIME(ChassisIF::feedback[ChassisIF::FR].last_update_time, 5)) {
-            // No feedback in last 5 ms (normal 1 ms)
-            LOG_ERR("Startup - Chassis FR offline.");
-            t = SYSTIME;  // reset the counter
-        }
-    }
+//    time_msecs_t t = SYSTIME;
+//    while (WITHIN_RECENT_TIME(t, 20)) {
+//        if (not WITHIN_RECENT_TIME(ChassisIF::feedback[ChassisIF::FR].last_update_time, 5)) {
+//            // No feedback in last 5 ms (normal 1 ms)
+//            LOG_ERR("Startup - Chassis FR offline.");
+//            t = SYSTIME;  // reset the counter
+//        }
+//    }
     LED::led_on(2);
 
     currentSendThread.start(HIGHPRIO - 2);
