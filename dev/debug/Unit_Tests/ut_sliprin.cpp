@@ -10,8 +10,8 @@
 
 #include "pid_controller.hpp"
 #include "can_interface.h"
-#include "interface/chassis_interface.h"
-#include "interface/gimbal_interface.h"
+#include "chassis_interface.h"
+#include "gimbal_interface.h"
 
 using namespace chibios_rt;
 
@@ -45,8 +45,8 @@ class CurrentSendThread : public chibios_rt::BaseStaticThread<512> {
         rv2i.change_parameters(CHASSIS_PID_V2I_PARAMS);
 
         while (!shouldTerminate()) {
-            ChassisIF::target_current[0] = (int) lv2i.calc(ChassisIF::feedback[0].actual_velocity,target_velocity);
-            ChassisIF::target_current[1] = (int) rv2i.calc(ChassisIF::feedback[1].actual_velocity,-target_velocity);
+            ChassisIF::target_current[0] = (int) lv2i.calc(ChassisIF::feedback[ChassisIF::FR].actual_velocity,-target_velocity);
+            ChassisIF::target_current[1] = (int) rv2i.calc(ChassisIF::feedback[ChassisIF::FL].actual_velocity,target_velocity);
             ChassisIF::send_chassis_currents();
             if (SYSTIME-time>100) {
                 if(!status) {
@@ -69,9 +69,16 @@ class FeedbackThread : public chibios_rt::BaseStaticThread<512> {
     bool status = false;
     void main() final {
         while (!shouldTerminate()){
-            Shell::printf("!cv,%u,%.2f" SHELL_NEWLINE_STR,
+            Shell::printf("!cv,%u,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f" SHELL_NEWLINE_STR,
                           TIME_I2MS(chibios_rt::System::getTime()),
-                          ChassisIF::feedback[0].actual_velocity);
+                          ChassisIF::feedback[ChassisIF::FR].actual_velocity,
+                          target_velocity,
+                          ChassisIF::feedback[ChassisIF::FR].actual_velocity,
+                          -target_velocity,
+                          0.0f,
+                          0.0f,
+                          0.0f,
+                          0.0f);
             if (SYSTIME-time>100) {
                 if(!status) {
                     LED::led_on(6);
@@ -96,20 +103,34 @@ static void cmd_set_velocity (BaseSequentialStream *chp, int argc, char *argv[])
     }
     target_velocity = Shell::atof(argv[0]);
 }
-
+static void cmd_clear (BaseSequentialStream *chp, int argc, char *argv[]) {
+    (void) argv;
+    if (argc != 0) {
+        shellUsage(chp, "clear");
+        return;
+    }
+    target_velocity = 0.0f;
+}
 ShellCommand ControllerCommands[] = {
         {"set_velocity",   cmd_set_velocity},
+        {"clear"       ,   cmd_clear},
         {nullptr,         nullptr}
 };
+
 int main() {
 
     halInit();
     System::init();
-    Shell::start(LOWPRIO +5);
+    Shell::start(HIGHPRIO);
     Shell::addCommands(ControllerCommands);
 
     LED::all_off();
     can1.start(HIGHPRIO - 1);
+
+    chThdSleepMilliseconds(5);
+    chThdSleepMilliseconds(10);
+    feedbackThread.start(NORMALPRIO+1);
+    chThdSleepMilliseconds(10);
     ChassisIF::init(&can1);
     time_msecs_t t1 = SYSTIME;
 
@@ -132,6 +153,14 @@ int main() {
     }
     LED::led_on(2);
     currentSendThread.start(NORMALPRIO + 2);
-    feedbackThread.start(NORMALPRIO+1);
+
+#if CH_CFG_NO_IDLE_THREAD  // See chconf.h for what this #define means.
+    // ChibiOS idle thread has been disabled, main() should implement infinite loop
+    while (true) {}
+#else
+    // When vehicle() quits, the vehicle thread will somehow enter an infinite loop, so we set the
+    // priority to lowest before quitting, to let other threads run normally
+    chibios_rt::BaseThread::setPriority(IDLEPRIO);
+#endif
     return 0;
 }
