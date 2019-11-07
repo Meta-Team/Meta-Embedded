@@ -16,6 +16,8 @@
 using namespace chibios_rt;
 
 #if defined(BOARD_RM_2018_A)
+
+#include "vehicle/infantry/vehicle_infantry.h"
 #else
 #error "supports only RM Board 2018 A currently"
 #endif
@@ -32,7 +34,7 @@ CANInterface can1(&CAND1);
     CHASSIS_PID_V2I_I_LIMIT, CHASSIS_PID_V2I_OUT_LIMIT}
 
 float target_velocity = 0.0f;
-
+float target_angle = 0.0f;
 class CurrentSendThread : public chibios_rt::BaseStaticThread<512> {
     void main() final {
         int time = SYSTIME;
@@ -40,14 +42,24 @@ class CurrentSendThread : public chibios_rt::BaseStaticThread<512> {
 
         PIDController lv2i;
         PIDController rv2i;
+        PIDController loadera2v;
+        PIDController loaderv2i;
 
         lv2i.change_parameters(CHASSIS_PID_V2I_PARAMS);
         rv2i.change_parameters(CHASSIS_PID_V2I_PARAMS);
+        loadera2v.change_parameters(SHOOT_PID_BULLET_LOADER_A2V_PARAMS);
+        loaderv2i.change_parameters(SHOOT_PID_BULLET_LOADER_V2I_PARAMS);
 
+        float loader_target_velocity = 0.0f;
         while (!shouldTerminate()) {
             ChassisIF::target_current[0] = (int) lv2i.calc(ChassisIF::feedback[ChassisIF::FR].actual_velocity,-target_velocity);
             ChassisIF::target_current[1] = (int) rv2i.calc(ChassisIF::feedback[ChassisIF::FL].actual_velocity,target_velocity);
+
+            loader_target_velocity = loadera2v.calc(GimbalIF::feedback[2].accumulated_angle(),target_angle);
+            GimbalIF::target_current[2] = (int) loaderv2i.calc(GimbalIF::feedback[2].actual_velocity,loader_target_velocity);
+
             ChassisIF::send_chassis_currents();
+            GimbalIF::send_gimbal_currents();
             if (SYSTIME-time>750) {
                 if(!status) {
                     LED::led_on(5);
@@ -59,8 +71,8 @@ class CurrentSendThread : public chibios_rt::BaseStaticThread<512> {
                     status = !status;
                 }
             }
+            sleep(TIME_MS2I(1));
         }
-        sleep(TIME_MS2I(1));
     }
 }currentSendThread;
 
@@ -111,9 +123,18 @@ static void cmd_clear (BaseSequentialStream *chp, int argc, char *argv[]) {
     }
     target_velocity = 0.0f;
 }
+static void cmd_shoot(BaseSequentialStream *chp, int argc, char *argv[]) {
+    (void) argv;
+    if (argc!= 0) {
+        shellUsage(chp, "shoot");
+        return;
+    }
+    target_angle += (360.0f/8.0f);
+}
 ShellCommand ControllerCommands[] = {
         {"set_velocity",   cmd_set_velocity},
         {"clear"       ,   cmd_clear},
+        {"shoot"       ,   cmd_shoot},
         {nullptr,         nullptr}
 };
 
@@ -123,15 +144,15 @@ int main() {
     System::init();
     Shell::start(HIGHPRIO);
     Shell::addCommands(ControllerCommands);
-
     LED::all_off();
     can1.start(HIGHPRIO - 1);
-
+    Buzzer::play_sound(Buzzer::sound_da_bu_zi_duo_ge,THREAD_BUZZER_PRIO);
     chThdSleepMilliseconds(5);
     chThdSleepMilliseconds(10);
     feedbackThread.start(NORMALPRIO+1);
     chThdSleepMilliseconds(10);
     ChassisIF::init(&can1);
+    GimbalIF::init(&can1,233,233,GimbalIF::GM6020,GimbalIF::RM6623,GimbalIF::M2006);
     time_msecs_t t1 = SYSTIME;
 
     /**-----check can error------*/
@@ -153,7 +174,6 @@ int main() {
     }
     LED::led_on(2);
     currentSendThread.start(NORMALPRIO + 2);
-
 #if CH_CFG_NO_IDLE_THREAD  // See chconf.h for what this #define means.
     // ChibiOS idle thread has been disabled, main() should implement infinite loop
     while (true) {}

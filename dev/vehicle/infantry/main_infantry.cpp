@@ -187,7 +187,7 @@ int main() {
     UserI::start(THREAD_USER_PRIO, THREAD_USER_ACTION_PRIO, THREAD_USER_CLIENT_DATA_SEND_PRIO);
 
     /// Complete Period 2
-    Buzzer::play_sound(Buzzer::sound_startup_intel, THREAD_BUZZER_PRIO);  // Now play the startup sound
+    Buzzer::play_sound(Buzzer::sound_da_bu_zi_duo_ge, THREAD_BUZZER_PRIO);  // Now play the startup sound
 
 
     /*** ------------------------ Period 3. End of main thread ----------------------- ***/

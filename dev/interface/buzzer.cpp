@@ -18,6 +18,7 @@ constexpr Buzzer::note_with_time_t Buzzer::sound_startup_intel[];
 constexpr Buzzer::note_with_time_t Buzzer::sound_infinity_warning[];
 constexpr Buzzer::note_with_time_t Buzzer::sound_little_star[];
 constexpr Buzzer::note_with_time_t Buzzer::sound_orange[];
+constexpr Buzzer::note_with_time_t Buzzer::sound_da_bu_zi_duo_ge[];
 constexpr PWMConfig Buzzer::pwm_config;
 bool Buzzer::alerting_ = false;
 
