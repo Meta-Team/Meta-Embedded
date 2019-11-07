@@ -7,12 +7,14 @@
 #include "buzzer.h"
 #include "led.h"
 #include "common_macro.h"
+#include "debug/shell/shell.h"
 
 #include "pid_controller.hpp"
 #include "interface/can_interface.h"
 #include "interface/chassis_interface.h"
 #include "interface/gimbal_interface.h"
 
+unsigned const INTERVAL = 1;
 using namespace chibios_rt;
 
 #if defined(BOARD_RM_2018_A)
@@ -20,25 +22,18 @@ using namespace chibios_rt;
 #error "supports only RM Board 2018 A currently"
 #endif
 
-#define GIMBAL_PID_YAW_V2I_KP 680.0f
-#define GIMBAL_PID_YAW_V2I_KI 0.075f
-#define GIMBAL_PID_YAW_V2I_KD 0.0f
-#define GIMBAL_PID_YAW_V2I_I_LIMIT 10000.0f
-#define GIMBAL_PID_YAW_V2I_OUT_LIMIT 20000.0f
-#define GIMBAL_PID_YAW_V2I_PARAMS \
-    {GIMBAL_PID_YAW_V2I_KP, GIMBAL_PID_YAW_V2I_KI, GIMBAL_PID_YAW_V2I_KD, \
-    GIMBAL_PID_YAW_V2I_I_LIMIT, GIMBAL_PID_YAW_V2I_OUT_LIMIT}
-
-#define GIMBAL_PID_YAW_A2V_KP 12.0f
-#define GIMBAL_PID_YAW_A2V_KI 0.0f
-#define GIMBAL_PID_YAW_A2V_KD 0.09f
-#define GIMBAL_PID_YAW_A2V_I_LIMIT 1440.0f
-#define GIMBAL_PID_YAW_A2V_OUT_LIMIT 1440.0f
-#define GIMBAL_PID_YAW_A2V_PARAMS \
-    {GIMBAL_PID_YAW_A2V_KP, GIMBAL_PID_YAW_A2V_KI, GIMBAL_PID_YAW_A2V_KD, \
-    GIMBAL_PID_YAW_A2V_I_LIMIT, GIMBAL_PID_YAW_A2V_OUT_LIMIT}
-
 CANInterface can1(&CAND1);
+
+#define CHASSIS_PID_V2I_KP 26.0f
+#define CHASSIS_PID_V2I_KI 0.1f
+#define CHASSIS_PID_V2I_KD 0.02f
+#define CHASSIS_PID_V2I_I_LIMIT 2000.0f
+#define CHASSIS_PID_V2I_OUT_LIMIT 6000.0f
+#define CHASSIS_PID_V2I_PARAMS \
+    {CHASSIS_PID_V2I_KP, CHASSIS_PID_V2I_KI, CHASSIS_PID_V2I_KD, \
+    CHASSIS_PID_V2I_I_LIMIT, CHASSIS_PID_V2I_OUT_LIMIT}
+
+float target_velocity = 0.0f;
 
 class CurrentSendThread : public chibios_rt::BaseStaticThread<512> {
     void main() final {
@@ -46,43 +41,50 @@ class CurrentSendThread : public chibios_rt::BaseStaticThread<512> {
         bool a = false;
         int last_log_time;
         last_log_time = SYSTIME;
-        PIDController yawv2i;
-        PIDController yawa2v;
-        yawv2i.change_parameters(GIMBAL_PID_YAW_V2I_PARAMS);
-        yawa2v.change_parameters(GIMBAL_PID_YAW_A2V_PARAMS);
+
+        PIDController lv2i;
+        PIDController rv2i;
+
+        lv2i.change_parameters(CHASSIS_PID_V2I_PARAMS);
+        rv2i.change_parameters(CHASSIS_PID_V2I_PARAMS);
+
         float last_log_angle;
         LED::all_off();
-
         while (!shouldTerminate()) {
             LED::led_on(1);
-
-            GimbalIF::target_current[0] = yawv2i.calc(GimbalIF::feedback[GimbalIF::YAW].actual_velocity * 1 / 1,2);
-            GimbalIF::send_gimbal_currents();
-
-            if(GimbalIF::feedback[GimbalIF::YAW].actual_velocity == last_log_angle) {
-                LED::led_on(8);
-            } else {
-                LED::led_off(8);
-            }
-            last_log_angle = GimbalIF::feedback[GimbalIF::YAW].actual_velocity;
-            //Shell::printf("%f\n",GimbalIF::feedback[GimbalIF::YAW].actual_velocity);
+            ChassisIF::target_current[0] = lv2i.calc(ChassisIF::feedback[0].actual_velocity,target_velocity);
+            ChassisIF::target_current[1] = rv2i.calc(ChassisIF::feedback[1].actual_velocity,-target_velocity);
+            ChassisIF::send_chassis_currents();
         }
+        sleep(TIME_MS2I(1));
     }
 }currentSendThread;
 
+static void cmd_set_velocity (BaseSequentialStream *chp, int argc, char *argv[]) {
+    (void) argv;
+    if (argc != 1) {
+        shellUsage(chp, "set_velocity");
+        return;
+    }
+    target_velocity = Shell::atof(argv[0]);
+}
+ShellCommand CotrollerCommands[] = {
+        {"set_velocity",   cmd_set_velocity},
+        {nullptr,         nullptr}
+};
 int main(){
 
     halInit();
     chibios_rt::System::init();
     Shell::start(HIGHPRIO);
-
+    Shell::addCommands(CotrollerCommands);
     palSetPadMode(GPIOH, GPIOH_POWER1_CTRL, PAL_MODE_OUTPUT_PUSHPULL);
     palSetPad(GPIOH, GPIOH_POWER1_CTRL);
 
     LED::all_off();
     can1.start(HIGHPRIO - 1);
     LED::led_on(2);
-    GimbalIF::init(&can1,1,1,(GimbalIF::GM6020),(GimbalIF::RM6623),(GimbalIF::M2006));
+    ChassisIF::init(&can1);
     LED::led_on(3);
 
     LED::led_on(4);
