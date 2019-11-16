@@ -7,7 +7,7 @@
 
 #include "ch.hpp"
 
-#include "buzzer.h"
+#include "buzzer_scheduler.h"
 
 #include "can_interface.h"
 #include "ahrs_abstract.h"

@@ -8,7 +8,7 @@
 #include "hal.h"
 
 #include "led.h"
-#include "buzzer.h"
+#include "buzzer_scheduler.h"
 #include "common_macro.h"
 
 #include "shell.h"
@@ -66,6 +66,8 @@ int main() {
     Shell::start(THREAD_SHELL_PRIO);
     Shell::addCommands(mainProgramCommands);
     chThdSleepMilliseconds(50);  // wait for logo to print :)
+
+    BuzzerSKD::init(THREAD_BUZZER_SKD_PRIO,THREAD_BUZZER_IF_PRIO);
 
     /// Setup SDCard
     if (SDCard::init()) {
@@ -144,7 +146,7 @@ int main() {
     UserE::start(THREAD_USER_PRIO, THREAD_USER_ACTION_PRIO, THREAD_USER_CLIENT_DATA_SEND_PRIO);
 
     /// Complete Period 2
-    Buzzer::play_sound(Buzzer::sound_startup_intel, THREAD_BUZZER_PRIO);  // Now play the startup sound
+    BuzzerSKD::play_sound(BuzzerSKD::sound_startup_intel);  // Now play the startup sound
 
 
     /*** ------------------------ Period 3. End of main thread ----------------------- ***/

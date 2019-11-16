@@ -8,7 +8,7 @@
 #include "led.h"
 #include "debug/shell/shell.h"
 #include "common_macro.h"
-#include "buzzer.h"
+#include "buzzer_scheduler.h"
 
 ShellCommand sensorsCommands[] = {
         {nullptr, nullptr}
@@ -21,11 +21,11 @@ class FeedbackThread : public chibios_rt::BaseStaticThread<512> {
             LOG("sett")
             if (palReadPad(GPIOB, GPIOB_PIN0) == PAL_HIGH) {
                 LOG("0");
-                Buzzer::play_sound(Buzzer::sound_alert, LOWPRIO);
+                BuzzerSKD::play_sound(BuzzerSKD::sound_alert, LOWPRIO);
             }
             if (palReadPad(GPIOB, GPIOB_PIN1) == PAL_LOW) {
                 LOG("1");
-                Buzzer::play_sound(Buzzer::sound_alert, LOWPRIO);
+                BuzzerSKD::play_sound(BuzzerSKD::sound_alert, LOWPRIO);
             }
             sleep(TIME_MS2I(200));
         }
@@ -46,7 +46,7 @@ int main(void) {
 
     feedbackThread.start(NORMALPRIO);
 
-    Buzzer::play_sound(Buzzer::sound_startup, LOWPRIO);
+    BuzzerSKD::play_sound(BuzzerSKD::sound_startup, LOWPRIO);
 
 #if CH_CFG_NO_IDLE_THREAD // See chconf.h for what this #define means.
     // ChibiOS idle thread has been disabled,  main() should implement infinite loop

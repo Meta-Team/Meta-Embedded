@@ -1,22 +1,30 @@
 //
 // Created by liuzikai on 2019-02-09.
-// Thanks a lot to Illini RoboMaster @ UIUC, for note frequency table, sound_startup and sound_little_star in their
+// Refactored by Qian Chen on 2019-11-16.
+// Thanks a lot to Illini RoboMaster @ UIUC, for playing_note frequency table, sound_startup and sound_little_star in their
 // open source project iRM_Embedded_2017.
 //
 
 /**
- * @file    buzzer.h
- * @brief   Interface to control buzzer to alert or to play sounds, including some pre-install sounds.
- *
+ * @file    buzzer_scheduler.h
+ * @brief   Scheduler to control buzzer to alert or to play sounds, including some pre-install sounds.
+ * @usage   Firstly, initialize.                    BuzzerSKD::init(tprio_t skd_prio, tprio_t IF_prio);
+ * @usage   Secondly, play sound or play alert.     BuzzerSKD::play_sound(<music>);
+ *                                          or      BuzzerSKD::alert_on();
+ *                                          or      BuzzerSKD::alert_off();
+ * @attention Now the buzzer could be interrupted without cracking. But alert has higher priority than music.
+ *            alert_on will interrupt the playing music. If alert_off(), the music continues.
+ *            music could also be interrupted by music. Just like what behave a music player.
  * @addtogroup buzzer
  * @{
  */
 
-#ifndef META_INFANTRY_BUZZER_H
-#define META_INFANTRY_BUZZER_H
+#ifndef META_INFANTRY_BUZZER_SCHEDULER_H
+#define META_INFANTRY_BUZZER_SCHEDULER_H
 
 #include "ch.hpp"
 #include "hal.h"
+#include "buzzer_interface.h"
 
 // NOTICE: buzzer pin is all CH1 for current support boards. Otherwise, buzzer.cpp needs revision.
 #if defined(BOARD_RM_2018_A)
@@ -26,11 +34,13 @@
 // RM_BOARD_2017: PB4 TIM3 CH1
 #define BUZZER_PWM_DRIVER PWMD3
 #else
-#error "Buzzer interface has not been defined for selected board"
+#error "BuzzerSKD interface has not been defined for selected board"
 #endif
 
+#define BUZZER_SKD_INTERVAL 10
 
-class Buzzer {
+
+class BuzzerSKD {
 
 public:
 
@@ -82,11 +92,18 @@ public:
     };
 
     /**
+     * Initialize the interface and scheduler
+     * @param interface_prio    Buzzer Interface's priority
+     * @param skd_prio          Scheduler's priority
+     */
+    static void init(tprio_t skd_prio, tprio_t interface_prio);
+
+    /**
      * Play a sound
      * @param sound  An array of note_with_time_t, ending with {Finish(-1), *}
      * @param prio   Priority of the buzzer thread
      */
-    static void play_sound(const note_with_time_t sound[], tprio_t prio);
+    static void play_sound(const note_with_time_t sound[]);
 
     /**
      * Enable continuous alert
@@ -106,41 +123,28 @@ public:
 
 private:
 
-    class BuzzerThread : public chibios_rt::BaseStaticThread<512> {
+    class SKDThread : public chibios_rt::BaseStaticThread<512> {
     public:
-
+        bool started;
         /*
          * Pointer to note_with_time_t array. It's passed into this class at play_sound()
          */
-        note_with_time_t const *sound_seq;
-        note_with_time_t const *curr;
+        note_with_time_t const *music_header;
+        note_with_time_t const *current_pointer;
 
-        BuzzerThread() : sound_seq(nullptr) {};
+        SKDThread() : music_header(nullptr) {};
 
     private:
         void main(void) final;
 
     };
 
-    static BuzzerThread buzzerThread;
+    static SKDThread skdThread;
 
-    // PWM configuration for buzzer
-    static constexpr PWMConfig pwm_config = {
-            1000000,
-            1000000, // Default note: 1Hz
-            nullptr,
-            {
-                    {PWM_OUTPUT_ACTIVE_HIGH, nullptr},  // it's all CH1 for current support boards
-                    {PWM_OUTPUT_DISABLED, nullptr},
-                    {PWM_OUTPUT_DISABLED, nullptr},
-                    {PWM_OUTPUT_DISABLED, nullptr}
-            },
-            0,
-            0
-    };
-
+    static int last_change_time;
     static bool alerting_;
-    static constexpr int ALERT_NOTE = Do1M;  // continuous alert note
+    static constexpr int ALERT_NOTE = Do1M;  // continuous alert playing_note
+    static chibios_rt::ThreadReference skdThreadReference;
 
 public:
 
@@ -186,7 +190,7 @@ public:
             {Si7L, 200}, {Silent, 150}, {Do1M, 600}, {Silent, 600},
             //Music bar 6
             {Re2H, 400}, {Silent,  150}, {Re2H, 600}, {Silent, 600}, {Mi3H,600}, {Silent, 600},
-            {Do1H, 1200}, {Silent, 150}
+            {Do1H, 1200}, {Silent, 150}, {Finish, 150}
     };
     static constexpr note_with_time_t sound_kong_fu_FC[] = {
             {La6H, 150}, {Silent, 150}, {La6H, 100}, {Silent, 50}, {La6H, 100}, {Silent, 100},
@@ -195,7 +199,7 @@ public:
 
             {Re2H, 100}, {Silent,  50}, {Mi3H, 100}, {Silent,  50}, {Re2H, 100}, {Silent,  50},
             {Do1H, 100}, {Silent,  100},{La6M, 150}, {Silent,  150},{Do1H, 150}, {Silent,  150},
-            {La6M, 300}, {Silent,  150},
+            {La6M, 300}, {Silent,  150},{Finish, 150}
     };
     static constexpr note_with_time_t sound_little_star[] = {
             {Do1M, 150}, {Silent, 150}, {Do1M, 150}, {Silent, 150}, {So5M, 150}, {Silent, 150},
@@ -283,6 +287,6 @@ public:
 };
 
 
-#endif //META_INFANTRY_BUZZER_H
+#endif //META_INFANTRY_BUZZER_SCHEDULER_H
 
 /** @} */

@@ -12,7 +12,7 @@
  */
 
 #include "led.h"
-#include "buzzer.h"
+#include "buzzer_scheduler.h"
 
 extern "C" {
 /**
@@ -31,7 +31,7 @@ void set_led_when_halt(void) {
 
     PWMConfig pwm_config = {
             1000000,
-            1000000, // Default note: 1Hz
+            1000000, // Default playing_note: 1Hz
             nullptr,
             {
                     {PWM_OUTPUT_ACTIVE_HIGH, nullptr},  // it's all CH1 for current support boards

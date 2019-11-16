@@ -12,7 +12,7 @@
 #include "led.h"
 #include "debug/shell/shell.h"
 #include "remote_interpreter.h"
-#include "buzzer.h"
+#include "buzzer_scheduler.h"
 #include "gimbal_interface.h"
 
 using namespace chibios_rt;
@@ -90,7 +90,7 @@ int main(void) {
 
     skywalkerAdjustThread.start(NORMALPRIO + 1);
 
-    Buzzer::play_sound(Buzzer::sound_startup, LOWPRIO);
+    BuzzerSKD::play_sound(BuzzerSKD::sound_startup, LOWPRIO);
 
 
 #if CH_CFG_NO_IDLE_THREAD // see chconf.h for what this #define means

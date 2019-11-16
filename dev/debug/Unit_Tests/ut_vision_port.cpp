@@ -4,7 +4,7 @@
 
 #include "ch.hpp"
 #include "hal.h"
-#include "buzzer.h"
+#include "buzzer_scheduler.h"
 
 #include "led.h"
 #include "shell.h"
@@ -44,7 +44,7 @@ int main(void) {
     chThdSleepMilliseconds(500);
 
     /** Play the Startup Sound **/
-//    Buzzer::play_sound(Buzzer::sound_startup_intel, LOWPRIO);
+//    BuzzerSKD::play_sound(BuzzerSKD::sound_startup_intel, LOWPRIO);
 
 
     /*** ------------------------ Period 3. End of main thread ----------------------- ***/

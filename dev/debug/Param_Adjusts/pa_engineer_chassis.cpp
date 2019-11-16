@@ -9,7 +9,7 @@
 #include "serial_shell.h"
 #include "can_interface.h"
 #include "common_macro.h"
-#include "buzzer.h"
+#include "buzzer_scheduler.h"
 
 #include "engineer_chassis_interface.h"
 #include "engineer_chassis_skd.h"
@@ -182,7 +182,7 @@ int main(void) {
     EngineerChassisSKD::engineerChassisThread.start(NORMALPRIO);
     chassisFeedbackThread.start(NORMALPRIO - 1);
 
-    Buzzer::play_sound(Buzzer::sound_startup_intel, LOWPRIO);
+    BuzzerSKD::play_sound(BuzzerSKD::sound_startup_intel, LOWPRIO);
     LED::green_on();
 
     // See chconf.h for what this #define means.

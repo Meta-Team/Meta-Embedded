@@ -132,7 +132,7 @@ bool InspectorI::remote_failure() {
 
 bool InspectorI::check_gimbal_failure() {
     bool ret = false;
-    for (unsigned i = 0; i < 3; i++) {
+    for (unsigned i = 0; i < 2; i++) {
         if (not WITHIN_RECENT_TIME(GimbalIF::feedback[i].last_update_time, 20)) {
             if (!gimbal_failure_) {  // avoid repeating printing
                 LOG_ERR("Gimbal motor %u offline (at %u)", i, GimbalIF::feedback[i].last_update_time);
@@ -193,9 +193,9 @@ void InspectorI::InspectorThread::main() {
         else LED::led_on(DEV_BOARD_LED_CHASSIS);
 
         if (remote_failure_ || gimbal_failure_ || chassis_failure_) {
-            if (!Buzzer::alerting()) Buzzer::alert_on();
+            if (!BuzzerSKD::alerting()) BuzzerSKD::alert_on();
         } else {
-            if (Buzzer::alerting()) Buzzer::alert_off();
+            if (BuzzerSKD::alerting()) BuzzerSKD::alert_off();
         }
 
         sleep(TIME_MS2I(INSPECTOR_THREAD_INTERVAL));
