@@ -84,13 +84,13 @@ int main(void) {
 
     // Start ChibiOS shell at high priority, so even if a thread stucks, we still have access to shell.
     Shell::start(HIGHPRIO);
-
+    BuzzerSKD::init(LOWPRIO, LOWPRIO+1);
     Remote::start();
     chThdSleepMilliseconds(1000);
 
     skywalkerAdjustThread.start(NORMALPRIO + 1);
 
-    BuzzerSKD::play_sound(BuzzerSKD::sound_startup, LOWPRIO);
+    BuzzerSKD::play_sound(BuzzerSKD::sound_startup);
 
 
 #if CH_CFG_NO_IDLE_THREAD // see chconf.h for what this #define means

@@ -64,10 +64,11 @@ int main(void) {
     chSysInit();
 
     Shell::start(HIGHPRIO);
+    BuzzerSKD::init(NORMALPRIO+1, NORMALPRIO+2);
 
     adcEchoThread.start(NORMALPRIO);
 
-    BuzzerSKD::play_sound(BuzzerSKD::sound_startup, NORMALPRIO);
+    BuzzerSKD::play_sound(BuzzerSKD::sound_startup);
 
 #if CH_CFG_NO_IDLE_THREAD // see chconf.h for what this #define means
     // ChibiOS idle thread has been disabled, main() should implement infinite loop

@@ -117,7 +117,9 @@ int main() {
     remoteFeedbackThread.start(NORMALPRIO);
     remoteEventThread.start(NORMALPRIO - 1);
 
-    BuzzerSKD::play_sound(BuzzerSKD::sound_startup, LOWPRIO);
+    BuzzerSKD::init(LOWPRIO, LOWPRIO+1);
+
+    BuzzerSKD::play_sound(BuzzerSKD::sound_startup);
 
     // See chconf.h for what this #define means.
 #if CH_CFG_NO_IDLE_THREAD

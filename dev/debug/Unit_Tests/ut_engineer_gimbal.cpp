@@ -82,8 +82,9 @@ int main(void) {
     engineerGimbalThread.start(HIGHPRIO - 1);
     /** Echo Gimbal Raws and Converted Angles **/
     chThdSleepMilliseconds(500);
+    BuzzerSKD::init(LOWPRIO,LOWPRIO+1);
     /** Play the Startup Sound **/
-    BuzzerSKD::play_sound(BuzzerSKD::sound_startup_intel, LOWPRIO);
+    BuzzerSKD::play_sound(BuzzerSKD::sound_startup_intel);
 
 
     /*** ------------------------ Period 3. End of main thread ----------------------- ***/
