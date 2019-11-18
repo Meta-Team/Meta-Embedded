@@ -64,7 +64,7 @@ int main(void) {
     chSysInit();
 
     Shell::start(HIGHPRIO);
-    BuzzerSKD::init(NORMALPRIO+1, NORMALPRIO+2);
+    BuzzerSKD::init(NORMALPRIO+1);
 
     adcEchoThread.start(NORMALPRIO);
 

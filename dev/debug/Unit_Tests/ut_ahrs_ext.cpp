@@ -70,7 +70,7 @@ int main(void) {
 
     Shell::start(NORMALPRIO - 10);
     Shell::addCommands(ahrsShellCommands);
-    BuzzerSKD::init(LOWPRIO-1,LOWPRIO);
+    BuzzerSKD::init(LOWPRIO);
     LED::all_off();
 
     can1.start(HIGHPRIO);

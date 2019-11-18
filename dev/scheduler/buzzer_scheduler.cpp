@@ -29,8 +29,7 @@ int BuzzerSKD::last_change_time = -1;
 
 BuzzerSKD::SKDThread BuzzerSKD::skdThread;
 
-void BuzzerSKD::init(tprio_t skd_prio, tprio_t interface_prio) {
-    BuzzerIF::init(interface_prio);
+void BuzzerSKD::init(tprio_t skd_prio) {
     BuzzerSKD::skdThread.started = true;
     skdThreadReference = BuzzerSKD::skdThread.start(skd_prio);
 }

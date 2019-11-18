@@ -96,7 +96,7 @@ public:
      * @param interface_prio    Buzzer Interface's priority
      * @param skd_prio          Scheduler's priority
      */
-    static void init(tprio_t skd_prio, tprio_t interface_prio);
+    static void init(tprio_t skd_prio);
 
     /**
      * Play a sound

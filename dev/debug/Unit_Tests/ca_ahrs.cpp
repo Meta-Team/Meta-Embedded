@@ -87,7 +87,7 @@ int main(void) {
     halInit();
     chibios_rt::System::init();
     LED::all_off();
-    BuzzerSKD::init(LOWPRIO-1,LOWPRIO);
+    BuzzerSKD::init(LOWPRIO-1);
 
     // Start ChibiOS shell at high priority, so even if a thread stucks, we still have access to shell.
     Shell::start(HIGHPRIO);

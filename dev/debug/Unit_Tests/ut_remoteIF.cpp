@@ -117,7 +117,7 @@ int main() {
     remoteFeedbackThread.start(NORMALPRIO);
     remoteEventThread.start(NORMALPRIO - 1);
 
-    BuzzerSKD::init(LOWPRIO, LOWPRIO+1);
+    BuzzerSKD::init(LOWPRIO);
 
     BuzzerSKD::play_sound(BuzzerSKD::sound_startup);
 

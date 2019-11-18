@@ -18,14 +18,14 @@ class FeedbackThread : public chibios_rt::BaseStaticThread<512> {
     void main() final {
         setName("sensors_fb");
         while(!shouldTerminate()) {
-            LOG("sett")
+            LOG("sett");
             if (palReadPad(GPIOB, GPIOB_PIN0) == PAL_HIGH) {
                 LOG("0");
-                BuzzerSKD::play_sound(BuzzerSKD::sound_alert, LOWPRIO);
+                BuzzerSKD::play_sound(BuzzerSKD::sound_alert);
             }
             if (palReadPad(GPIOB, GPIOB_PIN1) == PAL_LOW) {
                 LOG("1");
-                BuzzerSKD::play_sound(BuzzerSKD::sound_alert, LOWPRIO);
+                BuzzerSKD::play_sound(BuzzerSKD::sound_alert);
             }
             sleep(TIME_MS2I(200));
         }
@@ -40,13 +40,14 @@ int main(void) {
     Shell::start(HIGHPRIO);
     Shell::addCommands(sensorsCommands);
 
+    BuzzerSKD::init(NORMALPRIO-1);
     LED::red_off();
     LED::green_off();
     palClearPad(GPIOH, GPIOH_POWER4_CTRL);
 
     feedbackThread.start(NORMALPRIO);
 
-    BuzzerSKD::play_sound(BuzzerSKD::sound_startup, LOWPRIO);
+    BuzzerSKD::play_sound(BuzzerSKD::sound_startup);
 
 #if CH_CFG_NO_IDLE_THREAD // See chconf.h for what this #define means.
     // ChibiOS idle thread has been disabled,  main() should implement infinite loop

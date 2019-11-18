@@ -80,7 +80,7 @@ int main(void) {
     Shell::start(HIGHPRIO);
     Shell::addCommands(buzzerShellCommands);
 
-    BuzzerSKD::init(NORMALPRIO-1,NORMALPRIO);
+    BuzzerSKD::init(NORMALPRIO);
 
     // See chconf.h for what this #define means.
 #if CH_CFG_NO_IDLE_THREAD

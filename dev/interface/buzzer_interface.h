@@ -56,20 +56,13 @@ public:
 
     } note_t;
 
-    static void init(tprio_t prio);
     static void change_playing_note (int note);
 
 private:
 
     static bool buzzer_idle;        // If the buzzerIF is playing sound. If do, just interrupt it. If not, start PWM.
-    static bool play_note_changed;  // If the playing note has changed. If do, The thread will change the PWM output.
 
     static note_t now_playing_note; // Single note to play.
-
-    class IFThread : public chibios_rt::BaseStaticThread <512> {
-        void main(void) final;
-    };
-    static class IFThread ifThread;
 
     // PWM configuration for buzzer
     static constexpr PWMConfig pwm_config = {

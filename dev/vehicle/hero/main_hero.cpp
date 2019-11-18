@@ -81,7 +81,7 @@ int main() {
     Shell::addCommands(mainProgramCommands);
     chThdSleepMilliseconds(50);  // wait for logo to print :)
 
-    BuzzerSKD::init(THREAD_BUZZER_SKD_PRIO,THREAD_BUZZER_IF_PRIO);
+    BuzzerSKD::init(THREAD_BUZZER_SKD_PRIO);
     /// Setup SDCard
     if (SDCard::init()) {
         SDCard::read_all();

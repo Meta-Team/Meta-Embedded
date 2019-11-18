@@ -36,7 +36,7 @@ protected:
         setName("AHRS");
 //        ahrs.load_calibration_data({0.682773649f, -0.682926177f, -0.257317185f});
         ahrs.start(AHRS_MATRIX, HIGHPRIO - 2, HIGHPRIO - 3, HIGHPRIO - 1);
-        BuzzerSKD::init(LOWPRIO,LOWPRIO+1);
+        BuzzerSKD::init(LOWPRIO);
         BuzzerSKD::play_sound(BuzzerSKD::sound_startup);
         while (!shouldTerminate()) {
             Vector3D angle = ahrs.get_angle() * ANGLE_INSTALLATION_MATRIX;

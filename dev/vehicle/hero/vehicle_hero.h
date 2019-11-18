@@ -208,7 +208,6 @@
 #define THREAD_INSPECTOR_REFEREE_PRIO              (NORMALPRIO - 11)
 #define THREAD_USER_CLIENT_DATA_SEND_PRIO          (LOWPRIO + 6)
 #define THREAD_SHELL_PRIO                          (LOWPRIO + 5)
-#define THREAD_BUZZER_IF_PRIO                      (LOWPRIO + 1)
 #define THREAD_BUZZER_SKD_PRIO                         (LOWPRIO)
 
 /// Dev Board LED Usage List

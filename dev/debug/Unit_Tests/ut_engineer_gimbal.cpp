@@ -82,7 +82,7 @@ int main(void) {
     engineerGimbalThread.start(HIGHPRIO - 1);
     /** Echo Gimbal Raws and Converted Angles **/
     chThdSleepMilliseconds(500);
-    BuzzerSKD::init(LOWPRIO,LOWPRIO+1);
+    BuzzerSKD::init(LOWPRIO);
     /** Play the Startup Sound **/
     BuzzerSKD::play_sound(BuzzerSKD::sound_startup_intel);
 

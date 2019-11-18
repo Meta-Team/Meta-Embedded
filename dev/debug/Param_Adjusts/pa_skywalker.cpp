@@ -84,7 +84,7 @@ int main(void) {
 
     // Start ChibiOS shell at high priority, so even if a thread stucks, we still have access to shell.
     Shell::start(HIGHPRIO);
-    BuzzerSKD::init(LOWPRIO, LOWPRIO+1);
+    BuzzerSKD::init(LOWPRIO);
     Remote::start();
     chThdSleepMilliseconds(1000);
 
