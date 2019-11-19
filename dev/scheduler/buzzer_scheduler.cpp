@@ -84,7 +84,7 @@ void BuzzerSKD::alert_on() {
 }
 
 void BuzzerSKD::alert_off() {
-    BuzzerIF::change_playing_note(Finish);
+    BuzzerIF::change_playing_note(Silent);
     alerting_ = false;
 
     chSysLock();  /// --- ENTER S-Locked state. DO NOT use LOG, printf, non S/I-Class functions or return ---
