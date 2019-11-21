@@ -35,11 +35,11 @@ void BuzzerSKD::init(tprio_t skd_prio) {
 }
 
 void BuzzerSKD::play_sound(const note_with_time_t sound[]) {
-    // enable when it is not alerting.
+    // Enabled only when it is not alerting.
     if (!alerting_) {
-        skdThread.music_header = sound; // past the pointer into the class
+        skdThread.music_header = sound;  // past the pointer into the class
         skdThread.current_pointer= skdThread.music_header;
-        last_change_time = -1; // -1 to let the code identify that it's the first note.
+        last_change_time = -1;  // -1 to let the code identify that it's the first note.
     }
 }
 
@@ -56,23 +56,23 @@ void BuzzerSKD::SKDThread::main(void) {
 
         if (music_header != nullptr) {
 
-            if (last_change_time == -1) { // The first note situation
+            if (last_change_time == -1) {  // The first note situation
                 BuzzerIF::change_playing_note(current_pointer->note);
                 last_change_time = TIME_I2MS(chibios_rt::System::getTime());
 
             } else if ((TIME_I2MS(chibios_rt::System::getTime()) - last_change_time)
-                       > current_pointer->duration) { // The following notes situation
+                       > current_pointer->duration) {  // The following notes situation
 
                 current_pointer++;
                 BuzzerIF::change_playing_note(current_pointer->note);
                 last_change_time = TIME_I2MS(chibios_rt::System::getTime());
 
-                if (current_pointer->note == Finish) {    // When finished, set music header as nullptr, disable the code above.
+                if (current_pointer->note == Finish) {  // When finished, set music header as nullptr, disable the code above.
                     music_header = nullptr;
                 }
             }
         }
-        sleep(TIME_MS2I(BUZZER_SKD_INTERVAL)); // 10ms.
+        sleep(TIME_MS2I(BUZZER_SKD_INTERVAL));  // 10ms.
 
     }
 }
@@ -87,6 +87,7 @@ void BuzzerSKD::alert_off() {
     BuzzerIF::change_playing_note(Silent);
     alerting_ = false;
 
+    // Wake the skdThread up.
     chSysLock();  /// --- ENTER S-Locked state. DO NOT use LOG, printf, non S/I-Class functions or return ---
     if (!skdThread.started) {
         skdThread.started = true;
