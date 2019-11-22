@@ -24,7 +24,9 @@ void BuzzerIF::change_playing_note(int note) {
         pwmChangePeriod(&BUZZER_PWM_DRIVER, 1000000 / (unsigned long) now_playing_note);
         pwmEnableChannel(&BUZZER_PWM_DRIVER, 0, PWM_PERCENTAGE_TO_WIDTH(&BUZZER_PWM_DRIVER, 5000)); // 50%
     } else if (now_playing_note == Silent) {  // A silent playing_note
-        pwmDisableChannel(&BUZZER_PWM_DRIVER, 0);
+        if(!buzzer_idle) {
+            pwmDisableChannel(&BUZZER_PWM_DRIVER, 0);
+        }
     } else if (now_playing_note == Finish) {  // With the sound finished, the buzzer is idled.
         if(!buzzer_idle){  // Prevent stop PWM repeatedly.
             pwmStop(&BUZZER_PWM_DRIVER);
