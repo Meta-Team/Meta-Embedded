@@ -160,7 +160,43 @@ public:
     static constexpr note_with_time_t sound_infinity_warning[] {
             {Do1H, 250}, {Do1M, 250}, {InfLoop, 0}
     };
+    static constexpr note_with_time_t sound_da_bu_zi_duo_ge[] = {
+            //Music bar 1
+            {Mi3M, 150}, {Silent, 150}, {Mi3M, 150}, {Silent, 150}, {Mi3M, 150}, {Silent, 150},
+            {So5M, 300}, {Silent, 300}, {Do1M, 150}, {Silent, 150}, {Re2M, 300}, {Silent, 300},
+            {Fa4M, 150}, {Silent, 150}, {Mi3M, 300}, {Silent, 300},
+            //Music bar 2
+            {So5M, 150}, {Silent, 150}, {La6M, 150}, {Silent, 150}, {So5M, 150}, {Silent, 150},
+            {Fa4M, 150}, {Silent, 150}, {La6M, 300}, {Silent, 300}, {La6M, 150}, {Silent, 150},
+            {Si7M, 150}, {Silent, 150}, {La6M, 150}, {Silent, 150}, {So5M, 300}, {Silent, 300},
+            //Music bar 3
+            {So5M, 150}, {Silent, 150}, {Do1H, 300}, {Silent, 300}, {Si7M, 100}, {Silent,  50},
+            {La6M, 100}, {Silent, 150}, {So5M, 300}, {Silent, 300}, {Fa4M, 100}, {Silent,  50},
+            {Mi3M, 100}, {Silent, 150}, {La6M, 150}, {Silent, 150}, {Re2M, 150}, {Silent, 150},
+            {Mi3M, 150}, {Silent, 150}, {Re2M, 300}, {Silent, 300},
+            //Music bar 4
+            {Mi3M, 150}, {Silent, 150}, {Mi3M, 150}, {Silent, 150}, {La6M, 150}, {Silent, 150},
+            {La6M, 300}, {Silent, 150}, {So5M, 150}, {Silent,  50}, {So5M, 150}, {Silent, 200},
+            {So5M, 150}, {Silent, 150}, {So5M, 150}, {Silent, 150}, {Do1H, 150}, {Silent, 150},
+            {Si7M, 300}, {Silent, 300},
+            //Music bar 5
+            {Si7M, 100}, {Silent,  50}, {Do1H, 100}, {Silent, 100}, {Re2H, 100}, {Silent,  50},
+            {Do1H, 100}, {Silent,  50}, {Si7M, 100}, {Silent,  50}, {La6M, 100}, {Silent,  50},
+            {So5M, 150}, {Silent, 150}, {Re2M, 200}, {Silent, 150}, {La6M, 200}, {Silent, 150},
+            {Si7L, 200}, {Silent, 150}, {Do1M, 600}, {Silent, 600},
+            //Music bar 6
+            {Re2H, 400}, {Silent,  150}, {Re2H, 600}, {Silent, 600}, {Mi3H,600}, {Silent, 600},
+            {Do1H, 1200}, {Silent, 150}
+    };
+    static constexpr note_with_time_t sound_kong_fu_FC[] = {
+            {La6H, 150}, {Silent, 150}, {La6H, 100}, {Silent, 50}, {La6H, 100}, {Silent, 100},
+            {So5H, 150}, {Silent, 150}, {So5H, 150}, {Silent, 150},{Mi3H, 150}, {Silent, 150},
+            {Mi3H, 150}, {Silent, 150}, {Do1H, 300}, {Silent, 300},
 
+            {Re2H, 100}, {Silent,  50}, {Mi3H, 100}, {Silent,  50}, {Re2H, 100}, {Silent,  50},
+            {Do1H, 100}, {Silent,  100},{La6M, 150}, {Silent,  150},{Do1H, 150}, {Silent,  150},
+            {La6M, 300}, {Silent,  150},
+    };
     static constexpr note_with_time_t sound_little_star[] = {
             {Do1M, 150}, {Silent, 150}, {Do1M, 150}, {Silent, 150}, {So5M, 150}, {Silent, 150},
             {So5M, 150}, {Silent, 150}, {La6M, 150}, {Silent, 150}, {La6M, 150}, {Silent, 150},
