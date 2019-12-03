@@ -149,9 +149,9 @@ void InspectorA::InspectorThread::main() {
         else LED::led_on(DEV_BOARD_LED_GIMBAL);
 
         if (remote_failure_ || gimbal_failure_) {
-            if (!Buzzer::alerting()) Buzzer::alert_on();
+            if (!BuzzerSKD::alerting()) BuzzerSKD::alert_on();
         } else {
-            if (Buzzer::alerting()) Buzzer::alert_off();
+            if (BuzzerSKD::alerting()) BuzzerSKD::alert_off();
         }
 
         sleep(TIME_MS2I(INSPECTOR_THREAD_INTERVAL));

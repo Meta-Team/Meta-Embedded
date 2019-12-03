@@ -142,7 +142,7 @@
 #define THREAD_SHOOT_BULLET_COUNTER_PRIO    (LOWPRIO + 7)
 #define THREAD_USER_CLIENT_DATA_SEND_PRIO   (LOWPRIO + 6)
 #define THREAD_SHELL_PRIO                   (LOWPRIO + 5)
-#define THREAD_BUZZER_PRIO                  (LOWPRIO)
+#define THREAD_BUZZER_SKD_PRIO              (LOWPRIO + 1)
 
 /// Dev Board LED Usage List
 #define DEV_BOARD_LED_SYSTEM_INIT 1

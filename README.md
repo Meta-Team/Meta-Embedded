@@ -72,7 +72,7 @@ Meta-Infantry
 │   │   ├── mpu6500.cpp                 MPU6500 陀螺仪接口
 │   │   ├── mpu6500.h
 │   │   └── mpu6500_reg.h
-│   ├── buzzer.cpp                      Buzzer 蜂鸣器接口
+│   ├── buzzer.cpp                      BuzzerSKD 蜂鸣器接口
 │   ├── buzzer.h
 │   ├── chassis_interface.cpp           ChassisInterface 低层底盘接口
 │   ├── chassis_interface.h

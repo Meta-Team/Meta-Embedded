@@ -9,7 +9,7 @@
 #include "debug/shell/shell.h"
 #include "can_interface.h"
 #include "common_macro.h"
-#include "buzzer.h"
+#include "buzzer_scheduler.h"
 
 #include "robotic_arm_interface.h"
 #include "robotic_arm_skd.h"

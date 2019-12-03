@@ -6,7 +6,7 @@
 #include "hal.h"
 
 #include "led.h"
-#include "buzzer.h"
+#include "buzzer_scheduler.h"
 #include "shell.h"
 
 #include "ahrs.h"
@@ -87,6 +87,7 @@ int main(void) {
     halInit();
     chibios_rt::System::init();
     LED::all_off();
+    BuzzerSKD::init(LOWPRIO-1);
 
     // Start ChibiOS shell at high priority, so even if a thread stucks, we still have access to shell.
     Shell::start(HIGHPRIO);
@@ -96,7 +97,7 @@ int main(void) {
     SDCard::read_all();
 
     ahrs.start(ON_BOARD_AHRS_MATRIX_, HIGHPRIO - 2, HIGHPRIO - 3, HIGHPRIO - 1);
-    Buzzer::play_sound(Buzzer::sound_startup, LOWPRIO);
+    BuzzerSKD::play_sound(BuzzerSKD::sound_startup);
 
     ahrsCalibrationThread.start(NORMALPRIO + 1);
 

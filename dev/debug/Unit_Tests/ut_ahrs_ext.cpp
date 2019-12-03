@@ -9,7 +9,7 @@
 #include "shell.h"
 
 #include "ahrs_ext.h"
-#include "buzzer.h"
+#include "buzzer_scheduler.h"
 
 using namespace chibios_rt;
 
@@ -70,6 +70,7 @@ int main(void) {
 
     Shell::start(NORMALPRIO - 10);
     Shell::addCommands(ahrsShellCommands);
+    BuzzerSKD::init(LOWPRIO);
     LED::all_off();
 
     can1.start(HIGHPRIO);
@@ -77,7 +78,7 @@ int main(void) {
 
 //    ahrs.load_calibration_data({-0.984146595, 1.359451293, 0.020426832});
     ahrs.start(&can2);
-    Buzzer::play_sound(Buzzer::sound_startup, LOWPRIO);
+    BuzzerSKD::play_sound(BuzzerSKD::sound_startup);
 
     feedbackThread.start(NORMALPRIO);
 

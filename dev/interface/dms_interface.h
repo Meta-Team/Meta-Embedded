@@ -12,7 +12,7 @@
 
 #include "led.h"
 #include "shell.h"
-#include "buzzer.h"
+#include "buzzer_scheduler.h"
 
 #define ADC_GRP1_NUM_CHANNELS   4
 #define ADC_GRP1_BUF_DEPTH      1

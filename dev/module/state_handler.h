@@ -10,7 +10,7 @@
 
 #include "led.h"
 #include "shell.h"
-#include "buzzer.h"
+#include "buzzer_scheduler.h"
 
 /**
  * @name StateHandler

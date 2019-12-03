@@ -3,7 +3,7 @@
 // Modified by
 //
 
-#include <interface/buzzer.h>
+#include <scheduler/buzzer_scheduler.h>
 #include "ch.h"
 #include "hal.h"
 
@@ -64,10 +64,11 @@ int main(void) {
     chSysInit();
 
     Shell::start(HIGHPRIO);
+    BuzzerSKD::init(NORMALPRIO+1);
 
     adcEchoThread.start(NORMALPRIO);
 
-    Buzzer::play_sound(Buzzer::sound_startup, NORMALPRIO);
+    BuzzerSKD::play_sound(BuzzerSKD::sound_startup);
 
 #if CH_CFG_NO_IDLE_THREAD // see chconf.h for what this #define means
     // ChibiOS idle thread has been disabled, main() should implement infinite loop

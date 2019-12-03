@@ -93,7 +93,7 @@ public:
      * @param fmt
      * @param ...
      * @return the number of bytes that has been printed
-     * @note I-Class function, can only be called from I-Lock state (ISR critical section)
+     * @playing_note I-Class function, can only be called from I-Lock state (ISR critical section)
      */
     static int printfI(const char *fmt, ...);
 #endif

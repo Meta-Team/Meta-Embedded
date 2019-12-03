@@ -4,7 +4,7 @@
 
 // [遥控器拨轮的数据解析【RoboMaster论坛-科技宅天堂】](https://bbs.robomaster.com/thread-8123-1-1.html)
 
-#include <interface/buzzer.h>
+#include <scheduler/buzzer_scheduler.h>
 #include "ch.hpp"
 #include "hal.h"
 
@@ -117,7 +117,9 @@ int main() {
     remoteFeedbackThread.start(NORMALPRIO);
     remoteEventThread.start(NORMALPRIO - 1);
 
-    Buzzer::play_sound(Buzzer::sound_startup, LOWPRIO);
+    BuzzerSKD::init(LOWPRIO);
+
+    BuzzerSKD::play_sound(BuzzerSKD::sound_startup);
 
     // See chconf.h for what this #define means.
 #if CH_CFG_NO_IDLE_THREAD

@@ -6,7 +6,7 @@
 #include "hal.h"
 #include "led.h"
 #include "shell.h"
-#include "buzzer.h"
+#include "buzzer_scheduler.h"
 #include "engineer_gimbal.h"
 
 #include "remote_interpreter.h"
@@ -82,8 +82,9 @@ int main(void) {
     engineerGimbalThread.start(HIGHPRIO - 1);
     /** Echo Gimbal Raws and Converted Angles **/
     chThdSleepMilliseconds(500);
+    BuzzerSKD::init(LOWPRIO);
     /** Play the Startup Sound **/
-    Buzzer::play_sound(Buzzer::sound_startup_intel, LOWPRIO);
+    BuzzerSKD::play_sound(BuzzerSKD::sound_startup_intel);
 
 
     /*** ------------------------ Period 3. End of main thread ----------------------- ***/
