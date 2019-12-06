@@ -20,8 +20,8 @@ float ChassisLG::target_vy;
 float ChassisLG::target_theta;
 float ChassisLG::target_omega;
 
-float ChassisLG::dodge_mode_max_omega_ = 80.0f;
-float ChassisLG::dodge_mode_min_omega_ = 30.0f;
+float ChassisLG::dodge_mode_max_omega_ = 370.0f;
+float ChassisLG::dodge_mode_min_omega_ = 310.0f;
 int ChassisLG::dodge_mode_randomize_min_time_ = 2000.0f; // min rotate time for a constant speed[ms]
 int ChassisLG::dodge_mode_randomize_max_time_ = 6000.0f; // max rotate time for a constant speed[ms]
 float ChassisLG::biased_angle_ = 0;

@@ -139,17 +139,17 @@ void GimbalSKD::SKDThread::main() {
 
             target_velocity[YAW] = a2v_pid[YAW].calc(accumulated_angle[YAW], target_angle[YAW]);
             // Perform crop on physical relative angle of Yaw
-            if (GimbalIF::feedback[YAW].accumulated_angle() * yaw_install > yaw_restrict_angle[1] &&
-                target_velocity[YAW] > yaw_restrict_velocity) {
-
-                target_velocity[YAW] = yaw_restrict_velocity;
-
-            } else if (GimbalIF::feedback[YAW].accumulated_angle() * yaw_install < yaw_restrict_angle[0] &&
-                       target_velocity[YAW] < -yaw_restrict_velocity) {
-
-                target_velocity[YAW] = -yaw_restrict_velocity;
-
-            }
+//            if (GimbalIF::feedback[YAW].accumulated_angle() * yaw_install > yaw_restrict_angle[1] &&
+//                target_velocity[YAW] > yaw_restrict_velocity) {
+//
+//                target_velocity[YAW] = yaw_restrict_velocity;
+//
+//            } else if (GimbalIF::feedback[YAW].accumulated_angle() * yaw_install < yaw_restrict_angle[0] &&
+//                       target_velocity[YAW] < -yaw_restrict_velocity) {
+//
+//                target_velocity[YAW] = -yaw_restrict_velocity;
+//
+//            }
             target_current[YAW] = (int) v2i_pid[YAW].calc(velocity[YAW], target_velocity[YAW]);
 
 
