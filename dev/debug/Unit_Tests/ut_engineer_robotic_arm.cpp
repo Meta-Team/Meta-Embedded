@@ -9,7 +9,7 @@
 #include "serial_shell.h"
 #include "can_interface.h"
 #include "common_macro.h"
-#include "buzzer.h"
+#include "buzzer_scheduler.h"
 
 #include "robotic_arm_interface.h"
 #include "robotic_arm_skd.h"
@@ -185,7 +185,7 @@ int main(void) {
 
     feedbackThread.start(NORMALPRIO);
 
-    Buzzer::play_sound(Buzzer::sound_startup, LOWPRIO);
+    BuzzerSKD::play_sound(BuzzerSKD::sound_startup, LOWPRIO);
 
 #if CH_CFG_NO_IDLE_THREAD // See chconf.h for what this #define means.
     // ChibiOS idle thread has been disabled,  main() should implement infinite loop

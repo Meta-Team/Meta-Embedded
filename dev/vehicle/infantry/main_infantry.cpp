@@ -7,7 +7,7 @@
 #include "hal.h"
 
 #include "led.h"
-#include "buzzer.h"
+#include "buzzer_scheduler.h"
 #include "common_macro.h"
 
 #include "shell.h"
@@ -86,6 +86,8 @@ int main() {
     Shell::addCommands(mainProgramCommands);
     chThdSleepMilliseconds(50);  // wait for logo to print :)
 
+    BuzzerSKD::init(THREAD_BUZZER_SKD_PRIO);
+
     /// Setup SDCard
     if (SDCard::init()) {
         SDCard::read_all();
@@ -126,7 +128,7 @@ int main() {
     GimbalIF::init(&can1, GIMBAL_YAW_FRONT_ANGLE_RAW, GIMBAL_PITCH_FRONT_ANGLE_RAW,
                    GIMBAL_YAW_MOTOR_TYPE, GIMBAL_PITCH_MOTOR_TYPE, SHOOT_BULLET_MOTOR_TYPE);
     chThdSleepMilliseconds(2000);  // wait for C610 to be online and friction wheel to reset
-    InspectorI::startup_check_gimbal_feedback(); // check gimbal motors has continuous feedback. Block for 20 ms
+    //InspectorI::startup_check_gimbal_feedback(); // check gimbal motors has continuous feedback. Block for 20 ms
     LED::led_on(DEV_BOARD_LED_GIMBAL);  // LED 5 on now
 
 
@@ -187,7 +189,7 @@ int main() {
     UserI::start(THREAD_USER_PRIO, THREAD_USER_ACTION_PRIO, THREAD_USER_CLIENT_DATA_SEND_PRIO);
 
     /// Complete Period 2
-    Buzzer::play_sound(Buzzer::sound_startup_intel, THREAD_BUZZER_PRIO);  // Now play the startup sound
+    BuzzerSKD::play_sound(BuzzerSKD::sound_startup_intel);  // Now play the startup sound
 
 
     /*** ------------------------ Period 3. End of main thread ----------------------- ***/

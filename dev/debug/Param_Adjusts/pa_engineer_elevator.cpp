@@ -11,7 +11,7 @@
 #include "serial_shell.h"
 #include "can_interface.h"
 #include "common_macro.h"
-#include "buzzer.h"
+#include "buzzer_scheduler.h"
 
 #include "engineer_elevator_interface.h"
 #include "engineer_elevator_skd.h"
@@ -192,7 +192,7 @@ int main(void) {
     EngineerElevatorSKD::engineerElevatorThread.start(NORMALPRIO);
 
     chThdSleepMilliseconds(500);
-    Buzzer::play_sound(Buzzer::sound_startup_intel, LOWPRIO);
+    BuzzerSKD::play_sound(BuzzerSKD::sound_startup_intel, LOWPRIO);
 
     // See chconf.h for what this #define means.
 #if CH_CFG_NO_IDLE_THREAD

@@ -161,7 +161,7 @@ Shell指令集（所有通过窗口发送的指令名和相对应的函数名都
         chassisFeedbackThread.start(NORMALPRIO - 1);
         chassisThread.start(NORMALPRIO);
 
-        Buzzer::play_sound(Buzzer::sound_startup_intel, LOWPRIO);
+        BuzzerSKD::play_sound(BuzzerSKD::sound_startup_intel, LOWPRIO);
 
         // See chconf.h for what this #define means.
     #if CH_CFG_NO_IDLE_THREAD
@@ -194,7 +194,7 @@ Shell指令集（所有通过窗口发送的指令名和相对应的函数名都
         chassisThread.start(NORMALPRIO);
 
     4. 蜂鸣器示意初始化完成
-        Buzzer::play_sound(Buzzer::sound_startup_intel, LOWPRIO);
+        BuzzerSKD::play_sound(BuzzerSKD::sound_startup_intel, LOWPRIO);
 
     5.
         #if CH_CFG_NO_IDLE_THREAD

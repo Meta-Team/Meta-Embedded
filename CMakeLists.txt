@@ -58,7 +58,8 @@ set(COMMON_SRC  # common cpp sources, which are included to every tartget at pos
         dev/debug/shell/shell.cpp
         dev/debug/shell/shell_dbg_cmd.cpp
         dev/interface/led.cpp
-        dev/interface/buzzer.cpp
+        dev/interface/buzzer_interface.cpp
+        dev/scheduler/buzzer_scheduler.cpp
         #        dev/module/state_handler.cpp
         )
 
@@ -324,9 +325,10 @@ add_executable(ut_ahrs_ext
         dev/interface/ahrs/ahrs_ext.cpp
         dev/debug/Unit_Tests/ut_ahrs_ext.cpp)
 
-# Buzzer: inlcude Buzzer interface and unit test.
+# BuzzerSKD: inlcude BuzzerSKD interface and unit test.
 add_executable(ut_buzzer
-        dev/interface/buzzer.cpp
+        dev/interface/buzzer_interface.cpp
+        dev/scheduler/buzzer_scheduler.cpp
         dev/debug/Unit_Tests/ut_buzzer.cpp)
 
 # Elevator Interface: include CANInterface, ElevatorInterface, and the unit test modules.
@@ -420,7 +422,7 @@ add_executable(pa_engineer_chassis
 add_executable(pa_skywalker
         dev/debug/Param_Adjusts/pa_skywalker.cpp
         dev/interface/remote_interpreter.cpp
-        dev/interface/buzzer.cpp)
+        dev/scheduler/buzzer_scheduler.cpp)
 
 
 # Adjust Params of Sentry Chassis
