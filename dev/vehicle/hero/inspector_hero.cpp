@@ -112,6 +112,11 @@ void InspectorH::startup_check_gimbal_feedback() {
             LOG_ERR("Startup - Gimbal Bullet offline.");
             t = SYSTIME;  // reset the counter
         }
+        if (not WITHIN_RECENT_TIME(GimbalIF::feedback[GimbalIF::PLATE].last_update_time, 5)) {
+            // No feedback in last 5 ms (normal 1 ms)
+            LOG_ERR("Startup - Gimbal Bullet offline.");
+            t = SYSTIME;  // reset the counter
+        }
         chThdSleepMilliseconds(5);
     }
 }
