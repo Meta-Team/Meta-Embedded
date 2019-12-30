@@ -42,8 +42,10 @@ static void cmd_play(BaseSequentialStream *chp, int argc, char *argv[]) {
         case 6:
             BuzzerSKD::play_sound(BuzzerSKD::sound_kong_fu_FC);
             break;
+        case 7:
+            BuzzerSKD::play_sound(BuzzerSKD::sound_nyan_cat);
         default:
-            shellUsage(chp, "buzzer 0-4");
+            shellUsage(chp, "buzzer 0-7");
     }
 
 }

@@ -4,6 +4,10 @@
 // Thanks a lot to Illini RoboMaster @ UIUC, for playing_note frequency table, sound_startup and sound_little_star in their
 // open source project iRM_Embedded_2017.
 //
+// Thanks a lot to Bruce Helsen (geobruce) Stan Draulans (purewantfun) For their arduino code for nyan cat sound.
+// @ https://www.instructables.com/id/Nyan-Cat-on-Arduino/
+// Qian Chen using python converted it to the format we used.
+//
 
 /**
  * @file    buzzer_scheduler.h
@@ -45,7 +49,7 @@ class BuzzerSKD {
 public:
 
     typedef enum {
-        Do1L = 262,     // 261.63Hz 
+        Do1L = 262,     // 261.63Hz
         Re2L = 294,     // 293.66Hz 
         Mi3L = 330,     // 329.63Hz 
         Fa4L = 349,     // 349.23Hz 
@@ -201,6 +205,92 @@ public:
             {Do1H, 100}, {Silent,  100},{La6M, 150}, {Silent,  150},{Do1H, 150}, {Silent,  150},
             {La6M, 300}, {Silent,  150},{Finish, 150}
     };
+    static constexpr note_with_time_t sound_nyan_cat[] = {
+            // Intro
+            {622, 63}, {Silent, 63}, {659, 63}, {Silent, 63}, {740, 125}, {Silent, 125},
+            {988, 125}, {Silent, 125}, {622, 63}, {Silent, 63}, {659, 63}, {Silent, 63},
+            {740, 63}, {Silent, 63}, {988, 63}, {Silent, 63}, {1109, 63}, {Silent, 63},
+            {1245, 63}, {Silent, 63}, {1109, 63}, {Silent, 63}, {932, 63}, {Silent, 63},
+            {988, 125}, {Silent, 125}, {740, 125}, {Silent, 125}, {622, 63}, {Silent, 63},
+            {659, 63}, {Silent, 63}, {740, 125}, {Silent, 125}, {988, 125}, {Silent, 125},
+            {1109, 63}, {Silent, 63}, {932, 63}, {Silent, 63}, {988, 63}, {Silent, 63},
+            {1109, 63}, {Silent, 63}, {1319, 63}, {Silent, 63}, {1245, 63}, {Silent, 63},
+            {1319, 63}, {Silent, 63}, {988, 63}, {Silent, 63},
+            // Main
+            {740, 125}, {Silent, 125}, {831, 125}, {Silent, 125}, {622, 63}, {Silent, 63},
+            {622, 63}, {Silent, 63}, {0, 63}, {Silent, 63}, {494, 63}, {Silent, 63},
+            {587, 63}, {Silent, 63}, {554, 63}, {Silent, 63}, {494, 63}, {Silent, 63},
+            {0, 63}, {Silent, 63}, {494, 125}, {Silent, 125}, {554, 125}, {Silent, 125},
+            {587, 125}, {Silent, 125}, {587, 63}, {Silent, 63}, {554, 63}, {Silent, 63},
+            {494, 63}, {Silent, 63}, {554, 63}, {Silent, 63}, {622, 63}, {Silent, 63},
+            {740, 63}, {Silent, 63}, {831, 63}, {Silent, 63}, {622, 63}, {Silent, 63},
+            {740, 63}, {Silent, 63}, {554, 63}, {Silent, 63}, {622, 63}, {Silent, 63},
+            {494, 63}, {Silent, 63}, {554, 63}, {Silent, 63}, {494, 63}, {Silent, 63},
+            {622, 125}, {Silent, 125}, {740, 125}, {Silent, 125}, {831, 63}, {Silent, 63},
+            {622, 63}, {Silent, 63}, {740, 63}, {Silent, 63}, {554, 63}, {Silent, 63},
+            {622, 63}, {Silent, 63}, {494, 63}, {Silent, 63}, {587, 63}, {Silent, 63},
+            {622, 63}, {Silent, 63}, {587, 63}, {Silent, 63}, {554, 63}, {Silent, 63},
+            {494, 63}, {Silent, 63}, {554, 63}, {Silent, 63}, {587, 125}, {Silent, 125},
+            {494, 63}, {Silent, 63}, {554, 63}, {Silent, 63}, {622, 63}, {Silent, 63},
+            {740, 63}, {Silent, 63}, {554, 63}, {Silent, 63}, {622, 63}, {Silent, 63},
+            {554, 63}, {Silent, 63}, {494, 63}, {Silent, 63}, {554, 125}, {Silent, 125},
+            {494, 125}, {Silent, 125}, {554, 125}, {Silent, 125}, {740, 125}, {Silent, 125},
+            {831, 125}, {Silent, 125}, {622, 63}, {Silent, 63}, {622, 63}, {Silent, 63},
+            {0, 63}, {Silent, 63}, {494, 63}, {Silent, 63}, {587, 63}, {Silent, 63},
+            {554, 63}, {Silent, 63}, {494, 63}, {Silent, 63}, {0, 63}, {Silent, 63},
+            {494, 125}, {Silent, 125}, {554, 125}, {Silent, 125}, {587, 125}, {Silent, 125},
+            {587, 63}, {Silent, 63}, {554, 63}, {Silent, 63}, {494, 63}, {Silent, 63},
+            {554, 63}, {Silent, 63}, {622, 63}, {Silent, 63}, {740, 63}, {Silent, 63},
+            {831, 63}, {Silent, 63}, {622, 63}, {Silent, 63}, {740, 63}, {Silent, 63},
+            {554, 63}, {Silent, 63}, {622, 63}, {Silent, 63}, {494, 63}, {Silent, 63},
+            {554, 63}, {Silent, 63}, {494, 63}, {Silent, 63}, {622, 125}, {Silent, 125},
+            {740, 125}, {Silent, 125}, {831, 63}, {Silent, 63}, {622, 63}, {Silent, 63},
+            {740, 63}, {Silent, 63}, {554, 63}, {Silent, 63}, {622, 63}, {Silent, 63},
+            {494, 63}, {Silent, 63}, {587, 63}, {Silent, 63}, {622, 63}, {Silent, 63},
+            {587, 63}, {Silent, 63}, {554, 63}, {Silent, 63}, {494, 63}, {Silent, 63},
+            {554, 63}, {Silent, 63}, {587, 125}, {Silent, 125}, {494, 63}, {Silent, 63},
+            {554, 63}, {Silent, 63}, {622, 63}, {Silent, 63}, {740, 63}, {Silent, 63},
+            {554, 63}, {Silent, 63}, {622, 63}, {Silent, 63}, {554, 63}, {Silent, 63},
+            {494, 63}, {Silent, 63}, {554, 125}, {Silent, 125}, {494, 125}, {Silent, 125},
+            {554, 125}, {Silent, 125}, {494, 125}, {Silent, 125}, {370, 63}, {Silent, 63},
+            {415, 63}, {Silent, 63}, {494, 125}, {Silent, 125}, {370, 63}, {Silent, 63},
+            {415, 63}, {Silent, 63}, {494, 63}, {Silent, 63}, {554, 63}, {Silent, 63},
+            {622, 63}, {Silent, 63}, {494, 63}, {Silent, 63}, {659, 63}, {Silent, 63},
+            {622, 63}, {Silent, 63}, {659, 63}, {Silent, 63}, {740, 63}, {Silent, 63},
+            {494, 125}, {Silent, 125}, {494, 125}, {Silent, 125}, {370, 63}, {Silent, 63},
+            {415, 63}, {Silent, 63}, {494, 63}, {Silent, 63}, {370, 63}, {Silent, 63},
+            {659, 63}, {Silent, 63}, {622, 63}, {Silent, 63}, {554, 63}, {Silent, 63},
+            {494, 63}, {Silent, 63}, {370, 63}, {Silent, 63}, {311, 63}, {Silent, 63},
+            {330, 63}, {Silent, 63}, {370, 63}, {Silent, 63}, {494, 125}, {Silent, 125},
+            {370, 63}, {Silent, 63}, {415, 63}, {Silent, 63}, {494, 125}, {Silent, 125},
+            {370, 63}, {Silent, 63}, {415, 63}, {Silent, 63}, {494, 63}, {Silent, 63},
+            {494, 63}, {Silent, 63}, {554, 63}, {Silent, 63}, {622, 63}, {Silent, 63},
+            {494, 63}, {Silent, 63}, {370, 63}, {Silent, 63}, {415, 63}, {Silent, 63},
+            {370, 63}, {Silent, 63}, {494, 125}, {Silent, 125}, {494, 63}, {Silent, 63},
+            {466, 63}, {Silent, 63}, {494, 63}, {Silent, 63}, {370, 63}, {Silent, 63},
+            {415, 63}, {Silent, 63}, {330, 63}, {Silent, 63}, {659, 63}, {Silent, 63},
+            {622, 63}, {Silent, 63}, {659, 63}, {Silent, 63}, {740, 63}, {Silent, 63},
+            {494, 125}, {Silent, 125}, {466, 125}, {Silent, 125}, {494, 125}, {Silent, 125},
+            {370, 63}, {Silent, 63}, {415, 63}, {Silent, 63}, {494, 125}, {Silent, 125},
+            {370, 63}, {Silent, 63}, {415, 63}, {Silent, 63}, {494, 63}, {Silent, 63},
+            {554, 63}, {Silent, 63}, {622, 63}, {Silent, 63}, {494, 63}, {Silent, 63},
+            {659, 63}, {Silent, 63}, {622, 63}, {Silent, 63}, {659, 63}, {Silent, 63},
+            {740, 63}, {Silent, 63}, {494, 125}, {Silent, 125}, {494, 125}, {Silent, 125},
+            {370, 63}, {Silent, 63}, {415, 63}, {Silent, 63}, {494, 63}, {Silent, 63},
+            {370, 63}, {Silent, 63}, {659, 63}, {Silent, 63}, {622, 63}, {Silent, 63},
+            {554, 63}, {Silent, 63}, {494, 63}, {Silent, 63}, {370, 63}, {Silent, 63},
+            {311, 63}, {Silent, 63}, {330, 63}, {Silent, 63}, {370, 63}, {Silent, 63},
+            {494, 125}, {Silent, 125}, {370, 63}, {Silent, 63}, {415, 63}, {Silent, 63},
+            {494, 125}, {Silent, 125}, {370, 63}, {Silent, 63}, {415, 63}, {Silent, 63},
+            {494, 63}, {Silent, 63}, {494, 63}, {Silent, 63}, {554, 63}, {Silent, 63},
+            {622, 63}, {Silent, 63}, {494, 63}, {Silent, 63}, {370, 63}, {Silent, 63},
+            {415, 63}, {Silent, 63}, {370, 63}, {Silent, 63}, {494, 125}, {Silent, 125},
+            {494, 63}, {Silent, 63}, {466, 63}, {Silent, 63}, {494, 63}, {Silent, 63},
+            {370, 63}, {Silent, 63}, {415, 63}, {Silent, 63}, {494, 63}, {Silent, 63},
+            {659, 63}, {Silent, 63}, {622, 63}, {Silent, 63}, {659, 63}, {Silent, 63},
+            {740, 63}, {Silent, 63}, {494, 125}, {Silent, 125}, {554, 125}, {Silent, 125},
+            {Finish, 150}
+};
     static constexpr note_with_time_t sound_little_star[] = {
             {Do1M, 150}, {Silent, 150}, {Do1M, 150}, {Silent, 150}, {So5M, 150}, {Silent, 150},
             {So5M, 150}, {Silent, 150}, {La6M, 150}, {Silent, 150}, {La6M, 150}, {Silent, 150},
