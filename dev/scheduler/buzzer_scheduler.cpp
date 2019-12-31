@@ -60,16 +60,17 @@ void BuzzerSKD::SKDThread::main(void) {
             if (last_change_time == -1) {  // The first note situation
                 BuzzerIF::change_playing_note(current_pointer->note);
                 last_change_time = TIME_I2MS(chibios_rt::System::getTime());
-
             } else if ((TIME_I2MS(chibios_rt::System::getTime()) - last_change_time)
                        > current_pointer->duration) {  // The following notes situation
-
                 current_pointer++;
-                BuzzerIF::change_playing_note(current_pointer->note);
-                last_change_time = TIME_I2MS(chibios_rt::System::getTime());
-
-                if (current_pointer->note == Finish) {  // When finished, set music header as nullptr, disable the code above.
+                if(current_pointer->note == InfLoop)  {
+                    current_pointer = skdThread.music_header + (int)(current_pointer->duration)*2-2;
+                } else if (current_pointer->note == Finish) {
                     music_header = nullptr;
+                    BuzzerIF::change_playing_note(current_pointer->note);
+                } else {  // When finished, set music header as nullptr, disable the code above.
+                    BuzzerIF::change_playing_note(current_pointer->note);
+                    last_change_time = TIME_I2MS(chibios_rt::System::getTime());
                 }
             }
         }

@@ -15,7 +15,7 @@ using namespace chibios_rt;
 static void cmd_play(BaseSequentialStream *chp, int argc, char *argv[]) {
     (void) argv;
     if (argc != 1) {
-        shellUsage(chp, "buzzer 0-6");
+        shellUsage(chp, "buzzer 0-7");
         return;
     }
 
