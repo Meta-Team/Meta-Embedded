@@ -95,9 +95,15 @@ public:
         M3508
     };
 
+    enum motor_can_channel_t {
+        NONE,
+        can_channel_1,
+        can_channel_2
+    };
+
     /**
      * Initialize GimbalIF. Angles of bullet loader and bullet plate will be reset.
-     * @param can_interface           Initialized CANInterface for yaw, pitch and bullet_loader motor
+     * @param can1_interface           Initialized CANInterface for yaw, pitch and bullet_loader motor
      * @param yaw_front_angle_raw     Raw angle of yaw when gimbal points straight forward, depending on installation.
      * @param pitch_front_angle_raw   Raw angle of pitch when gimbal points straight forward, depending on installation.
      * @param yaw_type                Yaw motor motor type
@@ -105,7 +111,7 @@ public:
      * @param bullet_type             Bullet loader motor type
      * @param plate_type              Bullet plate motor type, default to NONE_MOTOR
      */
-    static void init(CANInterface *can_interface, uint16_t yaw_front_angle_raw, uint16_t pitch_front_angle_raw,
+    static void init(CANInterface *can1_interface, CANInterface *can2_interface, uint16_t yaw_front_angle_raw, uint16_t pitch_front_angle_raw,
                      motor_type_t yaw_type, motor_type_t pitch_type, motor_type_t bullet_type,
                      motor_type_t plate_type = NONE_MOTOR);
 
@@ -118,6 +124,8 @@ public:
 
         motor_type_t type;
         motor_id_t id;
+
+        motor_can_channel_t can_channel;
 
         /**
          * Normalized angle
@@ -200,9 +208,12 @@ public:
 
 private:
 
-    static CANInterface *can_;
+    static CANInterface *can1_;
+    static CANInterface *can2_;
 
-    static void process_motor_feedback(CANRxFrame const *rxmsg);  // callback function
+    static void process_can1_motor_feedback(CANRxFrame const *rxmsg);  // callback function
+    static void process_can2_motor_feedback(CANRxFrame const *rxmsg);  // callback function
+
     friend CANInterface;
 
 #if GIMBAL_INTERFACE_ENABLE_VELOCITY_DIFFERENTIAL
