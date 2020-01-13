@@ -110,7 +110,11 @@ int main(void) {
     can1.start(NORMALPRIO+1);
     can2.start(NORMALPRIO+2);
     chThdSleepMilliseconds(5);
-    GimbalIF::init( &can1, &can2, 0, 0, GimbalIF::GM6020, GimbalIF::GM6020, GimbalIF::NONE_MOTOR);
+    GimbalIF::init(&can1, &can2, 0, 0,
+                   GimbalIF::GM6020,     GimbalIF::GM6020,
+                   GimbalIF::NONE_MOTOR, GimbalIF::NONE_MOTOR,
+                   GimbalIF::can_channel_2, GimbalIF::can_channel_1,
+                   GimbalIF::NONE, GimbalIF::NONE);
 //    BuzzerSKD::play_sound(BuzzerSKD::sound_nyan_cat);
     ut_gimbal_thread.start(NORMALPRIO);
 

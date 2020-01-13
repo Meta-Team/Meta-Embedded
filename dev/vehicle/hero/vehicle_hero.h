@@ -34,6 +34,11 @@
 #define SHOOT_BULLET_MOTOR_TYPE   (GimbalIF::M2006)
 #define SHOOT_PLATE_MOTOR_TYPE    (GimbalIF::M3508)
 
+#define GIMBAL_YAW_CAN_CHANNEL    (GimbalIF::can_channel_2)
+#define GIMBAL_PITCH_CAN_CHANNEL  (GimbalIF::can_channel_1)
+#define GIMBAL_BULLET_CAN_CHANNEL (GimbalIF::can_channel_1)
+#define GIMBAL_PLATE_CAN_CHANNEL  (GimbalIF::can_channel_2)
+
 #define GIMBAL_YAW_INSTALL_DIRECTION    (GimbalSKD::POSITIVE)
 #define GIMBAL_PITCH_INSTALL_DIRECTION  (GimbalSKD::POSITIVE)
 #define SHOOT_BULLET_INSTALL_DIRECTION (ShootSKD::POSITIVE)

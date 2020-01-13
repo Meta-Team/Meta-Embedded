@@ -36,28 +36,34 @@ const PWMConfig FRICTION_WHEELS_PWM_CFG = {
         0
 };
 
-void GimbalIF::init(CANInterface *can1_interface, CANInterface *can2_interface, uint16_t yaw_front_angle_raw, uint16_t pitch_front_angle_raw,
-                    motor_type_t yaw_type, motor_type_t pitch_type, motor_type_t bullet_type, motor_type_t plate_type) {
+void GimbalIF::init(CANInterface *can1_interface,               CANInterface *can2_interface,
+                    uint16_t yaw_front_angle_raw,               uint16_t pitch_front_angle_raw,
+
+                    motor_type_t yaw_type,                      motor_type_t pitch_type,
+                    motor_type_t bullet_type,                   motor_type_t plate_type,
+
+                    motor_can_channel_t yaw_can_channel,        motor_can_channel_t pitch_can_channel,
+                    motor_can_channel_t bullet_can_channel,     motor_can_channel_t plate_can_channel) {
 
     feedback[YAW].id = YAW;
     feedback[YAW].type = yaw_type;
     feedback[YAW].last_angle_raw = yaw_front_angle_raw;
-    feedback[YAW].can_channel = can_channel_2;
+    feedback[YAW].can_channel = yaw_can_channel;
 
     feedback[PITCH].id = PITCH;
     feedback[PITCH].type = pitch_type;
     feedback[PITCH].last_angle_raw = pitch_front_angle_raw;
-    feedback[PITCH].can_channel = can_channel_1;
+    feedback[PITCH].can_channel = pitch_can_channel;
 
     feedback[BULLET].id = BULLET;
     feedback[BULLET].type = bullet_type;
     feedback[BULLET].reset_front_angle();
-    feedback[BULLET].can_channel = can_channel_1;
+    feedback[BULLET].can_channel = bullet_can_channel;
 
     feedback[PLATE].id = PLATE;
     feedback[PLATE].type = plate_type;
     feedback[PLATE].reset_front_angle();
-    feedback[PLATE].can_channel = NONE;
+    feedback[PLATE].can_channel = plate_can_channel;
 
     can1_ = can1_interface;
     can2_ = can2_interface;

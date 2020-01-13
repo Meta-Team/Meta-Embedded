@@ -111,9 +111,14 @@ public:
      * @param bullet_type             Bullet loader motor type
      * @param plate_type              Bullet plate motor type, default to NONE_MOTOR
      */
-    static void init(CANInterface *can1_interface, CANInterface *can2_interface, uint16_t yaw_front_angle_raw, uint16_t pitch_front_angle_raw,
-                     motor_type_t yaw_type, motor_type_t pitch_type, motor_type_t bullet_type,
-                     motor_type_t plate_type = NONE_MOTOR);
+    static void init(CANInterface *can1_interface,                      CANInterface *can2_interface,
+                     uint16_t yaw_front_angle_raw,                      uint16_t pitch_front_angle_raw,
+
+                     motor_type_t yaw_type,                             motor_type_t pitch_type,
+                     motor_type_t bullet_type,                          motor_type_t plate_type,
+
+                     motor_can_channel_t yaw_can_channel,               motor_can_channel_t pitch_can_channel,
+                     motor_can_channel_t bullet_can_channel,            motor_can_channel_t plate_can_channel);
 
 
     struct motor_feedback_t {
