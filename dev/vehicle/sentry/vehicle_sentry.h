@@ -11,6 +11,12 @@
 #define GIMBAL_YAW_MOTOR_TYPE     (GimbalIF::GM6020)
 #define GIMBAL_PITCH_MOTOR_TYPE   (GimbalIF::GM3510)
 #define SHOOT_BULLET_MOTOR_TYPE   (GimbalIF::M2006)
+#define SHOOT_PLATE_MOTOR_TYPE    (GimbalIF::NONE_MOTOR)
+
+#define GIMBAL_YAW_CAN_CHANNEL    (GimbalIF::can_channel_2)
+#define GIMBAL_PITCH_CAN_CHANNEL  (GimbalIF::can_channel_1)
+#define GIMBAL_BULLET_CAN_CHANNEL (GimbalIF::can_channel_1)
+#define GIMBAL_PLATE_CAN_CHANNEL  (GimbalIF::NONE)
 
 #define GIMBAL_YAW_INSTALL_DIRECTION      (GimbalSKD::NEGATIVE)
 #define GIMBAL_YAW_DECELERATION_RATIO     1.0f
