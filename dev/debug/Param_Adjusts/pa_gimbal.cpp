@@ -82,12 +82,13 @@ CANInterface can1(&CAND1);
 CANInterface can2(&CAND2);
 AHRSOnBoard ahrs;
 
+bool ahrs_enabled;
+
 class GimbalDebugThread : public BaseStaticThread<1024> {
 public:
     PIDController a2v_pid[2];
     PIDController v2i_pid[2];
 
-    float target_angle[2];
     float actual_angle[2];
 
     float target_velocity[2];
@@ -97,19 +98,27 @@ protected:
     void main() final {
         setName("gimbal");
         while (!shouldTerminate()) {
+            if(ahrs_enabled) {
+                // AHRS calculation
+                Vector3D ahrs_angle = ahrs.get_angle() * GIMBAL_ANGLE_INSTALLATION_MATRIX_;
+                Vector3D ahrs_gyro = ahrs.get_gyro() * GIMBAL_GYRO_INSTALLATION_MATRIX_;
 
-            // AHRS calculation
-            Vector3D ahrs_angle = ahrs.get_angle() * GIMBAL_ANGLE_INSTALLATION_MATRIX_;
-            Vector3D ahrs_gyro = ahrs.get_gyro() * GIMBAL_GYRO_INSTALLATION_MATRIX_;
+                // TODO: document calculations here
+                actual_angle[0] = ahrs_angle.x;
+                actual_angle[1] = ahrs_angle.y;
+                float velocity_[2] = {
+                        ahrs_gyro.x * cosf(ahrs_angle.y / 180.0f * M_PI) + ahrs_gyro.z * sinf(ahrs_angle.y / 180.0f * M_PI),
+                        ahrs_gyro.y};
+                actual_velocity[0] = velocity_[0];
+                actual_velocity[1] = velocity_[1];
+            } else {
+                actual_angle[0] = GimbalIF::feedback[YAW].actual_angle;
+                actual_angle[1] = GimbalIF::feedback[PITCH].actual_angle;
 
-            // TODO: document calculations here
-            actual_angle[0] = ahrs_angle.x;
-            actual_angle[1] = ahrs_angle.y;
-            float velocity[2] = {
-                    ahrs_gyro.x * cosf(ahrs_angle.y / 180.0f * M_PI) + ahrs_gyro.z * sinf(ahrs_angle.y / 180.0f * M_PI),
-                    ahrs_gyro.y};
-            actual_velocity[0] = velocity[0];
-            actual_velocity[1] = velocity[1];
+                actual_velocity[0] = GimbalIF::feedback[YAW].actual_velocity;
+                actual_velocity[1] = GimbalIF::feedback[PITCH].actual_velocity;
+            }
+
             // Calculation and check
             if (motor_enabled[YAW] || motor_enabled[PITCH]) {
 
@@ -136,17 +145,15 @@ protected:
                         }
 
                     // Perform velocity check
-                    float actual_velocity_;
-                    if (i == YAW) actual_velocity_ = velocity[0];
-                    else actual_velocity_ = velocity[1];
-                    if (actual_velocity_ > MAX_VELOCITY[i]) {
+
+                    if (actual_velocity[i] > MAX_VELOCITY[i]) {
                         Shell::printf("!d%cv" SHELL_NEWLINE_STR, MOTOR_CHAR[i]);
                         motor_enabled[i] = false;
                         continue;
                     }
 
                     // Calculate from velocity to current
-                    GimbalIF::target_current[i] = (int) v2i_pid[i].calc(actual_velocity_, target_velocity[i]);
+                    GimbalIF::target_current[i] = (int) v2i_pid[i].calc(actual_velocity[i], target_velocity[i]);
                     // NOTE: Gimbal::target_velocity[i] is either calculated or filled (see above)
 
 
@@ -191,15 +198,15 @@ private:
             if (enable_yaw_feedback) {
                 Shell::printf("!gy,%u,%.2f,%.2f,%.2f,%.2f,%d,%d" SHELL_NEWLINE_STR,
                               SYSTIME,
-                              GimbalIF::feedback[YAW].actual_angle, target_angle[YAW],
-                              gimbalThread.actual_velocity[0], target_v[YAW],
+                              gimbalThread.actual_angle[YAW], target_angle[YAW],
+                              gimbalThread.actual_velocity[YAW], target_v[YAW],
                               GimbalIF::feedback[YAW].actual_current, GimbalIF::target_current[YAW]);
             }
             if (enable_pitch_feedback) {
                 Shell::printf("!gp,%u,%.2f,%.2f,%.2f,%.2f,%d,%d" SHELL_NEWLINE_STR,
                               SYSTIME,
-                              GimbalIF::feedback[PITCH].actual_angle, target_angle[PITCH],
-                              gimbalThread.actual_velocity[1], target_v[PITCH],
+                              gimbalThread.actual_angle[PITCH], target_angle[PITCH],
+                              gimbalThread.actual_velocity[PITCH], target_v[YAW],
                               GimbalIF::feedback[PITCH].actual_current, GimbalIF::target_current[PITCH]);
             }
 
@@ -389,6 +396,16 @@ void cmd_gimbal_echo_parameters(BaseSequentialStream *chp, int argc, char *argv[
     _cmd_gimbal_echo_parameters(chp, gimbalThread.v2i_pid[PITCH].get_parameters());
 }
 
+void cmd_enable_ahrs_feedback (BaseSequentialStream *chp, int argc, char *argv[]) {
+    (void) argv;
+    if (argc != 1) {
+        shellUsage(chp, "g_ahrs_e (0/1) (disable/enable)");
+        chprintf(chp, "!pe" SHELL_NEWLINE_STR);  // echo parameters error
+        return;
+    }
+    if(*argv[0] == '0' || *argv[0] == '1')ahrs_enabled = (bool) Shell::atoi(argv[0]);
+}
+
 // Command lists for gimbal controller test and adjustments
 ShellCommand gimbalCotrollerCommands[] = {
         {"g_enable",      cmd_gimbal_enable},
@@ -399,6 +416,7 @@ ShellCommand gimbalCotrollerCommands[] = {
         {"g_set_params",  cmd_gimbal_set_parameters},
         {"g_echo_params", cmd_gimbal_echo_parameters},
         {"g_enable_fw",   cmd_gimbal_enable_fw},
+        {"g_ahrs_e",      cmd_enable_ahrs_feedback},
         {nullptr,         nullptr}
 };
 
