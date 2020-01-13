@@ -444,7 +444,9 @@ int main(void) {
 
     GimbalIF::init(&can1, &can2, GIMBAL_YAW_FRONT_ANGLE_RAW, GIMBAL_PITCH_FRONT_ANGLE_RAW,
              GimbalIF::GM6020,     GimbalIF::GM6020,
-            GimbalIF::NONE_MOTOR, GimbalIF::NONE_MOTOR);
+            GimbalIF::NONE_MOTOR, GimbalIF::NONE_MOTOR,
+            GimbalIF::can_channel_2, GimbalIF::can_channel_1,
+            GimbalIF::NONE, GimbalIF::NONE);
 
     gimbalFeedbackThread.start(NORMALPRIO - 1);
     gimbalThread.start(NORMALPRIO);
