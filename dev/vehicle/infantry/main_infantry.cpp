@@ -134,7 +134,7 @@ int main() {
 
 
     /// Setup ChassisIF
-    ChassisIF::init(&can1);
+    ChassisIF::init(&can2);
     chThdSleepMilliseconds(10);
     InspectorI::startup_check_chassis_feedback();  // check chassis motors has continuous feedback. Block for 20 ms
     LED::led_on(DEV_BOARD_LED_CHASSIS);  // LED 6 on now
