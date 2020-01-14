@@ -1,5 +1,6 @@
 //
 // Created by liuzikai on 2019-05-01.
+// Mo Kanya revised the friction wheel part.
 //
 
 /**
@@ -71,7 +72,8 @@ public:
      * @param plate_v2i_params
      */
     static void load_pid_params(pid_params_t loader_a2v_params, pid_params_t loader_v2i_params,
-                                pid_params_t plate_a2v_params, pid_params_t plate_v2i_params);
+                                pid_params_t plate_a2v_params, pid_params_t plate_v2i_params,
+                                pid_params_t fw_left_v2i_params, pid_params_t fw_right_v2i_params);
 
     /**
      * Set mode of this SKD
@@ -177,10 +179,10 @@ private:
     static mode_t mode;
 
     static float target_angle[2];
-    static float target_velocity[2];
-    static int target_current[2];
+    static float target_velocity[4];
+    static int target_current[4];
 
-    static PIDController v2i_pid[2];
+    static PIDController v2i_pid[4];
     static PIDController a2v_pid[2];
 
     static constexpr unsigned int SKD_THREAD_INTERVAL = 2; // PID calculation interval [ms]

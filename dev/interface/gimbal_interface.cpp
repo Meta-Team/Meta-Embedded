@@ -2,6 +2,8 @@
 // Created by liuzikai on 2018-12-29.
 // Zhu Kerui wrote code about processing gimbal feedback.
 // Feng Chuhao wrote code about sending gimbal currents.
+// Mo Kanya wrote code about sending friction wheels' currents and processing friction wheels' feedback
+// Qian Chen wrote about motor can channel distribution mechanism.
 //
 
 /**
@@ -18,23 +20,23 @@
 
 GimbalIF::motor_feedback_t GimbalIF::feedback[MOTOR_COUNT];
 int GimbalIF::target_current[MOTOR_COUNT] = {0, 0, 0};
-float GimbalIF::fw_duty_cycle = 0.0f;
+//float GimbalIF::fw_duty_cycle = 0.0f;
 CANInterface *GimbalIF::can1_ = nullptr;
 CANInterface *GimbalIF::can2_ = nullptr;
 
-const PWMConfig FRICTION_WHEELS_PWM_CFG = {
-        50000,   // frequency
-        1000,    // period
-        nullptr, // callback
-        {
-                {PWM_OUTPUT_ACTIVE_HIGH, nullptr}, // CH0
-                {PWM_OUTPUT_ACTIVE_HIGH, nullptr}, // CH1
-                {PWM_OUTPUT_DISABLED, nullptr},    // CH2
-                {PWM_OUTPUT_DISABLED, nullptr}     // CH3
-        },
-        0,
-        0
-};
+//const PWMConfig FRICTION_WHEELS_PWM_CFG = {
+//        50000,   // frequency
+//        1000,    // period
+//        nullptr, // callback
+//        {
+//                {PWM_OUTPUT_ACTIVE_HIGH, nullptr}, // CH0
+//                {PWM_OUTPUT_ACTIVE_HIGH, nullptr}, // CH1
+//                {PWM_OUTPUT_DISABLED, nullptr},    // CH2
+//                {PWM_OUTPUT_DISABLED, nullptr}     // CH3
+//        },
+//        0,
+//        0
+//};
 
 void GimbalIF::init(CANInterface *can1_interface,               CANInterface *can2_interface,
                     uint16_t yaw_front_angle_raw,               uint16_t pitch_front_angle_raw,
@@ -65,20 +67,30 @@ void GimbalIF::init(CANInterface *can1_interface,               CANInterface *ca
     feedback[PLATE].reset_front_angle();
     feedback[PLATE].can_channel = plate_can_channel;
 
+    feedback[FW_LEFT].id = FW_LEFT;
+    feedback[FW_LEFT].type = M3508;
+    feedback[FW_LEFT].reset_front_angle();
+    feedback[FW_LEFT].can_channel = can_channel_1;
+
+    feedback[FW_RIGHT].id = FW_RIGHT;
+    feedback[FW_RIGHT].type = M3508;
+    feedback[FW_RIGHT].reset_front_angle();
+    feedback[FW_RIGHT].can_channel = can_channel_1;
+
     can1_ = can1_interface;
     can2_ = can2_interface;
-    can1_->register_callback(0x205, 0x206, process_can1_motor_feedback);
+    can1_->register_callback(0x203, 0x206, process_can1_motor_feedback);
     can2_->register_callback(0x205, 0x206, process_can2_motor_feedback);
 
     // Enable PWM and perform initialization on friction wheels
 
-    pwmStart(&PWMD8, &FRICTION_WHEELS_PWM_CFG);
+//    pwmStart(&PWMD8, &FRICTION_WHEELS_PWM_CFG);
 
 //    pwmEnableChannel(&PWMD8, FW_LEFT, PWM_PERCENTAGE_TO_WIDTH(&PWMD8, 1 * 500 + 500));
 //    pwmEnableChannel(&PWMD8, FW_RIGHT, PWM_PERCENTAGE_TO_WIDTH(&PWMD8, 1 * 500 + 500));
-//    chThdSleep(TIME_MS2I(500));
-    pwmEnableChannel(&PWMD8, FW_LEFT, PWM_PERCENTAGE_TO_WIDTH(&PWMD8, 0 * 500 + 500));
-    pwmEnableChannel(&PWMD8, FW_RIGHT, PWM_PERCENTAGE_TO_WIDTH(&PWMD8, 0 * 500 + 500));
+    chThdSleep(TIME_MS2I(500));
+//    pwmEnableChannel(&PWMD8, FW_LEFT, PWM_PERCENTAGE_TO_WIDTH(&PWMD8, 0 * 500 + 500));
+//    pwmEnableChannel(&PWMD8, FW_RIGHT, PWM_PERCENTAGE_TO_WIDTH(&PWMD8, 0 * 500 + 500));
 
 }
 
@@ -86,12 +98,16 @@ void GimbalIF::send_gimbal_currents() {
 
     CANTxFrame can1_txmsg;
     CANTxFrame can2_txmsg;
+    CANTxFrame fw_txmsg;
 
     // Fill the header
-    can1_txmsg.IDE = can2_txmsg.IDE = CAN_IDE_STD;
+    can1_txmsg.IDE = can2_txmsg.IDE = fw_txmsg.IDE = CAN_IDE_STD;
+
     can1_txmsg.SID = can2_txmsg.SID = 0x1FF;
-    can1_txmsg.RTR = can2_txmsg.RTR = CAN_RTR_DATA;
-    can1_txmsg.DLC = can2_txmsg.DLC = 0x08;
+    fw_txmsg.SID = 0x200;
+
+    can1_txmsg.RTR = can2_txmsg.RTR = fw_txmsg.RTR = CAN_RTR_DATA;
+    can1_txmsg.DLC = can2_txmsg.DLC = fw_txmsg.DLC = 0x08;
 
     // Fill the current of Yaw
 #if GIMBAL_INTERFACE_ENABLE_CLIP
@@ -216,12 +232,43 @@ void GimbalIF::send_gimbal_currents() {
         }
     }
 
+#if GIMBAL_INTERFACE_ENABLE_CLIP
+    ABS_CROP(target_current[FW_LEFT], GIMBAL_INTERFACE_MAX_CURRENT);
+#endif
+    if (feedback[FW_LEFT].type != RM6623) {
+        fw_txmsg.data8[4] = (uint8_t) (target_current[FW_LEFT] >> 8);
+        fw_txmsg.data8[5] = (uint8_t) target_current[FW_LEFT];
+    } else {
+        /**
+         * @note Viewing from the top of 6623, angle use CCW as positive direction, while current use CW as positive
+         *       direction. In order to unified coordinate system, minus sign is applied here.
+         */
+        fw_txmsg.data8[4] = (uint8_t) (-target_current[FW_LEFT] >> 8);
+        fw_txmsg.data8[5] = (uint8_t) -target_current[FW_LEFT];
+    }
+
+#if GIMBAL_INTERFACE_ENABLE_CLIP
+    ABS_CROP(target_current[FW_RIGHT], GIMBAL_INTERFACE_MAX_CURRENT);
+#endif
+    if (feedback[FW_RIGHT].type != RM6623) {
+        fw_txmsg.data8[6] = (uint8_t) (target_current[FW_RIGHT] >> 8);
+        fw_txmsg.data8[7] = (uint8_t) target_current[FW_RIGHT];
+    } else {
+        /**
+         * @note Viewing from the top of 6623, angle use CCW as positive direction, while current use CW as positive
+         *       direction. In order to unified coordinate system, minus sign is applied here.
+         */
+        fw_txmsg.data8[6] = (uint8_t) (-target_current[FW_RIGHT] >> 8);
+        fw_txmsg.data8[7] = (uint8_t) -target_current[FW_RIGHT];
+    }
+
     can1_->send_msg(&can1_txmsg);
+    can1_->send_msg(&fw_txmsg);
     can2_->send_msg(&can2_txmsg);
 
     // Set the PWM of friction wheels
-    pwmEnableChannel(&PWMD8, FW_LEFT, PWM_PERCENTAGE_TO_WIDTH(&PWMD8, fw_duty_cycle * 500 + 500));
-    pwmEnableChannel(&PWMD8, FW_RIGHT, PWM_PERCENTAGE_TO_WIDTH(&PWMD8, fw_duty_cycle * 500 + 500));
+//    pwmEnableChannel(&PWMD8, FW_LEFT, PWM_PERCENTAGE_TO_WIDTH(&PWMD8, fw_duty_cycle * 500 + 500));
+//    pwmEnableChannel(&PWMD8, FW_RIGHT, PWM_PERCENTAGE_TO_WIDTH(&PWMD8, fw_duty_cycle * 500 + 500));
 
 //    LOG("FW %f", fw_duty_cycle);
 
@@ -243,7 +290,13 @@ void GimbalIF::process_can1_motor_feedback(CANRxFrame const *rxmsg) {
     // Check whether this new raw angle is valid
     if (new_actual_angle_raw > 8191) return;
 
-    motor_feedback_t* fb = &feedback[(motor_id_t) (rxmsg->SID - 0x205)];
+    motor_feedback_t *fb;
+
+    if(rxmsg->SID >= 0x205) {
+        fb = &feedback[(motor_id_t) (rxmsg->SID - 0x205)];
+    } else if (rxmsg->SID < 0x205) {
+        fb = &feedback[(motor_id_t) (rxmsg->SID - 0x201 + 0x002)];
+    }
 
     if (fb -> can_channel != can_channel_1) return;
 

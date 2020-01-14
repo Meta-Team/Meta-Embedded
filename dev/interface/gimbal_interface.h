@@ -2,6 +2,8 @@
 // Created by liuzikai on 2018-12-29.
 // Zhu Kerui wrote code about processing gimbal feedback and the bullet control.
 // Feng Chuhao wrote code about sending gimbal currents.
+// Mo Kanya wrote code about sending friction wheels' currents and processing friction wheels' feedback
+// Qian Chen wrote about motor can channel distribution mechanism.
 //
 
 /**
@@ -39,7 +41,9 @@ public:
         PITCH = 1,
         BULLET = 2,
         PLATE = 3,
-        MOTOR_COUNT = 4
+        FW_LEFT = 4,
+        FW_RIGHT = 5,
+        MOTOR_COUNT = 6
     };
 };
 
@@ -225,10 +229,10 @@ private:
     static constexpr int VELOCITY_SAMPLE_INTERVAL = 50;  // count of feedback for one sample of angular velocity
 #endif
 
-    enum friction_wheel_channel_t {
-        FW_LEFT = 0,  // The left  friction wheel, PI5, channel 0
-        FW_RIGHT = 1  // The right friction wheel, PI6, channel 1
-    };
+//    enum friction_wheel_channel_t {
+//        FW_LEFT = 0,  // The left  friction wheel, PI5, channel 0
+//        FW_RIGHT = 1  // The right friction wheel, PI6, channel 1
+//    };
 
 };
 
