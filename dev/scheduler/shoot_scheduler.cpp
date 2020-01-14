@@ -141,6 +141,7 @@ void ShootSKD::SKDThread::main() {
         } else if (mode == FORCED_RELAX_MODE) {
 
             GimbalIF::target_current[GimbalIF::BULLET] = GimbalIF::target_current[GimbalIF::PLATE] = 0;
+            GimbalIF::target_current[GimbalIF::FW_LEFT] = GimbalIF::target_current[GimbalIF::FW_RIGHT] = 0;
         }
 
         // Send currents with GimbalSKD (has smaller SKD_THREAD_INTERVAL)
