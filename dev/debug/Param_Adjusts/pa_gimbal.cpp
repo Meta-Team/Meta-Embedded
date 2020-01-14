@@ -105,10 +105,10 @@ protected:
 
                 // TODO: document calculations here
                 actual_angle[0] = ahrs_angle.x;
-                actual_angle[1] = ahrs_angle.y;
+                actual_angle[1] = ahrs_angle.z + 90.0f;
                 float velocity_[2] = {
                         ahrs_gyro.x * cosf(ahrs_angle.y / 180.0f * M_PI) + ahrs_gyro.z * sinf(ahrs_angle.y / 180.0f * M_PI),
-                        ahrs_gyro.y};
+                        ahrs_gyro.z};
                 actual_velocity[0] = velocity_[0];
                 actual_velocity[1] = velocity_[1];
             } else {
@@ -440,6 +440,7 @@ int main(void) {
         ahrs.load_calibration_data(MPU6500_STORED_GYRO_BIAS);
         LOG_WARN("Use default AHRS bias");
     }
+    ahrs.load_calibration_data({-0.644649505f, -0.619945943f, 0.173617705f});
     ahrs.start(ON_BOARD_AHRS_MATRIX_, THREAD_MPU_PRIO, THREAD_IST_PRIO, THREAD_AHRS_PRIO);
 
     GimbalIF::init(&can1, &can2, GIMBAL_YAW_FRONT_ANGLE_RAW, GIMBAL_PITCH_FRONT_ANGLE_RAW,
