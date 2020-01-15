@@ -16,6 +16,8 @@ GimbalLG::action_t GimbalLG::action = FORCED_RELAX_MODE;
 
 void GimbalLG::init() {}
 
+int GimbalLG::Auxiliary_ON = 0;
+
 GimbalLG::action_t GimbalLG::get_action() {
     return action;
 }
@@ -55,4 +57,25 @@ float GimbalLG::get_current_target_angle(GimbalBase::motor_id_t motor) {
     return GimbalSKD::get_target_angle(motor);
 }
 
+int GimbalLG::should_override_operator(float mouse_yaw,float mouse_pitch){
+    float bias_yaw = GimbalLG::abs_f(VisionPort::enemy_info.yaw_angle);
+    float bias_pitch = GimbalLG::abs_f(VisionPort::enemy_info.pitch_angle);
+    ///one more step to filter the bad detections
+    ///
+    ///
+    mouse_yaw = GimbalLG::abs_f(mouse_yaw);
+    mouse_pitch = GimbalLG::abs_f(mouse_pitch);
+    if ((bias_yaw < 5)&&(bias_pitch < 5)&&(mouse_pitch<15)&&(mouse_yaw<15)){
+        return 1;
+    }
+    else{
+        return 0;
+    }
+}
+float GimbalLG::abs_f(float val) {
+    if (val < 0)
+        return (-1*val);
+    else
+        return val;
+}
 /** @} */

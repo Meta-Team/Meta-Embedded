@@ -65,17 +65,32 @@ void UserI::UserThread::main() {
                 /// Remote - Yaw + Pitch
 
                 GimbalLG::set_action(GimbalLG::ABS_ANGLE_MODE);
-
-
-                gimbal_yaw_target_angle_ +=
-                        -Remote::rc.ch0 * (gimbal_rc_yaw_max_speed * USER_THREAD_INTERVAL / 1000.0f);
-                // ch0 use right as positive direction, while GimbalLG use CCW (left) as positive direction
-
                 float pitch_target;
-                if (Remote::rc.ch1 > 0) pitch_target = Remote::rc.ch1 * gimbal_pitch_max_angle;
-                else pitch_target = -Remote::rc.ch1 * gimbal_pitch_min_angle;  // GIMBAL_PITCH_MIN_ANGLE is negative
-                // ch1 use up as positive direction, while GimbalLG also use up as positive direction
+                float yaw_delta;
+                float pitch_delta;
 
+                ///check if it's necessary to use the auxiliary targeting
+                GimbalLG::Auxiliary_ON = (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_DOWN) ? 1 : 0;
+                ///Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_DOWN   This is the mode of auxiliary targeting
+                if (GimbalLG::Auxiliary_ON == 0) {
+                    gimbal_yaw_target_angle_ +=
+                            -Remote::rc.ch0 * (gimbal_rc_yaw_max_speed * USER_THREAD_INTERVAL / 1000.0f);
+                    // ch0 use right as positive direction, while GimbalLG use CCW (left) as positive direction
+
+                    if (Remote::rc.ch1 > 0) pitch_target = Remote::rc.ch1 * gimbal_pitch_max_angle;
+                    else pitch_target = -Remote::rc.ch1 * gimbal_pitch_min_angle;  // GIMBAL_PITCH_MIN_ANGLE is negative
+                    // ch1 use up as positive direction, while GimbalLG also use up as positive direction
+                }
+                else{
+                    yaw_delta = -Remote::rc.ch0 * (gimbal_rc_yaw_max_speed * USER_THREAD_INTERVAL / 1000.0f);
+                    pitch_delta = -Remote::rc.ch0 * (gimbal_rc_yaw_max_speed * USER_THREAD_INTERVAL / 1000.0f);
+                    if (GimbalLG::should_override_operator(yaw_delta, pitch_delta)){
+                        yaw_delta = VisionPort::enemy_info.yaw_angle;
+                        pitch_delta = VisionPort::enemy_info.pitch_angle;
+                    }
+                    gimbal_yaw_target_angle_ += yaw_delta;
+                    pitch_target = pitch_delta;
+                }
 
                 GimbalLG::set_target(gimbal_yaw_target_angle_, pitch_target);
 
@@ -110,6 +125,17 @@ void UserI::UserThread::main() {
                 float yaw_delta = -Remote::mouse.x * (yaw_sensitivity * USER_THREAD_INTERVAL / 1000.0f);
                 float pitch_delta = -Remote::mouse.y * (pitch_sensitivity * USER_THREAD_INTERVAL / 1000.0f);
 
+                ///check if it's necessary to use the auxiliary targeting
+                if (Remote::key.b){
+                    GimbalLG::Auxiliary_ON = (GimbalLG::Auxiliary_ON == 1) ? 0 : 1;
+                }
+
+                if (GimbalLG::Auxiliary_ON) {
+                    if (GimbalLG::should_override_operator(yaw_delta, pitch_delta)) {
+                        yaw_delta = VisionPort::enemy_info.yaw_angle;
+                        pitch_delta = VisionPort::enemy_info.pitch_angle;
+                    }
+                }
                 VAL_CROP(yaw_delta, 1.5, -1.5);
                 VAL_CROP(pitch_delta, 1, -1);
 
@@ -121,7 +147,6 @@ void UserI::UserThread::main() {
                 // mouse.y use down as positive direction, while GimbalLG use CCW (left) as positive direction
 
                 VAL_CROP(gimbal_pc_pitch_target_angle_, gimbal_pitch_max_angle, gimbal_pitch_min_angle);
-
 
                 GimbalLG::set_target(gimbal_yaw_target_angle_, gimbal_pc_pitch_target_angle_);
 
