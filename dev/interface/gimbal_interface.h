@@ -220,6 +220,10 @@ private:
     static CANInterface *can1_;
     static CANInterface *can2_;
 
+    static CANTxFrame can1_txmsg;
+    static CANTxFrame can2_txmsg;
+    static CANTxFrame fw_txmsg;
+
     static void process_can1_motor_feedback(CANRxFrame const *rxmsg);  // callback function
     static void process_can2_motor_feedback(CANRxFrame const *rxmsg);  // callback function
 
