@@ -40,6 +40,7 @@ public:
         AERIAL_MODE,
     };
 
+    static int Auxiliary_ON;
     /**
      * Get current action of gimbal
      * @return   Current action of gimbal
@@ -74,6 +75,10 @@ public:
     static float get_relative_angle(motor_id_t motor);
 
     static float get_current_target_angle(motor_id_t motor);
+
+    static float abs_f(float val);
+
+    static int should_override_operator(float mouse_yaw,float mouse_pitch);
 
 private:
 
