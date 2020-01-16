@@ -24,6 +24,10 @@ int GimbalIF::target_current[MOTOR_COUNT] = {0, 0, 0};
 CANInterface *GimbalIF::can1_ = nullptr;
 CANInterface *GimbalIF::can2_ = nullptr;
 
+CANTxFrame GimbalIF::can1_txmsg;
+CANTxFrame GimbalIF::can2_txmsg;
+CANTxFrame GimbalIF::fw_txmsg;
+
 //const PWMConfig FRICTION_WHEELS_PWM_CFG = {
 //        50000,   // frequency
 //        1000,    // period
@@ -96,10 +100,6 @@ void GimbalIF::init(CANInterface *can1_interface,               CANInterface *ca
 
 void GimbalIF::send_gimbal_currents() {
 
-    CANTxFrame can1_txmsg;
-    CANTxFrame can2_txmsg;
-    CANTxFrame fw_txmsg;
-
     // Fill the header
     can1_txmsg.IDE = can2_txmsg.IDE = fw_txmsg.IDE = CAN_IDE_STD;
 
@@ -113,6 +113,10 @@ void GimbalIF::send_gimbal_currents() {
 #if GIMBAL_INTERFACE_ENABLE_CLIP
     ABS_CROP(target_current[YAW], GIMBAL_INTERFACE_MAX_CURRENT);
 #endif
+    can1_txmsg.data8[0] = can1_txmsg.data8[1] = can1_txmsg.data8[2] = can1_txmsg.data8[3] = can1_txmsg.data8[4]
+            = can1_txmsg.data8[5] = can1_txmsg.data8[6] = can1_txmsg.data8[7] = 0;
+    can2_txmsg.data8[0] = can2_txmsg.data8[1] = can2_txmsg.data8[2] = can2_txmsg.data8[3] = can2_txmsg.data8[4]
+            = can2_txmsg.data8[5] = can2_txmsg.data8[6] = can2_txmsg.data8[7] = 0;
     if(feedback[YAW].can_channel == can_channel_1) {
         if (feedback[YAW].type != RM6623) {
             can1_txmsg.data8[0] = (uint8_t) (target_current[YAW] >> 8); // upper byte
