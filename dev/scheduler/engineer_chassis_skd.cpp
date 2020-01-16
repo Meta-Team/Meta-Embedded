@@ -45,12 +45,14 @@ bool EngineerChassisSKD::is_locked() {
 
 void EngineerChassisSKD::load_pid_params(PIDControllerBase::pid_params_t v2i_pid_params) {
     for (int i = 0; i < MOTOR_COUNT; i++) {
+        ///pid was declared as: PIDController EngineerChassisSKD::pid[MOTOR_COUNT];
         pid[i].change_parameters(v2i_pid_params);
         pid[i].clear_i_out();
     }
 }
 
 void EngineerChassisSKD::set_velocity(float target_vx_, float target_vy_, float target_w_) {
+    ///modify the static variables of Class EngineerChassisSKD according to function input
     target_vx = target_vx_;
     target_vy = target_vy_;
     target_w = target_w_;
@@ -66,7 +68,8 @@ void EngineerChassisSKD::SKDThread::main() {
     while (!shouldTerminate()) {
 
         if (enabled) {
-
+            ///Calculate the target velocity concretely for each motor according to the target velocity of the whole car
+            ///Specify the target current of each motor by v2i PID: pid[i].change_parameters(v2i_pid_params);
             // FR, +vx, -vy, -w
             // FL, +vx, +vy, -w, since the motor is installed in the opposite direction
             // BL, -vx, +vy, -w, since the motor is installed in the opposite direction
@@ -92,8 +95,6 @@ void EngineerChassisSKD::SKDThread::main() {
             }
 
         }
-
-
 
         ChassisIF::send_chassis_currents();
         sleep(TIME_MS2I(SKD_THREAD_INTERVAL));
