@@ -80,6 +80,12 @@ void ChassisSKD::set_target(float vx, float vy, float theta) {
     target_theta = theta;
 }
 
+void ChassisSKD::set_dodge_target(float vx, float vy, float omega) {
+    target_vx = vx;
+    target_vy = vy;
+    target_w = omega;
+}
+
 float ChassisSKD::get_actual_theta() {
     return GimbalIF::feedback[GimbalIF::YAW].actual_angle;
 }
@@ -112,6 +118,16 @@ void ChassisSKD::SKDThread::main() {
 
             float theta = get_actual_theta();
             target_w = a2v_pid.calc(theta, target_theta);
+            velocity_decompose_(target_vx * cosf(theta / 180.0f * M_PI) - target_vy * sinf(theta / 180.0f * M_PI)
+                                - target_w / 180.0f * M_PI * chassis_gimbal_offset_,
+
+                                target_vx * sinf(theta / 180.0f * M_PI) + target_vy * cosf(theta / 180.0f * M_PI),
+
+                                target_w);
+
+        } else if (mode == ANGULAR_VELOCITY_DODGE_MODE) {
+
+            float theta = get_actual_theta();
             velocity_decompose_(target_vx * cosf(theta / 180.0f * M_PI) - target_vy * sinf(theta / 180.0f * M_PI)
                                 - target_w / 180.0f * M_PI * chassis_gimbal_offset_,
 
