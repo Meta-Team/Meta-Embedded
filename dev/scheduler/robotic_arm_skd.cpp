@@ -86,6 +86,7 @@ void RoboticArmSKD::set_digital_status(digital_status_t& status, uint8_t pad, di
     }
 }
 
+//managing states, variable released should be False
 void RoboticArmSKD::next_step() {
 
     LOG("%d %d %d %d\n", extend_state, lift_state, door_state, clamp_state);
@@ -115,7 +116,7 @@ void RoboticArmSKD::next_step() {
         }
     }
 }
-
+//managing states, variable released should be False
 void RoboticArmSKD::prev_step() {
     if (!released) return;
     if (state == NORMAL) return;
@@ -135,6 +136,12 @@ void RoboticArmSKD::prev_step() {
     }
 }
 
+/*There are two basic components here: states changing mode when released == True and current managing mode when released == False
+ *In the state managing: The states changing mechanism is like a finite state machine which specifies what to do next.
+ *                       Note that human operators use functions such as next_step() and prev_step() to switch between states.
+ *In the current managing: Note that the function pull_back and stretch_out will set the variable released to False,
+ *                         and this tells the program that it's time to specify the current for the motors with PID.
+ */
 void RoboticArmSKD::update_target_current() {
     // State managing
     if (released) {
@@ -147,6 +154,8 @@ void RoboticArmSKD::update_target_current() {
                     chThdSleepMilliseconds(500);
                     stretch_out();
                     bullet_state = WAITING;
+                    //In the function next_step, the status will end up in TAKING BULLET,
+                    //and this update_target_current function will reset the status of robotic arm back to WAITING.
                     break;
                 default:
                     break;

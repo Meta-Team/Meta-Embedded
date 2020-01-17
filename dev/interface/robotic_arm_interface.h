@@ -44,7 +44,7 @@ public:
      * @brief send rotation motor target current
      * @return
      * @note the reason to separate set and send function is that C620 can only holds the targets for a
-     *       while, so it's needed to send repreatly in a thread
+     *       while, so it's needed to send repeatedly in a thread
      */
     static bool send_current();
 

@@ -83,6 +83,8 @@ void GimbalIF::init(CANInterface *can1_interface,               CANInterface *ca
 
     can1_ = can1_interface;
     can2_ = can2_interface;
+    //can1: motors which are relatively static to the gimbal
+    //can2: motors which are relatively static to the chassis
     can1_->register_callback(0x203, 0x206, process_can1_motor_feedback);
     can2_->register_callback(0x205, 0x206, process_can2_motor_feedback);
 
@@ -426,6 +428,13 @@ void GimbalIF::process_can2_motor_feedback(CANRxFrame const *rxmsg) {
     if (angle_movement < -4096) angle_movement += 8192;
     if (angle_movement > 4096) angle_movement -= 8192;
 
+    ///In can2, few motors whose SID are between 0x205 and 0x206(for now: 2020/1/18) were registered:
+    ///     can2_->register_callback(0x205, 0x206, process_can2_motor_feedback);
+
+    ///The pointer fb here points to one element in the array GimbalIF::feedback[MOTOR_COUNT].
+    ///     Note that this feedback processing function can only deal with one data frame one time,
+    ///     and the pointer fb will points to the corresponding motor_feedback_t like feedback[YAW]:
+    ///     motor_feedback_t* fb = &feedback[(motor_id_t) (rxmsg->SID - 0x205)];
     switch (fb->type) {
 
         case RM6623:  // RM6623 deceleration ratio = 1
