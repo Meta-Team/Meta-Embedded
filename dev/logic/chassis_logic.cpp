@@ -92,6 +92,15 @@ void ChassisLG::apply_target() {
     }
 }
 
+void ChassisLG::set_sports_mode() {
+    if (ChassisSKD::sports_mode_on) ChassisSKD::sports_mode_on = 0;
+    else ChassisSKD::sports_mode_on = 1;
+}
+
+bool ChassisLG::get_sports_mode() {
+    return ChassisSKD::sports_mode_on;
+}
+
 void ChassisLG::DodgeModeSwitchThread::main() {
 
     setName("Chassis_Dodge");

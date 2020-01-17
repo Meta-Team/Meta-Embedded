@@ -31,6 +31,7 @@ float ChassisSKD::wheel_circumference_ = 0;
 float ChassisSKD::w_to_v_ratio_ = 0.0f;
 float ChassisSKD::v_to_wheel_angular_velocity_ = 0.0f;
 float ChassisSKD::chassis_gimbal_offset_ = 0.0f;
+bool ChassisSKD::sports_mode_on = false;
 
 ChassisSKD::install_mode_t ChassisSKD::install_mode_ = POSITIVE;
 
@@ -114,20 +115,13 @@ void ChassisSKD::SKDThread::main() {
     setName("Chassis_SKD");
     while (!shouldTerminate()) {
 
-        if (mode == GIMBAL_COORDINATE_MODE) {
+        if ( (mode==GIMBAL_COORDINATE_MODE) || (mode==ANGULAR_VELOCITY_DODGE_MODE) ) {
 
             float theta = get_actual_theta();
-            target_w = a2v_pid.calc(theta, target_theta);
-            velocity_decompose_(target_vx * cosf(theta / 180.0f * M_PI) - target_vy * sinf(theta / 180.0f * M_PI)
-                                - target_w / 180.0f * M_PI * chassis_gimbal_offset_,
-
-                                target_vx * sinf(theta / 180.0f * M_PI) + target_vy * cosf(theta / 180.0f * M_PI),
-
-                                target_w);
-
-        } else if (mode == ANGULAR_VELOCITY_DODGE_MODE) {
-
-            float theta = get_actual_theta();
+            if (mode == GIMBAL_COORDINATE_MODE) target_w = a2v_pid.calc(theta, target_theta);
+//            if (!sports_mode_on) {
+//                if ((target_vx != 0) && (target_vy != 0)) target_w = 0;   // for the use of further development
+//            }
             velocity_decompose_(target_vx * cosf(theta / 180.0f * M_PI) - target_vy * sinf(theta / 180.0f * M_PI)
                                 - target_w / 180.0f * M_PI * chassis_gimbal_offset_,
 

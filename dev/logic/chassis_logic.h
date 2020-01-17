@@ -69,6 +69,10 @@ public:
      */
     static void set_target(float vx, float vy);
 
+    static void set_sports_mode();
+
+    static bool get_sports_mode();
+
 private:
 
     static action_t action;

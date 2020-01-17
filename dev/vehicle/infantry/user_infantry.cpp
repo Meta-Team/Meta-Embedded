@@ -78,7 +78,7 @@ void UserI::UserThread::main() {
 
             } else if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_DOWN) {
 
-                /// Jetson - Yaw + Pitch
+                /// Vision - Yaw + Pitch
 
                 GimbalLG::set_action(GimbalLG::ABS_ANGLE_MODE);
 
@@ -234,13 +234,13 @@ void UserI::UserThread::main() {
                                        Remote::rc.ch3 * 1000 :
                                        Remote::rc.ch3 * 800)   // Both use up    as positive direction
                 );
-            } /*else if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_DOWN) {
+            } else if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_DOWN) {
 
                 /// Remote - Chassis Stop (with Vision)
 
                 ChassisLG::set_action(ChassisLG::FORCED_RELAX_MODE);
 
-            }*/ else if (Remote::rc.s1 == Remote::S_DOWN) {
+            } else if (Remote::rc.s1 == Remote::S_DOWN) {
 
                 /// PC control mode
 
