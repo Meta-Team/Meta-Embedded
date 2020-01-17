@@ -109,11 +109,11 @@ void InspectorI::startup_check_gimbal_feedback() {
             LOG_ERR("Startup - Gimbal Pitch offline.");
             t = SYSTIME;  // reset the counter
         }
-//        if (not WITHIN_RECENT_TIME(GimbalIF::feedback[GimbalIF::BULLET].last_update_time, 5)) {
-//            // No feedback in last 5 ms (normal 1 ms)
-//            LOG_ERR("Startup - Gimbal Bullet offline.");
-//            t = SYSTIME;  // reset the counter
-//        }
+        if (not WITHIN_RECENT_TIME(GimbalIF::feedback[GimbalIF::BULLET].last_update_time, 5)) {
+            // No feedback in last 5 ms (normal 1 ms)
+            LOG_ERR("Startup - Gimbal Bullet offline.");
+            t = SYSTIME;  // reset the counter
+        }
         chThdSleepMilliseconds(5);
     }
 }
@@ -184,7 +184,7 @@ void InspectorI::InspectorThread::main() {
         if (remote_failure_) LED::led_off(DEV_BOARD_LED_REMOTE);
         else LED::led_on(DEV_BOARD_LED_REMOTE);
 
-        gimbal_failure_ = false;//check_gimbal_failure();
+        gimbal_failure_ = check_gimbal_failure();
         if (gimbal_failure_) LED::led_off(DEV_BOARD_LED_GIMBAL);
         else LED::led_on(DEV_BOARD_LED_GIMBAL);
 

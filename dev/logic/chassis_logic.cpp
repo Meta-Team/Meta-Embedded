@@ -124,6 +124,8 @@ void ChassisLG::DodgeModeSwitchThread::main() {
                                                                                            // from max_omega to min omega.
             last_update_time = SYSTIME;
         }
+////      uncomment the line below if there is no need to randomize chassis' motion
+//      target_omega = (dodge_mode_max_omega_ + dodge_mode_min_omega_) / 2;
 
 //        if (!ABS_IN_RANGE(ChassisSKD::get_actual_theta() - (-target_theta), 10)) {
 //            target_theta = -biased_angle_ - target_theta;
