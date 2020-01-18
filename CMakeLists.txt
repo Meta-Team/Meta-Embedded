@@ -257,7 +257,7 @@ dev/vehicle/engineer/settings_engineer.cpp
 
 #        dev/control/robotic_arm_skd.cpp
 #        dev/interface/robotic_arm_interface.cpp
-)
+        dev/interface/engineer_interface.cpp dev/interface/engineer_interface.h dev/logic/engineer_functions_logic.cpp dev/logic/engineer_functions_logic.h dev/scheduler/engineer_skd.cpp dev/scheduler/engineer_skd.h dev/interface/air_tank_interface.cpp dev/interface/air_tank_interface.h)
 target_include_directories(ENGINEER PRIVATE dev/vehicle/engineer)
 target_compile_definitions(ENGINEER PRIVATE ENGINEER)
 
