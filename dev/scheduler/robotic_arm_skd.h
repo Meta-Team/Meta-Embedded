@@ -10,6 +10,7 @@
 #include "robotic_arm_interface.h"
 #include "pid_controller.hpp"
 #include "vehicle/engineer/vehicle_engineer.h"
+#include "engineer_interface.h"
 
 /**
  * Fetch process:
@@ -89,8 +90,6 @@ public:
     static void pull_back();
 
 private:
-
-
 
     static float trigger_angle;
 

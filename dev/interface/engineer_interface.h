@@ -9,9 +9,10 @@
 #ifndef META_INFANTRY_ENGINEER_IF_H
 #define META_INFANTRY_ENGINEER_IF_H
 
-#include "gimbal_interface.h"
+#include "can_interface.h"
 
 class EngineerBase {
+public:
     enum motor_id_t {
         RESCUE_LEFT,
         RESCUE_RIGHT,
@@ -20,8 +21,23 @@ class EngineerBase {
         MOTOR_COUNT
     };
 };
-class EngineerInterface : public EngineerBase {
 
+class EngineerInterface : public EngineerBase {
+public:
+    static float present_angle[MOTOR_COUNT];
+    static float present_velocity[MOTOR_COUNT];
+    static float target_current[MOTOR_COUNT];
+
+    void init();
+    int data_to_can();
+
+private:
+    static CANInterface * can;
+
+    static void process_feedback_arm();
+    static void process_feedback_rescue();
+
+    friend class CANInterface;
 };
 
 

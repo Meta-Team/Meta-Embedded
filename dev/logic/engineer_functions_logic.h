@@ -14,6 +14,18 @@
 
 
 class engineer_functions_logic {
+public :
+    enum grab_mode_t{
+        mode1,
+        mode2
+    };
+
+    static int grabMode;
+
+    static void set_mode(int mode_);
+
+    static void grab();
+
 
 };
 

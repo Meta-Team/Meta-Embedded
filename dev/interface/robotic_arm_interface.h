@@ -56,7 +56,7 @@ private:
 
     static CANInterface *can;
 
-    friend CANInterface;
+    friend class CANInterface;
 
 private:
 
