@@ -1,7 +1,7 @@
 //
 // Created by liuzikai on 2019-01-12.
 // Sending function is written by Feng Chuhao
-// Receiving function is written by Qian Cheng
+// Receiving function is written by Qian Chen
 //
 
 /**

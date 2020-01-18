@@ -11,6 +11,7 @@
 
 #include "can_interface.h"
 
+
 class EngineerBase {
 public:
     enum motor_id_t {
@@ -26,10 +27,10 @@ class EngineerInterface : public EngineerBase {
 public:
     static float present_angle[MOTOR_COUNT];
     static float present_velocity[MOTOR_COUNT];
-    static float target_current[MOTOR_COUNT];
+    static int16_t target_current[MOTOR_COUNT];
 
-    void init();
-    int data_to_can();
+    static void init();
+    static int data_to_can();
 
 private:
     static CANInterface * can;

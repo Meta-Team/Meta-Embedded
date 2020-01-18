@@ -7,7 +7,6 @@
 
 #include "ch.hpp"
 #include "hal.h"
-#include "robotic_arm_interface.h"
 #include "pid_controller.hpp"
 #include "vehicle/engineer/vehicle_engineer.h"
 #include "engineer_interface.h"
@@ -28,7 +27,7 @@
 #define CLAMP_PAD GPIOE_PIN12
 #define POWER_PAD GPIOH_POWER4_CTRL
 
-class RoboticArmSKD {
+class RoboticArmSKD: public EngineerBase {
 
 public:
 
@@ -93,10 +92,9 @@ private:
 
     static float trigger_angle;
 
-    static float target_velocity;
+    static float target_velocity[2];
 
-    static PIDController v2i_pid;
-
+    static PIDController v2i_pid[2];
 
     static void update_target_current();
 
