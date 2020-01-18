@@ -331,6 +331,14 @@ add_executable(ut_buzzer
         dev/scheduler/buzzer_scheduler.cpp
         dev/debug/Unit_Tests/ut_buzzer.cpp)
 
+# CAN Interface: include CANInterface
+add_executable(ut_can
+        dev/interface/can_interface.cpp
+        dev/interface/buzzer_interface.cpp
+        dev/debug/shell/shell.cpp
+        dev/interface/led.cpp
+        dev/debug/Unit_Tests/ut_can_interface.cpp)
+
 # Elevator Interface: include CANInterface, ElevatorInterface, and the unit test modules.
 add_executable(ut_elevator_interface
         dev/interface/can_interface.cpp

@@ -112,11 +112,11 @@ protected:
                 actual_velocity[0] = velocity_[0];
                 actual_velocity[1] = velocity_[1];
             } else {
-                actual_angle[0] = GimbalIF::feedback[YAW].actual_angle;
-                actual_angle[1] = GimbalIF::feedback[PITCH].actual_angle;
+                actual_angle[0] = GimbalIF::feedback[YAW]->actual_angle;
+                actual_angle[1] = GimbalIF::feedback[PITCH]->actual_angle;
 
-                actual_velocity[0] = GimbalIF::feedback[YAW].actual_velocity;
-                actual_velocity[1] = GimbalIF::feedback[PITCH].actual_velocity;
+                actual_velocity[0] = GimbalIF::feedback[YAW]->actual_velocity;
+                actual_velocity[1] = GimbalIF::feedback[PITCH]->actual_velocity;
             }
 
             // Calculation and check
@@ -125,12 +125,12 @@ protected:
                 for (unsigned i = YAW; i <= PITCH; i++) {
 
                     // Perform angle check
-                    if (GimbalIF::feedback[i].actual_angle > MAX_ANGLE[i]) {
+                    if (GimbalIF::feedback[i]->actual_angle > MAX_ANGLE[i]) {
                         Shell::printf("!d%cA" SHELL_NEWLINE_STR, MOTOR_CHAR[i]);
                         motor_enabled[i] = false;
                         continue;
                     }
-                    if (GimbalIF::feedback[i].actual_angle < MIN_ANGLE[i]) {
+                    if (GimbalIF::feedback[i]->actual_angle < MIN_ANGLE[i]) {
                         Shell::printf("!d%ca" SHELL_NEWLINE_STR, MOTOR_CHAR[i]);
                         motor_enabled[i] = false;
                         continue;
@@ -153,12 +153,12 @@ protected:
                     }
 
                     // Calculate from velocity to current
-                    GimbalIF::target_current[i] = (int) v2i_pid[i].calc(actual_velocity[i], target_velocity[i]);
+                    *GimbalIF::target_current[i] = (int) v2i_pid[i].calc(actual_velocity[i], target_velocity[i]);
                     // NOTE: Gimbal::target_velocity[i] is either calculated or filled (see above)
 
 
                     // Perform current check
-                    if (GimbalIF::target_current[i] > MAX_CURRENT || GimbalIF::target_current[i] < -MAX_CURRENT) {
+                    if (*GimbalIF::target_current[i] > MAX_CURRENT || *GimbalIF::target_current[i] < -MAX_CURRENT) {
                         Shell::printf("!d%cc" SHELL_NEWLINE_STR, MOTOR_CHAR[i]);
                         motor_enabled[i] = false;
                         continue;
@@ -200,14 +200,14 @@ private:
                               SYSTIME,
                               gimbalThread.actual_angle[YAW], target_angle[YAW],
                               gimbalThread.actual_velocity[YAW], target_v[YAW],
-                              GimbalIF::feedback[YAW].actual_current, GimbalIF::target_current[YAW]);
+                              GimbalIF::feedback[YAW]->actual_current, *GimbalIF::target_current[YAW]);
             }
             if (enable_pitch_feedback) {
                 Shell::printf("!gp,%u,%.2f,%.2f,%.2f,%.2f,%d,%d" SHELL_NEWLINE_STR,
                               SYSTIME,
                               gimbalThread.actual_angle[PITCH], target_angle[PITCH],
                               gimbalThread.actual_velocity[PITCH], target_v[YAW],
-                              GimbalIF::feedback[PITCH].actual_current, GimbalIF::target_current[PITCH]);
+                              GimbalIF::feedback[PITCH]->actual_current, *GimbalIF::target_current[PITCH]);
             }
 
             sleep(TIME_MS2I(GIMBAL_FEEDBACK_INTERVAL));
@@ -281,8 +281,8 @@ static void cmd_gimbal_fix_front_angle(BaseSequentialStream *chp, int argc, char
         shellUsage(chp, "g_fix");
         return;
     }
-    GimbalIF::feedback[YAW].reset_front_angle();
-    GimbalIF::feedback[PITCH].reset_front_angle();
+    GimbalIF::feedback[YAW]->reset_front_angle();
+    GimbalIF::feedback[PITCH]->reset_front_angle();
 
 //    chprintf(chp, "!f" SHELL_NEWLINE_STR);
 }
@@ -428,8 +428,8 @@ int main(void) {
     Shell::start(HIGHPRIO-5);
     Shell::addCommands(gimbalCotrollerCommands);
 
-    can1.start(HIGHPRIO - 6);
-    can2.start(HIGHPRIO - 7);
+    can1.start(HIGHPRIO - 6, HIGHPRIO - 7);
+    can2.start(HIGHPRIO - 8, HIGHPRIO - 9);
 
     /// Setup On-Board AHRS
     Vector3D ahrs_bias;
@@ -443,19 +443,23 @@ int main(void) {
     ahrs.load_calibration_data({-0.644649505f, -0.619945943f, 0.173617705f});
     ahrs.start(ON_BOARD_AHRS_MATRIX_, THREAD_MPU_PRIO, THREAD_IST_PRIO, THREAD_AHRS_PRIO);
 
-    GimbalIF::init(&can1, &can2, GIMBAL_YAW_FRONT_ANGLE_RAW, GIMBAL_PITCH_FRONT_ANGLE_RAW,
-             GimbalIF::GM6020,     GimbalIF::GM6020,
-            GimbalIF::NONE_MOTOR, GimbalIF::NONE_MOTOR,
-            GimbalIF::can_channel_2, GimbalIF::can_channel_1,
-            GimbalIF::NONE, GimbalIF::NONE);
+    GimbalIF::motor_can_config_t canConfig[6] = {{GimbalIF::can_channel_2,5,CANInterface::GM6020},
+                                                 {GimbalIF::can_channel_1,6,CANInterface::GM6020},
+                                                 {GimbalIF::can_channel_1,7,CANInterface::M2006},
+                                                 {GimbalIF::none_can_channel,8,CANInterface::NONE_MOTOR},
+                                                 {GimbalIF::none_can_channel,9,CANInterface::NONE_MOTOR},
+                                                 {GimbalIF::none_can_channel,10,CANInterface::NONE_MOTOR}};
+    GimbalIF::init(&can1, &can2,
+            canConfig,
+            GIMBAL_YAW_FRONT_ANGLE_RAW, GIMBAL_PITCH_FRONT_ANGLE_RAW);
 
     gimbalFeedbackThread.start(NORMALPRIO - 1);
     gimbalThread.start(NORMALPRIO);
 
     chThdSleepMilliseconds(1000);
     LOG("Gimbal Yaw: %u, %f, Pitch: %u, %f",
-        GimbalIF::feedback[GimbalIF::YAW].last_angle_raw, GimbalIF::feedback[GimbalIF::YAW].actual_angle,
-        GimbalIF::feedback[GimbalIF::PITCH].last_angle_raw, GimbalIF::feedback[GimbalIF::PITCH].actual_angle);
+        GimbalIF::feedback[GimbalIF::YAW]->last_angle_raw, GimbalIF::feedback[GimbalIF::YAW]->actual_angle,
+        GimbalIF::feedback[GimbalIF::PITCH]->last_angle_raw, GimbalIF::feedback[GimbalIF::PITCH]->actual_angle);
     // See chconf.h for what this #define means.
 #if CH_CFG_NO_IDLE_THREAD
     // ChibiOS idle thread has been disabled,

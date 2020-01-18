@@ -97,27 +97,27 @@ int ShootSKD::get_plate_target_current() {
 }
 
 float ShootSKD::get_loader_actual_velocity() {
-    return GimbalIF::feedback[GimbalIF::BULLET].actual_velocity * install_position[0];
+    return GimbalIF::feedback[GimbalIF::BULLET]->actual_velocity * install_position[0];
 }
 
 float ShootSKD::get_plate_actual_velocity() {
-    return GimbalIF::feedback[GimbalIF::PLATE].actual_velocity * install_position[1];
+    return GimbalIF::feedback[GimbalIF::PLATE]->actual_velocity * install_position[1];
 }
 
 float ShootSKD::get_loader_accumulated_angle() {
-    return GimbalIF::feedback[GimbalIF::BULLET].accumulated_angle() * install_position[0];
+    return GimbalIF::feedback[GimbalIF::BULLET]->accumulated_angle() * install_position[0];
 }
 
 float ShootSKD::get_plate_accumulated_angle() {
-    return GimbalIF::feedback[GimbalIF::PLATE].accumulated_angle() * install_position[1];
+    return GimbalIF::feedback[GimbalIF::PLATE]->accumulated_angle() * install_position[1];
 }
 
 void ShootSKD::reset_loader_accumulated_angle() {
-    GimbalIF::feedback[GimbalIF::BULLET].reset_front_angle();
+    GimbalIF::feedback[GimbalIF::BULLET]->reset_front_angle();
 }
 
 void ShootSKD::reset_plate_accumulated_angle() {
-    GimbalIF::feedback[GimbalIF::PLATE].reset_front_angle();
+    GimbalIF::feedback[GimbalIF::PLATE]->reset_front_angle();
 }
 
 void ShootSKD::SKDThread::main() {
@@ -129,13 +129,13 @@ void ShootSKD::SKDThread::main() {
             // PID calculation
             for (size_t i = 0; i < 4; i++) {
                 if(i < 2) {
-                    target_velocity[i] = a2v_pid[i].calc(GimbalIF::feedback[2 + i].accumulated_angle() * install_position[i],
+                    target_velocity[i] = a2v_pid[i].calc(GimbalIF::feedback[2 + i]->accumulated_angle() * install_position[i],
                                                          target_angle[i]);
                 }
                 target_current[i] = (int) v2i_pid[i].calc(
-                        GimbalIF::feedback[2 + i].actual_velocity * install_position[i],
+                        GimbalIF::feedback[2 + i]->actual_velocity * install_position[i],
                         target_velocity[i]);
-                GimbalIF::target_current[i + 2] = target_current[i] * install_position[i];
+                *GimbalIF::target_current[i + 2] = target_current[i] * install_position[i];
             }
 
         } else if (mode == FORCED_RELAX_MODE) {
