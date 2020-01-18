@@ -12,6 +12,8 @@
 #ifndef META_INFANTRY_ENGINEER_FUNCTIONS_LOGIC_H
 #define META_INFANTRY_ENGINEER_FUNCTIONS_LOGIC_H
 
+#include"robotic_arm_skd.h"
+#include"engineer_rescue_skd.h"
 
 class engineer_functions_logic {
 public :
@@ -31,3 +33,4 @@ public :
 
 
 #endif //META_INFANTRY_ENGINEER_FUNCTIONS_LOGIC_H
+

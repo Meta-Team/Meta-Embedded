@@ -244,7 +244,7 @@ void UserE::UserActionThread::main() {
                 else EngineerGimbalIF::set_target_angle(288.0f, 110.0f);
             } else if (key_flag & (1U << Remote::KEY_V)) {
                 EngineerElevatorLG::give_bullet();
-                RoboticArmSKD::change_door();
+                EngineerInterface::change_door();
             }
 
             if (key_flag & (1u << Remote::KEY_R)) {

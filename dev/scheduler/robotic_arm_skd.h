@@ -10,7 +10,7 @@
 #include "pid_controller.hpp"
 #include "vehicle/engineer/vehicle_engineer.h"
 #include "engineer_interface.h"
-
+#include "air_tank_interface.h"
 /**
  * Fetch process:
  * 1.   Initially, the robotic arm is stretching out
@@ -21,13 +21,9 @@
  *          when reaching a trigger angle, release the box
  */
 
-#define EXTEND_PAD GPIOE_PIN4
-#define LIFT_PAD GPIOE_PIN5
-#define DOOR_PAD GPIOE_PIN6
-#define CLAMP_PAD GPIOE_PIN12
 #define POWER_PAD GPIOH_POWER4_CTRL
 
-class RoboticArmSKD: public EngineerBase {
+class RoboticArmSKD: public EngineerBase,public air_tank_base {
 
 public:
 
@@ -37,10 +33,8 @@ public:
 
     static RoboticArmThread roboticArmThread;
 
-    enum digital_status_t {
-        LOW_STATUS = PAL_LOW,
-        HIGH_STATUS = PAL_HIGH
-    };
+    static int extend_state;
+    static int clamp_state;
 
     enum robotic_arm_state_t {
         NORMAL,
@@ -72,14 +66,7 @@ public:
     static void prev_step();
 
     static void change_extend();
-    static void change_door();
-    static void change_clamp();
 
-    static digital_status_t door_state, lift_state, extend_state, clamp_state;
-
-    static void change_digital_status(digital_status_t& status, uint8_t pad);
-
-    static void set_digital_status(digital_status_t& status, uint8_t pad, digital_status_t state);
     static robotic_arm_state_t state;
 
     static bullet_state_t bullet_state;
