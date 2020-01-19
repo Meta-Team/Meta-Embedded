@@ -41,7 +41,7 @@ private:
                 *GimbalIF::target_current[GimbalIF::PITCH] = 0;
             }
 
-            GimbalIF::send_gimbal_currents();
+            GimbalIF::enable_gimbal_current_clip();
             sleep(TIME_MS2I(1));
         }
     }

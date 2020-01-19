@@ -24,7 +24,7 @@ CANInterface *GimbalIF::can1_ = nullptr;
 CANInterface *GimbalIF::can2_ = nullptr;
 
 void GimbalIF::init(CANInterface *can1_interface,                      CANInterface *can2_interface,
-                    motor_can_config_t motor_can_config[],
+                    motor_can_config_t motor_can_config[MOTOR_COUNT],
                     uint16_t yaw_front_angle_raw,                      uint16_t pitch_front_angle_raw) {
 
     // Get the CAN address.
@@ -89,7 +89,7 @@ void GimbalIF::init(CANInterface *can1_interface,                      CANInterf
 
 }
 
-void GimbalIF::send_gimbal_currents() {
+void GimbalIF::enable_gimbal_current_clip() {
 
 
 #if GIMBAL_INTERFACE_ENABLE_CLIP

@@ -15,15 +15,56 @@
 
 
 /// Gimbal and Shoot Installation Configurations
-#define GIMBAL_YAW_MOTOR_TYPE     (GimbalIF::RM6623)
-#define GIMBAL_PITCH_MOTOR_TYPE   (GimbalIF::RM6623)
-#define SHOOT_BULLET_MOTOR_TYPE   (GimbalIF::M2006)
-#define SHOOT_PLATE_MOTOR_TYPE    (GimbalIF::NONE_MOTOR)
 
-#define GIMBAL_YAW_CAN_CHANNEL    (GimbalIF::can_channel_2)
-#define GIMBAL_PITCH_CAN_CHANNEL  (GimbalIF::can_channel_1)
-#define GIMBAL_BULLET_CAN_CHANNEL (GimbalIF::can_channel_1)
-#define GIMBAL_PLATE_CAN_CHANNEL  (GimbalIF::NONE)
+#define GIMBAL_YAW_CAN_CHANNEL      (GimbalIF::can_channel_2)
+#define GIMBAL_PITCH_CAN_CHANNEL    (GimbalIF::can_channel_1)
+#define GIMBAL_BULLET_CAN_CHANNEL   (GimbalIF::can_channel_1)
+#define GIMBAL_PLATE_CAN_CHANNEL    (GimbalIF::none_can_channel)
+#define GIMBAL_FW_LEFT_CAN_CHANNEL  (GimbalIF::can_channel_1)
+#define GIMBAL_FW_RIGHT_CAN_CHANNEL (GimbalIF::can_channel_1)
+
+#define GIMBAL_YAW_CAN_ID         4
+#define GIMBAL_PITCH_CAN_ID       5
+#define GIMBAL_BULLET_CAN_ID      6
+#define GIMBAL_PLATE_CAN_ID       7
+#define GIMBAL_FW_LEFT_CAN_ID     2
+#define GIMBAL_FW_RIGHT_CAN_ID    3
+
+#define GIMBAL_YAW_MOTOR_TYPE      (CANInterface::RM6623)
+#define GIMBAL_PITCH_MOTOR_TYPE    (CANInterface::RM6623)
+#define SHOOT_BULLET_MOTOR_TYPE    (CANInterface::M2006)
+#define SHOOT_PLATE_MOTOR_TYPE     (CANInterface::NONE_MOTOR)
+#define GIMBAL_FW_LEFT_MOTOR_TYPE  (CANInterface::M3508)
+#define GIMBAL_FW_RIGHT_MOTOR_TYPE (CANInterface::M3508)
+
+#define GIMBAL_MOTOR_CONFIG \
+{ {GIMBAL_YAW_CAN_CHANNEL,          GIMBAL_YAW_CAN_ID,          GIMBAL_YAW_MOTOR_TYPE}, \
+  {GIMBAL_PITCH_CAN_CHANNEL,        GIMBAL_PITCH_CAN_ID,        GIMBAL_PITCH_MOTOR_TYPE}, \
+  {GIMBAL_BULLET_CAN_CHANNEL,       GIMBAL_BULLET_CAN_ID,       SHOOT_BULLET_MOTOR_TYPE}, \
+  {GIMBAL_PLATE_CAN_CHANNEL,        GIMBAL_PLATE_CAN_ID,        SHOOT_PLATE_MOTOR_TYPE}, \
+  {GIMBAL_FW_LEFT_CAN_CHANNEL,      GIMBAL_FW_LEFT_CAN_ID,      GIMBAL_FW_LEFT_MOTOR_TYPE}, \
+  {GIMBAL_FW_RIGHT_CAN_CHANNEL,     GIMBAL_FW_RIGHT_CAN_ID,     GIMBAL_FW_RIGHT_MOTOR_TYPE} }
+
+#define CHASSIS_FR_CHANNEL      (ChassisIF::can_channel_2)
+#define CHASSIS_FL_CHANNEL      (ChassisIF::can_channel_2)
+#define CHASSIS_BL_CHANNEL      (ChassisIF::can_channel_2)
+#define CHASSIS_BR_CHANNEL      (ChassisIF::can_channel_2)
+
+#define CHASSIS_FR_CAN_ID      0
+#define CHASSIS_FL_CAN_ID      1
+#define CHASSIS_BL_CAN_ID      2
+#define CHASSIS_BR_CAN_ID      3
+
+#define CHASSIS_FR_MOTOR_TYPE  (CANInterface::M3508)
+#define CHASSIS_FL_MOTOR_TYPE  (CANInterface::M3508)
+#define CHASSIS_BL_MOTOR_TYPE  (CANInterface::M3508)
+#define CHASSIS_BR_MOTOR_TYPE  (CANInterface::M3508)
+
+#define CHASSIS_MOTOR_CONFIG \
+{ {CHASSIS_FR_CHANNEL, CHASSIS_FR_CAN_ID, CHASSIS_FR_MOTOR_TYPE}, \
+  {CHASSIS_FL_CHANNEL, CHASSIS_FL_CAN_ID, CHASSIS_FL_MOTOR_TYPE}, \
+  {CHASSIS_BL_CHANNEL, CHASSIS_BL_CAN_ID, CHASSIS_BL_MOTOR_TYPE}, \
+  {CHASSIS_BR_CHANNEL, CHASSIS_BR_CAN_ID, CHASSIS_BR_MOTOR_TYPE} }
 
 #define GIMBAL_YAW_INSTALL_DIRECTION    (GimbalSKD::POSITIVE)
 #define GIMBAL_PITCH_INSTALL_DIRECTION  (GimbalSKD::POSITIVE)
@@ -178,11 +219,14 @@
 #define CHASSIS_BIASED_ANGLE 0
     
 /// Thread Priority List
-#define THREAD_CAN1_PRIO                    (HIGHPRIO - 1)
-#define THREAD_MPU_PRIO                     (HIGHPRIO - 2)
-#define THREAD_IST_PRIO                     (HIGHPRIO - 3)
-#define THREAD_AHRS_PRIO                    (HIGHPRIO - 4)
-#define THREAD_CAN2_PRIO                    (HIGHPRIO - 5)
+#define THREAD_CAN1_FEEDBACK_PRIO           (HIGHPRIO - 1)
+#define THREAD_CAN1_CURRENT_PRIO            (HIGHPRIO - 2)
+#define THREAD_CAN2_FEEDBACK_PRIO           (HIGHPRIO - 3)
+#define THREAD_CAN2_CURRENT_PRIO            (HIGHPRIO - 4)
+#define THREAD_MPU_PRIO                     (HIGHPRIO - 5)
+#define THREAD_IST_PRIO                     (HIGHPRIO - 6)
+#define THREAD_AHRS_PRIO                    (HIGHPRIO - 7)
+#define THREAD_CAN2_PRIO                    (HIGHPRIO - 8)
 #define THREAD_GIMBAL_SKD_PRIO              (NORMALPRIO + 3)
 #define THREAD_CHASSIS_SKD_PRIO             (NORMALPRIO + 2)
 #define THREAD_SHOOT_SKD_PRIO               (NORMALPRIO + 1)

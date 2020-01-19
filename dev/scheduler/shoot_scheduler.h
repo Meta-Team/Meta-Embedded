@@ -24,7 +24,7 @@
  * @note SKD stands for "scheduler"
  * @brief Scheduler to control shooter to meet the target, including a thread to invoke PID calculation in period.
  * @pre GimbalIF and ChassisIF have been initialized properly
- * @pre GimbalSKD has started, since this SKD relies on GimbalSKD to call GimbalIF::send_gimbal_currents()
+ * @pre GimbalSKD has started, since this SKD relies on GimbalSKD to call GimbalIF::enable_gimbal_current_clip()
  * @usage 1. start(), load_pid_params()
  *        2. set_mode() and set_target_angle() as needed
  *        3. Leave the rest of the work to this SKD

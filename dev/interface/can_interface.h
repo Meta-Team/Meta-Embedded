@@ -27,7 +27,7 @@
 #error "CANInterface has not been defined for selected board"
 #endif
 
-#define CAN_INTERFACE_ENABLE_ERROR_FEEDBACK_THREAD   FALSE
+#define CAN_INTERFACE_ENABLE_ERROR_FEEDBACK_THREAD   TRUE
 #define CAN_INTERFACE_ENABLE_VELOCITY_DIFFERENTIAL   TRUE
 #define CAN_INTERFACE_THREAD_WORK_AREA_SIZE   1024  // also used in cpp, do not delete
 

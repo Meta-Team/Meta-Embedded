@@ -51,7 +51,7 @@ public:
  * @pre Hardware is properly set. CAN id of each motor should be the same as motor_id_t.
  * @usage 1. Call init(CANInterface *). The interface should be properly initialized.
  *        2. Read feedback from variables.
- *           Write target current to variables, then call send_chassis_currents to apply changes
+ *           Write target current to variables, then call enable_chassis_current_clip to apply changes
  * @note This module is designed to process feedback automatically, but not to send current automatically, to avoid
  *       unintended chassis movements.
  */
@@ -59,53 +59,46 @@ class ChassisIF : public ChassisBase {
 
 public:
 
+    enum motor_can_channel_t {
+        none_can_channel,
+        can_channel_1,
+        can_channel_2
+    };
+
+    struct motor_can_config_t {
+        motor_can_channel_t motor_can_channel;
+        unsigned motor_can_id;
+        CANInterface::motor_type_t motor_type;
+    };
+
     /**
      * Set CAN interface for receiving and sending
-     * @param can_interface   Initialized CANInterface for chassis motors
+     * @param can1_   Initialized CANInterface for chassis motors
      */
-    static void init(CANInterface* can_interface);
+    static void init(CANInterface* can1_interface, CANInterface *can2_interface, motor_can_config_t motor_can_config[MOTOR_COUNT]);
 
     /** Structure for each motor */
-    struct motor_feedback_t {
-
-        motor_id_t id;
-
-        uint16_t actual_angle_raw;
-        int16_t actual_rpm_raw;
-        int16_t actual_current_raw;
-        uint8_t actual_temperature_raw;
-
-        time_msecs_t last_update_time;
-
-        float actual_velocity; // [degree/s]
-
-    };
 
     /**
      * Feedback for each chassis motor
      */
-    static motor_feedback_t feedback[];
+    static CANInterface::motor_feedback_t *feedback[MOTOR_COUNT];
 
     /**
      * Target current array in the order defined in motor_id_t
      */
-    static int target_current[MOTOR_COUNT];
+    static int *target_current[MOTOR_COUNT];
 
     /**
      * Send all target currents
      * @return Whether sending succeeded or not
      */
-    static bool send_chassis_currents();
+    static bool enable_chassis_current_clip();
 
 private:
 
-    static CANInterface* can;
-
-    /**
-     * Callback function for CANInterface to process motor feedback
-     * @param rxmsg
-     */
-    static void process_chassis_feedback(CANRxFrame const*rxmsg);
+    static CANInterface* can1_;
+    static CANInterface* can2_;
 
     friend CANInterface;
 

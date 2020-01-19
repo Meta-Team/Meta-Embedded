@@ -175,7 +175,7 @@ protected:
             if (!motor_enabled[PITCH]) *GimbalIF::target_current[PITCH] = 0;
 
             // Send currents
-//            GimbalIF::send_gimbal_currents();
+//            GimbalIF::enable_gimbal_current_clip();
 
             sleep(TIME_MS2I(GIMBAL_THREAD_INTERVAL));
         }
@@ -251,7 +251,7 @@ static void cmd_gimbal_enable_fw(BaseSequentialStream *chp, int argc, char *argv
     } else {
         ShootSKD::set_friction_wheels(0);
     }
-//    GimbalIF::send_gimbal_currents();
+//    GimbalIF::enable_gimbal_current_clip();
 }
 
 /**

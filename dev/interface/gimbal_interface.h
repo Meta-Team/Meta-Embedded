@@ -57,7 +57,7 @@ public:
  * @pre PWM pins are set properly in board.h (I5 - alt 3, I6 - alt 3)
  * @usage 1. Call init(CANInterface *). The interface should be properly initialized.
  *        2. Read feedback from variables.
- *           Write target current / duty cycle to variables, then call send_gimbal_currents to apply changes
+ *           Write target current / duty cycle to variables, then call enable_gimbal_current_clip to apply changes
  * @note This module is designed to process feedback automatically, but not to send current automatically, to avoid
  *       unintended gimbal movements.
  * @note About coordinate: all components in this module use original coordinate of EACH motor. DO NOT directly add
@@ -136,7 +136,7 @@ public:
      * Send target_current of each motor
      * @return Whether currents are sent successfully
      */
-    static void send_gimbal_currents();
+    static void enable_gimbal_current_clip();
 
 
 private:
