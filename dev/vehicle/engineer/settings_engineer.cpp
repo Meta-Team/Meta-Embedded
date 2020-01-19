@@ -23,7 +23,7 @@ void cmd_change_door(BaseSequentialStream *chp, int argc, char *argv[]){
         shellUsage(chp, "door");
         return;
     }
-    RoboticArmSKD::change_door();
+    EngineerInterface::change_door();
 }
 
 void cmd_robotic_prev(BaseSequentialStream *chp, int argc, char *argv[]){

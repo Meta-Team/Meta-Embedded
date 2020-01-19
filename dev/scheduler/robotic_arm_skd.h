@@ -35,6 +35,9 @@ public:
 
     static int extend_state;
     static int clamp_state;
+    static int slide_x_state;
+
+    static int should_set_arm_normal;       //used in engineer_auto_logic
 
     enum robotic_arm_state_t {
         NORMAL,
@@ -65,7 +68,14 @@ public:
     static void next_step();
     static void prev_step();
 
-    static void change_extend();
+    /**
+     * a function used by engineer_auto_logic
+     * @param clamp
+     * @param slide_y
+     * @param slide_x
+     * if the input is -1, it means that the value should be maintained
+     */
+    static void set_air_tank(int clamp, int slide_y, int slide_x);
 
     static robotic_arm_state_t state;
 

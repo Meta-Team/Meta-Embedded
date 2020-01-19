@@ -262,7 +262,7 @@ void UserE::UserActionThread::main() {
             }
 
             if (key_flag & (1U << Remote::KEY_Z)) {
-                RoboticArmSKD::change_extend();
+                //RoboticArmSKD::change_extend();
             }
         }
 
