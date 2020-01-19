@@ -265,11 +265,11 @@ void CANInterface::CurrentSendThread::main() {
         }
         for (int i = 4; i < 8; i++) {
             if (motorType[i] != RM6623) {
-                CAN_LOW_TX_FRAME.data8[i * 2 - 8] = (uint8_t) (target_current[i] >> 8);
-                CAN_LOW_TX_FRAME.data8[i * 2 + 1 - 8] = (uint8_t) target_current [i];
+                CAN_HIGH_TX_FRAME.data8[i * 2 - 8] = (uint8_t) (target_current[i] >> 8);
+                CAN_HIGH_TX_FRAME.data8[i * 2 + 1 - 8] = (uint8_t) target_current [i];
             } else {
-                CAN_LOW_TX_FRAME.data8[i * 2 - 8] = (uint8_t) (-target_current[i] >> 8);
-                CAN_LOW_TX_FRAME.data8[i * 2 + 1 - 8] = (uint8_t) -target_current [i];
+                CAN_HIGH_TX_FRAME.data8[i * 2 - 8] = (uint8_t) (-target_current[i] >> 8);
+                CAN_HIGH_TX_FRAME.data8[i * 2 + 1 - 8] = (uint8_t) -target_current [i];
             }
         }
         send_msg(&CAN_LOW_TX_FRAME);

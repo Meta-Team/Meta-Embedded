@@ -16,6 +16,8 @@
 #include "ahrs.h"
 #include "sd_card_interface.h"
 
+#include "buzzer_scheduler.h"
+
 #include "scheduler/gimbal_scheduler.h"
 #include "scheduler/shoot_scheduler.h"
 
@@ -125,16 +127,16 @@ protected:
                 for (unsigned i = YAW; i <= PITCH; i++) {
 
                     // Perform angle check
-                    if (GimbalIF::feedback[i]->actual_angle > MAX_ANGLE[i]) {
-                        Shell::printf("!d%cA" SHELL_NEWLINE_STR, MOTOR_CHAR[i]);
-                        motor_enabled[i] = false;
-                        continue;
-                    }
-                    if (GimbalIF::feedback[i]->actual_angle < MIN_ANGLE[i]) {
-                        Shell::printf("!d%ca" SHELL_NEWLINE_STR, MOTOR_CHAR[i]);
-                        motor_enabled[i] = false;
-                        continue;
-                    }
+//                    if (GimbalIF::feedback[i]->actual_angle > MAX_ANGLE[i]) {
+//                        Shell::printf("!d%cA" SHELL_NEWLINE_STR, MOTOR_CHAR[i]);
+//                        motor_enabled[i] = false;
+//                        continue;
+//                    }
+//                    if (GimbalIF::feedback[i]->actual_angle < MIN_ANGLE[i]) {
+//                        Shell::printf("!d%ca" SHELL_NEWLINE_STR, MOTOR_CHAR[i]);
+//                        motor_enabled[i] = false;
+//                        continue;
+//                    }
 
                         if (enable_a2v_pid) {
                             // Calculate from angle to velocity
@@ -169,11 +171,11 @@ protected:
 
             // This two operations should be after calculation since motor can get disabled if check failed
             // This two operations should always perform, instead of being put in a 'else' block
-            if (!motor_enabled[YAW]) GimbalIF::target_current[YAW] = 0;
-            if (!motor_enabled[PITCH]) GimbalIF::target_current[PITCH] = 0;
+            if (!motor_enabled[YAW]) *GimbalIF::target_current[YAW] = 0;
+            if (!motor_enabled[PITCH]) *GimbalIF::target_current[PITCH] = 0;
 
             // Send currents
-            GimbalIF::send_gimbal_currents();
+//            GimbalIF::send_gimbal_currents();
 
             sleep(TIME_MS2I(GIMBAL_THREAD_INTERVAL));
         }
@@ -249,7 +251,7 @@ static void cmd_gimbal_enable_fw(BaseSequentialStream *chp, int argc, char *argv
     } else {
         ShootSKD::set_friction_wheels(0);
     }
-    GimbalIF::send_gimbal_currents();
+//    GimbalIF::send_gimbal_currents();
 }
 
 /**
@@ -431,6 +433,8 @@ int main(void) {
     can1.start(HIGHPRIO - 6, HIGHPRIO - 7);
     can2.start(HIGHPRIO - 8, HIGHPRIO - 9);
 
+    BuzzerSKD::init(LOWPRIO +1);
+
     /// Setup On-Board AHRS
     Vector3D ahrs_bias;
     if (SDCard::get_data(MPU6500_BIAS_DATA_ID, &ahrs_bias, sizeof(ahrs_bias)) == SDCard::OK) {
@@ -443,9 +447,9 @@ int main(void) {
     ahrs.load_calibration_data({-0.644649505f, -0.619945943f, 0.173617705f});
     ahrs.start(ON_BOARD_AHRS_MATRIX_, THREAD_MPU_PRIO, THREAD_IST_PRIO, THREAD_AHRS_PRIO);
 
-    GimbalIF::motor_can_config_t canConfig[6] = {{GimbalIF::can_channel_2,5,CANInterface::GM6020},
-                                                 {GimbalIF::can_channel_1,6,CANInterface::GM6020},
-                                                 {GimbalIF::can_channel_1,7,CANInterface::M2006},
+    GimbalIF::motor_can_config_t canConfig[6] = {{GimbalIF::can_channel_2,4,CANInterface::GM6020},
+                                                 {GimbalIF::can_channel_1,1,CANInterface::M3508},
+                                                 {GimbalIF::none_can_channel,6,CANInterface::NONE_MOTOR},
                                                  {GimbalIF::none_can_channel,8,CANInterface::NONE_MOTOR},
                                                  {GimbalIF::none_can_channel,9,CANInterface::NONE_MOTOR},
                                                  {GimbalIF::none_can_channel,10,CANInterface::NONE_MOTOR}};
@@ -455,6 +459,8 @@ int main(void) {
 
     gimbalFeedbackThread.start(NORMALPRIO - 1);
     gimbalThread.start(NORMALPRIO);
+
+    BuzzerSKD::play_sound(BuzzerSKD::sound_nyan_cat);
 
     chThdSleepMilliseconds(1000);
     LOG("Gimbal Yaw: %u, %f, Pitch: %u, %f",

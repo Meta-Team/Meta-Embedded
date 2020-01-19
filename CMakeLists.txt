@@ -418,6 +418,7 @@ add_executable(pa_gimbal
         dev/module/pid_controller.hpp
         dev/scheduler/gimbal_scheduler.cpp
         dev/scheduler/shoot_scheduler.cpp
+        dev/scheduler/buzzer_scheduler.cpp
         dev/interface/ahrs/ahrs.cpp
         dev/debug/Param_Adjusts/pa_gimbal.cpp)
 target_compile_definitions(pa_gimbal PRIVATE SHELL_NO_ECHO_MODE)
