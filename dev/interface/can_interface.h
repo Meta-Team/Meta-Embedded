@@ -231,7 +231,7 @@ private:
 
     class CurrentSendThread : public chibios_rt::BaseStaticThread<512> {
     public:
-        CurrentSendThread(CANDriver *can_driver_) :
+        explicit CurrentSendThread(CANDriver *can_driver_) :
                 can_driver(can_driver_) {}
         CANDriver *can_driver;
         motor_type_t motorType[8];
@@ -248,7 +248,7 @@ private:
     class ProcessFeedbackThread : public chibios_rt::BaseStaticThread<CAN_INTERFACE_THREAD_WORK_AREA_SIZE> {
     public:
 
-        ProcessFeedbackThread(CANDriver *can_driver_) :
+        explicit ProcessFeedbackThread(CANDriver *can_driver_) :
         can_driver(can_driver_) {}
         CANDriver *can_driver;
 

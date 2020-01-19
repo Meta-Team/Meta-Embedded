@@ -91,7 +91,16 @@ CANInterface::motor_feedback_t *CANInterface::get_feedback_address(unsigned id) 
 }
 
 void CANInterface::ProcessFeedbackThread::main() {
-
+    /**
+     * Note that there are two can instances defined in the main function at the very first beginning,
+     * so the can1 and can2 has independent thread.
+     * The two threads have there own scope of data and two cans will only process their own feedback data;
+     * That's why the pointer fb defined below knows which can wire does the motor feedback signal belongs to:
+     *      motor_feedback_t *fb;
+     *      fb = &feedback[rxmsg.SID - 0x201];
+     * Note that this feedback array represents all the motors ever loaded to this can and the maximal number is 8:
+     *      motor_feedback_t feedback[MAXIMUM_MOTOR_COUNT + 1];
+     */
     if (can_driver == &CAND1) {
         setName("FEEDBACK_CAN1");
     } else if (can_driver == &CAND2) {
@@ -120,7 +129,7 @@ void CANInterface::ProcessFeedbackThread::main() {
             if (new_actual_angle_raw > 8191) return;
 
             motor_feedback_t *fb;
-
+            //pointer fb points to the corresponding motor feedback structure defined in the processFeedbackThread
             fb = &feedback[rxmsg.SID - 0x201];
 
             /// Calculate the angle movement in raw data
