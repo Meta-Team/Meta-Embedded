@@ -54,17 +54,17 @@ float target_v[2] = {0.0, 0.0};
 
 // INFANTRY AHRS PARAMETERS
 // Depends on the install direction of the board
-#define ON_BOARD_AHRS_MATRIX {{0.0f, 0.0f, 1.0f}, \
+#define ON_BOARD_AHRS_MATRIX {{0.0f, -1.0f, 0.0f}, \
                               {1.0f, 0.0f, 0.0f}, \
-                              {0.0f, 1.0f, 0.0f}}
+                              {0.0f, 0.0f, 1.0f}}
 
 #define GIMBAL_ANGLE_INSTALLATION_MATRIX {{1.0f, 0.0f, 0.0f}, \
                                           {0.0f, 1.0f, 0.0f}, \
                                           {0.0f, 0.0f, -1.0f}}
 
 
-#define GIMBAL_GYRO_INSTALLATION_MATRIX {{0.0f,  -1.0f, 0.0f}, \
-                                         {0.0f,  0.0f,  1.0f}, \
+#define GIMBAL_GYRO_INSTALLATION_MATRIX {{0.0f,  1.0f, 0.0f}, \
+                                         {0.0f,  0.0f,  -1.0f}, \
                                          {-1.0f, 0.0f,  0.0f}}
 
 static const Matrix33 ON_BOARD_AHRS_MATRIX_ = ON_BOARD_AHRS_MATRIX;
@@ -73,7 +73,7 @@ static const Matrix33 GIMBAL_GYRO_INSTALLATION_MATRIX_ = GIMBAL_GYRO_INSTALLATIO
 
 #define MPU6500_BIAS_DATA_ID 0x0001
 // INFANTRY FOUR
-#define MPU6500_STORED_GYRO_BIAS {1.066994547f, -1.946273088f, 0.247857689f}
+#define MPU6500_STORED_GYRO_BIAS {1.142140388f, -1.022603631f, 0.125763729f}
 
 #define THREAD_CAN1_PRIO                    (HIGHPRIO - 1)
 #define THREAD_MPU_PRIO                     (HIGHPRIO - 2)
@@ -107,10 +107,10 @@ protected:
 
                 // TODO: document calculations here
                 actual_angle[0] = ahrs_angle.x;
-                actual_angle[1] = ahrs_angle.z + 90.0f;
+                actual_angle[1] = ahrs_angle.y;
                 float velocity_[2] = {
                         ahrs_gyro.x * cosf(ahrs_angle.y / 180.0f * M_PI) + ahrs_gyro.z * sinf(ahrs_angle.y / 180.0f * M_PI),
-                        ahrs_gyro.z};
+                        ahrs_gyro.y};
                 actual_velocity[0] = velocity_[0];
                 actual_velocity[1] = velocity_[1];
             } else {
@@ -448,7 +448,7 @@ int main(void) {
     ahrs.start(ON_BOARD_AHRS_MATRIX_, THREAD_MPU_PRIO, THREAD_IST_PRIO, THREAD_AHRS_PRIO);
 
     GimbalIF::motor_can_config_t canConfig[6] = {{GimbalIF::can_channel_2,4,CANInterface::GM6020},
-                                                 {GimbalIF::can_channel_1,1,CANInterface::M3508},
+                                                 {GimbalIF::can_channel_1,5,CANInterface::GM6020},
                                                  {GimbalIF::none_can_channel,6,CANInterface::NONE_MOTOR},
                                                  {GimbalIF::none_can_channel,8,CANInterface::NONE_MOTOR},
                                                  {GimbalIF::none_can_channel,9,CANInterface::NONE_MOTOR},
@@ -460,7 +460,7 @@ int main(void) {
     gimbalFeedbackThread.start(NORMALPRIO - 1);
     gimbalThread.start(NORMALPRIO);
 
-    BuzzerSKD::play_sound(BuzzerSKD::sound_nyan_cat);
+    BuzzerSKD::play_sound(BuzzerSKD::sound_kong_fu_FC);
 
     chThdSleepMilliseconds(1000);
     LOG("Gimbal Yaw: %u, %f, Pitch: %u, %f",

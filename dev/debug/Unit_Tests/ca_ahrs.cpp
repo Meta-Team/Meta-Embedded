@@ -18,6 +18,19 @@
 #include "vehicle_hero.h"
 #endif
 
+#define ON_BOARD_AHRS_MATRIX2 {{0.0f, 1.0f, 0.0f}, \
+                              {1.0f, 0.0f, 0.0f}, \
+                              {0.0f, 0.0f, 1.0f}}
+
+#define GIMBAL_ANGLE_INSTALLATION_MATRIX {{1.0f, 0.0f, 0.0f}, \
+                                          {0.0f, 1.0f, 0.0f}, \
+                                          {0.0f, 0.0f, -1.0f}}
+
+
+#define GIMBAL_GYRO_INSTALLATION_MATRIX {{0.0f,  -1.0f, 0.0f}, \
+                                         {0.0f,  0.0f,  1.0f}, \
+                                         {-1.0f, 0.0f,  0.0f}}
+
 AHRSOnBoard ahrs;
 
 Vector3D bias_sum;
@@ -81,7 +94,7 @@ ShellCommand sdCommands[] = {
         {nullptr,    nullptr}
 };
 
-static const Matrix33 ON_BOARD_AHRS_MATRIX_ = ON_BOARD_AHRS_MATRIX;
+static const Matrix33 ON_BOARD_AHRS_MATRIX_ = ON_BOARD_AHRS_MATRIX2;
 
 int main(void) {
     halInit();

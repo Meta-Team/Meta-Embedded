@@ -99,6 +99,16 @@ void InspectorI::startup_check_chassis_feedback() {
 void InspectorI::startup_check_gimbal_feedback() {
     time_msecs_t t = SYSTIME;
     while (WITHIN_RECENT_TIME(t, 20)) {
+        if (not WITHIN_RECENT_TIME(GimbalIF::feedback[GimbalIF::FW_LEFT]->last_update_time, 5)) {
+            // No feedback in last 5 ms (normal 1 ms)
+            LOG_ERR("Startup - Gimbal FW_LEFT offline.");
+            t = SYSTIME;  // reset the counter
+        }
+        if (not WITHIN_RECENT_TIME(GimbalIF::feedback[GimbalIF::FW_RIGHT]->last_update_time, 5)) {
+            // No feedback in last 5 ms (normal 1 ms)
+            LOG_ERR("Startup - Gimbal FW_RIGHT offline.");
+            t = SYSTIME;  // reset the counter
+        }
         if (not WITHIN_RECENT_TIME(GimbalIF::feedback[GimbalIF::YAW]->last_update_time, 5)) {
             // No feedback in last 5 ms (normal 1 ms)
             LOG_ERR("Startup - Gimbal Yaw offline.");
@@ -132,7 +142,7 @@ bool InspectorI::remote_failure() {
 
 bool InspectorI::check_gimbal_failure() {
     bool ret = false;
-    for (unsigned i = 0; i < 4; i++) {
+    for (unsigned i = 0; i < 6; i++) {
         if (not WITHIN_RECENT_TIME(GimbalIF::feedback[i]->last_update_time, 20) &&
                                             GimbalIF::feedback[i]->type != CANInterface::NONE_MOTOR) {
             if (!gimbal_failure_) {  // avoid repeating printing

@@ -14,20 +14,28 @@
 using namespace chibios_rt;
 
 static constexpr Matrix33 AHRS_MATRIX = {{0.0f, 0.0f, 1.0f},
-                                                  {1.0f, 0.0f, 0.0f},
-                                                  {0.0f, 1.0f, 0.0f}};
+                                         {1.0f, 0.0f, 0.0f},
+                                         {0.0f, 1.0f, 0.0f}};
 
 
+
+//static constexpr Matrix33 ANGLE_INSTALLATION_MATRIX = {{1.0f, 0.0f, 0.0f},
+//                                                              {0.0f, 1.0f, 0.0f},
+//                                                              {0.0f, 0.0f, -1.0f}};
+//
+//
+//static constexpr Matrix33 GYRO_INSTALLATION_MATRIX = {{0.0f,  -1.0f, 0.0f},
+//                                                             {0.0f,  0.0f,  1.0f},
+//                                                             {-1.0f, 0.0f,  0.0f}};
 
 static constexpr Matrix33 ANGLE_INSTALLATION_MATRIX = {{1.0f, 0.0f, 0.0f},
-                                                              {0.0f, 1.0f, 0.0f},
-                                                              {0.0f, 0.0f, -1.0f}};
+                                                       {0.0f, 1.0f, 0.0f},
+                                                       {0.0f, 0.0f, 1.0f}};
 
 
-static constexpr Matrix33 GYRO_INSTALLATION_MATRIX = {{0.0f,  -1.0f, 0.0f},
-                                                             {0.0f,  0.0f,  1.0f},
-                                                             {-1.0f, 0.0f,  0.0f}};
-
+static constexpr Matrix33 GYRO_INSTALLATION_MATRIX = {{1.0f,  0.0f, 0.0f},
+                                                             {0.0f,  1.0f,  0.0f},
+                                                             {0.0f, 0.0f,  1.0f}};
 AHRSOnBoard ahrs;
 
 class AHRSFeedbackThread : public BaseStaticThread<1024> {
@@ -40,10 +48,10 @@ protected:
         BuzzerSKD::play_sound(BuzzerSKD::sound_startup);
         while (!shouldTerminate()) {
             Vector3D angle = ahrs.get_angle() * ANGLE_INSTALLATION_MATRIX;
-//            Shell::printf("!a,%.4f,%.4f,%.4f" SHELL_NEWLINE_STR,
-//                          angle.x,
-//                          angle.y,
-//                          angle.z);
+            Shell::printf("!a,%.4f,%.4f,%.4f" SHELL_NEWLINE_STR,
+                          angle.x,
+                          angle.y,
+                          angle.z);
             Vector3D gyro = ahrs.get_gyro() * GYRO_INSTALLATION_MATRIX;
 //            Shell::printf("gyro ,%.4f,%.4f,%.4f" SHELL_NEWLINE_STR,
 //                          gyro.x,
