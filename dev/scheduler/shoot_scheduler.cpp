@@ -13,7 +13,7 @@
 
 #include "shoot_scheduler.h"
 
-ShootSKD::install_direction_t ShootSKD::install_position[2];
+ShootSKD::install_direction_t ShootSKD::install_position[4];
 
 ShootSKD::mode_t ShootSKD::mode = FORCED_RELAX_MODE;
 
@@ -30,6 +30,8 @@ void ShootSKD::start(ShootSKD::install_direction_t loader_install_, ShootSKD::in
                      tprio_t thread_prio) {
     install_position[0] = loader_install_;
     install_position[1] = plate_install_;
+    install_position[2] = NEGATIVE;
+    install_position[3] = POSITIVE;
 
     skdThread.start(thread_prio);
 }
@@ -140,8 +142,11 @@ void ShootSKD::SKDThread::main() {
 
         } else if (mode == FORCED_RELAX_MODE) {
 
-            GimbalIF::target_current[GimbalIF::BULLET] = GimbalIF::target_current[GimbalIF::PLATE] = 0;
-            GimbalIF::target_current[GimbalIF::FW_LEFT] = GimbalIF::target_current[GimbalIF::FW_RIGHT] = 0;
+            *GimbalIF::target_current[GimbalIF::BULLET] = 0;
+            *GimbalIF::target_current[GimbalIF::PLATE] = 0;
+            *GimbalIF::target_current[GimbalIF::FW_LEFT] = 0;
+            *GimbalIF::target_current[GimbalIF::FW_RIGHT] = 0;
+
         }
 
         // Send currents with GimbalSKD (has smaller SKD_THREAD_INTERVAL)

@@ -174,7 +174,7 @@ public:
 
 private:
 
-    static install_direction_t install_position[2];
+    static install_direction_t install_position[4];
 
     static mode_t mode;
 

@@ -18,7 +18,8 @@
 #include "vehicle_hero.h"
 #endif
 
-#define ON_BOARD_AHRS_MATRIX2 {{0.0f, 1.0f, 0.0f}, \
+// Depends on the install direction of the board
+#define ON_BOARD_AHRS_MATRIX2 {{0.0f, -1.0f, 0.0f}, \
                               {1.0f, 0.0f, 0.0f}, \
                               {0.0f, 0.0f, 1.0f}}
 

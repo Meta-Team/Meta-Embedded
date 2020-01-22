@@ -59,7 +59,7 @@ public:
      * @param feedback_prio   Thread priority of the receiving thread
      * @return A reference to the created thread
      */
-    chibios_rt::ThreadReference start(tprio_t feedback_prio, tprio_t send_current_prio);
+    void start(tprio_t feedback_prio, tprio_t send_current_prio);
 
     static constexpr unsigned MAXIMUM_MOTOR_COUNT = 8;
 
@@ -235,7 +235,7 @@ private:
                 can_driver(can_driver_) {}
         CANDriver *can_driver;
         motor_type_t motorType[8];
-        int target_current[MAXIMUM_MOTOR_COUNT];
+        int target_current[MAXIMUM_MOTOR_COUNT] = {0};
 
     private:
         bool send_msg(const CANTxFrame *txmsg);

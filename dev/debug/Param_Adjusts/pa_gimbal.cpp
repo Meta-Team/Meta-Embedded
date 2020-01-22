@@ -35,7 +35,7 @@ unsigned const GIMBAL_FEEDBACK_INTERVAL = 25; // [ms]
 
 float const MIN_ANGLE[2] = {-170, -80};    // [degree]
 float const MAX_ANGLE[2] = {170, 80};      // [degree]
-float const MAX_VELOCITY[2] = {600, 300};  // absolute maximum, [degree/s]
+float const MAX_VELOCITY[2] = {1000, 1000};  // absolute maximum, [degree/s]
 int const MAX_CURRENT = 20000;  // [mA]
 
 bool motor_enabled[2] = {false, false};
@@ -148,11 +148,11 @@ protected:
 
                     // Perform velocity check
 
-                    if (actual_velocity[i] > MAX_VELOCITY[i]) {
-                        Shell::printf("!d%cv" SHELL_NEWLINE_STR, MOTOR_CHAR[i]);
-                        motor_enabled[i] = false;
-                        continue;
-                    }
+//                    if (actual_velocity[i] > MAX_VELOCITY[i]) {
+//                        Shell::printf("!d%cv" SHELL_NEWLINE_STR, MOTOR_CHAR[i]);
+//                        motor_enabled[i] = false;
+//                        continue;
+//                    }
 
                     // Calculate from velocity to current
                     *GimbalIF::target_current[i] = (int) v2i_pid[i].calc(actual_velocity[i], target_velocity[i]);
@@ -208,7 +208,7 @@ private:
                 Shell::printf("!gp,%u,%.2f,%.2f,%.2f,%.2f,%d,%d" SHELL_NEWLINE_STR,
                               SYSTIME,
                               gimbalThread.actual_angle[PITCH], target_angle[PITCH],
-                              gimbalThread.actual_velocity[PITCH], target_v[YAW],
+                              gimbalThread.actual_velocity[PITCH], target_v[PITCH],
                               GimbalIF::feedback[PITCH]->actual_current, *GimbalIF::target_current[PITCH]);
             }
 

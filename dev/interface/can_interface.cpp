@@ -39,7 +39,7 @@ void CANInterface::ErrorFeedbackThread::main() {
 #endif
 
 
-chibios_rt::ThreadReference CANInterface::start(tprio_t feedback_prio, tprio_t send_current_prio) {
+void CANInterface::start(tprio_t feedback_prio, tprio_t send_current_prio) {
     canStart(can_driver, &can_cfg);
 #if (CAN_INTERFACE_ENABLE_ERROR_FEEDBACK_THREAD == TRUE)
     errorFeedbackThread.can_driver = can_driver;

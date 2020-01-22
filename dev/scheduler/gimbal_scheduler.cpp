@@ -56,7 +56,7 @@ GimbalSKD::start(AbstractAHRS *gimbal_ahrs_, const Matrix33 ahrs_angle_rotation_
 
     // FIXME: find a more elegant way to handle this 
 #if defined(SENTRY) || defined(AERIAL)
-    last_angle[YAW] = GimbalIF::feedback[GimbalIF::YAW].actual_angle * yaw_install;
+    last_angle[YAW] = GimbalIF::feedback[GimbalIF::YAW]->actual_angle * yaw_install;
 #else
     last_angle[YAW] = ahrs_angle.x - GimbalIF::feedback[GimbalIF::YAW]->actual_angle * yaw_install;
     // For initial moment, angle_movement = ahrs_angle.x - last_angle[YAW] = GimbalIF::feedback[YAW].actual_angle
