@@ -345,7 +345,7 @@ static void cmd_gimbal_set_target_angle(BaseSequentialStream *chp, int argc, cha
 void cmd_gimbal_set_parameters(BaseSequentialStream *chp, int argc, char *argv[]) {
     (void) argv;
     if (argc != 7) {
-        shellUsage(chp, "g_set_params yaw(0)/pitch(1) angle_to_v(0)/v_to_i(0) ki kp kd i_limit out_limit");
+        shellUsage(chp, "g_set_params yaw(0)/pitch(1) angle_to_v(0)/v_to_i(1) ki kp kd i_limit out_limit");
         chprintf(chp, "!pe" SHELL_NEWLINE_STR);  // echo parameters error
         return;
     }
@@ -429,7 +429,7 @@ int main(void) {
     LED::all_off();
     Shell::start(HIGHPRIO-5);
     Shell::addCommands(gimbalCotrollerCommands);
-
+    chThdSleepMilliseconds(400);
     can1.start(HIGHPRIO - 6, HIGHPRIO - 7);
     can2.start(HIGHPRIO - 8, HIGHPRIO - 9);
 
@@ -460,7 +460,7 @@ int main(void) {
     gimbalFeedbackThread.start(NORMALPRIO - 1);
     gimbalThread.start(NORMALPRIO);
 
-    BuzzerSKD::play_sound(BuzzerSKD::sound_kong_fu_FC);
+    //BuzzerSKD::play_sound(BuzzerSKD::sound_kong_fu_FC);
 
     chThdSleepMilliseconds(1000);
     LOG("Gimbal Yaw: %u, %f, Pitch: %u, %f",

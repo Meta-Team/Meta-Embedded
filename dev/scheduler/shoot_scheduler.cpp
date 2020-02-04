@@ -91,11 +91,11 @@ float ShootSKD::get_friction_wheels_duty_cycle() {
 }
 
 int ShootSKD::get_loader_target_current() {
-    return target_current[0];
+    return ShootSKD::target_current[0];
 }
 
 int ShootSKD::get_plate_target_current() {
-    return target_current[1];
+    return ShootSKD::target_current[1];
 }
 
 float ShootSKD::get_loader_actual_velocity() {
@@ -134,10 +134,10 @@ void ShootSKD::SKDThread::main() {
                     target_velocity[i] = a2v_pid[i].calc(GimbalIF::feedback[2 + i]->accumulated_angle() * install_position[i],
                                                          target_angle[i]);
                 }
-                target_current[i] = (int) v2i_pid[i].calc(
+                ShootSKD::target_current[i] = (int) v2i_pid[i].calc(
                         GimbalIF::feedback[2 + i]->actual_velocity * install_position[i],
                         target_velocity[i]);
-                *GimbalIF::target_current[i + 2] = target_current[i] * install_position[i];
+                *GimbalIF::target_current[i + 2] = ShootSKD::target_current[i] * install_position[i];
             }
 
         } else if (mode == FORCED_RELAX_MODE) {
