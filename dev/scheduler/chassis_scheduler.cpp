@@ -62,6 +62,10 @@ void ChassisSKD::start(float wheel_base, float wheel_tread, float wheel_circumfe
     skdThread.start(thread_prio);
 }
 
+PIDController::pid_params_t ChassisSKD::echo_pid_params() {
+    return v2i_pid->get_parameters();
+}
+
 void ChassisSKD::load_pid_params(PIDControllerBase::pid_params_t theta2v_pid_params,
                                  PIDControllerBase::pid_params_t v2i_pid_params) {
     a2v_pid.change_parameters(theta2v_pid_params);

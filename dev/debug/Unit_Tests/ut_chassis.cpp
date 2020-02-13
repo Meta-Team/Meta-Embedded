@@ -7,13 +7,21 @@
 
 #include "led.h"
 #include "debug/shell/shell.h"
-#include "scheduler/chassis_scheduler.h"
+#include "chassis_scheduler.h"
 
-#include "vehicle/hero/vehicle_hero.h"
+#include "vehicle/infantry/vehicle_infantry.h"
 
 using namespace chibios_rt;
 
+CANInterface can1(&CAND1);
 CANInterface can2(&CAND2);
+float target_velocity[4];
+int target_current[4];
+PIDController v2i_pid[4];
+int install_mode_ = 1;
+float v_to_wheel_angular_velocity_ = 0.0f;
+float w_to_v_ratio_ = 0.0f;
+float chassis_gimbal_offset_ = 0.0f;
 
 float target_vx = 0.0f; // [mm/s]
 float target_vy = 0.0f; // [mm/s]
@@ -45,6 +53,26 @@ static void cmd_chassis_set_target(BaseSequentialStream *chp, int argc, char *ar
 
 }
 
+static void velocity_decompose_(float vx, float vy, float w) {
+
+    // FR, +vx, -vy, +w
+    // FL, +vx, +vy, +w, since the motor is installed in the opposite direction
+    // BL, -vx, +vy, +w, since the motor is installed in the opposite direction
+    // BR, -vx, -vy, +w
+
+    target_velocity[ChassisSKD::FR] = install_mode_ * (+vx - vy + w * w_to_v_ratio_) * v_to_wheel_angular_velocity_;
+    target_current[ChassisSKD::FR] = (int) v2i_pid[ChassisSKD::FR].calc(ChassisIF::feedback[ChassisSKD::FR]->actual_velocity, target_velocity[ChassisSKD::FR]);
+
+    target_velocity[ChassisSKD::FL] = install_mode_ * (+vx + vy + w * w_to_v_ratio_) * v_to_wheel_angular_velocity_;
+    target_current[ChassisSKD::FL] = (int) v2i_pid[ChassisSKD::FL].calc(ChassisIF::feedback[ChassisSKD::FL]->actual_velocity, target_velocity[ChassisSKD::FL]);
+
+    target_velocity[ChassisSKD::BL] = install_mode_ * (-vx + vy + w * w_to_v_ratio_) * v_to_wheel_angular_velocity_;
+    target_current[ChassisSKD::BL] = (int) v2i_pid[ChassisSKD::BL].calc(ChassisIF::feedback[ChassisSKD::BL]->actual_velocity, target_velocity[ChassisSKD::BL]);
+
+    target_velocity[ChassisSKD::BR] = install_mode_ * (-vx - vy + w * w_to_v_ratio_) * v_to_wheel_angular_velocity_;
+    target_current[ChassisSKD::BR] = (int) v2i_pid[ChassisSKD::BR].calc(ChassisIF::feedback[ChassisSKD::BR]->actual_velocity, target_velocity[ChassisSKD::BR]);
+}
+
 /**
  * @brief set chassis common PID params
  * @param chp
@@ -58,16 +86,18 @@ static void cmd_chassis_set_parameters(BaseSequentialStream *chp, int argc, char
         chprintf(chp, "!cpe" SHELL_NEWLINE_STR);  // echo chassis parameters error
         return;
     }
-
-
-    Chassis::change_pid_params({Shell::atof(argv[0]),
-                                Shell::atof(argv[1]),
-                                Shell::atof(argv[2]),
-                                Shell::atof(argv[3]),
-                                Shell::atof(argv[4])});
-    for (int i = 0; i < Chassis::MOTOR_COUNT; i++) {
-        Chassis::pid[i].clear_i_out();
+    for (int i = 0; i < 4; i++) {
+        v2i_pid[i].change_parameters({Shell::atof(argv[0]),
+                                         Shell::atof(argv[1]),
+                                         Shell::atof(argv[2]),
+                                         Shell::atof(argv[3]),
+                                         Shell::atof(argv[4])});
     }
+    ChassisSKD::load_pid_params( CHASSIS_DODGE_PID_THETA2V_PARAMS, {Shell::atof(argv[0]),
+                                   Shell::atof(argv[1]),
+                                   Shell::atof(argv[2]),
+                                   Shell::atof(argv[3]),
+                                   Shell::atof(argv[4])});
     chprintf(chp, "!cps" SHELL_NEWLINE_STR); // echo chassis parameters set
 }
 
@@ -83,7 +113,7 @@ static void cmd_chassis_echo_parameters(BaseSequentialStream *chp, int argc, cha
         shellUsage(chp, "c_echo_params");
         return;
     }
-    Chassis::pid_params_t p = Chassis::pid[0].get_parameters();  // all PID params should be the same
+    PIDController::pid_params_t p = v2i_pid[0].get_parameters(); // all PID params should be the same
     chprintf(chp, "Chassis PID: %f %f %f %f %f" SHELL_NEWLINE_STR, p.kp, p.ki, p.kd, p.i_limit, p.out_limit);
 }
 
@@ -102,18 +132,50 @@ private:
         while (!shouldTerminate()) {
             Shell::printf("!cv,%u,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f" SHELL_NEWLINE_STR,
                           TIME_I2MS(chibios_rt::System::getTime()),
-                          Chassis::feedback[0].actual_velocity,
-                          Chassis::target_velocity[0],
-                          Chassis::feedback[1].actual_velocity,
-                          Chassis::target_velocity[1],
-                          Chassis::feedback[2].actual_velocity,
-                          Chassis::target_velocity[2],
-                          Chassis::feedback[3].actual_velocity,
-                          Chassis::target_velocity[3]);
+                          ChassisIF::feedback[0]->actual_velocity,
+                          target_velocity[0],
+                          ChassisIF::feedback[1]->actual_velocity,
+                          target_velocity[1],
+                          ChassisIF::feedback[2]->actual_velocity,
+                          target_velocity[2],
+                          ChassisIF::feedback[3]->actual_velocity,
+                          target_velocity[3]);
             sleep(TIME_MS2I(CHASSIS_FEEDBACK_INTERVAL));
         }
     }
 } chassisFeedbackThread;
+
+class ChassisPIDThread : public BaseStaticThread<512> {
+private:
+    int timeTrig = SYSTIME+1000;
+    bool ison = false;
+    void main() final {
+        setName("chassisPID");
+        while(!shouldTerminate()) {
+            if(SYSTIME>timeTrig) {
+                if(ison) {
+                    LED::led_off(2);
+                } else {
+                    LED::led_on(2);
+                }
+                timeTrig+=1000;
+                ison = !ison;
+            }
+            if(SYSTIME < test_end_time) {
+                velocity_decompose_(target_vx, target_vy, target_w);
+                for (int i = 0; i < 4; i++ ){
+                    *ChassisIF::target_current[i] = target_current[i];
+                }
+            } else {
+                for (int i = 0; i < 4; i++ ) {
+                    target_velocity[i] = 0.0f;
+                    *ChassisIF::target_current[i] = 0;
+                }
+            }
+            sleep(TIME_MS2I(CHASSIS_FEEDBACK_INTERVAL));
+        }
+    }
+} chassisPidThread;
 
 int main(void) {
     
@@ -121,15 +183,21 @@ int main(void) {
     System::init();
 
     // Start ChibiOS shell at high priority, so even if a thread stucks, we still have access to shell.
-    Shell::start(HIGHPRIO);
+    Shell::start(HIGHPRIO-4);
     Shell::addCommands(chassisCommands);
 
-    can2.start(HIGHPRIO - 1);
+    can1.start(HIGHPRIO-2, HIGHPRIO-3);
+    can2.start(HIGHPRIO, HIGHPRIO - 1);
 
     chassisFeedbackThread.start(NORMALPRIO - 1);
+    ChassisIF::motor_can_config_t CHASSIS_MOTOR_CONFIG_[ChassisIF::MOTOR_COUNT] = CHASSIS_MOTOR_CONFIG;
+    ChassisIF::init(&can1, &can2, CHASSIS_MOTOR_CONFIG_);
 
-    ChassisIF::init();
-    ChassisScheduler.start(CHASSIS_WHEEL_BASE, CHASSIS_WHEEL_TREAD, CHASSIS_WHEEL_CIRCUMFERENCE, NORMALPRIO);
+    v_to_wheel_angular_velocity_ = (360.0f / CHASSIS_WHEEL_CIRCUMFERENCE);
+    chassis_gimbal_offset_ = 0;
+    install_mode_ = 1;
+    LED::led_on(1);
+    chassisPidThread.start(NORMALPRIO);
 
     // See chconf.h for what this #define means.
 #if CH_CFG_NO_IDLE_THREAD
