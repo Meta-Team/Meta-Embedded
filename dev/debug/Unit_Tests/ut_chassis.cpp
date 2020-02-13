@@ -196,6 +196,9 @@ int main(void) {
     v_to_wheel_angular_velocity_ = (360.0f / CHASSIS_WHEEL_CIRCUMFERENCE);
     chassis_gimbal_offset_ = 0;
     install_mode_ = 1;
+
+    w_to_v_ratio_ = (CHASSIS_WHEEL_BASE + CHASSIS_WHEEL_TREAD) / 2.0f / 360.0f * 3.14159f;
+
     LED::led_on(1);
     chassisPidThread.start(NORMALPRIO);
 
