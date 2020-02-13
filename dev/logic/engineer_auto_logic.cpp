@@ -15,12 +15,10 @@ void engineer_auto_logic::grab_mode1() {
 void engineer_auto_logic::set_mode(int mode_){
     grabMode = mode_;
     RoboticArmSKD::should_set_arm_normal = 0;
-    return;
 }
 
 void engineer_auto_logic::stop_using_arm() {
     RoboticArmSKD::should_set_arm_normal = 1;
-    return;
 }
 void engineer_auto_logic::EngineerAutoThread::main(){
     while (!shouldTerminate()) {

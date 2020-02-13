@@ -32,7 +32,7 @@ public:
     static void init();
     static int data_to_can();
     static void change_door();
-
+    static void pop_ammo_bin();
 private:
     static CANInterface * can;
 

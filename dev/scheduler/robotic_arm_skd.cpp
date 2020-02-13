@@ -1,5 +1,6 @@
 //
 // Created by Kerui Zhu on 7/11/2019.
+// Modified by Zhu Zhongbo on 2/13/2020
 //
 
 #include "robotic_arm_skd.h"
@@ -29,7 +30,7 @@ void RoboticArmSKD::start(tprio_t skd_thread_prio) {
     extend_state = 0;
     clamp_state = 0;
     slide_x_state = 0;
-    should_set_arm_normal = 0;
+    should_set_arm_normal = 0;  //always set the state to be NORMAL
     air_tank_interface::init();
     roboticArmThread.start(skd_thread_prio);
     palSetPad(GPIOH, POWER_PAD);
@@ -55,6 +56,7 @@ void RoboticArmSKD::pull_back() {
 
 /**
  * The engineer should use the function to set the air tanks
+ * All of the changes made to the three states of robotic arm (air tank part) should be made through this function
  */
 void RoboticArmSKD::set_air_tank(int clamp, int slide_y, int slide_x) {
     if (clamp != -1)
@@ -63,41 +65,22 @@ void RoboticArmSKD::set_air_tank(int clamp, int slide_y, int slide_x) {
         extend_state = slide_y;
     if (slide_x != -1)
         slide_x_state = slide_x;
-    return;
 }
 
 //managing states, variable released should be False
+//中文强调：每次使用这个next step之前都需要在logic模块里面更新气缸目标状态，并用set_air_tank来赋值（不要直接改变量）
+//需要等待多久要测试，例如气缸反应速度之类的
 void RoboticArmSKD::next_step() {
     LOG("%d %d\n", extend_state, clamp_state);
     if (!released) return;
     if (state == NORMAL) {
         state = COLLECT_BULLET;
-        chThdSleepMilliseconds(1000);
-        air_tank_interface::set_tank(SLIDE_Y,extend_state);
-        air_tank_interface::set_tank(CLAMP,clamp_state);
-        switch (slide_x_state) {
-            case 0:
-                air_tank_interface::set_tank(SLIDE_X_1, 0);
-                air_tank_interface::set_tank(SLIDE_X_2, 0);
-                break;
-            case 1:
-                air_tank_interface::set_tank(SLIDE_X_1, 1);
-                air_tank_interface::set_tank(SLIDE_X_2, 0);
-                break;
-            case 2:
-                air_tank_interface::set_tank(SLIDE_X_1, 1);
-                air_tank_interface::set_tank(SLIDE_X_2, 1);
-                break;
-            default:
-                break;
-        }
-        chThdSleepMilliseconds(1000);
-        stretch_out();
     }
     else {
         switch (bullet_state) {
-            case WAITING:
+            case WAITING://在起始位置，夹子松
                 bullet_state = BOX_CLAMPED;
+                chThdSleepMilliseconds(1000);
                 air_tank_interface::set_tank(SLIDE_Y,extend_state);
                 air_tank_interface::set_tank(CLAMP,clamp_state);
                 switch (slide_x_state) {
@@ -116,44 +99,57 @@ void RoboticArmSKD::next_step() {
                     default:
                         break;
                 }
+                chThdSleepMilliseconds(1000);
                 stretch_out();
                 break;
-            case BOX_CLAMPED:
-                air_tank_interface::set_tank(SLIDE_Y,clamp_state);
+            case BOX_CLAMPED://已旋转，平移，尚未夹紧
+                air_tank_interface::set_tank(CLAMP,clamp_state);
                 air_tank_interface::set_tank(SLIDE_Y,extend_state);
+                chThdSleepMilliseconds(1000);
                 pull_back();
                 bullet_state = TAKING_BULLET;
                 break;
-            case TAKING_BULLET:
-                air_tank_interface::set_tank(SLIDE_Y,clamp_state);
+            case TAKING_BULLET://已经夹紧并旋转平移回复到初始状态
+                air_tank_interface::set_tank(CLAMP,clamp_state);
                 air_tank_interface::set_tank(SLIDE_Y,extend_state);
                 //another function here to pop the ammo bin
-
+                EngineerInterface::pop_ammo_bin();
                 bullet_state = WAITING;
-                chThdSleepMilliseconds(500);
                 break;
             default:
                 break;
         }
     }
 }
+
 //managing states, variable released should be False
-///////////////////////////////////////////
-//我还没写完这个函数QAQ
+//this function will be used for debugging the machine: return to previous states
+//this function will also make use of set_air_tank()
+//这里所谓的前一步是一个周期（静止-伸出-收回）的前一步，不会对slide_x_state进行修改
 void RoboticArmSKD::prev_step() {
     if (!released) return;
     if (state == NORMAL) return;
     switch (bullet_state) {
-        case WAITING:
-            pull_back();
-            state = NORMAL;
-            break;
-        case BOX_CLAMPED:
+        case WAITING://此时夹子松开正处于初始位置
+            state = NORMAL;//回归NORMAL
+            set_air_tank(0,0,-1);
             air_tank_interface::set_tank(CLAMP,clamp_state);
+            air_tank_interface::set_tank(SLIDE_Y,extend_state);
+            break;
+        case BOX_CLAMPED://此时夹子还是松的，但是到达了指定的位置
+            set_air_tank(-1,0,-1);
+            air_tank_interface::set_tank(CLAMP,clamp_state);
+            air_tank_interface::set_tank(SLIDE_Y,extend_state);
+            chThdSleepMilliseconds(1000);
+            pull_back();
             bullet_state = WAITING;
             break;
-        case TAKING_BULLET:
-            stretch_out();
+        case TAKING_BULLET://此状态下夹子夹紧了，并且已经回复，倒退时需要把y轴伸出去
+            set_air_tank(-1,1,-1);
+            stretch_out();//先伸出，后松夹子
+            air_tank_interface::set_tank(SLIDE_Y,extend_state);
+            chThdSleepMilliseconds(1000);
+            air_tank_interface::set_tank(CLAMP,clamp_state);
             bullet_state = BOX_CLAMPED;
             break;
     }
@@ -170,18 +166,20 @@ void RoboticArmSKD::update_target_current() {
     if (released) {
         if (state == COLLECT_BULLET) {
             if (should_set_arm_normal){
+                //judge whether we should set the state of robotic arm back to NORMAL state(not collecting bullet)
                 state = NORMAL;
             }
         }
         else {//NORMAL state
-            clamp_state = extend_state = slide_x_state = 0;
+            set_air_tank(0,0,0);
             air_tank_interface::set_tank(SLIDE_Y,extend_state);
             air_tank_interface::set_tank(CLAMP,clamp_state);
             air_tank_interface::set_tank(SLIDE_X_1, 0);
             air_tank_interface::set_tank(SLIDE_X_2, 0);
+            EngineerInterface::target_current[ROBOTIC_LEFT] = EngineerInterface::target_current[ROBOTIC_RIGHT] = 0;
         }
     }
-    // Current managing
+    // Current managing(during the process of pull back or stretch out)
     if (!released){
         if ((target_velocity[0] * (EngineerInterface::present_angle[ROBOTIC_LEFT] - trigger_angle) > 0)||
             (target_velocity[1] * (EngineerInterface::present_angle[ROBOTIC_RIGHT] - trigger_angle) > 0)){
@@ -190,24 +188,23 @@ void RoboticArmSKD::update_target_current() {
         }
         if ((target_velocity[0] == 0 && ABS_IN_RANGE(EngineerInterface::present_velocity[ROBOTIC_LEFT], ROBOTIC_ARM_TRIGGER_VELOCITY))||
             (target_velocity[1] == 0 && ABS_IN_RANGE(EngineerInterface::present_velocity[ROBOTIC_RIGHT], ROBOTIC_ARM_TRIGGER_VELOCITY))){
-            //Can anyone explain this condition? I am quite confused...
+            //already close to the target current
             released = true;
             v2i_pid[0].clear_i_out();
             v2i_pid[1].clear_i_out();
         }
-        if (((EngineerInterface::present_angle[ROBOTIC_LEFT] - ROBOTIC_ARM_THROW_TRIGGER) > 0 ||
-            (EngineerInterface::present_angle[ROBOTIC_RIGHT] - ROBOTIC_ARM_THROW_TRIGGER) > 0) &&
-            target_velocity[0] > 0 && target_velocity[1] > 0 && clamp_state == 1) {
-            //Can anyone explain this condition? I am quite confused...
-            clamp_state = 0;
-            air_tank_interface::set_tank(CLAMP,clamp_state);
-        }
+//        if (((EngineerInterface::present_angle[ROBOTIC_LEFT] - ROBOTIC_ARM_THROW_TRIGGER) > 0 ||
+//            (EngineerInterface::present_angle[ROBOTIC_RIGHT] - ROBOTIC_ARM_THROW_TRIGGER) > 0) &&
+//            target_velocity[0] > 0 && target_velocity[1] > 0 && clamp_state == 1) {
+//            //
+//            clamp_state = 0;
+//            air_tank_interface::set_tank(CLAMP,clamp_state);
+//        }
         EngineerInterface::target_current[0] = (int16_t ) v2i_pid[0].calc(EngineerInterface::present_velocity[ROBOTIC_LEFT], target_velocity[0]);
         EngineerInterface::target_current[1] = (int16_t ) v2i_pid[1].calc(EngineerInterface::present_velocity[ROBOTIC_RIGHT], target_velocity[1]);
-    } else{
-        EngineerInterface::target_current[ROBOTIC_LEFT] = EngineerInterface::target_current[ROBOTIC_RIGHT] = 0;
     }
 }
+
 void RoboticArmSKD::RoboticArmThread::main() {
     setName("robotic_arm");
     while (!shouldTerminate()){
