@@ -7,7 +7,9 @@
 
 #include "led.h"
 #include "debug/shell/shell.h"
-#include "chassis_scheduler.h"
+#include "chassis_interface.h"
+#include "pid_controller.hpp"
+
 
 #include "vehicle/infantry/vehicle_infantry.h"
 
@@ -15,9 +17,12 @@ using namespace chibios_rt;
 
 CANInterface can1(&CAND1);
 CANInterface can2(&CAND2);
+
+// PID Related
 float target_velocity[4];
 int target_current[4];
 PIDController v2i_pid[4];
+
 int install_mode_ = 1;
 float v_to_wheel_angular_velocity_ = 0.0f;
 float w_to_v_ratio_ = 0.0f;
@@ -60,17 +65,17 @@ static void velocity_decompose_(float vx, float vy, float w) {
     // BL, -vx, +vy, +w, since the motor is installed in the opposite direction
     // BR, -vx, -vy, +w
 
-    target_velocity[ChassisSKD::FR] = install_mode_ * (+vx - vy + w * w_to_v_ratio_) * v_to_wheel_angular_velocity_;
-    target_current[ChassisSKD::FR] = (int) v2i_pid[ChassisSKD::FR].calc(ChassisIF::feedback[ChassisSKD::FR]->actual_velocity, target_velocity[ChassisSKD::FR]);
+    target_velocity[ChassisIF::FR] = install_mode_ * (+vx - vy + w * w_to_v_ratio_) * v_to_wheel_angular_velocity_;
+    target_current[ChassisIF::FR] = (int) v2i_pid[ChassisIF::FR].calc(ChassisIF::feedback[ChassisIF::FR]->actual_velocity, target_velocity[ChassisIF::FR]);
 
-    target_velocity[ChassisSKD::FL] = install_mode_ * (+vx + vy + w * w_to_v_ratio_) * v_to_wheel_angular_velocity_;
-    target_current[ChassisSKD::FL] = (int) v2i_pid[ChassisSKD::FL].calc(ChassisIF::feedback[ChassisSKD::FL]->actual_velocity, target_velocity[ChassisSKD::FL]);
+    target_velocity[ChassisIF::FL] = install_mode_ * (+vx + vy + w * w_to_v_ratio_) * v_to_wheel_angular_velocity_;
+    target_current[ChassisIF::FL] = (int) v2i_pid[ChassisIF::FL].calc(ChassisIF::feedback[ChassisIF::FL]->actual_velocity, target_velocity[ChassisIF::FL]);
 
-    target_velocity[ChassisSKD::BL] = install_mode_ * (-vx + vy + w * w_to_v_ratio_) * v_to_wheel_angular_velocity_;
-    target_current[ChassisSKD::BL] = (int) v2i_pid[ChassisSKD::BL].calc(ChassisIF::feedback[ChassisSKD::BL]->actual_velocity, target_velocity[ChassisSKD::BL]);
+    target_velocity[ChassisIF::BL] = install_mode_ * (-vx + vy + w * w_to_v_ratio_) * v_to_wheel_angular_velocity_;
+    target_current[ChassisIF::BL] = (int) v2i_pid[ChassisIF::BL].calc(ChassisIF::feedback[ChassisIF::BL]->actual_velocity, target_velocity[ChassisIF::BL]);
 
-    target_velocity[ChassisSKD::BR] = install_mode_ * (-vx - vy + w * w_to_v_ratio_) * v_to_wheel_angular_velocity_;
-    target_current[ChassisSKD::BR] = (int) v2i_pid[ChassisSKD::BR].calc(ChassisIF::feedback[ChassisSKD::BR]->actual_velocity, target_velocity[ChassisSKD::BR]);
+    target_velocity[ChassisIF::BR] = install_mode_ * (-vx - vy + w * w_to_v_ratio_) * v_to_wheel_angular_velocity_;
+    target_current[ChassisIF::BR] = (int) v2i_pid[ChassisIF::BR].calc(ChassisIF::feedback[ChassisIF::BR]->actual_velocity, target_velocity[ChassisIF::BR]);
 }
 
 /**
@@ -93,11 +98,6 @@ static void cmd_chassis_set_parameters(BaseSequentialStream *chp, int argc, char
                                          Shell::atof(argv[3]),
                                          Shell::atof(argv[4])});
     }
-    ChassisSKD::load_pid_params( CHASSIS_DODGE_PID_THETA2V_PARAMS, {Shell::atof(argv[0]),
-                                   Shell::atof(argv[1]),
-                                   Shell::atof(argv[2]),
-                                   Shell::atof(argv[3]),
-                                   Shell::atof(argv[4])});
     chprintf(chp, "!cps" SHELL_NEWLINE_STR); // echo chassis parameters set
 }
 
@@ -147,12 +147,13 @@ private:
 
 class ChassisPIDThread : public BaseStaticThread<512> {
 private:
-    int timeTrig = SYSTIME+1000;
+    unsigned int timeTrig = SYSTIME+1000;
     bool ison = false;
     void main() final {
         setName("chassisPID");
         while(!shouldTerminate()) {
-            if(SYSTIME>timeTrig) {
+            // An LED that indicate the system status. (flash when the program is not mad)
+            if(SYSTIME > timeTrig) {
                 if(ison) {
                     LED::led_off(2);
                 } else {
@@ -186,18 +187,18 @@ int main(void) {
     Shell::start(HIGHPRIO-4);
     Shell::addCommands(chassisCommands);
 
+    // Data Configuration
+    v_to_wheel_angular_velocity_ = (360.0f / CHASSIS_WHEEL_CIRCUMFERENCE);
+    chassis_gimbal_offset_ = 0;
+    install_mode_ = 1;
+    w_to_v_ratio_ = (CHASSIS_WHEEL_BASE + CHASSIS_WHEEL_TREAD) / 2.0f / 360.0f * 3.14159f;
+
     can1.start(HIGHPRIO-2, HIGHPRIO-3);
     can2.start(HIGHPRIO, HIGHPRIO - 1);
 
     chassisFeedbackThread.start(NORMALPRIO - 1);
     ChassisIF::motor_can_config_t CHASSIS_MOTOR_CONFIG_[ChassisIF::MOTOR_COUNT] = CHASSIS_MOTOR_CONFIG;
     ChassisIF::init(&can1, &can2, CHASSIS_MOTOR_CONFIG_);
-
-    v_to_wheel_angular_velocity_ = (360.0f / CHASSIS_WHEEL_CIRCUMFERENCE);
-    chassis_gimbal_offset_ = 0;
-    install_mode_ = 1;
-
-    w_to_v_ratio_ = (CHASSIS_WHEEL_BASE + CHASSIS_WHEEL_TREAD) / 2.0f / 360.0f * 3.14159f;
 
     LED::led_on(1);
     chassisPidThread.start(NORMALPRIO);

@@ -407,7 +407,7 @@ add_executable(pa_chassis
         dev/scheduler/chassis_scheduler.cpp
         dev/interface/gimbal_interface.cpp
         dev/scheduler/gimbal_scheduler.cpp
-        dev/debug/Unit_Tests/ut_chassis.cpp)
+        dev/debug/Param_Adjusts/pa_chassis.cpp)
 target_compile_definitions(pa_chassis PUBLIC INFANTRY)
 
 # Shoot: include CANInterface, GimbalIF, GimbalController, GimbalFeedbackThread and adjustment modules.
