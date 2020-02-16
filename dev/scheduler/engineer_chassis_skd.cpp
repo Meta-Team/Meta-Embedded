@@ -96,7 +96,7 @@ void EngineerChassisSKD::SKDThread::main() {
 
         }
 
-        ChassisIF::send_chassis_currents();
+        ChassisIF::enable_chassis_current_clip();
         sleep(TIME_MS2I(SKD_THREAD_INTERVAL));
     }
 }

@@ -69,8 +69,8 @@ void ShootLG::shoot(float number_of_bullet, float number_per_second) {
 
     ShootSKD::set_mode(ShootSKD::LIMITED_SHOOTING_MODE);
     ShootSKD::reset_loader_accumulated_angle();
-    ShootSKD::set_loader_target_angle(shoot_target_number * angle_per_bullet);
     ShootSKD::set_loader_target_velocity(number_per_second * angle_per_bullet);
+    ShootSKD::set_loader_target_angle(shoot_target_number * angle_per_bullet);
 
     chSysLock();  /// --- ENTER S-Locked state. DO NOT use LOG, printf, non S/I-Class functions or return ---
     if (!stuckDetector.started) {

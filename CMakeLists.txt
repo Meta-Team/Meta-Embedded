@@ -332,6 +332,14 @@ add_executable(ut_buzzer
         dev/scheduler/buzzer_scheduler.cpp
         dev/debug/Unit_Tests/ut_buzzer.cpp)
 
+# CAN Interface: include CANInterface
+add_executable(ut_can
+        dev/interface/can_interface.cpp
+        dev/interface/buzzer_interface.cpp
+        dev/debug/shell/shell.cpp
+        dev/interface/led.cpp
+        dev/debug/Unit_Tests/ut_can_interface.cpp)
+
 # Elevator Interface: include CANInterface, ElevatorInterface, and the unit test modules.
 add_executable(ut_elevator_interface
         dev/interface/can_interface.cpp
@@ -393,6 +401,16 @@ add_executable(pa_hero_shoot
         dev/debug/Param_Adjusts/pa_hero_shoot.cpp)
 target_compile_definitions(pa_hero_shoot PUBLIC HERO)
 
+# Chassis
+add_executable(pa_chassis
+        dev/interface/can_interface.cpp
+        dev/interface/chassis_interface.cpp
+        dev/scheduler/chassis_scheduler.cpp
+        dev/interface/gimbal_interface.cpp
+        dev/scheduler/gimbal_scheduler.cpp
+        dev/debug/Param_Adjusts/pa_chassis.cpp)
+target_compile_definitions(pa_chassis PUBLIC INFANTRY)
+
 # Shoot: include CANInterface, GimbalIF, GimbalController, GimbalFeedbackThread and adjustment modules.
 add_executable(pa_infantry_shoot
         dev/interface/can_interface.cpp
@@ -411,6 +429,7 @@ add_executable(pa_gimbal
         dev/module/pid_controller.hpp
         dev/scheduler/gimbal_scheduler.cpp
         dev/scheduler/shoot_scheduler.cpp
+        dev/scheduler/buzzer_scheduler.cpp
         dev/interface/ahrs/ahrs.cpp
         dev/debug/Param_Adjusts/pa_gimbal.cpp)
 target_compile_definitions(pa_gimbal PRIVATE SHELL_NO_ECHO_MODE)

@@ -16,6 +16,8 @@
 #include "ahrs.h"
 #include "sd_card_interface.h"
 
+#include "buzzer_scheduler.h"
+
 #include "scheduler/gimbal_scheduler.h"
 #include "scheduler/shoot_scheduler.h"
 
@@ -33,7 +35,7 @@ unsigned const GIMBAL_FEEDBACK_INTERVAL = 25; // [ms]
 
 float const MIN_ANGLE[2] = {-170, -80};    // [degree]
 float const MAX_ANGLE[2] = {170, 80};      // [degree]
-float const MAX_VELOCITY[2] = {600, 300};  // absolute maximum, [degree/s]
+float const MAX_VELOCITY[2] = {1000, 1000};  // absolute maximum, [degree/s]
 int const MAX_CURRENT = 20000;  // [mA]
 
 bool motor_enabled[2] = {false, false};
@@ -52,17 +54,17 @@ float target_v[2] = {0.0, 0.0};
 
 // INFANTRY AHRS PARAMETERS
 // Depends on the install direction of the board
-#define ON_BOARD_AHRS_MATRIX {{0.0f, 0.0f, 1.0f}, \
+#define ON_BOARD_AHRS_MATRIX {{0.0f, -1.0f, 0.0f}, \
                               {1.0f, 0.0f, 0.0f}, \
-                              {0.0f, 1.0f, 0.0f}}
+                              {0.0f, 0.0f, 1.0f}}
 
 #define GIMBAL_ANGLE_INSTALLATION_MATRIX {{1.0f, 0.0f, 0.0f}, \
                                           {0.0f, 1.0f, 0.0f}, \
                                           {0.0f, 0.0f, -1.0f}}
 
 
-#define GIMBAL_GYRO_INSTALLATION_MATRIX {{0.0f,  -1.0f, 0.0f}, \
-                                         {0.0f,  0.0f,  1.0f}, \
+#define GIMBAL_GYRO_INSTALLATION_MATRIX {{0.0f,  1.0f, 0.0f}, \
+                                         {0.0f,  0.0f,  -1.0f}, \
                                          {-1.0f, 0.0f,  0.0f}}
 
 static const Matrix33 ON_BOARD_AHRS_MATRIX_ = ON_BOARD_AHRS_MATRIX;
@@ -71,7 +73,7 @@ static const Matrix33 GIMBAL_GYRO_INSTALLATION_MATRIX_ = GIMBAL_GYRO_INSTALLATIO
 
 #define MPU6500_BIAS_DATA_ID 0x0001
 // INFANTRY FOUR
-#define MPU6500_STORED_GYRO_BIAS {1.066994547f, -1.946273088f, 0.247857689f}
+#define MPU6500_STORED_GYRO_BIAS {1.142140388f, -1.022603631f, 0.125763729f}
 
 #define THREAD_CAN1_PRIO                    (HIGHPRIO - 1)
 #define THREAD_MPU_PRIO                     (HIGHPRIO - 2)
@@ -105,18 +107,18 @@ protected:
 
                 // TODO: document calculations here
                 actual_angle[0] = ahrs_angle.x;
-                actual_angle[1] = ahrs_angle.z + 90.0f;
+                actual_angle[1] = ahrs_angle.y;
                 float velocity_[2] = {
                         ahrs_gyro.x * cosf(ahrs_angle.y / 180.0f * M_PI) + ahrs_gyro.z * sinf(ahrs_angle.y / 180.0f * M_PI),
-                        ahrs_gyro.z};
+                        ahrs_gyro.y};
                 actual_velocity[0] = velocity_[0];
                 actual_velocity[1] = velocity_[1];
             } else {
-                actual_angle[0] = GimbalIF::feedback[YAW].actual_angle;
-                actual_angle[1] = GimbalIF::feedback[PITCH].actual_angle;
+                actual_angle[0] = GimbalIF::feedback[YAW]->actual_angle;
+                actual_angle[1] = GimbalIF::feedback[PITCH]->actual_angle;
 
-                actual_velocity[0] = GimbalIF::feedback[YAW].actual_velocity;
-                actual_velocity[1] = GimbalIF::feedback[PITCH].actual_velocity;
+                actual_velocity[0] = GimbalIF::feedback[YAW]->actual_velocity;
+                actual_velocity[1] = GimbalIF::feedback[PITCH]->actual_velocity;
             }
 
             // Calculation and check
@@ -125,16 +127,16 @@ protected:
                 for (unsigned i = YAW; i <= PITCH; i++) {
 
                     // Perform angle check
-                    if (GimbalIF::feedback[i].actual_angle > MAX_ANGLE[i]) {
-                        Shell::printf("!d%cA" SHELL_NEWLINE_STR, MOTOR_CHAR[i]);
-                        motor_enabled[i] = false;
-                        continue;
-                    }
-                    if (GimbalIF::feedback[i].actual_angle < MIN_ANGLE[i]) {
-                        Shell::printf("!d%ca" SHELL_NEWLINE_STR, MOTOR_CHAR[i]);
-                        motor_enabled[i] = false;
-                        continue;
-                    }
+//                    if (GimbalIF::feedback[i]->actual_angle > MAX_ANGLE[i]) {
+//                        Shell::printf("!d%cA" SHELL_NEWLINE_STR, MOTOR_CHAR[i]);
+//                        motor_enabled[i] = false;
+//                        continue;
+//                    }
+//                    if (GimbalIF::feedback[i]->actual_angle < MIN_ANGLE[i]) {
+//                        Shell::printf("!d%ca" SHELL_NEWLINE_STR, MOTOR_CHAR[i]);
+//                        motor_enabled[i] = false;
+//                        continue;
+//                    }
 
                         if (enable_a2v_pid) {
                             // Calculate from angle to velocity
@@ -146,19 +148,19 @@ protected:
 
                     // Perform velocity check
 
-                    if (actual_velocity[i] > MAX_VELOCITY[i]) {
-                        Shell::printf("!d%cv" SHELL_NEWLINE_STR, MOTOR_CHAR[i]);
-                        motor_enabled[i] = false;
-                        continue;
-                    }
+//                    if (actual_velocity[i] > MAX_VELOCITY[i]) {
+//                        Shell::printf("!d%cv" SHELL_NEWLINE_STR, MOTOR_CHAR[i]);
+//                        motor_enabled[i] = false;
+//                        continue;
+//                    }
 
                     // Calculate from velocity to current
-                    GimbalIF::target_current[i] = (int) v2i_pid[i].calc(actual_velocity[i], target_velocity[i]);
+                    *GimbalIF::target_current[i] = (int) v2i_pid[i].calc(actual_velocity[i], target_velocity[i]);
                     // NOTE: Gimbal::target_velocity[i] is either calculated or filled (see above)
 
 
                     // Perform current check
-                    if (GimbalIF::target_current[i] > MAX_CURRENT || GimbalIF::target_current[i] < -MAX_CURRENT) {
+                    if (*GimbalIF::target_current[i] > MAX_CURRENT || *GimbalIF::target_current[i] < -MAX_CURRENT) {
                         Shell::printf("!d%cc" SHELL_NEWLINE_STR, MOTOR_CHAR[i]);
                         motor_enabled[i] = false;
                         continue;
@@ -169,11 +171,11 @@ protected:
 
             // This two operations should be after calculation since motor can get disabled if check failed
             // This two operations should always perform, instead of being put in a 'else' block
-            if (!motor_enabled[YAW]) GimbalIF::target_current[YAW] = 0;
-            if (!motor_enabled[PITCH]) GimbalIF::target_current[PITCH] = 0;
+            if (!motor_enabled[YAW]) *GimbalIF::target_current[YAW] = 0;
+            if (!motor_enabled[PITCH]) *GimbalIF::target_current[PITCH] = 0;
 
             // Send currents
-            GimbalIF::send_gimbal_currents();
+//            GimbalIF::enable_gimbal_current_clip();
 
             sleep(TIME_MS2I(GIMBAL_THREAD_INTERVAL));
         }
@@ -200,14 +202,14 @@ private:
                               SYSTIME,
                               gimbalThread.actual_angle[YAW], target_angle[YAW],
                               gimbalThread.actual_velocity[YAW], target_v[YAW],
-                              GimbalIF::feedback[YAW].actual_current, GimbalIF::target_current[YAW]);
+                              GimbalIF::feedback[YAW]->actual_current, *GimbalIF::target_current[YAW]);
             }
             if (enable_pitch_feedback) {
                 Shell::printf("!gp,%u,%.2f,%.2f,%.2f,%.2f,%d,%d" SHELL_NEWLINE_STR,
                               SYSTIME,
                               gimbalThread.actual_angle[PITCH], target_angle[PITCH],
-                              gimbalThread.actual_velocity[PITCH], target_v[YAW],
-                              GimbalIF::feedback[PITCH].actual_current, GimbalIF::target_current[PITCH]);
+                              gimbalThread.actual_velocity[PITCH], target_v[PITCH],
+                              GimbalIF::feedback[PITCH]->actual_current, *GimbalIF::target_current[PITCH]);
             }
 
             sleep(TIME_MS2I(GIMBAL_FEEDBACK_INTERVAL));
@@ -249,7 +251,7 @@ static void cmd_gimbal_enable_fw(BaseSequentialStream *chp, int argc, char *argv
     } else {
         ShootSKD::set_friction_wheels(0);
     }
-    GimbalIF::send_gimbal_currents();
+//    GimbalIF::enable_gimbal_current_clip();
 }
 
 /**
@@ -281,8 +283,8 @@ static void cmd_gimbal_fix_front_angle(BaseSequentialStream *chp, int argc, char
         shellUsage(chp, "g_fix");
         return;
     }
-    GimbalIF::feedback[YAW].reset_front_angle();
-    GimbalIF::feedback[PITCH].reset_front_angle();
+    GimbalIF::feedback[YAW]->reset_front_angle();
+    GimbalIF::feedback[PITCH]->reset_front_angle();
 
 //    chprintf(chp, "!f" SHELL_NEWLINE_STR);
 }
@@ -343,7 +345,7 @@ static void cmd_gimbal_set_target_angle(BaseSequentialStream *chp, int argc, cha
 void cmd_gimbal_set_parameters(BaseSequentialStream *chp, int argc, char *argv[]) {
     (void) argv;
     if (argc != 7) {
-        shellUsage(chp, "g_set_params yaw(0)/pitch(1) angle_to_v(0)/v_to_i(0) ki kp kd i_limit out_limit");
+        shellUsage(chp, "g_set_params yaw(0)/pitch(1) angle_to_v(0)/v_to_i(1) ki kp kd i_limit out_limit");
         chprintf(chp, "!pe" SHELL_NEWLINE_STR);  // echo parameters error
         return;
     }
@@ -427,9 +429,11 @@ int main(void) {
     LED::all_off();
     Shell::start(HIGHPRIO-5);
     Shell::addCommands(gimbalCotrollerCommands);
+    chThdSleepMilliseconds(400);
+    can1.start(HIGHPRIO - 6, HIGHPRIO - 7);
+    can2.start(HIGHPRIO - 8, HIGHPRIO - 9);
 
-    can1.start(HIGHPRIO - 6);
-    can2.start(HIGHPRIO - 7);
+    BuzzerSKD::init(LOWPRIO +1);
 
     /// Setup On-Board AHRS
     Vector3D ahrs_bias;
@@ -443,19 +447,25 @@ int main(void) {
     ahrs.load_calibration_data({-0.644649505f, -0.619945943f, 0.173617705f});
     ahrs.start(ON_BOARD_AHRS_MATRIX_, THREAD_MPU_PRIO, THREAD_IST_PRIO, THREAD_AHRS_PRIO);
 
-    GimbalIF::init(&can1, &can2, GIMBAL_YAW_FRONT_ANGLE_RAW, GIMBAL_PITCH_FRONT_ANGLE_RAW,
-             GimbalIF::GM6020,     GimbalIF::GM6020,
-            GimbalIF::NONE_MOTOR, GimbalIF::NONE_MOTOR,
-            GimbalIF::can_channel_2, GimbalIF::can_channel_1,
-            GimbalIF::NONE, GimbalIF::NONE);
+    GimbalIF::motor_can_config_t canConfig[6] = {{GimbalIF::can_channel_2,4,CANInterface::GM6020},
+                                                 {GimbalIF::can_channel_1,5,CANInterface::GM6020},
+                                                 {GimbalIF::none_can_channel,6,CANInterface::NONE_MOTOR},
+                                                 {GimbalIF::none_can_channel,8,CANInterface::NONE_MOTOR},
+                                                 {GimbalIF::none_can_channel,9,CANInterface::NONE_MOTOR},
+                                                 {GimbalIF::none_can_channel,10,CANInterface::NONE_MOTOR}};
+    GimbalIF::init(&can1, &can2,
+            canConfig,
+            GIMBAL_YAW_FRONT_ANGLE_RAW, GIMBAL_PITCH_FRONT_ANGLE_RAW);
 
     gimbalFeedbackThread.start(NORMALPRIO - 1);
     gimbalThread.start(NORMALPRIO);
 
+    //BuzzerSKD::play_sound(BuzzerSKD::sound_kong_fu_FC);
+
     chThdSleepMilliseconds(1000);
     LOG("Gimbal Yaw: %u, %f, Pitch: %u, %f",
-        GimbalIF::feedback[GimbalIF::YAW].last_angle_raw, GimbalIF::feedback[GimbalIF::YAW].actual_angle,
-        GimbalIF::feedback[GimbalIF::PITCH].last_angle_raw, GimbalIF::feedback[GimbalIF::PITCH].actual_angle);
+        GimbalIF::feedback[GimbalIF::YAW]->last_angle_raw, GimbalIF::feedback[GimbalIF::YAW]->actual_angle,
+        GimbalIF::feedback[GimbalIF::PITCH]->last_angle_raw, GimbalIF::feedback[GimbalIF::PITCH]->actual_angle);
     // See chconf.h for what this #define means.
 #if CH_CFG_NO_IDLE_THREAD
     // ChibiOS idle thread has been disabled,

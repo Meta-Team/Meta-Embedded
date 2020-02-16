@@ -31,17 +31,17 @@ private:
         while (!shouldTerminate()) {
 
             if(enable_motor[0]) {
-                GimbalIF::target_current[GimbalIF::YAW] = 1000;
+                *GimbalIF::target_current[GimbalIF::YAW] = 1000;
             } else {
-                GimbalIF::target_current[GimbalIF::YAW] = 0;
+                *GimbalIF::target_current[GimbalIF::YAW] = 0;
             }
             if(enable_motor[1]) {
-                GimbalIF::target_current[GimbalIF::PITCH] = 1000;
+                *GimbalIF::target_current[GimbalIF::PITCH] = 1000;
             } else {
-                GimbalIF::target_current[GimbalIF::PITCH] = 0;
+                *GimbalIF::target_current[GimbalIF::PITCH] = 0;
             }
 
-            GimbalIF::send_gimbal_currents();
+            GimbalIF::enable_gimbal_current_clip();
             sleep(TIME_MS2I(1));
         }
     }
@@ -60,12 +60,12 @@ static void cmd_print(BaseSequentialStream *chp, int argc, char **argv) {
         return;
     }
 
-    Shell::printf("YAW  : angle:%f velocity:%f accumulate angle:%d actual current:%d\n",
-                  GimbalIF::feedback[GimbalIF::YAW].actual_angle,        GimbalIF::feedback[GimbalIF::YAW].actual_velocity,
-                  GimbalIF::feedback[GimbalIF::YAW].accumulated_angle(), GimbalIF::feedback[GimbalIF::YAW].actual_current);
-    Shell::printf("PITCH: angle:%f velocity:%f accumulate angle:%d actual current:%d\n",
-                  GimbalIF::feedback[GimbalIF::PITCH].actual_angle,        GimbalIF::feedback[GimbalIF::PITCH].actual_velocity,
-                  GimbalIF::feedback[GimbalIF::PITCH].accumulated_angle(), GimbalIF::feedback[GimbalIF::PITCH].actual_current);
+    Shell::printf("YAW  : angle:%f velocity:%f accumulate angle:%d actual current:%d" SHELL_NEWLINE_STR,
+                  GimbalIF::feedback[GimbalIF::YAW]->actual_angle,        GimbalIF::feedback[GimbalIF::YAW]->actual_velocity,
+                  GimbalIF::feedback[GimbalIF::YAW]->accumulated_angle(), GimbalIF::feedback[GimbalIF::YAW]->actual_current);
+    Shell::printf("PITCH: angle:%f velocity:%f accumulate angle:%d actual current:%d" SHELL_NEWLINE_STR,
+                  GimbalIF::feedback[GimbalIF::PITCH]->actual_angle,        GimbalIF::feedback[GimbalIF::PITCH]->actual_velocity,
+                  GimbalIF::feedback[GimbalIF::PITCH]->accumulated_angle(), GimbalIF::feedback[GimbalIF::PITCH]->actual_current);
 
     chprintf(chp, "print" SHELL_NEWLINE_STR);
 }
@@ -107,14 +107,18 @@ int main(void) {
     Shell::start(HIGHPRIO);
     Shell::addCommands(templateShellCommands);
     BuzzerSKD::init(LOWPRIO);
-    can1.start(NORMALPRIO+1);
-    can2.start(NORMALPRIO+2);
+    can1.start(NORMALPRIO+1, NORMALPRIO+2);
+    can2.start(NORMALPRIO+3, NORMALPRIO+4);
     chThdSleepMilliseconds(5);
-    GimbalIF::init(&can1, &can2, 0, 0,
-                   GimbalIF::GM6020,     GimbalIF::GM6020,
-                   GimbalIF::NONE_MOTOR, GimbalIF::NONE_MOTOR,
-                   GimbalIF::can_channel_2, GimbalIF::can_channel_1,
-                   GimbalIF::NONE, GimbalIF::NONE);
+    GimbalIF::motor_can_config_t canConfig[6] = {{GimbalIF::can_channel_2,4,CANInterface::GM6020},
+                                                 {GimbalIF::can_channel_1,1,CANInterface::GM6020},
+                                                 {GimbalIF::none_can_channel,6,CANInterface::NONE_MOTOR},
+                                                 {GimbalIF::none_can_channel,8,CANInterface::NONE_MOTOR},
+                                                 {GimbalIF::none_can_channel,9,CANInterface::NONE_MOTOR},
+                                                 {GimbalIF::none_can_channel,10,CANInterface::NONE_MOTOR}};
+    GimbalIF::init(&can1, &can2,
+                   canConfig,
+                   0, 0);
 //    BuzzerSKD::play_sound(BuzzerSKD::sound_nyan_cat);
     ut_gimbal_thread.start(NORMALPRIO);
 
