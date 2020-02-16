@@ -12,6 +12,11 @@
 #include "can_interface.h"
 #include "air_tank_interface.h"
 
+#define ENGR_INTERFACE_ENABLE_CLIP  FALSE
+#if ENGR_INTERFACE_ENABLE_CLIP
+#define ENGR_RESCUE_INTERFACE_MAX_CURRENT 5000
+#define ENGR_ROBOTIC_INTERFACE_MAX_CURRENT 5000
+#endif
 class EngineerBase {
 public:
     enum motor_id_t {
@@ -25,19 +30,50 @@ public:
 
 class EngineerInterface : public EngineerBase {
 public:
-    static float present_angle[MOTOR_COUNT];
-    static float present_velocity[MOTOR_COUNT];
-    static int16_t target_current[MOTOR_COUNT];
+    enum motor_can_channel_t {
+        none_can_channel,
+        can_channel_1,
+        can_channel_2
+    };
+
+    struct motor_can_config_t {
+        motor_can_channel_t motor_can_channel;
+        unsigned motor_can_id;
+        CANInterface::motor_type_t motor_type;
+    };
+
+    static void init( CANInterface *can1_interface,                      CANInterface *can2_interface,
+                      motor_can_config_t motor_can_config[MOTOR_COUNT]);
+
+    /**
+ * Motor feedback structure
+ */
+    static CANInterface::motor_feedback_t *feedback[MOTOR_COUNT];
+
+
+    /**
+     * Target current array in the order defined in motor_id_t
+     */
+    static int *target_current[MOTOR_COUNT];
+
+    /**
+     * Send target_current of each motor
+     * @return Whether currents are sent successfully
+     */
+    static void enable_engr_current_clip();
+
+    /**
+     * Several state for Air tank control?
+     * TODO: Maybe move these methods to the scheduler.
+     */
     static int door_state;
-    static void init();
-    static int data_to_can();
     static void change_door();
     static void pop_ammo_bin();
-private:
-    static CANInterface * can;
 
-    static void process_feedback_arm();
-    static void process_feedback_rescue();
+private:
+
+    static CANInterface *can1_;
+    static CANInterface *can2_;
 
     friend class CANInterface;
 };

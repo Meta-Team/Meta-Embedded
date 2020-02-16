@@ -53,8 +53,9 @@ void GimbalIF::init(CANInterface *can1_interface,                      CANInterf
            motor_can_config[i].motor_type == CANInterface::NONE_MOTOR ||
            motor_can_config[i].motor_can_channel == none_can_channel) {
 
-            // Make the pointer to the "deadzone", which could be easily judged that the motor is invalid.
-            feedback[i] = can1_->get_feedback_address(CANInterface::MAXIMUM_MOTOR_COUNT + 1);
+            // Make the pointer to the "deadzone", which could indicate that motor is invalid.
+            feedback[i] = can1_->get_feedback_address(CANInterface::MAXIMUM_MOTOR_COUNT);
+            target_current[i] = can1_->get_target_current_address(CANInterface::MAXIMUM_MOTOR_COUNT);
             continue;
         }
 

@@ -235,7 +235,7 @@ private:
                 can_driver(can_driver_) {}
         CANDriver *can_driver;
         motor_type_t motorType[8];
-        int target_current[MAXIMUM_MOTOR_COUNT] = {0};
+        int target_current[MAXIMUM_MOTOR_COUNT + 1] = {0};
 
     private:
         bool send_msg(const CANTxFrame *txmsg);
