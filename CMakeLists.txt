@@ -365,6 +365,10 @@ add_executable(ut_robotic_arm
         dev/interface/robotic_arm_interface.cpp
         dev/scheduler/robotic_arm_skd.cpp)
 
+# Auto Robotic Arm
+add_executable(ut_auto_robotic_arm
+        dev/scheduler/new_robotic_arm_skd.cpp)
+
 # Referee
 add_executable(ut_referee_interface
         dev/common/CRC8.cpp
