@@ -31,7 +31,7 @@ void RoboticArmSKD::start(tprio_t skd_thread_prio) {
     clamp_state = 0;
     slide_x_state = 0;
     should_set_arm_normal = 0;  //always set the state to be NORMAL
-    air_tank_interface::init();
+    AirTankIF::init();
     roboticArmThread.start(skd_thread_prio);
     palSetPad(GPIOH, POWER_PAD);
 }
@@ -81,20 +81,20 @@ void RoboticArmSKD::next_step() {
             case WAITING://在起始位置，夹子松
                 bullet_state = BOX_CLAMPED;
                 chThdSleepMilliseconds(1000);
-                air_tank_interface::set_tank(SLIDE_Y,extend_state);
-                air_tank_interface::set_tank(CLAMP,clamp_state);
+                AirTankIF::set_tank(SLIDE_Y,extend_state);
+                AirTankIF::set_tank(CLAMP,clamp_state);
                 switch (slide_x_state) {
                     case 0:
-                        air_tank_interface::set_tank(SLIDE_X_1, 0);
-                        air_tank_interface::set_tank(SLIDE_X_2, 0);
+                        AirTankIF::set_tank(SLIDE_X_1, 0);
+                        AirTankIF::set_tank(SLIDE_X_2, 0);
                         break;
                     case 1:
-                        air_tank_interface::set_tank(SLIDE_X_1, 1);
-                        air_tank_interface::set_tank(SLIDE_X_2, 0);
+                        AirTankIF::set_tank(SLIDE_X_1, 1);
+                        AirTankIF::set_tank(SLIDE_X_2, 0);
                         break;
                     case 2:
-                        air_tank_interface::set_tank(SLIDE_X_1, 1);
-                        air_tank_interface::set_tank(SLIDE_X_2, 1);
+                        AirTankIF::set_tank(SLIDE_X_1, 1);
+                        AirTankIF::set_tank(SLIDE_X_2, 1);
                         break;
                     default:
                         break;
@@ -103,15 +103,15 @@ void RoboticArmSKD::next_step() {
                 stretch_out();
                 break;
             case BOX_CLAMPED://已旋转，平移，尚未夹紧
-                air_tank_interface::set_tank(CLAMP,clamp_state);
-                air_tank_interface::set_tank(SLIDE_Y,extend_state);
+                AirTankIF::set_tank(CLAMP,clamp_state);
+                AirTankIF::set_tank(SLIDE_Y,extend_state);
                 chThdSleepMilliseconds(1000);
                 pull_back();
                 bullet_state = TAKING_BULLET;
                 break;
             case TAKING_BULLET://已经夹紧并旋转平移回复到初始状态
-                air_tank_interface::set_tank(CLAMP,clamp_state);
-                air_tank_interface::set_tank(SLIDE_Y,extend_state);
+                AirTankIF::set_tank(CLAMP,clamp_state);
+                AirTankIF::set_tank(SLIDE_Y,extend_state);
                 //another function here to pop the ammo bin
                 EngineerInterface::pop_ammo_bin();
                 bullet_state = WAITING;
@@ -133,13 +133,13 @@ void RoboticArmSKD::prev_step() {
         case WAITING://此时夹子松开正处于初始位置
             state = NORMAL;//回归NORMAL
             set_air_tank(0,0,-1);
-            air_tank_interface::set_tank(CLAMP,clamp_state);
-            air_tank_interface::set_tank(SLIDE_Y,extend_state);
+            AirTankIF::set_tank(CLAMP,clamp_state);
+            AirTankIF::set_tank(SLIDE_Y,extend_state);
             break;
         case BOX_CLAMPED://此时夹子还是松的，但是到达了指定的位置
             set_air_tank(-1,0,-1);
-            air_tank_interface::set_tank(CLAMP,clamp_state);
-            air_tank_interface::set_tank(SLIDE_Y,extend_state);
+            AirTankIF::set_tank(CLAMP,clamp_state);
+            AirTankIF::set_tank(SLIDE_Y,extend_state);
             chThdSleepMilliseconds(1000);
             pull_back();
             bullet_state = WAITING;
@@ -147,9 +147,9 @@ void RoboticArmSKD::prev_step() {
         case TAKING_BULLET://此状态下夹子夹紧了，并且已经回复，倒退时需要把y轴伸出去
             set_air_tank(-1,1,-1);
             stretch_out();//先伸出，后松夹子
-            air_tank_interface::set_tank(SLIDE_Y,extend_state);
+            AirTankIF::set_tank(SLIDE_Y,extend_state);
             chThdSleepMilliseconds(1000);
-            air_tank_interface::set_tank(CLAMP,clamp_state);
+            AirTankIF::set_tank(CLAMP,clamp_state);
             bullet_state = BOX_CLAMPED;
             break;
     }
@@ -172,10 +172,10 @@ void RoboticArmSKD::update_target_current() {
         }
         else {//NORMAL state
             set_air_tank(0,0,0);
-            air_tank_interface::set_tank(SLIDE_Y,extend_state);
-            air_tank_interface::set_tank(CLAMP,clamp_state);
-            air_tank_interface::set_tank(SLIDE_X_1, 0);
-            air_tank_interface::set_tank(SLIDE_X_2, 0);
+            AirTankIF::set_tank(SLIDE_Y,extend_state);
+            AirTankIF::set_tank(CLAMP,clamp_state);
+            AirTankIF::set_tank(SLIDE_X_1, 0);
+            AirTankIF::set_tank(SLIDE_X_2, 0);
             EngineerInterface::target_current[ROBOTIC_LEFT] = EngineerInterface::target_current[ROBOTIC_RIGHT] = 0;
         }
     }
@@ -198,7 +198,7 @@ void RoboticArmSKD::update_target_current() {
 //            target_velocity[0] > 0 && target_velocity[1] > 0 && clamp_state == 1) {
 //            //
 //            clamp_state = 0;
-//            air_tank_interface::set_tank(CLAMP,clamp_state);
+//            AirTankIF::set_tank(CLAMP,clamp_state);
 //        }
         EngineerInterface::target_current[0] = (int16_t ) v2i_pid[0].calc(EngineerInterface::present_velocity[ROBOTIC_LEFT], target_velocity[0]);
         EngineerInterface::target_current[1] = (int16_t ) v2i_pid[1].calc(EngineerInterface::present_velocity[ROBOTIC_RIGHT], target_velocity[1]);

@@ -257,8 +257,8 @@ add_executable(ENGINEER
         dev/interface/air_tank_interface.h
         dev/scheduler/engineer_rescue_skd.cpp
         dev/scheduler/engineer_rescue_skd.h
-        dev/logic/engineer_auto_logic.cpp
-        dev/logic/engineer_auto_logic.h)
+        dev/logic/robotic_arm_logic.cpp
+        dev/logic/robotic_arm_logic.h)
 target_include_directories(ENGINEER PRIVATE dev/vehicle/engineer)
 target_compile_definitions(ENGINEER PRIVATE ENGINEER)
 

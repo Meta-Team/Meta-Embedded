@@ -17,18 +17,16 @@
 #define ENGR_RESCUE_INTERFACE_MAX_CURRENT 5000
 #define ENGR_ROBOTIC_INTERFACE_MAX_CURRENT 5000
 #endif
-class EngineerBase {
-public:
-    enum motor_id_t {
-        RESCUE_LEFT,
-        RESCUE_RIGHT,
-        ROBOTIC_LEFT,
-        ROBOTIC_RIGHT,
-        MOTOR_COUNT
-    };
+
+enum motor_id_t {
+    RESCUE_LEFT,
+    RESCUE_RIGHT,
+    ROBOTIC_LEFT,
+    ROBOTIC_RIGHT,
+    MOTOR_COUNT
 };
 
-class EngineerInterface : public EngineerBase {
+class EngineerInterface{
 public:
     enum motor_can_channel_t {
         none_can_channel,

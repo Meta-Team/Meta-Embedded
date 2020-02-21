@@ -37,7 +37,7 @@ public:
     static int clamp_state;
     static int slide_x_state;
 
-    static int should_set_arm_normal;       //used in engineer_auto_logic
+    static int should_set_arm_normal;       //used in RoboticArmLG
 
     enum robotic_arm_state_t {
         NORMAL,

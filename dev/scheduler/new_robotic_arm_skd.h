@@ -5,29 +5,60 @@
 #ifndef META_INFANTRY_NEW_ROBOTIC_ARM_SKD_H
 #define META_INFANTRY_NEW_ROBOTIC_ARM_SKD_H
 
-enum robotic_arm_motor_state{
-    RETRIEVED,
-    RETRIEVING,
-    STRECHING,
-    STRECHED
-};
+#include "ch.hpp"
+#include "hal.h"
+#include "pid_controller.hpp"
+#include "vehicle/engineer/vehicle_engineer.h"
+#include "engineer_interface.h"
+#include "robotic_arm_interface.h"
+#include "air_tank_interface.h"
 
-enum robotic_arm_motor_instruction{
-    STRECH,
-    RETRIEVE
-};
+#define POWER_PAD GPIOH_POWER4_CTRL
 
 
-class new_robotic_arm_skd {
+class NewRoboticArmSkd {
 
 public:
 
-    static robotic_arm_motor_state get_motor_state();
-    static void set_motor_instruction(robotic_arm_motor_instruction command);
+    enum RA_motor_state_t{
+        RETRIEVED,
+        RETRIEVING,
+        STRECHING,
+        STRECHED
+    };
+
+    enum RA_motor_instruction{
+        STRECH,
+        RETRIEVE
+    };
+
+    class RoboticArmThread: public chibios_rt::BaseStaticThread<256>{
+        void main()final;
+    };
+
+    static RoboticArmThread roboticArmThread;
+
+    static void start(tprio_t skd_thread_prio);
+
+    static RA_motor_state_t get_motor_state();
+    static void set_motor_instruction(RA_motor_instruction command);
     static bool is_extended();
     static void set_extension(bool extend);
-    static bool is_raised();
-    static void set_raise(bool raise);
+    static bool is_clamped();
+    static void set_clamp(bool clamp);
+    static int get_x_slide_state();
+    static void set_x_slide_state(int state);
+
+private:
+    static RA_motor_state_t motorState;
+    static RA_motor_instruction targetState;
+    static int x_slide_state;
+    static float target_velocity;
+    static float trigger_angle;
+    static PIDController v2i_pid[2];
+    static void update();
+    static void calculate_current();
+    friend void cmd_robotic_arm_set_v2i(BaseSequentialStream *chp, int argc, char *argv[]);
 
 };
 
