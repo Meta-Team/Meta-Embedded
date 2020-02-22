@@ -31,14 +31,6 @@ void RoboticArmLG::init() {
     commandInfo = commandList.head;
 }
 
-void RoboticArmLG::get_prepared() {
-    NewRoboticArmSkd::set_clamp(false);
-    NewRoboticArmSkd::set_x_slide_state(0);
-    NewRoboticArmSkd::set_extension(false);
-    NewRoboticArmSkd::set_motor_instruction(NewRoboticArmSkd::STRETCH);
-    grabbing = false;
-}
-
 void RoboticArmLG::start_grabbing() {
     grabbing = true;
 }
@@ -48,6 +40,9 @@ void RoboticArmLG::finish() {
     NewRoboticArmSkd::set_x_slide_state(0);
     NewRoboticArmSkd::set_extension(false);
     NewRoboticArmSkd::set_motor_instruction(NewRoboticArmSkd::RETRIEVE);
+    while (NewRoboticArmSkd::get_motor_state() != NewRoboticArmSkd::RETRIEVED ||
+        NewRoboticArmSkd::is_clamped() || NewRoboticArmSkd::is_extended() || NewRoboticArmSkd::get_x_slide_state() != 0){}
+    //the reset operation finished
     grabbing = false;
     targetBox = actionPlan[plan].head;
     commandInfo = commandList.head;
@@ -182,8 +177,9 @@ void RoboticArmLG::RoboticArmLGThread::main(){
             if (grabbing){
             //next box?
             //update command list
-            //next step
+            //next step: according to the command list as well as the current state
             //end of grabbing one bin?
+            //next loop
             }
         } else{
             // Manual logic

@@ -54,7 +54,8 @@ public :
 
     static void init();
 
-    static void get_prepared();
+    //I dont't think this function is necessary
+    //static void get_prepared();
 
     static void start_grabbing();
 

@@ -18,6 +18,9 @@ void NewRoboticArmSkd::start(tprio_t skd_thread_prio) {
     v2i_pid[0].clear_i_out();
     v2i_pid[1].change_parameters(ROBOTIC_ARM_PID_V2I_PARAMS);
     v2i_pid[1].clear_i_out();
+    //I think it's necessary to make them have a initial value
+    motorState = RETRIEVED;
+    targetState = RETRIEVE;
     roboticArmThread.start(skd_thread_prio);
     palSetPad(GPIOH, POWER_PAD);
 }
@@ -103,9 +106,10 @@ void NewRoboticArmSkd::update() {
                 calculate_current();
             }
             break;
+//It seems that the following code is not complete, please modify them.
         case RETRIEVING:
-            if (RoboticArmIF::present_velocity * (RoboticArmIF::present_angle - ))
-            break;
+//            if (RoboticArmIF::present_velocity * (RoboticArmIF::present_angle - ))
+//            break;
         case STRETCHING:
             break;
     }
