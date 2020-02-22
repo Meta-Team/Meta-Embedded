@@ -23,12 +23,12 @@ public:
     enum RA_motor_state_t{
         RETRIEVED,
         RETRIEVING,
-        STRECHING,
-        STRECHED
+        STRETCHING,
+        STRETCHED
     };
 
     enum RA_motor_instruction{
-        STRECH,
+        STRETCH,
         RETRIEVE
     };
 

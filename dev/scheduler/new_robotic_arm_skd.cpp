@@ -32,9 +32,9 @@ void NewRoboticArmSkd::set_motor_instruction(RA_motor_instruction command) {
     targetState = command;
     v2i_pid[0].clear_i_out();
     v2i_pid[1].clear_i_out();
-    if (targetState == STRECH){
+    if (targetState == STRETCH){
         target_velocity = ROBOTIC_ARM_ROTATE_VELOCITY + 250;
-        motorState = STRECHING;
+        motorState = STRETCHING;
         trigger_angle = ROBOTIC_ARM_STRETCH_OUT_ANGLE;
     } else{
         target_velocity = -ROBOTIC_ARM_ROTATE_VELOCITY;
@@ -91,12 +91,12 @@ void NewRoboticArmSkd::update() {
             if (targetState == RETRIEVE){
                 RoboticArmIF::motor_target_current = 0;
             } else{
-                motorState = STRECHING;
+                motorState = STRETCHING;
                 calculate_current();
             }
             break;
-        case STRECHED:
-            if (targetState == STRECH){
+        case STRETCHED:
+            if (targetState == STRETCH){
                 RoboticArmIF::motor_target_current = 0;
             } else{
                 motorState = RETRIEVING;
@@ -106,7 +106,7 @@ void NewRoboticArmSkd::update() {
         case RETRIEVING:
             if (RoboticArmIF::present_velocity * (RoboticArmIF::present_angle - ))
             break;
-        case STRECHING:
+        case STRETCHING:
             break;
     }
 }

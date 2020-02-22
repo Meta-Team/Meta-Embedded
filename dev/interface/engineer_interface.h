@@ -51,6 +51,8 @@ public:
 
     /**
      * Target current array in the order defined in motor_id_t
+     * This is an array of pointers whose address are from CanInterface::processFeedbackThread.feedback
+     * We save the array of pointers in engineer interface, so we can read these feedback data through pointers
      */
     static int *target_current[MOTOR_COUNT];
 
