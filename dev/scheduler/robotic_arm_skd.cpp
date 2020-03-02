@@ -37,8 +37,8 @@ void RoboticArmSKD::start(tprio_t skd_thread_prio) {
 }
 
 void RoboticArmSKD::stretch_out() {
-    if (released && ((EngineerInterface::present_angle[ROBOTIC_LEFT] < ROBOTIC_ARM_PULL_BACK_ANGLE)
-                    ||(EngineerInterface::present_angle[ROBOTIC_RIGHT]< ROBOTIC_ARM_PULL_BACK_ANGLE))){
+    if (released && ((EngineerInterface::feedback[ROBOTIC_LEFT]->actual_angle < ROBOTIC_ARM_PULL_BACK_ANGLE)
+                    ||(EngineerInterface::feedback[ROBOTIC_RIGHT]->actual_angle< ROBOTIC_ARM_PULL_BACK_ANGLE))){
         released = false;
         trigger_angle = ROBOTIC_ARM_STRETCH_OUT_ANGLE;
         target_velocity[0] = target_velocity[1] = ROBOTIC_ARM_ROTATE_VELOCITY + 250;
@@ -46,8 +46,8 @@ void RoboticArmSKD::stretch_out() {
 }
 
 void RoboticArmSKD::pull_back() {
-    if (released && ((EngineerInterface::present_angle[ROBOTIC_LEFT] > ROBOTIC_ARM_STRETCH_OUT_ANGLE)
-                    ||(EngineerInterface::present_angle[ROBOTIC_RIGHT]> ROBOTIC_ARM_STRETCH_OUT_ANGLE))){
+    if (released && ((EngineerInterface::feedback[ROBOTIC_LEFT]->actual_angle  > ROBOTIC_ARM_STRETCH_OUT_ANGLE)
+                    ||(EngineerInterface::feedback[ROBOTIC_RIGHT]->actual_angle > ROBOTIC_ARM_STRETCH_OUT_ANGLE))){
         released = false;
         trigger_angle = ROBOTIC_ARM_PULL_BACK_ANGLE;
         target_velocity[0] = target_velocity[1] = - ROBOTIC_ARM_ROTATE_VELOCITY;
@@ -176,18 +176,19 @@ void RoboticArmSKD::update_target_current() {
             AirTankIF::set_tank(CLAMP,clamp_state);
             AirTankIF::set_tank(SLIDE_X_1, 0);
             AirTankIF::set_tank(SLIDE_X_2, 0);
+            target_velocity[0] = target_velocity[1] = 0;
             EngineerInterface::target_current[ROBOTIC_LEFT] = EngineerInterface::target_current[ROBOTIC_RIGHT] = 0;
         }
     }
     // Current managing(during the process of pull back or stretch out)
     if (!released){
-        if ((target_velocity[0] * (EngineerInterface::present_angle[ROBOTIC_LEFT] - trigger_angle) > 0)||
-            (target_velocity[1] * (EngineerInterface::present_angle[ROBOTIC_RIGHT] - trigger_angle) > 0)){
+        if ((target_velocity[0] * (EngineerInterface::feedback[ROBOTIC_LEFT]->actual_angle  - trigger_angle) > 0)||
+            (target_velocity[1] * (EngineerInterface::feedback[ROBOTIC_RIGHT]->actual_angle  - trigger_angle) > 0)){
             //already excel the trigger angle: set the target velocity to zero
             target_velocity[0] = target_velocity[1] = 0;
         }
-        if ((target_velocity[0] == 0 && ABS_IN_RANGE(EngineerInterface::present_velocity[ROBOTIC_LEFT], ROBOTIC_ARM_TRIGGER_VELOCITY))||
-            (target_velocity[1] == 0 && ABS_IN_RANGE(EngineerInterface::present_velocity[ROBOTIC_RIGHT], ROBOTIC_ARM_TRIGGER_VELOCITY))){
+        if ((target_velocity[0] == 0 && ABS_IN_RANGE(EngineerInterface::feedback[ROBOTIC_LEFT]->actual_velocity, ROBOTIC_ARM_TRIGGER_VELOCITY))||
+            (target_velocity[1] == 0 && ABS_IN_RANGE(EngineerInterface::feedback[ROBOTIC_RIGHT]->actual_velocity, ROBOTIC_ARM_TRIGGER_VELOCITY))){
             //already close to the target current
             released = true;
             v2i_pid[0].clear_i_out();
@@ -200,8 +201,8 @@ void RoboticArmSKD::update_target_current() {
 //            clamp_state = 0;
 //            AirTankIF::set_tank(CLAMP,clamp_state);
 //        }
-        EngineerInterface::target_current[0] = (int16_t ) v2i_pid[0].calc(EngineerInterface::present_velocity[ROBOTIC_LEFT], target_velocity[0]);
-        EngineerInterface::target_current[1] = (int16_t ) v2i_pid[1].calc(EngineerInterface::present_velocity[ROBOTIC_RIGHT], target_velocity[1]);
+        *(EngineerInterface::target_current[ROBOTIC_LEFT]) = v2i_pid[0].calc(EngineerInterface::feedback[ROBOTIC_LEFT]->actual_velocity, target_velocity[0]);
+        *(EngineerInterface::target_current[ROBOTIC_RIGHT]) = v2i_pid[1].calc(EngineerInterface::feedback[ROBOTIC_RIGHT]->actual_velocity, target_velocity[1]);
     }
 }
 
@@ -209,7 +210,6 @@ void RoboticArmSKD::RoboticArmThread::main() {
     setName("robotic_arm");
     while (!shouldTerminate()){
         update_target_current();
-        EngineerInterface::data_to_can();
         sleep(TIME_MS2I(2));
     }
 }

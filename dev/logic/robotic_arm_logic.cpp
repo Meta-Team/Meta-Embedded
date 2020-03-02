@@ -26,9 +26,10 @@ void RoboticArmLG::init() {
     commandList.num = 4;
     generate_plans();
     generate_command_list();
-    plan = 0;
+    using_plan(1); //use the first grabbing plan as default
     targetBox = actionPlan[plan].head;
     commandInfo = commandList.head;
+    update_command_list();
 }
 
 void RoboticArmLG::start_grabbing() {
@@ -161,11 +162,19 @@ void RoboticArmLG::previous_step() {
 }
 
 void RoboticArmLG::next_bin(){
-
+    commandInfo = commandList.head;
+    targetBox = targetBox->next;
+    if (targetBox == nullptr)
+        return;
+    update_command_list();
 }
 
 void RoboticArmLG::previous_bin(){
-
+    commandInfo = commandList.head;
+    targetBox = targetBox->prev;
+    if (targetBox == nullptr)
+        return;
+    update_command_list();
 }
 
 void RoboticArmLG::RoboticArmLGThread::main(){
@@ -175,10 +184,22 @@ void RoboticArmLG::RoboticArmLGThread::main(){
         if (auto_logic_enabled){
             // Auto logic
             if (grabbing){
-            //next box?
-            //update command list
-            //next step: according to the command list as well as the current state
-            //end of grabbing one bin?
+                //next box?
+                if (commandInfo->next == nullptr && NewRoboticArmSkd::get_motor_state() == NewRoboticArmSkd::RETRIEVED) {
+                    //update command list
+                    next_bin();
+                    //end of grabbing plan?
+                    if (targetBox == nullptr){
+                        targetBox = actionPlan[plan].head;
+                        commandInfo = commandList.head;
+                        finish();
+                    }
+                }
+                //next step: according to the command list as well as the current state
+                if (commandInfo->next != nullptr){
+                    //commandInfo is command 1, command 2, command 3
+                    
+                }
             //next loop
             }
         } else{

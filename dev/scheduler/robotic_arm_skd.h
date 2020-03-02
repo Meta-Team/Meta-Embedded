@@ -23,7 +23,7 @@
 
 #define POWER_PAD GPIOH_POWER4_CTRL
 
-class RoboticArmSKD: public EngineerBase,public air_tank_base {
+class RoboticArmSKD{
 
 public:
 
