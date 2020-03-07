@@ -83,7 +83,7 @@ void ShootSKD::set_plate_target_velocity(float degree_per_second) {
 
 void ShootSKD::set_friction_wheels(float duty_cycle) {
     target_velocity[2] = duty_cycle *3000.0f;
-    target_velocity[3] = -target_velocity[2];
+    target_velocity[3] = target_velocity[2];
 }
 
 float ShootSKD::get_friction_wheels_duty_cycle() {
