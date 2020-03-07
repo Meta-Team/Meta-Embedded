@@ -55,7 +55,6 @@ void UserI::UserThread::main() {
     while (!shouldTerminate()) {
 
         /*** ---------------------------------- Gimbal --------------------------------- ***/
-
         if (!InspectorI::remote_failure() /*&& !InspectorI::chassis_failure()*/ && !InspectorI::gimbal_failure()) {
             if ((Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_UP) ||
                 (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_MIDDLE)) {
@@ -104,7 +103,6 @@ void UserI::UserThread::main() {
                 /// PC control mode
 
                 GimbalLG::set_action(GimbalLG::ABS_ANGLE_MODE);
-
                 float yaw_sensitivity, pitch_sensitivity;
                 if (Remote::key.ctrl) {
                     yaw_sensitivity = gimbal_pc_yaw_sensitivity[0];

@@ -18,7 +18,7 @@
 
 /**
  * @name RoboticArm
- * @brief interface to handle clamp and rotation motor of robotic arm
+ * @brief interface to handle rotation motor of robotic arm
  * @pre hardware is properly configured. Rotation motor CAN ID = 5 connect to POWER3_PH4. Clamp is connected to POWER1_PH2.
  */
 class RoboticArmIF {
@@ -44,7 +44,7 @@ public:
      * @brief send rotation motor target current
      * @return
      * @note the reason to separate set and send function is that C620 can only holds the targets for a
-     *       while, so it's needed to send repreatly in a thread
+     *       while, so it's needed to send repeatedly in a thread
      */
     static bool send_current();
 
@@ -56,7 +56,7 @@ private:
 
     static CANInterface *can;
 
-    friend CANInterface;
+    friend class CANInterface;
 
 private:
 

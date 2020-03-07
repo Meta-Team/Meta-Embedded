@@ -11,6 +11,7 @@
 #include "shell.h"
 
 #include "user_engineer.h"
+#include "engineer_interface.h"
 
 extern ShellCommand mainProgramCommands[];
 

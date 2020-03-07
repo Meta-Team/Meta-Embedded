@@ -10,6 +10,7 @@
 
 #include "remote_interpreter.h"
 #include "referee_interface.h"
+#include "engineer_interface.h"
 
 #include "engineer_elevator_logic.h"
 #include "engineer_chassis_skd.h"
@@ -17,6 +18,7 @@
 #include "robotic_arm_skd.h"
 
 #include "inspector_engineer.h"
+
 
 class UserE {
 

@@ -67,7 +67,9 @@ private:
     static float v_to_wheel_angular_velocity_;  // Wheel speed (mm/s) to wheel angular velocity (degree/s)
 
     class SKDThread : public chibios_rt::BaseStaticThread<512> {
+        ///about the constexpr: the compiler will check if variable was indeed assigned a constant value
         static constexpr unsigned int SKD_THREAD_INTERVAL = 2; // PID calculation interval [ms]
+        ///about the final: the derived classes cannot override this main function
         void main() final;
     };
 

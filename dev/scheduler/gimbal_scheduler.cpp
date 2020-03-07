@@ -56,9 +56,9 @@ GimbalSKD::start(AbstractAHRS *gimbal_ahrs_, const Matrix33 ahrs_angle_rotation_
 
     // FIXME: find a more elegant way to handle this 
 #if defined(SENTRY) || defined(AERIAL)
-    last_angle[YAW] = GimbalIF::feedback[GimbalIF::YAW].actual_angle * yaw_install;
+    last_angle[YAW] = GimbalIF::feedback[GimbalIF::YAW]->actual_angle * yaw_install;
 #else
-    last_angle[YAW] = ahrs_angle.x - GimbalIF::feedback[GimbalIF::YAW].actual_angle * yaw_install;
+    last_angle[YAW] = ahrs_angle.x - GimbalIF::feedback[GimbalIF::YAW]->actual_angle * yaw_install;
     // For initial moment, angle_movement = ahrs_angle.x - last_angle[YAW] = GimbalIF::feedback[YAW].actual_angle
 #endif
 
@@ -139,17 +139,17 @@ void GimbalSKD::SKDThread::main() {
 
             target_velocity[YAW] = a2v_pid[YAW].calc(accumulated_angle[YAW], target_angle[YAW]);
             // Perform crop on physical relative angle of Yaw
-//            if (GimbalIF::feedback[YAW].accumulated_angle() * yaw_install > yaw_restrict_angle[1] &&
-//                target_velocity[YAW] > yaw_restrict_velocity) {
-//
-//                target_velocity[YAW] = yaw_restrict_velocity;
-//
-//            } else if (GimbalIF::feedback[YAW].accumulated_angle() * yaw_install < yaw_restrict_angle[0] &&
-//                       target_velocity[YAW] < -yaw_restrict_velocity) {
-//
-//                target_velocity[YAW] = -yaw_restrict_velocity;
-//
-//            }
+            if (GimbalIF::feedback[YAW]->accumulated_angle() * yaw_install > yaw_restrict_angle[1] &&
+                target_velocity[YAW] > yaw_restrict_velocity) {
+
+                target_velocity[YAW] = yaw_restrict_velocity;
+
+            } else if (GimbalIF::feedback[YAW]->accumulated_angle() * yaw_install < yaw_restrict_angle[0] &&
+                       target_velocity[YAW] < -yaw_restrict_velocity) {
+
+                target_velocity[YAW] = -yaw_restrict_velocity;
+
+            }
             target_current[YAW] = (int) v2i_pid[YAW].calc(velocity[YAW], target_velocity[YAW]);
 
 
@@ -163,16 +163,16 @@ void GimbalSKD::SKDThread::main() {
             /// Yaw
             // Use gimbal motor feedback angle and velocity
             target_velocity[YAW] = a2v_pid[YAW].calc(
-                    GimbalIF::feedback[YAW].accumulated_angle() * yaw_install / yaw_deceleration_ratio,
+                    GimbalIF::feedback[YAW]->accumulated_angle() * yaw_install / yaw_deceleration_ratio,
                     target_angle[YAW]);
             target_current[YAW] = (int) v2i_pid[YAW].calc(
-                    GimbalIF::feedback[YAW].actual_velocity * yaw_install / yaw_deceleration_ratio,
+                    GimbalIF::feedback[YAW]->actual_velocity * yaw_install / yaw_deceleration_ratio,
                     target_velocity[YAW]);
 
             /// Pitch
             // Use gimbal motor feedback angle and AHRS velocity
             target_velocity[PITCH] = a2v_pid[PITCH].calc(
-                    GimbalIF::feedback[PITCH].accumulated_angle() * pitch_install / pitch_deceleration_ratio,
+                    GimbalIF::feedback[PITCH]->accumulated_angle() * pitch_install / pitch_deceleration_ratio,
                     target_angle[PITCH]);
             target_current[PITCH] = (int) v2i_pid[PITCH].calc(velocity[PITCH], target_velocity[PITCH]);
 
@@ -183,9 +183,9 @@ void GimbalSKD::SKDThread::main() {
         }
 
         // Send currents
-        GimbalIF::target_current[YAW] = target_current[YAW] * yaw_install;
-        GimbalIF::target_current[PITCH] = target_current[PITCH] * pitch_install;
-        GimbalIF::send_gimbal_currents();
+        *GimbalIF::target_current[YAW] = target_current[YAW] * yaw_install;
+        *GimbalIF::target_current[PITCH] = target_current[PITCH] * pitch_install;
+        GimbalIF::enable_gimbal_current_clip();
 
         sleep(TIME_MS2I(SKD_THREAD_INTERVAL));
     }
@@ -194,13 +194,13 @@ void GimbalSKD::SKDThread::main() {
 float GimbalSKD::get_accumulated_angle(motor_id_t motor) {
     if (motor == YAW) {
         if (mode == SENTRY_MODE) {
-            return GimbalIF::feedback[YAW].accumulated_angle() * yaw_install / yaw_deceleration_ratio;
+            return GimbalIF::feedback[YAW]->accumulated_angle() * yaw_install / yaw_deceleration_ratio;
         } else {
             return accumulated_angle[YAW];
         }
     } else if (motor == PITCH) {
         if (mode == SENTRY_MODE) {
-            return GimbalIF::feedback[PITCH].accumulated_angle() * pitch_install / pitch_deceleration_ratio;
+            return GimbalIF::feedback[PITCH]->accumulated_angle() * pitch_install / pitch_deceleration_ratio;
         } else {
             return (gimbal_ahrs->get_angle() * ahrs_angle_rotation).y;
         }
@@ -210,9 +210,9 @@ float GimbalSKD::get_accumulated_angle(motor_id_t motor) {
 
 float GimbalSKD::get_relative_angle(GimbalBase::motor_id_t motor) {
     if (motor == YAW) {
-        return GimbalIF::feedback[YAW].accumulated_angle() * yaw_install / yaw_deceleration_ratio;
+        return GimbalIF::feedback[YAW]->accumulated_angle() * yaw_install / yaw_deceleration_ratio;
     } else if (motor == PITCH) {
-        return GimbalIF::feedback[PITCH].accumulated_angle() * pitch_install / pitch_deceleration_ratio;
+        return GimbalIF::feedback[PITCH]->accumulated_angle() * pitch_install / pitch_deceleration_ratio;
     }
     return 0;
 }

@@ -79,7 +79,7 @@ public:
         if (i_out < -p.i_limit) i_out = -p.i_limit;
 
         out = p_out + i_out + d_out;
-        if (abs_float(error[0]) <= abs_float(target*0.03)){
+        if (abs_float(error[0]) <= abs_float(target*0.03) && i_clip_enabled){
             i_out = 0.0f;
         }
         if (out > p.out_limit) out = p.out_limit;
@@ -104,6 +104,9 @@ public:
         return error[0];
     }
 
+    void enable_i_clip() {
+        i_clip_enabled = true;
+    }
 private:
 
     pid_params_t p;
@@ -113,6 +116,8 @@ private:
     float p_out;
     float i_out;
     float d_out;
+
+    bool i_clip_enabled = false;
 
 };
 

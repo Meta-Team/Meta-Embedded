@@ -57,6 +57,7 @@ bool RoboticArmIF::send_current() {
     txmsg.RTR = CAN_RTR_DATA;
     txmsg.DLC = 0x08;
 
+    // Fill in the can data frame with header 0x1FF and DATA[0], DATA[1]
     txmsg.data8[0] = (uint8_t) ((-motor_target_current) >> 8);
     txmsg.data8[1] = (uint8_t) (-motor_target_current);
     txmsg.data8[2] = txmsg.data8[3] = txmsg.data8[4] = txmsg.data8[5] = txmsg.data8[6] = txmsg.data8[7] = 0;
