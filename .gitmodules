@@ -1,0 +1,3 @@
+[submodule "Meta-Remote"]
+	path = Meta-Remote
+	url = git@github.com:Meta-Team/Meta-Remote.git
