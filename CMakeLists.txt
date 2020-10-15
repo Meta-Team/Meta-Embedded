@@ -243,21 +243,22 @@ add_executable(ENGINEER
         dev/interface/engineer_elevator_interface.cpp
         dev/interface/engineer_gimbal.cpp
         dev/interface/robotic_arm_interface.cpp
-
-dev/scheduler/engineer_chassis_skd.cpp
-dev/scheduler/engineer_elevator_skd.cpp
-dev/scheduler/robotic_arm_skd.cpp
-
-dev/logic/engineer_elevator_logic.cpp
-
-dev/vehicle/engineer/main_engineer.cpp
-dev/vehicle/engineer/user_engineer.cpp
-dev/vehicle/engineer/inspector_engineer.cpp
-dev/vehicle/engineer/settings_engineer.cpp
-
-#        dev/control/robotic_arm_skd.cpp
-#        dev/interface/robotic_arm_interface.cpp
-)
+        dev/scheduler/engineer_chassis_skd.cpp
+        dev/scheduler/engineer_elevator_skd.cpp
+        dev/scheduler/robotic_arm_skd.cpp
+        dev/logic/engineer_elevator_logic.cpp
+        dev/vehicle/engineer/main_engineer.cpp
+        dev/vehicle/engineer/user_engineer.cpp
+        dev/vehicle/engineer/inspector_engineer.cpp
+        dev/vehicle/engineer/settings_engineer.cpp
+        dev/interface/engineer_interface.cpp
+        dev/interface/engineer_interface.h
+        dev/interface/air_tank_interface.cpp
+        dev/interface/air_tank_interface.h
+        dev/scheduler/engineer_rescue_skd.cpp
+        dev/scheduler/engineer_rescue_skd.h
+        dev/logic/robotic_arm_logic.cpp
+        dev/logic/robotic_arm_logic.h)
 target_include_directories(ENGINEER PRIVATE dev/vehicle/engineer)
 target_compile_definitions(ENGINEER PRIVATE ENGINEER)
 
@@ -331,6 +332,14 @@ add_executable(ut_buzzer
         dev/scheduler/buzzer_scheduler.cpp
         dev/debug/Unit_Tests/ut_buzzer.cpp)
 
+# CAN Interface: include CANInterface
+add_executable(ut_can
+        dev/interface/can_interface.cpp
+        dev/interface/buzzer_interface.cpp
+        dev/debug/shell/shell.cpp
+        dev/interface/led.cpp
+        dev/debug/Unit_Tests/ut_can_interface.cpp)
+
 # Elevator Interface: include CANInterface, ElevatorInterface, and the unit test modules.
 add_executable(ut_elevator_interface
         dev/interface/can_interface.cpp
@@ -342,6 +351,13 @@ add_executable(ut_engineer_gimbal
         dev/interface/remote_interpreter.cpp
         dev/debug/Unit_Tests/ut_engineer_gimbal.cpp)
 
+# Gimbal Interface
+add_executable(ut_gimbal_interface
+        dev/interface/gimbal_interface.cpp
+        dev/interface/can_interface.cpp
+        dev/scheduler/buzzer_scheduler.cpp
+        dev/debug/Unit_Tests/ut_gimbalIF.cpp)
+
 # Robotic Arm
 add_executable(ut_robotic_arm
         dev/debug/Unit_Tests/ut_engineer_robotic_arm.cpp
@@ -349,6 +365,11 @@ add_executable(ut_robotic_arm
         dev/interface/robotic_arm_interface.cpp
         dev/scheduler/robotic_arm_skd.cpp)
 
+# Auto Robotic Arm
+add_executable(ut_auto_robotic_arm
+        dev/scheduler/new_robotic_arm_skd.cpp)
+
+# Referee
 add_executable(ut_referee_interface
         dev/common/CRC8.cpp
         dev/common/CRC16.cpp
@@ -384,6 +405,16 @@ add_executable(pa_hero_shoot
         dev/debug/Param_Adjusts/pa_hero_shoot.cpp)
 target_compile_definitions(pa_hero_shoot PUBLIC HERO)
 
+# Chassis
+add_executable(pa_chassis
+        dev/interface/can_interface.cpp
+        dev/interface/chassis_interface.cpp
+        dev/scheduler/chassis_scheduler.cpp
+        dev/interface/gimbal_interface.cpp
+        dev/scheduler/gimbal_scheduler.cpp
+        dev/debug/Param_Adjusts/pa_chassis.cpp)
+target_compile_definitions(pa_chassis PUBLIC INFANTRY)
+
 # Shoot: include CANInterface, GimbalIF, GimbalController, GimbalFeedbackThread and adjustment modules.
 add_executable(pa_infantry_shoot
         dev/interface/can_interface.cpp
@@ -394,14 +425,19 @@ add_executable(pa_infantry_shoot
 
 # Gimbal: include CANInterface, GimbalInterface, GimbalController, GimbalFeedbackThread and adjustment modules.
 add_executable(pa_gimbal
+        dev/common/CRC16.cpp
+        dev/interface/sd_card_interface.cpp
+        ${AHRS_SRC}
         dev/interface/can_interface.cpp
         dev/interface/gimbal_interface.cpp
         dev/module/pid_controller.hpp
         dev/scheduler/gimbal_scheduler.cpp
         dev/scheduler/shoot_scheduler.cpp
-        dev/interface/ahrs/mpu6500.cpp
+        dev/scheduler/buzzer_scheduler.cpp
+        dev/interface/ahrs/ahrs.cpp
         dev/debug/Param_Adjusts/pa_gimbal.cpp)
 target_compile_definitions(pa_gimbal PRIVATE SHELL_NO_ECHO_MODE)
+target_link_libraries(pa_gimbal ${PROJECT_SOURCE_DIR}/dev/interface/ahrs/ahrs_lib.lib)
 
 # Elevator: include CANInterface, ElevatorInterface, ElevatorController, and the unit test modules.
 add_executable(pa_elevator

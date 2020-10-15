@@ -6,12 +6,12 @@
 
 
 /// Gimbal Config
-float UserI::gimbal_rc_yaw_max_speed = 90;  // [degree/s]
+float UserI::gimbal_rc_yaw_max_speed = 45;  // [degree/s]
 float UserI::gimbal_pc_yaw_sensitivity[3] = {50000, 100000, 150000};  // [Slow, Normal, Fast] [degree/s]
 
 float UserI::gimbal_pc_pitch_sensitivity[3] = {20000, 50000, 60000};   // [Slow, Normal, Fast] [degree/s]
 float UserI::gimbal_pitch_min_angle = -10; // down range for pitch [degree]
-float UserI::gimbal_pitch_max_angle = 45; //  up range for pitch [degree]
+float UserI::gimbal_pitch_max_angle = 20; //  up range for pitch [degree]
 
 /// Chassis Config
 float UserI::chassis_v_left_right = 1000.0f;  // [mm/s]
@@ -55,17 +55,13 @@ void UserI::UserThread::main() {
     while (!shouldTerminate()) {
 
         /*** ---------------------------------- Gimbal --------------------------------- ***/
-
         if (!InspectorI::remote_failure() /*&& !InspectorI::chassis_failure()*/ && !InspectorI::gimbal_failure()) {
-
             if ((Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_UP) ||
-                (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_MIDDLE) ||
-                (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_DOWN)) {
+                (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_MIDDLE)) {
 
                 /// Remote - Yaw + Pitch
 
                 GimbalLG::set_action(GimbalLG::ABS_ANGLE_MODE);
-
 
                 gimbal_yaw_target_angle_ +=
                         -Remote::rc.ch0 * (gimbal_rc_yaw_max_speed * USER_THREAD_INTERVAL / 1000.0f);
@@ -79,12 +75,34 @@ void UserI::UserThread::main() {
 
                 GimbalLG::set_target(gimbal_yaw_target_angle_, pitch_target);
 
+            } else if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_DOWN) {
+
+                /// Vision - Yaw + Pitch
+
+                GimbalLG::set_action(GimbalLG::ABS_ANGLE_MODE);
+
+                float yaw_va_target, pitch_va_target;
+                yaw_va_target = GimbalLG::get_relative_angle(GimbalBase::YAW);
+                pitch_va_target = GimbalLG::get_relative_angle(GimbalBase::PITCH);
+
+                float yaw_delta,pitch_delta;
+                yaw_delta = VisionPort::enemy_info.yaw_angle;
+                pitch_delta = VisionPort::enemy_info.pitch_angle;
+
+                static time_msecs_t last_one = VisionPort::last_update_time;
+                if (VisionPort::last_update_time - last_one < 500) { // TODO:: may not be safe enough
+                    if ((yaw_delta > 2.0f) || (yaw_delta < -2.0f)) yaw_va_target -= yaw_delta;
+                    if ((pitch_delta > 1.0f) || (pitch_delta < -1.0f)) pitch_va_target -= pitch_delta;
+                }
+                last_one = VisionPort::last_update_time;
+
+                GimbalLG::set_target(yaw_va_target, pitch_va_target);
+
             } else if (Remote::rc.s1 == Remote::S_DOWN) {
 
                 /// PC control mode
 
                 GimbalLG::set_action(GimbalLG::ABS_ANGLE_MODE);
-
                 float yaw_sensitivity, pitch_sensitivity;
                 if (Remote::key.ctrl) {
                     yaw_sensitivity = gimbal_pc_yaw_sensitivity[0];
@@ -110,6 +128,17 @@ void UserI::UserThread::main() {
                 float yaw_delta = -Remote::mouse.x * (yaw_sensitivity * USER_THREAD_INTERVAL / 1000.0f);
                 float pitch_delta = -Remote::mouse.y * (pitch_sensitivity * USER_THREAD_INTERVAL / 1000.0f);
 
+//                ///check if it's necessary to use the auxiliary targeting
+//                if (Remote::key.b){
+//                    GimbalLG::Auxiliary_ON = (GimbalLG::Auxiliary_ON == 1) ? 0 : 1;
+//                }
+//
+//                if (GimbalLG::Auxiliary_ON) {
+//                    if (GimbalLG::should_override_operator(yaw_delta, pitch_delta)) {
+//                        yaw_delta = VisionPort::enemy_info.yaw_angle;
+//                        pitch_delta = VisionPort::enemy_info.pitch_angle;
+//                    }
+//                }
                 VAL_CROP(yaw_delta, 1.5, -1.5);
                 VAL_CROP(pitch_delta, 1, -1);
 
@@ -121,7 +150,6 @@ void UserI::UserThread::main() {
                 // mouse.y use down as positive direction, while GimbalLG use CCW (left) as positive direction
 
                 VAL_CROP(gimbal_pc_pitch_target_angle_, gimbal_pitch_max_angle, gimbal_pitch_min_angle);
-
 
                 GimbalLG::set_target(gimbal_yaw_target_angle_, gimbal_pc_pitch_target_angle_);
 
@@ -140,7 +168,7 @@ void UserI::UserThread::main() {
 
         if (!InspectorI::remote_failure() /*&& !InspectorI::chassis_failure()*/ && !InspectorI::gimbal_failure()) {
             if ((Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_UP) ||
-                (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_DOWN)) {
+                (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_MIDDLE)) {
 
                 /// Remote - Shoot with Scrolling Wheel
 
@@ -182,8 +210,7 @@ void UserI::UserThread::main() {
 
         if (!InspectorI::remote_failure() && !InspectorI::chassis_failure() /*&& !InspectorI::gimbal_failure()*/) {
 
-            if ((Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_UP) ||
-                (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_MIDDLE)) {
+            if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_UP) {
 
                 /// Remote - Chassis Move + Chassis Follow
                 ChassisLG::set_action(ChassisLG::FOLLOW_MODE);
@@ -194,7 +221,7 @@ void UserI::UserThread::main() {
                                        Remote::rc.ch3 * 800)   // Both use up    as positive direction
                 );
 
-            } else if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_DOWN) {
+            } else if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_MIDDLE) {
 
                 /// Remote - Chassis Move + Chassis Dodge
                 ChassisLG::set_action(ChassisLG::DODGE_MODE);
@@ -204,13 +231,13 @@ void UserI::UserThread::main() {
                                        Remote::rc.ch3 * 1000 :
                                        Remote::rc.ch3 * 800)   // Both use up    as positive direction
                 );
-            } /*else if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_DOWN) {
+            } else if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_DOWN) {
 
                 /// Remote - Chassis Stop (with Vision)
 
                 ChassisLG::set_action(ChassisLG::FORCED_RELAX_MODE);
 
-            }*/ else if (Remote::rc.s1 == Remote::S_DOWN) {
+            } else if (Remote::rc.s1 == Remote::S_DOWN) {
 
                 /// PC control mode
 

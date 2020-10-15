@@ -2,6 +2,8 @@
 // Created by liuzikai on 2018-12-29.
 // Zhu Kerui wrote code about processing gimbal feedback and the bullet control.
 // Feng Chuhao wrote code about sending gimbal currents.
+// Mo Kanya wrote code about sending friction wheels' currents and processing friction wheels' feedback
+// Qian Chen wrote about motor can channel distribution mechanism.
 //
 
 /**
@@ -39,7 +41,9 @@ public:
         PITCH = 1,
         BULLET = 2,
         PLATE = 3,
-        MOTOR_COUNT = 4
+        FW_LEFT = 4,
+        FW_RIGHT = 5,
+        MOTOR_COUNT = 6
     };
 };
 
@@ -53,7 +57,7 @@ public:
  * @pre PWM pins are set properly in board.h (I5 - alt 3, I6 - alt 3)
  * @usage 1. Call init(CANInterface *). The interface should be properly initialized.
  *        2. Read feedback from variables.
- *           Write target current / duty cycle to variables, then call send_gimbal_currents to apply changes
+ *           Write target current / duty cycle to variables, then call enable_gimbal_current_clip to apply changes
  * @note This module is designed to process feedback automatically, but not to send current automatically, to avoid
  *       unintended gimbal movements.
  * @note About coordinate: all components in this module use original coordinate of EACH motor. DO NOT directly add
@@ -86,133 +90,77 @@ class GimbalIF : public GimbalBase {
 
 public:
 
-    enum motor_type_t {
-        NONE_MOTOR,
-        RM6623,
-        M2006,
-        GM6020,
-        GM3510,
-        M3508
+    enum motor_can_channel_t {
+        none_can_channel,
+        can_channel_1,
+        can_channel_2
     };
+
+    struct motor_can_config_t {
+        motor_can_channel_t motor_can_channel;
+        unsigned motor_can_id;
+        CANInterface::motor_type_t motor_type;
+    };
+//                         motor_can_channel_t yaw_can_channel,               unsigned yaw_can_id,
+//                         motor_can_channel_t pitch_can_channel,             unsigned pitch_can_id,
+//                         motor_can_channel_t bullet_can_channel,            unsigned bullet_can_id,
+//                         motor_can_channel_t plate_can_channel,             unsigned plate_can_id,
+//                         motor_can_channel_t fw_left_can_channel,           unsigned fw_left_can_id,
+//                         motor_can_channel_t fw_right_can_channel,          unsigned fw_right_can_id
 
     /**
      * Initialize GimbalIF. Angles of bullet loader and bullet plate will be reset.
-     * @param can_interface           Initialized CANInterface for yaw, pitch and bullet_loader motor
+     * @param can1_interface          Initialized CANInterface for yaw, pitch and bullet_loader motor
+     * @param can2_interface          Initialized CANInterface for yaw, pitch and bullet_loader motor
+     * @param motor_can_config        A group that contains ***ALL*** gimbal motor's info, include (can_channel, motor_can_id, motor_type)
      * @param yaw_front_angle_raw     Raw angle of yaw when gimbal points straight forward, depending on installation.
      * @param pitch_front_angle_raw   Raw angle of pitch when gimbal points straight forward, depending on installation.
-     * @param yaw_type                Yaw motor motor type
-     * @param pitch_type              Pitch motor motor type
-     * @param bullet_type             Bullet loader motor type
-     * @param plate_type              Bullet plate motor type, default to NONE_MOTOR
      */
-    static void init(CANInterface *can_interface, uint16_t yaw_front_angle_raw, uint16_t pitch_front_angle_raw,
-                     motor_type_t yaw_type, motor_type_t pitch_type, motor_type_t bullet_type,
-                     motor_type_t plate_type = NONE_MOTOR);
 
-
-    struct motor_feedback_t {
-
-    public:
-
-        void init(motor_type_t type_, motor_id_t id_);
-
-        motor_type_t type;
-        motor_id_t id;
-
-        /**
-         * Normalized angle
-         * @note Viewing from TOP of 6623/2006 motor. 180 <--CCW-- front_angle_raw --CW--> -180
-         */
-        float actual_angle = 0.0f;     // [degree]
-
-        /**
-         * Velocity
-         * @note Viewing from TOP of 6623/2006 motor. Positive for CCW. Negative for CW.
-         */
-        float actual_velocity = 0.0f;  // [degree/s]
-
-        /**
-         * Actual current
-         * @note Direction is UNKNOWN yet. In reality, it vibrates significantly, and it's not useful for now.
-         */
-        int actual_current = 0;  // [mA]
-
-        /**
-         * Number of round
-         * @note Viewing from TOP of 6623/2006 motor. Positive for CCW. Negative for CW.
-         */
-        int round_count = 0;
-
-        /**
-         * Last update time (ms, from system start)
-         */
-        time_msecs_t last_update_time = 0;
-
-        /**
-         * Set current actual angle as the zero reference angle and clear the round count (accumulated angle = 0)
-         */
-        void reset_front_angle();
-
-        /**
-         * Get total angle from the original front angle
-         * @return Accumulated angle since last reset_front_angle [degree, positive for CCW viewing from top]
-         */
-        float accumulated_angle();
-
-    private:
-
-        uint16_t last_angle_raw = 0;  // in the range of [0, 8191]
-
-#if GIMBAL_INTERFACE_ENABLE_VELOCITY_DIFFERENTIAL
-        // Variables for velocity sampling
-        time_msecs_t sample_time_stamp = 0;
-        int sample_count = 0;
-        int sample_movement_sum = 0;
-#endif
-
-        friend GimbalIF;
-        friend int main();
-
-    };
+    static void init( CANInterface *can1_interface,                      CANInterface *can2_interface,
+                      motor_can_config_t motor_can_config[MOTOR_COUNT],
+                      uint16_t yaw_front_angle_raw,                      uint16_t pitch_front_angle_raw);
 
     /**
      * Motor feedback structure
      */
-    static motor_feedback_t feedback[MOTOR_COUNT];
+    static CANInterface::motor_feedback_t *feedback[MOTOR_COUNT];
 
 
     /**
      * Target current array in the order defined in motor_id_t
      */
-    static int target_current[MOTOR_COUNT];
-
-    /**
-     * Friction wheels duty cycle
-     */
-    static float fw_duty_cycle;
+    static int *target_current[MOTOR_COUNT];
 
     /**
      * Send target_current of each motor
      * @return Whether currents are sent successfully
      */
-    static void send_gimbal_currents();
+    static void enable_gimbal_current_clip();
 
 
 private:
 
-    static CANInterface *can_;
+    static CANInterface *can1_;
+    static CANInterface *can2_;
 
-    static void process_motor_feedback(CANRxFrame const *rxmsg);  // callback function
+    static CANTxFrame can1_txmsg;
+    static CANTxFrame can2_txmsg;
+    static CANTxFrame fw_txmsg;
+
+    static void process_can1_motor_feedback(CANRxFrame const *rxmsg);  // callback function
+    static void process_can2_motor_feedback(CANRxFrame const *rxmsg);  // callback function
+
     friend CANInterface;
 
 #if GIMBAL_INTERFACE_ENABLE_VELOCITY_DIFFERENTIAL
     static constexpr int VELOCITY_SAMPLE_INTERVAL = 50;  // count of feedback for one sample of angular velocity
 #endif
 
-    enum friction_wheel_channel_t {
-        FW_LEFT = 0,  // The left  friction wheel, PI5, channel 0
-        FW_RIGHT = 1  // The right friction wheel, PI6, channel 1
-    };
+//    enum friction_wheel_channel_t {
+//        FW_LEFT = 0,  // The left  friction wheel, PI5, channel 0
+//        FW_RIGHT = 1  // The right friction wheel, PI6, channel 1
+//    };
 
 };
 

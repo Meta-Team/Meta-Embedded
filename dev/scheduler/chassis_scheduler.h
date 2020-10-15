@@ -13,6 +13,7 @@
 #ifndef META_INFANTRY_CHASSIS_CONTROLLER_H
 #define META_INFANTRY_CHASSIS_CONTROLLER_H
 
+#include <logic/chassis_logic.h>
 #include "ch.hpp"
 
 #include "chassis_interface.h"
@@ -44,6 +45,8 @@ public:
                                    // will leads to conflicts.)
                                    // NO SUPPORT FOR CHASSIS COORDINATE
         GIMBAL_COORDINATE_MODE,    // targets use gimbal coordinates
+
+        ANGULAR_VELOCITY_DODGE_MODE  // input a constant angular velocity, to rotate.
     };
 
     /**
@@ -78,6 +81,14 @@ public:
      * @param theta  Target angle difference between gimbal coordinate and chassis coordinate [degree]
      */
     static void set_target(float vx, float vy, float theta);
+
+    /**
+     * Set dodge_mode target
+     * @param vx    Target velocity along the x axis (right) with respect to gimbal coordinate [mm/s]
+     * @param vy    @param vy     Target velocity along the y axis (up) with respect to gimbal coordinate [mm/s]
+     * @param omega  Target angle difference between gimbal coordinate and chassis coordinate [degree]
+     */
+     static void set_dodge_target(float vx, float vy, float omega);
 
     /**
      * Get actual angle difference between gimbal coordinate and chassis coordinate [degree]
@@ -130,6 +141,10 @@ private:
     static float chassis_gimbal_offset_;  // distance between gimbal and chassis [mm, + for gimbal at "front"]
 
     static install_mode_t install_mode_;
+
+    static bool sports_mode_on;
+    friend void ChassisLG::set_sports_mode();
+    friend bool ChassisLG::get_sports_mode();
 
     // Helper function to convert chassis velocity to velocities of each wheel and perform PID calculation once
     static void velocity_decompose_(float vx, float vy, float w);

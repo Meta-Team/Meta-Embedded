@@ -1,5 +1,6 @@
 //
 // Created by liuzikai on 2019-05-01.
+// Mo Kanya revised the friction wheel part.
 //
 
 /**
@@ -23,7 +24,7 @@
  * @note SKD stands for "scheduler"
  * @brief Scheduler to control shooter to meet the target, including a thread to invoke PID calculation in period.
  * @pre GimbalIF and ChassisIF have been initialized properly
- * @pre GimbalSKD has started, since this SKD relies on GimbalSKD to call GimbalIF::send_gimbal_currents()
+ * @pre GimbalSKD has started, since this SKD relies on GimbalSKD to call GimbalIF::enable_gimbal_current_clip()
  * @usage 1. start(), load_pid_params()
  *        2. set_mode() and set_target_angle() as needed
  *        3. Leave the rest of the work to this SKD
@@ -71,7 +72,8 @@ public:
      * @param plate_v2i_params
      */
     static void load_pid_params(pid_params_t loader_a2v_params, pid_params_t loader_v2i_params,
-                                pid_params_t plate_a2v_params, pid_params_t plate_v2i_params);
+                                pid_params_t plate_a2v_params, pid_params_t plate_v2i_params,
+                                pid_params_t fw_left_v2i_params, pid_params_t fw_right_v2i_params);
 
     /**
      * Set mode of this SKD
@@ -172,15 +174,15 @@ public:
 
 private:
 
-    static install_direction_t install_position[2];
+    static install_direction_t install_position[4];
 
     static mode_t mode;
 
     static float target_angle[2];
-    static float target_velocity[2];
-    static int target_current[2];
+    static float target_velocity[4];
+    static int target_current[4];
 
-    static PIDController v2i_pid[2];
+    static PIDController v2i_pid[4];
     static PIDController a2v_pid[2];
 
     static constexpr unsigned int SKD_THREAD_INTERVAL = 2; // PID calculation interval [ms]

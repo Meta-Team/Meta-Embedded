@@ -7,10 +7,10 @@
 
 #include "ch.hpp"
 #include "hal.h"
-#include "robotic_arm_interface.h"
 #include "pid_controller.hpp"
 #include "vehicle/engineer/vehicle_engineer.h"
-
+#include "engineer_interface.h"
+#include "air_tank_interface.h"
 /**
  * Fetch process:
  * 1.   Initially, the robotic arm is stretching out
@@ -21,13 +21,9 @@
  *          when reaching a trigger angle, release the box
  */
 
-#define EXTEND_PAD GPIOE_PIN4
-#define LIFT_PAD GPIOE_PIN5
-#define DOOR_PAD GPIOE_PIN6
-#define CLAMP_PAD GPIOE_PIN12
 #define POWER_PAD GPIOH_POWER4_CTRL
 
-class RoboticArmSKD {
+class RoboticArmSKD{
 
 public:
 
@@ -37,10 +33,11 @@ public:
 
     static RoboticArmThread roboticArmThread;
 
-    enum digital_status_t {
-        LOW_STATUS = PAL_LOW,
-        HIGH_STATUS = PAL_HIGH
-    };
+    static int extend_state;
+    static int clamp_state;
+    static int slide_x_state;
+
+    static int should_set_arm_normal;       //used in RoboticArmLG
 
     enum robotic_arm_state_t {
         NORMAL,
@@ -71,15 +68,15 @@ public:
     static void next_step();
     static void prev_step();
 
-    static void change_extend();
-    static void change_door();
-    static void change_clamp();
+    /**
+     * a function used by engineer_auto_logic
+     * @param clamp
+     * @param slide_y
+     * @param slide_x
+     * if the input is -1, it means that the value should be maintained
+     */
+    static void set_air_tank(int clamp, int slide_y, int slide_x);
 
-    static digital_status_t door_state, lift_state, extend_state, clamp_state;
-
-    static void change_digital_status(digital_status_t& status, uint8_t pad);
-
-    static void set_digital_status(digital_status_t& status, uint8_t pad, digital_status_t state);
     static robotic_arm_state_t state;
 
     static bullet_state_t bullet_state;
@@ -90,14 +87,11 @@ public:
 
 private:
 
-
-
     static float trigger_angle;
 
-    static float target_velocity;
+    static float target_velocity[2];
 
-    static PIDController v2i_pid;
-
+    static PIDController v2i_pid[2];
 
     static void update_target_current();
 
