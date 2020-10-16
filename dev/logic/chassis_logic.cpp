@@ -125,7 +125,8 @@ void ChassisLG::DodgeModeSwitchThread::main() {
                                                                                         + dodge_mode_randomize_min_time_;
             
             // Randomize the direction.
-            int direction = ((rand() % 2) * 2 - 1);
+////        uncomment the function if you need to randomize the direction
+            int direction = 1; //((rand() % 2) * 2 - 1);
 
             // Randomize angular velocity at certain range.
             target_omega = (float) direction * ((rand() % ( (int) (dodge_mode_max_omega_ - dodge_mode_min_omega_) ) )

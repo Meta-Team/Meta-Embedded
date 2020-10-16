@@ -44,6 +44,7 @@ static void cmd_play(BaseSequentialStream *chp, int argc, char *argv[]) {
             break;
         case 7:
             BuzzerSKD::play_sound(BuzzerSKD::sound_nyan_cat);
+            break;
         default:
             shellUsage(chp, "buzzer 0-7");
     }
