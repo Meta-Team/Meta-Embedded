@@ -22,7 +22,7 @@ using namespace chibios_rt;
 static void cmd_buzzer(BaseSequentialStream *chp, int argc, char *argv[]) {
     (void) argv;
     if (argc != 1) {
-        shellUsage(chp, "buzzer (0-7)");
+        shellUsage(chp, "This is how to use: buzzer (0-7)"); // Only for notify.
         return;
     }
     int songsID = Shell::atoi(argv[0]);
@@ -64,10 +64,18 @@ static void cmd_buzzer(BaseSequentialStream *chp, int argc, char *argv[]) {
     }
 }
 
+static void cmd_led(BaseSequentialStream *chp, int argc, char *argv[]){
+    (void) argv;
+    if (argc != 1) {
+        shellUsage(chp, "This is how to use: led (0/1)");
+        return;
+    }
+}
 
 // Shell commands to ...
 ShellCommand templateShellCommands[] = {
-        {"buzzer", cmd_buzzer},
+        {"buzzer", cmd_buzzer}, // The received command, e.g. 'buzzer '+'0'
+        {"led",    cmd_led},                                //'led x'
         {nullptr,    nullptr}
 };
 
