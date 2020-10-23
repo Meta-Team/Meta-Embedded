@@ -76,9 +76,9 @@ add_library(ChibiOS_OBJ OBJECT ${CHIBIOS_XASM_SRC} ${CHIBIOS_C_SRC} ${CHIBIOS_CP
 
 # ========================== Robot's Control Programs ===========================
 
-
 add_executable(BUZZER
         dev/main.cpp)
+
 
 # ================================= Post Configurations for all targets =================================
 
