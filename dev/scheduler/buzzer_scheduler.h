@@ -4,7 +4,7 @@
 // Thanks a lot to Illini RoboMaster @ UIUC, for playing_note frequency table, sound_startup and sound_little_star in their
 // open source project iRM_Embedded_2017.
 //
-// Thanks a lot to Bruce Helsen (geobruce) Stan Draulans (purewantfun) For their arduino code for nyan cat sound.
+// Thanks a lot to Bruce Helsen (geobruce) Stan Draulans (purewantfun) for their arduino code of nyan cat sound.
 // @ https://www.instructables.com/id/Nyan-Cat-on-Arduino/
 // Qian Chen using python converted it to the format we used.
 //
