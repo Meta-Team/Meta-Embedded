@@ -268,6 +268,12 @@ target_compile_definitions(ENGINEER PRIVATE ENGINEER)
 # Includes Unit Tests and Param Adjust programs
 
 # --------------------------------------- Unit Tests ---------------------------------------
+add_executable(ut_shoot
+        dev/debug/Unit_Tests/ut_shoot.cpp
+        dev/interface/can_interface.cpp
+        dev/module/pid_controller.hpp
+        dev/interface/remote_interpreter.cpp)
+
 add_executable(ut_engineer
         dev/debug/Unit_Tests/ut_engineer.cpp
         dev/scheduler/engineer_chassis_skd.cpp
