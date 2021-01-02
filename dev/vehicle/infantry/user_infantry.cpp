@@ -196,7 +196,7 @@ void UserI::UserThread::main() {
 
             } else {
                 /// Safe Mode
-                ShootLG::stop();
+                ShootLG::force_stop();
                 ShootLG::set_friction_wheels(0);
             }
 

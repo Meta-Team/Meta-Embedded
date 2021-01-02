@@ -82,6 +82,12 @@ void ShootLG::shoot(float number_of_bullet, float number_per_second) {
 void ShootLG::stop() {
     ShootSKD::reset_loader_accumulated_angle();
     ShootSKD::set_loader_target_angle(0.0f);
+    shooter_state = STOP;
+}
+
+void ShootLG::force_stop() {
+    ShootSKD::reset_loader_accumulated_angle();
+    ShootSKD::set_loader_target_angle(0.0f);
     ShootSKD::set_mode(ShootSKD::FORCED_RELAX_MODE);
     shooter_state = STOP;
 }

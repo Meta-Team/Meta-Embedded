@@ -67,8 +67,18 @@ private:
         float target_speed;
         while (!shouldTerminate()) {
             target_speed = Remote::rc.ch3 * max_speed;
-            *FW_L_CURRENT = FW_L_v2i_PID.calc(FW_L_FB->actual_velocity, target_speed);
-            *FW_R_CURRENT = FW_L_v2i_PID.calc(FW_R_FB->actual_velocity, target_speed);
+            if (ABS_IN_RANGE(Remote::rc.ch3, 0.2)) {
+                LED::green_on();
+            } else {
+                LED::green_off();
+            }
+            if(Remote::rc.s1 == Remote::S_MIDDLE) {
+                *FW_L_CURRENT = 0;
+                *FW_R_CURRENT = 0;
+            } else {
+                *FW_L_CURRENT = FW_L_v2i_PID.calc(FW_L_FB->actual_velocity, target_speed);
+                *FW_R_CURRENT = FW_L_v2i_PID.calc(FW_R_FB->actual_velocity, target_speed);
+            }
             sleep(TIME_MS2I(100));
         }
     }
@@ -79,8 +89,8 @@ int main(void) {
     halInit();
     System::init();
 
-    can1.set_motor_type(0, CANInterface::M3508);
-    can1.set_motor_type(1, CANInterface::M3508);
+    can1.set_motor_type(2, CANInterface::M3508);
+    can1.set_motor_type(3, CANInterface::M3508);
 
     // Start ChibiOS shell at high priority, so even if a thread stucks, we still have access to shell.
     Shell::start(HIGHPRIO);
@@ -89,11 +99,11 @@ int main(void) {
     Remote::start();
     can1.start(NORMALPRIO + 2, NORMALPRIO + 3);
 
-    FW_L_CURRENT = can1.get_target_current_address(0);
-    FW_R_CURRENT = can1.get_target_current_address(1);
+    FW_L_CURRENT = can1.get_target_current_address(2);
+    FW_R_CURRENT = can1.get_target_current_address(3);
 
-    FW_L_FB = can1.get_feedback_address(0);
-    FW_R_FB = can1.get_feedback_address(1);
+    FW_L_FB = can1.get_feedback_address(2);
+    FW_R_FB = can1.get_feedback_address(3);
 
     FW_L_v2i_PID.change_parameters(SHOOT_PID_FW_LEFT_V2I_PARAMS);
     FW_R_v2i_PID.change_parameters(SHOOT_PID_FW_RIGHT_V2I_PARAMS);

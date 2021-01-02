@@ -18,7 +18,7 @@
 #include "referee_interface.h"
 
 #if defined(INFANTRY)
-#include "vehicle_infantry.h"
+#include "vehicle/infantry/vehicle_infantry.h"
 #elif defined(HERO)
 #include "vehicle_hero.h"
 #else

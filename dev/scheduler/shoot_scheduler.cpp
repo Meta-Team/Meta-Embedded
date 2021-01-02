@@ -133,20 +133,29 @@ void ShootSKD::SKDThread::main() {
                 if(i < 2) {
                     target_velocity[i] = a2v_pid[i].calc(GimbalIF::feedback[2 + i]->accumulated_angle() * install_position[i],
                                                          target_angle[i]);
+                    ShootSKD::target_current[i] = (int) v2i_pid[i].calc(
+                            GimbalIF::feedback[i + 2]->actual_velocity * install_position[i],
+                            target_velocity[i]);
+                    *GimbalIF::target_current[i + 2] = ShootSKD::target_current[i] * install_position[i];
+                } else {
+                    ShootSKD::target_current[i] = (int) v2i_pid[i].calc(GimbalIF::feedback[i + 2]->actual_velocity,
+                                                                        target_velocity[i]*float(install_position[i]));
+                    *GimbalIF::target_current[i + 2] = ShootSKD::target_current[i];
                 }
-                ShootSKD::target_current[i] = (int) v2i_pid[i].calc(
-                        GimbalIF::feedback[2 + i]->actual_velocity * install_position[i],
-                        target_velocity[i]);
-                *GimbalIF::target_current[i + 2] = ShootSKD::target_current[i] * install_position[i];
             }
 
         } else if (mode == FORCED_RELAX_MODE) {
-
             *GimbalIF::target_current[GimbalIF::BULLET] = 0;
             *GimbalIF::target_current[GimbalIF::PLATE] = 0;
-            *GimbalIF::target_current[GimbalIF::FW_LEFT] = 0;
-            *GimbalIF::target_current[GimbalIF::FW_RIGHT] = 0;
-
+            for (size_t i = 2; i < 4; i++) {
+                if(ABS_IN_RANGE(GimbalIF::feedback[i + 2]->actual_velocity, 100)) {
+                    *GimbalIF::target_current[i + 2] = 0;
+                } else {
+                    ShootSKD::target_current[i] = (int) v2i_pid[i].calc(GimbalIF::feedback[i + 2]->actual_velocity,
+                                                                        0.0f);
+                    *GimbalIF::target_current[i + 2] = ShootSKD::target_current[i];
+                }
+            }
         }
 
         // Send currents with GimbalSKD (has smaller SKD_THREAD_INTERVAL)

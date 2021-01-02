@@ -93,9 +93,15 @@ public:
     static void shoot(float number_of_bullet, float number_per_second);
 
     /**
-     * Stop shooting. Will change shooter state.
+     * Stop shooting.
      */
     static void stop();
+
+    /**
+     * Stop shooting. Will change shooter state.
+     */
+
+    static void force_stop();
 
 private:
 
