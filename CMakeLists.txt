@@ -423,11 +423,20 @@ target_compile_definitions(pa_chassis PUBLIC INFANTRY)
 
 # Shoot: include CANInterface, GimbalIF, GimbalController, GimbalFeedbackThread and adjustment modules.
 add_executable(pa_infantry_shoot
+        dev/common/CRC16.cpp
+        dev/interface/sd_card_interface.cpp
+        dev/interface/remote_interpreter.cpp
+        ${AHRS_SRC}
         dev/interface/can_interface.cpp
         dev/interface/gimbal_interface.cpp
+        dev/module/pid_controller.hpp
+        dev/scheduler/gimbal_scheduler.cpp
         dev/scheduler/shoot_scheduler.cpp
-        dev/debug/Param_Adjusts/pa_infantry_shoot.cpp
-        dev/interface/remote_interpreter.cpp)
+        dev/scheduler/buzzer_scheduler.cpp
+        dev/interface/ahrs/ahrs.cpp
+        dev/debug/Param_Adjusts/pa_infantry_shoot.cpp)
+target_compile_definitions(pa_infantry_shoot PRIVATE SHELL_NO_ECHO_MODE)
+target_link_libraries(pa_infantry_shoot ${PROJECT_SOURCE_DIR}/dev/interface/ahrs/ahrs_lib.lib)
 
 # Gimbal: include CANInterface, GimbalInterface, GimbalController, GimbalFeedbackThread and adjustment modules.
 add_executable(pa_gimbal
