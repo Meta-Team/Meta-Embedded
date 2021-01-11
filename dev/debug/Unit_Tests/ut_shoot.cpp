@@ -79,7 +79,7 @@ private:
                 *FW_L_CURRENT = FW_L_v2i_PID.calc(FW_L_FB->actual_velocity, target_speed);
                 *FW_R_CURRENT = FW_L_v2i_PID.calc(FW_R_FB->actual_velocity, target_speed);
             }
-            sleep(TIME_MS2I(100));
+            sleep(TIME_MS2I(5));
         }
     }
 } PIDThread;
