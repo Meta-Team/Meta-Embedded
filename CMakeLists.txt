@@ -404,6 +404,13 @@ add_executable(ut_sensors_sound
 
 # --------------------------------------- Param Adjusts ---------------------------------------
 
+add_executable(param_adjusts_example
+        dev/debug/Param_Adjusts/pa_example.cpp
+        dev/interface/can_interface.cpp
+        dev/interface/motor_interface.cpp
+        dev/interface/remote_interpreter.cpp
+        dev/debug/shell/shell.cpp
+        dev/module/pid_controller.hpp)
 # Hero Shoot
 add_executable(pa_hero_shoot
         dev/interface/can_interface.cpp
@@ -544,5 +551,4 @@ foreach (target ${TARGER_LIST})
                 OUTPUT_NAME ${ELF_OUTPUT_NAME})  #
     endif ()
 endforeach (target)
-
 
