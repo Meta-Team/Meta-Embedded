@@ -10,13 +10,13 @@
 
 
 /// AHRS Configurations
-#define ON_BOARD_AHRS_MATRIX {{1.0f, 0.0f, 0.0f}, \
-                              {0.0f, 1.0f, 0.0f}, \
+#define ON_BOARD_AHRS_MATRIX {{0.0f, -1.0f, 0.0f}, \
+                              {1.0f, 0.0f, 0.0f}, \
                               {0.0f, 0.0f, 1.0f}}
 // Raw angle of yaw and pitch when gimbal points straight forward.
 //   Note: the program will echo the raw angles of yaw and pitch as the program starts
 
-#define GIMBAL_YAW_FRONT_ANGLE_RAW 6772
+#define GIMBAL_YAW_FRONT_ANGLE_RAW 0
 #define GIMBAL_PITCH_FRONT_ANGLE_RAW -200
 
 
@@ -29,42 +29,83 @@
 
 /// Gimbal and Shoot Installation Configurations
 
-#define GIMBAL_YAW_MOTOR_TYPE     (GimbalIF::GM6020)
-#define GIMBAL_PITCH_MOTOR_TYPE   (GimbalIF::RM6623)
-#define SHOOT_BULLET_MOTOR_TYPE   (GimbalIF::M2006)
-#define SHOOT_PLATE_MOTOR_TYPE    (GimbalIF::M3508)
+#define GIMBAL_YAW_CAN_CHANNEL      (GimbalIF::can_channel_2)
+#define GIMBAL_PITCH_CAN_CHANNEL    (GimbalIF::can_channel_1)
+#define GIMBAL_BULLET_CAN_CHANNEL   (GimbalIF::can_channel_2)
+#define GIMBAL_PLATE_CAN_CHANNEL    (GimbalIF::none_can_channel)
+#define GIMBAL_FW_LEFT_CAN_CHANNEL  (GimbalIF::can_channel_1)
+#define GIMBAL_FW_RIGHT_CAN_CHANNEL (GimbalIF::can_channel_1)
 
-#define GIMBAL_YAW_CAN_CHANNEL    (GimbalIF::can_channel_2)
-#define GIMBAL_PITCH_CAN_CHANNEL  (GimbalIF::can_channel_1)
-#define GIMBAL_BULLET_CAN_CHANNEL (GimbalIF::can_channel_1)
-#define GIMBAL_PLATE_CAN_CHANNEL  (GimbalIF::can_channel_2)
+#define GIMBAL_YAW_CAN_ID         7
+#define GIMBAL_PITCH_CAN_ID       4
+#define GIMBAL_BULLET_CAN_ID      5
+#define GIMBAL_PLATE_CAN_ID       9
+#define GIMBAL_FW_LEFT_CAN_ID     2
+#define GIMBAL_FW_RIGHT_CAN_ID    3
 
-#define GIMBAL_YAW_INSTALL_DIRECTION    (GimbalSKD::POSITIVE)
+#define GIMBAL_YAW_MOTOR_TYPE      (CANInterface::GM6020_HEROH)
+#define GIMBAL_PITCH_MOTOR_TYPE    (CANInterface::GM6020)
+#define SHOOT_BULLET_MOTOR_TYPE    (CANInterface::M3508)
+#define SHOOT_PLATE_MOTOR_TYPE     (CANInterface::NONE_MOTOR)
+#define GIMBAL_FW_LEFT_MOTOR_TYPE  (CANInterface::M3508)
+#define GIMBAL_FW_RIGHT_MOTOR_TYPE (CANInterface::M3508)
+
+#define GIMBAL_MOTOR_CONFIG \
+{ {GIMBAL_YAW_CAN_CHANNEL,          GIMBAL_YAW_CAN_ID,          GIMBAL_YAW_MOTOR_TYPE}, \
+  {GIMBAL_PITCH_CAN_CHANNEL,        GIMBAL_PITCH_CAN_ID,        GIMBAL_PITCH_MOTOR_TYPE}, \
+  {GIMBAL_BULLET_CAN_CHANNEL,       GIMBAL_BULLET_CAN_ID,       SHOOT_BULLET_MOTOR_TYPE}, \
+  {GIMBAL_PLATE_CAN_CHANNEL,        GIMBAL_PLATE_CAN_ID,        SHOOT_PLATE_MOTOR_TYPE}, \
+  {GIMBAL_FW_LEFT_CAN_CHANNEL,      GIMBAL_FW_LEFT_CAN_ID,      GIMBAL_FW_LEFT_MOTOR_TYPE}, \
+  {GIMBAL_FW_RIGHT_CAN_CHANNEL,     GIMBAL_FW_RIGHT_CAN_ID,     GIMBAL_FW_RIGHT_MOTOR_TYPE} }
+
+#define CHASSIS_FR_CHANNEL      (ChassisIF::can_channel_2)
+#define CHASSIS_FL_CHANNEL      (ChassisIF::can_channel_2)
+#define CHASSIS_BL_CHANNEL      (ChassisIF::can_channel_2)
+#define CHASSIS_BR_CHANNEL      (ChassisIF::can_channel_2)
+
+#define CHASSIS_FR_CAN_ID      0
+#define CHASSIS_FL_CAN_ID      1
+#define CHASSIS_BL_CAN_ID      2
+#define CHASSIS_BR_CAN_ID      3
+
+#define CHASSIS_FR_MOTOR_TYPE  (CANInterface::M3508)
+#define CHASSIS_FL_MOTOR_TYPE  (CANInterface::M3508)
+#define CHASSIS_BL_MOTOR_TYPE  (CANInterface::M3508)
+#define CHASSIS_BR_MOTOR_TYPE  (CANInterface::M3508)
+
+#define SHOOT_DEGREE_PER_BULLET 40.0f  // rotation degree of bullet loader for each bullet
+
+#define CHASSIS_MOTOR_CONFIG \
+{ {CHASSIS_FR_CHANNEL, CHASSIS_FR_CAN_ID, CHASSIS_FR_MOTOR_TYPE}, \
+  {CHASSIS_FL_CHANNEL, CHASSIS_FL_CAN_ID, CHASSIS_FL_MOTOR_TYPE}, \
+  {CHASSIS_BL_CHANNEL, CHASSIS_BL_CAN_ID, CHASSIS_BL_MOTOR_TYPE}, \
+  {CHASSIS_BR_CHANNEL, CHASSIS_BR_CAN_ID, CHASSIS_BR_MOTOR_TYPE} }
+
+#define GIMBAL_YAW_INSTALL_DIRECTION    (GimbalSKD::NEGATIVE)
 #define GIMBAL_PITCH_INSTALL_DIRECTION  (GimbalSKD::POSITIVE)
-#define SHOOT_BULLET_INSTALL_DIRECTION (ShootSKD::POSITIVE)
-#define SHOOT_PLATE_INSTALL_DIRECTION (ShootSKD::POSITIVE)
+#define SHOOT_BULLET_INSTALL_DIRECTION  (ShootSKD::POSITIVE)
 
 #define GIMBAL_ANGLE_INSTALLATION_MATRIX {{1.0f, 0.0f, 0.0f}, \
                                           {0.0f, 1.0f, 0.0f}, \
                                           {0.0f, 0.0f, -1.0f}}
 
 
-#define GIMBAL_GYRO_INSTALLATION_MATRIX {{ 0.0f,  0.0f, 1.0f}, \
-                                         { 0.0f,  1.0f, 0.0f}, \
-                                         {-1.0f, 0.0f, 0.0f}}
+#define GIMBAL_GYRO_INSTALLATION_MATRIX {{0.0f,  -1.0f, 0.0f}, \
+                                         {0.0f,  0.0f,  1.0f}, \
+                                         {1.0f, 0.0f,  0.0f}}
 
 /// Gimbal and Shoot PID Parameters
-#define GIMBAL_PID_YAW_A2V_KP 12.0f
+#define GIMBAL_PID_YAW_A2V_KP 30.0f
 #define GIMBAL_PID_YAW_A2V_KI 0.0f
-#define GIMBAL_PID_YAW_A2V_KD 0.09f
+#define GIMBAL_PID_YAW_A2V_KD 2.0f
 #define GIMBAL_PID_YAW_A2V_I_LIMIT 1440.0f
 #define GIMBAL_PID_YAW_A2V_OUT_LIMIT 1440.0f
 #define GIMBAL_PID_YAW_A2V_PARAMS \
     {GIMBAL_PID_YAW_A2V_KP, GIMBAL_PID_YAW_A2V_KI, GIMBAL_PID_YAW_A2V_KD, \
     GIMBAL_PID_YAW_A2V_I_LIMIT, GIMBAL_PID_YAW_A2V_OUT_LIMIT}
 
-#define GIMBAL_PID_YAW_V2I_KP 680.0f
-#define GIMBAL_PID_YAW_V2I_KI 0.075f
+#define GIMBAL_PID_YAW_V2I_KP 75.0f
+#define GIMBAL_PID_YAW_V2I_KI 2.0f
 #define GIMBAL_PID_YAW_V2I_KD 0.0f
 #define GIMBAL_PID_YAW_V2I_I_LIMIT 10000.0f
 #define GIMBAL_PID_YAW_V2I_OUT_LIMIT 20000.0f
@@ -81,8 +122,8 @@
     {GIMBAL_PID_PITCH_A2V_KP, GIMBAL_PID_PITCH_A2V_KI, GIMBAL_PID_PITCH_A2V_KD, \
     GIMBAL_PID_PITCH_A2V_I_LIMIT, GIMBAL_PID_PITCH_A2V_OUT_LIMIT}
 
-#define GIMBAL_PID_PITCH_V2I_KP 28.0f
-#define GIMBAL_PID_PITCH_V2I_KI 0.34f
+#define GIMBAL_PID_PITCH_V2I_KP 75.0f
+#define GIMBAL_PID_PITCH_V2I_KI 0.85f
 #define GIMBAL_PID_PITCH_V2I_KD 0.0f
 #define GIMBAL_PID_PITCH_V2I_I_LIMIT 1000.0f
 #define GIMBAL_PID_PITCH_V2I_OUT_LIMIT 3000.0f
@@ -217,20 +258,19 @@
 #define THREAD_MPU_PRIO                            (HIGHPRIO - 3)
 #define THREAD_IST_PRIO                            (HIGHPRIO - 4)
 #define THREAD_AHRS_PRIO                           (HIGHPRIO - 5)
+#define THREAD_CAN1_FB_PRIO                        (HIGHPRIO - 6)
+#define THREAD_CAN2_FB_PRIO                        (HIGHPRIO - 7)
 #define THREAD_GIMBAL_SKD_PRIO                     (NORMALPRIO + 3)
 #define THREAD_CHASSIS_SKD_PRIO                    (NORMALPRIO + 2)
 #define THREAD_SHOOT_SKD_PRIO                      (NORMALPRIO + 1)
 #define THREAD_USER_PRIO                           (NORMALPRIO)
 #define THREAD_USER_ACTION_PRIO                    (NORMALPRIO - 1)
 #define THREAD_CHASSIS_LG_DODGE_PRIO               (NORMALPRIO - 2)
-#define THREAD_LOADER_CALIBRATE_PRIO               (NORMALPRIO - 3)
-#define THREAD_SHOOT_LG_LOADER_PRIO                (NORMALPRIO - 4)
-#define THREAD_SHOOT_LG_PLATE_PRIO                 (NORMALPRIO - 5)
-#define THREAD_SHOOT_LG_LOADER_STUCK_DETECT_PRIO   (NORMALPRIO - 6)
-#define THREAD_SHOOT_LG_PLATE_STUCK_DETECT_PRIO    (NORMALPRIO - 7)
-#define THREAD_REFEREE_SENDING_PRIO                (NORMALPRIO - 8)
-#define THREAD_INSPECTOR_PRIO                      (NORMALPRIO - 10)
-#define THREAD_INSPECTOR_REFEREE_PRIO              (NORMALPRIO - 11)
+#define THREAD_SHOOT_LG_STUCK_DETECT_PRIO          (NORMALPRIO - 3)
+#define THREAD_REFEREE_SENDING_PRIO                (NORMALPRIO - 4)
+#define THREAD_INSPECTOR_PRIO                      (NORMALPRIO - 5)
+#define THREAD_INSPECTOR_REFEREE_PRIO              (NORMALPRIO - 10)
+#define THREAD_SHOOT_BULLET_COUNTER_PRIO           (LOWPRIO + 7)
 #define THREAD_USER_CLIENT_DATA_SEND_PRIO          (LOWPRIO + 6)
 #define THREAD_SHELL_PRIO                          (LOWPRIO + 5)
 #define THREAD_BUZZER_SKD_PRIO                         (LOWPRIO)

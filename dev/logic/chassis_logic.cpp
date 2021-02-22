@@ -75,11 +75,11 @@ void ChassisLG::set_target(float vx, float vy) {
     if (action == FOLLOW_MODE) {
         target_theta = 0.0f;
     }
-#if defined(HERO)
-    if (action == DODGE_MODE) {
-        target_vx -= 500;
-    }
-#endif
+//#if defined(HERO)
+//    if (action == DODGE_MODE) {
+//        target_vx -= 500;
+//    }
+//#endif
     // For DODGE_MODE keep current target_theta unchanged
     apply_target();
 }

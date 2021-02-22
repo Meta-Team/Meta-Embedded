@@ -29,7 +29,7 @@ void CANInterface::ErrorFeedbackThread::main() {
         }
 
         eventflags_t flags = chEvtGetAndClearFlags(&el);
-        LOG_ERR("CAN Error %u", flags);
+        //LOG_ERR("CAN Error %u", flags);
         last_error_time = SYSTIME;
     }
 
@@ -193,6 +193,16 @@ void CANInterface::ProcessFeedbackThread::main() {
                     fb->actual_current = (int16_t) (rxmsg.data8[4] << 8 | rxmsg.data8[5]);
 
                     break;
+
+                case GM6020_HEROH:
+
+                    // raw -> degree
+                    fb->actual_angle += (angle_movement * 0.043945312f * 40.0f / 50.0f);  // * 360 / 8192 * deceleration ratio.
+
+                    // rpm -> degree/s
+                    fb->actual_velocity = (((int16_t) (rxmsg.data8[2] << 8 | rxmsg.data8[3])) * 6.0f * 40.0f / 50.0f);  // 360 / 60
+
+                    fb->actual_current = (int16_t) (rxmsg.data8[4] << 8 | rxmsg.data8[5]);
 
                 case GM3510:  // GM3510 deceleration ratio = 1
 
