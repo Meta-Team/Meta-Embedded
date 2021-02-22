@@ -82,7 +82,7 @@ set(HERO_SHOOT_SRC
         dev/scheduler/gimbal_scheduler.cpp
         dev/scheduler/shoot_scheduler.cpp
         dev/logic/gimbal_logic.cpp
-        dev/logic/hero_shoot_logic.cpp)
+        dev/logic/shoot_logic.cpp)
 
 set(CHASSIS_SRC
         dev/interface/chassis_interface.cpp

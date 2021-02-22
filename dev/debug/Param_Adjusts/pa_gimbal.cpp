@@ -63,9 +63,9 @@ float target_v[2] = {0.0, 0.0};
                                           {0.0f, 0.0f, -1.0f}}
 
 
-#define GIMBAL_GYRO_INSTALLATION_MATRIX {{0.0f,  1.0f, 0.0f}, \
-                                         {0.0f,  0.0f,  -1.0f}, \
-                                         {-1.0f, 0.0f,  0.0f}}
+#define GIMBAL_GYRO_INSTALLATION_MATRIX {{0.0f,  -1.0f, 0.0f}, \
+                                         {0.0f,  0.0f,  1.0f}, \
+                                         {1.0f, 0.0f,  0.0f}}
 
 static const Matrix33 ON_BOARD_AHRS_MATRIX_ = ON_BOARD_AHRS_MATRIX;
 static const Matrix33 GIMBAL_ANGLE_INSTALLATION_MATRIX_ = GIMBAL_ANGLE_INSTALLATION_MATRIX;
@@ -138,13 +138,13 @@ protected:
 //                        continue;
 //                    }
 
-                        if (enable_a2v_pid) {
-                            // Calculate from angle to velocity
-                            target_velocity[i] = a2v_pid[i].calc(actual_angle[i],target_angle[i]);
-                        } else {
-                            // Directly fill the target velocity
-                            target_velocity[i] = target_v[i];
-                        }
+                    if (enable_a2v_pid) {
+                        // Calculate from angle to velocity
+                        target_velocity[i] = a2v_pid[i].calc(actual_angle[i],target_angle[i]);
+                    } else {
+                        // Directly fill the target velocity
+                        target_velocity[i] = target_v[i];
+                    }
 
                     // Perform velocity check
 
@@ -351,19 +351,19 @@ void cmd_gimbal_set_parameters(BaseSequentialStream *chp, int argc, char *argv[]
     }
     PIDController *p;
     if (*argv[0] == '0' && *argv[1] == '0') p = &gimbalThread.a2v_pid[0];
-            else if (*argv[0] == '0' && *argv[1] == '1') p = &gimbalThread.v2i_pid[0];
-            else if (*argv[0] == '1' && *argv[1] == '0') p = &gimbalThread.a2v_pid[1];
-            else if (*argv[0] == '1' && *argv[1] == '1') p = &gimbalThread.v2i_pid[1];
-            else {
+    else if (*argv[0] == '0' && *argv[1] == '1') p = &gimbalThread.v2i_pid[0];
+    else if (*argv[0] == '1' && *argv[1] == '0') p = &gimbalThread.a2v_pid[1];
+    else if (*argv[0] == '1' && *argv[1] == '1') p = &gimbalThread.v2i_pid[1];
+    else {
         chprintf(chp, "!pe" SHELL_NEWLINE_STR);  // echo parameters error
         return;
     }
 
     p->change_parameters({Shell::atof(argv[2]),
-                            Shell::atof(argv[3]),
-                            Shell::atof(argv[4]),
-                            Shell::atof(argv[5]),
-                            Shell::atof(argv[6])});
+                          Shell::atof(argv[3]),
+                          Shell::atof(argv[4]),
+                          Shell::atof(argv[5]),
+                          Shell::atof(argv[6])});
 
     chprintf(chp, "!ps" SHELL_NEWLINE_STR); // echo parameters set
 }
@@ -454,8 +454,8 @@ int main(void) {
                                                  {GimbalIF::none_can_channel,9,CANInterface::NONE_MOTOR},
                                                  {GimbalIF::none_can_channel,10,CANInterface::NONE_MOTOR}};
     GimbalIF::init(&can1, &can2,
-            canConfig,
-            GIMBAL_YAW_FRONT_ANGLE_RAW, GIMBAL_PITCH_FRONT_ANGLE_RAW);
+                   canConfig,
+                   GIMBAL_YAW_FRONT_ANGLE_RAW, GIMBAL_PITCH_FRONT_ANGLE_RAW);
 
     gimbalFeedbackThread.start(NORMALPRIO - 1);
     gimbalThread.start(NORMALPRIO);

@@ -79,7 +79,6 @@ void UserH::UserThread::main() {
                 else pitch_target = -Remote::rc.ch1 * gimbal_pitch_min_angle;  // GIMBAL_PITCH_MIN_ANGLE is negative
                 // ch1 use up as positive direction, while GimbalLG also use up as positive direction
 
-
                 GimbalLG::set_target(gimbal_yaw_target_angle_, pitch_target);
 
             } else if (Remote::rc.s1 == Remote::S_DOWN) {
@@ -141,34 +140,27 @@ void UserH::UserThread::main() {
 
         /*** ---------------------------------- Shoot --------------------------------- ***/
 
-        // Update the heat.
-        shoot_heat_log[0] = shoot_heat_log[1];
-        shoot_heat_log[1] = Referee::power_heat_data.shooter_heat1;
-
-        if(shoot_heat_log[1] > shoot_heat_log[0] && shoot_heat_log[1] < Referee::game_robot_state.shooter_heat1_cooling_limit + 400) {
-            bullet_heat = shoot_heat_log[1] - shoot_heat_log[0];
-        }
-
-        if (!InspectorH::remote_failure() && !InspectorH::chassis_failure() && !InspectorH::gimbal_failure()) {
+        if (!InspectorH::remote_failure() /*&& !InspectorI::chassis_failure()*/ && !InspectorH::gimbal_failure()) {
             if ((Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_UP) ||
-                (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_MIDDLE) /*||
-                (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_DOWN)*/) {
+                (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_MIDDLE)) {
 
                 /// Remote - Shoot with Scrolling Wheel
 
                 if (Remote::rc.wheel > 0.5) {  // down
-                    if (HeroShootLG::get_friction_wheels_duty_cycle() == 0) {  // force start friction wheels
-                        HeroShootLG::set_friction_wheels(shoot_remote_duty_cycle);
+                    if (ShootLG::get_shooter_state() == ShootLG::STOP) {
+                        ShootLG::shoot(shoot_launch_left_count, shoot_launch_speed);
                     }
-                    HeroShootLG::shoot();
                 } else if (Remote::rc.wheel < -0.5) {  // up
-                    if (HeroShootLG::get_friction_wheels_duty_cycle() == 0) {  // force start friction wheels
-                        HeroShootLG::set_friction_wheels(shoot_remote_duty_cycle);
+                    if (ShootLG::get_shooter_state() == ShootLG::STOP) {
+                        ShootLG::shoot(shoot_launch_right_count, shoot_launch_speed);
                     }
-                    HeroShootLG::shoot();
+                } else {
+                    if (ShootLG::get_shooter_state() != ShootLG::STOP) {
+                        ShootLG::stop();
+                    }
                 }
 
-                HeroShootLG::set_friction_wheels(shoot_remote_duty_cycle);
+                ShootLG::set_friction_wheels(shoot_common_duty_cycle);
 
             } else if (Remote::rc.s1 == Remote::S_DOWN) {
 
@@ -178,14 +170,14 @@ void UserH::UserThread::main() {
 
             } else {
                 /// Safe Mode
-                HeroShootLG::force_stop();
-                HeroShootLG::set_friction_wheels(0);
+                ShootLG::force_stop();
+                ShootLG::set_friction_wheels(0);
             }
 
-        } else {  // InspectorH::remote_failure() || InspectorH::chassis_failure() || InspectorH::gimbal_failure()
+        } else {  // InspectorI::remote_failure() || InspectorI::chassis_failure() || InspectorI::gimbal_failure()
             /// Safe Mode
-            HeroShootLG::force_stop();
-            HeroShootLG::set_friction_wheels(0);
+            ShootLG::stop();
+            ShootLG::set_friction_wheels(0);
         }
 
         /*** ---------------------------------- Chassis --------------------------------- ***/
@@ -287,18 +279,20 @@ void UserH::UserActionThread::main() {
         /// Mouse Press
         if (events & MOUSE_PRESS_EVENTMASK) {
 
-//            eventflags_t mouse_flag = chEvtGetAndClearFlags(&mouse_press_listener);
+            eventflags_t mouse_flag = chEvtGetAndClearFlags(&mouse_press_listener);
 
             /// Shoot
-            if (HeroShootLG::get_friction_wheels_duty_cycle() == 0) {  // force start friction wheels
-                HeroShootLG::set_friction_wheels(shoot_common_duty_cycle);
+            if (ShootLG::get_friction_wheels_duty_cycle() == 0) {  // force start friction wheels
+                ShootLG::set_friction_wheels(shoot_common_duty_cycle);
             }
-            if(bullet_heat + shoot_heat_log[1] < Referee::game_robot_state.shooter_heat1_cooling_limit) {
-                HeroShootLG::shoot();
+            if (mouse_flag & (1U << Remote::MOUSE_LEFT)) {
+                ShootLG::shoot(shoot_launch_left_count, shoot_launch_speed);
+            } else if (mouse_flag & (1U << Remote::MOUSE_RIGHT)) {
+                ShootLG::shoot(shoot_launch_right_count, shoot_launch_speed);
             }
         } else {  // releasing one while pressing another won't result in stopping
             if (events & MOUSE_RELEASE_EVENTMASK) {
-                // HeroShootLG::force_stop();
+                ShootLG::stop();
             }
         }
 
@@ -316,20 +310,29 @@ void UserH::UserActionThread::main() {
                 }
             }
 
+            if (key_flag & (1U << Remote::KEY_Q)) {
+                gimbal_yaw_target_angle_ += 90.0f;
+                GimbalLG::set_target(gimbal_yaw_target_angle_, gimbal_pc_pitch_target_angle_);
+            } else if (key_flag & (1U << Remote::KEY_E)) {
+                gimbal_yaw_target_angle_ -= 90.0f;
+                GimbalLG::set_target(gimbal_yaw_target_angle_, gimbal_pc_pitch_target_angle_);
+            }
+
             /// Shoot
             if (key_flag & (1U << shoot_fw_switch)) {
-                if (HeroShootLG::get_friction_wheels_duty_cycle() > 0) {
-                    HeroShootLG::set_friction_wheels(0);
+                if (ShootLG::get_friction_wheels_duty_cycle() > 0) {
+                    ShootLG::set_friction_wheels(0);
                 } else {
-                    HeroShootLG::set_friction_wheels(shoot_common_duty_cycle);
+                    ShootLG::set_friction_wheels(shoot_common_duty_cycle);
                 }
             }
-            if (key_flag & (1U << shoot_weapon_switch)) {
-                if(HeroShootLG::get_friction_wheels_duty_cycle() == shoot_common_duty_cycle){
-                    HeroShootLG::set_friction_wheels(shoot_badass_duty_cycle);
-                } else if (HeroShootLG::get_friction_wheels_duty_cycle() == shoot_badass_duty_cycle){
-                    HeroShootLG::set_friction_wheels(shoot_common_duty_cycle);
-                }
+
+            // TODO: re-arrange variables
+            if (key_flag & (1U << Remote::KEY_R)) {
+                ShootLG::set_friction_wheels(0.95);
+            }
+            if (key_flag & (1U << Remote::KEY_F)) {
+                ShootLG::set_friction_wheels(0.5);
             }
         }
 
@@ -344,31 +347,14 @@ void UserH::ClientDataSendingThread::main() {
     setName("User_Client");
 
     bool super_capacitor_light_status_ = false;
-    int flash_time = SYSTIME;
-    bool fw_light_switch = false;
 
     while (!shouldTerminate()) {
 
         /// Shoot
-        // 42mm shooter heat
-        Referee::set_client_number(USER_CLIENT_REMAINING_HEAT_NUM,
-                                   100.0f * (1.0f - (float) Referee::power_heat_data.shooter_heat1 /
-                                                    (float) Referee::game_robot_state.shooter_heat1_cooling_limit));
-        // Launch system light. Red: Friction wheel disabled. Flash: Friction wheel enabled, loading
-        // Green: Friction wheel enabled, loaded.
-        if(HeroShootLG::get_friction_wheels_duty_cycle() == 0) {
-            Referee::set_client_light(1, false);
-        } else if(HeroShootLG::get_friction_wheels_duty_cycle() != 0) {
-            if (HeroShootLG::get_loading_status()) {
-                Referee::set_client_light(1, true);
-            } else if(!HeroShootLG::get_loading_status()) {
-                if(SYSTIME - flash_time > 500) {
-                    fw_light_switch = !fw_light_switch;
-                    flash_time = SYSTIME;
-                }
-                Referee::set_client_light(1, fw_light_switch);
-            }
-        }
+        // 17mm shooter heat
+//        Referee::set_client_number(USER_CLIENT_REMAINING_HEAT_NUM,
+//                                   100.0f * (1.0f - (float) Referee::power_heat_data.shooter_heat0 /
+//                                                    (float) Referee::game_robot_state.shooter_heat0_cooling_limit));
 
         /// Super Capacitor
         // TODO: determine feedback interval

@@ -79,7 +79,9 @@ void GimbalIF::init(CANInterface *can1_interface,                      CANInterf
 
         // Set front angle of yaw and pitch
         if(YAW == (motor_id_t) i) {
+#if !defined(HERO)
             feedback[i]->last_angle_raw = yaw_front_angle_raw;
+#endif
         } else if(PITCH == (motor_id_t) i) {
             feedback[i]->last_angle_raw = pitch_front_angle_raw;
         }

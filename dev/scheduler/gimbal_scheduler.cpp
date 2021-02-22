@@ -57,9 +57,11 @@ GimbalSKD::start(AbstractAHRS *gimbal_ahrs_, const Matrix33 ahrs_angle_rotation_
     // FIXME: find a more elegant way to handle this 
 #if defined(SENTRY) || defined(AERIAL)
     last_angle[YAW] = GimbalIF::feedback[GimbalIF::YAW]->actual_angle * yaw_install;
-#else
+#elif defined(INFANTRY)
     last_angle[YAW] = ahrs_angle.x - GimbalIF::feedback[GimbalIF::YAW]->actual_angle * yaw_install;
     // For initial moment, angle_movement = ahrs_angle.x - last_angle[YAW] = GimbalIF::feedback[YAW].actual_angle
+#elif defined(HERO)
+    last_angle[YAW] = ahrs_angle.x - GimbalIF::feedback[GimbalIF::YAW]->actual_angle * yaw_install;
 #endif
 
     last_angle[PITCH] = ahrs_angle.y;
@@ -151,6 +153,12 @@ void GimbalSKD::SKDThread::main() {
 //
 //            }
             target_current[YAW] = (int) v2i_pid[YAW].calc(velocity[YAW], target_velocity[YAW]);
+
+            Shell::printf("!gy,%u,%.2f,%.2f,%.2f,%.2f,%d,%d" SHELL_NEWLINE_STR,
+                          SYSTIME,
+                          accumulated_angle[YAW], target_angle[YAW],
+                          velocity[YAW], target_velocity[YAW],
+                          GimbalIF::feedback[YAW]->actual_current, *GimbalIF::target_current[YAW]);
 
 
             /// Pitch
