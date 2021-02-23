@@ -185,10 +185,10 @@ void CANInterface::ProcessFeedbackThread::main() {
                 case GM6020:  // GM6020 deceleration ratio = 1
 
                     // raw -> degree
-                    fb->actual_angle += angle_movement * 0.043945312f;  // * 360 / 8192
+                    fb->actual_angle += ((float) angle_movement * 0.043945312f);  // * 360 / 8192
 
                     // rpm -> degree/s
-                    fb->actual_velocity = ((int16_t) (rxmsg.data8[2] << 8 | rxmsg.data8[3])) * 6.0f;  // 360 / 60
+                    fb->actual_velocity = (float)((int16_t) (rxmsg.data8[2] << 8 | rxmsg.data8[3])) * 6.0f;  // 360 / 60
 
                     fb->actual_current = (int16_t) (rxmsg.data8[4] << 8 | rxmsg.data8[5]);
 
@@ -197,12 +197,17 @@ void CANInterface::ProcessFeedbackThread::main() {
                 case GM6020_HEROH:
 
                     // raw -> degree
-                    fb->actual_angle += (angle_movement * 0.043945312f * 40.0f / 50.0f);  // * 360 / 8192 * deceleration ratio.
+                    fb->actual_angle += ((float)angle_movement * 0.03515625f);  // * 360 / 8192 * deceleration ratio.
 
                     // rpm -> degree/s
-                    fb->actual_velocity = (((int16_t) (rxmsg.data8[2] << 8 | rxmsg.data8[3])) * 6.0f * 40.0f / 50.0f);  // 360 / 60
+                    fb->actual_velocity = (float)(int16_t)(rxmsg.data8[2] << 8 | rxmsg.data8[3]) * 6.0f * 0.8f;  // 360 / 60
 
                     fb->actual_current = (int16_t) (rxmsg.data8[4] << 8 | rxmsg.data8[5]);
+
+//                    Shell::printf("anglemv %f" SHELL_NEWLINE_STR ,angle_movement*0.03515625f);
+//                    Shell::printf("%f" SHELL_NEWLINE_STR, fb->actual_velocity);
+
+                    break;
 
                 case GM3510:  // GM3510 deceleration ratio = 1
 
@@ -212,6 +217,8 @@ void CANInterface::ProcessFeedbackThread::main() {
                     fb->actual_velocity = 0;  // no velocity feedback available
 
                     fb->actual_current = 0;  // no current feedback available
+
+                    break;
 
                 default:
                     break;

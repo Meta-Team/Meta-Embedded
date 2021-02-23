@@ -21,6 +21,8 @@
 #include "scheduler/gimbal_scheduler.h"
 #include "scheduler/shoot_scheduler.h"
 
+#include "vehicle/hero/vehicle_hero.h"
+
 using namespace chibios_rt;
 
 // Duplicate of motor_id_t in GimbalIF to reduce code
@@ -84,6 +86,11 @@ CANInterface can1(&CAND1);
 CANInterface can2(&CAND2);
 AHRSOnBoard ahrs;
 
+float actual_angle[2];
+
+float target_velocity[2];
+float actual_velocity[2];
+
 bool ahrs_enabled;
 
 class GimbalDebugThread : public BaseStaticThread<1024> {
@@ -91,10 +98,7 @@ public:
     PIDController a2v_pid[2];
     PIDController v2i_pid[2];
 
-    float actual_angle[2];
 
-    float target_velocity[2];
-    float actual_velocity[2];
 
 protected:
     void main() final {
@@ -155,7 +159,13 @@ protected:
 //                    }
 
                     // Calculate from velocity to current
-                    *GimbalIF::target_current[i] = (int) v2i_pid[i].calc(actual_velocity[i], target_velocity[i]);
+                    int current = (int) v2i_pid[i].calc(actual_velocity[i], target_velocity[i]);
+                    if (i == YAW) {
+                        *GimbalIF::target_current[i] = GIMBAL_YAW_INSTALL_DIRECTION*current;
+                    } else if (i == PITCH) {
+                        *GimbalIF::target_current[i] = GIMBAL_PITCH_INSTALL_DIRECTION*current;
+                    }
+
                     // NOTE: Gimbal::target_velocity[i] is either calculated or filled (see above)
 
 
@@ -200,15 +210,15 @@ private:
             if (enable_yaw_feedback) {
                 Shell::printf("!gy,%u,%.2f,%.2f,%.2f,%.2f,%d,%d" SHELL_NEWLINE_STR,
                               SYSTIME,
-                              gimbalThread.actual_angle[YAW], target_angle[YAW],
-                              gimbalThread.actual_velocity[YAW], target_v[YAW],
+                              actual_angle[YAW], target_angle[YAW],
+                              actual_velocity[YAW], target_v[YAW],
                               GimbalIF::feedback[YAW]->actual_current, *GimbalIF::target_current[YAW]);
             }
             if (enable_pitch_feedback) {
                 Shell::printf("!gp,%u,%.2f,%.2f,%.2f,%.2f,%d,%d" SHELL_NEWLINE_STR,
                               SYSTIME,
-                              gimbalThread.actual_angle[PITCH], target_angle[PITCH],
-                              gimbalThread.actual_velocity[PITCH], target_v[PITCH],
+                              actual_angle[PITCH], target_angle[PITCH],
+                              actual_velocity[PITCH], target_v[PITCH],
                               GimbalIF::feedback[PITCH]->actual_current, *GimbalIF::target_current[PITCH]);
             }
 
@@ -447,12 +457,7 @@ int main(void) {
     ahrs.load_calibration_data({-0.644649505f, -0.619945943f, 0.173617705f});
     ahrs.start(ON_BOARD_AHRS_MATRIX_, THREAD_MPU_PRIO, THREAD_IST_PRIO, THREAD_AHRS_PRIO);
 
-    GimbalIF::motor_can_config_t canConfig[6] = {{GimbalIF::can_channel_2,4,CANInterface::GM6020},
-                                                 {GimbalIF::can_channel_1,5,CANInterface::GM6020},
-                                                 {GimbalIF::none_can_channel,6,CANInterface::NONE_MOTOR},
-                                                 {GimbalIF::none_can_channel,8,CANInterface::NONE_MOTOR},
-                                                 {GimbalIF::none_can_channel,9,CANInterface::NONE_MOTOR},
-                                                 {GimbalIF::none_can_channel,10,CANInterface::NONE_MOTOR}};
+    GimbalIF::motor_can_config_t canConfig[6] = GIMBAL_MOTOR_CONFIG;
     GimbalIF::init(&can1, &can2,
                    canConfig,
                    GIMBAL_YAW_FRONT_ANGLE_RAW, GIMBAL_PITCH_FRONT_ANGLE_RAW);

@@ -1,6 +1,5 @@
 //
 // Created by liuzikai on 2019-06-25.
-// Edited by Qian Chen & Mo Kanya on 2019-07-05
 //
 
 #ifndef META_HERO_USER_H
@@ -17,7 +16,7 @@
 #include "chassis_logic.h"
 
 #include "inspector_hero.h"
-#include "common_macro.h"
+
 class UserH {
 
 public:
@@ -49,31 +48,22 @@ private:
     static float shoot_launch_right_count;
 
     static float shoot_launch_speed;
-    static uint16_t shoot_heat_log[2];
-    static uint16_t bullet_heat;
 
-    static float shoot_badass_duty_cycle;
-    static float shoot_remote_duty_cycle;
     static float shoot_common_duty_cycle;
-    static float badass_duty_cycle;
-
-    static float common_plate_target_range;
-    static float badass_plate_target_range;
 
     static Remote::key_t shoot_fw_switch;
-    static Remote::key_t shoot_weapon_switch;
 
     /// Helpers
     static void set_user_client_speed_light_(int level);
 
-    /// Runtime Variables
+    /// Runtime variables
+
     static float gimbal_yaw_target_angle_;
     static float gimbal_pc_pitch_target_angle_;
 
     /// User Thread
     static constexpr unsigned USER_THREAD_INTERVAL = 7;  // [ms]
     class UserThread : public chibios_rt::BaseStaticThread<512> {
-
         void main() final;
     };
 
@@ -107,7 +97,7 @@ private:
     /// Referee Client Data Sending Thread
     static constexpr unsigned CLIENT_DATA_SENDING_THREAD_INTERVAL = 100;  // [ms]
 
-    class ClientDataSendingThread : public chibios_rt::BaseStaticThread<256> {
+    class ClientDataSendingThread : public chibios_rt::BaseStaticThread<512> {
         void main() final;
     };
 

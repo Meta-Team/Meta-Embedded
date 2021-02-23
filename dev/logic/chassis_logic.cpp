@@ -20,8 +20,8 @@ float ChassisLG::target_vy;
 float ChassisLG::target_theta;
 float ChassisLG::target_omega;
 
-float ChassisLG::dodge_mode_max_omega_ = 900.0f;
-float ChassisLG::dodge_mode_min_omega_ = 370.0f;
+float ChassisLG::dodge_mode_max_omega_ = 200.0f;
+float ChassisLG::dodge_mode_min_omega_ = 200.0f;
 int ChassisLG::dodge_mode_randomize_min_time_ = 2000.0f; // min rotate time for a constant speed[ms]
 int ChassisLG::dodge_mode_randomize_max_time_ = 6000.0f; // max rotate time for a constant speed[ms]
 float ChassisLG::biased_angle_ = 0;
@@ -129,9 +129,10 @@ void ChassisLG::DodgeModeSwitchThread::main() {
             int direction = 1; //((rand() % 2) * 2 - 1);
 
             // Randomize angular velocity at certain range.
-            target_omega = (float) direction * ((rand() % ( (int) (dodge_mode_max_omega_ - dodge_mode_min_omega_) ) )
-                                                                 + dodge_mode_min_omega_); // randomize angular velocity
-                                                                                           // from max_omega to min omega.
+//            target_omega = (float) direction * ((rand() % ( (int) (dodge_mode_max_omega_ - dodge_mode_min_omega_) ) )
+//                                                                 + dodge_mode_min_omega_); // randomize angular velocity
+//                                                                                           // from max_omega to min omega.
+            target_omega = (float) 300.0f;
             last_update_time = SYSTIME;
         }
 ////      uncomment the line below if there is no need to randomize chassis' motion

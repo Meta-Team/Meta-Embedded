@@ -57,11 +57,9 @@ GimbalSKD::start(AbstractAHRS *gimbal_ahrs_, const Matrix33 ahrs_angle_rotation_
     // FIXME: find a more elegant way to handle this 
 #if defined(SENTRY) || defined(AERIAL)
     last_angle[YAW] = GimbalIF::feedback[GimbalIF::YAW]->actual_angle * yaw_install;
-#elif defined(INFANTRY)
+#else
     last_angle[YAW] = ahrs_angle.x - GimbalIF::feedback[GimbalIF::YAW]->actual_angle * yaw_install;
     // For initial moment, angle_movement = ahrs_angle.x - last_angle[YAW] = GimbalIF::feedback[YAW].actual_angle
-#elif defined(HERO)
-    last_angle[YAW] = ahrs_angle.x - GimbalIF::feedback[GimbalIF::YAW]->actual_angle * yaw_install;
 #endif
 
     last_angle[PITCH] = ahrs_angle.y;
@@ -156,7 +154,7 @@ void GimbalSKD::SKDThread::main() {
 
             Shell::printf("!gy,%u,%.2f,%.2f,%.2f,%.2f,%d,%d" SHELL_NEWLINE_STR,
                           SYSTIME,
-                          accumulated_angle[YAW], target_angle[YAW],
+                          GimbalIF::feedback[YAW]->actual_angle, target_angle[YAW],
                           velocity[YAW], target_velocity[YAW],
                           GimbalIF::feedback[YAW]->actual_current, *GimbalIF::target_current[YAW]);
 
@@ -164,7 +162,8 @@ void GimbalSKD::SKDThread::main() {
             /// Pitch
             // Use AHRS angle and AHRS velocity
             target_velocity[PITCH] = a2v_pid[PITCH].calc(angle[PITCH], target_angle[PITCH]);
-            target_current[PITCH] = (int) v2i_pid[PITCH].calc(velocity[PITCH], target_velocity[PITCH]);
+            //target_current[PITCH] = (int) v2i_pid[PITCH].calc(velocity[PITCH], target_velocity[PITCH]);
+            target_current[PITCH] = 0;
 
         } else if (mode == SENTRY_MODE) {
 

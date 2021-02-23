@@ -52,7 +52,7 @@ void ChassisSKD::start(float wheel_base, float wheel_tread, float wheel_circumfe
      */
     
 #if defined(HERO)
-    w_to_v_ratio_ = (wheel_base + wheel_tread) / 2.0f / 180.0f * 3.14159f;
+    w_to_v_ratio_ = (wheel_base + wheel_tread) / 2.0f / 360.0f * 3.14159f;
 #else
     w_to_v_ratio_ = (wheel_base + wheel_tread) / 2.0f / 360.0f * 3.14159f;
 #endif
@@ -92,7 +92,7 @@ void ChassisSKD::set_dodge_target(float vx, float vy, float omega) {
 }
 
 float ChassisSKD::get_actual_theta() {
-    return GimbalIF::feedback[GimbalIF::YAW]->actual_angle;
+    return GimbalIF::feedback[GimbalIF::YAW]->actual_angle*GIMBAL_YAW_INSTALL_DIRECTION;
 }
 
 void ChassisSKD::velocity_decompose_(float vx, float vy, float w) {

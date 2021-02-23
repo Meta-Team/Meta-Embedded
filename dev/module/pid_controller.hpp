@@ -68,6 +68,10 @@ public:
      */
     float calc(float now, float target) {
 
+        /*for (int i=1; i<=5; i++){
+            error[i]=error[i-1];
+        }*/
+
         error[1] = error[0];
         error[0] = target - now;
 
@@ -111,7 +115,7 @@ private:
 
     pid_params_t p;
 
-    float error[2];  // error[0]: error of this time, error[1]: error of last time
+    float error[10];  // error[0]: error of this time, error[1]: error of last time
 
     float p_out;
     float i_out;

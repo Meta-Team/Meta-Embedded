@@ -19,6 +19,8 @@
 #include "chassis_interface.h"
 #include "gimbal_interface.h"
 
+#include "gimbal_scheduler.h"
+
 #include "pid_controller.hpp"
 #include "math.h"
 
