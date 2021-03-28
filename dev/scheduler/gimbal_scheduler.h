@@ -20,8 +20,6 @@
 #include "ahrs_abstract.h"
 
 #include "pid_controller.hpp"
-#include "math.h"
-
 
 /**
  * @name GimbalSKD

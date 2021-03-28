@@ -241,7 +241,6 @@ add_executable(ENGINEER
         dev/interface/chassis_interface.cpp
         dev/interface/dms_interface.cpp
         dev/scheduler/engineer_chassis_skd.cpp
-        dev/scheduler/engineer_elevator_skd.cpp
         dev/scheduler/robotic_arm_skd.cpp
         dev/logic/engineer_elevator_logic.cpp
         dev/vehicle/engineer/main_engineer.cpp
@@ -250,10 +249,8 @@ add_executable(ENGINEER
         dev/vehicle/engineer/settings_engineer.cpp
         dev/interface/air_tank_interface.cpp
         dev/interface/air_tank_interface.h
-        dev/scheduler/engineer_rescue_skd.cpp
-        dev/scheduler/engineer_rescue_skd.h
         dev/logic/robotic_arm_logic.cpp
-        dev/logic/robotic_arm_logic.h dev/interface/engineer_grab_mech_interface.cpp dev/interface/engineer_grab_mech_interface.h)
+        dev/logic/robotic_arm_logic.h dev/interface/engineer_grab_mech_interface.cpp dev/interface/engineer_grab_mech_interface.h dev/scheduler/engineer_grab_skd.cpp dev/scheduler/engineer_grab_skd.h)
 target_include_directories(ENGINEER PRIVATE dev/vehicle/engineer)
 target_compile_definitions(ENGINEER PRIVATE ENGINEER)
 
@@ -273,7 +270,6 @@ add_executable(ut_engineer
         dev/debug/Unit_Tests/ut_engineer.cpp
         dev/scheduler/engineer_chassis_skd.cpp
         dev/logic/engineer_elevator_logic.cpp
-        dev/scheduler/engineer_elevator_skd.cpp
         dev/scheduler/robotic_arm_skd.cpp
         dev/interface/chassis_interface.cpp
         dev/interface/dms_interface.cpp
@@ -362,10 +358,6 @@ add_executable(ut_robotic_arm
         dev/interface/can_interface.cpp
         dev/scheduler/robotic_arm_skd.cpp)
 
-# Auto Robotic Arm
-add_executable(ut_auto_robotic_arm
-        dev/scheduler/new_robotic_arm_skd.cpp)
-
 # Referee
 add_executable(ut_referee_interface
         dev/common/CRC8.cpp
@@ -450,7 +442,6 @@ add_executable(pa_elevator
         dev/interface/can_interface.cpp
         dev/module/pid_controller.hpp
         dev/logic/engineer_elevator_logic.cpp
-        dev/scheduler/engineer_elevator_skd.cpp
         dev/debug/Param_Adjusts/pa_engineer_elevator.cpp)
 
 add_executable(pa_engineer_chassis
@@ -465,6 +456,15 @@ add_executable(pa_skywalker
         dev/interface/remote_interpreter.cpp
         dev/scheduler/buzzer_scheduler.cpp)
 
+# Adjust Params of Engineer Grab Mech
+add_executable(pa_engineer_grab
+        dev/debug/Param_Adjusts/pa_engineer_grab.cpp
+        dev/interface/engineer_grab_mech_interface.cpp
+        dev/scheduler/engineer_grab_skd.cpp
+        dev/module/pid_controller.hpp
+        dev/interface/led.cpp
+        dev/interface/can_interface.cpp
+        dev/interface/remote_interpreter.cpp)
 
 # Adjust Params of Sentry Chassis
 add_executable(pa_sentry_chassis
