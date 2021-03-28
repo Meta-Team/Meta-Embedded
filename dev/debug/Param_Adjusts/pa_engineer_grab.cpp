@@ -18,6 +18,8 @@ using namespace chibios_rt;
 CANInterface can1(&CAND1);
 CANInterface can2(&CAND2);
 
+PIDController::pid_params_t PIDParameter[2] = {SHOOT_PID_BULLET_LOADER_V2I_PARAMS, SHOOT_PID_BULLET_LOADER_V2I_PARAMS};
+
 /**
  * @brief set enabled state of yaw and pitch motor
  * @param chp
@@ -30,10 +32,20 @@ static void cmd_set_pid(BaseSequentialStream *chp, int argc, char *argv[]) {
         shellUsage(chp, "set_pid MOTOR(LEFT/RIGHT) kp ki kd i_limit out_limit");
         return;
     }
+    PIDController::pid_params_t NEW_Parameter = {Shell::atof(argv[1]), Shell::atof(argv[2]),
+                                                 Shell::atof(argv[3]),Shell::atof(argv[4]),
+                                                 Shell::atof(argv[5])};
     if(*argv[0] == 'LEFT') {
-
+        PIDParameter[0] = NEW_Parameter;
+        engineerGrabSKD::load_pid_params(PIDParameter);
+    } else if (*argv[0] == 'RIGHT') {
+        PIDParameter[1] = NEW_Parameter;
+        engineerGrabSKD::load_pid_params(PIDParameter);
+    } else {
+        shellUsage(chp, "set_pid MOTOR(LEFT/RIGHT) kp ki kd i_limit out_limit");
+        return;
     }
-    chprintf(chp, "set_pid" SHELL_NEWLINE_STR);
+    chprintf(chp, "pid_set!" SHELL_NEWLINE_STR);
 }
 
 
