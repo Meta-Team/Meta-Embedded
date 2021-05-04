@@ -69,8 +69,8 @@ void UserI::UserThread::main() {
                 // ch0 use right as positive direction, while GimbalLG use CCW (left) as positive direction
 
                 float pitch_target;
-                if (Remote::rc.ch1 > 0) pitch_target += Remote::rc.ch1 * gimbal_pitch_max_angle *0.02;
-                else pitch_target -= Remote::rc.ch1 * gimbal_pitch_min_angle*0.02;  // GIMBAL_PITCH_MIN_ANGLE is negative
+                if (Remote::rc.ch1 > 0) pitch_target += Remote::rc.ch1 * gimbal_pitch_max_angle *0.1;
+                else pitch_target -= Remote::rc.ch1 * gimbal_pitch_min_angle*0.1;  // GIMBAL_PITCH_MIN_ANGLE is negative
                 // ch1 use up as positive direction, while GimbalLG also use up as positive direction
 
                 VAL_CROP(pitch_target, gimbal_pitch_max_angle, gimbal_pitch_min_angle);
