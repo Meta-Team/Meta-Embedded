@@ -162,8 +162,8 @@ void GimbalSKD::SKDThread::main() {
             /// Pitch
             // Use AHRS angle and AHRS velocity
             target_velocity[PITCH] = a2v_pid[PITCH].calc(angle[PITCH], target_angle[PITCH]);
-            //target_current[PITCH] = (int) v2i_pid[PITCH].calc(velocity[PITCH], target_velocity[PITCH]);
-            target_current[PITCH] = 0;
+            target_current[PITCH] = (int) v2i_pid[PITCH].calc(velocity[PITCH], target_velocity[PITCH]);
+            //target_current[PITCH] = 0;
 
         } else if (mode == SENTRY_MODE) {
 
