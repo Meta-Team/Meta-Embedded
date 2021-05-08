@@ -21,7 +21,7 @@
 #include "scheduler/gimbal_scheduler.h"
 #include "scheduler/shoot_scheduler.h"
 
-#include "vehicle/hero/vehicle_hero.h"
+#include "vehicle/infantry/vehicle_infantry.h"
 
 using namespace chibios_rt;
 
