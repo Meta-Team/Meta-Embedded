@@ -57,7 +57,8 @@ public:
     __PACKED_STRUCT game_state_t {
         uint8_t game_type : 4;
         uint8_t game_progress : 4;
-        uint16_t stage_remain_time;
+        uint16_t stage_remain_time ;
+        uint64_t SyncTimeStamp;
     };
 
     static constexpr uint16_t GAME_RESULT_CMD_ID = 0x0002;
@@ -81,6 +82,19 @@ public:
         uint16_t blue_5_robot_HP;
         uint16_t blue_7_robot_HP;
         uint16_t blue_base_HP;
+    };
+
+    static constexpr uint16_t  GAME_ROBOT_ICRA_CMD_ID = 0x0005;
+    __PACKED_STRUCT icra_data_t {
+        uint8_t F1_zone_status:1;
+        uint8_t F1_zone_buff_debuff_status:3; uint8_t F2_zone_status:1;
+        uint8_t F2_zone_buff_debuff_status:3; uint8_t F3_zone_status:1;
+        uint8_t F3_zone_buff_debuff_status:3;
+        uint8_t F4_zone_status:1;
+        uint8_t F4_zone_buff_debuff_status:3; uint8_t F5_zone_status:1;
+        uint8_t F5_zone_buff_debuff_status:3; uint8_t F6_zone_status:1;
+        uint8_t F6_zone_buff_debuff_status:3;
+        uint16_t red1_bullet_left; uint16_t red2_bullet_left; uint16_t blue1_bullet_left; uint16_t blue2_bullet_left;
     };
 
     static constexpr uint16_t EVENT_CMD_ID = 0x0101;
@@ -111,17 +125,23 @@ public:
 
     static constexpr uint16_t GAME_ROBOT_STATE_CMD_ID = 0x0201;
     __PACKED_STRUCT game_robot_state_t {
-        uint8_t robot_id;
-        uint8_t robot_level;
-        uint16_t remain_HP;
-        uint16_t max_HP;
-        uint16_t shooter_heat0_cooling_rate;
-        uint16_t shooter_heat0_cooling_limit;  // 17mm max heat
-        uint16_t shooter_heat1_cooling_rate;
-        uint16_t shooter_heat1_cooling_limit;  // 42mm max heat
-        uint8_t mains_power_gimbal_output : 1;
-        uint8_t mains_power_chassis_output : 1;
-        uint8_t mains_power_shooter_output : 1;
+            uint8_t robot_id;
+            uint8_t robot_level;
+            uint16_t remain_HP;
+            uint16_t max_HP;
+            uint16_t shooter_id1_17mm_cooling_rate;
+            uint16_t shooter_id1_17mm_cooling_limit;
+            uint16_t shooter_id1_17mm_speed_limit;
+            uint16_t shooter_id2_17mm_cooling_rate;
+            uint16_t shooter_id2_17mm_cooling_limit;
+            uint16_t shooter_id2_17mm_speed_limit;
+            uint16_t shooter_id1_42mm_cooling_rate;
+            uint16_t shooter_id1_42mm_cooling_limit;
+            uint16_t shooter_id1_42mm_speed_limit;
+            uint16_t chassis_power_limit;
+            uint8_t mains_power_gimbal_output : 1;
+            uint8_t mains_power_chassis_output : 1;
+            uint8_t mains_power_shooter_output : 1;
     };
 
     static constexpr uint16_t POWER_HEAT_DATA_CMD_ID = 0x0202;
