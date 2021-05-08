@@ -69,7 +69,7 @@
 #define GIMBAL_YAW_INSTALL_DIRECTION    (GimbalSKD::POSITIVE)
 #define GIMBAL_PITCH_INSTALL_DIRECTION  (GimbalSKD::POSITIVE)
 #define SHOOT_BULLET_INSTALL_DIRECTION  (ShootSKD::POSITIVE)
-#define SHOOT_DEGREE_PER_BULLET 40.0f  // rotation degree of bullet loader for each bullet
+#define SHOOT_DEGREE_PER_BULLET 45.0f  // rotation degree of bullet loader for each bullet
 
 #define GIMBAL_ANGLE_INSTALLATION_MATRIX {{1.0f, 0.0f, 0.0f}, \
                                           {0.0f, 1.0f, 0.0f}, \

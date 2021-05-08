@@ -14,9 +14,9 @@ float UserI::gimbal_pitch_min_angle = -30; // down range for pitch [degree]
 float UserI::gimbal_pitch_max_angle = 10; //  up range for pitch [degree]
 
 /// Chassis Config
-float UserI::chassis_v_left_right = 1000.0f;  // [mm/s]
-float UserI::chassis_v_forward = 2000.0f;     // [mm/s]
-float UserI::chassis_v_backward = 2000.0f;    // [mm/s]
+float UserI::chassis_v_left_right = 500.0f;  // [mm/s]
+float UserI::chassis_v_forward = 1000.0f;     // [mm/s]
+float UserI::chassis_v_backward = 1000.0f;    // [mm/s]
 
 float UserI::chassis_pc_shift_ratio = 1.5f;  // 150% when Shift is pressed
 float UserI::chassis_pc_ctrl_ratio = 0.5;    // 50% when Ctrl is pressed
@@ -27,9 +27,9 @@ Remote::key_t UserI::chassis_dodge_switch = Remote::KEY_X;
 float UserI::shoot_launch_left_count = 5;
 float UserI::shoot_launch_right_count = 999;
 
-float UserI::shoot_launch_speed = 5.0f;
+float UserI::shoot_launch_speed = 10.0f;   //Feed rate
 
-float UserI::shoot_common_duty_cycle = 0.75;
+float UserI::shoot_common_duty_cycle = 0.40;   //Init speed
 
 Remote::key_t UserI::shoot_fw_switch = Remote::KEY_Z;
 
@@ -127,7 +127,7 @@ void UserI::UserThread::main() {
                 // Referee client data will be sent by ClientDataSendingThread
 
                 float yaw_delta = -Remote::mouse.x * (yaw_sensitivity * USER_THREAD_INTERVAL / 1000.0f);
-                float pitch_delta = -Remote::mouse.y * (pitch_sensitivity * USER_THREAD_INTERVAL / 1000.0f);
+                float pitch_delta = Remote::mouse.y * (pitch_sensitivity * USER_THREAD_INTERVAL / 1000.0f);
 
 //                ///check if it's necessary to use the auxiliary targeting
 //                if (Remote::key.b){
