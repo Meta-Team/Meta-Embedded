@@ -18,6 +18,7 @@ Referee::event_data_t Referee::event_data;
 Referee::supply_projectile_action_t Referee::supply_projectile_action;
 Referee::supply_projectile_booking_t Referee::supply_projectile_booking;
 Referee::referee_warning_t Referee::referee_warning;
+Referee::ext_dart_remaining_time_t Referee::ext_dart_remaining_time;
 Referee::game_robot_state_t Referee::game_robot_state;
 Referee::power_heat_data_t Referee::power_heat_data;
 Referee::game_robot_pos_t Referee::game_robot_pos;
@@ -27,6 +28,7 @@ Referee::robot_hurt_t Referee::robot_hurt;
 Referee::shoot_data_t Referee::shoot_data;
 Referee::bullet_remaining_t Referee::bullet_remaining;
 Referee::aerial_to_sentry_t Referee::sentry_guiding_direction_r;
+Referee::dart_client_t Referee::dart_client;
 
 Referee::client_custom_data_t Referee::client_custom_data;
 Referee::robot_interactive_data_t Referee::robot_data_send;
@@ -144,6 +146,8 @@ void Referee::uart_rx_callback(UARTDriver *uartp) {
                         break;
                     case REFEREE_WARNING_CMD_ID:
                         referee_warning = pak.referee_warning_;
+                    case EXT_DART_REMAINING_TIME_CMD_ID:
+                        ext_dart_remaining_time = pak.ext_dart_remaining_time_;
                     case GAME_ROBOT_POS_CMD_ID:
                         game_robot_pos = pak.game_robot_pos_;
                         break;
@@ -155,6 +159,9 @@ void Referee::uart_rx_callback(UARTDriver *uartp) {
                         break;
                     case BULLET_REMAINING_CMD_ID:
                         bullet_remaining = pak.bullet_remaining_;
+                        break;
+                    case DART_CLIENT_CMD_ID:
+                        dart_client = pak.dart_client_;
                         break;
                     case INTERACTIVE_DATA_CMD_ID: // robot_interactive_data
                         // Check whether the message is from the same team

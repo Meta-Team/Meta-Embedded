@@ -57,7 +57,7 @@ public:
     __PACKED_STRUCT game_state_t {
         uint8_t game_type : 4;
         uint8_t game_progress : 4;
-        uint16_t stage_remain_time ;
+        uint16_t stage_remain_time;
         uint64_t SyncTimeStamp;
     };
 
@@ -74,6 +74,7 @@ public:
         uint16_t red_4_robot_HP;
         uint16_t red_5_robot_HP;
         uint16_t red_7_robot_HP;
+        uint16_t red_outpost_HP;
         uint16_t red_base_HP;
         uint16_t blue_1_robot_HP;
         uint16_t blue_2_robot_HP;
@@ -81,20 +82,27 @@ public:
         uint16_t blue_4_robot_HP;
         uint16_t blue_5_robot_HP;
         uint16_t blue_7_robot_HP;
-        uint16_t blue_base_HP;
-    };
+        uint16_t blue_outpost_HP;
+        uint16_t blue_base_HP; };
 
     static constexpr uint16_t  GAME_ROBOT_ICRA_CMD_ID = 0x0005;
     __PACKED_STRUCT icra_data_t {
         uint8_t F1_zone_status:1;
-        uint8_t F1_zone_buff_debuff_status:3; uint8_t F2_zone_status:1;
-        uint8_t F2_zone_buff_debuff_status:3; uint8_t F3_zone_status:1;
+        uint8_t F1_zone_buff_debuff_status:3;
+        uint8_t F2_zone_status:1;
+        uint8_t F2_zone_buff_debuff_status:3;
+        uint8_t F3_zone_status:1;
         uint8_t F3_zone_buff_debuff_status:3;
         uint8_t F4_zone_status:1;
-        uint8_t F4_zone_buff_debuff_status:3; uint8_t F5_zone_status:1;
-        uint8_t F5_zone_buff_debuff_status:3; uint8_t F6_zone_status:1;
+        uint8_t F4_zone_buff_debuff_status:3;
+        uint8_t F5_zone_status:1;
+        uint8_t F5_zone_buff_debuff_status:3;
+        uint8_t F6_zone_status:1;
         uint8_t F6_zone_buff_debuff_status:3;
-        uint16_t red1_bullet_left; uint16_t red2_bullet_left; uint16_t blue1_bullet_left; uint16_t blue2_bullet_left;
+        uint16_t red1_bullet_left;
+        uint16_t red2_bullet_left;
+        uint16_t blue1_bullet_left;
+        uint16_t blue2_bullet_left;
     };
 
     static constexpr uint16_t EVENT_CMD_ID = 0x0101;
@@ -114,13 +122,19 @@ public:
     __PACKED_STRUCT supply_projectile_booking_t {
         uint8_t supply_projectile_id;
         uint8_t supply_robot_id;
-        uint8_t supply_num;
+        uint8_t supply_projectile_step;
+        uint8_t supply_projectile_num;
     };
 
-    static constexpr uint16_t REFEREE_WARNING_CMD_ID = 0x0103;
+    static constexpr uint16_t REFEREE_WARNING_CMD_ID = 0x0104;
     __PACKED_STRUCT referee_warning_t {
         uint8_t level;
         uint8_t foul_robot_id;
+    };
+
+    static constexpr uint16_t EXT_DART_REMAINING_TIME_CMD_ID = 0x0105;
+    __PACKED_STRUCT ext_dart_remaining_time_t {
+        uint8_t dart_remaining_time;
     };
 
     static constexpr uint16_t GAME_ROBOT_STATE_CMD_ID = 0x0201;
@@ -150,8 +164,9 @@ public:
         uint16_t chassis_current;
         float chassis_power;
         uint16_t chassis_power_buffer;
-        uint16_t shooter_heat0;
-        uint16_t shooter_heat1;
+        uint16_t shooter_id1_17mm_cooling_heat;
+        uint16_t shooter_id2_17mm_cooling_heat;
+        uint16_t shooter_id1_42mm_cooling_heat;
     };
 
     static constexpr uint16_t GAME_ROBOT_POS_CMD_ID = 0x0203;
@@ -169,7 +184,6 @@ public:
 
     static constexpr uint16_t AERIAL_ROBOT_ENERGY_CMD_ID = 0x0205;
     __PACKED_STRUCT aerial_robot_energy_t {
-        uint8_t energy_point;
         uint8_t attack_time;
     };
 
@@ -182,13 +196,29 @@ public:
     static constexpr uint16_t SHOOT_DATA_CMD_ID = 0x0207;
     __PACKED_STRUCT shoot_data_t {
         uint8_t bullet_type;
+        uint8_t shooter_id;
         uint8_t bullet_freq;
         float bullet_speed;
     };
 
     static constexpr uint16_t BULLET_REMAINING_CMD_ID = 0x0208;
     __PACKED_STRUCT bullet_remaining_t {
-        uint16_t bullet_remaining_num;
+        uint16_t bullet_remaining_num_17mm;
+        uint16_t bullet_remaining_num_42mm;
+        uint16_t coin_remaining_num;
+    };
+
+    static constexpr uint16_t RFID_STAT_ID = 0x209;
+    __PACKED_STRUCT rfid_stat_t {
+        uint32_t rfid_status;
+    };
+
+    static constexpr uint16_t DART_CLIENT_CMD_ID = 0x20A;
+    __PACKED_STRUCT dart_client_t {
+        uint8_t dart_launch_opening_status;
+        uint8_t dart_attack_target;
+        uint16_t target_change_time;
+        uint16_t operate_launch_cmd_time;
     };
 
     /** Robot Interactive **/
@@ -246,6 +276,7 @@ public:
     static supply_projectile_action_t supply_projectile_action;
     static supply_projectile_booking_t supply_projectile_booking;
     static referee_warning_t referee_warning;
+    static ext_dart_remaining_time_t ext_dart_remaining_time;
     static game_robot_state_t game_robot_state;
     static power_heat_data_t power_heat_data;
     static game_robot_pos_t game_robot_pos;
@@ -254,6 +285,7 @@ public:
     static robot_hurt_t robot_hurt;
     static shoot_data_t shoot_data;
     static bullet_remaining_t bullet_remaining;
+    static dart_client_t dart_client;
 
     /** Interactive Data **/
     static aerial_to_sentry_t sentry_guiding_direction_r;
@@ -353,6 +385,7 @@ private:
             supply_projectile_action_t supply_projectile_action_;
             supply_projectile_booking_t supply_projectile_booking_;
             referee_warning_t referee_warning_;
+            ext_dart_remaining_time_t ext_dart_remaining_time_;
             game_robot_state_t game_robot_state_;
             power_heat_data_t power_heat_data_;
             game_robot_pos_t game_robot_pos_;
@@ -361,7 +394,7 @@ private:
             robot_hurt_t robot_hurt_;
             shoot_data_t shoot_data_;
             bullet_remaining_t bullet_remaining_;
-
+            dart_client_t dart_client_;
             robot_interactive_data_t robot_interactive_data_;
 
             client_custom_data_t client_custom_data_;
