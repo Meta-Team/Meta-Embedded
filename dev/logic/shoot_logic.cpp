@@ -69,20 +69,15 @@ void ShootLG::shoot(float number_of_bullet, float number_per_second) {
     shooter_state = SHOOTING;
     ShootSKD::reset_loader_accumulated_angle();
     ShootSKD::set_mode(ShootSKD::LIMITED_SHOOTING_MODE);
-    if(Referee::power_heat_data.shooter_id1_17mm_cooling_heat < Referee::game_robot_state.shooter_id1_17mm_cooling_limit) {
-        BuzzerSKD::alert_off();
-        ShootSKD::set_loader_target_velocity(number_per_second * angle_per_bullet);
-        ShootSKD::set_loader_target_angle(shoot_target_number * angle_per_bullet);
-        chSysLock();  /// --- ENTER S-Locked state. DO NOT use LOG, printf, non S/I-Class functions or return ---
-        if (!stuckDetector.started) {
-            stuckDetector.started = true;
-            stuckDetector.waited = false;
-            chSchWakeupS(stuckDetectorReference.getInner(), 0);
-        }
-        chSysUnlock();  /// --- EXIT S-Locked state ---
-    } else {
-        BuzzerSKD::alert_on();
+    ShootSKD::set_loader_target_velocity(number_per_second * angle_per_bullet);
+    ShootSKD::set_loader_target_angle(shoot_target_number * angle_per_bullet);
+    chSysLock();  /// --- ENTER S-Locked state. DO NOT use LOG, printf, non S/I-Class functions or return ---
+    if (!stuckDetector.started) {
+        stuckDetector.started = true;
+        stuckDetector.waited = false;
+        chSchWakeupS(stuckDetectorReference.getInner(), 0);
     }
+    chSysUnlock();  /// --- EXIT S-Locked state ---
 }
 
 void ShootLG::stop() {

@@ -146,8 +146,10 @@ void Referee::uart_rx_callback(UARTDriver *uartp) {
                         break;
                     case REFEREE_WARNING_CMD_ID:
                         referee_warning = pak.referee_warning_;
+                        break;
                     case EXT_DART_REMAINING_TIME_CMD_ID:
                         ext_dart_remaining_time = pak.ext_dart_remaining_time_;
+                        break;
                     case GAME_ROBOT_POS_CMD_ID:
                         game_robot_pos = pak.game_robot_pos_;
                         break;
@@ -163,18 +165,18 @@ void Referee::uart_rx_callback(UARTDriver *uartp) {
                     case DART_CLIENT_CMD_ID:
                         dart_client = pak.dart_client_;
                         break;
-                    case INTERACTIVE_DATA_CMD_ID: // robot_interactive_data
-                        // Check whether the message is from the same team
-                        if ((game_robot_state.robot_id > 10) ^ (pak.robot_interactive_data_.header.send_ID > 10)) break;
-                        // Check whether the message is for this robot
-                        if (game_robot_state.robot_id != pak.robot_interactive_data_.header.receiver_ID) break;
-                        // If the message pass the check, record it in the corresponding place
-                        switch (pak.robot_interactive_data_.header.data_cmd_id){
-                            case AERIAL_TO_SENTRY:
-                                sentry_guiding_direction_r = pak.robot_interactive_data_.aerial_to_sentry_;
-                        }
-                        //switch (robot_data_receive.)
-                        break;
+//                    case INTERACTIVE_DATA_CMD_ID: // robot_interactive_data
+//                        // Check whether the message is from the same team
+//                        if ((game_robot_state.robot_id > 10) ^ (pak.robot_interactive_data_.header.send_ID > 10)) break;
+//                        // Check whether the message is for this robot
+//                        if (game_robot_state.robot_id != pak.robot_interactive_data_.header.receiver_ID) break;
+//                        // If the message pass the check, record it in the corresponding place
+//                        switch (pak.robot_interactive_data_.header.data_cmd_id){
+//                            case AERIAL_TO_SENTRY:
+//                                sentry_guiding_direction_r = pak.robot_interactive_data_.aerial_to_sentry_;
+//                        }
+//                        //switch (robot_data_receive.)
+//                        break;
 
                     default:
                         break;

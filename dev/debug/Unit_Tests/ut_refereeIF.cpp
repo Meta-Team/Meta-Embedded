@@ -25,8 +25,7 @@ private:
             LOG("chassis_current = %u" , (unsigned int) Referee::power_heat_data.chassis_current);
             LOG("chassis_power = %f" , Referee::power_heat_data.chassis_power);
             LOG("chassis_power_buffer = %u" , (unsigned int) Referee::power_heat_data.chassis_power_buffer);
-            LOG("shooter_heat0 = %u" , (unsigned int) Referee::power_heat_data.shooter_heat0);
-            LOG("shooter_heat1 = %u" , (unsigned int) Referee::power_heat_data.shooter_heat1);
+            LOG("shooter_heat0 = %u" , (unsigned int) Referee::power_heat_data.shooter_id1_17mm_cooling_heat);
             LOG("");
 
             LOG("bullet_type = %u" , (unsigned int) Referee::shoot_data.bullet_type);
