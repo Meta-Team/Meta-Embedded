@@ -5,11 +5,12 @@
 #include "super_capacitor_port.h"
 
 CANInterface *SuperCapacitor::can_ = nullptr;
-SuperCapacitor::feedback_t SuperCapacitor::feedback;
+CANInterface::cap_feedback_t *SuperCapacitor::feedback;
 time_msecs_t SuperCapacitor::last_feedback_time = 0;
 
 void SuperCapacitor::init(CANInterface *can_interface) {
     can_ = can_interface;
+    feedback = can_->get_cap_feedback_address();
 }
 
 void SuperCapacitor::set_power(float input_power) {

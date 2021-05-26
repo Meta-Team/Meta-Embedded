@@ -334,6 +334,10 @@ void UserI::UserActionThread::main() {
                 ShootLG::shoot(shoot_launch_right_count, shoot_launch_speed);
             }
         } else {  // releasing one while pressing another won't result in stopping
+            if(Referee::power_heat_data.shooter_id1_17mm_cooling_heat >
+               (uint16_t) (Referee::game_robot_state.shooter_id1_17mm_cooling_limit * 0.75)) {
+                ShootLG::stop();
+            }
             if (events & MOUSE_RELEASE_EVENTMASK) {
                 ShootLG::stop();
             }
@@ -363,7 +367,7 @@ void UserI::UserActionThread::main() {
 
             /// Shoot
             if (key_flag & (1U << shoot_fw_switch)) {
-                if (ShootLG::get_friction_wheels_duty_cycle() > 0) {
+                if (ABS(ShootLG::get_friction_wheels_duty_cycle()) > 0) {
                     ShootLG::set_friction_wheels(0);
                 } else {
                     ShootLG::set_friction_wheels(shoot_common_duty_cycle);
@@ -395,17 +399,14 @@ void UserI::ClientDataSendingThread::main() {
 
         /// Shoot
         // 17mm shooter heat
-//        Referee::set_client_number(USER_CLIENT_REMAINING_HEAT_NUM,
-//                                   100.0f * (1.0f - (float) Referee::power_heat_data.shooter_heat0 /
-//                                                    (float) Referee::game_robot_state.shooter_heat0_cooling_limit));
 
         /// Super Capacitor
         // TODO: determine feedback interval
         if (WITHIN_RECENT_TIME(SuperCapacitor::last_feedback_time, 1000)) {
 //            Referee::set_client_number(USER_CLIENT_ACTUAL_POWER_NUM, SuperCapacitor::feedback.output_power);
             Referee::set_client_number(USER_CLIENT_SUPER_CAPACITOR_VOLTAGE_NUM,
-                                       SuperCapacitor::feedback.capacitor_voltage);
-            if (SuperCapacitor::feedback.capacitor_voltage > SUPER_CAPACITOR_WARNING_VOLTAGE) {
+                                       SuperCapacitor::feedback->capacitor_voltage);
+            if (SuperCapacitor::feedback->capacitor_voltage > SUPER_CAPACITOR_WARNING_VOLTAGE) {
                 super_capacitor_light_status_ = true;
             } else {
                 super_capacitor_light_status_ = not super_capacitor_light_status_;  // blink voltage light

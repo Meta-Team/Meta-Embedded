@@ -181,10 +181,15 @@ public:
     EVENTSOURCE_DECL(error_event_src);
 
     /**
-     * Get the adress of a certain feedback.
+     * Get the address of a certain feedback.
      * @param id  The motor id.
      */
     motor_feedback_t *get_feedback_address(unsigned id);
+
+    /**
+     * Get the address of super capacitor feedback.
+     */
+    cap_feedback_t *get_cap_feedback_address();
 
 private:
 

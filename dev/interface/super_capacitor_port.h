@@ -29,12 +29,7 @@ public:
     /**
      * Feedback info structure
      */
-    static struct feedback_t {
-        float input_voltage;      // [V]
-        float capacitor_voltage;  // [V]
-        float input_current;      // [A]
-        float output_power;       // [W]
-    } feedback;
+    static CANInterface::cap_feedback_t *feedback;
     
     /**
      * Last update time (ms, from system start)

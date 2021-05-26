@@ -82,6 +82,10 @@ CANInterface::motor_feedback_t *CANInterface::get_feedback_address(unsigned id) 
     return &processFeedbackThread.feedback[id];
 }
 
+CANInterface::cap_feedback_t *CANInterface::get_cap_feedback_address() {
+    return &processFeedbackThread.capfeedback;
+}
+
 void CANInterface::ProcessFeedbackThread::main() {
     /**
      * Note that there are two can instances defined in the main function at the very first beginning,
