@@ -81,28 +81,16 @@ void ChassisLG::set_target(float vx, float vy) {
 }
 
 void ChassisLG::apply_target() {
-    if(action == FOLLOW_MODE){
+    if (action == FOLLOW_MODE) {
         ChassisSKD::set_target(target_vx, target_vy, target_theta);
-    } else if(action == DODGE_MODE){
-        ChassisSKD::set_dodge_target(target_vx,target_vy,target_omega);
+    } else if (action == DODGE_MODE) {
+        ChassisSKD::set_dodge_target(target_vx, target_vy, target_omega);
     }
-}
-
-void ChassisLG::set_sports_mode() {
-    if (ChassisSKD::sports_mode_on) ChassisSKD::sports_mode_on = 0;
-    else ChassisSKD::sports_mode_on = 1;
-}
-
-bool ChassisLG::get_sports_mode() {
-    return ChassisSKD::sports_mode_on;
 }
 
 void ChassisLG::DodgeModeSwitchThread::main() {
 
     setName("Chassis_Dodge");
-
-    int randomize_time = 0;
-    int last_update_time = SYSTIME;
 
     while(!shouldTerminate()) {
 
@@ -112,31 +100,6 @@ void ChassisLG::DodgeModeSwitchThread::main() {
             chSchGoSleepS(CH_STATE_SUSPENDED);
         }
         chSysUnlock();  /// --- EXIT S-Locked state ---
-
-        if((int)SYSTIME - (int)last_update_time > (int)randomize_time) {
-            srand(SYSTIME);
-
-            // Randomize time at a certain range.
-            randomize_time = rand() % (dodge_mode_randomize_max_time_ - dodge_mode_randomize_min_time_)
-                                                                                        + dodge_mode_randomize_min_time_;
-            
-            // Randomize the direction.
-////        uncomment the function if you need to randomize the direction
-            int direction = 1; //((rand() % 2) * 2 - 1);
-
-            // Randomize angular velocity at certain range.
-//            target_omega = (float) direction * ((rand() % ( (int) (dodge_mode_max_omega_ - dodge_mode_min_omega_) ) )
-//                                                                 + dodge_mode_min_omega_); // randomize angular velocity
-//                                                                                           // from max_omega to min omega.
-            target_omega = (float) 300.0f;
-            last_update_time = SYSTIME;
-        }
-////      uncomment the line below if there is no need to randomize chassis' motion
-//      target_omega = (dodge_mode_max_omega_ + dodge_mode_min_omega_) / 2;
-
-//        if (!ABS_IN_RANGE(ChassisSKD::get_actual_theta() - (-target_theta), 10)) {
-//            target_theta = -biased_angle_ - target_theta;
-//        }
 
         /**
          * If next target_theta is too close to current theta (may due to gimbal rotation), do not switch target to

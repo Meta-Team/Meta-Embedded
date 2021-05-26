@@ -31,7 +31,6 @@ float ChassisSKD::wheel_circumference_ = 0;
 float ChassisSKD::w_to_v_ratio_ = 0.0f;
 float ChassisSKD::v_to_wheel_angular_velocity_ = 0.0f;
 float ChassisSKD::chassis_gimbal_offset_ = 0.0f;
-bool ChassisSKD::sports_mode_on = false;
 
 ChassisSKD::install_mode_t ChassisSKD::install_mode_ = POSITIVE;
 
@@ -56,7 +55,7 @@ void ChassisSKD::start(float wheel_base, float wheel_tread, float wheel_circumfe
 #else
     w_to_v_ratio_ = (wheel_base + wheel_tread) / 2.0f / 360.0f * 3.14159f;
 #endif
-    v_to_wheel_angular_velocity_ = (360.0f / wheel_circumference);
+    v_to_wheel_angular_velocity_ = (360.0f / wheel_circumference_);
     chassis_gimbal_offset_ = chassis_gimbal_offset;
     install_mode_ = install_mode;
 

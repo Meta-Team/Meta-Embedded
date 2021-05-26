@@ -144,10 +144,6 @@ private:
 
     static install_mode_t install_mode_;
 
-    static bool sports_mode_on;
-    friend void ChassisLG::set_sports_mode();
-    friend bool ChassisLG::get_sports_mode();
-
     // Helper function to convert chassis velocity to velocities of each wheel and perform PID calculation once
     static void velocity_decompose_(float vx, float vy, float w);
 

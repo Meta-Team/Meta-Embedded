@@ -17,6 +17,7 @@
 
 #include "referee_interface.h"
 #include "super_capacitor_port.h"
+#include "pid_controller.hpp"
 
 #if defined(INFANTRY)
 #include "vehicle/infantry/vehicle_infantry.h"
@@ -70,10 +71,6 @@ public:
      * @param vy     Target velocity along the y axis (up) with respect to gimbal coordinate [mm/s]
      */
     static void set_target(float vx, float vy);
-
-    static void set_sports_mode();
-
-    static bool get_sports_mode();
 
 private:
 
