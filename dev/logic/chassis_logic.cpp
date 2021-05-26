@@ -28,14 +28,15 @@ float ChassisLG::biased_angle_ = 0;
 tprio_t ChassisLG::dodge_thread_prio;
 ChassisLG::DodgeModeSwitchThread ChassisLG::dodgeModeSwitchThread;
 chibios_rt::ThreadReference ChassisLG::dodgeThreadReference;
+ChassisLG::CapacitorPowerSetThread ChassisLG::capacitorPowerSetThread;
 
-
-void ChassisLG::init(tprio_t dodge_thread_prio_, float dodge_mode_max_omega, float biased_angle) {
+void ChassisLG::init(tprio_t dodge_thread_prio_, tprio_t cap_power_set_thread_prio_, float dodge_mode_max_omega, float biased_angle) {
     dodge_thread_prio = dodge_thread_prio_;
     dodge_mode_max_omega_ = dodge_mode_max_omega;
     biased_angle_ = biased_angle;
     dodgeModeSwitchThread.started = true;
     dodgeThreadReference = dodgeModeSwitchThread.start(dodge_thread_prio);
+    capacitorPowerSetThread.start(cap_power_set_thread_prio_);
 }
 
 ChassisLG::action_t ChassisLG::get_action() {
@@ -75,11 +76,6 @@ void ChassisLG::set_target(float vx, float vy) {
     if (action == FOLLOW_MODE) {
         target_theta = 0.0f;
     }
-//#if defined(HERO)
-//    if (action == DODGE_MODE) {
-//        target_vx -= 500;
-//    }
-//#endif
     // For DODGE_MODE keep current target_theta unchanged
     apply_target();
 }
@@ -154,6 +150,14 @@ void ChassisLG::DodgeModeSwitchThread::main() {
         apply_target();
 
         sleep(TIME_MS2I(DODGE_MODE_SWITCH_INTERVAL));
+    }
+}
+
+void ChassisLG::CapacitorPowerSetThread::main() {
+    setName("CapSetThread");
+    while (!shouldTerminate()) {
+        SuperCapacitor::set_power((float)Referee::game_robot_state.chassis_power_limit * 0.9f);
+        sleep(TIME_MS2I(CAP_POWER_SET_INTERVAL));
     }
 }
 

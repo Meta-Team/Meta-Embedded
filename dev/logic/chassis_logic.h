@@ -16,6 +16,7 @@
 #include "ch.hpp"
 
 #include "referee_interface.h"
+#include "super_capacitor_port.h"
 
 #if defined(INFANTRY)
 #include "vehicle/infantry/vehicle_infantry.h"
@@ -40,9 +41,10 @@ public:
     /**
      * Initialize this module
      * @param dodge_thread_prio_   Thread priority for dodge thread
+     * @param cap_power_set_thread_prio_ Thread priority for the capacitor power set thread
      * @param dodge_mode_max_omega     Max Rotation angular speed (omega) in DODGE_MODE [degree/s]
      */
-    static void init(tprio_t dodge_thread_prio_, float dodge_mode_max_omega, float biased_angle);
+    static void init(tprio_t dodge_thread_prio_, tprio_t cap_power_set_thread_prio_, float dodge_mode_max_omega, float biased_angle);
 
     enum action_t {
         FORCED_RELAX_MODE,
@@ -102,6 +104,14 @@ private:
         void main() final;
     };
 
+    class CapacitorPowerSetThread : public chibios_rt::BaseStaticThread<512> {
+    public:
+    private:
+        static constexpr unsigned CAP_POWER_SET_INTERVAL = 500; //[ms]
+        void main() final;
+    };
+
+    static CapacitorPowerSetThread capacitorPowerSetThread;
     static DodgeModeSwitchThread dodgeModeSwitchThread;
     static chibios_rt::ThreadReference dodgeThreadReference;
 };

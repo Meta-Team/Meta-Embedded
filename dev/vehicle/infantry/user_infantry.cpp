@@ -55,7 +55,7 @@ void UserI::UserThread::main() {
     while (!shouldTerminate()) {
 
         /*** ---------------------------------- Gimbal --------------------------------- ***/
-        if (!InspectorI::remote_failure() /*&& !InspectorI::chassis_failure()*/ && !InspectorI::gimbal_failure()) {
+        if (!InspectorI::remote_failure() && !InspectorI::chassis_failure() && !InspectorI::gimbal_failure()) {
             if ((Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_UP) ||
                 (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_MIDDLE) ||
                     (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_DOWN)) {
@@ -167,7 +167,7 @@ void UserI::UserThread::main() {
 
         /*** ---------------------------------- Shoot --------------------------------- ***/
 
-        if (!InspectorI::remote_failure() /*&& !InspectorI::chassis_failure()*/ && !InspectorI::gimbal_failure()) {
+        if (!InspectorI::remote_failure() && !InspectorI::chassis_failure() && !InspectorI::gimbal_failure()) {
             if ((Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_UP) ||
                 (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_MIDDLE)||
                     (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_DOWN)) {
@@ -220,7 +220,7 @@ void UserI::UserThread::main() {
 
         /*** ---------------------------------- Chassis --------------------------------- ***/
 
-        if (!InspectorI::remote_failure() && !InspectorI::chassis_failure() /*&& !InspectorI::gimbal_failure()*/) {
+        if (!InspectorI::remote_failure() && !InspectorI::chassis_failure() && !InspectorI::gimbal_failure()) {
 
             if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_UP) {
 
@@ -329,19 +329,9 @@ void UserI::UserActionThread::main() {
                 ShootLG::set_friction_wheels(shoot_common_duty_cycle);
             }
             if (mouse_flag & (1U << Remote::MOUSE_LEFT)) {
-                if(Referee::power_heat_data.shooter_id1_17mm_cooling_heat <
-                   (uint16_t) (Referee::game_robot_state.shooter_id1_17mm_cooling_limit * 0.75)) {
-                    ShootLG::shoot(shoot_launch_left_count, shoot_launch_speed);
-                } else {
-                    ShootLG::stop();
-                }
+                ShootLG::shoot(shoot_launch_left_count, shoot_launch_speed);
             } else if (mouse_flag & (1U << Remote::MOUSE_RIGHT)) {
-                if(Referee::power_heat_data.shooter_id1_17mm_cooling_heat <
-                   (uint16_t) (Referee::game_robot_state.shooter_id1_17mm_cooling_limit * 0.75)) {
-                    ShootLG::shoot(shoot_launch_right_count, shoot_launch_speed);
-                } else {
-                    ShootLG::stop();
-                }
+                ShootLG::shoot(shoot_launch_right_count, shoot_launch_speed);
             }
         } else {  // releasing one while pressing another won't result in stopping
             if (events & MOUSE_RELEASE_EVENTMASK) {

@@ -45,7 +45,7 @@ public:
      * Set super capacitor maximum input power
      * @param input_power   Super capacitor maximum input power
      */
-    void set_power(float input_power);
+    static void set_power(float input_power);
 
 private:
 

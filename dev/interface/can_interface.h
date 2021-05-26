@@ -47,7 +47,7 @@ public:
      * @param driver   Pointer to CAN driver such as &CAND1
      */
     CANInterface(CANDriver *driver) :
-            can_driver(driver), callback_list_count(0)
+            can_driver(driver)
 #if (CAN_INTERFACE_ENABLE_ERROR_FEEDBACK_THREAD == TRUE)
             , errorFeedbackThread(driver, last_error_time)
 #endif
@@ -130,6 +130,13 @@ public:
 
     };
 
+    struct cap_feedback_t {
+        float input_voltage;      // [V]
+        float capacitor_voltage;  // [V]
+        float input_current;      // [A]
+        float output_power;       // [W]
+    };
+
     /**
      * Type of callback function
      */
@@ -143,20 +150,11 @@ public:
     void set_motor_type(unsigned id, motor_type_t motor_type_);
 
     /**
-     * Register a callback. Message with SID in the given range will be distributed to the given callback function
-     * @param sid_lower_bound   Minimal SID (inclusive)
-     * @param sid_upper_bound   Maximum SID (inclusive)
-     * @param callback_func     The function to callback
-     * @return Whether registering succeeded or not
-     */
-    bool register_callback(uint32_t sid_lower_bound, uint32_t sid_upper_bound, can_callback_func callback_func);
-
-    /**
      * Send a frame
-     * @param txmsg   The frame to be sent
+     * @param txmsg   The frame to be sent to super capacitor
      * @return Whether the message has been sent successfully
      */
-    bool send_msg(const CANTxFrame *txmsg);
+    bool send_cap_msg(const CANTxFrame *txmsg);
 
     /**
      * Get target current adress
@@ -196,17 +194,6 @@ private:
 
     static constexpr unsigned int SEND_THREAD_INTERVAL = 1; // can message send interval [ms]
 
-    struct callback_resignation_t {
-        uint32_t sid_lower_bound;
-        uint32_t sid_upper_bound;
-        can_callback_func callback_func;
-    } callback_list[MAXIMUM_REGISTRATION_COUNT];
-
-    motor_type_t motor_type_list[MAXIMUM_MOTOR_COUNT] = {NONE_MOTOR};
-
-    unsigned callback_list_count;
-
-
 #if (CAN_INTERFACE_ENABLE_ERROR_FEEDBACK_THREAD == TRUE)
 
 public:
@@ -237,11 +224,14 @@ private:
         CANDriver *can_driver;
         motor_type_t motorType[8];
         int target_current[MAXIMUM_MOTOR_COUNT + 1] = {0};
-
+        void cap_send(CANTxFrame *txmsg);
     private:
         bool send_msg(const CANTxFrame *txmsg);
 
         void main() final;
+
+        CANTxFrame *capMsg;
+        bool capMsgSent = true;
     };
 
     CurrentSendThread currentSendThread;
@@ -254,6 +244,7 @@ private:
         CANDriver *can_driver;
 
         motor_feedback_t feedback[MAXIMUM_MOTOR_COUNT + 1];
+        cap_feedback_t capfeedback;
 
     private:
         void main() final;
@@ -268,8 +259,6 @@ private:
     };
     static constexpr unsigned TRANSMIT_TIMEOUT_MS = 10;
 
-
-//    void main() final;
 };
 
 
