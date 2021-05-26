@@ -15,6 +15,8 @@
 #include "chassis_interface.h"
 #include "gimbal_interface.h"
 
+#include "referee_interface.h"
+
 #if defined(INFANTRY)
 #include "vehicle_infantry.h"
 #else
