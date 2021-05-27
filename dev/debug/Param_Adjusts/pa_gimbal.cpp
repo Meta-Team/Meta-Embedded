@@ -38,7 +38,7 @@ unsigned const GIMBAL_FEEDBACK_INTERVAL = 25; // [ms]
 float const MIN_ANGLE[2] = {-170, -80};    // [degree]
 float const MAX_ANGLE[2] = {170, 80};      // [degree]
 float const MAX_VELOCITY[2] = {1000, 1000};  // absolute maximum, [degree/s]
-int const MAX_CURRENT = 20000;  // [mA]
+int const MAX_CURRENT = 30000;  // [mA]
 
 bool motor_enabled[2] = {false, false};
 
@@ -170,11 +170,11 @@ protected:
 
 
                     // Perform current check
-                    if (*GimbalIF::target_current[i] > MAX_CURRENT || *GimbalIF::target_current[i] < -MAX_CURRENT) {
-                        Shell::printf("!d%cc" SHELL_NEWLINE_STR, MOTOR_CHAR[i]);
-                        motor_enabled[i] = false;
-                        continue;
-                    }
+//                    if (*GimbalIF::target_current[i] > MAX_CURRENT || *GimbalIF::target_current[i] < -MAX_CURRENT) {
+//                        Shell::printf("!d%cc" SHELL_NEWLINE_STR, MOTOR_CHAR[i]);
+//                        motor_enabled[i] = false;
+//                        continue;
+//                    }
                 }
 
             }

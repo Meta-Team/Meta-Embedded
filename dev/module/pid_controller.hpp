@@ -75,9 +75,12 @@ public:
         error[1] = error[0];
         error[0] = target - now;
 
+        last_d_out = d_out;     // for LP filter
+
         p_out = p.kp * error[0];
         i_out += p.ki * error[0];
-        d_out = p.kd * (error[0] - error[1]);
+        //d_out = p.kd * (error[0] - error[1]);
+        d_out = p.kd * (1 - alpha) * (error[0] - error[1]) + alpha * last_d_out; // low pass filter
 
         if (i_out > p.i_limit) i_out = p.i_limit;
         if (i_out < -p.i_limit) i_out = -p.i_limit;
@@ -116,6 +119,8 @@ private:
     pid_params_t p;
 
     float error[10];  // error[0]: error of this time, error[1]: error of last time
+    float alpha=0.8;      // 0-1, low pass filter parameter, 0 -> no filter, 1 -> no Pd
+    float last_d_out;     // for LP filter
 
     float p_out;
     float i_out;

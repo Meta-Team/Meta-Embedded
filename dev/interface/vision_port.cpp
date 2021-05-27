@@ -111,7 +111,7 @@ void VisionPort::uart_rx_callback(UARTDriver *uartp) {
                                        FRAME_HEADER_SIZE + CMD_ID_SIZE + pak.header.data_length + FRAME_TAIL_SIZE)) {
 
                 switch (pak.cmd_id) {
-                    case 0xFF01:
+                    case VISION_CONTROL_CMD_ID:
                         enemy_info = pak.enemy_info_;
                         last_update_time = SYSTIME;
 #ifdef VISION_PORT_DEBUG
@@ -140,7 +140,7 @@ void VisionPort::uart_rx_callback(UARTDriver *uartp) {
             break;
     }
 
-    chSysUnlockFromISR();  /// --- EXIT S-Locked state ---
+    chSysUnlockFromISR();  /// --- EXIT I-Locked state ---
 
 }
 

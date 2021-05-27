@@ -37,6 +37,12 @@ private:
         uint8_t crc8;
     };
 
+    static constexpr uint16_t VISION_CONTROL_CMD_ID = 0xEA01;
+    __PACKED_STRUCT vision_control_t {
+        float yawDelta;
+        float pitchDelta;
+    };
+
     __PACKED_STRUCT gimbal_current_t {
         float yaw;
         float pitch;
@@ -53,6 +59,7 @@ private:
             enemy_info_t enemy_info_;
             gimbal_current_t gimbal_current_;
             enemy_color_t enemy_color_;
+            vision_control_t vision_control_;
         };
         uint16_t tail;
     };

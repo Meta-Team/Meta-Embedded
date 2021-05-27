@@ -6,8 +6,8 @@
 
 
 /// Gimbal Config
-float UserI::gimbal_rc_yaw_max_speed = 90;  // [degree/s]
-float UserI::gimbal_pc_yaw_sensitivity[3] = {50000, 100000, 150000};  // [Slow, Normal, Fast] [degree/s]
+float UserI::gimbal_rc_yaw_max_speed = 180;  // [degree/s]
+float UserI::gimbal_pc_yaw_sensitivity[3] = {100000, 200000, 300000};  // [Slow, Normal, Fast] [degree/s]
 
 float UserI::gimbal_pc_pitch_sensitivity[3] = {20000, 50000, 60000};   // [Slow, Normal, Fast] [degree/s]
 float UserI::gimbal_pitch_min_angle = -30; // down range for pitch [degree]

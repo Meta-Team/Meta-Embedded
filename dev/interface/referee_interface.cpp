@@ -271,8 +271,8 @@ void Referee::send_data_(receiver_index_t receiver_id, interactive_cmd_id_t data
         robot_data_send.header.data_cmd_id = data_cmd_id;
 
         if (data_cmd_id == AERIAL_TO_SENTRY){
-                tx_pak.robot_interactive_data_.aerial_to_sentry_ = sentry_guiding_direction_s;
-                tx_pak_size = FRAME_HEADER_SIZE + CMD_ID_SIZE + sizeof(student_interactive_header_data_t) + sizeof(aerial_to_sentry_t) + FRAME_TAIL_SIZE;
+            tx_pak.robot_interactive_data_.aerial_to_sentry_ = sentry_guiding_direction_s;
+            tx_pak_size = FRAME_HEADER_SIZE + CMD_ID_SIZE + sizeof(student_interactive_header_data_t) + sizeof(aerial_to_sentry_t) + FRAME_TAIL_SIZE;
         }
     }
     Append_CRC16_Check_Sum((uint8_t *)&tx_pak, tx_pak_size);
@@ -300,3 +300,4 @@ void Referee::set_client_light(unsigned signal_light, bool turn_on) {
         client_custom_data.masks &= picker;
     }
 }
+
