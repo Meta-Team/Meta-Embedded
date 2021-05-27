@@ -18,6 +18,7 @@ Referee::event_data_t Referee::event_data;
 Referee::supply_projectile_action_t Referee::supply_projectile_action;
 Referee::supply_projectile_booking_t Referee::supply_projectile_booking;
 Referee::referee_warning_t Referee::referee_warning;
+Referee::ext_dart_remaining_time_t Referee::ext_dart_remaining_time;
 Referee::game_robot_state_t Referee::game_robot_state;
 Referee::power_heat_data_t Referee::power_heat_data;
 Referee::game_robot_pos_t Referee::game_robot_pos;
@@ -27,6 +28,7 @@ Referee::robot_hurt_t Referee::robot_hurt;
 Referee::shoot_data_t Referee::shoot_data;
 Referee::bullet_remaining_t Referee::bullet_remaining;
 Referee::aerial_to_sentry_t Referee::sentry_guiding_direction_r;
+Referee::dart_client_t Referee::dart_client;
 
 Referee::client_custom_data_t Referee::client_custom_data;
 Referee::robot_interactive_data_t Referee::robot_data_send;
@@ -144,6 +146,10 @@ void Referee::uart_rx_callback(UARTDriver *uartp) {
                         break;
                     case REFEREE_WARNING_CMD_ID:
                         referee_warning = pak.referee_warning_;
+                        break;
+                    case EXT_DART_REMAINING_TIME_CMD_ID:
+                        ext_dart_remaining_time = pak.ext_dart_remaining_time_;
+                        break;
                     case GAME_ROBOT_POS_CMD_ID:
                         game_robot_pos = pak.game_robot_pos_;
                         break;
@@ -156,18 +162,21 @@ void Referee::uart_rx_callback(UARTDriver *uartp) {
                     case BULLET_REMAINING_CMD_ID:
                         bullet_remaining = pak.bullet_remaining_;
                         break;
-                    case INTERACTIVE_DATA_CMD_ID: // robot_interactive_data
-                        // Check whether the message is from the same team
-                        if ((game_robot_state.robot_id > 10) ^ (pak.robot_interactive_data_.header.send_ID > 10)) break;
-                        // Check whether the message is for this robot
-                        if (game_robot_state.robot_id != pak.robot_interactive_data_.header.receiver_ID) break;
-                        // If the message pass the check, record it in the corresponding place
-                        switch (pak.robot_interactive_data_.header.data_cmd_id){
-                            case AERIAL_TO_SENTRY:
-                                sentry_guiding_direction_r = pak.robot_interactive_data_.aerial_to_sentry_;
-                        }
-                        //switch (robot_data_receive.)
+                    case DART_CLIENT_CMD_ID:
+                        dart_client = pak.dart_client_;
                         break;
+//                    case INTERACTIVE_DATA_CMD_ID: // robot_interactive_data
+//                        // Check whether the message is from the same team
+//                        if ((game_robot_state.robot_id > 10) ^ (pak.robot_interactive_data_.header.send_ID > 10)) break;
+//                        // Check whether the message is for this robot
+//                        if (game_robot_state.robot_id != pak.robot_interactive_data_.header.receiver_ID) break;
+//                        // If the message pass the check, record it in the corresponding place
+//                        switch (pak.robot_interactive_data_.header.data_cmd_id){
+//                            case AERIAL_TO_SENTRY:
+//                                sentry_guiding_direction_r = pak.robot_interactive_data_.aerial_to_sentry_;
+//                        }
+//                        //switch (robot_data_receive.)
+//                        break;
 
                     default:
                         break;

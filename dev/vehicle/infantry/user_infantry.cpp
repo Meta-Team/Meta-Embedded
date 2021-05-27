@@ -175,12 +175,22 @@ void UserI::UserThread::main() {
                 /// Remote - Shoot with Scrolling Wheel
 
                 if (Remote::rc.wheel > 0.5) {  // down
-                    if (ShootLG::get_shooter_state() == ShootLG::STOP) {
-                        ShootLG::shoot(shoot_launch_left_count, shoot_launch_speed);
+                    if(Referee::power_heat_data.shooter_id1_17mm_cooling_heat <
+                       (uint16_t) (Referee::game_robot_state.shooter_id1_17mm_cooling_limit * 0.75)) {
+                        if (ShootLG::get_shooter_state() == ShootLG::STOP) {
+                            ShootLG::shoot(shoot_launch_left_count, shoot_launch_speed);
+                        }
+                    } else {
+                        ShootLG::stop();
                     }
                 } else if (Remote::rc.wheel < -0.5) {  // up
-                    if (ShootLG::get_shooter_state() == ShootLG::STOP) {
-                        ShootLG::shoot(shoot_launch_right_count, shoot_launch_speed);
+                    if(Referee::power_heat_data.shooter_id1_17mm_cooling_heat <
+                       Referee::game_robot_state.shooter_id1_17mm_cooling_limit - 0x0015) {
+                        if (ShootLG::get_shooter_state() == ShootLG::STOP) {
+                            ShootLG::shoot(shoot_launch_right_count, shoot_launch_speed);
+                        }
+                    } else {
+                        ShootLG::stop();
                     }
                 } else {
                     if (ShootLG::get_shooter_state() != ShootLG::STOP) {
@@ -319,9 +329,19 @@ void UserI::UserActionThread::main() {
                 ShootLG::set_friction_wheels(shoot_common_duty_cycle);
             }
             if (mouse_flag & (1U << Remote::MOUSE_LEFT)) {
-                ShootLG::shoot(shoot_launch_left_count, shoot_launch_speed);
+                if(Referee::power_heat_data.shooter_id1_17mm_cooling_heat <
+                   (uint16_t) (Referee::game_robot_state.shooter_id1_17mm_cooling_limit * 0.75)) {
+                    ShootLG::shoot(shoot_launch_left_count, shoot_launch_speed);
+                } else {
+                    ShootLG::stop();
+                }
             } else if (mouse_flag & (1U << Remote::MOUSE_RIGHT)) {
-                ShootLG::shoot(shoot_launch_right_count, shoot_launch_speed);
+                if(Referee::power_heat_data.shooter_id1_17mm_cooling_heat <
+                   (uint16_t) (Referee::game_robot_state.shooter_id1_17mm_cooling_limit * 0.75)) {
+                    ShootLG::shoot(shoot_launch_right_count, shoot_launch_speed);
+                } else {
+                    ShootLG::stop();
+                }
             }
         } else {  // releasing one while pressing another won't result in stopping
             if (events & MOUSE_RELEASE_EVENTMASK) {

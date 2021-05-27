@@ -55,72 +55,86 @@ public:
 
     static constexpr uint16_t GAME_STATE_CMD_ID = 0x0001;
     __PACKED_STRUCT game_state_t {
-            uint8_t game_type : 4;
-            uint8_t game_progress : 4;
-            uint16_t stage_remain_time ;
-            uint64_t SyncTimeStamp;
+        uint8_t game_type : 4;
+        uint8_t game_progress : 4;
+        uint16_t stage_remain_time;
+        uint64_t SyncTimeStamp;
     };
 
     static constexpr uint16_t GAME_RESULT_CMD_ID = 0x0002;
     __PACKED_STRUCT game_result_t {
-            uint8_t winner;
+        uint8_t winner;
     };
 
     static constexpr uint16_t GAME_ROBOT_HP_CMD_ID = 0x0003;
     __PACKED_STRUCT game_robot_HP_t {
-            uint16_t red_1_robot_HP;
-            uint16_t red_2_robot_HP;
-            uint16_t red_3_robot_HP;
-            uint16_t red_4_robot_HP;
-            uint16_t red_5_robot_HP;
-            uint16_t red_7_robot_HP;
-            uint16_t red_base_HP;
-            uint16_t blue_1_robot_HP;
-            uint16_t blue_2_robot_HP;
-            uint16_t blue_3_robot_HP;
-            uint16_t blue_4_robot_HP;
-            uint16_t blue_5_robot_HP;
-            uint16_t blue_7_robot_HP;
-            uint16_t blue_base_HP;
-    };
+        uint16_t red_1_robot_HP;
+        uint16_t red_2_robot_HP;
+        uint16_t red_3_robot_HP;
+        uint16_t red_4_robot_HP;
+        uint16_t red_5_robot_HP;
+        uint16_t red_7_robot_HP;
+        uint16_t red_outpost_HP;
+        uint16_t red_base_HP;
+        uint16_t blue_1_robot_HP;
+        uint16_t blue_2_robot_HP;
+        uint16_t blue_3_robot_HP;
+        uint16_t blue_4_robot_HP;
+        uint16_t blue_5_robot_HP;
+        uint16_t blue_7_robot_HP;
+        uint16_t blue_outpost_HP;
+        uint16_t blue_base_HP; };
 
     static constexpr uint16_t  GAME_ROBOT_ICRA_CMD_ID = 0x0005;
     __PACKED_STRUCT icra_data_t {
-            uint8_t F1_zone_status:1;
-            uint8_t F1_zone_buff_debuff_status:3; uint8_t F2_zone_status:1;
-            uint8_t F2_zone_buff_debuff_status:3; uint8_t F3_zone_status:1;
-            uint8_t F3_zone_buff_debuff_status:3;
-            uint8_t F4_zone_status:1;
-            uint8_t F4_zone_buff_debuff_status:3; uint8_t F5_zone_status:1;
-            uint8_t F5_zone_buff_debuff_status:3; uint8_t F6_zone_status:1;
-            uint8_t F6_zone_buff_debuff_status:3;
-            uint16_t red1_bullet_left; uint16_t red2_bullet_left; uint16_t blue1_bullet_left; uint16_t blue2_bullet_left;
+        uint8_t F1_zone_status:1;
+        uint8_t F1_zone_buff_debuff_status:3;
+        uint8_t F2_zone_status:1;
+        uint8_t F2_zone_buff_debuff_status:3;
+        uint8_t F3_zone_status:1;
+        uint8_t F3_zone_buff_debuff_status:3;
+        uint8_t F4_zone_status:1;
+        uint8_t F4_zone_buff_debuff_status:3;
+        uint8_t F5_zone_status:1;
+        uint8_t F5_zone_buff_debuff_status:3;
+        uint8_t F6_zone_status:1;
+        uint8_t F6_zone_buff_debuff_status:3;
+        uint16_t red1_bullet_left;
+        uint16_t red2_bullet_left;
+        uint16_t blue1_bullet_left;
+        uint16_t blue2_bullet_left;
     };
 
     static constexpr uint16_t EVENT_CMD_ID = 0x0101;
     __PACKED_STRUCT event_data_t {
-            uint32_t event_type;
+        uint32_t event_type;
     };
 
     static constexpr uint16_t SUPPLY_PROJECTILE_ACTION_CMD_ID = 0x0102;
     __PACKED_STRUCT supply_projectile_action_t {
-            uint8_t supply_projectile_id;
-            uint8_t supply_robot_id;
-            uint8_t supply_projectile_step;
-            uint8_t supply_projectile_num;
+        uint8_t supply_projectile_id;
+        uint8_t supply_robot_id;
+        uint8_t supply_projectile_step;
+        uint8_t supply_projectile_num;
     };
 
     static constexpr uint16_t SUPPLY_PROJECTILE_BOOKING_CMD_ID = 0x0103;
     __PACKED_STRUCT supply_projectile_booking_t {
-            uint8_t supply_projectile_id;
-            uint8_t supply_robot_id;
-            uint8_t supply_num;
+        uint8_t supply_projectile_id;
+        uint8_t supply_robot_id;
+        uint8_t supply_projectile_step;
+        uint8_t supply_projectile_num;
     };
 
-    static constexpr uint16_t REFEREE_WARNING_CMD_ID = 0x0103;
+    static constexpr uint16_t REFEREE_WARNING_CMD_ID = 0x0104;
     __PACKED_STRUCT referee_warning_t {
-            uint8_t level;
-            uint8_t foul_robot_id;
+        uint8_t level;
+        uint8_t foul_robot_id;
+    };
+
+    static constexpr uint16_t EXT_DART_REMAINING_TIME_CMD_ID = 0x0105;
+    __PACKED_STRUCT ext_dart_remaining_time_t {
+        uint8_t dart_remaining_time;
     };
 
     static constexpr uint16_t GAME_ROBOT_STATE_CMD_ID = 0x0201;
@@ -146,68 +160,67 @@ public:
 
     static constexpr uint16_t POWER_HEAT_DATA_CMD_ID = 0x0202;
     __PACKED_STRUCT power_heat_data_t {
-            uint16_t chassis_volt;
-            uint16_t chassis_current;
-            float chassis_power;
-            uint16_t chassis_power_buffer;
-            uint16_t shooter_id1_17mm_cooling_heat;
-            uint16_t shooter_id2_17mm_cooling_heat;
-            uint16_t shooter_id1_42mm_cooling_heat;
+        uint16_t chassis_volt;
+        uint16_t chassis_current;
+        float chassis_power;
+        uint16_t chassis_power_buffer;
+        uint16_t shooter_id1_17mm_cooling_heat;
+        uint16_t shooter_id2_17mm_cooling_heat;
+        uint16_t shooter_id1_42mm_cooling_heat;
     };
 
     static constexpr uint16_t GAME_ROBOT_POS_CMD_ID = 0x0203;
     __PACKED_STRUCT game_robot_pos_t {
-            float x;
-            float y;
-            float z;
-            float yaw;
+        float x;
+        float y;
+        float z;
+        float yaw;
     };
 
     static constexpr uint16_t BUFF_MUSK_CMD_ID = 0x0204;
     __PACKED_STRUCT buff_musk_t {
-            uint8_t power_rune_buff;
+        uint8_t power_rune_buff;
     };
 
     static constexpr uint16_t AERIAL_ROBOT_ENERGY_CMD_ID = 0x0205;
     __PACKED_STRUCT aerial_robot_energy_t {
-            uint8_t attack_time;
+        uint8_t attack_time;
     };
 
     static constexpr uint16_t ROBOT_HURT_CMD_ID = 0x0206;
     __PACKED_STRUCT robot_hurt_t {
-            uint8_t armor_id : 4;
-            uint8_t hurt_type : 4;
+        uint8_t armor_id : 4;
+        uint8_t hurt_type : 4;
     };
 
     static constexpr uint16_t SHOOT_DATA_CMD_ID = 0x0207;
     __PACKED_STRUCT shoot_data_t {
-            uint8_t bullet_type;
-            uint8_t shooter_id;
-            uint8_t bullet_freq;
-            float bullet_speed;
+        uint8_t bullet_type;
+        uint8_t shooter_id;
+        uint8_t bullet_freq;
+        float bullet_speed;
     };
 
     static constexpr uint16_t BULLET_REMAINING_CMD_ID = 0x0208;
     __PACKED_STRUCT bullet_remaining_t {
-            uint16_t bullet_remaining_num_17mm;
-            uint16_t bullet_remaining_num_42mm;
-            uint16_t coin_remaining_num;
+        uint16_t bullet_remaining_num_17mm;
+        uint16_t bullet_remaining_num_42mm;
+        uint16_t coin_remaining_num;
     };
 
-    static constexpr uint16_t RIFD_STAT = 0x0209;
-    __PACKED_STRUCT rifd_stat_t {
-            uint16_t bullet_remaining_num_17mm;
-            uint16_t bullet_remaining_num_42mm;
-            uint16_t coin_remaining_num;
+    static constexpr uint16_t RFID_STAT_ID = 0x209;
+    __PACKED_STRUCT rfid_stat_t {
+        uint32_t rfid_status;
     };
 
-    static constexpr uint16_t ROCKET_STAT = 0x020A;
-    __PACKED_STRUCT rocket_stat_t {
-            uint8_t dart_launch_opening_status;
-            uint8_t dart_attack_target;
-            uint16_t target_change_time;
-            uint16_t operate_launch_cmd_time;
+    static constexpr uint16_t DART_CLIENT_CMD_ID = 0x20A;
+    __PACKED_STRUCT dart_client_t {
+        uint8_t dart_launch_opening_status;
+        uint8_t dart_attack_target;
+        uint16_t target_change_time;
+        uint16_t operate_launch_cmd_time;
     };
+
     /** Robot Interactive **/
 
     /**
@@ -229,28 +242,28 @@ public:
     static const uint16_t INTERACTIVE_DATA_CMD_ID = 0x0301;
 
     __PACKED_STRUCT student_interactive_header_data_t {
-            uint16_t data_cmd_id;
-            uint16_t send_ID;
-            uint16_t receiver_ID;
+        uint16_t data_cmd_id;
+        uint16_t send_ID;
+        uint16_t receiver_ID;
     };
 
     __PACKED_STRUCT client_custom_data_t {
-            student_interactive_header_data_t header;
-            float data1;
-            float data2;
-            float data3;
-            uint8_t masks;
+        student_interactive_header_data_t header;
+        float data1;
+        float data2;
+        float data3;
+        uint8_t masks;
     };
 
     __PACKED_STRUCT aerial_to_sentry_t{
-            uint8_t direction_mask : 4;
+        uint8_t direction_mask : 4;
     };
 
     __PACKED_STRUCT robot_interactive_data_t {
-            student_interactive_header_data_t header;
-            union{
-                aerial_to_sentry_t aerial_to_sentry_;
-            };
+        student_interactive_header_data_t header;
+        union{
+            aerial_to_sentry_t aerial_to_sentry_;
+        };
     };
 
     /*** Received Data ***/
@@ -259,11 +272,11 @@ public:
     static game_state_t game_state;
     static game_result_t game_result;
     static game_robot_HP_t game_robot_HP;
-    static icra_data_t icra_data;
     static event_data_t event_data;
     static supply_projectile_action_t supply_projectile_action;
     static supply_projectile_booking_t supply_projectile_booking;
     static referee_warning_t referee_warning;
+    static ext_dart_remaining_time_t ext_dart_remaining_time;
     static game_robot_state_t game_robot_state;
     static power_heat_data_t power_heat_data;
     static game_robot_pos_t game_robot_pos;
@@ -272,8 +285,7 @@ public:
     static robot_hurt_t robot_hurt;
     static shoot_data_t shoot_data;
     static bullet_remaining_t bullet_remaining;
-    static rifd_stat_t rfid_stat;
-    static rocket_stat_t rocket_stat;
+    static dart_client_t dart_client;
 
     /** Interactive Data **/
     static aerial_to_sentry_t sentry_guiding_direction_r;
@@ -356,37 +368,38 @@ private:
     static uint16_t tx_seq;
 
     __PACKED_STRUCT frame_header_t {
-            uint8_t sof;  // start byte of header, 0xA5
-            uint16_t data_length;
-            uint8_t seq;
-            uint8_t crc8;
+        uint8_t sof;  // start byte of header, 0xA5
+        uint16_t data_length;
+        uint8_t seq;
+        uint8_t crc8;
     };
 
     static __PACKED_STRUCT package_t {
-            frame_header_t header;
-            uint16_t cmd_id;
-            union {
-                game_state_t game_state_;
-                game_result_t game_result_;
-                game_robot_HP_t game_robot_HP_;
-                event_data_t event_data_;
-                supply_projectile_action_t supply_projectile_action_;
-                supply_projectile_booking_t supply_projectile_booking_;
-                referee_warning_t referee_warning_;
-                game_robot_state_t game_robot_state_;
-                power_heat_data_t power_heat_data_;
-                game_robot_pos_t game_robot_pos_;
-                buff_musk_t buff_musk_;
-                aerial_robot_energy_t aerial_robot_energy_;
-                robot_hurt_t robot_hurt_;
-                shoot_data_t shoot_data_;
-                bullet_remaining_t bullet_remaining_;
+        frame_header_t header;
+        uint16_t cmd_id;
+        union {
+            game_state_t game_state_;
+            game_result_t game_result_;
+            game_robot_HP_t game_robot_HP_;
+            event_data_t event_data_;
+            supply_projectile_action_t supply_projectile_action_;
+            supply_projectile_booking_t supply_projectile_booking_;
+            referee_warning_t referee_warning_;
+            ext_dart_remaining_time_t ext_dart_remaining_time_;
+            game_robot_state_t game_robot_state_;
+            power_heat_data_t power_heat_data_;
+            game_robot_pos_t game_robot_pos_;
+            buff_musk_t buff_musk_;
+            aerial_robot_energy_t aerial_robot_energy_;
+            robot_hurt_t robot_hurt_;
+            shoot_data_t shoot_data_;
+            bullet_remaining_t bullet_remaining_;
+            dart_client_t dart_client_;
+            robot_interactive_data_t robot_interactive_data_;
 
-                robot_interactive_data_t robot_interactive_data_;
-
-                client_custom_data_t client_custom_data_;
-            };
-            uint16_t tail;
+            client_custom_data_t client_custom_data_;
+        };
+        uint16_t tail;
     } pak;
 
     static constexpr size_t FRAME_HEADER_SIZE = 5;
@@ -407,4 +420,3 @@ private:
 
 
 #endif //META_INFANTRY_REFEREE_INTERFACE_H
-
