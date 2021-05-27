@@ -100,7 +100,7 @@ void ChassisLG::DodgeModeSwitchThread::main() {
             chSchGoSleepS(CH_STATE_SUSPENDED);
         }
         chSysUnlock();  /// --- EXIT S-Locked state ---
-
+        target_omega = 250.0f;
         /**
          * If next target_theta is too close to current theta (may due to gimbal rotation), do not switch target to
          * create large difference to avoid pause

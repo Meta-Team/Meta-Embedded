@@ -197,7 +197,7 @@ private:
 
     static constexpr unsigned MAXIMUM_REGISTRATION_COUNT = 20;
 
-    static constexpr unsigned int SEND_THREAD_INTERVAL = 1; // can message send interval [ms]
+    static constexpr unsigned int SEND_THREAD_INTERVAL = 5; // can message send interval [ms]
 
 #if (CAN_INTERFACE_ENABLE_ERROR_FEEDBACK_THREAD == TRUE)
 
@@ -229,13 +229,13 @@ private:
         CANDriver *can_driver;
         motor_type_t motorType[8];
         int target_current[MAXIMUM_MOTOR_COUNT + 1] = {0};
-        void cap_send(CANTxFrame *txmsg);
+        void cap_send(const CANTxFrame *txmsg);
     private:
         bool send_msg(const CANTxFrame *txmsg);
 
         void main() final;
 
-        CANTxFrame *capMsg;
+        const CANTxFrame *capMsg;
         bool capMsgSent = true;
     };
 

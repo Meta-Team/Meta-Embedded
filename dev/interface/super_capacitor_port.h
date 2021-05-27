@@ -46,9 +46,9 @@ private:
 
     static CANInterface *can_;
 
-    static void process_feedback(CANRxFrame const *rxmsg);  // callback function
     friend CANInterface;
 
+    static CANTxFrame txFrame;
 };
 
 

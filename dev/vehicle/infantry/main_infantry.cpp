@@ -152,7 +152,7 @@ int main() {
 
     /// Setup SuperCapacitor Port
     SuperCapacitor::init(&can2);
-
+    SuperCapacitor::set_power(45.0f); // Set to the lowest limit when start up.
     /// Complete Period 1
     LED::green_on();  // LED Green on now
 

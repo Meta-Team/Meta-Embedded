@@ -394,6 +394,17 @@ add_executable(ut_sd_card
         dev/common/CRC16.cpp
         dev/debug/Unit_Tests/ut_sd_card.cpp)
 
+add_executable(ut_super_capacitor
+        dev/interface/super_capacitor_port.cpp
+        dev/interface/can_interface.cpp
+        dev/debug/shell/shell.cpp
+        dev/debug/Unit_Tests/ut_super_capacitance.cpp
+        dev/scheduler/buzzer_scheduler.cpp
+        dev/interface/led.cpp
+        dev/interface/referee_interface.cpp
+        dev/common/CRC8.cpp
+        dev/common/CRC16.cpp)
+
 add_executable(ut_adc
         dev/debug/Unit_Tests/ut_adc.cpp
         dev/interface/dms_interface.cpp)

@@ -29,7 +29,7 @@ void CANInterface::ErrorFeedbackThread::main() {
         }
 
         eventflags_t flags = chEvtGetAndClearFlags(&el);
-        LOG_ERR("CAN Error %u", flags);
+//        LOG_ERR("CAN Error %u", flags);
         last_error_time = SYSTIME;
     }
 
@@ -119,13 +119,13 @@ void CANInterface::ProcessFeedbackThread::main() {
         // Process every received message
         while (canReceive(can_driver, CAN_ANY_MAILBOX, &rxmsg, TIME_IMMEDIATE) == MSG_OK) {
 
-            uint16_t new_actual_angle_raw = (rxmsg.data8[0] << 8 | rxmsg.data8[1]);
-
-            // Check whether this new raw angle is valid
-            if (new_actual_angle_raw > 8191) return;
-
             //pointer fb points to the corresponding motor feedback structure defined in the processFeedbackThread
             if(rxmsg.SID != 0x211) {
+                uint16_t new_actual_angle_raw = (rxmsg.data8[0] << 8 | rxmsg.data8[1]);
+
+                // Check whether this new raw angle is valid
+                if (new_actual_angle_raw > 8191) return;
+
                 motor_feedback_t *fb;
                 fb = &feedback[rxmsg.SID - 0x201];
 
@@ -231,15 +231,14 @@ void CANInterface::ProcessFeedbackThread::main() {
 
                 fb->last_update_time = SYSTIME;
             } else {
-                capfeedback.input_voltage = (float) rxmsg.data16[0] / 100.0f;
-                capfeedback.capacitor_voltage = (float) rxmsg.data16[1] / 100.0f;
-                capfeedback.input_current = (float) rxmsg.data16[2] / 100.0f;
-                capfeedback.output_power = (float) rxmsg.data16[3] / 100.0f;
+                capfeedback.input_voltage = rxmsg.data16[0] / 100.0f;
+                capfeedback.capacitor_voltage = rxmsg.data16[1] / 100.0f;
+                capfeedback.input_current = rxmsg.data16[2] / 100.0f;
+                capfeedback.output_power = rxmsg.data16[3] / 100.0f;
             }
         }
 
     }
-
     chEvtUnregister(&(can_driver->rxfull_event), &el);
 }
 
@@ -252,14 +251,11 @@ bool CANInterface::CurrentSendThread::send_msg(const CANTxFrame *txmsg) {
 }
 
 bool CANInterface::send_cap_msg(const CANTxFrame *txmsg) {
-    if (canTransmit(can_driver, CAN_ANY_MAILBOX, txmsg, TIME_MS2I(TRANSMIT_TIMEOUT_MS)) != MSG_OK) {
-        // TODO: show debug info for failure
-        return false;
-    }
+    currentSendThread.cap_send(txmsg);
     return true;
 }
 
-void CANInterface::CurrentSendThread::cap_send(CANTxFrame *txmsg) {
+void CANInterface::CurrentSendThread::cap_send(const CANTxFrame *txmsg) {
     CurrentSendThread::capMsg = txmsg;
     CurrentSendThread::capMsgSent = false;
 }

@@ -146,7 +146,7 @@ bool InspectorI::check_gimbal_failure() {
     bool ret = false;
     if(Referee::bullet_remaining.bullet_remaining_num_17mm > 0) {
         for (unsigned i = 0; i < 6; i++) {
-            if (not WITHIN_RECENT_TIME(GimbalIF::feedback[i]->last_update_time, 20) &&
+            if (not WITHIN_RECENT_TIME(GimbalIF::feedback[i]->last_update_time, 250) &&
                                                 GimbalIF::feedback[i]->type != CANInterface::NONE_MOTOR) {
                 if (!gimbal_failure_) {  // avoid repeating printing
                     LOG_ERR("Gimbal motor %u offline (at %u)", i, GimbalIF::feedback[i]->last_update_time);
@@ -156,7 +156,7 @@ bool InspectorI::check_gimbal_failure() {
         }
     } else {
         for (unsigned i = 0; i < 2; i++) {
-            if (not WITHIN_RECENT_TIME(GimbalIF::feedback[i]->last_update_time, 20) &&
+            if (not WITHIN_RECENT_TIME(GimbalIF::feedback[i]->last_update_time, 250) &&
                 GimbalIF::feedback[i]->type != CANInterface::NONE_MOTOR) {
                 if (!gimbal_failure_) {  // avoid repeating printing
                     LOG_ERR("Gimbal motor %u offline (at %u)", i, GimbalIF::feedback[i]->last_update_time);
@@ -172,7 +172,7 @@ bool InspectorI::check_chassis_failure() {
     bool ret = false;
     for (unsigned i = 0; i < ChassisIF::MOTOR_COUNT; i++) {
         // Check feedback, if the feedback's type is NONE_MOTOR, it's not valid
-        if (not WITHIN_RECENT_TIME(ChassisIF::feedback[i]->last_update_time, 20) &&
+        if (not WITHIN_RECENT_TIME(ChassisIF::feedback[i]->last_update_time, 250) &&
                                             ChassisIF::feedback[i]->type != CANInterface::NONE_MOTOR) {
             if (!chassis_failure_) {  // avoid repeating printing
                 LOG_ERR("Chassis motor %u offline (at %u)", i, ChassisIF::feedback[i]->last_update_time);
