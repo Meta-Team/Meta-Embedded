@@ -47,11 +47,6 @@ int ShootLG::get_bullet_count() {
 
 void ShootLG::set_friction_wheels(float duty_cycle) {
     ShootSKD::set_friction_wheels(duty_cycle);
-    Referee::set_client_light(USER_CLIENT_FW_STATE_LIGHT, (duty_cycle != 0));
-#if defined(INFANTRY)
-    // TODO: re-arrange here for common vehicle
-    Referee::set_client_number(USER_CLIENT_FW_SPEED_NUM, duty_cycle);
-#endif
     // Sending client data will be complete by higher level thread
 }
 
@@ -162,8 +157,6 @@ void ShootLG::BulletCounterThread::main() {
                 ) {
             bullet_count += (int) (Referee::supply_projectile_action.supply_projectile_num * 1.0f);
         }
-
-        Referee::set_client_number(USER_CLIENT_ACQUIRED_BULLET_NUM, bullet_count);
     }
 }
 
