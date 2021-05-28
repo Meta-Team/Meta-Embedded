@@ -29,14 +29,16 @@ tprio_t ChassisLG::dodge_thread_prio;
 ChassisLG::DodgeModeSwitchThread ChassisLG::dodgeModeSwitchThread;
 chibios_rt::ThreadReference ChassisLG::dodgeThreadReference;
 ChassisLG::CapacitorPowerSetThread ChassisLG::capacitorPowerSetThread;
+PIDController ChassisLG::dodge_omega_power_pid;
 
-void ChassisLG::init(tprio_t dodge_thread_prio_, tprio_t cap_power_set_thread_prio_, float dodge_mode_max_omega, float biased_angle) {
+void ChassisLG::init(tprio_t dodge_thread_prio_, tprio_t cap_power_set_thread_prio_, float dodge_mode_max_omega, float biased_angle, PIDController::pid_params_t omega_power_pid) {
     dodge_thread_prio = dodge_thread_prio_;
     dodge_mode_max_omega_ = dodge_mode_max_omega;
     biased_angle_ = biased_angle;
     dodgeModeSwitchThread.started = true;
     dodgeThreadReference = dodgeModeSwitchThread.start(dodge_thread_prio);
     capacitorPowerSetThread.start(cap_power_set_thread_prio_);
+    dodge_omega_power_pid.change_parameters(omega_power_pid);
 }
 
 ChassisLG::action_t ChassisLG::get_action() {
@@ -100,7 +102,9 @@ void ChassisLG::DodgeModeSwitchThread::main() {
             chSchGoSleepS(CH_STATE_SUSPENDED);
         }
         chSysUnlock();  /// --- EXIT S-Locked state ---
-        target_omega = 250.0f;
+        float voltage_decrement = 20 - SuperCapacitor::feedback->capacitor_voltage;
+        target_omega = (dodge_omega_power_pid.calc(voltage_decrement, 2.0f));
+        VAL_CROP(target_omega, 720.0f, 0.0f);
         /**
          * If next target_theta is too close to current theta (may due to gimbal rotation), do not switch target to
          * create large difference to avoid pause

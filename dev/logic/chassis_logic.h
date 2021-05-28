@@ -45,7 +45,7 @@ public:
      * @param cap_power_set_thread_prio_ Thread priority for the capacitor power set thread
      * @param dodge_mode_max_omega     Max Rotation angular speed (omega) in DODGE_MODE [degree/s]
      */
-    static void init(tprio_t dodge_thread_prio_, tprio_t cap_power_set_thread_prio_, float dodge_mode_max_omega, float biased_angle);
+    static void init(tprio_t dodge_thread_prio_, tprio_t cap_power_set_thread_prio_, float dodge_mode_max_omega, float biased_angle, PIDController::pid_params_t omega_power_pid);
 
     enum action_t {
         FORCED_RELAX_MODE,
@@ -73,6 +73,7 @@ public:
     static void set_target(float vx, float vy);
 
 private:
+    static PIDController dodge_omega_power_pid;
 
     static action_t action;
     static float target_vx;
