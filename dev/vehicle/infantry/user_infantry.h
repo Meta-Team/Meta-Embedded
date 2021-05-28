@@ -54,7 +54,6 @@ private:
     static Remote::key_t shoot_fw_switch;
 
     /// Helpers
-    static void set_user_client_speed_light_(int level);
 
     /// Runtime variables
 

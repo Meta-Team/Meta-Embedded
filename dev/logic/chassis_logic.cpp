@@ -68,7 +68,6 @@ void ChassisLG::set_action(ChassisLG::action_t value) {
         }
         chSysUnlock();  /// --- EXIT S-Locked state ---
     }
-    Referee::set_client_light(USER_CLIENT_DODGE_MODE_LIGHT, (action == DODGE_MODE));
     // Sending client data will be complete by higher level thread
 }
 
@@ -102,9 +101,14 @@ void ChassisLG::DodgeModeSwitchThread::main() {
             chSchGoSleepS(CH_STATE_SUSPENDED);
         }
         chSysUnlock();  /// --- EXIT S-Locked state ---
-        float voltage_decrement = 20 - SuperCapacitor::feedback->capacitor_voltage;
-        target_omega = (dodge_omega_power_pid.calc(voltage_decrement, 2.0f));
-        VAL_CROP(target_omega, 720.0f, 0.0f);
+        if(SuperCapacitor::feedback->capacitor_voltage != 0) {
+            float voltage_decrement = 20 - SuperCapacitor::feedback->capacitor_voltage;
+            target_omega = (dodge_omega_power_pid.calc(voltage_decrement, 2.0f));
+            VAL_CROP(target_omega, 720.0f, 0.0f);
+        } else {
+            target_omega = (dodge_omega_power_pid.calc((float)Referee::power_heat_data.chassis_power, (float)Referee::game_robot_state.chassis_power_limit));
+            VAL_CROP(target_omega, 720.0f, 0.0f);
+        }
         /**
          * If next target_theta is too close to current theta (may due to gimbal rotation), do not switch target to
          * create large difference to avoid pause

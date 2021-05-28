@@ -237,7 +237,6 @@ void CANInterface::ProcessFeedbackThread::main() {
                 capfeedback.output_power = rxmsg.data16[3] / 100.0f;
             }
         }
-
     }
     chEvtUnregister(&(can_driver->rxfull_event), &el);
 }
