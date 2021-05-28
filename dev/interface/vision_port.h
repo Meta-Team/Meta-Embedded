@@ -13,9 +13,8 @@ class VisionPort {
 public:
 
     __PACKED_STRUCT enemy_info_t{
-        float yaw_angle;
-        float pitch_angle;
-        float distance;
+        float yaw_delta;
+        float pitch_delta;
     };
 
     static enemy_info_t enemy_info;
@@ -38,10 +37,6 @@ private:
     };
 
     static constexpr uint16_t VISION_CONTROL_CMD_ID = 0xEA01;
-    __PACKED_STRUCT vision_control_t {
-        float yawDelta;
-        float pitchDelta;
-    };
 
     __PACKED_STRUCT gimbal_current_t {
         float yaw;
@@ -59,7 +54,6 @@ private:
             enemy_info_t enemy_info_;
             gimbal_current_t gimbal_current_;
             enemy_color_t enemy_color_;
-            vision_control_t vision_control_;
         };
         uint16_t tail;
     };

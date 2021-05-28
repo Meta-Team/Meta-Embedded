@@ -22,7 +22,7 @@ const UARTConfig VisionPort::UART_CONFIG = {
         VisionPort::uart_rx_callback,  // callback function when the buffer is filled
         VisionPort::uart_char_callback,
         VisionPort::uart_err_callback,
-        230400, // speed
+        115200, // speed
         0,
         0,
         0
