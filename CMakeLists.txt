@@ -405,6 +405,13 @@ add_executable(ut_super_capacitor
         dev/common/CRC8.cpp
         dev/common/CRC16.cpp)
 
+add_executable(ut_referee_UI
+        dev/interface/referee_interface.cpp
+        dev/scheduler/referee_UI_update_scheduler.cpp
+        dev/common/CRC8.cpp
+        dev/common/CRC16.cpp
+        dev/debug/Unit_Tests/ut_Referee_UI.cpp)
+
 add_executable(ut_adc
         dev/debug/Unit_Tests/ut_adc.cpp
         dev/interface/dms_interface.cpp)
