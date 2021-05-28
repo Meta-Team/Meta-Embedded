@@ -57,8 +57,7 @@ void UserI::UserThread::main() {
         /*** ---------------------------------- Gimbal --------------------------------- ***/
         if (!InspectorI::remote_failure() && !InspectorI::chassis_failure() && !InspectorI::gimbal_failure()) {
             if ((Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_UP) ||
-                (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_MIDDLE) ||
-                    (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_DOWN)) {
+                (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_MIDDLE)) {
 
                 /// Remote - Yaw + Pitch
 
@@ -83,19 +82,22 @@ void UserI::UserThread::main() {
                 GimbalLG::set_action(GimbalLG::ABS_ANGLE_MODE);
 
                 float yaw_va_target, pitch_va_target;
-                yaw_va_target = GimbalLG::get_relative_angle(GimbalBase::YAW);
-                pitch_va_target = GimbalLG::get_relative_angle(GimbalBase::PITCH);
+                yaw_va_target = GimbalLG::get_accumulated_angle(GimbalBase::YAW);
+                pitch_va_target = GimbalLG::get_accumulated_angle(GimbalBase::PITCH);
 
                 float yaw_delta,pitch_delta;
                 yaw_delta = VisionPort::vision_data.yawDelta;
                 pitch_delta = VisionPort::vision_data.pitchDelta;
 
-                static time_msecs_t last_one = VisionPort::last_update_time;
-                if (VisionPort::last_update_time - last_one < 500) { // TODO:: may not be safe enough
-                    if ((yaw_delta > 2.0f) || (yaw_delta < -2.0f)) yaw_va_target -= yaw_delta;
-                    if ((pitch_delta > 1.0f) || (pitch_delta < -1.0f)) pitch_va_target -= pitch_delta;
-                }
-                last_one = VisionPort::last_update_time;
+                yaw_va_target += yaw_delta;
+                pitch_va_target += pitch_delta / 2;
+
+//                static time_msecs_t last_one = VisionPort::last_update_time;
+//                if (VisionPort::last_update_time - last_one < 500) { // TODO:: may not be safe enough
+//                    if ((yaw_delta > 2.0f) || (yaw_delta < -2.0f)) yaw_va_target -= yaw_delta;
+//                    if ((pitch_delta > 1.0f) || (pitch_delta < -1.0f)) pitch_va_target -= pitch_delta;
+//                }
+//                last_one = VisionPort::last_update_time;
 
                 GimbalLG::set_target(yaw_va_target, pitch_va_target);
 
