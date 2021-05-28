@@ -10,9 +10,9 @@
 #include "string.h"
 #include "led.h"
 
-VisionPort::package_t VisionPort::pak;
+VisionPort::Package VisionPort::pak;
 VisionPort::rx_status_t VisionPort::rx_status;
-VisionPort::enemy_info_t VisionPort::enemy_info;
+VisionPort::VisionControl VisionPort::vision_data;
 time_msecs_t VisionPort::last_update_time = 0;
 uint16_t VisionPort::tx_seq = 0;
 
@@ -22,7 +22,7 @@ const UARTConfig VisionPort::UART_CONFIG = {
         VisionPort::uart_rx_callback,  // callback function when the buffer is filled
         VisionPort::uart_char_callback,
         VisionPort::uart_err_callback,
-        230400, // speed
+        115200, // speed
         0,
         0,
         0
@@ -40,7 +40,7 @@ void VisionPort::init() {
 
 void VisionPort::send_gimbal(float yaw, float pitch) {
 
-    package_t tx_pak;
+    Package tx_pak;
 
     size_t tx_pak_size = FRAME_HEADER_SIZE + CMD_ID_SIZE + sizeof(gimbal_current_t) + FRAME_TAIL_SIZE;
 
@@ -49,7 +49,7 @@ void VisionPort::send_gimbal(float yaw, float pitch) {
     tx_pak.header.seq = tx_seq++;
     Append_CRC8_Check_Sum((uint8_t *) &tx_pak, FRAME_HEADER_SIZE);
 
-    tx_pak.cmd_id = 0xFF00;
+    tx_pak.cmdID = 0xFF00;
     tx_pak.gimbal_current_.yaw = yaw;
     tx_pak.gimbal_current_.pitch = pitch;
     Append_CRC16_Check_Sum((uint8_t *) &tx_pak, tx_pak_size);
@@ -58,22 +58,22 @@ void VisionPort::send_gimbal(float yaw, float pitch) {
 //    uartStartSend(UART_DRIVER, tx_pak_size, (uint8_t *) &tx_pak);  // it has some problem
 }
 
-void VisionPort::send_enemy_color(bool is_blue) {
-    package_t tx_pak;
-
-    size_t tx_pak_size = FRAME_HEADER_SIZE + CMD_ID_SIZE + sizeof(enemy_color_t) + FRAME_TAIL_SIZE;
-
-    tx_pak.header.sof = 0xA5;
-    tx_pak.header.data_length = sizeof(enemy_color_t);
-    tx_pak.header.seq = tx_seq++;
-    Append_CRC8_Check_Sum((uint8_t *) &tx_pak, FRAME_HEADER_SIZE);
-
-    tx_pak.cmd_id = 0xFF02;
-    tx_pak.enemy_color_.is_blue = is_blue;
-    Append_CRC16_Check_Sum((uint8_t *) &tx_pak, tx_pak_size);
-
-    uartSendFullTimeout(UART_DRIVER, &tx_pak_size, &tx_pak, TIME_MS2I(10));
-}
+//void VisionPort::send_enemy_color(bool is_blue) {
+//    Package tx_pak;
+//
+//    size_t tx_pak_size = FRAME_HEADER_SIZE + CMD_ID_SIZE + sizeof(enemy_color_t) + FRAME_TAIL_SIZE;
+//
+//    tx_pak.header.sof = 0xA5;
+//    tx_pak.header.data_length = sizeof(enemy_color_t);
+//    tx_pak.header.seq = tx_seq++;
+//    Append_CRC8_Check_Sum((uint8_t *) &tx_pak, FRAME_HEADER_SIZE);
+//
+//    tx_pak.cmdID = 0xFF02;
+//    tx_pak.enemy_color_.is_blue = is_blue;
+//    Append_CRC16_Check_Sum((uint8_t *) &tx_pak, tx_pak_size);
+//
+//    uartSendFullTimeout(UART_DRIVER, &tx_pak_size, &tx_pak, TIME_MS2I(10));
+//}
 
 void VisionPort::uart_rx_callback(UARTDriver *uartp) {
 
@@ -110,9 +110,9 @@ void VisionPort::uart_rx_callback(UARTDriver *uartp) {
             if (Verify_CRC16_Check_Sum(pak_uint8,
                                        FRAME_HEADER_SIZE + CMD_ID_SIZE + pak.header.data_length + FRAME_TAIL_SIZE)) {
 
-                switch (pak.cmd_id) {
+                switch (pak.cmdID) {
                     case VISION_CONTROL_CMD_ID:
-                        enemy_info = pak.enemy_info_;
+                        vision_data = pak.vision;
                         last_update_time = SYSTIME;
 #ifdef VISION_PORT_DEBUG
                         LED::green_toggle();

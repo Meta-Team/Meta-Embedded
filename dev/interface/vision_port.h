@@ -12,13 +12,20 @@ class VisionPort {
 
 public:
 
-    __PACKED_STRUCT enemy_info_t{
-        float yaw_angle;
-        float pitch_angle;
-        float distance;
+//    __PACKED_STRUCT enemy_info_t{
+//        float yaw_angle;
+//        float pitch_angle;
+//        float distance;
+//    };
+
+//    static enemy_info_t enemy_info;
+
+    __PACKED_STRUCT VisionControl {
+        float yawDelta;
+        float pitchDelta;
     };
 
-    static enemy_info_t enemy_info;
+    static VisionControl vision_data;
 
     static time_msecs_t last_update_time;
 
@@ -26,11 +33,11 @@ public:
 
     static void send_gimbal(float yaw, float pitch);
 
-    static void send_enemy_color(bool is_blue);
+//    static void send_enemy_color(bool is_blue);
 
 private:
 
-    __PACKED_STRUCT frame_header_t {
+    __PACKED_STRUCT Header {
         uint8_t sof;  // start byte of header, 0xA5
         uint16_t data_length;
         uint8_t seq;
@@ -38,10 +45,6 @@ private:
     };
 
     static constexpr uint16_t VISION_CONTROL_CMD_ID = 0xEA01;
-    __PACKED_STRUCT vision_control_t {
-        float yawDelta;
-        float pitchDelta;
-    };
 
     __PACKED_STRUCT gimbal_current_t {
         float yaw;
@@ -52,19 +55,17 @@ private:
         bool is_blue;
     };
 
-    __PACKED_STRUCT package_t {
-        frame_header_t header;
-        uint16_t cmd_id;
+    __PACKED_STRUCT Package {
+        Header header;
+        uint16_t cmdID;
         union {
-            enemy_info_t enemy_info_;
             gimbal_current_t gimbal_current_;
-            enemy_color_t enemy_color_;
-            vision_control_t vision_control_;
+            VisionControl vision;
         };
         uint16_t tail;
     };
 
-    static package_t pak;
+    static Package pak;
 
     static void uart_rx_callback(UARTDriver *uartp);  // only for internal use
     static void uart_err_callback(UARTDriver *uartp, uartflags_t e);
