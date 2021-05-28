@@ -24,7 +24,7 @@ public:
      * Initialize this interface
      * @param can_interface   Initialized CANInterface
      */
-    static void init(CANInterface *can_interface);
+    static void init(CANInterface *can_interface, tprio_t INIT_THREAD_PRIO);
 
     /**
      * Feedback info structure
@@ -49,6 +49,14 @@ private:
     friend CANInterface;
 
     static CANTxFrame txFrame;
+
+    class SuperCapacitorInitThread : public chibios_rt::BaseStaticThread<256> {
+    private:
+        int INIT_THREAD_INTERVAL = 120;
+        void main() final;
+    };
+
+    static SuperCapacitorInitThread superCapacitorInitThread;
 };
 
 

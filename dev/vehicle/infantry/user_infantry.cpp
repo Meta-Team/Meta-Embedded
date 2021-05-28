@@ -24,8 +24,8 @@ float UserI::chassis_pc_ctrl_ratio = 0.5;    // 50% when Ctrl is pressed
 Remote::key_t UserI::chassis_dodge_switch = Remote::KEY_X;
 
 /// Shoot Config
-float UserI::shoot_launch_left_count = 5;
-float UserI::shoot_launch_right_count = 999;
+float UserI::shoot_launch_left_count = 999;
+float UserI::shoot_launch_right_count = 5;
 
 float UserI::shoot_launch_speed = 10.0f;   //Feed rate
 
@@ -333,15 +333,12 @@ void UserI::UserActionThread::main() {
             } else if (mouse_flag & (1U << Remote::MOUSE_RIGHT)) {
                 ShootLG::shoot(shoot_launch_right_count, shoot_launch_speed);
             }
-        } else {  // releasing one while pressing another won't result in stopping
-            if(Referee::power_heat_data.shooter_id1_17mm_cooling_heat >
-               (uint16_t) (Referee::game_robot_state.shooter_id1_17mm_cooling_limit * 0.75)) {
-                ShootLG::stop();
-            }
+        } else {
             if (events & MOUSE_RELEASE_EVENTMASK) {
                 ShootLG::stop();
             }
         }
+
 
         /// Key Press
         if (events & KEY_PRESS_EVENTMASK) {

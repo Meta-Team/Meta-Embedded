@@ -106,6 +106,10 @@ float ShootSKD::get_plate_actual_velocity() {
     return GimbalIF::feedback[GimbalIF::PLATE]->actual_velocity * install_position[1];
 }
 
+float ShootSKD::get_loader_target_angle() {
+    return target_angle[ShootSKD::BULLET];
+}
+
 float ShootSKD::get_loader_accumulated_angle() {
     return GimbalIF::feedback[GimbalIF::BULLET]->accumulated_angle() * install_position[0];
 }

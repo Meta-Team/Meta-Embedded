@@ -22,7 +22,7 @@ float ShootLG::angle_per_bullet = 0;
 int ShootLG::bullet_count = 0;
 float ShootLG::shoot_target_number = 0;
 ShootLG::shooter_state_t ShootLG::shooter_state = STOP;
-ShootLG::StuckDetectorThread ShootLG::stuckDetector;
+ShootLG::StuckNHeatDetectorThread ShootLG::stuckDetector;
 chibios_rt::ThreadReference ShootLG::stuckDetectorReference;
 
 ShootLG::BulletCounterThread ShootLG::bulletCounterThread;
@@ -93,7 +93,7 @@ void ShootLG::force_stop() {
     shooter_state = STOP;
 }
 
-void ShootLG::StuckDetectorThread::main() {
+void ShootLG::StuckNHeatDetectorThread::main() {
     setName("Shoot_Stuck");
     while (!shouldTerminate()) {
 
@@ -122,6 +122,19 @@ void ShootLG::StuckDetectorThread::main() {
             ShootSKD::set_loader_target_angle(shoot_target_number * angle_per_bullet);  // recover original target
             shooter_state = SHOOTING;
 
+        }
+
+        if (Referee::power_heat_data.shooter_id1_17mm_cooling_heat >
+            (uint16_t) (Referee::game_robot_state.shooter_id1_17mm_cooling_limit * 0.75)) {
+
+            float new_target_angle = ShootSKD::get_loader_target_angle() - ShootSKD::get_loader_accumulated_angle();
+            ShootSKD::reset_loader_accumulated_angle();
+            ShootSKD::set_loader_target_angle(0.0f);
+            while(Referee::power_heat_data.shooter_id1_17mm_cooling_heat >
+                  (uint16_t) (Referee::game_robot_state.shooter_id1_17mm_cooling_limit * 0.75)) {
+                sleep(TIME_MS2I(50));
+            }
+            ShootSKD::set_loader_target_angle(new_target_angle);
         }
 
         sleep(TIME_MS2I(STUCK_DETECTOR_THREAD_INTERVAL));

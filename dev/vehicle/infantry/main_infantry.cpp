@@ -106,6 +106,11 @@ int main() {
     InspectorI::startup_check_can();  // check no persistent CAN Error. Block for 100 ms
     LED::led_on(DEV_BOARD_LED_CAN);  // LED 2 on now
 
+    /// Setup SuperCapacitor Port
+    SuperCapacitor::init(&can2, THREAD_SUPERCAP_INIT_PRIO);
+    /// Complete Period 1
+    LED::green_on();  // LED Green on now
+
     /// Setup On-Board AHRS
     Vector3D ahrs_bias;
     if (SDCard::get_data(MPU6500_BIAS_DATA_ID, &ahrs_bias, sizeof(ahrs_bias)) == SDCard::OK) {
@@ -149,13 +154,6 @@ int main() {
 
     /// Setup VisionPort
     VisionPort::init();
-
-    /// Setup SuperCapacitor Port
-    SuperCapacitor::init(&can2);
-    SuperCapacitor::set_power(45.0f); // Set to the lowest limit when start up.
-    /// Complete Period 1
-    LED::green_on();  // LED Green on now
-
 
     /*** ------------ Period 2. Calibration and Start Logic Control Thread ----------- ***/
 

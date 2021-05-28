@@ -151,6 +151,11 @@ public:
     static float get_plate_actual_velocity();
 
     /**
+     * Get bullet loader target angle
+     * @return Bullet loader target angle
+     */
+    static float get_loader_target_angle();
+    /**
      * Get bullet loader accumulated angle
      * @return Bullet loader accumulated angle [positive for normal shooting, degree]
      */

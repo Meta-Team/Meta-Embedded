@@ -117,7 +117,7 @@ private:
 
 
     /// Stuck Detector
-    class StuckDetectorThread : public chibios_rt::BaseStaticThread<512> {
+    class StuckNHeatDetectorThread : public chibios_rt::BaseStaticThread<512> {
     public:
 
         bool started = false;
@@ -138,7 +138,7 @@ private:
         void main() final;
     };
 
-    static StuckDetectorThread stuckDetector;
+    static StuckNHeatDetectorThread stuckDetector;
     static chibios_rt::ThreadReference stuckDetectorReference;
 
 
