@@ -326,7 +326,9 @@ public:
 
     static bool set_title(ext_client_custom_character_t characterData);
 
-    static int graphic_buffer_index;
+    static void remove_all();
+
+    static void remove_layer(uint32_t layer);
 
 #if REFEREE_USE_EVENTS
 
@@ -416,9 +418,15 @@ private:
     static constexpr UARTDriver *UART_DRIVER = &UARTD7;
     static const UARTConfig UART_CONFIG;
 
+    static int graphic_buffer_index;
     static graphic_data_struct_t graphic_data_buffer[7];
     static bool client_character_sent;
     static ext_client_custom_character_t client_character_buffer;
+
+    static bool invoke_ui_delete_all;
+    static bool invoke_ui_delete_layer;
+
+    static uint32_t layer_deleting;
 };
 
 

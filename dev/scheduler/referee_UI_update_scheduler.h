@@ -10,7 +10,7 @@
 #define REFEREE_UI_MAX_SHAPE_COUNT 30
 #define REFEREE_UI_MAX_LABEL_COUNT 10
 
-class referee_UI_update_scheduler {
+class RefereeUISKD {
 public:
     enum shape_t {
         LINE,
@@ -20,7 +20,8 @@ public:
         ARC,
         LABEL_FLOAT,
         LABEL_INTEGER,
-        LABEL_CHAR
+        LABEL_CHAR,
+        NONE
     };
 
     enum color_t {
@@ -35,10 +36,19 @@ public:
         WHITE
     };
 
+    enum operate_type_t {
+        NULL_OP,
+        ADD,
+        MODIFY,
+        DELETE
+    };
+
     struct UI_point {
         uint32_t x;
         uint32_t y;
     };
+
+    static void init(tprio_t SKDThreadPRIO);
 
     static void add_character(char* name, UI_point start_p, color_t color, uint32_t layer, uint32_t size, uint32_t weight, char *string);
 
@@ -52,12 +62,25 @@ public:
 
     static void add_int(char name[3], uint32_t layer, color_t color, UI_point start_p, uint32_t font_size, int data);
 
+    static void remove_layer(uint32_t layer);
+
+    static void remove_all();
+
     static void echo_shapes();
 
     static void echo_titles();
 private:
+    enum component_state_t{
+        WAITING,
+        REVISING,
+        FINISHED
+    };
+
+    static component_state_t shape_state[REFEREE_UI_MAX_SHAPE_COUNT];
     static Referee::graphic_data_struct_t shapes[REFEREE_UI_MAX_SHAPE_COUNT];
     static int shape_count;
+
+    static component_state_t label_state[REFEREE_UI_MAX_LABEL_COUNT];
     static Referee::ext_client_custom_character_t labels[REFEREE_UI_MAX_LABEL_COUNT];
     static int label_count;
     static int strlen(char *s);

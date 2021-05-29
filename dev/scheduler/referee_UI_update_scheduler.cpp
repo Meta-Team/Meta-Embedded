@@ -4,15 +4,23 @@
 
 #include "referee_UI_update_scheduler.h"
 #include "shell.h"
-int referee_UI_update_scheduler::label_count;
-int referee_UI_update_scheduler::shape_count;
 
-Referee::ext_client_custom_character_t referee_UI_update_scheduler::labels[REFEREE_UI_MAX_LABEL_COUNT];
-Referee::graphic_data_struct_t referee_UI_update_scheduler::shapes[REFEREE_UI_MAX_SHAPE_COUNT];
-referee_UI_update_scheduler::SKDThread referee_UI_update_scheduler::skdThread;
+int RefereeUISKD::label_count;
+int RefereeUISKD::shape_count;
 
-void referee_UI_update_scheduler::add_character(char* name, UI_point start_p, color_t color, uint32_t layer, uint32_t size,
-                                                uint32_t weight, char* string) {
+Referee::ext_client_custom_character_t RefereeUISKD::labels[REFEREE_UI_MAX_LABEL_COUNT];
+Referee::graphic_data_struct_t RefereeUISKD::shapes[REFEREE_UI_MAX_SHAPE_COUNT];
+RefereeUISKD::SKDThread RefereeUISKD::skdThread;
+
+RefereeUISKD::component_state_t RefereeUISKD::shape_state[REFEREE_UI_MAX_SHAPE_COUNT];
+RefereeUISKD::component_state_t RefereeUISKD::label_state[REFEREE_UI_MAX_LABEL_COUNT];
+
+void RefereeUISKD::init(tprio_t SKDThreadPRIO) {
+    skdThread.start(SKDThreadPRIO);
+}
+
+void RefereeUISKD::add_character(char* name, UI_point start_p, color_t color, uint32_t layer, uint32_t size,
+                                 uint32_t weight, char* string) {
     if(label_count >= REFEREE_UI_MAX_LABEL_COUNT) {
         return;
     }
@@ -24,6 +32,7 @@ void referee_UI_update_scheduler::add_character(char* name, UI_point start_p, co
     Charact.grapic_data_struct.graphic_name[0] = (uint8_t) name[0];
     Charact.grapic_data_struct.graphic_name[1] = (uint8_t) name[1];
     Charact.grapic_data_struct.graphic_name[2] = (uint8_t) name[2];
+    Charact.grapic_data_struct.operate_tpye =
     Charact.grapic_data_struct.graphic_tpye = LABEL_CHAR;
     Charact.grapic_data_struct.color = color;
     Charact.grapic_data_struct.layer = layer;
@@ -35,13 +44,13 @@ void referee_UI_update_scheduler::add_character(char* name, UI_point start_p, co
     for (int i = 0; i < char_length; i++) {
         Charact.data[i] = (uint8_t) string[i];
     }
-    referee_UI_update_scheduler::labels[label_count] = Charact;
-    referee_UI_update_scheduler::label_count += 1;
+    RefereeUISKD::labels[label_count] = Charact;
+    RefereeUISKD::label_count += 1;
     chThdSleepMilliseconds(100);
 }
 
-void referee_UI_update_scheduler::add_circle(char *name, uint32_t layer, color_t color, UI_point center,
-                                             uint32_t radius, uint32_t line_width) {
+void RefereeUISKD::add_circle(char *name, uint32_t layer, color_t color, UI_point center,
+                              uint32_t radius, uint32_t line_width) {
     if(shape_count >= REFEREE_UI_MAX_SHAPE_COUNT) {
         return;
     }
@@ -56,12 +65,12 @@ void referee_UI_update_scheduler::add_circle(char *name, uint32_t layer, color_t
     circle.start_y = center.y;
     circle.radius = radius;
     circle.width = line_width;
-    referee_UI_update_scheduler::shapes[shape_count] = circle;
+    RefereeUISKD::shapes[shape_count] = circle;
     shape_count += 1;
 }
 
-void referee_UI_update_scheduler::add_rect(char *name, uint32_t layer, color_t color, UI_point start_p, UI_point end_p,
-                                           uint32_t line_width) {
+void RefereeUISKD::add_rect(char *name, uint32_t layer, color_t color, UI_point start_p, UI_point end_p,
+                            uint32_t line_width) {
     if(shape_count >= REFEREE_UI_MAX_SHAPE_COUNT) {
         return;
     }
@@ -77,12 +86,12 @@ void referee_UI_update_scheduler::add_rect(char *name, uint32_t layer, color_t c
     rect.end_x = end_p.x;
     rect.end_y = end_p.y;
     rect.width = line_width;
-    referee_UI_update_scheduler::shapes[shape_count] = rect;
+    RefereeUISKD::shapes[shape_count] = rect;
     shape_count += 1;
 }
 
-void referee_UI_update_scheduler::add_line(char *name, uint32_t layer, color_t color, UI_point start_p, UI_point end_p,
-                                           uint32_t line_width) {
+void RefereeUISKD::add_line(char *name, uint32_t layer, color_t color, UI_point start_p, UI_point end_p,
+                            uint32_t line_width) {
     if(shape_count >= REFEREE_UI_MAX_SHAPE_COUNT) {
         return;
     }
@@ -98,12 +107,12 @@ void referee_UI_update_scheduler::add_line(char *name, uint32_t layer, color_t c
     line.end_x = end_p.x;
     line.end_y = end_p.y;
     line.width = line_width;
-    referee_UI_update_scheduler::shapes[shape_count] = line;
+    RefereeUISKD::shapes[shape_count] = line;
     shape_count += 1;
 }
 
-void referee_UI_update_scheduler::add_int(char *name, uint32_t layer, color_t color, UI_point start_p,
-                                          uint32_t font_size, int data) {
+void RefereeUISKD::add_int(char *name, uint32_t layer, color_t color, UI_point start_p,
+                           uint32_t font_size, int data) {
     if(shape_count >= REFEREE_UI_MAX_SHAPE_COUNT) {
         return;
     }
@@ -127,8 +136,8 @@ void referee_UI_update_scheduler::add_int(char *name, uint32_t layer, color_t co
     shape_count += 1;
 }
 
-void referee_UI_update_scheduler::add_float(char *name, uint32_t layer, color_t color, UI_point start_p,
-                                          uint32_t font_size, float data) {
+void RefereeUISKD::add_float(char *name, uint32_t layer, color_t color, UI_point start_p,
+                             uint32_t font_size, float data) {
     if(shape_count >= REFEREE_UI_MAX_SHAPE_COUNT) {
         return;
     }
@@ -153,7 +162,35 @@ void referee_UI_update_scheduler::add_float(char *name, uint32_t layer, color_t 
     shape_count += 1;
 }
 
-void referee_UI_update_scheduler::echo_shapes() {
+void RefereeUISKD::remove_all() {
+    if(shape_count == 0) return;
+    shape_count = 0;
+    label_count = 0;
+    Referee::remove_all();
+}
+
+void RefereeUISKD::remove_layer(uint32_t layer) {
+    if(shape_count == 0) return;
+    int step_offset = 0;
+    for(int i = 0; i < shape_count; i++) {
+        while(shapes[i+step_offset].layer == layer) {
+            step_offset++;
+            shape_count--;
+        }
+        if (i+step_offset < shape_count) shapes[i] = shapes[i+step_offset];
+    }
+    step_offset = 0;
+    for(int i = 0; i < label_count; i++) {
+        while(labels[i+step_offset].grapic_data_struct.layer != layer) {
+            step_offset++;
+            label_count--;
+        }
+        if(i+step_offset < label_count) labels[i] = labels[i+step_offset];
+    }
+    Referee::remove_layer(layer);
+}
+
+void RefereeUISKD::echo_shapes() {
     for (int i = 0; i<shape_count; i++) {
         char name[3] = {shapes[i].graphic_name[0], shapes[i].graphic_name[1], shapes[i].graphic_name[2]};
         Shell::printf("%s ", name);
@@ -161,7 +198,7 @@ void referee_UI_update_scheduler::echo_shapes() {
     Shell::printf(SHELL_NEWLINE_STR);
 }
 
-void referee_UI_update_scheduler::echo_titles() {
+void RefereeUISKD::echo_titles() {
     for (int i = 0; i < label_count; i++) {
         for(int j = 0; j < labels[i].grapic_data_struct.end_angle; j++) {
             Shell::printf("%d ", labels[i].data[j]);
@@ -170,15 +207,33 @@ void referee_UI_update_scheduler::echo_titles() {
     }
 }
 
-void referee_UI_update_scheduler::SKDThread::main() {
+void RefereeUISKD::SKDThread::main() {
     setName("REF_UI_SKD");
     while (!shouldTerminate()) {
         // Send data from buffer.
-        sleep(TIME_MS2I(100));
+        for (int i = 0; i < shape_count; i++) {
+            if(shape_state[i] == FINISHED) {
+                shapes[i].operate_tpye = 2;
+                Referee::set_graphic(shapes[i]);
+            }
+            while(shape_state[i]!=FINISHED) {
+                shape_state[i] = Referee::set_graphic(shapes[i])? FINISHED : shape_state[i];
+            };
+        }
+        for (int i = 0; i < label_count; i++) {
+            if(label_state[i]==FINISHED) {
+                labels[i].grapic_data_struct.operate_tpye = 2;
+                Referee::set_title(labels[i]);
+            }
+            while(label_state[i]!=FINISHED) {
+                label_state[i] = Referee::set_title(labels[i]) ? FINISHED : label_state[i];
+            }
+        }
+        sleep(TIME_MS2I(400));
     }
 }
 
-int referee_UI_update_scheduler::strlen(char *s)
+int RefereeUISKD::strlen(char *s)
 {
     int i=0;
     while(*s!='\0') {

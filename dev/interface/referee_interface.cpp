@@ -33,6 +33,9 @@ Referee::client_custom_data_t Referee::client_custom_data;
 Referee::robot_interactive_data_t Referee::robot_data_send;
 
 bool Referee::to_send_client = false;
+bool Referee::invoke_ui_delete_all = false;
+bool Referee::invoke_ui_delete_layer = false;
+uint32_t Referee::layer_deleting = 0;
 
 Referee::DataSendingThread Referee::dataSendingThread;
 
@@ -212,6 +215,10 @@ void Referee::uart_rx_callback(UARTDriver *uartp) {
 void Referee::DataSendingThread::main() {
     setName("RefereeSend");
     graphic_data_struct_t null_graphic;
+    char null_name[] = "N/A";
+    null_graphic.graphic_name[0] = (uint8_t) null_name[0];
+    null_graphic.graphic_name[1] = (uint8_t) null_name[1];
+    null_graphic.graphic_name[2] = (uint8_t) null_name[2];
     null_graphic.operate_tpye = 3;
     while (!shouldTerminate()) {
         /***Update UI Info***/
@@ -249,11 +256,25 @@ void Referee::DataSendingThread::main() {
             sleep(TIME_MS2I(100)); // wait for 100ms, as the maximum sending interval is 10 Hz
         }
         if(!client_character_sent) {
+            client_custom_data.header.data_cmd_id = 0x110;
             client_custom_data.ext_client_custom_character = client_character_buffer;
             client_character_sent = true;
+            send_data_(Referee::CLIENT);
             sleep(TIME_MS2I(100));
         }
-
+        if(invoke_ui_delete_layer) {
+            client_custom_data.header.data_cmd_id = 0x100;
+            client_custom_data.ext_client_custom_graphic_delete.operate_tpye = 1;
+            client_custom_data.ext_client_custom_graphic_delete.layer = layer_deleting;
+            send_data_(Referee::CLIENT);
+            invoke_ui_delete_layer = false;
+            sleep(TIME_MS2I(100));
+        }
+        if(invoke_ui_delete_all) {
+            client_custom_data.header.data_cmd_id = 0x100;
+            client_custom_data.ext_client_custom_graphic_delete.operate_tpye = 2;
+            client_custom_data.ext_client_custom_graphic_delete.layer = 0;
+        }
         sleep(TIME_MS2I(100));  // maximum sending interval 10 Hz
     }
 }
@@ -282,7 +303,7 @@ void Referee::send_data_(receiver_index_t receiver_id) {
 bool Referee::set_graphic(graphic_data_struct_t graphData) {
     if (graphic_buffer_index < 7) {
         graphic_data_buffer[graphic_buffer_index] = graphData;
-        graphic_buffer_index += 1;
+        graphic_buffer_index ++;
         return true;
     } else {
         return false;
@@ -297,4 +318,17 @@ bool Referee::set_title(ext_client_custom_character_t characterData) {
     } else {
         return false;
     }
+}
+
+void Referee::remove_all() {
+    graphic_buffer_index = 0;
+    client_character_sent = true;
+    invoke_ui_delete_all = true;
+}
+
+void Referee::remove_layer(uint32_t layer) {
+    graphic_buffer_index = 0;
+    if(client_character_buffer.grapic_data_struct.layer == layer) client_character_sent = true;
+    invoke_ui_delete_layer = true;
+    layer_deleting = layer;
 }
