@@ -37,10 +37,10 @@ static void cmd_set_pid(BaseSequentialStream *chp, int argc, char *argv[]) {
                                                  Shell::atof(argv[5])};
     if(*argv[0] == 'LEFT') {
         PIDParameter[0] = NEW_Parameter;
-        engineerGrabSKD::load_pid_params(PIDParameter);
+        engineerGrabSKD::load_v2i_pid_params(PIDParameter);
     } else if (*argv[0] == 'RIGHT') {
         PIDParameter[1] = NEW_Parameter;
-        engineerGrabSKD::load_pid_params(PIDParameter);
+        engineerGrabSKD::load_v2i_pid_params(PIDParameter);
     } else {
         shellUsage(chp, "set_pid MOTOR(LEFT/RIGHT) kp ki kd i_limit out_limit");
         return;
@@ -48,10 +48,42 @@ static void cmd_set_pid(BaseSequentialStream *chp, int argc, char *argv[]) {
     chprintf(chp, "pid_set!" SHELL_NEWLINE_STR);
 }
 
+static void cmd_echo_fb(BaseSequentialStream *chp, int argc, char *argv[]) {
+    (void) argv;
+    if (argc != 0) {
+        shellUsage(chp, "echo_fb");
+        return;
+    }
+    Shell::printf("GrabberL :    %f" SHELL_NEWLINE_STR, EngGrabMechIF::feedback[EngGrabMechIF::GRABER_L]->accumulated_angle());
+    Shell::printf("GrabberR :    %f" SHELL_NEWLINE_STR, EngGrabMechIF::feedback[EngGrabMechIF::GRABER_R]->accumulated_angle());
+    Shell::printf("HAND     :    %f" SHELL_NEWLINE_STR, EngGrabMechIF::feedback[EngGrabMechIF::ROTATION_HAND]->accumulated_angle());
+    Shell::printf("STATUS   :    %d" SHELL_NEWLINE_STR, engineerGrabSKD::echo_status());
+}
+
+static void cmd_rise(BaseSequentialStream *chp, int argc, char *argv[]) {
+    (void) argv;
+    if (argc != 0) {
+        shellUsage(chp, "rise");
+        return;
+    }
+    engineerGrabSKD::invoke_rising();
+}
+
+static void cmd_lower(BaseSequentialStream *chp, int argc, char *argv[]) {
+    (void) argv;
+    if (argc != 0) {
+        shellUsage(chp, "lower");
+        return;
+    }
+    engineerGrabSKD::invoke_lowering();
+}
 
 // Shell commands to ...
 ShellCommand templateShellCommands[] = {
         {"set_pid", cmd_set_pid},
+        {"echo_fb", cmd_echo_fb},
+        {"rise",    cmd_rise},
+        {"lower",   cmd_lower},
         {nullptr,    nullptr}
 };
 
@@ -62,7 +94,7 @@ private:
     void main() final {
         setName("pa_enginner_grab");
         while (!shouldTerminate()) {
-            engineerGrabSKD::set_target_velocity(Remote::rc.ch1*1000.0f);
+            engineerGrabSKD::set_belt_target_velocity(Remote::rc.ch1 * 1000.0f);
             sleep(TIME_MS2I(100));
         }
     }
@@ -79,13 +111,24 @@ int main(void) {
     can2.start(NORMALPRIO+4, NORMALPRIO+5);
     Shell::start(HIGHPRIO);
     Shell::addCommands(templateShellCommands);
-    EngGrabMechIF::motor_can_config_t CANCONFIG[3] = {{EngGrabMechIF::can_channel_1, 0, CANInterface::M2006}, {EngGrabMechIF::can_channel_1, 1, CANInterface::M2006}, {EngGrabMechIF::can_channel_1, 2, CANInterface::M2006}};
+    EngGrabMechIF::motor_can_config_t CANCONFIG[5] = {  {EngGrabMechIF::can_channel_1, 0, CANInterface::M2006},
+                                                        {EngGrabMechIF::can_channel_1, 1, CANInterface::M2006},
+                                                        {EngGrabMechIF::can_channel_1, 2, CANInterface::M3508},
+                                                        {EngGrabMechIF::can_channel_1, 3, CANInterface::M2006},
+                                                        {EngGrabMechIF::can_channel_1, 4, CANInterface::M2006}};
     EngGrabMechIF::init(&can1, &can2, CANCONFIG);
     controlThread.start(NORMALPRIO + 1);
-    engineerGrabSKD::install_direction direct[2] = {engineerGrabSKD::install_direction::NEGATIVE, engineerGrabSKD::install_direction::POSITIVE};
-    PIDController::pid_params_t pidParams[2] = {SHOOT_PID_BULLET_LOADER_V2I_PARAMS, SHOOT_PID_BULLET_LOADER_V2I_PARAMS};
+    engineerGrabSKD::install_direction direct[5] = {engineerGrabSKD::install_direction::NEGATIVE,
+                                                    engineerGrabSKD::install_direction::POSITIVE,
+                                                    engineerGrabSKD::install_direction::POSITIVE,
+                                                    engineerGrabSKD::install_direction::NEGATIVE,
+                                                    engineerGrabSKD::install_direction::POSITIVE};
+    PIDController::pid_params_t pidParams[4] = {SHOOT_PID_BULLET_LOADER_V2I_PARAMS, SHOOT_PID_BULLET_LOADER_V2I_PARAMS,
+                                                SHOOT_PID_BULLET_LOADER_V2I_PARAMS, SHOOT_PID_BULLET_LOADER_V2I_PARAMS};
+    PIDController::pid_params_t pidParams1[2] = {SHOOT_PID_BULLET_LOADER_A2V_PARAMS, SHOOT_PID_BULLET_LOADER_A2V_PARAMS};
     engineerGrabSKD::start(NORMALPRIO+1, direct);
-    engineerGrabSKD::load_pid_params(pidParams);
+    engineerGrabSKD::load_v2i_pid_params(pidParams);
+    engineerGrabSKD::load_a2v_pid_params(pidParams1);
 
 
 #if CH_CFG_NO_IDLE_THREAD // see chconf.h for what this #define means

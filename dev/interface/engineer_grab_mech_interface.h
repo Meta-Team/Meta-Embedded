@@ -21,7 +21,9 @@ public:
         BELT_L = 0,
         BELT_R = 1,
         ROTATION_HAND = 2,
-        MOTOR_COUNT = 3
+        GRABER_L = 3,
+        GRABER_R = 4,
+        MOTOR_COUNT = 5
     };
 };
 class EngGrabMechIF: public EngGrabMechBase{

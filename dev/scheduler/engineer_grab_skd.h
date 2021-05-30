@@ -31,22 +31,38 @@ public:
 
     /***
      * @brief Load PID parameters for motors of translation belt.
-     * @param pidParams PID parameters (2 sets) for translation belt.
+     * @param pidParams PID parameters (4 sets) for translation belt [0-1] and grabber [2-3].
      * ***/
-    static void load_pid_params(PIDController::pid_params_t pidParams[2]);
+    static void load_v2i_pid_params(pid_params_t *pidParams);
+
+    /***
+ * @brief Load PID parameters for motors of translation belt.
+ * @param pidParams PID parameters (2 sets) for grabber.
+ * ***/
+    static void load_a2v_pid_params(pid_params_t *pidParams);
 
     /***
      * @brief Set target velocity for translation belt.
      * @param targetVelocity_ the target velocity for belt.
      * ***/
-     static void set_target_velocity(float targetVelocity_);
+     static void set_belt_target_velocity(float targetVelocity_);
+
+     static void invoke_rising();
+
+     static void invoke_lowering();
+
+     static int echo_status();
 private:
 
-    static float targetVelocity;
+    static float beltTargetVelocity;
 
-    static install_direction direction[2];
+    static float grabberTargetVelocity[2];
 
-    static PIDController v2iController[2];
+    static install_direction direction[5];
+
+    static PIDController v2iController[4]; // [0-1, belt, 2-3, grabber 2006]
+
+    static PIDController a2vController[2]; // [0-1, grabber 2006].
 
     class SKDThread : public chibios_rt::BaseStaticThread<512> {
         void main() final;
@@ -54,6 +70,17 @@ private:
     static SKDThread skdThread;
 
     static constexpr unsigned int SKD_THREAD_INTERVAL = 1;
+
+    enum arm_status_t{
+        RISING,
+        RISE_IDLE,
+        RISED,
+        LOWERING,
+        LOWER_IDLE,
+        LOWERED
+    };
+
+    static arm_status_t armStatus;
 };
 
 
