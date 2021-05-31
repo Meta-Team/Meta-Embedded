@@ -35,10 +35,10 @@ static void cmd_set_pid(BaseSequentialStream *chp, int argc, char *argv[]) {
     PIDController::pid_params_t NEW_Parameter = {Shell::atof(argv[1]), Shell::atof(argv[2]),
                                                  Shell::atof(argv[3]),Shell::atof(argv[4]),
                                                  Shell::atof(argv[5])};
-    if(*argv[0] == 'LEFT') {
+    if(*argv[0] == 'L') {
         PIDParameter[0] = NEW_Parameter;
         engineerGrabSKD::load_v2i_pid_params(PIDParameter);
-    } else if (*argv[0] == 'RIGHT') {
+    } else if (*argv[0] == 'R') {
         PIDParameter[1] = NEW_Parameter;
         engineerGrabSKD::load_v2i_pid_params(PIDParameter);
     } else {

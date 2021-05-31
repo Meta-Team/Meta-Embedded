@@ -37,12 +37,12 @@ void engineerGrabSKD::set_belt_target_velocity(float targetVelocity_) {
 }
 
 void engineerGrabSKD::invoke_rising() {
-    if (!(armStatus == LOWERED)) return;
+    if (armStatus != LOWERED) return;
     armStatus = RISING;
 }
 
 void engineerGrabSKD::invoke_lowering() {
-    if (!(armStatus == RISED)) return;
+    if (armStatus != RISED) return;
     armStatus = LOWERING;
 }
 
@@ -62,7 +62,7 @@ void engineerGrabSKD::SKDThread::main() {
             grabberTargetVelocity[i-3] = a2vController[i-3].calc(EngGrabMechIF::feedback[i]->accumulated_angle(),EngGrabMechIF::feedback[engineerGrabSKD::ROTATION_HAND]->accumulated_angle()* (float)direction[i]);
             *EngGrabMechIF::target_current[i] = (int) v2iController[i-1].calc(EngGrabMechIF::feedback[i]->actual_velocity, grabberTargetVelocity[i-3]);
         }
-        if(EngGrabMechIF::feedback[2]->accumulated_angle() > -20.0f && armStatus!= LOWERING) armStatus = RISED;
+        if(EngGrabMechIF::feedback[2]->accumulated_angle() > -20.0f && armStatus != LOWERING) armStatus = RISED;
         if(EngGrabMechIF::feedback[2]->accumulated_angle() < -200.0f && armStatus != RISING) armStatus = LOWERED;
         if(armStatus == RISING) {
             if(EngGrabMechIF::feedback[EngGrabMechIF::ROTATION_HAND]->accumulated_angle() > -81.740516662f+3.0f) {
