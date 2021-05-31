@@ -37,6 +37,7 @@ Remote::key_t UserI::shoot_fw_switch = Remote::KEY_Z;
 /// Variables
 float UserI::gimbal_yaw_target_angle_ = 0;
 float UserI::gimbal_pc_pitch_target_angle_ = 0;
+static time_msecs_t vision_last_apply_time = 0;
 UserI::UserThread UserI::userThread;
 UserI::UserActionThread UserI::userActionThread;
 UserI::ClientDataSendingThread UserI::clientDataSendingThread;
@@ -79,25 +80,16 @@ void UserI::UserThread::main() {
 
                 GimbalLG::set_action(GimbalLG::ABS_ANGLE_MODE);
 
-                float yaw_va_target, pitch_va_target;
-                yaw_va_target = GimbalLG::get_accumulated_angle(GimbalBase::YAW);
-                pitch_va_target = GimbalLG::get_accumulated_angle(GimbalBase::PITCH);
+                static time_msecs_t last_one = VisionPort::last_update_time;
+                if (VisionPort::last_update_time != vision_last_apply_time) {
+                    gimbal_yaw_target_angle_ = GimbalLG::get_accumulated_angle(GimbalBase::YAW) +
+                            VisionPort::vision_data.yawDelta;
+                    gimbal_pc_pitch_target_angle_ = GimbalLG::get_accumulated_angle(GimbalBase::PITCH) +
+                            VisionPort::vision_data.pitchDelta / 2;
+                    vision_last_apply_time = VisionPort::last_update_time;
+                }
 
-                float yaw_delta,pitch_delta;
-                yaw_delta = VisionPort::vision_data.yawDelta;
-                pitch_delta = VisionPort::vision_data.pitchDelta;
-
-                yaw_va_target += yaw_delta;
-                pitch_va_target += pitch_delta / 2;
-
-//                static time_msecs_t last_one = VisionPort::last_update_time;
-//                if (VisionPort::last_update_time - last_one < 500) { // TODO:: may not be safe enough
-//                    if ((yaw_delta > 2.0f) || (yaw_delta < -2.0f)) yaw_va_target -= yaw_delta;
-//                    if ((pitch_delta > 1.0f) || (pitch_delta < -1.0f)) pitch_va_target -= pitch_delta;
-//                }
-//                last_one = VisionPort::last_update_time;
-
-                GimbalLG::set_target(yaw_va_target, pitch_va_target);
+                GimbalLG::set_target(gimbal_yaw_target_angle_, gimbal_pc_pitch_target_angle_);
 
             } else if (Remote::rc.s1 == Remote::S_DOWN) {
 
