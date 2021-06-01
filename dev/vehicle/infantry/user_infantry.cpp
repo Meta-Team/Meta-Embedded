@@ -18,7 +18,7 @@ float UserI::chassis_v_left_right = 500.0f;  // [mm/s]
 float UserI::chassis_v_forward = 1000.0f;     // [mm/s]
 float UserI::chassis_v_backward = 1000.0f;    // [mm/s]
 
-float UserI::chassis_pc_shift_ratio = 1.5f;  // 150% when Shift is pressed
+float UserI::chassis_pc_shift_ratio = 2.5f;  // 250% when Shift is pressed
 float UserI::chassis_pc_ctrl_ratio = 0.5;    // 50% when Ctrl is pressed
 
 Remote::key_t UserI::chassis_dodge_switch = Remote::KEY_X;
