@@ -54,15 +54,20 @@ public:
      static int echo_status();
 private:
 
-    static float beltTargetVelocity;
+    static float target_velocity[MOTOR_COUNT];
+    static float target_angle[MOTOR_COUNT];
+    static PIDController a2vController[MOTOR_COUNT];
+    static PIDController v2iController[MOTOR_COUNT];
 
-    static float grabberTargetVelocity[2];
+//    static float beltTargetVelocity;
 
-    static install_direction direction[5];
+//    static float grabberTargetVelocity[2];
 
-    static PIDController v2iController[4]; // [0-1, belt, 2-3, grabber 2006]
+    static install_direction direction[MOTOR_COUNT];
 
-    static PIDController a2vController[2]; // [0-1, grabber 2006].
+//    static PIDController v2iController[4]; // [0-1, belt, 2-3, grabber 2006]
+
+//    static PIDController a2vController[2]; // [0-1, grabber 2006].
 
     class SKDThread : public chibios_rt::BaseStaticThread<512> {
         void main() final;

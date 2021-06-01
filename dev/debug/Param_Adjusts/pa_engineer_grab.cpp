@@ -18,7 +18,11 @@ using namespace chibios_rt;
 CANInterface can1(&CAND1);
 CANInterface can2(&CAND2);
 
-PIDController::pid_params_t PIDParameter[2] = {SHOOT_PID_BULLET_LOADER_V2I_PARAMS, SHOOT_PID_BULLET_LOADER_V2I_PARAMS};
+PIDController::pid_params_t PIDParameter[EngGrabMechBase::MOTOR_COUNT] = {SHOOT_PID_BULLET_LOADER_V2I_PARAMS,
+                                                                          SHOOT_PID_BULLET_LOADER_V2I_PARAMS,
+                                                                          SHOOT_PID_BULLET_LOADER_V2I_PARAMS,
+                                                                          SHOOT_PID_BULLET_LOADER_V2I_PARAMS,
+                                                                          SHOOT_PID_BULLET_LOADER_V2I_PARAMS};
 
 /**
  * @brief set enabled state of yaw and pitch motor
@@ -29,16 +33,22 @@ PIDController::pid_params_t PIDParameter[2] = {SHOOT_PID_BULLET_LOADER_V2I_PARAM
 static void cmd_set_pid(BaseSequentialStream *chp, int argc, char *argv[]) {
     (void) argv;
     if (argc != 6) {
-        shellUsage(chp, "set_pid MOTOR(L/R) kp ki kd i_limit out_limit");
+        shellUsage(chp, "set_pid MOTOR(0/1/2/3/4) kp ki kd i_limit out_limit");
         return;
     }
     PIDController::pid_params_t NEW_Parameter = {Shell::atof(argv[1]), Shell::atof(argv[2]),
                                                  Shell::atof(argv[3]),Shell::atof(argv[4]),
                                                  Shell::atof(argv[5])};
-    if(*argv[0] == 'L') {
+    int motor_id = Shell::atoi(argv[0]);
+    if (motor_id < 0 || motor_id >= EngGrabMechBase::MOTOR_COUNT) {
+        shellUsage(chp, "invalid id");
+        return;
+    }
+    PIDParameter[motor_id] = NEW_Parameter;
+    if(*argv[0] == '3') {
         PIDParameter[0] = NEW_Parameter;
         engineerGrabSKD::load_v2i_pid_params(PIDParameter);
-    } else if (*argv[0] == 'R') {
+    } else if (*argv[0] == '4') {
         PIDParameter[1] = NEW_Parameter;
         engineerGrabSKD::load_v2i_pid_params(PIDParameter);
     } else {
