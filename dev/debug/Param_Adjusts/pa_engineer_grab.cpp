@@ -29,7 +29,7 @@ PIDController::pid_params_t PIDParameter[2] = {SHOOT_PID_BULLET_LOADER_V2I_PARAM
 static void cmd_set_pid(BaseSequentialStream *chp, int argc, char *argv[]) {
     (void) argv;
     if (argc != 6) {
-        shellUsage(chp, "set_pid MOTOR(LEFT/RIGHT) kp ki kd i_limit out_limit");
+        shellUsage(chp, "set_pid MOTOR(L/R) kp ki kd i_limit out_limit");
         return;
     }
     PIDController::pid_params_t NEW_Parameter = {Shell::atof(argv[1]), Shell::atof(argv[2]),
@@ -42,7 +42,7 @@ static void cmd_set_pid(BaseSequentialStream *chp, int argc, char *argv[]) {
         PIDParameter[1] = NEW_Parameter;
         engineerGrabSKD::load_v2i_pid_params(PIDParameter);
     } else {
-        shellUsage(chp, "set_pid MOTOR(LEFT/RIGHT) kp ki kd i_limit out_limit");
+        shellUsage(chp, "set_pid MOTOR(L/R) kp ki kd i_limit out_limit");
         return;
     }
     chprintf(chp, "pid_set!" SHELL_NEWLINE_STR);
@@ -78,12 +78,35 @@ static void cmd_lower(BaseSequentialStream *chp, int argc, char *argv[]) {
     engineerGrabSKD::invoke_lowering();
 }
 
+static void cmd_echo_pid_param(BaseSequentialStream *chp, int argc, char *argv[]) {
+    (void) argv;
+    if (argc != 0) {
+        shellUsage(chp, "echo_pid_param");
+        return;
+    }
+    Shell::printf("Left: kp %f ki %f kd %f i_limit %f out_limit %f" SHELL_NEWLINE_STR,
+                  PIDParameter[0].kp, PIDParameter[0].ki, PIDParameter[0].kd, PIDParameter[0].i_limit, PIDParameter[0].out_limit);
+    Shell::printf("Right: kp %f ki %f kd %f i_limit %f out_limit %f" SHELL_NEWLINE_STR,
+                  PIDParameter[1].kp, PIDParameter[1].ki, PIDParameter[1].kd, PIDParameter[1].i_limit, PIDParameter[1].out_limit);
+}
+
+static void cmd_echo_angle(BaseSequentialStream *chp, int argc, char *argv[]) {
+    (void) argv;
+    if (argc != 0) {
+        shellUsage(chp, "echo_angle");
+        return;
+    }
+    Shell::printf("Left: %f Right: %f" SHELL_NEWLINE_STR, EngGrabMechIF::feedback[EngGrabMechIF::GRABER_L]->accumulated_angle(), EngGrabMechIF::feedback[EngGrabMechIF::GRABER_R]->accumulated_angle());
+}
+
 // Shell commands to ...
 ShellCommand templateShellCommands[] = {
         {"set_pid", cmd_set_pid},
         {"echo_fb", cmd_echo_fb},
         {"rise",    cmd_rise},
         {"lower",   cmd_lower},
+        {"echo_pid_param", cmd_echo_pid_param},
+        {"echo_angle", cmd_echo_angle},
         {nullptr,    nullptr}
 };
 
