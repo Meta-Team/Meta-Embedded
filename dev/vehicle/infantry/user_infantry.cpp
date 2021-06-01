@@ -203,13 +203,15 @@ void UserI::UserThread::main() {
                     }
                 } else if (right_mouse_pressed) {  // up
                     if(Referee::power_heat_data.shooter_id1_17mm_cooling_heat <
-                       Referee::game_robot_state.shooter_id1_17mm_cooling_limit - 0x0015) {
+                        (uint16_t) (Referee::game_robot_state.shooter_id1_17mm_cooling_limit * 0.75)) {
                         if (ShootLG::get_shooter_state() == ShootLG::STOP) {
                             ShootLG::shoot(shoot_launch_right_count, shoot_launch_speed);
                         }
                     } else {
                         ShootLG::stop();
                     }
+                } else {
+                    ShootLG::stop();
                 }
                 // UserActionThread handles launching and status of friction wheels
 
@@ -331,7 +333,8 @@ void UserI::UserActionThread::main() {
             }
         } else {
             if (events & MOUSE_RELEASE_EVENTMASK) {
-                left_mouse_pressed = right_mouse_pressed = false;
+                left_mouse_pressed = false;
+                right_mouse_pressed = false;
             }
         }
 
