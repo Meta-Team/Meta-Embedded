@@ -18,11 +18,17 @@ using namespace chibios_rt;
 CANInterface can1(&CAND1);
 CANInterface can2(&CAND2);
 
-PIDController::pid_params_t PIDParameter[EngGrabMechBase::MOTOR_COUNT] = {SHOOT_PID_BULLET_LOADER_V2I_PARAMS,
-                                                                          SHOOT_PID_BULLET_LOADER_V2I_PARAMS,
-                                                                          SHOOT_PID_BULLET_LOADER_V2I_PARAMS,
-                                                                          SHOOT_PID_BULLET_LOADER_V2I_PARAMS,
-                                                                          SHOOT_PID_BULLET_LOADER_V2I_PARAMS};
+PIDController::pid_params_t a2vPIDParameter[EngGrabMechBase::MOTOR_COUNT] = {{0,0,0,0,0},
+                                                                             {0,0,0,0,0},
+                                                                             SHOOT_PID_BULLET_LOADER_A2V_PARAMS,
+                                                                             SHOOT_PID_BULLET_LOADER_A2V_PARAMS,
+                                                                             SHOOT_PID_BULLET_LOADER_A2V_PARAMS};
+
+PIDController::pid_params_t v2iPIDParameter[EngGrabMechBase::MOTOR_COUNT] = {SHOOT_PID_BULLET_LOADER_V2I_PARAMS,
+                                                                             SHOOT_PID_BULLET_LOADER_V2I_PARAMS,
+                                                                             {60, 2, 0, 12000, 12000},
+                                                                             SHOOT_PID_BULLET_LOADER_V2I_PARAMS,
+                                                                             SHOOT_PID_BULLET_LOADER_V2I_PARAMS};
 
 /**
  * @brief set enabled state of yaw and pitch motor
@@ -32,28 +38,25 @@ PIDController::pid_params_t PIDParameter[EngGrabMechBase::MOTOR_COUNT] = {SHOOT_
  */
 static void cmd_set_pid(BaseSequentialStream *chp, int argc, char *argv[]) {
     (void) argv;
-    if (argc != 6) {
-        shellUsage(chp, "set_pid MOTOR(0/1/2/3/4) kp ki kd i_limit out_limit");
+    if (argc != 7) {
+        shellUsage(chp, "set_pid MOTOR(0/1/2/3/4) is_a2v(0/1) kp ki kd i_limit out_limit");
         return;
     }
-    PIDController::pid_params_t NEW_Parameter = {Shell::atof(argv[1]), Shell::atof(argv[2]),
-                                                 Shell::atof(argv[3]),Shell::atof(argv[4]),
-                                                 Shell::atof(argv[5])};
+    PIDController::pid_params_t NEW_Parameter = {Shell::atof(argv[2]), Shell::atof(argv[3]),
+                                                 Shell::atof(argv[4]),Shell::atof(argv[5]),
+                                                 Shell::atof(argv[6])};
     int motor_id = Shell::atoi(argv[0]);
+    int is_a2v = Shell::atoi(argv[1]);
     if (motor_id < 0 || motor_id >= EngGrabMechBase::MOTOR_COUNT) {
         shellUsage(chp, "invalid id");
         return;
     }
-    PIDParameter[motor_id] = NEW_Parameter;
-    if(*argv[0] == '3') {
-        PIDParameter[0] = NEW_Parameter;
-        engineerGrabSKD::load_v2i_pid_params(PIDParameter);
-    } else if (*argv[0] == '4') {
-        PIDParameter[1] = NEW_Parameter;
-        engineerGrabSKD::load_v2i_pid_params(PIDParameter);
+    PIDController::pid_params_t *p = is_a2v ? a2vPIDParameter : v2iPIDParameter;
+    p[motor_id] = NEW_Parameter;
+    if (is_a2v) {
+        engineerGrabSKD::load_a2v_pid_params(p);
     } else {
-        shellUsage(chp, "set_pid MOTOR(L/R) kp ki kd i_limit out_limit");
-        return;
+        engineerGrabSKD::load_v2i_pid_params(p);
     }
     chprintf(chp, "pid_set!" SHELL_NEWLINE_STR);
 }
@@ -94,10 +97,14 @@ static void cmd_echo_pid_param(BaseSequentialStream *chp, int argc, char *argv[]
         shellUsage(chp, "echo_pid_param");
         return;
     }
-    Shell::printf("Left: kp %f ki %f kd %f i_limit %f out_limit %f" SHELL_NEWLINE_STR,
-                  PIDParameter[0].kp, PIDParameter[0].ki, PIDParameter[0].kd, PIDParameter[0].i_limit, PIDParameter[0].out_limit);
-    Shell::printf("Right: kp %f ki %f kd %f i_limit %f out_limit %f" SHELL_NEWLINE_STR,
-                  PIDParameter[1].kp, PIDParameter[1].ki, PIDParameter[1].kd, PIDParameter[1].i_limit, PIDParameter[1].out_limit);
+    for (int i = 0; i < EngGrabMechBase::MOTOR_COUNT; i++) {
+        Shell::printf("a2v: kp %f ki %f kd %f i_limit %f out_limit %f" SHELL_NEWLINE_STR,
+                      a2vPIDParameter[i].kp, a2vPIDParameter[i].ki, a2vPIDParameter[i].kd, a2vPIDParameter[i].i_limit, a2vPIDParameter[i].out_limit);
+    }
+    for (int i = 0; i < EngGrabMechBase::MOTOR_COUNT; i++) {
+        Shell::printf("v2i: kp %f ki %f kd %f i_limit %f out_limit %f" SHELL_NEWLINE_STR,
+                      v2iPIDParameter[i].kp, v2iPIDParameter[i].ki, v2iPIDParameter[i].kd, v2iPIDParameter[i].i_limit, v2iPIDParameter[i].out_limit);
+    }
 }
 
 static void cmd_echo_angle(BaseSequentialStream *chp, int argc, char *argv[]) {
@@ -106,7 +113,9 @@ static void cmd_echo_angle(BaseSequentialStream *chp, int argc, char *argv[]) {
         shellUsage(chp, "echo_angle");
         return;
     }
-    Shell::printf("Left: %f Right: %f" SHELL_NEWLINE_STR, EngGrabMechIF::feedback[EngGrabMechIF::GRABER_L]->accumulated_angle(), EngGrabMechIF::feedback[EngGrabMechIF::GRABER_R]->accumulated_angle());
+    for (int i = 0; i < EngGrabMechBase::MOTOR_COUNT; i++) {
+        Shell::printf("%f" SHELL_NEWLINE_STR, EngGrabMechIF::feedback[i]->accumulated_angle(), EngGrabMechIF::feedback[i]->accumulated_angle());
+    }
 }
 
 // Shell commands to ...
@@ -156,12 +165,12 @@ int main(void) {
                                                     engineerGrabSKD::install_direction::POSITIVE,
                                                     engineerGrabSKD::install_direction::NEGATIVE,
                                                     engineerGrabSKD::install_direction::POSITIVE};
-    PIDController::pid_params_t pidParams[4] = {SHOOT_PID_BULLET_LOADER_V2I_PARAMS, SHOOT_PID_BULLET_LOADER_V2I_PARAMS,
-                                                SHOOT_PID_BULLET_LOADER_V2I_PARAMS, SHOOT_PID_BULLET_LOADER_V2I_PARAMS};
-    PIDController::pid_params_t pidParams1[2] = {SHOOT_PID_BULLET_LOADER_A2V_PARAMS, SHOOT_PID_BULLET_LOADER_A2V_PARAMS};
+//    PIDController::pid_params_t pidParams[4] = {SHOOT_PID_BULLET_LOADER_V2I_PARAMS, SHOOT_PID_BULLET_LOADER_V2I_PARAMS,
+//                                                SHOOT_PID_BULLET_LOADER_V2I_PARAMS, SHOOT_PID_BULLET_LOADER_V2I_PARAMS};
+//    PIDController::pid_params_t pidParams1[2] = {SHOOT_PID_BULLET_LOADER_A2V_PARAMS, SHOOT_PID_BULLET_LOADER_A2V_PARAMS};
     engineerGrabSKD::start(NORMALPRIO+1, direct);
-    engineerGrabSKD::load_v2i_pid_params(pidParams);
-    engineerGrabSKD::load_a2v_pid_params(pidParams1);
+    engineerGrabSKD::load_v2i_pid_params(v2iPIDParameter);
+    engineerGrabSKD::load_a2v_pid_params(a2vPIDParameter);
 
 
 #if CH_CFG_NO_IDLE_THREAD // see chconf.h for what this #define means
