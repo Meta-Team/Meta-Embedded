@@ -82,6 +82,7 @@ public:
     static void load_pid_params(pid_params_t yaw_a2v_params, pid_params_t yaw_v2i_params,
                                 pid_params_t pitch_a2v_params, pid_params_t pitch_v2i_params);
 
+    static void load_pid_params_by_id(pid_params_t pid_params, bool is_yaw, bool is_a2v);
 
     /**
      * Set mode of this SKD
@@ -109,6 +110,7 @@ public:
      */
     static float get_target_angle(motor_id_t motor);
 
+    static float get_target_velocity(motor_id_t motor);
     /**
      * Set yaw restriction angles
      * @param yaw_min

@@ -106,6 +106,9 @@ int main() {
     InspectorI::startup_check_can();  // check no persistent CAN Error. Block for 100 ms
     LED::led_on(DEV_BOARD_LED_CAN);  // LED 2 on now
 
+    /// Start Feedback Thread
+    feedback_thread_start();
+
     /// Setup SuperCapacitor Port
     SuperCapacitor::init(&can2, THREAD_SUPERCAP_INIT_PRIO);
     /// Complete Period 1

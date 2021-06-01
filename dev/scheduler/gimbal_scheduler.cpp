@@ -76,6 +76,12 @@ void GimbalSKD::load_pid_params(pid_params_t yaw_a2v_params, pid_params_t yaw_v2
     v2i_pid[PITCH].change_parameters(pitch_v2i_params);
 }
 
+void GimbalSKD::load_pid_params_by_id(pid_params_t pid_params, bool is_yaw, bool is_a2v) {
+    PIDController * p = is_a2v ? a2v_pid : v2i_pid;
+    motor_id_t id = is_yaw ? YAW : PITCH;
+    p[id].change_parameters(pid_params);
+}
+
 void GimbalSKD::set_yaw_restriction(float yaw_min, float yaw_max, float restrict_velocity) {
     yaw_restrict_angle[0] = yaw_min;
     yaw_restrict_angle[1] = yaw_max;
@@ -97,6 +103,10 @@ void GimbalSKD::set_target_angle(float yaw_target_angle, float pitch_target_angl
 
 float GimbalSKD::get_target_angle(GimbalBase::motor_id_t motor) {
     return target_angle[motor];
+}
+
+float GimbalSKD::get_target_velocity(motor_id_t motor) {
+    return target_velocity[motor];
 }
 
 void GimbalSKD::SKDThread::main() {
