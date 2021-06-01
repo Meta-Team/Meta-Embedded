@@ -99,7 +99,8 @@ void InspectorI::startup_check_chassis_feedback() {
 void InspectorI::startup_check_gimbal_feedback() {
     time_msecs_t t = SYSTIME;
     while (WITHIN_RECENT_TIME(t, 20)) {
-        if(Referee::bullet_remaining.bullet_remaining_num_17mm > 0) {
+        // FIXME:
+        if(false) {
             if (not WITHIN_RECENT_TIME(GimbalIF::feedback[GimbalIF::FW_LEFT]->last_update_time, 5)) {
                 // No feedback in last 5 ms (normal 1 ms)
                 LOG_ERR("Startup - Gimbal FW_LEFT offline.");
@@ -144,7 +145,8 @@ bool InspectorI::remote_failure() {
 
 bool InspectorI::check_gimbal_failure() {
     bool ret = false;
-    if(Referee::bullet_remaining.bullet_remaining_num_17mm > 0) {
+    // FIXME:
+    if(false) {
         for (unsigned i = 0; i < 6; i++) {
             if (not WITHIN_RECENT_TIME(GimbalIF::feedback[i]->last_update_time, 250) &&
                                                 GimbalIF::feedback[i]->type != CANInterface::NONE_MOTOR) {
