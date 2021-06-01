@@ -110,6 +110,8 @@ private:
     friend void shoot_get_config(BaseSequentialStream *chp, int argc, char *argv[]);
     friend void shoot_set_config(BaseSequentialStream *chp, int argc, char *argv[]);
 
+    static bool left_mouse_pressed;
+    static bool right_mouse_pressed;
 };
 
 

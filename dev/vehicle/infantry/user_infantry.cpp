@@ -42,6 +42,9 @@ UserI::UserThread UserI::userThread;
 UserI::UserActionThread UserI::userActionThread;
 UserI::ClientDataSendingThread UserI::clientDataSendingThread;
 
+bool UserI::left_mouse_pressed = false;
+bool UserI::right_mouse_pressed = false;
+
 void UserI::start(tprio_t user_thd_prio, tprio_t user_action_thd_prio, tprio_t client_data_sending_thd_prio) {
     userThread.start(user_thd_prio);
     userActionThread.start(user_action_thd_prio);
@@ -189,7 +192,25 @@ void UserI::UserThread::main() {
             } else if (Remote::rc.s1 == Remote::S_DOWN) {
 
                 /// PC control mode
-
+                if (left_mouse_pressed) {  // down
+                    if(Referee::power_heat_data.shooter_id1_17mm_cooling_heat <
+                       (uint16_t) (Referee::game_robot_state.shooter_id1_17mm_cooling_limit * 0.75)) {
+                        if (ShootLG::get_shooter_state() == ShootLG::STOP) {
+                            ShootLG::shoot(shoot_launch_left_count, shoot_launch_speed);
+                        }
+                    } else {
+                        ShootLG::stop();
+                    }
+                } else if (right_mouse_pressed) {  // up
+                    if(Referee::power_heat_data.shooter_id1_17mm_cooling_heat <
+                       Referee::game_robot_state.shooter_id1_17mm_cooling_limit - 0x0015) {
+                        if (ShootLG::get_shooter_state() == ShootLG::STOP) {
+                            ShootLG::shoot(shoot_launch_right_count, shoot_launch_speed);
+                        }
+                    } else {
+                        ShootLG::stop();
+                    }
+                }
                 // UserActionThread handles launching and status of friction wheels
 
             } else {
@@ -304,13 +325,13 @@ void UserI::UserActionThread::main() {
                 ShootLG::set_friction_wheels(shoot_common_duty_cycle);
             }
             if (mouse_flag & (1U << Remote::MOUSE_LEFT)) {
-                ShootLG::shoot(shoot_launch_left_count, shoot_launch_speed);
+                left_mouse_pressed = true;
             } else if (mouse_flag & (1U << Remote::MOUSE_RIGHT)) {
-                ShootLG::shoot(shoot_launch_right_count, shoot_launch_speed);
+                right_mouse_pressed = true;
             }
         } else {
             if (events & MOUSE_RELEASE_EVENTMASK) {
-                ShootLG::stop();
+                left_mouse_pressed = right_mouse_pressed = false;
             }
         }
 
