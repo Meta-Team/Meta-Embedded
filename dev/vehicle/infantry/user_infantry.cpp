@@ -83,12 +83,11 @@ void UserI::UserThread::main() {
 
                 GimbalLG::set_action(GimbalLG::ABS_ANGLE_MODE);
 
-                static time_msecs_t last_one = VisionPort::last_update_time;
                 if (VisionPort::last_update_time != vision_last_apply_time) {
                     gimbal_yaw_target_angle_ = GimbalLG::get_accumulated_angle(GimbalBase::YAW) +
                             VisionPort::vision_data.yawDelta;
                     gimbal_pc_pitch_target_angle_ = GimbalLG::get_accumulated_angle(GimbalBase::PITCH) +
-                            VisionPort::vision_data.pitchDelta / 2;
+                            VisionPort::vision_data.pitchDelta;
                     vision_last_apply_time = VisionPort::last_update_time;
                 }
 
