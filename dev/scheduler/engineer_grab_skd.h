@@ -10,7 +10,7 @@
 #include "engineer_grab_mech_interface.h"
 #include "pid_controller.hpp"
 
-class engineerGrabSKD : public EngGrabMechBase, public PIDControllerBase {
+class EngineerGrabSKD : public EngGrabMechBase, public PIDControllerBase {
 public:
 
     enum mode_t{
@@ -47,11 +47,36 @@ public:
      * ***/
      static void set_belt_target_velocity(float targetVelocity_);
 
+     /**
+      * @brief Let the hand rotate to highest angle.
+      * @brief which could send the ore mine to the belt.
+      */
      static void invoke_rising();
 
+     /**
+      * @brief Let the hand rotate to lower angle.
+      * @brief which could grab the ore mine.
+      */
      static void invoke_lowering();
 
+     /**
+      * @brief Let the hand rotate down and then relax.
+      * @brief initial state. when it reached to its target angle, hand's current will be set to 0.
+      */
+     static void invoke_relaxing();
+
+     /**
+      * @brief Get the current status of grabber.
+      * @return Current state of grabber.
+      */
      static int echo_status();
+
+     /**
+      *
+      */
+     static void hold();
+
+     static void release();
 private:
 
     static float target_velocity[MOTOR_COUNT];
@@ -59,15 +84,7 @@ private:
     static PIDController a2vController[MOTOR_COUNT];
     static PIDController v2iController[MOTOR_COUNT];
 
-//    static float beltTargetVelocity;
-
-//    static float grabberTargetVelocity[2];
-
     static install_direction direction[MOTOR_COUNT];
-
-//    static PIDController v2iController[4]; // [0-1, belt, 2-3, grabber 2006]
-
-//    static PIDController a2vController[2]; // [0-1, grabber 2006].
 
     class SKDThread : public chibios_rt::BaseStaticThread<512> {
         void main() final;
@@ -77,12 +94,12 @@ private:
     static constexpr unsigned int SKD_THREAD_INTERVAL = 1;
 
     enum arm_status_t{
-        RISING,
-        RISE_IDLE,
-        RISED,
-        LOWERING,
-        LOWER_IDLE,
-        LOWERED
+        RISE_WAIT,
+        RAISED,
+        HORIZONTAL_WAIT,
+        HORIZONTALLED,
+        RELAX_WAIT,
+        RELAXED
     };
 
     static arm_status_t armStatus;
