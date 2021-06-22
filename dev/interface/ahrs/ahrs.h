@@ -75,6 +75,11 @@ public:
 
     AHRSOnBoard() : updateThread(*this) {};
 
+    /**
+     * Get whether AHRS has been calibrated.
+     */
+    bool AHRS_ready();
+
 private:
 
     Matrix33 installPos;
