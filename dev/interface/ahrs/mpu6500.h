@@ -68,6 +68,11 @@ public:
 
     MPUOnBoard() : updateThread(*this) {};
 
+    /**
+     * Whether MPU6500 is ready.
+     * */
+    bool MPU6500ready();
+
 private:
 
     Vector3D gyro_orig;   // raw (biased) data of gyro
@@ -89,11 +94,13 @@ private:
     const float TEMPERATURE_BIAS = 0.0f;
 
     // If changes in x, y, z of gyro is in this range MPU6500 is regarded as "static"
-    const float STATIC_RANGE = 0.2f;
+    const float STATIC_RANGE = 0.5f;
 
     const unsigned BIAS_SAMPLE_COUNT = 500;
     // When static_measurement_count reaches BIAS_SAMPLE_COUNT, calibration is performed.
     unsigned static_measurement_count;
+
+    bool MPU6500_startup_calibrated;
 
     time_msecs_t last_calibration_time = 0;
 
@@ -103,7 +110,7 @@ private:
     class UpdateThread : public chibios_rt::BaseStaticThread<512> {
     public:
         UpdateThread(MPUOnBoard& mpu_) : mpu(mpu_) {}
-
+        long int THREAD_START_TIME;
     private:
         static constexpr unsigned int THREAD_UPDATE_INTERVAL = 1;  // read interval 1ms (1kHz)
         MPUOnBoard& mpu;
@@ -169,6 +176,8 @@ private:
         dlpf_config_t _dlpf_config;
         acc_dlpf_config_t _acc_dlpf_config;
     } mpu6500_config_t;
+
+    static constexpr int mpu6500_start_up_time = 20000; // [ms]
 
     static constexpr mpu6500_config_t CONFIG = {MPU6500_GYRO_SCALE_1000,  // Gyro full scale 1000 dps (degree per second)
                                      MPU6500_ACCEL_SCALE_2G,  // Accel full scale 8g

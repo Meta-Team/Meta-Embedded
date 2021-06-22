@@ -121,7 +121,9 @@ int main() {
         LOG_WARN("Use default AHRS bias");
     }
     ahrs.start(ON_BOARD_AHRS_MATRIX_, THREAD_MPU_PRIO, THREAD_IST_PRIO, THREAD_AHRS_PRIO);
-    chThdSleepMilliseconds(5);
+    while(!ahrs.AHRS_ready()) {
+        chThdSleepMilliseconds(5);
+    }
     InspectorI::startup_check_mpu();  // check MPU6500 has signal. Block for 20 ms
     InspectorI::startup_check_ist();  // check IST8310 has signal. Block for 20 ms
     LED::led_on(DEV_BOARD_LED_AHRS);  // LED 3 on now

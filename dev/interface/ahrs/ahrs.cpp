@@ -34,6 +34,10 @@ void AHRSOnBoard::fetch_data() {
     mag_ = ISTOnBoard::get_magnet();
 }
 
+bool AHRSOnBoard::AHRS_ready() {
+    return MPU6500ready();
+}
+
 void AHRSOnBoard::update() {
     fetch_data();
     ::AHRS_update(q, 0.001f, (const fp32 *) &gyro_, (const fp32 *) &accel_, (const fp32 *) &mag_);

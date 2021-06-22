@@ -86,6 +86,10 @@ CANInterface::cap_feedback_t *CANInterface::get_cap_feedback_address() {
     return &processFeedbackThread.capfeedback;
 }
 
+float *CANInterface::get_lidar_feedback_address() {
+    return &processFeedbackThread.lidar_dist;
+}
+
 void CANInterface::ProcessFeedbackThread::main() {
     /**
      * Note that there are two can instances defined in the main function at the very first beginning,
@@ -120,7 +124,7 @@ void CANInterface::ProcessFeedbackThread::main() {
         while (canReceive(can_driver, CAN_ANY_MAILBOX, &rxmsg, TIME_IMMEDIATE) == MSG_OK) {
 
             //pointer fb points to the corresponding motor feedback structure defined in the processFeedbackThread
-            if(rxmsg.SID != 0x211) {
+            if(rxmsg.SID != 0x211 && rxmsg.SID != 0x003) {
                 uint16_t new_actual_angle_raw = (rxmsg.data8[0] << 8 | rxmsg.data8[1]);
 
                 // Check whether this new raw angle is valid
@@ -230,11 +234,13 @@ void CANInterface::ProcessFeedbackThread::main() {
                 }
 
                 fb->last_update_time = SYSTIME;
-            } else {
+            } else if (rxmsg.SID == 0x211){
                 capfeedback.input_voltage = rxmsg.data16[0] / 100.0f;
                 capfeedback.capacitor_voltage = rxmsg.data16[1] / 100.0f;
                 capfeedback.input_current = rxmsg.data16[2] / 100.0f;
                 capfeedback.output_power = rxmsg.data16[3] / 100.0f;
+            } else if (rxmsg.SID == 0x003) {
+                lidar_dist = (float) (rxmsg.data8[1] << 8 | rxmsg.data8[0]);
             }
         }
     }

@@ -91,6 +91,10 @@ void MPUOnBoard::load_calibration_data(Vector3D gyro_bias_) {
     last_calibration_time = SYSTIME;
 }
 
+bool MPUOnBoard::MPU6500ready() {
+    return MPU6500_startup_calibrated;
+}
+
 void MPUOnBoard::update() {
 
     // Fetch data from SPI
@@ -118,20 +122,14 @@ void MPUOnBoard::update() {
 
     /// Gyro Calibration sampling
 
-    if (ABS_IN_RANGE(new_gyro_orig.x - gyro_orig.x, STATIC_RANGE) &&
+    if ((ABS_IN_RANGE(new_gyro_orig.x - gyro_orig.x, STATIC_RANGE) &&
         ABS_IN_RANGE(new_gyro_orig.y - gyro_orig.y, STATIC_RANGE) &&
-        ABS_IN_RANGE(new_gyro_orig.z - gyro_orig.z, STATIC_RANGE)) {  // MPU6500 static
+        ABS_IN_RANGE(new_gyro_orig.z - gyro_orig.z, STATIC_RANGE))&&
+            !MPU6500_startup_calibrated ){  // MPU6500 static
         static_measurement_count++;
         temp_gyro_bias = temp_gyro_bias - new_gyro_orig;
 #if MPU6500_ENABLE_ACCEL_BIAS
         temp_accel_bias = temp_accel_bias + accel;
-#endif
-    } else {  // MPU6500 moves
-//        LED::led_toggle(8);
-        static_measurement_count = 0;
-        temp_gyro_bias = Vector3D(0, 0, 0);
-#if MPU6500_ENABLE_ACCEL_BIAS
-        temp_accel_bias = Vector3D(0, 0, 0);
 #endif
     }
 
@@ -152,9 +150,10 @@ void MPUOnBoard::update() {
 
     /// Perform gyro re-bias
 
-    if (static_measurement_count >= BIAS_SAMPLE_COUNT) {
+    if (!MPU6500_startup_calibrated && (static_measurement_count >= BIAS_SAMPLE_COUNT) && (SYSTIME - updateThread.THREAD_START_TIME > mpu6500_start_up_time)) {
 //        LED::led_toggle(7);
-        gyro_bias = temp_gyro_bias / BIAS_SAMPLE_COUNT;
+        MPU6500_startup_calibrated = true;
+        gyro_bias = temp_gyro_bias / static_measurement_count;
 #if MPU6500_ENABLE_ACCEL_BIAS
         if (last_calibration_time == 0) {
                 // Only calibrate accel for ones
@@ -185,6 +184,8 @@ void MPUOnBoard::update() {
 
 void MPUOnBoard::UpdateThread::main() {
     setName("MPU6500");
+    THREAD_START_TIME = SYSTIME;
+    mpu.MPU6500_startup_calibrated = false;
     while (!shouldTerminate()) {
         mpu.update();
         sleep(TIME_MS2I(THREAD_UPDATE_INTERVAL));
