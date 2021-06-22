@@ -27,17 +27,23 @@ Referee::aerial_robot_energy_t Referee::aerial_robot_energy;
 Referee::robot_hurt_t Referee::robot_hurt;
 Referee::shoot_data_t Referee::shoot_data;
 Referee::bullet_remaining_t Referee::bullet_remaining;
-Referee::aerial_to_sentry_t Referee::sentry_guiding_direction_r;
 Referee::dart_client_t Referee::dart_client;
 
 Referee::client_custom_data_t Referee::client_custom_data;
 Referee::robot_interactive_data_t Referee::robot_data_send;
-Referee::aerial_to_sentry_t Referee::sentry_guiding_direction_s;
 
 bool Referee::to_send_client = false;
-bool Referee::to_send_aerial_to_sentry = false;
+bool Referee::invoke_ui_delete_all = false;
+bool Referee::invoke_ui_delete_layer = false;
+uint32_t Referee::layer_deleting = 0;
 
 Referee::DataSendingThread Referee::dataSendingThread;
+
+Referee::graphic_data_struct_t Referee::graphic_data_buffer[7];
+int Referee::graphic_buffer_index = 0;
+
+Referee::ext_client_custom_character_t Referee::client_character_buffer;
+bool Referee::client_character_sent;
 
 #if REFEREE_USE_EVENTS
 // See macro EVENTSOURCE_DECL() for initialization style
@@ -115,8 +121,7 @@ void Referee::uart_rx_callback(UARTDriver *uartp) {
                             game_robot_state = pak.game_robot_state_;
                             int robot_id = game_robot_state.robot_id;
                             client_custom_data.header.send_ID = robot_id;
-                            client_custom_data.header.receiver_ID = 0x0100 + (robot_id / 10 * 16) + (robot_id % 10);
-                            client_custom_data.header.data_cmd_id = 0xD180;
+                            client_custom_data.header.receiver_ID = (robot_id%100) + (robot_id / 100) * 0x164;
                             robot_data_send.header.send_ID = robot_id;
                         } else game_robot_state = pak.game_robot_state_;
                         break;
@@ -207,97 +212,123 @@ void Referee::uart_rx_callback(UARTDriver *uartp) {
 
 }
 
-bool Referee::request_to_send(Referee::receiver_index_t receiver_id, Referee::interactive_cmd_id_t data_cmd_id) {
-    if (receiver_id == CLIENT) {
-        to_send_client = true;
-    } else {
-        switch (data_cmd_id){
-            case AERIAL_TO_SENTRY:
-                to_send_aerial_to_sentry = true;
-                break;
-            default:
-                return false;
-        }
-    }
-    return true;
-}
-
 void Referee::DataSendingThread::main() {
     setName("RefereeSend");
+    graphic_data_struct_t null_graphic;
+    char null_name[] = "N/A";
+    null_graphic.graphic_name[0] = (uint8_t) null_name[0];
+    null_graphic.graphic_name[1] = (uint8_t) null_name[1];
+    null_graphic.graphic_name[2] = (uint8_t) null_name[2];
+    null_graphic.operate_tpye = 3;
     while (!shouldTerminate()) {
-
-        // The following order indicates priority of message
-
-        if (to_send_aerial_to_sentry) {
-            send_data_(SENTRY_EMB, AERIAL_TO_SENTRY);
-            to_send_aerial_to_sentry = false;
-        } else if (to_send_client) {
-            send_data_(CLIENT);
-            to_send_client = false;
+        /***Update UI Info***/
+        if(graphic_buffer_index != 0){
+            if(graphic_buffer_index == 1) { // 1 buffer used
+                client_custom_data.header.data_cmd_id = 0x101;
+                client_custom_data.ext_client_custom_graphic_single.grapic_data_ = graphic_data_buffer[0];
+            } else if (graphic_buffer_index < 3) { // 2 buffer used
+                client_custom_data.header.data_cmd_id = 0x102;
+                client_custom_data.ext_client_custom_graphic_double.grapic_data_[0] = graphic_data_buffer[0];
+                client_custom_data.ext_client_custom_graphic_double.grapic_data_[1] = graphic_data_buffer[1];
+            } else if (graphic_buffer_index < 6) { // 3 - 5 buffer used
+                client_custom_data.header.data_cmd_id = 0x103;
+                int i = 0;
+                for (i = 0; i < graphic_buffer_index; i++) {
+                    client_custom_data.ext_client_custom_graphic_five.grapic_data_[i] = graphic_data_buffer[i];
+                }
+                // zero padding
+                for (;i < 5; i++) {
+                    client_custom_data.ext_client_custom_graphic_seven.grapic_data_[i] = null_graphic;
+                }
+            } else if (graphic_buffer_index < 8) { // 6 - 7 buffer full filled
+                client_custom_data.header.data_cmd_id = 0x104;
+                int i = 0;
+                for (i = 0; i < graphic_buffer_index; i++) {
+                    client_custom_data.ext_client_custom_graphic_seven.grapic_data_[i] = graphic_data_buffer[i];
+                }
+                // zero padding
+                for (;i < 7; i++) {
+                    client_custom_data.ext_client_custom_graphic_seven.grapic_data_[i] = null_graphic;
+                }
+            }
+            graphic_buffer_index = 0; // clear the buffer index
+            send_data_(Referee::CLIENT);
+            sleep(TIME_MS2I(100)); // wait for 100ms, as the maximum sending interval is 10 Hz
         }
-
+        if(!client_character_sent) {
+            client_custom_data.header.data_cmd_id = 0x110;
+            client_custom_data.ext_client_custom_character = client_character_buffer;
+            client_character_sent = true;
+            send_data_(Referee::CLIENT);
+            sleep(TIME_MS2I(100));
+        }
+        if(invoke_ui_delete_layer) {
+            client_custom_data.header.data_cmd_id = 0x100;
+            client_custom_data.ext_client_custom_graphic_delete.operate_tpye = 1;
+            client_custom_data.ext_client_custom_graphic_delete.layer = layer_deleting;
+            send_data_(Referee::CLIENT);
+            invoke_ui_delete_layer = false;
+            sleep(TIME_MS2I(100));
+        }
+        if(invoke_ui_delete_all) {
+            client_custom_data.header.data_cmd_id = 0x100;
+            client_custom_data.ext_client_custom_graphic_delete.operate_tpye = 2;
+            client_custom_data.ext_client_custom_graphic_delete.layer = 0;
+        }
         sleep(TIME_MS2I(100));  // maximum sending interval 10 Hz
     }
 }
 
-void Referee::send_data_(receiver_index_t receiver_id, interactive_cmd_id_t data_cmd_id) {
+void Referee::send_data_(receiver_index_t receiver_id) {
     if (game_robot_state.robot_id == 0)
         return;
     package_t tx_pak;
     tx_pak.header.sof = 0xA5;
     if (receiver_id == CLIENT) {
         tx_pak.header.data_length = sizeof(client_custom_data_t);
-    } else {
-        switch (data_cmd_id){
-            case AERIAL_TO_SENTRY:
-                tx_pak.header.data_length = sizeof(student_interactive_header_data_t) + sizeof(aerial_to_sentry_t);
-                break;
-            case NOTHING:
-            default:
-                return;
-        }
     }
     tx_pak.header.seq = tx_seq++;
     Append_CRC8_Check_Sum((uint8_t *)&tx_pak, FRAME_HEADER_SIZE);
-
     tx_pak.cmd_id = 0x0301;
 
     size_t tx_pak_size = 0;
     if (receiver_id == CLIENT){
         tx_pak.client_custom_data_ = client_custom_data;
         tx_pak_size = FRAME_HEADER_SIZE + CMD_ID_SIZE + sizeof(client_custom_data_t) + FRAME_TAIL_SIZE;
-    } else{
-        robot_data_send.header.receiver_ID = (game_robot_state.robot_id / 10) * 10 + receiver_id;
-        robot_data_send.header.data_cmd_id = data_cmd_id;
-
-        if (data_cmd_id == AERIAL_TO_SENTRY){
-            tx_pak.robot_interactive_data_.aerial_to_sentry_ = sentry_guiding_direction_s;
-            tx_pak_size = FRAME_HEADER_SIZE + CMD_ID_SIZE + sizeof(student_interactive_header_data_t) + sizeof(aerial_to_sentry_t) + FRAME_TAIL_SIZE;
-        }
     }
     Append_CRC16_Check_Sum((uint8_t *)&tx_pak, tx_pak_size);
     uartSendTimeout(UART_DRIVER, &tx_pak_size, &tx_pak, TIME_MS2I(20));
 }
 
-void Referee::set_client_number(unsigned index, float data) {
-    if (index == 1) {
-        client_custom_data.data1 = data;
-    } else if (index == 2) {
-        client_custom_data.data2 = data;
-    } else if (index == 3) {
-        client_custom_data.data3 = data;
-    } else return;
-}
-
-void Referee::set_client_light(unsigned signal_light, bool turn_on) {
-    if (signal_light >= 6)
-        return;
-    uint8_t picker = (1U) << signal_light;
-    if (turn_on){
-        client_custom_data.masks |= picker;
-    } else{
-        picker = ~picker;
-        client_custom_data.masks &= picker;
+bool Referee::set_graphic(graphic_data_struct_t graphData) {
+    if (graphic_buffer_index < 7) {
+        graphic_data_buffer[graphic_buffer_index] = graphData;
+        graphic_buffer_index ++;
+        return true;
+    } else {
+        return false;
     }
 }
 
+bool Referee::set_title(ext_client_custom_character_t characterData) {
+    if(client_character_sent) {
+        client_character_sent = false;
+        client_character_buffer = characterData;
+        return true;
+    } else {
+        return false;
+    }
+}
+
+void Referee::remove_all() {
+    graphic_buffer_index = 0;
+    client_character_sent = true;
+    invoke_ui_delete_all = true;
+}
+
+void Referee::remove_layer(uint32_t layer) {
+    graphic_buffer_index = 0;
+    if(client_character_buffer.grapic_data_struct.layer == layer) client_character_sent = true;
+    invoke_ui_delete_layer = true;
+    layer_deleting = layer;
+}

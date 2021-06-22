@@ -44,15 +44,6 @@ public:
         SENTRY_EMB = 7
     };
 
-    enum signal_light_t {
-        SIGNAL_0 = 0,
-        SIGNAL_1 = 1,
-        SIGNAL_2 = 2,
-        SIGNAL_3 = 3,
-        SIGNAL_4 = 4,
-        SIGNAL_5 = 5
-    };
-
     static constexpr uint16_t GAME_STATE_CMD_ID = 0x0001;
     __PACKED_STRUCT game_state_t {
         uint8_t game_type : 4;
@@ -221,23 +212,7 @@ public:
         uint16_t operate_launch_cmd_time;
     };
 
-    /** Robot Interactive **/
-
-    /**
-     * data_cmd_id table:
-     * ---------------------------------------------------------------------------------------------------------------------
-     * CMD          Sender          Receiver            Description             Data
-     * ---------------------------------------------------------------------------------------------------------------------
-     *  0x0210      Sentry          Hero & Standards    Base Alarm              0: Alarm free; otherwise: Alarm triggered
-     *  0x0211      Hero/Standards  Engineer            Robot Die               The position of the dead robot
-     *  0x0212      Aerial          Sentry              Attack Instruction      The guide of Sentry gimbal movement
-     * ---------------------------------------------------------------------------------------------------------------------
-     */
-
-    enum interactive_cmd_id_t{
-        NOTHING = 0,
-        AERIAL_TO_SENTRY = 0x0212
-    };
+    /**Graphic Settings*/
 
     static const uint16_t INTERACTIVE_DATA_CMD_ID = 0x0301;
 
@@ -247,12 +222,58 @@ public:
         uint16_t receiver_ID;
     };
 
+    __PACKED_STRUCT ext_client_custom_graphic_delete_t {
+        uint8_t operate_tpye;
+        uint8_t layer;
+    };
+
+    __PACKED_STRUCT graphic_data_struct_t {
+        uint8_t graphic_name[3];
+        uint32_t operate_tpye:3;
+        uint32_t graphic_tpye:3;
+        uint32_t layer:4;
+        uint32_t color:4;
+        uint32_t start_angle:9;
+        uint32_t end_angle:9;
+        uint32_t width:10;
+        uint32_t start_x:11;
+        uint32_t start_y:11;
+        uint32_t radius:10;
+        uint32_t end_x:11;
+        uint32_t end_y:11;
+    };
+
+    __PACKED_STRUCT ext_client_custom_graphic_single_t {
+        graphic_data_struct_t grapic_data_;
+    };
+
+    __PACKED_STRUCT ext_client_custom_graphic_double_t {
+        graphic_data_struct_t grapic_data_[2];
+    };
+
+    __PACKED_STRUCT ext_client_custom_graphic_five_t {
+        graphic_data_struct_t grapic_data_[5];
+    };
+
+    __PACKED_STRUCT ext_client_custom_graphic_seven_t {
+        graphic_data_struct_t grapic_data_[7];
+    };
+
+    __PACKED_STRUCT ext_client_custom_character_t {
+        graphic_data_struct_t grapic_data_struct;
+        uint8_t data[30];
+    };
+
     __PACKED_STRUCT client_custom_data_t {
         student_interactive_header_data_t header;
-        float data1;
-        float data2;
-        float data3;
-        uint8_t masks;
+        union{
+            ext_client_custom_graphic_delete_t ext_client_custom_graphic_delete;
+            ext_client_custom_graphic_single_t ext_client_custom_graphic_single;
+            ext_client_custom_graphic_double_t ext_client_custom_graphic_double;
+            ext_client_custom_graphic_five_t ext_client_custom_graphic_five;
+            ext_client_custom_graphic_seven_t ext_client_custom_graphic_seven;
+            ext_client_custom_character_t ext_client_custom_character;
+        };
     };
 
     __PACKED_STRUCT aerial_to_sentry_t{
@@ -287,12 +308,8 @@ public:
     static bullet_remaining_t bullet_remaining;
     static dart_client_t dart_client;
 
-    /** Interactive Data **/
-    static aerial_to_sentry_t sentry_guiding_direction_r;
-
     /*** Send Data ***/
     static robot_interactive_data_t robot_data_send;
-    static aerial_to_sentry_t sentry_guiding_direction_s;
 
     /**
      * Start referee interface
@@ -305,28 +322,13 @@ public:
      */
     static uint8_t get_self_id();
 
-    /**
-     * Set float numbers to be sent to client
-     * @param index   Index of float number, 1-3
-     * @param data    Number to be sent
-     */
-    static void set_client_number(unsigned index, float data);
+    static bool set_graphic(graphic_data_struct_t graphData);
 
-    /**
-     * Set signal lights status to be sent to client
-     * @param signal_light   Index of signal lights, 0-5
-     * @param turn_on        Status of signal lights
-     */
-    static void set_client_light(unsigned signal_light, bool turn_on);
+    static bool set_title(ext_client_custom_character_t characterData);
 
-    /**
-     * Request to send data
-     * @param receiver_id   CLIENT or robot ID
-     * @param data_cmd_id   Command ID in data section, only available when sending data to other robots
-     * @return   Whether the request is valid
-     */
-    static bool request_to_send(receiver_index_t receiver_id, interactive_cmd_id_t data_cmd_id = NOTHING);
+    static void remove_all();
 
+    static void remove_layer(uint32_t layer);
 
 #if REFEREE_USE_EVENTS
 
@@ -346,10 +348,9 @@ private:
      * @param receiver_id   CLIENT or robot ID
      * @param data_cmd_id   Command ID in data section, only available when sending data to other robots
      */
-    static void send_data_(receiver_index_t receiver_id, interactive_cmd_id_t data_cmd_id = NOTHING);
+    static void send_data_(receiver_index_t receiver_id);
 
     static bool to_send_client;
-    static bool to_send_aerial_to_sentry;
 
     class DataSendingThread : public chibios_rt::BaseStaticThread<512> {
         void main() final;
@@ -395,8 +396,8 @@ private:
             shoot_data_t shoot_data_;
             bullet_remaining_t bullet_remaining_;
             dart_client_t dart_client_;
-            robot_interactive_data_t robot_interactive_data_;
 
+            robot_interactive_data_t robot_interactive_data_;
             client_custom_data_t client_custom_data_;
         };
         uint16_t tail;
@@ -416,6 +417,16 @@ private:
     // See cpp file for configs
     static constexpr UARTDriver *UART_DRIVER = &UARTD7;
     static const UARTConfig UART_CONFIG;
+
+    static int graphic_buffer_index;
+    static graphic_data_struct_t graphic_data_buffer[7];
+    static bool client_character_sent;
+    static ext_client_custom_character_t client_character_buffer;
+
+    static bool invoke_ui_delete_all;
+    static bool invoke_ui_delete_layer;
+
+    static uint32_t layer_deleting;
 };
 
 
