@@ -92,9 +92,10 @@ void ChassisLG::apply_target() {
 void ChassisLG::DodgeModeSwitchThread::main() {
 
     setName("Chassis_Dodge");
-
+    float doge = 0;
+    float doge_rate = 0;
     while(!shouldTerminate()) {
-
+        doge += 3.14/3.3;
         chSysLock();  /// --- ENTER S-Locked state. DO NOT use LOG, printf, non S/I-Class functions or return ---
         if (action != DODGE_MODE) {
             started = false;
@@ -102,11 +103,13 @@ void ChassisLG::DodgeModeSwitchThread::main() {
         }
         chSysUnlock();  /// --- EXIT S-Locked state ---
         if(SuperCapacitor::feedback->capacitor_voltage != 0) {
+            doge_rate = sin(doge) + 1;
             float voltage_decrement = 20 - SuperCapacitor::feedback->capacitor_voltage;
-            target_omega = (dodge_omega_power_pid.calc(voltage_decrement, 2.0f));
+            target_omega = (dodge_omega_power_pid.calc(voltage_decrement, doge_rate));
             VAL_CROP(target_omega, 720.0f, 0.0f);
         } else {
-            target_omega = (dodge_omega_power_pid.calc((float)Referee::power_heat_data.chassis_power, (float)Referee::game_robot_state.chassis_power_limit));
+            target_omega = 360;
+            ///target_omega = (dodge_omega_power_pid.calc((float)Referee::power_heat_data.chassis_power, (float)Referee::game_robot_state.chassis_power_limit));
             VAL_CROP(target_omega, 720.0f, 0.0f);
         }
         /**
@@ -127,7 +130,14 @@ void ChassisLG::DodgeModeSwitchThread::main() {
 void ChassisLG::CapacitorPowerSetThread::main() {
     setName("CapSetThread");
     while (!shouldTerminate()) {
-        SuperCapacitor::set_power((float)Referee::game_robot_state.chassis_power_limit * 0.9f);
+
+        if((float)Referee::power_heat_data.chassis_power_buffer - Referee::power_heat_data.chassis_power*0.1 > 5.0){
+            SuperCapacitor::set_power(95.0);
+        }
+        else{
+            SuperCapacitor::set_power((float)Referee::game_robot_state.chassis_power_limit * 0.9f);
+        }
+
         sleep(TIME_MS2I(CAP_POWER_SET_INTERVAL));
     }
 }

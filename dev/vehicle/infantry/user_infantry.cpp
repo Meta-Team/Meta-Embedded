@@ -14,24 +14,29 @@ float UserI::gimbal_pitch_min_angle = -30; // down range for pitch [degree]
 float UserI::gimbal_pitch_max_angle = 10; //  up range for pitch [degree]
 
 /// Chassis Config
+float UserI::Basepower = 40.0f;
+float UserI::Base_V_forword = 1500.0f;
 float UserI::chassis_v_left_right = 500.0f;  // [mm/s]
-float UserI::chassis_v_forward = 1000.0f;     // [mm/s]
-float UserI::chassis_v_backward = 1000.0f;    // [mm/s]
+float UserI::chassis_v_forward = 1500.0f;     // [mm/s]
+float UserI::chassis_v_backward = 1500.0f;    // [mm/s]
 
 float UserI::chassis_pc_shift_ratio = 1.5f;  // 150% when Shift is pressed
-float UserI::chassis_pc_ctrl_ratio = 0.5;    // 50% when Ctrl is pressed
+float UserI::chassis_pc_ctrl_ratio = 0.5f;    // 50% when Ctrl is pressed
 
 Remote::key_t UserI::chassis_dodge_switch = Remote::KEY_X;
+
 
 /// Shoot Config
 float UserI::shoot_launch_left_count = 999;
 float UserI::shoot_launch_right_count = 5;
 
-float UserI::shoot_launch_speed = 10.0f;   //Feed rate
-
+float UserI::shoot_launch_speed = 4.0f;   //Feed rate
 float UserI::shoot_common_duty_cycle = 0.40;   //Init speed
 
+UserI::shoot_mode_type UserI::shoot_mode = burst;
+
 Remote::key_t UserI::shoot_fw_switch = Remote::KEY_Z;
+
 
 
 /// Variables
@@ -191,6 +196,89 @@ void UserI::UserThread::main() {
             } else if (Remote::rc.s1 == Remote::S_DOWN) {
 
                 /// PC control mode
+
+                /// Read shoot limit
+
+                if(Referee::game_robot_state.shooter_id1_17mm_cooling_rate >= 40){
+                    shoot_launch_speed = Referee::game_robot_state.shooter_id1_17mm_cooling_rate/10*1.25;
+                }
+                else{
+                    shoot_launch_speed = Referee::game_robot_state.shooter_id1_17mm_cooling_limit/25;
+                }
+
+                /// Control
+
+                    ///switch shoot mode
+
+
+                if (Remote::key.c){
+                    if (shoot_mode == burst){
+                        shoot_mode = single;
+                    }
+                    else if (shoot_mode == single){
+                        shoot_mode = triple;
+                    }
+                    else{
+                        shoot_mode = burst;
+                    }
+                }
+
+                /*switch (shoot_mode) {
+                    case burst:
+                        if (left_mouse_pressed) {  // down
+                            if (Referee::power_heat_data.shooter_id1_17mm_cooling_heat <
+                                (uint16_t) (Referee::game_robot_state.shooter_id1_17mm_cooling_limit * 0.75)) {
+                                if (ShootLG::get_shooter_state() == ShootLG::STOP) {
+                                    ShootLG::shoot(shoot_launch_left_count, shoot_launch_speed);
+                                }
+                            } else {
+                                ShootLG::stop();
+                            }
+                        }
+                            break;
+
+                    case single:
+                        if (left_mouse_pressed) {  // down
+                            if (Referee::power_heat_data.shooter_id1_17mm_cooling_heat <
+                                (uint16_t) (Referee::game_robot_state.shooter_id1_17mm_cooling_limit * 0.75)) {
+                                if (ShootLG::get_shooter_state() == ShootLG::STOP) {
+                                    ShootLG::shoot(1, shoot_launch_speed);
+                                }
+                            } else {
+                                ShootLG::stop();
+                            }
+                        }
+                            break;
+
+                    case triple:
+                        if (left_mouse_pressed) {  // down
+                            if (Referee::power_heat_data.shooter_id1_17mm_cooling_heat <
+                                (uint16_t) (Referee::game_robot_state.shooter_id1_17mm_cooling_limit * 0.75)) {
+                                if (ShootLG::get_shooter_state() == ShootLG::STOP) {
+                                    ShootLG::shoot(shoot_launch_right_count, shoot_launch_speed);
+                                }
+                            } else {
+                                ShootLG::stop();
+                            }
+                        }
+                            break;
+
+                            default:
+                                if (left_mouse_pressed) {  // down
+                                    if (Referee::power_heat_data.shooter_id1_17mm_cooling_heat <
+                                        (uint16_t) (Referee::game_robot_state.shooter_id1_17mm_cooling_limit * 0.75)) {
+                                        if (ShootLG::get_shooter_state() == ShootLG::STOP) {
+                                            ShootLG::shoot(shoot_launch_left_count, shoot_launch_speed);
+                                        }
+                                    } else {
+                                        ShootLG::stop();
+                                    }
+                                }
+                                    break;
+
+                }*/
+
+
                 if (left_mouse_pressed) {  // down
                     if(Referee::power_heat_data.shooter_id1_17mm_cooling_heat <
                        (uint16_t) (Referee::game_robot_state.shooter_id1_17mm_cooling_limit * 0.75)) {
@@ -209,7 +297,12 @@ void UserI::UserThread::main() {
                     } else {
                         ShootLG::stop();
                     }
-                } else {
+                } else if (Remote::key.r){
+                    if (ShootLG::get_shooter_state() == ShootLG::STOP) {
+                        ShootLG::shoot(-1, shoot_launch_speed);
+                        ShootLG::shoot(1, shoot_launch_speed);
+                    }
+                }else {
                     ShootLG::stop();
                 }
                 // UserActionThread handles launching and status of friction wheels
@@ -255,6 +348,12 @@ void UserI::UserThread::main() {
             } else if (Remote::rc.s1 == Remote::S_DOWN) {
 
                 /// PC control mode
+
+                /// Read current level information
+                chassis_v_forward = Referee::game_robot_state.chassis_power_limit*0.9/Basepower*Base_V_forword;
+                chassis_v_backward = chassis_v_forward;
+
+                /// Control
 
                 if (ChassisLG::get_action() == ChassisLG::FORCED_RELAX_MODE) {
                     // Enter PC Mode from other mode, re-enable ChassisLG

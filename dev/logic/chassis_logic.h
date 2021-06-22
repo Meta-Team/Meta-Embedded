@@ -14,6 +14,7 @@
 #define META_INFANTRY_CHASSIS_LOGIC_H
 
 #include "ch.hpp"
+#include "math.h"
 
 #include "referee_interface.h"
 #include "super_capacitor_port.h"
@@ -105,7 +106,7 @@ private:
     class CapacitorPowerSetThread : public chibios_rt::BaseStaticThread<512> {
     public:
     private:
-        static constexpr unsigned CAP_POWER_SET_INTERVAL = 500; //[ms]
+        static constexpr unsigned CAP_POWER_SET_INTERVAL = 100; //[ms]
         void main() final;
     };
 
