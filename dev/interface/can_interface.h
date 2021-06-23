@@ -191,6 +191,10 @@ public:
      */
     cap_feedback_t *get_cap_feedback_address();
 
+    /**
+     * Get the address of lidar feedback.
+     */
+    float *get_lidar_feedback_address();
 private:
 
     CANDriver *can_driver;
@@ -250,7 +254,7 @@ private:
 
         motor_feedback_t feedback[MAXIMUM_MOTOR_COUNT + 1];
         cap_feedback_t capfeedback;
-
+        float lidar_dist;
     private:
         void main() final;
     };

@@ -104,6 +104,16 @@ static void cmd_echo_current(BaseSequentialStream *chp, int argc, char *argv[]) 
     chprintf(chp, "echoed!" SHELL_NEWLINE_STR);
 }
 
+static void cmd_echo_dist(BaseSequentialStream *chp, int argc, char *argv[]) {
+    (void) argv;
+    if (argc != 0) {
+        shellUsage(chp, "dist");
+        return;
+    }
+    Shell::printf("%f" SHELL_NEWLINE_STR, *can2.get_lidar_feedback_address());
+    chprintf(chp, "echoed!" SHELL_NEWLINE_STR);
+}
+
 // Shell commands to ...
 ShellCommand templateShellCommands[] = {
         {"set", cmd_set_motor_type},
@@ -111,6 +121,7 @@ ShellCommand templateShellCommands[] = {
         {"type", cmd_echo_motor_ID},
         {"current", cmd_set_current},
         {"echo_current", cmd_echo_current},
+        {"dist", cmd_echo_dist},
         {nullptr,    nullptr}
 };
 
@@ -120,7 +131,7 @@ private:
     void main() final {
         setName("ut_CAN");
         while (!shouldTerminate()) {
-
+            Shell::printf("%f" SHELL_NEWLINE_STR, *can2.get_lidar_feedback_address());
             sleep(TIME_MS2I(100));
         }
     }

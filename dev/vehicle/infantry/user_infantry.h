@@ -22,7 +22,7 @@ class UserI {
 public:
 
     static void start(tprio_t user_thd_prio, tprio_t user_action_thd_prio, tprio_t client_data_sending_thd_prio);
-
+    enum shoot_mode_type {single, triple, burst};
 private:
 
     /// Gimbal Config
@@ -34,6 +34,8 @@ private:
     static float gimbal_pitch_max_angle; //  up range for pitch [degree]
 
     /// Chassis Config
+    static float Basepower;             // [w]
+    static float Base_V_forword;        // [mm/s]
     static float chassis_v_left_right;  // [mm/s]
     static float chassis_v_forward;     // [mm/s]
     static float chassis_v_backward;    // [mm/s]
@@ -44,6 +46,9 @@ private:
     static Remote::key_t chassis_dodge_switch;
 
     /// Shoot Config
+    static float shoot_base;
+    static float shoot_heat_base;
+
     static float shoot_launch_left_count;
     static float shoot_launch_right_count;
 
@@ -52,6 +57,8 @@ private:
     static float shoot_common_duty_cycle;
 
     static Remote::key_t shoot_fw_switch;
+
+    static shoot_mode_type shoot_mode;
 
     /// Helpers
 
@@ -110,6 +117,8 @@ private:
     friend void shoot_get_config(BaseSequentialStream *chp, int argc, char *argv[]);
     friend void shoot_set_config(BaseSequentialStream *chp, int argc, char *argv[]);
 
+    static bool left_mouse_pressed;
+    static bool right_mouse_pressed;
 };
 
 

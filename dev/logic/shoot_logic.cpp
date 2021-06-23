@@ -119,19 +119,6 @@ void ShootLG::StuckNHeatDetectorThread::main() {
 
         }
 
-        if (Referee::power_heat_data.shooter_id1_17mm_cooling_heat >
-            (uint16_t) (Referee::game_robot_state.shooter_id1_17mm_cooling_limit * 0.75)) {
-
-            float new_target_angle = ShootSKD::get_loader_target_angle() - ShootSKD::get_loader_accumulated_angle();
-            ShootSKD::reset_loader_accumulated_angle();
-            ShootSKD::set_loader_target_angle(0.0f);
-            while(Referee::power_heat_data.shooter_id1_17mm_cooling_heat >
-                  (uint16_t) (Referee::game_robot_state.shooter_id1_17mm_cooling_limit * 0.75)) {
-                sleep(TIME_MS2I(50));
-            }
-            ShootSKD::set_loader_target_angle(new_target_angle);
-        }
-
         sleep(TIME_MS2I(STUCK_DETECTOR_THREAD_INTERVAL));
     }
 }
