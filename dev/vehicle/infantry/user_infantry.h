@@ -37,6 +37,8 @@ private:
     static float Basepower;             // [w]
     static float Base_V_forword;        // [mm/s]
     static float chassis_v_left_right;  // [mm/s]
+    static float Base_left_right_power; // [w]
+    static  float Base_left_right;      // [mm/s]
     static float chassis_v_forward;     // [mm/s]
     static float chassis_v_backward;    // [mm/s]
 

@@ -16,6 +16,8 @@ float UserI::gimbal_pitch_max_angle = 10; //  up range for pitch [degree]
 /// Chassis Config
 float UserI::Basepower = 40.0f;
 float UserI::Base_V_forword = 1500.0f;
+float UserI::Base_left_right_power = 20.0f;
+float UserI::Base_left_right = 500.0f;
 float UserI::chassis_v_left_right = 500.0f;  // [mm/s]
 float UserI::chassis_v_forward = 1500.0f;     // [mm/s]
 float UserI::chassis_v_backward = 1500.0f;    // [mm/s]
@@ -352,6 +354,8 @@ void UserI::UserThread::main() {
                 /// Read current level information
                 chassis_v_forward = Referee::game_robot_state.chassis_power_limit*0.9/Basepower*Base_V_forword;
                 chassis_v_backward = chassis_v_forward;
+
+                chassis_v_left_right = Referee::game_robot_state.chassis_power_limit*0.9/Base_left_right_power*Base_left_right;
 
                 /// Control
 
