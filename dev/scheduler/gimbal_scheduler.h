@@ -127,6 +127,13 @@ public:
     static float get_accumulated_angle(motor_id_t motor);
 
     /**
+    * Get actual velocity maintained by this SKD
+    * @param motor   YAW or PITCH
+    * @return Actual velocity of GIMBAL
+    */
+    static float get_actual_velocity(motor_id_t motor);
+
+    /**
     * Get relative angle maintained by this SKD
     * @param motor   YAW or PITCH
     * @return Accumulated angle of MOTOR

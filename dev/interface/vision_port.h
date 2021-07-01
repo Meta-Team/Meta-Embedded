@@ -12,60 +12,54 @@ class VisionPort {
 
 public:
 
-//    __PACKED_STRUCT enemy_info_t{
-//        float yaw_angle;
-//        float pitch_angle;
-//        float distance;
-//    };
-
-//    static enemy_info_t enemy_info;
-
-    __PACKED_STRUCT VisionControl {
-        float yawDelta;
-        float pitchDelta;
-    };
-
-    static VisionControl vision_data;
-
+    static float vision_yaw_target;
+    static float vision_pitch_target;
     static time_msecs_t last_update_time;
 
-    static void init();
-
-    static void send_gimbal(float yaw, float pitch);
-
-//    static void send_enemy_color(bool is_blue);
+    static void start(tprio_t thread_prio);
 
 private:
 
-    __PACKED_STRUCT Header {
+    __PACKED_STRUCT header_t {
         uint8_t sof;  // start byte of header, 0xA5
         uint16_t data_length;
         uint8_t seq;
         uint8_t crc8;
     };
 
+    static constexpr uint16_t GIMBAL_INFO_CMD_ID = 0xEB01;
+
+    __PACKED_STRUCT gimbal_info_t {
+        float yawAngle;
+        float pitchAngle;
+        float yawVelocity;
+        float pitchVelocity;
+    };
     static constexpr uint16_t VISION_CONTROL_CMD_ID = 0xEA01;
 
-    __PACKED_STRUCT gimbal_current_t {
+    enum VisionControlMode {
+        RELATIVE_ANGLE = 0,
+        ABSOLUTE_ANGLE = 1
+    };
+
+    __PACKED_STRUCT vision_control_command_t {
+        uint8_t mode;
         float yaw;
         float pitch;
     };
 
-    __PACKED_STRUCT enemy_color_t{
-        bool is_blue;
-    };
-
-    __PACKED_STRUCT Package {
-        Header header;
+    __PACKED_STRUCT package_t {
+        header_t header;
         uint16_t cmdID;
-        union {
-            gimbal_current_t gimbal_current_;
-            VisionControl vision;
+        union {  // the union takes the maximal size
+            gimbal_info_t gimbal_current_;
+            vision_control_command_t vision;
         };
-        uint16_t tail;
+        uint16_t tail;  // just for reference, the offset is not correct
     };
 
-    static Package pak;
+    static package_t pak;
+    static package_t tx_pak;
 
     static void uart_rx_callback(UARTDriver *uartp);  // only for internal use
     static void uart_err_callback(UARTDriver *uartp, uartflags_t e);
@@ -92,6 +86,14 @@ private:
     // See cpp file for configs
     static constexpr UARTDriver *UART_DRIVER = &UARTD8;
     static const UARTConfig UART_CONFIG;
+
+    class TXThread : public chibios_rt::BaseStaticThread<1024> {
+        void main() final;
+    };
+
+    static TXThread txThread;
+
+    static constexpr unsigned int TX_THREAD_INTERVAL = 5;  // gimbal info sending interval [ms]
 };
 
 

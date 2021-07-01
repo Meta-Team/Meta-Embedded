@@ -14,8 +14,8 @@ float UserI::gimbal_pitch_min_angle = -30; // down range for pitch [degree]
 float UserI::gimbal_pitch_max_angle = 10; //  up range for pitch [degree]
 
 /// Chassis Config
-float UserI::Basepower = 40.0f;
-float UserI::Base_V_forword = 1500.0f;
+float UserI::base_power = 40.0f;
+float UserI::base_v_forward = 1500.0f;
 float UserI::chassis_v_left_right = 500.0f;  // [mm/s]
 float UserI::chassis_v_forward = 1500.0f;     // [mm/s]
 float UserI::chassis_v_backward = 1500.0f;    // [mm/s]
@@ -36,7 +36,6 @@ float UserI::shoot_common_duty_cycle = 0.40;   //Init speed
 UserI::shoot_mode_type UserI::shoot_mode = burst;
 
 Remote::key_t UserI::shoot_fw_switch = Remote::KEY_Z;
-
 
 
 /// Variables
@@ -75,8 +74,10 @@ void UserI::UserThread::main() {
                 // ch0 use right as positive direction, while GimbalLG use CCW (left) as positive direction
 
                 float pitch_target;
-                if (Remote::rc.ch1 > 0) pitch_target += Remote::rc.ch1 * gimbal_pitch_max_angle *0.1;
-                else pitch_target -= Remote::rc.ch1 * gimbal_pitch_min_angle*0.1;  // GIMBAL_PITCH_MIN_ANGLE is negative
+                if (Remote::rc.ch1 > 0) pitch_target += Remote::rc.ch1 * gimbal_pitch_max_angle * 0.1;
+                else
+                    pitch_target -=
+                            Remote::rc.ch1 * gimbal_pitch_min_angle * 0.1;  // GIMBAL_PITCH_MIN_ANGLE is negative
                 // ch1 use up as positive direction, while GimbalLG also use up as positive direction
 
                 VAL_CROP(pitch_target, gimbal_pitch_max_angle, gimbal_pitch_min_angle);
@@ -88,12 +89,9 @@ void UserI::UserThread::main() {
 
                 GimbalLG::set_action(GimbalLG::ABS_ANGLE_MODE);
 
-                static time_msecs_t last_one = VisionPort::last_update_time;
                 if (VisionPort::last_update_time != vision_last_apply_time) {
-                    gimbal_yaw_target_angle_ = GimbalLG::get_accumulated_angle(GimbalBase::YAW) +
-                            VisionPort::vision_data.yawDelta;
-                    gimbal_pc_pitch_target_angle_ = GimbalLG::get_accumulated_angle(GimbalBase::PITCH) +
-                            VisionPort::vision_data.pitchDelta;
+                    gimbal_yaw_target_angle_ = VisionPort::vision_yaw_target;
+                    gimbal_pc_pitch_target_angle_ = VisionPort::vision_pitch_target;
                     vision_last_apply_time = VisionPort::last_update_time;
                 }
 
@@ -163,14 +161,14 @@ void UserI::UserThread::main() {
 
         if (!InspectorI::remote_failure() && !InspectorI::chassis_failure() && !InspectorI::gimbal_failure()) {
             if ((Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_UP) ||
-                (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_MIDDLE)||
-                    (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_DOWN)) {
+                (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_MIDDLE) ||
+                (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_DOWN)) {
 
                 /// Remote - Shoot with Scrolling Wheel
 
                 if (Remote::rc.wheel > 0.5) {  // down
-                    if(Referee::power_heat_data.shooter_id1_17mm_cooling_heat <
-                       (uint16_t) (Referee::game_robot_state.shooter_id1_17mm_cooling_limit * 0.75)) {
+                    if (Referee::power_heat_data.shooter_id1_17mm_cooling_heat <
+                        (uint16_t) (Referee::game_robot_state.shooter_id1_17mm_cooling_limit * 0.75)) {
                         if (ShootLG::get_shooter_state() == ShootLG::STOP) {
                             ShootLG::shoot(shoot_launch_left_count, shoot_launch_speed);
                         }
@@ -178,8 +176,8 @@ void UserI::UserThread::main() {
                         ShootLG::stop();
                     }
                 } else if (Remote::rc.wheel < -0.5) {  // up
-                    if(Referee::power_heat_data.shooter_id1_17mm_cooling_heat <
-                       Referee::game_robot_state.shooter_id1_17mm_cooling_limit - 0x0015) {
+                    if (Referee::power_heat_data.shooter_id1_17mm_cooling_heat <
+                        Referee::game_robot_state.shooter_id1_17mm_cooling_limit - 0x0015) {
                         if (ShootLG::get_shooter_state() == ShootLG::STOP) {
                             ShootLG::shoot(shoot_launch_right_count, shoot_launch_speed);
                         }
@@ -200,26 +198,23 @@ void UserI::UserThread::main() {
 
                 /// Read shoot limit
 
-                if(Referee::game_robot_state.shooter_id1_17mm_cooling_rate >= 40){
-                    shoot_launch_speed = Referee::game_robot_state.shooter_id1_17mm_cooling_rate/10*1.25;
-                }
-                else{
-                    shoot_launch_speed = Referee::game_robot_state.shooter_id1_17mm_cooling_limit/25;
+                if (Referee::game_robot_state.shooter_id1_17mm_cooling_rate >= 40) {
+                    shoot_launch_speed = Referee::game_robot_state.shooter_id1_17mm_cooling_rate / 10 * 1.25;
+                } else {
+                    shoot_launch_speed = Referee::game_robot_state.shooter_id1_17mm_cooling_limit / 25;
                 }
 
                 /// Control
 
-                    ///switch shoot mode
+                ///switch shoot mode
 
 
-                if (Remote::key.c){
-                    if (shoot_mode == burst){
+                if (Remote::key.c) {
+                    if (shoot_mode == burst) {
                         shoot_mode = single;
-                    }
-                    else if (shoot_mode == single){
+                    } else if (shoot_mode == single) {
                         shoot_mode = triple;
-                    }
-                    else{
+                    } else {
                         shoot_mode = burst;
                     }
                 }
@@ -281,8 +276,8 @@ void UserI::UserThread::main() {
 
 
                 if (left_mouse_pressed) {  // down
-                    if(Referee::power_heat_data.shooter_id1_17mm_cooling_heat <
-                       (uint16_t) (Referee::game_robot_state.shooter_id1_17mm_cooling_limit * 0.75)) {
+                    if (Referee::power_heat_data.shooter_id1_17mm_cooling_heat <
+                        (uint16_t) (Referee::game_robot_state.shooter_id1_17mm_cooling_limit * 0.75)) {
                         if (ShootLG::get_shooter_state() == ShootLG::STOP) {
                             ShootLG::shoot(shoot_launch_left_count, shoot_launch_speed);
                         }
@@ -290,7 +285,7 @@ void UserI::UserThread::main() {
                         ShootLG::stop();
                     }
                 } else if (right_mouse_pressed) {  // up
-                    if(Referee::power_heat_data.shooter_id1_17mm_cooling_heat <
+                    if (Referee::power_heat_data.shooter_id1_17mm_cooling_heat <
                         (uint16_t) (Referee::game_robot_state.shooter_id1_17mm_cooling_limit * 0.75)) {
                         if (ShootLG::get_shooter_state() == ShootLG::STOP) {
                             ShootLG::shoot(shoot_launch_right_count, shoot_launch_speed);
@@ -298,12 +293,12 @@ void UserI::UserThread::main() {
                     } else {
                         ShootLG::stop();
                     }
-                } else if (Remote::key.r){
+                } else if (Remote::key.r) {
                     if (ShootLG::get_shooter_state() == ShootLG::STOP) {
                         ShootLG::shoot(-1, shoot_launch_speed);
                         ShootLG::shoot(1, shoot_launch_speed);
                     }
-                }else {
+                } else {
                     ShootLG::stop();
                 }
                 // UserActionThread handles launching and status of friction wheels
@@ -351,7 +346,7 @@ void UserI::UserThread::main() {
                 /// PC control mode
 
                 /// Read current level information
-                chassis_v_forward = Referee::game_robot_state.chassis_power_limit*0.9/Basepower*Base_V_forword;
+                chassis_v_forward = Referee::game_robot_state.chassis_power_limit * 0.9 / base_power * base_v_forward;
                 chassis_v_backward = chassis_v_forward;
 
                 /// Control

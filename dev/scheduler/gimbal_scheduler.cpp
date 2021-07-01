@@ -222,6 +222,15 @@ float GimbalSKD::get_accumulated_angle(motor_id_t motor) {
     return 0;
 }
 
+float GimbalSKD::get_actual_velocity(motor_id_t motor) {
+    if (motor == YAW) {
+        return (gimbal_ahrs->get_gyro() * ahrs_angle_rotation).x;
+    } else if (motor == PITCH) {
+        return (gimbal_ahrs->get_gyro() * ahrs_angle_rotation).y;
+    }
+    return 0;
+}
+
 float GimbalSKD::get_relative_angle(GimbalBase::motor_id_t motor) {
     if (motor == YAW) {
         return GimbalIF::feedback[YAW]->accumulated_angle() * yaw_install / yaw_deceleration_ratio;
