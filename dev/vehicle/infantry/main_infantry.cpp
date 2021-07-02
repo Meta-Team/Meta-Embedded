@@ -106,6 +106,9 @@ int main() {
     InspectorI::startup_check_can();  // check no persistent CAN Error. Block for 100 ms
     LED::led_on(DEV_BOARD_LED_CAN);  // LED 2 on now
 
+    /// Start Feedback Thread
+    feedback_thread_start();
+
     /// Setup SuperCapacitor Port
     SuperCapacitor::init(&can2, THREAD_SUPERCAP_INIT_PRIO);
     /// Complete Period 1
@@ -154,9 +157,6 @@ int main() {
     /// Setup Referee
     Referee::init(THREAD_REFEREE_SENDING_PRIO);
 
-    /// Setup VisionPort
-    VisionPort::init();
-
     /*** ------------ Period 2. Calibration and Start Logic Control Thread ----------- ***/
 
     /// Echo Gimbal Raws and Converted Angles
@@ -185,10 +185,13 @@ int main() {
     ShootLG::init(SHOOT_DEGREE_PER_BULLET, THREAD_SHOOT_LG_STUCK_DETECT_PRIO, THREAD_SHOOT_BULLET_COUNTER_PRIO);
     ChassisLG::init(THREAD_CHASSIS_LG_DODGE_PRIO, THREAD_CHASSIS_POWER_SET_PRIO, CHASSIS_DODGE_MODE_THETA, CHASSIS_BIASED_ANGLE, CHASSIS_LOGIC_DODGE_OMEGA2VOLT_PARAMS);
 
+    /// Setup VisionPort
+    VisionPort::start(THREAD_VISION_TX_PRIO);
 
     /// Start Inspector and User Threads
     InspectorI::start_inspection(THREAD_INSPECTOR_PRIO);
     UserI::start(THREAD_USER_PRIO, THREAD_USER_ACTION_PRIO, THREAD_USER_CLIENT_DATA_SEND_PRIO);
+
 
     /// Complete Period 2
     BuzzerSKD::play_sound(BuzzerSKD::sound_startup_intel);  // Now play the startup sound

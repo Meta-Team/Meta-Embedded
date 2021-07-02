@@ -9,12 +9,16 @@
 #include "memstreams.h"
 #include "string.h"
 #include "led.h"
+#include "gimbal_scheduler.h"
 
-VisionPort::Package VisionPort::pak;
+VisionPort::package_t VisionPort::pak;
+VisionPort::package_t VisionPort::tx_pak;
 VisionPort::rx_status_t VisionPort::rx_status;
-VisionPort::VisionControl VisionPort::vision_data;
+float VisionPort::vision_yaw_target = 0;
+float VisionPort::vision_pitch_target = 0;
 time_msecs_t VisionPort::last_update_time = 0;
 uint16_t VisionPort::tx_seq = 0;
+VisionPort::TXThread VisionPort::txThread;
 
 const UARTConfig VisionPort::UART_CONFIG = {
         nullptr,
@@ -28,7 +32,7 @@ const UARTConfig VisionPort::UART_CONFIG = {
         0
 };
 
-void VisionPort::init() {
+void VisionPort::start(tprio_t thread_prio) {
 
     // Start UART driver
     uartStart(UART_DRIVER, &UART_CONFIG);
@@ -36,44 +40,35 @@ void VisionPort::init() {
     // Wait for starting byte
     rx_status = WAIT_STARTING_BYTE;
     uartStartReceive(UART_DRIVER, FRAME_SOF_SIZE, &pak);
+
+    txThread.start(thread_prio);
 }
 
-void VisionPort::send_gimbal(float yaw, float pitch) {
+void VisionPort::TXThread::main() {
+    setName("Vision_TX");
+    while (!shouldTerminate()) {
 
-    Package tx_pak;
+        size_t tx_pak_size = FRAME_HEADER_SIZE + CMD_ID_SIZE + sizeof(gimbal_info_t) + FRAME_TAIL_SIZE;
 
-    size_t tx_pak_size = FRAME_HEADER_SIZE + CMD_ID_SIZE + sizeof(gimbal_current_t) + FRAME_TAIL_SIZE;
+        tx_pak.header.sof = 0xA5;
+        tx_pak.header.data_length = sizeof(gimbal_info_t);
+        tx_pak.header.seq = tx_seq++;
+        Append_CRC8_Check_Sum((uint8_t *) &tx_pak, FRAME_HEADER_SIZE);
 
-    tx_pak.header.sof = 0xA5;
-    tx_pak.header.data_length = sizeof(gimbal_current_t);
-    tx_pak.header.seq = tx_seq++;
-    Append_CRC8_Check_Sum((uint8_t *) &tx_pak, FRAME_HEADER_SIZE);
+        tx_pak.cmdID = GIMBAL_INFO_CMD_ID;
+        tx_pak.gimbal_current_.yawAngle = GimbalSKD::get_accumulated_angle(GimbalSKD::YAW);
+        tx_pak.gimbal_current_.pitchAngle = GimbalSKD::get_accumulated_angle(GimbalSKD::PITCH);
+        // TODO: target velocities?
+        tx_pak.gimbal_current_.yawVelocity = GimbalSKD::get_actual_velocity(GimbalSKD::YAW);
+        tx_pak.gimbal_current_.pitchVelocity = GimbalSKD::get_actual_velocity(GimbalSKD::PITCH);
+        Append_CRC16_Check_Sum((uint8_t *) &tx_pak, tx_pak_size);
 
-    tx_pak.cmdID = 0xFF00;
-    tx_pak.gimbal_current_.yaw = yaw;
-    tx_pak.gimbal_current_.pitch = pitch;
-    Append_CRC16_Check_Sum((uint8_t *) &tx_pak, tx_pak_size);
-
-    uartSendFullTimeout(UART_DRIVER, &tx_pak_size, &tx_pak, TIME_MS2I(7));
+        uartSendFullTimeout(UART_DRIVER, &tx_pak_size, &tx_pak, TIME_MS2I(7));
 //    uartStartSend(UART_DRIVER, tx_pak_size, (uint8_t *) &tx_pak);  // it has some problem
-}
 
-//void VisionPort::send_enemy_color(bool is_blue) {
-//    Package tx_pak;
-//
-//    size_t tx_pak_size = FRAME_HEADER_SIZE + CMD_ID_SIZE + sizeof(enemy_color_t) + FRAME_TAIL_SIZE;
-//
-//    tx_pak.header.sof = 0xA5;
-//    tx_pak.header.data_length = sizeof(enemy_color_t);
-//    tx_pak.header.seq = tx_seq++;
-//    Append_CRC8_Check_Sum((uint8_t *) &tx_pak, FRAME_HEADER_SIZE);
-//
-//    tx_pak.cmdID = 0xFF02;
-//    tx_pak.enemy_color_.is_blue = is_blue;
-//    Append_CRC16_Check_Sum((uint8_t *) &tx_pak, tx_pak_size);
-//
-//    uartSendFullTimeout(UART_DRIVER, &tx_pak_size, &tx_pak, TIME_MS2I(10));
-//}
+        sleep(TIME_MS2I(TX_THREAD_INTERVAL));
+    }
+}
 
 void VisionPort::uart_rx_callback(UARTDriver *uartp) {
 
@@ -83,10 +78,10 @@ void VisionPort::uart_rx_callback(UARTDriver *uartp) {
 
     uint8_t *pak_uint8 = (uint8_t *) &pak;
 
-#ifdef VISION_PORT_DEBUG
+//#ifdef VISION_PORT_DEBUG
     LED::red_toggle();
 #warning "VisionPort: in debug mode now"
-#endif
+//#endif
 
     switch (rx_status) {
 
@@ -112,12 +107,18 @@ void VisionPort::uart_rx_callback(UARTDriver *uartp) {
 
                 switch (pak.cmdID) {
                     case VISION_CONTROL_CMD_ID:
-                        vision_data = pak.vision;
+                        if (pak.vision.mode == ABSOLUTE_ANGLE) {
+                            vision_yaw_target = pak.vision.yaw;
+                            vision_pitch_target = pak.vision.pitch;
+                        } else {
+                            vision_yaw_target = pak.vision.yaw / 2 + GimbalSKD::get_accumulated_angle(GimbalBase::YAW);
+                            vision_pitch_target = pak.vision.pitch / 2 + GimbalSKD::get_accumulated_angle(GimbalBase::PITCH);
+                        }
                         last_update_time = SYSTIME;
-#ifdef VISION_PORT_DEBUG
+//#ifdef VISION_PORT_DEBUG
                         LED::green_toggle();
 #warning "VisionPort: in debug mode now"
-#endif
+//#endif
                         break;
                 }
             }

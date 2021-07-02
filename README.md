@@ -1,4 +1,6 @@
-# Meta Team - Infantry 2019
+# Meta Team - Infantry 2021
+
+=> 请务必阅读 [Project Wiki](https://github.com/Meta-Team/Meta-Infantry/wiki) :smiley:
 
 ZJU-UIUC Meta 战队 RoboMaster 嵌入式程序工程，基于 ChibiOS 操作系统，使用 C 和 C++。
 
