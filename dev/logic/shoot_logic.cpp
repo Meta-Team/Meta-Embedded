@@ -106,19 +106,21 @@ void ShootLG::StuckNHeatDetectorThread::main() {
 
         if (ShootSKD::get_loader_target_current() > STUCK_THRESHOLD_CURRENT &&
             ShootSKD::get_loader_actual_velocity() < STUCK_THRESHOLD_VELOCITY) {
-
+            stuck_count++;
+        } else {
+            stuck_count = 0;
+        }
+        if (shooter_state == STOP) {  // if shooter is stopped during the pausing time, terminate the process.
+            continue;
+        }
+        if (stuck_count>STUCK_THRESHOLD_COUNT) {
             shooter_state = STUCK;
             LOG_WARN("Bullet loader stuck");
             ShootSKD::set_loader_target_angle(ShootSKD::get_loader_accumulated_angle() - STUCK_REVERSE_ANGLE);
             sleep(TIME_MS2I(STUCK_REVERSE_TIME));
-            if (shooter_state == STOP) {  // if shooter is stopped during the pausing time, terminate the process.
-                continue;
-            }
             ShootSKD::set_loader_target_angle(shoot_target_number * angle_per_bullet);  // recover original target
             shooter_state = SHOOTING;
-
         }
-
         sleep(TIME_MS2I(STUCK_DETECTOR_THREAD_INTERVAL));
     }
 }
