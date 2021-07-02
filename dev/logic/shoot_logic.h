@@ -124,6 +124,7 @@ private:
         bool waited = false;
 
     private:
+        long int stuck_count = 0;
 
         static constexpr unsigned STUCK_DETECTOR_THREAD_INTERVAL = 10;  // [ms]
 
@@ -131,6 +132,7 @@ private:
 
         static constexpr int STUCK_THRESHOLD_CURRENT = 7000;  // lower current to trigger stuck handling [mA]
         static constexpr float STUCK_THRESHOLD_VELOCITY = 15;  // upper velocity to trigger stuck handling [degree/s]
+        static constexpr int STUCK_THRESHOLD_COUNT = 100;
 
         static constexpr unsigned STUCK_REVERSE_TIME = 1000;  // time to stay in reverse turing state [ms]
         static constexpr unsigned STUCK_REVERSE_ANGLE = 15;   // reverse turning target angle when stuck [degree]
