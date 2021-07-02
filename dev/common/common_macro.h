@@ -25,6 +25,6 @@
 // X indicates that this function can be call in all conditions (Thread, ISR, and their critical sections)
 
 #define WITHIN_RECENT_TIME(value, ms) ((int) SYSTIME - (int) (value) < (int) (ms))
-// Comparision is needed to avoid thread switch during execution of this statement which results in "negative" unsigned
+// Comparison is needed to avoid thread switch during execution of this statement which results in "negative" unsigned
 
 #endif //META_INFANTRY_COMMON_MACRO_H

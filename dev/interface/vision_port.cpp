@@ -11,12 +11,16 @@
 #include "led.h"
 #include "gimbal_scheduler.h"
 
-VisionPort::package_t VisionPort::pak;
-VisionPort::package_t VisionPort::tx_pak;
-VisionPort::rx_status_t VisionPort::rx_status;
+float VisionPort::last_gimbal_yaw = 0;
+float VisionPort::last_gimbal_pitch = 0;
 float VisionPort::vision_yaw_target = 0;
 float VisionPort::vision_pitch_target = 0;
 time_msecs_t VisionPort::last_update_time = 0;
+
+VisionPort::package_t VisionPort::pak;
+VisionPort::package_t VisionPort::tx_pak;
+VisionPort::rx_status_t VisionPort::rx_status;
+
 uint16_t VisionPort::tx_seq = 0;
 VisionPort::TXThread VisionPort::txThread;
 
@@ -41,7 +45,7 @@ void VisionPort::start(tprio_t thread_prio) {
     rx_status = WAIT_STARTING_BYTE;
     uartStartReceive(UART_DRIVER, FRAME_SOF_SIZE, &pak);
 
-    txThread.start(thread_prio);
+//    txThread.start(thread_prio);
 }
 
 void VisionPort::TXThread::main() {
@@ -70,6 +74,16 @@ void VisionPort::TXThread::main() {
     }
 }
 
+bool VisionPort::getControlCommand(VisionControlCommand &command) {
+    if (WITHIN_RECENT_TIME(last_update_time, 2000)) {
+        command = {vision_yaw_target, vision_pitch_target};
+        return true;
+    } else {
+        return false;
+    }
+}
+
+
 void VisionPort::uart_rx_callback(UARTDriver *uartp) {
 
     (void) uartp;
@@ -78,10 +92,10 @@ void VisionPort::uart_rx_callback(UARTDriver *uartp) {
 
     uint8_t *pak_uint8 = (uint8_t *) &pak;
 
-//#ifdef VISION_PORT_DEBUG
+#ifdef VISION_PORT_DEBUG
     LED::red_toggle();
 #warning "VisionPort: in debug mode now"
-//#endif
+#endif
 
     switch (rx_status) {
 
@@ -102,23 +116,41 @@ void VisionPort::uart_rx_callback(UARTDriver *uartp) {
 
         case WAIT_CMD_ID_DATA_TAIL:
 
-            if (Verify_CRC16_Check_Sum(pak_uint8,
-                                       FRAME_HEADER_SIZE + CMD_ID_SIZE + pak.header.data_length + FRAME_TAIL_SIZE)) {
+            if (Verify_CRC16_Check_Sum(pak_uint8, FRAME_HEADER_SIZE + CMD_ID_SIZE + pak.header.data_length + FRAME_TAIL_SIZE)) {
 
                 switch (pak.cmdID) {
-                    case VISION_CONTROL_CMD_ID:
-                        if (pak.vision.mode == ABSOLUTE_ANGLE) {
-                            vision_yaw_target = pak.vision.yaw;
-                            vision_pitch_target = pak.vision.pitch;
-                        } else {
-                            vision_yaw_target = pak.vision.yaw / 2 + GimbalSKD::get_accumulated_angle(GimbalBase::YAW);
-                            vision_pitch_target = pak.vision.pitch / 2 + GimbalSKD::get_accumulated_angle(GimbalBase::PITCH);
+                    case VISION_CONTROL_CMD_ID: {
+                        // chSysLock();  /// --- ENTER S-Locked state. DO NOT use LOG, printf, non S/I-Class functions or return ---
+                        {
+                            if (last_update_time == 0 || !WITHIN_RECENT_TIME(last_update_time, 1000)) {
+                                // No previous data or out-of-date, use the latest data
+                                last_gimbal_yaw = GimbalSKD::get_accumulated_angle(GimbalBase::YAW);
+                                last_gimbal_pitch = GimbalSKD::get_accumulated_angle(GimbalBase::PITCH);
+                            }  // otherwise, use gimbal angles at last time
+
+                            if (pak.vision.mode == ABSOLUTE_ANGLE) {
+                                vision_yaw_target = pak.vision.yaw;
+                                vision_pitch_target = pak.vision.pitch;
+                            } else {
+                                /*
+                                 * Use gimbal angles at last control command, which is roughly the angles when the
+                                 * image is captured.
+                                 */
+                                vision_yaw_target = pak.vision.yaw + last_gimbal_yaw;
+                                vision_pitch_target = pak.vision.pitch + last_gimbal_pitch;
+                            }
+
+                            // Record current gimbal angles, which will be used for next control command
+                            last_gimbal_yaw = GimbalSKD::get_accumulated_angle(GimbalBase::YAW);
+                            last_gimbal_pitch = GimbalSKD::get_accumulated_angle(GimbalBase::PITCH);
+                            last_update_time = SYSTIME;
                         }
-                        last_update_time = SYSTIME;
-//#ifdef VISION_PORT_DEBUG
+                        // chSysUnlock();  /// --- EXIT S-Locked state ---
+                    }
+#ifdef VISION_PORT_DEBUG
                         LED::green_toggle();
 #warning "VisionPort: in debug mode now"
-//#endif
+#endif
                         break;
                 }
             }

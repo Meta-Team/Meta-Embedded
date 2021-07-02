@@ -41,7 +41,6 @@ Remote::key_t UserI::shoot_fw_switch = Remote::KEY_Z;
 /// Variables
 float UserI::gimbal_yaw_target_angle_ = 0;
 float UserI::gimbal_pc_pitch_target_angle_ = 0;
-static time_msecs_t vision_last_apply_time = 0;
 UserI::UserThread UserI::userThread;
 UserI::UserActionThread UserI::userActionThread;
 UserI::ClientDataSendingThread UserI::clientDataSendingThread;
@@ -75,9 +74,7 @@ void UserI::UserThread::main() {
 
                 float pitch_target;
                 if (Remote::rc.ch1 > 0) pitch_target += Remote::rc.ch1 * gimbal_pitch_max_angle * 0.1;
-                else
-                    pitch_target -=
-                            Remote::rc.ch1 * gimbal_pitch_min_angle * 0.1;  // GIMBAL_PITCH_MIN_ANGLE is negative
+                else pitch_target -= Remote::rc.ch1 * gimbal_pitch_min_angle * 0.1;  // GIMBAL_PITCH_MIN_ANGLE is negative
                 // ch1 use up as positive direction, while GimbalLG also use up as positive direction
 
                 VAL_CROP(pitch_target, gimbal_pitch_max_angle, gimbal_pitch_min_angle);
@@ -89,13 +86,10 @@ void UserI::UserThread::main() {
 
                 GimbalLG::set_action(GimbalLG::ABS_ANGLE_MODE);
 
-                if (VisionPort::last_update_time != vision_last_apply_time) {
-                    gimbal_yaw_target_angle_ = VisionPort::vision_yaw_target;
-                    gimbal_pc_pitch_target_angle_ = VisionPort::vision_pitch_target;
-                    vision_last_apply_time = VisionPort::last_update_time;
-                }
-
-                GimbalLG::set_target(gimbal_yaw_target_angle_, gimbal_pc_pitch_target_angle_);
+                VisionPort::VisionControlCommand command;
+                if (VisionPort::getControlCommand(command)) {
+                    GimbalLG::set_target(command.gimbal_yaw_target, command.gimbal_pitch_target);
+                }  // otherwise, keep current target angles
 
             } else if (Remote::rc.s1 == Remote::S_DOWN) {
 
@@ -319,8 +313,7 @@ void UserI::UserThread::main() {
 
         if (!InspectorI::remote_failure() && !InspectorI::chassis_failure() && !InspectorI::gimbal_failure()) {
 
-            if ((Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_UP) ||
-                (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_DOWN)) {
+            if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_UP) {
 
                 /// Remote - Chassis Move + Chassis Follow
                 ChassisLG::set_action(ChassisLG::FOLLOW_MODE);
@@ -341,6 +334,12 @@ void UserI::UserThread::main() {
                                        Remote::rc.ch3 * 1000 :
                                        Remote::rc.ch3 * 800)   // Both use up    as positive direction
                 );
+
+            } else if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_DOWN) {
+
+                /// Safe for Vision debug
+                ChassisLG::set_action(ChassisLG::FORCED_RELAX_MODE);
+
             } else if (Remote::rc.s1 == Remote::S_DOWN) {
 
                 /// PC control mode

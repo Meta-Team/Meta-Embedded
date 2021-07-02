@@ -12,13 +12,23 @@ class VisionPort {
 
 public:
 
-    static float vision_yaw_target;
-    static float vision_pitch_target;
-    static time_msecs_t last_update_time;
+    struct VisionControlCommand {
+        float gimbal_yaw_target;
+        float gimbal_pitch_target;
+    };
+
+    static bool getControlCommand(VisionControlCommand &command);
 
     static void start(tprio_t thread_prio);
 
 private:
+
+    static float vision_yaw_target;
+    static float vision_pitch_target;
+
+    static float last_gimbal_yaw;
+    static float last_gimbal_pitch;
+    static time_msecs_t last_update_time;
 
     __PACKED_STRUCT header_t {
         uint8_t sof;  // start byte of header, 0xA5
@@ -87,7 +97,7 @@ private:
     static constexpr UARTDriver *UART_DRIVER = &UARTD8;
     static const UARTConfig UART_CONFIG;
 
-    class TXThread : public chibios_rt::BaseStaticThread<1024> {
+    class TXThread : public chibios_rt::BaseStaticThread<512> {
         void main() final;
     };
 
