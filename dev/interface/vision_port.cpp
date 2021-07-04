@@ -18,11 +18,7 @@ float VisionPort::vision_pitch_target = 0;
 time_msecs_t VisionPort::last_update_time = 0;
 
 VisionPort::package_t VisionPort::pak;
-VisionPort::package_t VisionPort::tx_pak;
 VisionPort::rx_status_t VisionPort::rx_status;
-
-uint16_t VisionPort::tx_seq = 0;
-VisionPort::TXThread VisionPort::txThread;
 
 const UARTConfig VisionPort::UART_CONFIG = {
         nullptr,
@@ -45,33 +41,6 @@ void VisionPort::start(tprio_t thread_prio) {
     rx_status = WAIT_STARTING_BYTE;
     uartStartReceive(UART_DRIVER, FRAME_SOF_SIZE, &pak);
 
-//    txThread.start(thread_prio);
-}
-
-void VisionPort::TXThread::main() {
-    setName("Vision_TX");
-    while (!shouldTerminate()) {
-
-        size_t tx_pak_size = FRAME_HEADER_SIZE + CMD_ID_SIZE + sizeof(gimbal_info_t) + FRAME_TAIL_SIZE;
-
-        tx_pak.header.sof = 0xA5;
-        tx_pak.header.data_length = sizeof(gimbal_info_t);
-        tx_pak.header.seq = tx_seq++;
-        Append_CRC8_Check_Sum((uint8_t *) &tx_pak, FRAME_HEADER_SIZE);
-
-        tx_pak.cmdID = GIMBAL_INFO_CMD_ID;
-        tx_pak.gimbal_current_.yawAngle = GimbalSKD::get_accumulated_angle(GimbalSKD::YAW);
-        tx_pak.gimbal_current_.pitchAngle = GimbalSKD::get_accumulated_angle(GimbalSKD::PITCH);
-        // TODO: target velocities?
-        tx_pak.gimbal_current_.yawVelocity = GimbalSKD::get_actual_velocity(GimbalSKD::YAW);
-        tx_pak.gimbal_current_.pitchVelocity = GimbalSKD::get_actual_velocity(GimbalSKD::PITCH);
-        Append_CRC16_Check_Sum((uint8_t *) &tx_pak, tx_pak_size);
-
-        uartSendFullTimeout(UART_DRIVER, &tx_pak_size, &tx_pak, TIME_MS2I(7));
-//    uartStartSend(UART_DRIVER, tx_pak_size, (uint8_t *) &tx_pak);  // it has some problem
-
-        sleep(TIME_MS2I(TX_THREAD_INTERVAL));
-    }
 }
 
 bool VisionPort::getControlCommand(VisionControlCommand &command) {
@@ -116,7 +85,8 @@ void VisionPort::uart_rx_callback(UARTDriver *uartp) {
 
         case WAIT_CMD_ID_DATA_TAIL:
 
-            if (Verify_CRC16_Check_Sum(pak_uint8, FRAME_HEADER_SIZE + CMD_ID_SIZE + pak.header.data_length + FRAME_TAIL_SIZE)) {
+            if (Verify_CRC16_Check_Sum(pak_uint8,
+                                       FRAME_HEADER_SIZE + CMD_ID_SIZE + pak.header.data_length + FRAME_TAIL_SIZE)) {
 
                 switch (pak.cmdID) {
                     case VISION_CONTROL_CMD_ID: {
@@ -128,17 +98,14 @@ void VisionPort::uart_rx_callback(UARTDriver *uartp) {
                                 last_gimbal_pitch = GimbalSKD::get_accumulated_angle(GimbalBase::PITCH);
                             }  // otherwise, use gimbal angles at last time
 
-                            if (pak.vision.mode == ABSOLUTE_ANGLE) {
-                                vision_yaw_target = pak.vision.yaw;
-                                vision_pitch_target = pak.vision.pitch;
-                            } else {
-                                /*
-                                 * Use gimbal angles at last control command, which is roughly the angles when the
-                                 * image is captured.
-                                 */
-                                vision_yaw_target = pak.vision.yaw + last_gimbal_yaw;
-                                vision_pitch_target = pak.vision.pitch + last_gimbal_pitch;
-                            }
+
+                            /*
+                             * Use gimbal angles at last control command, which is roughly the angles when the
+                             * image is captured.
+                             */
+                            vision_yaw_target = pak.vision.yaw + last_gimbal_yaw;
+                            vision_pitch_target = pak.vision.pitch + last_gimbal_pitch;
+
 
                             // Record current gimbal angles, which will be used for next control command
                             last_gimbal_yaw = GimbalSKD::get_accumulated_angle(GimbalBase::YAW);

@@ -37,23 +37,15 @@ private:
         uint8_t crc8;
     };
 
-    static constexpr uint16_t GIMBAL_INFO_CMD_ID = 0xEB01;
-
-    __PACKED_STRUCT gimbal_info_t {
-        float yawAngle;
-        float pitchAngle;
-        float yawVelocity;
-        float pitchVelocity;
-    };
     static constexpr uint16_t VISION_CONTROL_CMD_ID = 0xEA01;
 
-    enum VisionControlMode {
-        RELATIVE_ANGLE = 0,
-        ABSOLUTE_ANGLE = 1
+    enum VisionControlFlag : uint8_t {
+        NONE = 0,
+        DETECTED = 1
     };
 
     __PACKED_STRUCT vision_control_command_t {
-        uint8_t mode;
+        uint8_t flags;
         float yaw;
         float pitch;
     };
@@ -62,14 +54,12 @@ private:
         header_t header;
         uint16_t cmdID;
         union {  // the union takes the maximal size
-            gimbal_info_t gimbal_current_;
             vision_control_command_t vision;
         };
         uint16_t tail;  // just for reference, the offset is not correct
     };
 
     static package_t pak;
-    static package_t tx_pak;
 
     static void uart_rx_callback(UARTDriver *uartp);  // only for internal use
     static void uart_err_callback(UARTDriver *uartp, uartflags_t e);
@@ -96,14 +86,6 @@ private:
     // See cpp file for configs
     static constexpr UARTDriver *UART_DRIVER = &UARTD8;
     static const UARTConfig UART_CONFIG;
-
-    class TXThread : public chibios_rt::BaseStaticThread<512> {
-        void main() final;
-    };
-
-    static TXThread txThread;
-
-    static constexpr unsigned int TX_THREAD_INTERVAL = 5;  // gimbal info sending interval [ms]
 };
 
 
