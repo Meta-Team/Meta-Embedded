@@ -186,7 +186,8 @@ int main() {
     ChassisLG::init(THREAD_CHASSIS_LG_DODGE_PRIO, THREAD_CHASSIS_POWER_SET_PRIO, CHASSIS_DODGE_MODE_THETA, CHASSIS_BIASED_ANGLE, CHASSIS_LOGIC_DODGE_OMEGA2VOLT_PARAMS);
 
     /// Setup VisionPort
-    VisionPort::start(THREAD_VISION_TX_PRIO);
+    // Should be put after initialization of GimbalSKD
+    VisionPort::init(VISION_VELOCITY_UPDATE_FRACTION, VISION_PREDICT_FORWARD_AMOUNT);
 
     /// Start Inspector and User Threads
     InspectorI::start_inspection(THREAD_INSPECTOR_PRIO);

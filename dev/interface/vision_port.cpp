@@ -13,9 +13,14 @@
 
 float VisionPort::last_gimbal_yaw = 0;
 float VisionPort::last_gimbal_pitch = 0;
-float VisionPort::vision_yaw_target = 0;
-float VisionPort::vision_pitch_target = 0;
+float VisionPort::target_armor_yaw = 0;
+float VisionPort::target_armor_pitch = 0;
 time_msecs_t VisionPort::last_update_time = 0;
+float VisionPort::latest_yaw_velocity = 0;
+float VisionPort::latest_pitch_velocity = 0;
+float VisionPort::velocity_update_fraction = 1;
+time_msecs_t VisionPort::predict_forward_amount = 0;
+constexpr size_t VisionPort::DATA_SIZE[VisionPort::CMD_ID_COUNT];
 
 VisionPort::package_t VisionPort::pak;
 VisionPort::rx_status_t VisionPort::rx_status;
@@ -32,29 +37,36 @@ const UARTConfig VisionPort::UART_CONFIG = {
         0
 };
 
-void VisionPort::start(tprio_t thread_prio) {
+void VisionPort::init(float velocity_update_fraction_, time_msecs_t predict_forward_amount_) {
+
+    velocity_update_fraction = velocity_update_fraction_;
+    predict_forward_amount = predict_forward_amount_;
 
     // Start UART driver
     uartStart(UART_DRIVER, &UART_CONFIG);
 
     // Wait for starting byte
     rx_status = WAIT_STARTING_BYTE;
-    uartStartReceive(UART_DRIVER, FRAME_SOF_SIZE, &pak);
-
+    uartStartReceive(UART_DRIVER, sizeof(uint8_t), &pak);
 }
 
 bool VisionPort::getControlCommand(VisionControlCommand &command) {
-    if (WITHIN_RECENT_TIME(last_update_time, 2000)) {
-        command = {vision_yaw_target, vision_pitch_target};
-        return true;
+    chSysLock();  /// --- ENTER S-Locked state. DO NOT use LOG, printf, non S/I-Class functions or return ---
+    bool ret;
+    if (WITHIN_RECENT_TIME(last_update_time, 1000)) {
+        command = {target_armor_yaw + latest_yaw_velocity * (float) (predict_forward_amount),
+                target_armor_pitch /*+ latest_pitch_velocity * (float) (predict_forward_amount)*/};
+        ret = true;
     } else {
-        return false;
+        ret = false;
     }
+    chSysUnlock();  /// --- EXIT S-Locked state ---
+    //LOG("%f", latest_yaw_velocity * (float) (predict_forward_amount));
+    return ret;
 }
 
 
 void VisionPort::uart_rx_callback(UARTDriver *uartp) {
-
     (void) uartp;
 
     chSysLockFromISR();  /// --- ENTER I-Locked state. DO NOT use LOG, printf, non I-Class functions or return ---
@@ -70,89 +82,92 @@ void VisionPort::uart_rx_callback(UARTDriver *uartp) {
 
         case WAIT_STARTING_BYTE:
             if (pak_uint8[0] == 0xA5) {
-                rx_status = WAIT_REMAINING_HEADER;
-            } // else, keep waiting for SOF
+                rx_status = WAIT_CMD_ID;
+            } // otherwise, keep waiting for SOF
             break;
 
-        case WAIT_REMAINING_HEADER:
+        case WAIT_CMD_ID:
 
-            if (Verify_CRC8_Check_Sum(pak_uint8, FRAME_HEADER_SIZE)) {
-                rx_status = WAIT_CMD_ID_DATA_TAIL; // go to next status
+            if (pak.cmd_id < CMD_ID_COUNT) {
+                rx_status = WAIT_DATA_TAIL; // go to next status
             } else {
                 rx_status = WAIT_STARTING_BYTE;
             }
             break;
 
-        case WAIT_CMD_ID_DATA_TAIL:
+        case WAIT_DATA_TAIL:
 
-            if (Verify_CRC16_Check_Sum(pak_uint8,
-                                       FRAME_HEADER_SIZE + CMD_ID_SIZE + pak.header.data_length + FRAME_TAIL_SIZE)) {
-
-                switch (pak.cmdID) {
+            if (Verify_CRC8_Check_Sum(pak_uint8, sizeof(uint8_t) * 2 + DATA_SIZE[pak.cmd_id] + sizeof(uint8_t))) {
+                switch (pak.cmd_id) {
                     case VISION_CONTROL_CMD_ID: {
-                        // chSysLock();  /// --- ENTER S-Locked state. DO NOT use LOG, printf, non S/I-Class functions or return ---
-                        {
-                            if (last_update_time == 0 || !WITHIN_RECENT_TIME(last_update_time, 1000)) {
-                                // No previous data or out-of-date, use the latest data
-                                last_gimbal_yaw = GimbalSKD::get_accumulated_angle(GimbalBase::YAW);
-                                last_gimbal_pitch = GimbalSKD::get_accumulated_angle(GimbalBase::PITCH);
-                            }  // otherwise, use gimbal angles at last time
+                        if (last_update_time == 0 || !WITHIN_RECENT_TIME(last_update_time, 1000)) {
+                            // No previous data or out-of-date, use the latest data
+                            last_gimbal_yaw = GimbalSKD::get_accumulated_angle(GimbalSKD::YAW);
+                            last_gimbal_pitch = GimbalSKD::get_accumulated_angle(GimbalSKD::PITCH);
+                        }  // otherwise, use gimbal angles at last time
 
+                        // These two data is only valid for detected
+                        /*
+                         * Use gimbal angles at last control command, which is roughly the angles when the
+                         * image is captured.
+                         */
+                        float new_armor_yaw = (pak.command.yaw_delta / 100.0f) + last_gimbal_yaw;
+                        float new_armor_pitch = (pak.command.pitch_delta / 100.0f) + last_gimbal_pitch;
 
-                            /*
-                             * Use gimbal angles at last control command, which is roughly the angles when the
-                             * image is captured.
-                             */
-                            vision_yaw_target = pak.vision.yaw + last_gimbal_yaw;
-                            vision_pitch_target = pak.vision.pitch + last_gimbal_pitch;
-
-
-                            // Record current gimbal angles, which will be used for next control command
-                            last_gimbal_yaw = GimbalSKD::get_accumulated_angle(GimbalBase::YAW);
-                            last_gimbal_pitch = GimbalSKD::get_accumulated_angle(GimbalBase::PITCH);
-                            last_update_time = SYSTIME;
+                        float new_yaw_velocity, new_pitch_velocity;
+                        if (pak.command.flag & DETECTED) {
+                            new_yaw_velocity = (new_armor_yaw - target_armor_yaw) / (float) (SYSTIME - last_update_time);
+                            new_pitch_velocity = (new_armor_pitch - target_armor_pitch) / (float) (SYSTIME - last_update_time);
+                        } else {
+                            new_yaw_velocity = new_pitch_velocity = 0;
                         }
-                        // chSysUnlock();  /// --- EXIT S-Locked state ---
-                    }
-#ifdef VISION_PORT_DEBUG
+
+                        // Update velocity
+                        latest_yaw_velocity = new_yaw_velocity * velocity_update_fraction +
+                                latest_yaw_velocity * (1 - velocity_update_fraction);
+                        latest_pitch_velocity = new_pitch_velocity * velocity_update_fraction +
+                                latest_pitch_velocity * (1 - velocity_update_fraction);
+
+                        // Store latest armor position if detected
+                        if (pak.command.flag & DETECTED) {
+                            target_armor_yaw = new_armor_yaw;
+                            target_armor_pitch = new_armor_pitch;
+                        }
+
+                        // Record current gimbal angles, which will be used for next control command
+                        last_gimbal_yaw = GimbalSKD::get_accumulated_angle(GimbalBase::YAW);
+                        last_gimbal_pitch = GimbalSKD::get_accumulated_angle(GimbalBase::PITCH);
+                        last_update_time = SYSTIME;
+
+                        // Indicate receiving
                         LED::green_toggle();
-#warning "VisionPort: in debug mode now"
-#endif
                         break;
+                    }
                 }
             }
-
             rx_status = WAIT_STARTING_BYTE;
-
             break;
     }
 
     switch (rx_status) {
         case WAIT_STARTING_BYTE:
-            uartStartReceiveI(uartp, FRAME_SOF_SIZE, pak_uint8);
+            uartStartReceiveI(uartp, sizeof(uint8_t), pak_uint8);
             break;
-        case WAIT_REMAINING_HEADER:
-            uartStartReceiveI(uartp, FRAME_HEADER_SIZE - FRAME_SOF_SIZE, pak_uint8 + FRAME_SOF_SIZE);
+        case WAIT_CMD_ID:
+            uartStartReceiveI(uartp, sizeof(uint8_t), pak_uint8 + sizeof(uint8_t));
             break;
-        case WAIT_CMD_ID_DATA_TAIL:
-            uartStartReceiveI(uartp, CMD_ID_SIZE + pak.header.data_length + FRAME_TAIL_SIZE,
-                              pak_uint8 + FRAME_HEADER_SIZE);
+        case WAIT_DATA_TAIL:
+            uartStartReceiveI(uartp, DATA_SIZE[pak.cmd_id] + sizeof(uint8_t), pak_uint8 + sizeof(uint8_t) * 2);
             break;
     }
 
     chSysUnlockFromISR();  /// --- EXIT I-Locked state ---
-
 }
 
 void VisionPort::uart_err_callback(UARTDriver *uartp, uartflags_t e) {
     (void) uartp;
     (void) e;
-#ifdef VISION_PORT_DEBUG
-    for (unsigned i = 0; i < 8; i++) {
-        if (e & (1U << i)) LED::led_toggle(i + 1);
-    }
-#warning "VisionPort: in debug mode now"
-#endif
+    LED::red_toggle();
 }
 
 void VisionPort::uart_char_callback(UARTDriver *uartp, uint16_t c) {
