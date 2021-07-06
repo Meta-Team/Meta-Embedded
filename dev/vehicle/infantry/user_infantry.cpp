@@ -16,7 +16,7 @@ float UserI::gimbal_pitch_max_angle = 10; //  up range for pitch [degree]
 /// Chassis Config
 float UserI::base_power = 40.0f;
 float UserI::base_v_forward = 1500.0f;
-float UserI::chassis_v_left_right = 500.0f;  // [mm/s]
+float UserI::chassis_v_left_right = 500.0f;   // [mm/s]
 float UserI::chassis_v_forward = 1500.0f;     // [mm/s]
 float UserI::chassis_v_backward = 1500.0f;    // [mm/s]
 
@@ -84,12 +84,7 @@ void UserI::UserThread::main() {
 
                 /// Vision - Yaw + Pitch
 
-                GimbalLG::set_action(GimbalLG::ABS_ANGLE_MODE);
-
-                VisionPort::VisionControlCommand command;
-                if (VisionPort::getControlCommand(command)) {
-                    GimbalLG::set_target(command.gimbal_yaw_target, command.gimbal_pitch_target);
-                }  // otherwise, keep current target angles
+                GimbalLG::set_action(GimbalLG::VISION_MODE);
 
             } else if (Remote::rc.s1 == Remote::S_DOWN) {
 
@@ -393,7 +388,7 @@ void UserI::UserThread::main() {
 }
 
 void UserI::UserActionThread::main() {
-    setName("User_Action");
+    setName("UserI_Action");
 
     chEvtRegisterMask(&Remote::s_change_event, &s_change_listener, S_CHANGE_EVENTMASK);
     chEvtRegisterMask(&Remote::mouse_press_event, &mouse_press_listener, MOUSE_PRESS_EVENTMASK);
@@ -480,7 +475,7 @@ void UserI::UserActionThread::main() {
 }
 
 void UserI::ClientDataSendingThread::main() {
-    setName("User_Client");
+    setName("UserI_Client");
 
     bool super_capacitor_light_status_ = false;
 

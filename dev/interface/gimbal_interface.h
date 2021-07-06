@@ -57,7 +57,7 @@ public:
  * @pre PWM pins are set properly in board.h (I5 - alt 3, I6 - alt 3)
  * @usage 1. Call init(CANInterface *). The interface should be properly initialized.
  *        2. Read feedback from variables.
- *           Write target current / duty cycle to variables, then call enable_gimbal_current_clip to apply changes
+ *           Write target current / duty cycle to variables, then call clip_gimbal_current to apply changes
  * @note This module is designed to process feedback automatically, but not to send current automatically, to avoid
  *       unintended gimbal movements.
  * @note About coordinate: all components in this module use original coordinate of EACH motor. DO NOT directly add
@@ -101,12 +101,6 @@ public:
         unsigned motor_can_id;
         CANInterface::motor_type_t motor_type;
     };
-//                         motor_can_channel_t yaw_can_channel,               unsigned yaw_can_id,
-//                         motor_can_channel_t pitch_can_channel,             unsigned pitch_can_id,
-//                         motor_can_channel_t bullet_can_channel,            unsigned bullet_can_id,
-//                         motor_can_channel_t plate_can_channel,             unsigned plate_can_id,
-//                         motor_can_channel_t fw_left_can_channel,           unsigned fw_left_can_id,
-//                         motor_can_channel_t fw_right_can_channel,          unsigned fw_right_can_id
 
     /**
      * Initialize GimbalIF. Angles of bullet loader and bullet plate will be reset.
@@ -117,9 +111,9 @@ public:
      * @param pitch_front_angle_raw   Raw angle of pitch when gimbal points straight forward, depending on installation.
      */
 
-    static void init( CANInterface *can1_interface,                      CANInterface *can2_interface,
-                      motor_can_config_t motor_can_config[MOTOR_COUNT],
-                      uint16_t yaw_front_angle_raw,                      uint16_t pitch_front_angle_raw);
+    static void init(CANInterface *can1_interface, CANInterface *can2_interface,
+                     motor_can_config_t motor_can_config[MOTOR_COUNT],
+                     uint16_t yaw_front_angle_raw, uint16_t pitch_front_angle_raw);
 
     /**
      * Motor feedback structure
@@ -133,10 +127,9 @@ public:
     static int *target_current[MOTOR_COUNT];
 
     /**
-     * Send target_current of each motor
-     * @return Whether currents are sent successfully
+     * Clip gimbal target currents (if enabled)
      */
-    static void enable_gimbal_current_clip();
+    static void clip_gimbal_current();
 
 
 private:
@@ -144,23 +137,9 @@ private:
     static CANInterface *can1_;
     static CANInterface *can2_;
 
-    static CANTxFrame can1_txmsg;
-    static CANTxFrame can2_txmsg;
-    static CANTxFrame fw_txmsg;
-
-    static void process_can1_motor_feedback(CANRxFrame const *rxmsg);  // callback function
-    static void process_can2_motor_feedback(CANRxFrame const *rxmsg);  // callback function
-
-    friend CANInterface;
-
 #if GIMBAL_INTERFACE_ENABLE_VELOCITY_DIFFERENTIAL
     static constexpr int VELOCITY_SAMPLE_INTERVAL = 50;  // count of feedback for one sample of angular velocity
 #endif
-
-//    enum friction_wheel_channel_t {
-//        FW_LEFT = 0,  // The left  friction wheel, PI5, channel 0
-//        FW_RIGHT = 1  // The right friction wheel, PI6, channel 1
-//    };
 
 };
 

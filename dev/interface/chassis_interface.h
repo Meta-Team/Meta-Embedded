@@ -51,7 +51,7 @@ public:
  * @pre Hardware is properly set. CAN id of each motor should be the same as motor_id_t.
  * @usage 1. Call init(CANInterface *). The interface should be properly initialized.
  *        2. Read feedback from variables.
- *           Write target current to variables, then call enable_chassis_current_clip to apply changes
+ *           Write target current to variables, then call clip_chassis_current to apply changes
  * @note This module is designed to process feedback automatically, but not to send current automatically, to avoid
  *       unintended chassis movements.
  */
@@ -73,9 +73,12 @@ public:
 
     /**
      * Set CAN interface for receiving and sending
-     * @param can1_   Initialized CANInterface for chassis motors
+     * @param can1_            Initialized CANInterface for chassis motors
+     * @param can2_            Initialized CANInterface for chassis motors
+     * @param motor_can_config A group that contains ***ALL*** gimbal motor's info, include (can_channel, motor_can_id, motor_type)
      */
-    static void init(CANInterface* can1_interface, CANInterface *can2_interface, motor_can_config_t motor_can_config[MOTOR_COUNT]);
+    static void init(CANInterface* can1_interface, CANInterface *can2_interface,
+                     motor_can_config_t motor_can_config[MOTOR_COUNT]);
 
     /** Structure for each motor */
 
@@ -90,21 +93,15 @@ public:
     static int *target_current[MOTOR_COUNT];
 
     /**
-     * Send all target currents
-     * @return Whether sending succeeded or not
+     * Clip chassis target currents (if enabled)
      */
-    static bool enable_chassis_current_clip();
+    static void clip_chassis_current();
 
 private:
 
     static CANInterface* can1_;
     static CANInterface* can2_;
 
-    friend CANInterface;
-
-private:
-
-    static float constexpr CHASSIS_MOTOR_DECELERATE_RATIO = 19.2f; // 3591/187 on the data sheet
 
 };
 

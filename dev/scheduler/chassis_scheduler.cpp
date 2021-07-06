@@ -115,7 +115,7 @@ void ChassisSKD::velocity_decompose_(float vx, float vy, float w) {
 }
 
 void ChassisSKD::SKDThread::main() {
-    setName("Chassis_SKD");
+    setName("ChassisSKD");
     while (!shouldTerminate()) {
 
         if ( (mode==GIMBAL_COORDINATE_MODE) || (mode==ANGULAR_VELOCITY_DODGE_MODE) ) {
@@ -144,7 +144,7 @@ void ChassisSKD::SKDThread::main() {
         for (size_t i = 0; i < MOTOR_COUNT; i++) {
             *ChassisIF::target_current[i] = target_current[i];
         }
-        ChassisIF::enable_chassis_current_clip();
+        ChassisIF::clip_chassis_current();
 
         sleep(TIME_MS2I(SKD_THREAD_INTERVAL));
     }

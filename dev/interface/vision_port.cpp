@@ -11,33 +11,33 @@
 #include "led.h"
 #include "gimbal_scheduler.h"
 
-float VisionPort::last_gimbal_yaw = 0;
-float VisionPort::last_gimbal_pitch = 0;
-float VisionPort::target_armor_yaw = 0;
-float VisionPort::target_armor_pitch = 0;
-time_msecs_t VisionPort::last_update_time = 0;
-float VisionPort::latest_yaw_velocity = 0;
-float VisionPort::latest_pitch_velocity = 0;
-float VisionPort::velocity_update_fraction = 1;
-time_msecs_t VisionPort::predict_forward_amount = 0;
-constexpr size_t VisionPort::DATA_SIZE[VisionPort::CMD_ID_COUNT];
+float Vision::last_gimbal_yaw = 0;
+float Vision::last_gimbal_pitch = 0;
+float Vision::target_armor_yaw = 0;
+float Vision::target_armor_pitch = 0;
+time_msecs_t Vision::last_update_time = 0;
+float Vision::latest_yaw_velocity = 0;
+float Vision::latest_pitch_velocity = 0;
+float Vision::velocity_update_fraction = 1;
+time_msecs_t Vision::predict_forward_amount = 0;
+constexpr size_t Vision::DATA_SIZE[Vision::CMD_ID_COUNT];
 
-VisionPort::package_t VisionPort::pak;
-VisionPort::rx_status_t VisionPort::rx_status;
+Vision::package_t Vision::pak;
+Vision::rx_status_t Vision::rx_status;
 
-const UARTConfig VisionPort::UART_CONFIG = {
+const UARTConfig Vision::UART_CONFIG = {
         nullptr,
         nullptr,
-        VisionPort::uart_rx_callback,  // callback function when the buffer is filled
-        VisionPort::uart_char_callback,
-        VisionPort::uart_err_callback,
+        Vision::uart_rx_callback,  // callback function when the buffer is filled
+        Vision::uart_char_callback,
+        Vision::uart_err_callback,
         115200, // speed
         0,
         0,
         0
 };
 
-void VisionPort::init(float velocity_update_fraction_, time_msecs_t predict_forward_amount_) {
+void Vision::init(float velocity_update_fraction_, time_msecs_t predict_forward_amount_) {
 
     velocity_update_fraction = velocity_update_fraction_;
     predict_forward_amount = predict_forward_amount_;
@@ -50,7 +50,7 @@ void VisionPort::init(float velocity_update_fraction_, time_msecs_t predict_forw
     uartStartReceive(UART_DRIVER, sizeof(uint8_t), &pak);
 }
 
-bool VisionPort::getControlCommand(VisionControlCommand &command) {
+bool Vision::getControlCommand(VisionControlCommand &command) {
     chSysLock();  /// --- ENTER S-Locked state. DO NOT use LOG, printf, non S/I-Class functions or return ---
     bool ret;
     if (WITHIN_RECENT_TIME(last_update_time, 1000)) {
@@ -66,7 +66,7 @@ bool VisionPort::getControlCommand(VisionControlCommand &command) {
 }
 
 
-void VisionPort::uart_rx_callback(UARTDriver *uartp) {
+void Vision::uart_rx_callback(UARTDriver *uartp) {
     (void) uartp;
 
     chSysLockFromISR();  /// --- ENTER I-Locked state. DO NOT use LOG, printf, non I-Class functions or return ---
@@ -164,13 +164,13 @@ void VisionPort::uart_rx_callback(UARTDriver *uartp) {
     chSysUnlockFromISR();  /// --- EXIT I-Locked state ---
 }
 
-void VisionPort::uart_err_callback(UARTDriver *uartp, uartflags_t e) {
+void Vision::uart_err_callback(UARTDriver *uartp, uartflags_t e) {
     (void) uartp;
     (void) e;
     LED::red_toggle();
 }
 
-void VisionPort::uart_char_callback(UARTDriver *uartp, uint16_t c) {
+void Vision::uart_char_callback(UARTDriver *uartp, uint16_t c) {
     (void) uartp;
     (void) c;
 }

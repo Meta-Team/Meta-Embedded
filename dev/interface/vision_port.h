@@ -8,7 +8,7 @@
 #include "ch.hpp"
 #include "hal.h"
 
-class VisionPort {
+class Vision {
 
 public:
 

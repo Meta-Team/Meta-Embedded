@@ -3,6 +3,7 @@
 //
 
 #include "settings_infantry.h"
+
 using namespace chibios_rt;
 //ShellCommand mainProgramCommands[] = {
 //        {"s_get_gimbal", gimbal_get_config},
@@ -111,6 +112,14 @@ bool feedback_enable[MOTOR_COUNT];
 
 const char *motor_name[] = {"yaw", "pitch"};
 
+void cmd_t3_echo_motors(BaseSequentialStream *chp, int argc, char *argv[]) {
+    if (argc != 0) {
+        shellUsage(chp, "t3_echo_motors");
+        return;
+    }
+
+}
+
 void cmd_enable_feedback(BaseSequentialStream *chp, int argc, char *argv[]) {
     (void) argv;
     if (argc != 2) {
@@ -119,7 +128,7 @@ void cmd_enable_feedback(BaseSequentialStream *chp, int argc, char *argv[]) {
         return;
     }
     int motor_id = Shell::atoi(argv[0]);
-    if (motor_id < 0 || motor_id >= MOTOR_COUNT){
+    if (motor_id < 0 || motor_id >= MOTOR_COUNT) {
         chprintf(chp, "!pe" SHELL_NEWLINE_STR);  // echo parameters error
         return;
     }
@@ -168,7 +177,7 @@ void cmd_set_param(BaseSequentialStream *chp, int argc, char *argv[]) {
                                       Shell::atof(argv[3]),
                                       Shell::atof(argv[4]),
                                       Shell::atof(argv[5]),
-                                      Shell::atof(argv[6])}, *argv[0]=='0', *argv[1]=='0');
+                                      Shell::atof(argv[6])}, *argv[0] == '0', *argv[1] == '0');
 
     chprintf(chp, "!ps" SHELL_NEWLINE_STR); // echo parameters set
 }
@@ -176,23 +185,23 @@ void cmd_set_param(BaseSequentialStream *chp, int argc, char *argv[]) {
 // Shell commands to ...
 ShellCommand mainProgramCommands[] = {
         {"fb_enable", cmd_enable_feedback},
-        {"set_a", cmd_set_target_angle},
-        {"set_pid", cmd_set_param},
-        {nullptr,    nullptr}
+        {"set_a",     cmd_set_target_angle},
+        {"set_pid",   cmd_set_param},
+        {nullptr,     nullptr}
 };
 
 class FeedbackThread : public BaseStaticThread<512> {
 private:
     void main() final {
-        setName("feedback");
+        setName("Feedback");
         while (!shouldTerminate()) {
             float actual_angle, target_angle, actual_velocity, target_velocity;
-            for (int i = 0; i < MOTOR_COUNT; i++){
-                if (feedback_enable[i]){
+            for (int i = 0; i < MOTOR_COUNT; i++) {
+                if (feedback_enable[i]) {
                     actual_angle = GimbalIF::feedback[i]->actual_angle;
-                    target_angle = GimbalSKD::get_target_angle((GimbalBase::motor_id_t)i);
+                    target_angle = GimbalSKD::get_target_angle((GimbalBase::motor_id_t) i);
                     actual_velocity = GimbalIF::feedback[i]->actual_velocity;
-                    target_velocity = GimbalSKD::get_target_velocity((GimbalBase::motor_id_t)i);
+                    target_velocity = GimbalSKD::get_target_velocity((GimbalBase::motor_id_t) i);
                     Shell::printf("fb %s %.2f %.2f %.2f %.2f %d %d" SHELL_NEWLINE_STR,
                                   motor_name[i],
                                   actual_angle, target_angle,

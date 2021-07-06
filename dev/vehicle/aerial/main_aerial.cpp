@@ -119,7 +119,7 @@ int main() {
     Referee::init(THREAD_REFEREE_SENDING_PRIO);
 
     /// Setup VisionPort
-    VisionPort::init();
+    Vision::init();
 
     /// Complete Period 1
     LED::green_on();  // LED Green on now

@@ -100,8 +100,8 @@ int main() {
     LED::led_on(DEV_BOARD_LED_SYSTEM_INIT);  // LED 1 on now
 
     /// Setup CAN1 & CAN2
-    can1.start(THREAD_CAN1_FEEDBACK_PRIO, THREAD_CAN1_CURRENT_PRIO);
-    can2.start(THREAD_CAN2_FEEDBACK_PRIO, THREAD_CAN2_CURRENT_PRIO);
+    can1.start(THREAD_CAN1_RX_PRIO, THREAD_CAN1_TX_PRIO);
+    can2.start(THREAD_CAN2_RX_PRIO, THREAD_CAN2_TX_PRIO);
     chThdSleepMilliseconds(5);
     InspectorI::startup_check_can();  // check no persistent CAN Error. Block for 100 ms
     LED::led_on(DEV_BOARD_LED_CAN);  // LED 2 on now
@@ -181,13 +181,13 @@ int main() {
     ChassisSKD::load_pid_params(CHASSIS_FOLLOW_PID_THETA2V_PARAMS, CHASSIS_PID_V2I_PARAMS);
 
     /// Start LGs
-    GimbalLG::init();
+    GimbalLG::init(THREAD_GIMBAL_LG_VISION_PRIO);
     ShootLG::init(SHOOT_DEGREE_PER_BULLET, THREAD_SHOOT_LG_STUCK_DETECT_PRIO, THREAD_SHOOT_BULLET_COUNTER_PRIO);
     ChassisLG::init(THREAD_CHASSIS_LG_DODGE_PRIO, THREAD_CHASSIS_POWER_SET_PRIO, CHASSIS_DODGE_MODE_THETA, CHASSIS_BIASED_ANGLE, CHASSIS_LOGIC_DODGE_OMEGA2VOLT_PARAMS);
 
     /// Setup VisionPort
     // Should be put after initialization of GimbalSKD
-    VisionPort::init(VISION_VELOCITY_UPDATE_FRACTION, VISION_PREDICT_FORWARD_AMOUNT);
+    Vision::init(VISION_VELOCITY_UPDATE_FRACTION, VISION_PREDICT_FORWARD_AMOUNT);
 
     /// Start Inspector and User Threads
     InspectorI::start_inspection(THREAD_INSPECTOR_PRIO);
