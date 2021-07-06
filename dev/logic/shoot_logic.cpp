@@ -89,7 +89,7 @@ void ShootLG::force_stop() {
 }
 
 void ShootLG::StuckNHeatDetectorThread::main() {
-    setName("Shoot_Stuck");
+    setName("ShootLG_Stuck");
     while (!shouldTerminate()) {
 
         chSysLock();  /// --- ENTER S-Locked state. DO NOT use LOG, printf, non S/I-Class functions or return ---
@@ -126,7 +126,7 @@ void ShootLG::StuckNHeatDetectorThread::main() {
 }
 
 void ShootLG::BulletCounterThread::main() {
-    setName("Shoot_Count");
+    setName("ShootLG_Count");
 
     chEvtRegisterMask(&Referee::data_received_event, &data_received_listener, DATA_RECEIVED_EVENTMASK);
 

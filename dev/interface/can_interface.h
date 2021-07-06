@@ -29,7 +29,7 @@
 
 #define CAN_INTERFACE_ENABLE_ERROR_FEEDBACK_THREAD   TRUE
 #define CAN_INTERFACE_ENABLE_VELOCITY_DIFFERENTIAL   TRUE
-#define CAN_INTERFACE_THREAD_WORK_AREA_SIZE   1024  // also used in cpp, do not delete
+#define CAN_INTERFACE_THREAD_WORK_AREA_SIZE          1024  // also used in cpp, do not delete
 
 /**
  * CAN interface to receive, distribute and send message
@@ -56,10 +56,10 @@ public:
 
     /**
      * Start the CAN driver and the receiving thread
-     * @param feedback_prio   Thread priority of the receiving thread
+     * @param rx_thread_prio   Thread priority of the receiving thread
      * @return A reference to the created thread
      */
-    void start(tprio_t feedback_prio, tprio_t send_current_prio);
+    void start(tprio_t rx_thread_prio, tprio_t tx_thread_prio);
 
     static constexpr unsigned MAXIMUM_MOTOR_COUNT = 8;
 
@@ -157,7 +157,7 @@ public:
     bool send_cap_msg(const CANTxFrame *txmsg);
 
     /**
-     * Get target current adress
+     * Get target current address
      * @param id    The motor id.
      */
     int *get_target_current_address(unsigned id);
@@ -201,7 +201,7 @@ private:
 
     static constexpr unsigned MAXIMUM_REGISTRATION_COUNT = 20;
 
-    static constexpr unsigned int SEND_THREAD_INTERVAL = 5; // can message send interval [ms]
+    static constexpr unsigned int SEND_THREAD_INTERVAL = 1;  // can message send interval [ms]
 
 #if (CAN_INTERFACE_ENABLE_ERROR_FEEDBACK_THREAD == TRUE)
 

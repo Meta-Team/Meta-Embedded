@@ -127,7 +127,7 @@ void ShootSKD::reset_plate_accumulated_angle() {
 }
 
 void ShootSKD::SKDThread::main() {
-    setName("Shoot_SKD");
+    setName("ShootSKD");
     while (!shouldTerminate()) {
 
         if (mode == LIMITED_SHOOTING_MODE) {

@@ -184,8 +184,8 @@
 #define CHASSIS_CLIP_PID_V2I_OUT_LIMIT 6000.0f
 #define CHASSIS_CLIP_PID_V2I_PARAMS \
     {CHASSIS_CLIP_PID_V2I_KP, CHASSIS_CLIP_PID_V2I_KI, CHASSIS_CLIP_PID_V2I_KD, \
-    CHASSIS_CLIP_PID_V2I_I_LIMIT, CHASSIS_CLIP_PID_V2I_OUT_LIMIT}               
-    // Infantry clip PID params of no use that is set to handle conflicts between Hero and Infantry
+    CHASSIS_CLIP_PID_V2I_I_LIMIT, CHASSIS_CLIP_PID_V2I_OUT_LIMIT}
+// Infantry clip PID params of no use that is set to handle conflicts between Hero and Infantry
 
 #define CHASSIS_CLIP_PID_THETA2V_KP 10.0f
 #define CHASSIS_CLIP_PID_THETA2V_KI 0.02f
@@ -195,7 +195,7 @@
 #define CHASSIS_CLIP_PID_THETA2V_PARAMS \
     {CHASSIS_CLIP_PID_THETA2V_KP, CHASSIS_CLIP_PID_THETA2V_KI, CHASSIS_CLIP_PID_THETA2V_KD, \
     CHASSIS_CLIP_PID_THETA2V_I_LIMIT, CHASSIS_CLIP_PID_THETA2V_OUT_LIMIT}
-    
+
 #define CHASSIS_FOLLOW_PID_THETA2V_KP 15.0f
 #define CHASSIS_FOLLOW_PID_THETA2V_KI 0.00f
 #define CHASSIS_FOLLOW_PID_THETA2V_KD 10.0f
@@ -231,25 +231,23 @@
 #define VISION_PREDICT_FORWARD_AMOUNT   300
 
 /// Thread Priority List
-#define THREAD_CAN1_FEEDBACK_PRIO           (HIGHPRIO - 1)
-#define THREAD_CAN1_CURRENT_PRIO            (HIGHPRIO - 2)
-#define THREAD_CAN2_FEEDBACK_PRIO           (HIGHPRIO - 3)
-#define THREAD_CAN2_CURRENT_PRIO            (HIGHPRIO - 4)
+#define THREAD_CAN1_RX_PRIO                 (HIGHPRIO - 1)
+#define THREAD_CAN1_TX_PRIO                 (HIGHPRIO - 2)
+#define THREAD_CAN2_RX_PRIO                 (HIGHPRIO - 3)
+#define THREAD_CAN2_TX_PRIO                 (HIGHPRIO - 4)
 #define THREAD_MPU_PRIO                     (HIGHPRIO - 5)
 #define THREAD_IST_PRIO                     (HIGHPRIO - 6)
 #define THREAD_AHRS_PRIO                    (HIGHPRIO - 7)
-#define THREAD_CAN2_PRIO                    (HIGHPRIO - 8)
 #define THREAD_GIMBAL_SKD_PRIO              (NORMALPRIO + 3)
 #define THREAD_CHASSIS_SKD_PRIO             (NORMALPRIO + 2)
 #define THREAD_SHOOT_SKD_PRIO               (NORMALPRIO + 1)
 #define THREAD_USER_PRIO                    (NORMALPRIO)
 #define THREAD_USER_ACTION_PRIO             (NORMALPRIO - 1)
+#define THREAD_GIMBAL_LG_VISION_PRIO        (NORMALPRIO - 1)
 #define THREAD_CHASSIS_LG_DODGE_PRIO        (NORMALPRIO - 2)
 #define THREAD_CHASSIS_POWER_SET_PRIO       (NORMALPRIO - 3)
 #define THREAD_SHOOT_LG_STUCK_DETECT_PRIO   (NORMALPRIO - 4)
-#define THREAD_GIMBAL_LG_VISION_PRIO        (NORMALPRIO - 5)
 #define THREAD_REFEREE_SENDING_PRIO         (NORMALPRIO - 6)
-#define THREAD_VISION_TX_PRIO               (NORMALPRIO - 7)
 #define THREAD_SUPERCAP_INIT_PRIO           (NORMALPRIO - 8)
 #define THREAD_INSPECTOR_PRIO               (NORMALPRIO - 10)
 #define THREAD_SHOOT_BULLET_COUNTER_PRIO    (LOWPRIO + 7)

@@ -29,19 +29,21 @@ public:
 
     /**
      * Initial GimbalLG
-     * @param vision_thread_prio_   Priority of Vision thread. 0 for no initialization
+     * @param vision_control_thread_prio  Vision control thread priority
      */
-    static void init();
+    static void init(tprio_t vision_control_thread_prio);
 
     enum action_t {
         FORCED_RELAX_MODE,
         ABS_ANGLE_MODE,
         SENTRY_MODE,
         AERIAL_MODE,
+        VISION_MODE,
     };
 
     /**
      * Get current action of gimbal
+     *
      * @return   Current action of gimbal
      */
     static action_t get_action();
@@ -78,6 +80,17 @@ public:
 private:
 
     static action_t action;
+
+    class VisionControlThread : public chibios_rt::BaseStaticThread<512> {
+    public:
+        bool started = false;
+    private:
+        void main() final;
+        static constexpr unsigned VISION_THREAD_INTERVAL = 4;  // [ms]
+    };
+
+    static VisionControlThread vision_control_thread;
+    static chibios_rt::ThreadReference vision_control_thread_reference;
 
 };
 

@@ -305,7 +305,7 @@ Shell指令集（所有通过窗口发送的指令名和相对应的函数名都
                 if (!motor_enabled[PITCH]) Gimbal::target_current[PITCH] = 0;
 
                 // Send currents
-                GimbalInterface::enable_gimbal_current_clip();
+                GimbalInterface::clip_gimbal_current();
 
                 sleep(TIME_MS2I(GIMBAL_THREAD_INTERVAL));
             }

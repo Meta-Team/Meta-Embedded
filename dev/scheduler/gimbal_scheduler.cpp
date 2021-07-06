@@ -199,7 +199,7 @@ void GimbalSKD::SKDThread::main() {
         // Send currents
         *GimbalIF::target_current[YAW] = target_current[YAW] * yaw_install;
         *GimbalIF::target_current[PITCH] = target_current[PITCH] * pitch_install;
-        GimbalIF::enable_gimbal_current_clip();
+        GimbalIF::clip_gimbal_current();
 
         sleep(TIME_MS2I(SKD_THREAD_INTERVAL));
     }

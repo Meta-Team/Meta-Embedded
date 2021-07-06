@@ -143,7 +143,7 @@ int main() {
     Referee::init(THREAD_REFEREE_SENDING_PRIO);
 
     /// Setup VisionPort
-    VisionPort::init();
+    Vision::init();
 
     /// Setup SuperCapacitor Port
     SuperCapacitor::init(&can2);

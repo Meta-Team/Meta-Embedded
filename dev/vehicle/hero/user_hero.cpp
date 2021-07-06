@@ -87,15 +87,15 @@ void UserH::UserThread::main() {
                 pitch_va_target = GimbalLG::get_relative_angle(GimbalBase::PITCH);
 
                 float yaw_delta,pitch_delta;
-                yaw_delta = VisionPort::enemy_info.yaw_delta;
-                pitch_delta = VisionPort::enemy_info.pitch_delta;
+                yaw_delta = Vision::enemy_info.yaw_delta;
+                pitch_delta = Vision::enemy_info.pitch_delta;
 
-                static time_msecs_t last_one = VisionPort::last_update_time;
-                if (VisionPort::last_update_time - last_one < 500) { // TODO:: may not be safe enough
+                static time_msecs_t last_one = Vision::last_update_time;
+                if (Vision::last_update_time - last_one < 500) { // TODO:: may not be safe enough
                     if ((yaw_delta > 2.0f) || (yaw_delta < -2.0f)) yaw_va_target -= yaw_delta;
                     if ((pitch_delta > 1.0f) || (pitch_delta < -1.0f)) pitch_va_target -= pitch_delta;
                 }
-                last_one = VisionPort::last_update_time;
+                last_one = Vision::last_update_time;
 
                 GimbalLG::set_target(yaw_va_target, pitch_va_target);
 

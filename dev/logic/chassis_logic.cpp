@@ -91,7 +91,7 @@ void ChassisLG::apply_target() {
 
 void ChassisLG::DodgeModeSwitchThread::main() {
 
-    setName("Chassis_Dodge");
+    setName("ChassisLG_Dodge");
     float doge = 0;
     float doge_rate = 0;
     while(!shouldTerminate()) {
@@ -128,7 +128,7 @@ void ChassisLG::DodgeModeSwitchThread::main() {
 }
 
 void ChassisLG::CapacitorPowerSetThread::main() {
-    setName("CapSetThread");
+    setName("Cap_Setting");
     while (!shouldTerminate()) {
 
         if((float)Referee::power_heat_data.chassis_power_buffer - Referee::power_heat_data.chassis_power*0.1 > 5.0){
