@@ -11,14 +11,8 @@
         }
     ],
     "commands": [
-        "remote_enable set_enable",
-        "echo_status",
         "fb_enable motor_id set_enable",
         "set_a motor_id target_angle -> yaw pitch bullet",
-        "set_v motor_id target_velocity",
-        "set_i motor_id target_current",
-        "a2v_enable motor_id set_enable -> yaw pitch bullet",
-        "v2i_enable motor_id set_enable",
         "set_pid motor_id pid_id ki kp kd i_limit out_limit"
     ]
 }
