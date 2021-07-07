@@ -224,14 +224,14 @@ void Referee::DataSendingThread::main() {
         /***Update UI Info***/
         if(graphic_buffer_index != 0){
             if(graphic_buffer_index == 1) { // 1 buffer used
-                client_custom_data.header.data_cmd_id = 0x101;
+                client_custom_data.header.data_cmd_id = 0x0101;
                 client_custom_data.ext_client_custom_graphic_single.grapic_data_ = graphic_data_buffer[0];
             } else if (graphic_buffer_index < 3) { // 2 buffer used
-                client_custom_data.header.data_cmd_id = 0x102;
+                client_custom_data.header.data_cmd_id = 0x0102;
                 client_custom_data.ext_client_custom_graphic_double.grapic_data_[0] = graphic_data_buffer[0];
                 client_custom_data.ext_client_custom_graphic_double.grapic_data_[1] = graphic_data_buffer[1];
             } else if (graphic_buffer_index < 6) { // 3 - 5 buffer used
-                client_custom_data.header.data_cmd_id = 0x103;
+                client_custom_data.header.data_cmd_id = 0x0103;
                 int i = 0;
                 for (i = 0; i < graphic_buffer_index; i++) {
                     client_custom_data.ext_client_custom_graphic_five.grapic_data_[i] = graphic_data_buffer[i];

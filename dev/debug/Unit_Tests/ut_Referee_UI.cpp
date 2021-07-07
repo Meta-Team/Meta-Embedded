@@ -57,7 +57,7 @@ static void cmd_add_title(BaseSequentialStream *chp, int argc, char *argv[]) {
     }
     char compName[3] = {argv[0][0], argv[0][1], argv[0][2]};
     char* string = argv[1];
-    RefereeUISKD::add_character(compName, {960, 480}, RefereeUISKD::BLACK, Shell::atoi(argv[2]), 0, 0, string);
+    RefereeUISKD::add_character(compName, {960, 480}, RefereeUISKD::ACCENT_COLOR, Shell::atoi(argv[2]), 0, 0, string);
     chprintf(chp, "echo" SHELL_NEWLINE_STR);
 }
 

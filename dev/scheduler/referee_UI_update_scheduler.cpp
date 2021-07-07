@@ -86,6 +86,7 @@ void RefereeUISKD::add_rect(char *name, uint32_t layer, color_t color, UI_point 
     rect.end_x = end_p.x;
     rect.end_y = end_p.y;
     rect.width = line_width;
+    rect.operate_tpye = 1;
     RefereeUISKD::shapes[shape_count] = rect;
     shape_count += 1;
 }
@@ -218,7 +219,7 @@ void RefereeUISKD::SKDThread::main() {
             }
             while(shape_state[i]!=FINISHED) {
                 shape_state[i] = Referee::set_graphic(shapes[i])? FINISHED : shape_state[i];
-            };
+            }
         }
         for (int i = 0; i < label_count; i++) {
             if(label_state[i]==FINISHED) {
