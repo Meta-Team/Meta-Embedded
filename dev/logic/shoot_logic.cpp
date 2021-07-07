@@ -147,4 +147,15 @@ void ShootLG::BulletCounterThread::main() {
     }
 }
 
+void ShootLG::mag_open() {
+    ShootSKD::set_mag_cover(70, GimbalIF::MG995_RIGHT);
+    ShootSKD::set_mag_cover(20, GimbalIF::MG995_LEFT);
+}
+
+void ShootLG::mag_close() {
+    ShootSKD::set_mag_cover(5, GimbalIF::MG995_RIGHT);
+    ShootSKD::set_mag_cover(85, GimbalIF::MG995_LEFT);
+
+}
+
 /** @} */

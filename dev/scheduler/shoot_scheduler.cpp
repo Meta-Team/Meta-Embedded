@@ -168,4 +168,9 @@ void ShootSKD::SKDThread::main() {
     }
 }
 
+void ShootSKD::set_mag_cover(float angle, GimbalIF::MG995_loc_t MG995) {
+    float duty_cycle = angle/180;
+    GimbalIF::setPWM(duty_cycle, MG995);
+}
+
 /** @} */

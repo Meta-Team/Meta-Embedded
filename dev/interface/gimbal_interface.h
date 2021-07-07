@@ -89,6 +89,10 @@ public:
 class GimbalIF : public GimbalBase {
 
 public:
+    enum MG995_loc_t {
+        MG995_LEFT,
+        MG995_RIGHT
+    };
 
     enum motor_can_channel_t {
         none_can_channel,
@@ -138,18 +142,17 @@ public:
      */
     static void enable_gimbal_current_clip();
 
+    /**
+     * Set PWM signal for MG995 Left or Right
+     * @param duty_cycle the duty_cycle to set.
+     * @param MOTORLOC the MOTOR need to set, available: GimbalIF::MG995_LEFT or GimbalIF::MG995_RIGHT
+     */
+    static void setPWM(float duty_cycle, MG995_loc_t MOTORLOC);
 
 private:
 
     static CANInterface *can1_;
     static CANInterface *can2_;
-
-    static CANTxFrame can1_txmsg;
-    static CANTxFrame can2_txmsg;
-    static CANTxFrame fw_txmsg;
-
-    static void process_can1_motor_feedback(CANRxFrame const *rxmsg);  // callback function
-    static void process_can2_motor_feedback(CANRxFrame const *rxmsg);  // callback function
 
     friend CANInterface;
 
@@ -157,10 +160,28 @@ private:
     static constexpr int VELOCITY_SAMPLE_INTERVAL = 50;  // count of feedback for one sample of angular velocity
 #endif
 
-//    enum friction_wheel_channel_t {
-//        FW_LEFT = 0,  // The left  friction wheel, PI5, channel 0
-//        FW_RIGHT = 1  // The right friction wheel, PI6, channel 1
-//    };
+    /***------------------PWM Config for MG 995-------------------***/
+
+    static constexpr PWMDriver *MAG_COVER_PWM_DRIVER = &PWMD8;
+
+    enum mag_cover_channel_t {
+        MAG_LEFT = 0,  // The left friction wheel, PI5, channel 0
+        MAG_RIGHT = 1  // The right friction wheel, PI6, channel 1
+    };
+
+    static constexpr PWMConfig FRICTION_WHEELS_PWM_CFG = {
+            50000,   // frequency
+            1000,    // period
+            nullptr, // callback
+            {
+                    {PWM_OUTPUT_ACTIVE_HIGH, nullptr}, // CH0
+                    {PWM_OUTPUT_ACTIVE_HIGH, nullptr}, // CH1
+                    {PWM_OUTPUT_DISABLED, nullptr},    // CH2
+                    {PWM_OUTPUT_DISABLED, nullptr}     // CH3
+            },
+            0,
+            0
+    };
 
 };
 

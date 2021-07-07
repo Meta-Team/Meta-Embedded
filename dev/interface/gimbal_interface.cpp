@@ -22,6 +22,7 @@ CANInterface::motor_feedback_t *GimbalIF::feedback[MOTOR_COUNT];
 int *GimbalIF::target_current[MOTOR_COUNT];
 CANInterface *GimbalIF::can1_ = nullptr;
 CANInterface *GimbalIF::can2_ = nullptr;
+constexpr PWMConfig GimbalIF::FRICTION_WHEELS_PWM_CFG;
 
 void GimbalIF::init(CANInterface *can1_interface,                      CANInterface *can2_interface,
                     motor_can_config_t motor_can_config[MOTOR_COUNT],
@@ -88,12 +89,14 @@ void GimbalIF::init(CANInterface *can1_interface,                      CANInterf
 
     }
 
+    /**PWM init for MG995*/
+    pwmStart(MAG_COVER_PWM_DRIVER, &FRICTION_WHEELS_PWM_CFG);
+
     chThdSleep(TIME_MS2I(500));
 
 }
 
 void GimbalIF::enable_gimbal_current_clip() {
-
 
 #if GIMBAL_INTERFACE_ENABLE_CLIP
     ABS_CROP(*target_current[YAW], GIMBAL_INTERFACE_MAX_CURRENT);
@@ -124,5 +127,14 @@ void GimbalIF::enable_gimbal_current_clip() {
 
 }
 
+void GimbalIF::setPWM(float duty_cycle, MG995_loc_t MOTORLOC) {
+    if(MOTORLOC == MG995_LEFT) {
+        pwmEnableChannel(MAG_COVER_PWM_DRIVER, MAG_LEFT,
+                         PWM_PERCENTAGE_TO_WIDTH(MAG_COVER_PWM_DRIVER, duty_cycle * 1000 + 250));
+    } else if (MOTORLOC == MG995_RIGHT) {
+        pwmEnableChannel(MAG_COVER_PWM_DRIVER, MAG_RIGHT,
+                         PWM_PERCENTAGE_TO_WIDTH(MAG_COVER_PWM_DRIVER, duty_cycle * 1000 + 250));
+    }
+}
 
 /** @} */

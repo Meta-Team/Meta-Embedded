@@ -105,6 +105,16 @@ public:
 
     static void force_stop();
 
+    /**
+     * open mag cover
+     */
+    static void mag_open();
+
+    /**
+     * close mag cover
+     */
+    static void mag_close();
+
 private:
 
     static float angle_per_bullet;

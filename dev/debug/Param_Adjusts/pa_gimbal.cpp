@@ -21,6 +21,8 @@
 #include "scheduler/gimbal_scheduler.h"
 #include "scheduler/shoot_scheduler.h"
 
+#include "remote_interpreter.h"
+
 #include "vehicle/infantry/vehicle_infantry.h"
 
 using namespace chibios_rt;
@@ -206,7 +208,17 @@ private:
         setName("gimbal_fb");
 
         while (!shouldTerminate()) {
-
+            if(Remote::rc.s1==Remote::S_UP) {
+                ShootSKD::set_mag_cover(0.0f, GimbalIF::MG995_RIGHT);
+                ShootSKD::set_mag_cover(180.0f, GimbalIF::MG995_LEFT);
+                LED::led_on(5);
+                LED::green_off();
+            } else if(Remote::rc.s1==Remote::S_DOWN){
+                ShootSKD::set_mag_cover(180.0f, GimbalIF::MG995_RIGHT);
+                ShootSKD::set_mag_cover(0.0f, GimbalIF::MG995_LEFT);
+                LED::led_off(5);
+                LED::green_on();
+            }
             if (enable_yaw_feedback) {
                 Shell::printf("!gy,%u,%.2f,%.2f,%.2f,%.2f,%d,%d" SHELL_NEWLINE_STR,
                               SYSTIME,
@@ -440,38 +452,40 @@ int main(void) {
     Shell::start(HIGHPRIO-5);
     Shell::addCommands(gimbalCotrollerCommands);
     chThdSleepMilliseconds(400);
-    can1.start(HIGHPRIO - 6, HIGHPRIO - 7);
-    can2.start(HIGHPRIO - 8, HIGHPRIO - 9);
-
+//    can1.start(HIGHPRIO - 6, HIGHPRIO - 7);
+//    can2.start(HIGHPRIO - 8, HIGHPRIO - 9);
+//
+    LED::led_on(1);
     BuzzerSKD::init(LOWPRIO +1);
-
-    /// Setup On-Board AHRS
-    Vector3D ahrs_bias;
-    if (SDCard::get_data(MPU6500_BIAS_DATA_ID, &ahrs_bias, sizeof(ahrs_bias)) == SDCard::OK) {
-        ahrs.load_calibration_data(ahrs_bias);
-        LOG("Use AHRS bias in SD Card");
-    } else {
-        ahrs.load_calibration_data(MPU6500_STORED_GYRO_BIAS);
-        LOG_WARN("Use default AHRS bias");
-    }
-    ahrs.load_calibration_data({-0.644649505f, -0.619945943f, 0.173617705f});
-    ahrs.start(ON_BOARD_AHRS_MATRIX_, THREAD_MPU_PRIO, THREAD_IST_PRIO, THREAD_AHRS_PRIO);
-
+//
+//    /// Setup On-Board AHRS
+//    Vector3D ahrs_bias;
+//    if (SDCard::get_data(MPU6500_BIAS_DATA_ID, &ahrs_bias, sizeof(ahrs_bias)) == SDCard::OK) {
+//        ahrs.load_calibration_data(ahrs_bias);
+//        LOG("Use AHRS bias in SD Card");
+//    } else {
+//        ahrs.load_calibration_data(MPU6500_STORED_GYRO_BIAS);
+//        LOG_WARN("Use default AHRS bias");
+//    }
+//    ahrs.load_calibration_data({-0.644649505f, -0.619945943f, 0.173617705f});
+//    ahrs.start(ON_BOARD_AHRS_MATRIX_, THREAD_MPU_PRIO, THREAD_IST_PRIO, THREAD_AHRS_PRIO);
+    Remote::start();
+    LED::led_on(2);
     GimbalIF::motor_can_config_t canConfig[6] = GIMBAL_MOTOR_CONFIG;
     GimbalIF::init(&can1, &can2,
                    canConfig,
                    GIMBAL_YAW_FRONT_ANGLE_RAW, GIMBAL_PITCH_FRONT_ANGLE_RAW);
-
+    LED::led_on(3);
     gimbalFeedbackThread.start(NORMALPRIO - 1);
     gimbalThread.start(NORMALPRIO);
-
-    //BuzzerSKD::play_sound(BuzzerSKD::sound_kong_fu_FC);
+    LED::led_on(4);
+    BuzzerSKD::play_sound(BuzzerSKD::sound_kong_fu_FC);
 
     chThdSleepMilliseconds(1000);
-    LOG("Gimbal Yaw: %u, %f, Pitch: %u, %f",
-        GimbalIF::feedback[GimbalIF::YAW]->last_angle_raw, GimbalIF::feedback[GimbalIF::YAW]->actual_angle,
-        GimbalIF::feedback[GimbalIF::PITCH]->last_angle_raw, GimbalIF::feedback[GimbalIF::PITCH]->actual_angle);
-    // See chconf.h for what this #define means.
+//    LOG("Gimbal Yaw: %u, %f, Pitch: %u, %f",
+//        GimbalIF::feedback[GimbalIF::YAW]->last_angle_raw, GimbalIF::feedback[GimbalIF::YAW]->actual_angle,
+//        GimbalIF::feedback[GimbalIF::PITCH]->last_angle_raw, GimbalIF::feedback[GimbalIF::PITCH]->actual_angle);
+//    // See chconf.h for what this #define means.
 #if CH_CFG_NO_IDLE_THREAD
     // ChibiOS idle thread has been disabled,
     // main() should implement infinite loop

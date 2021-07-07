@@ -62,6 +62,8 @@ private:
 
     static shoot_mode_type shoot_mode;
 
+    static bool mag_status;
+
     /// Helpers
 
     /// Runtime variables

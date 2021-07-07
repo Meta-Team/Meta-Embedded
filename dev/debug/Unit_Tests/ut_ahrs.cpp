@@ -78,6 +78,7 @@ void cmd_echo_gyro_bias(BaseSequentialStream *chp, int argc, char *argv[]) {
     chprintf(chp, "gyro_bias.x = %f" SHELL_NEWLINE_STR, ahrs.gyro_bias.x);
     chprintf(chp, "gyro_bias.y = %f" SHELL_NEWLINE_STR, ahrs.gyro_bias.y);
     chprintf(chp, "gyro_bias.z = %f" SHELL_NEWLINE_STR, ahrs.gyro_bias.z);
+    chprintf(chp, "temp = %f" SHELL_NEWLINE_STR, ahrs.temperature);
 }
 
 

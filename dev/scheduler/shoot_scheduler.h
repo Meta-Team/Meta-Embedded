@@ -117,6 +117,12 @@ public:
      */
     static void set_friction_wheels(float duty_cycle);
 
+    /**
+     *  Set the status of the mag cover open or close
+     * @param duty_cycle
+     */
+    static void set_mag_cover(float angle, GimbalIF::MG995_loc_t MG995);
+
 
     /** -------------------------------------- Functions to access GimbalIF -------------------------------------- */
 
@@ -177,6 +183,9 @@ public:
      */
     static void reset_plate_accumulated_angle();
 
+    /**
+     *
+     */
 private:
 
     static install_direction_t install_position[4];

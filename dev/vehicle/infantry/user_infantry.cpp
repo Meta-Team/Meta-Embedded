@@ -35,6 +35,8 @@ float UserI::shoot_launch_right_count = 5;
 float UserI::shoot_launch_speed = 4.0f;   //Feed rate
 float UserI::shoot_common_duty_cycle = 0.40;   //Init speed
 
+bool UserI::mag_status = true;
+
 UserI::shoot_mode_type UserI::shoot_mode = burst;
 
 Remote::key_t UserI::shoot_fw_switch = Remote::KEY_Z;
@@ -56,7 +58,7 @@ void UserI::start(tprio_t user_thd_prio, tprio_t user_action_thd_prio, tprio_t c
     userThread.start(user_thd_prio);
     userActionThread.start(user_action_thd_prio);
     clientDataSendingThread.start(client_data_sending_thd_prio);
-
+    ShootLG::mag_open();
 }
 
 void UserI::UserThread::main() {
@@ -168,7 +170,8 @@ void UserI::UserThread::main() {
                     (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_DOWN)) {
 
                 /// Remote - Shoot with Scrolling Wheel
-
+                ShootLG::mag_open();
+                mag_status = true;
                 if (Remote::rc.wheel > 0.5) {  // down
                     if(Referee::power_heat_data.shooter_id1_17mm_cooling_heat <
                        (uint16_t) (Referee::game_robot_state.shooter_id1_17mm_cooling_limit * 0.75)) {
@@ -200,7 +203,6 @@ void UserI::UserThread::main() {
                 /// PC control mode
 
                 /// Read shoot limit
-
                 if(Referee::game_robot_state.shooter_id1_17mm_cooling_rate >= 40){
                     shoot_launch_speed = Referee::game_robot_state.shooter_id1_17mm_cooling_rate/10*1.25;
                 }
@@ -299,12 +301,7 @@ void UserI::UserThread::main() {
                     } else {
                         ShootLG::stop();
                     }
-                } else if (Remote::key.r){
-                    if (ShootLG::get_shooter_state() == ShootLG::STOP) {
-                        ShootLG::shoot(-1, shoot_launch_speed);
-                        ShootLG::shoot(1, shoot_launch_speed);
-                    }
-                }else {
+                } else {
                     ShootLG::stop();
                 }
                 // UserActionThread handles launching and status of friction wheels
@@ -474,7 +471,12 @@ void UserI::UserActionThread::main() {
 
             // TODO: re-arrange variables
             if (key_flag & (1U << Remote::KEY_R)) {
-                ShootLG::set_friction_wheels(0.95);
+                if(mag_status) {
+                    ShootLG::mag_close();
+                } else {
+                    ShootLG::mag_open();
+                }
+                mag_status = !mag_status;
             }
             if (key_flag & (1U << Remote::KEY_F)) {
                 ShootLG::set_friction_wheels(0.5);
