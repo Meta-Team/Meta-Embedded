@@ -64,11 +64,18 @@ public:
                       float chassis_gimbal_offset, tprio_t thread_prio);
 
     /**
-     * Change PID parameters of PID controller
+     * Change parameters of PID controllers
      * @param theta2v_pid_params   Theta (see set_target()) to chassis rotation PID parameters
      * @param v2i_pid_params       Velocity to current parameters of every motor (shared parameters)
      */
     static void load_pid_params(pid_params_t theta2v_pid_params, pid_params_t v2i_pid_params);
+
+    /**
+     * hange parameters of PID controllers
+     * @param params
+     * @param is_theta2v
+     */
+    void load_pid_params_by_id(PIDControllerBase::pid_params_t params, bool is_theta2v);
 
     /**
      * Set mode of this SKD
@@ -105,18 +112,18 @@ public:
     static pid_params_t echo_pid_params();
 
     /**
-     * Get actual velocity
-     * @param Motor ID
-     * @return motor actual velocity
+     * Get actual velocity involved in the PID calculation
+     * @param motor_id Motor ID
+     * @return Motor actual velocity
      */
-     static float get_actual_velocity(motor_id_t motorId);
+     static float get_actual_velocity(motor_id_t motor_id);
 
      /**
-      * Get target velocity
-      * @param Motor ID
-      * @return motor target velocity
+      * Get target velocity involved in the PID calculation
+      * @param motor_id Motor ID
+      * @return Motor target velocity
       */
-     static float get_target_velocity(motor_id_t motorId);
+     static float get_target_velocity(motor_id_t motor_id) { return target_velocity[motor_id]; }
 
 private:
 

@@ -15,7 +15,7 @@ class VisionPortEchoThread: public chibios_rt::BaseStaticThread<512>{
         setName("vision_port");
         while (!shouldTerminate()){
             LOG("YAW: %.2f  PIT: %.2f",
-                VisionPort::enemy_info.yaw_delta, VisionPort::enemy_info.pitch_delta);
+                Vision::enemy_info.yaw_delta, Vision::enemy_info.pitch_delta);
             sleep(TIME_MS2I(1000));
         }
     }
@@ -35,7 +35,7 @@ int main(void) {
     /** Debug Setup **/
     Shell::start(HIGHPRIO);
 
-    VisionPort::init();
+    Vision::init();
 
     /*** ------------ Period 2. Calibration and Start Logic Control Thread ----------- ***/
 

@@ -15,8 +15,24 @@ static const SPIConfig SPI5_cfg =
                 0
         };
 
-void MPUOnBoard::mpu6500_write_reg(uint8_t reg_addr, uint8_t value) {
-    uint8_t tx_data[2] = {reg_addr, value};
+/**
+ * @note SPI Read/Write Protocol
+ * 1. (ChibiOS) Lock the SPI driver (spiAcquireBus)
+ * 2. CS (Chip Select) down (spiSelect)
+ * 3. Send register address N (bit 7 is 0 for write, 1 for read)
+ * 4. Read/Write register N
+ * (Optional, repeated) Read/Write register N+1, N+2, N+3, ...
+ * 5. CS up (spiUnselect)
+ * 6. (ChibiOS) unlock the SPI driver (spiReleaseBus)
+ */
+
+/**
+ * Write a single register through SPI.
+ * @param reg_addr The register
+ * @param value    The value to write
+ */
+void mpu6500_write_reg(uint8_t reg_addr, uint8_t value) {
+    uint8_t tx_data[2] = {reg_addr /* bit 7 is keep as 0 for write */, value};
     spiAcquireBus(&MPU6500_SPI_DRIVER);
     spiSelect(&MPU6500_SPI_DRIVER);
     spiSend(&MPU6500_SPI_DRIVER, 2, tx_data);
@@ -26,19 +42,21 @@ void MPUOnBoard::mpu6500_write_reg(uint8_t reg_addr, uint8_t value) {
 
 void MPUOnBoard::start(tprio_t prio) {
 
+    // Start SPI driver
     spiStart(&MPU6500_SPI_DRIVER, &SPI5_cfg);
+
+    // Reset MPU6500
     mpu6500_write_reg(MPU6500_PWR_MGMT_1, MPU6500_RESET);
     chThdSleepMilliseconds(100);  // wait for MPU6500 to reset, see data sheet
 
-
+    // Configure MPU6500 for gyro and accel
     uint8_t init_reg[5][2] = {
-            {MPU6500_PWR_MGMT_1, MPU6500_AUTO_SELECT_CLK}, // set auto clock
+            {MPU6500_PWR_MGMT_1,     MPU6500_AUTO_SELECT_CLK},  // auto clock
             {MPU6500_CONFIG,         CONFIG._dlpf_config},
-            {MPU6500_GYRO_CONFIG,    CONFIG._gyro_scale << 3U},
+            {MPU6500_GYRO_CONFIG,    CONFIG._gyro_scale << 3U /* [1:0] for FCHOICE_B = b00, low-pass-filter enabled */},
             {MPU6500_ACCEL_CONFIG,   CONFIG._accel_scale << 3U},
             {MPU6500_ACCEL_CONFIG_2, CONFIG._acc_dlpf_config}
     };
-
     for (int i = 0; i < 5; i++) {
         mpu6500_write_reg(init_reg[i][0], init_reg[i][1]);
         chThdSleepMilliseconds(10);
@@ -74,14 +92,13 @@ void MPUOnBoard::start(tprio_t prio) {
     accel_rotation[2][0] = 0.0f;
     accel_rotation[2][1] = 0.0f;
     accel_rotation[2][2] = 1.0f;
-
 #endif
 
     // Start the update thread
     updateThread.start(prio);
 
     // Wait for first calibration
-    while(last_calibration_time == 0) {
+    while (last_calibration_time == 0) {
         chThdSleepMilliseconds(1);
     }
 }
@@ -102,7 +119,7 @@ void MPUOnBoard::update() {
     spiAcquireBus(&MPU6500_SPI_DRIVER);
     spiSelect(&MPU6500_SPI_DRIVER);
     spiSend(&MPU6500_SPI_DRIVER, 1, &tx_data);
-    chThdSleepMilliseconds(1);
+//    chThdSleepMilliseconds(1);
     spiReceive(&MPU6500_SPI_DRIVER, RX_BUF_SIZE, rx_buf);
     spiUnselect(&MPU6500_SPI_DRIVER);
     spiReleaseBus(&MPU6500_SPI_DRIVER);
@@ -110,9 +127,9 @@ void MPUOnBoard::update() {
 
     /// Decode data
 
-    accel_orig = Vector3D((int16_t) (rx_buf[0] << 8 | rx_buf[1]),
-                          (int16_t) (rx_buf[2] << 8 | rx_buf[3]),
-                          (int16_t) (rx_buf[4] << 8 | rx_buf[5])) * accel_psc;
+    accel_raw = Vector3D((int16_t) (rx_buf[0] << 8 | rx_buf[1]),
+                         (int16_t) (rx_buf[2] << 8 | rx_buf[3]),
+                         (int16_t) (rx_buf[4] << 8 | rx_buf[5])) * accel_psc;
 
     Vector3D new_gyro_orig = Vector3D((int16_t) (rx_buf[8] << 8 | rx_buf[9]),
                                       (int16_t) (rx_buf[10] << 8 | rx_buf[11]),
@@ -122,12 +139,14 @@ void MPUOnBoard::update() {
 
     /// Gyro Calibration sampling
 
-    if ((ABS_IN_RANGE(new_gyro_orig.x - gyro_orig.x, STATIC_RANGE) &&
-        ABS_IN_RANGE(new_gyro_orig.y - gyro_orig.y, STATIC_RANGE) &&
-        ABS_IN_RANGE(new_gyro_orig.z - gyro_orig.z, STATIC_RANGE))&&
-            !MPU6500_startup_calibrated ){  // MPU6500 static
+    if ((ABS_IN_RANGE(new_gyro_orig.x - gyro_raw.x, STATIC_RANGE) &&
+         ABS_IN_RANGE(new_gyro_orig.y - gyro_raw.y, STATIC_RANGE) &&
+         ABS_IN_RANGE(new_gyro_orig.z - gyro_raw.z, STATIC_RANGE)) &&
+        !MPU6500_startup_calibrated) {  // MPU6500 static
+
         static_measurement_count++;
-        temp_gyro_bias = temp_gyro_bias - new_gyro_orig;
+        temp_gyro_bias = temp_gyro_bias - new_gyro_orig;  // bias is to be minus, so sum as negative here
+
 #if MPU6500_ENABLE_ACCEL_BIAS
         temp_accel_bias = temp_accel_bias + accel;
 #endif
@@ -135,12 +154,12 @@ void MPUOnBoard::update() {
 
     /// Bias data
 
-    gyro_orig = new_gyro_orig;
-    gyro = gyro_orig + gyro_bias;
+    gyro_raw = new_gyro_orig;
+    gyro = gyro_raw + gyro_bias;
 #if MPU6500_ENABLE_ACCEL_BIAS
     accel = accel_orig * accel_rotation;
 #else
-    accel = accel_orig;
+    accel = accel_raw;
 #endif
 
     /// Update info
@@ -150,7 +169,8 @@ void MPUOnBoard::update() {
 
     /// Perform gyro re-bias
 
-    if (!MPU6500_startup_calibrated && (static_measurement_count >= BIAS_SAMPLE_COUNT) && (SYSTIME - updateThread.THREAD_START_TIME > mpu6500_start_up_time)) {
+    if (!MPU6500_startup_calibrated && (static_measurement_count >= BIAS_SAMPLE_COUNT) &&
+        (SYSTIME - updateThread.thread_start_time > mpu6500_start_up_time)) {
 //        LED::led_toggle(7);
         MPU6500_startup_calibrated = true;
         gyro_bias = temp_gyro_bias / static_measurement_count;
@@ -184,10 +204,10 @@ void MPUOnBoard::update() {
 
 void MPUOnBoard::UpdateThread::main() {
     setName("MPU6500");
-    THREAD_START_TIME = SYSTIME;
-    mpu.MPU6500_startup_calibrated = false;
+    thread_start_time = SYSTIME;
+    imu.MPU6500_startup_calibrated = false;
     while (!shouldTerminate()) {
-        mpu.update();
+        imu.update();
         sleep(TIME_MS2I(THREAD_UPDATE_INTERVAL));
     }
 }

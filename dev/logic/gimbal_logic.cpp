@@ -37,6 +37,7 @@ void GimbalLG::set_action(GimbalLG::action_t value) {
     } else if (action == SENTRY_MODE) {
         GimbalSKD::set_mode(GimbalSKD::SENTRY_MODE);
     } else if (action == VISION_MODE) {
+        GimbalSKD::set_mode(GimbalSKD::ABS_ANGLE_MODE);
         // Resume the thread
         chSysLock();  /// --- ENTER S-Locked state. DO NOT use LOG, printf, non S/I-Class functions or return ---
         {
@@ -84,7 +85,7 @@ void GimbalLG::VisionControlThread::main() {
 
         Vision::VisionControlCommand command = {0, 0};
         if (Vision::getControlCommand(command)) {
-            GimbalLG::set_target(command.gimbal_yaw_target, command.gimbal_pitch_target);
+            GimbalSKD::set_target_angle(command.gimbal_yaw_target, command.gimbal_pitch_target);
         }  // otherwise, keep current target angles
 
         sleep(TIME_MS2I(VISION_THREAD_INTERVAL));

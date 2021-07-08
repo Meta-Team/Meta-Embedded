@@ -3,6 +3,9 @@
 //
 
 #include "settings_infantry.h"
+#include "gimbal_scheduler.h"
+#include "chassis_scheduler.h"
+#include "ahrs.h"
 
 using namespace chibios_rt;
 //ShellCommand mainProgramCommands[] = {
@@ -104,26 +107,24 @@ using namespace chibios_rt;
 //    chprintf(chp, "!so" SHELL_NEWLINE_STR);
 //}
 
-#define MOTOR_COUNT 2
-#define THREAD_FEEDBACK_PRIO                (LOWPRIO + 6)
+#define MOTOR_COUNT  6
+#define THREAD_FEEDBACK_PRIO  (LOWPRIO + 6)
 unsigned const GIMBAL_FEEDBACK_INTERVAL = 25; // [ms]
 
 bool feedback_enable[MOTOR_COUNT];
 
-const char *motor_name[] = {"yaw", "pitch"};
-
-void cmd_t3_echo_motors(BaseSequentialStream *chp, int argc, char *argv[]) {
-    if (argc != 0) {
-        shellUsage(chp, "t3_echo_motors");
-        return;
-    }
-
-}
+const char *motor_name[MOTOR_COUNT] = {
+        "yaw",
+        "pitch",
+        "ahrs",
+        "gyro",
+        "accel",
+        "magnet"};
 
 void cmd_enable_feedback(BaseSequentialStream *chp, int argc, char *argv[]) {
     (void) argv;
     if (argc != 2) {
-        shellUsage(chp, "fb_enable motor(yaw(0)/pitch(1)) set_enable(0/1)");
+        shellUsage(chp, "fb_enable motor enabled(0/1)");
         chprintf(chp, "!pe" SHELL_NEWLINE_STR);  // echo parameters error
         return;
     }
@@ -132,15 +133,14 @@ void cmd_enable_feedback(BaseSequentialStream *chp, int argc, char *argv[]) {
         chprintf(chp, "!pe" SHELL_NEWLINE_STR);  // echo parameters error
         return;
     }
-    feedback_enable[motor_id] = *argv[1] != '0';
-    chprintf(chp, "!ps" SHELL_NEWLINE_STR); // echo parameters set
+    feedback_enable[motor_id] = (*argv[1] != '0');
+    chprintf(chp, "Motor %d feedback set" SHELL_NEWLINE_STR, motor_id); // echo parameters set
 }
 
 void cmd_set_target_angle(BaseSequentialStream *chp, int argc, char *argv[]) {
     (void) argv;
     if (argc != 2) {
         shellUsage(chp, "set_a yaw_angle pitch_angle");
-        chprintf(chp, "!pe" SHELL_NEWLINE_STR);  // echo parameters error
         return;
     }
     GimbalLG::set_target(Shell::atof((argv[0])), Shell::atof(argv[1]));
@@ -169,15 +169,21 @@ void cmd_set_target_angle(BaseSequentialStream *chp, int argc, char *argv[]) {
 void cmd_set_param(BaseSequentialStream *chp, int argc, char *argv[]) {
     (void) argv;
     if (argc != 7) {
-        shellUsage(chp, "set_pid motor(yaw(0)/pitch(1)) pid_id(angle_to_v(0)/v_to_i(1)) ki kp kd i_limit out_limit");
-        chprintf(chp, "!pe" SHELL_NEWLINE_STR);  // echo parameters error
+        shellUsage(chp, "set_pid motor_id pid_id(0: angle_to_v, 1: v_to_i) ki kp kd i_limit out_limit");
         return;
     }
-    GimbalSKD::load_pid_params_by_id({Shell::atof(argv[2]),
-                                      Shell::atof(argv[3]),
-                                      Shell::atof(argv[4]),
-                                      Shell::atof(argv[5]),
-                                      Shell::atof(argv[6])}, *argv[0] == '0', *argv[1] == '0');
+    unsigned motor_id = Shell::atoi(argv[0]);
+    unsigned pid_id = Shell::atoi(argv[1]);
+
+    if (motor_id < 2) {
+        GimbalSKD::load_pid_params_by_id({Shell::atof(argv[2]),
+                                          Shell::atof(argv[3]),
+                                          Shell::atof(argv[4]),
+                                          Shell::atof(argv[5]),
+                                          Shell::atof(argv[6])},
+                                         motor_id == 0,
+                                         pid_id == 1);
+    }
 
     chprintf(chp, "!ps" SHELL_NEWLINE_STR); // echo parameters set
 }
@@ -190,25 +196,50 @@ ShellCommand mainProgramCommands[] = {
         {nullptr,     nullptr}
 };
 
+extern AHRSOnBoard ahrs;
+
 class FeedbackThread : public BaseStaticThread<512> {
 private:
     void main() final {
         setName("Feedback");
         while (!shouldTerminate()) {
             float actual_angle, target_angle, actual_velocity, target_velocity;
+
+            // Gimbal
             for (int i = 0; i < MOTOR_COUNT; i++) {
                 if (feedback_enable[i]) {
-                    actual_angle = GimbalIF::feedback[i]->actual_angle;
+                    actual_angle = GimbalSKD::get_accumulated_angle((GimbalBase::motor_id_t) i);
                     target_angle = GimbalSKD::get_target_angle((GimbalBase::motor_id_t) i);
-                    actual_velocity = GimbalIF::feedback[i]->actual_velocity;
+                    actual_velocity = GimbalSKD::get_actual_velocity((GimbalBase::motor_id_t) i);
                     target_velocity = GimbalSKD::get_target_velocity((GimbalBase::motor_id_t) i);
                     Shell::printf("fb %s %.2f %.2f %.2f %.2f %d %d" SHELL_NEWLINE_STR,
                                   motor_name[i],
                                   actual_angle, target_angle,
                                   actual_velocity, target_velocity,
-                                  GimbalIF::feedback[i]->actual_current, GimbalIF::target_current[i]);
+                                  GimbalIF::feedback[i]->actual_current, *GimbalIF::target_current[i]);
                 }
             }
+
+            if (feedback_enable[2]) {
+                Shell::printf("fb %s %.2f 0 %.2f 0 %.2f 0" SHELL_NEWLINE_STR,
+                              motor_name[2], ahrs.get_angle().x, ahrs.get_angle().y, ahrs.get_angle().z);
+            }
+
+            if (feedback_enable[3]) {
+                Shell::printf("fb %s %.2f 0 %.2f 0 %.2f 0" SHELL_NEWLINE_STR,
+                              motor_name[3], ahrs.get_gyro().x, ahrs.get_gyro().y, ahrs.get_gyro().z);
+            }
+
+            if (feedback_enable[4]) {
+                Shell::printf("fb %s %.2f 0 %.2f 0 %.2f 0" SHELL_NEWLINE_STR,
+                              motor_name[4], ahrs.get_accel().x, ahrs.get_accel().y, ahrs.get_accel().z);
+            }
+
+            if (feedback_enable[5]) {
+                Shell::printf("fb %s %.2f 0 %.2f 0 %.2f 0" SHELL_NEWLINE_STR,
+                              motor_name[5], ahrs.get_magnet().x, ahrs.get_magnet().y, ahrs.get_magnet().z);
+            }
+
             sleep(TIME_MS2I(GIMBAL_FEEDBACK_INTERVAL));
         }
     }

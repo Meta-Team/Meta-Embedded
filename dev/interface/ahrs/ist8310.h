@@ -35,17 +35,7 @@
 class ISTOnBoard : virtual public AbstractIST {
 public:
 
-    /* (From AbstractIST)
 
-    (public)
-    Vector3D get_magnet();  // get magnet data [uT]
-    time_msecs_t get_ist_update_time(); // get last update time from system start [ms]
-
-    (protected)
-    Vector3D magnet;  // Magnet data [uT]
-    time_msecs_t ist_update_time = 0;  // Last update time from system start [ms]
-
-    */
 
     /**
      * Start IST8310 driver and the thread of data fetching
@@ -70,9 +60,6 @@ private:
         void main() final;
     } updateThread;
 
-
-    static void writeSPIReg(const uint8_t *data, size_t n);  // helper function to write register
-
     enum mpu_i2cmst_clk_t{
         MPU6500_I2CMST_CLK_348K = 0,
         MPU6500_I2CMST_CLK_333K = 1,
@@ -92,7 +79,6 @@ private:
         MPU6500_I2CMST_CLK_364K = 15
     };
 
-    static constexpr mpu_i2cmst_clk_t I2C_MASTER_CLK = MPU6500_I2CMST_CLK_400K;
 };
 
 #endif //META_INFANTRY_IST8310_H

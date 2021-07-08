@@ -113,7 +113,14 @@
 #define MPU6500_AUTO_SELECT_CLK     (0x01)
 
 
-#define MPU6500_SPI_READ             0x80
-#define MPU6500_I2C_MSTR_READ        0x80
+#define MPU6500_SPI_READ            (0x80)
+#define MPU6500_SPI_WRITE           (0x00)
+
+/** MPU6500_I2C_SLVX_ADDR **/
+#define MPU6500_I2C_MSTR_READ       (0x80)
+#define MPU6500_I2C_MSTR_WRITE      (0x00)
+
+/** I2C_SLVX_CTRL **/
+#define MPU6500_I2C_SLV_EN          (0x80)
 
 #endif //META_INFANTRY_MPU6500_REG_H

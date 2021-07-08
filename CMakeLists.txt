@@ -47,9 +47,7 @@ include_directories(  # common include directories
         dev/interface/ahrs
         dev/module
         dev/scheduler
-        dev/logic
-        # TODO: elimiate control directory someday
-        dev/control)
+        dev/logic)
 
 set(COMMON_SRC  # common cpp sources, which are included to every tartget at post configuration below
         dev/debug/shell/shell_base.c

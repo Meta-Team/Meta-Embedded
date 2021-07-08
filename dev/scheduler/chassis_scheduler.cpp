@@ -49,7 +49,7 @@ void ChassisSKD::start(float wheel_base, float wheel_tread, float wheel_circumfe
      *        many aspects, including Theta2W PID parameters for chassis dodge mode. It should be fixed after
      *        season 2019.
      */
-    
+
 #if defined(HERO)
     w_to_v_ratio_ = (wheel_base + wheel_tread) / 2.0f / 360.0f * 3.14159f;
 #else
@@ -74,6 +74,16 @@ void ChassisSKD::load_pid_params(PIDControllerBase::pid_params_t theta2v_pid_par
     }
 }
 
+void ChassisSKD::load_pid_params_by_id(PIDControllerBase::pid_params_t params, bool is_theta2v) {
+    if (is_theta2v) {
+        a2v_pid.change_parameters(params);
+    } else {
+        for (int i = 0; i < MOTOR_COUNT; i++) {
+            v2i_pid[i].change_parameters(params);
+        }
+    }
+}
+
 void ChassisSKD::set_mode(ChassisSKD::mode_t skd_mode) {
     mode = skd_mode;
 }
@@ -91,7 +101,7 @@ void ChassisSKD::set_dodge_target(float vx, float vy, float omega) {
 }
 
 float ChassisSKD::get_actual_theta() {
-    return GimbalIF::feedback[GimbalIF::YAW]->actual_angle*GIMBAL_YAW_INSTALL_DIRECTION;
+    return GimbalIF::feedback[GimbalIF::YAW]->actual_angle * GIMBAL_YAW_INSTALL_DIRECTION;
 }
 
 void ChassisSKD::velocity_decompose_(float vx, float vy, float w) {
@@ -114,11 +124,15 @@ void ChassisSKD::velocity_decompose_(float vx, float vy, float w) {
     target_current[BR] = (int) v2i_pid[BR].calc(ChassisIF::feedback[BR]->actual_velocity, target_velocity[BR]);
 }
 
+float ChassisSKD::get_actual_velocity(ChassisBase::motor_id_t motor_id) {
+    return ChassisIF::feedback[motor_id]->actual_velocity;
+}
+
 void ChassisSKD::SKDThread::main() {
     setName("ChassisSKD");
     while (!shouldTerminate()) {
 
-        if ( (mode==GIMBAL_COORDINATE_MODE) || (mode==ANGULAR_VELOCITY_DODGE_MODE) ) {
+        if ((mode == GIMBAL_COORDINATE_MODE) || (mode == ANGULAR_VELOCITY_DODGE_MODE)) {
 
             float theta = get_actual_theta();
             if (mode == GIMBAL_COORDINATE_MODE) target_w = a2v_pid.calc(theta, target_theta);
