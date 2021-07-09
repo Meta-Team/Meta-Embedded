@@ -26,16 +26,33 @@ private:
     // Latest armor position (without compensation)
     static float target_armor_yaw;    // [deg]
     static float target_armor_pitch;  // [deg]
+    static float target_armor_distance;  // [mm]
 
     // Gimbal angles at last vision command
     static float last_gimbal_yaw;    // [deg]
     static float last_gimbal_pitch;  // [deg]
 
     // Last vision command time
-    static time_msecs_t last_update_time;  // [ms]
+    static time_msecs_t last_update_time;   // [ms]
+    static time_msecs_t last_update_delta;  // [ms]
 
-    static float latest_yaw_velocity;    // [deg/ms]
-    static float latest_pitch_velocity;  // [deg/ms]
+    class VelocityCalculator {
+    public:
+        float latest_yaw_velocity() const { return yaw_velocity; }      // [deg/ms]
+        float latest_pitch_velocity() const { return pitch_velocity; }  // [deg/ms]
+        void update(float armor_yaw, float armor_pitch);
+        void reset() {
+            last_compute_time = 0;
+            last_yaw = last_pitch = yaw_velocity = pitch_velocity = 0;
+        }
+    private:
+        time_msecs_t last_compute_time = 0;
+        float last_yaw = 0, last_pitch = 0;
+        float yaw_velocity = 0, pitch_velocity = 0;
+        static constexpr time_msecs_t MIN_COMPUTE_INTERNAL = 100;  // [ms]
+    };
+
+    static VelocityCalculator velocity_calculator;
 
     static float velocity_update_fraction;
     static time_msecs_t predict_forward_amount;  // [ms]
@@ -90,6 +107,8 @@ private:
     // See cpp file for configs
     static constexpr UARTDriver *UART_DRIVER = &UARTD8;
     static const UARTConfig UART_CONFIG;
+
+    friend class FeedbackThread;
 };
 
 

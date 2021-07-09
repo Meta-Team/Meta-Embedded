@@ -51,7 +51,7 @@ void MPUOnBoard::start(tprio_t prio) {
 
     // Configure MPU6500 for gyro and accel
     uint8_t init_reg[5][2] = {
-            {MPU6500_PWR_MGMT_1,     MPU6500_AUTO_SELECT_CLK},  // auto clock
+            {MPU6500_PWR_MGMT_1, MPU6500_AUTO_SELECT_CLK},  // auto clock
             {MPU6500_CONFIG,         CONFIG._dlpf_config},
             {MPU6500_GYRO_CONFIG,    CONFIG._gyro_scale << 3U /* [1:0] for FCHOICE_B = b00, low-pass-filter enabled */},
             {MPU6500_ACCEL_CONFIG,   CONFIG._accel_scale << 3U},
@@ -66,19 +66,39 @@ void MPUOnBoard::start(tprio_t prio) {
 
     // Get the coefficient converting the raw data to degree or gravity
     switch (CONFIG._gyro_scale) {
-        case MPU6500_GYRO_SCALE_250:  gyro_psc = (1.0f / 131.0f);  break;
-        case MPU6500_GYRO_SCALE_500:  gyro_psc = (1.0f / 65.5f);   break;
-        case MPU6500_GYRO_SCALE_1000: gyro_psc = (1.0f / 32.8f);   break;
-        case MPU6500_GYRO_SCALE_2000: gyro_psc = (1.0f / 16.4f);   break;
-        default:                      gyro_psc = 0.0f;             break;
+        case MPU6500_GYRO_SCALE_250:
+            gyro_psc = (1.0f / 131.0f);
+            break;
+        case MPU6500_GYRO_SCALE_500:
+            gyro_psc = (1.0f / 65.5f);
+            break;
+        case MPU6500_GYRO_SCALE_1000:
+            gyro_psc = (1.0f / 32.8f);
+            break;
+        case MPU6500_GYRO_SCALE_2000:
+            gyro_psc = (1.0f / 16.4f);
+            break;
+        default:
+            gyro_psc = 0.0f;
+            break;
     }
 
     switch (CONFIG._accel_scale) {
-        case MPU6500_ACCEL_SCALE_2G:  accel_psc = (1 / 16384.0f) * GRAV_CONSTANT; break;
-        case MPU6500_ACCEL_SCALE_4G:  accel_psc = (1 / 8192.0f) * GRAV_CONSTANT;  break;
-        case MPU6500_ACCEL_SCALE_8G:  accel_psc = (1 / 4096.0f) * GRAV_CONSTANT;  break;
-        case MPU6500_ACCEL_SCALE_16G: accel_psc = (1 / 2048.0f) * GRAV_CONSTANT;  break;
-        default:                      accel_psc = 0.0f;           break;
+        case MPU6500_ACCEL_SCALE_2G:
+            accel_psc = (1 / 16384.0f) * GRAV_CONSTANT;
+            break;
+        case MPU6500_ACCEL_SCALE_4G:
+            accel_psc = (1 / 8192.0f) * GRAV_CONSTANT;
+            break;
+        case MPU6500_ACCEL_SCALE_8G:
+            accel_psc = (1 / 4096.0f) * GRAV_CONSTANT;
+            break;
+        case MPU6500_ACCEL_SCALE_16G:
+            accel_psc = (1 / 2048.0f) * GRAV_CONSTANT;
+            break;
+        default:
+            accel_psc = 0.0f;
+            break;
     }
 
 #if MPU6500_ENABLE_ACCEL_BIAS
@@ -124,81 +144,84 @@ void MPUOnBoard::update() {
     spiUnselect(&MPU6500_SPI_DRIVER);
     spiReleaseBus(&MPU6500_SPI_DRIVER);
 
+    chSysLock();  /// --- ENTER S-Locked state. DO NOT use LOG, printf, non S/I-Class functions or return ---
+    {
 
-    /// Decode data
+        /// Decode data
 
-    accel_raw = Vector3D((int16_t) (rx_buf[0] << 8 | rx_buf[1]),
-                         (int16_t) (rx_buf[2] << 8 | rx_buf[3]),
-                         (int16_t) (rx_buf[4] << 8 | rx_buf[5])) * accel_psc;
+        accel_raw = Vector3D((int16_t) (rx_buf[0] << 8 | rx_buf[1]),
+                             (int16_t) (rx_buf[2] << 8 | rx_buf[3]),
+                             (int16_t) (rx_buf[4] << 8 | rx_buf[5])) * accel_psc;
 
-    Vector3D new_gyro_orig = Vector3D((int16_t) (rx_buf[8] << 8 | rx_buf[9]),
-                                      (int16_t) (rx_buf[10] << 8 | rx_buf[11]),
-                                      (int16_t) (rx_buf[12] << 8 | rx_buf[13])) * gyro_psc;
+        Vector3D new_gyro_orig = Vector3D((int16_t) (rx_buf[8] << 8 | rx_buf[9]),
+                                          (int16_t) (rx_buf[10] << 8 | rx_buf[11]),
+                                          (int16_t) (rx_buf[12] << 8 | rx_buf[13])) * gyro_psc;
 
-    temperature = ((((int16_t) (rx_buf[6] << 8 | rx_buf[7])) - TEMPERATURE_BIAS) / 333.87f) + 21.0f;
+        temperature = ((((int16_t) (rx_buf[6] << 8 | rx_buf[7])) - TEMPERATURE_BIAS) / 333.87f) + 21.0f;
 
-    /// Gyro Calibration sampling
+        /// Gyro Calibration sampling
 
-    if ((ABS_IN_RANGE(new_gyro_orig.x - gyro_raw.x, STATIC_RANGE) &&
-         ABS_IN_RANGE(new_gyro_orig.y - gyro_raw.y, STATIC_RANGE) &&
-         ABS_IN_RANGE(new_gyro_orig.z - gyro_raw.z, STATIC_RANGE)) &&
-        !MPU6500_startup_calibrated) {  // MPU6500 static
+        if ((ABS_IN_RANGE(new_gyro_orig.x - gyro_raw.x, STATIC_RANGE) &&
+             ABS_IN_RANGE(new_gyro_orig.y - gyro_raw.y, STATIC_RANGE) &&
+             ABS_IN_RANGE(new_gyro_orig.z - gyro_raw.z, STATIC_RANGE)) &&
+            !MPU6500_startup_calibrated) {  // MPU6500 static
 
-        static_measurement_count++;
-        temp_gyro_bias = temp_gyro_bias - new_gyro_orig;  // bias is to be minus, so sum as negative here
+            static_measurement_count++;
+            temp_gyro_bias = temp_gyro_bias - new_gyro_orig;  // bias is to be minus, so sum as negative here
 
 #if MPU6500_ENABLE_ACCEL_BIAS
-        temp_accel_bias = temp_accel_bias + accel;
+            temp_accel_bias = temp_accel_bias + accel;
 #endif
-    }
+        }
 
-    /// Bias data
+        /// Bias data
 
-    gyro_raw = new_gyro_orig;
-    gyro = gyro_raw + gyro_bias;
+        gyro_raw = new_gyro_orig;
+        gyro = gyro_raw + gyro_bias;
 #if MPU6500_ENABLE_ACCEL_BIAS
-    accel = accel_orig * accel_rotation;
+        accel = accel_orig * accel_rotation;
 #else
-    accel = accel_raw;
+        accel = accel_raw;
 #endif
 
-    /// Update info
+        /// Update info
 
-    mpu_update_time = SYSTIME;
+        mpu_update_time = SYSTIME;
 
 
-    /// Perform gyro re-bias
+        /// Perform gyro re-bias
 
-    if (!MPU6500_startup_calibrated && (static_measurement_count >= BIAS_SAMPLE_COUNT) &&
-        (SYSTIME - updateThread.thread_start_time > mpu6500_start_up_time)) {
-//        LED::led_toggle(7);
-        MPU6500_startup_calibrated = true;
-        gyro_bias = temp_gyro_bias / static_measurement_count;
+        if (!MPU6500_startup_calibrated && (static_measurement_count >= BIAS_SAMPLE_COUNT) &&
+            (SYSTIME - updateThread.thread_start_time > mpu6500_start_up_time)) {
+//        chSysUnlock();  /// --- EXIT S-Locked state ---
+            MPU6500_startup_calibrated = true;
+            gyro_bias = temp_gyro_bias / static_measurement_count;
 #if MPU6500_ENABLE_ACCEL_BIAS
-        if (last_calibration_time == 0) {
-                // Only calibrate accel for ones
-                accel_rotation[2][0] = temp_accel_bias.x / BIAS_SAMPLE_COUNT;
-                accel_rotation[2][1] = temp_accel_bias.y / BIAS_SAMPLE_COUNT;
-                accel_rotation[2][2] = temp_accel_bias.z / BIAS_SAMPLE_COUNT;
-                accel_rotation[0][0] = accel_rotation[2][1] - accel_rotation[2][2];
-                accel_rotation[0][1] = accel_rotation[2][2] - accel_rotation[2][0];
-                accel_rotation[0][0] = accel_rotation[2][0] - accel_rotation[2][1];
-                float length = sqrtf(accel_rotation[0][0] * accel_rotation[0][0] + accel_rotation[0][1] * accel_rotation[0][1]
-                                     + accel_rotation[0][2] * accel_rotation[0][2]);
-                accel_rotation[0][0] /= length;
-                accel_rotation[0][1] /= length;
-                accel_rotation[0][2] /= length;
-                Vector3D temp_vect = Vector3D(accel_rotation[0]).crossMultiply(Vector3D(accel_rotation[2]));
-                accel_rotation[1][0] = temp_vect.x;
-                accel_rotation[1][1] = temp_vect.y;
-                accel_rotation[1][2] = temp_vect.z;
-            }
+            if (last_calibration_time == 0) {
+                    // Only calibrate accel for ones
+                    accel_rotation[2][0] = temp_accel_bias.x / BIAS_SAMPLE_COUNT;
+                    accel_rotation[2][1] = temp_accel_bias.y / BIAS_SAMPLE_COUNT;
+                    accel_rotation[2][2] = temp_accel_bias.z / BIAS_SAMPLE_COUNT;
+                    accel_rotation[0][0] = accel_rotation[2][1] - accel_rotation[2][2];
+                    accel_rotation[0][1] = accel_rotation[2][2] - accel_rotation[2][0];
+                    accel_rotation[0][0] = accel_rotation[2][0] - accel_rotation[2][1];
+                    float length = sqrtf(accel_rotation[0][0] * accel_rotation[0][0] + accel_rotation[0][1] * accel_rotation[0][1]
+                                         + accel_rotation[0][2] * accel_rotation[0][2]);
+                    accel_rotation[0][0] /= length;
+                    accel_rotation[0][1] /= length;
+                    accel_rotation[0][2] /= length;
+                    Vector3D temp_vect = Vector3D(accel_rotation[0]).crossMultiply(Vector3D(accel_rotation[2]));
+                    accel_rotation[1][0] = temp_vect.x;
+                    accel_rotation[1][1] = temp_vect.y;
+                    accel_rotation[1][2] = temp_vect.z;
+                }
 #endif
-        static_measurement_count = 0;
-        temp_gyro_bias = Vector3D(0, 0, 0);
-        last_calibration_time = SYSTIME;
+            static_measurement_count = 0;
+            temp_gyro_bias = Vector3D(0, 0, 0);
+            last_calibration_time = SYSTIME;
+        }
     }
-
+    chSysUnlock();  /// --- EXIT S-Locked state ---
 }
 
 
@@ -207,7 +230,9 @@ void MPUOnBoard::UpdateThread::main() {
     thread_start_time = SYSTIME;
     imu.MPU6500_startup_calibrated = false;
     while (!shouldTerminate()) {
+
         imu.update();
+
         sleep(TIME_MS2I(THREAD_UPDATE_INTERVAL));
     }
 }

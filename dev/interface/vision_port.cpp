@@ -15,9 +15,10 @@ float Vision::last_gimbal_yaw = 0;
 float Vision::last_gimbal_pitch = 0;
 float Vision::target_armor_yaw = 0;
 float Vision::target_armor_pitch = 0;
+float Vision::target_armor_distance = 0;
 time_msecs_t Vision::last_update_time = 0;
-float Vision::latest_yaw_velocity = 0;
-float Vision::latest_pitch_velocity = 0;
+time_msecs_t Vision::last_update_delta = 0;
+Vision::VelocityCalculator Vision::velocity_calculator;
 float Vision::velocity_update_fraction = 1;
 time_msecs_t Vision::predict_forward_amount = 0;
 constexpr size_t Vision::DATA_SIZE[Vision::CMD_ID_COUNT];
@@ -51,14 +52,17 @@ void Vision::init(float velocity_update_fraction_, time_msecs_t predict_forward_
 }
 
 bool Vision::getControlCommand(VisionControlCommand &command) {
-    chSysLock();  /// --- ENTER S-Locked state. DO NOT use LOG, printf, non S/I-Class functions or return ---
     bool ret;
-    if (WITHIN_RECENT_TIME(last_update_time, 1000)) {
-        command = {target_armor_yaw + latest_yaw_velocity * (float) (predict_forward_amount),
-                target_armor_pitch /*+ latest_pitch_velocity * (float) (predict_forward_amount)*/};
-        ret = true;
-    } else {
-        ret = false;
+    chSysLock();  /// --- ENTER S-Locked state. DO NOT use LOG, printf, non S/I-Class functions or return ---
+    {
+        if (WITHIN_RECENT_TIME(last_update_time, 1000)) {
+            command = {target_armor_yaw + velocity_calculator.latest_yaw_velocity() * (float) (predict_forward_amount),
+                       target_armor_pitch /*+ latest_pitch_velocity * (float) (predict_forward_amount)*/};
+            ret = true;
+        } else {
+            velocity_calculator.reset();
+            ret = false;
+        }
     }
     chSysUnlock();  /// --- EXIT S-Locked state ---
     //LOG("%f", latest_yaw_velocity * (float) (predict_forward_amount));
@@ -114,29 +118,22 @@ void Vision::uart_rx_callback(UARTDriver *uartp) {
                         float new_armor_yaw = (pak.command.yaw_delta / 100.0f) + last_gimbal_yaw;
                         float new_armor_pitch = (pak.command.pitch_delta / 100.0f) + last_gimbal_pitch;
 
-                        float new_yaw_velocity, new_pitch_velocity;
-                        if (pak.command.flag & DETECTED) {
-                            new_yaw_velocity = (new_armor_yaw - target_armor_yaw) / (float) (SYSTIME - last_update_time);
-                            new_pitch_velocity = (new_armor_pitch - target_armor_pitch) / (float) (SYSTIME - last_update_time);
-                        } else {
-                            new_yaw_velocity = new_pitch_velocity = 0;
-                        }
-
                         // Update velocity
-                        latest_yaw_velocity = new_yaw_velocity * velocity_update_fraction +
-                                latest_yaw_velocity * (1 - velocity_update_fraction);
-                        latest_pitch_velocity = new_pitch_velocity * velocity_update_fraction +
-                                latest_pitch_velocity * (1 - velocity_update_fraction);
+                        if (pak.command.flag & DETECTED) {
+                            velocity_calculator.update(new_armor_yaw, new_armor_pitch);
+                        }
 
                         // Store latest armor position if detected
                         if (pak.command.flag & DETECTED) {
                             target_armor_yaw = new_armor_yaw;
                             target_armor_pitch = new_armor_pitch;
+                            target_armor_distance = pak.command.distance;
                         }
 
                         // Record current gimbal angles, which will be used for next control command
                         last_gimbal_yaw = GimbalSKD::get_accumulated_angle(GimbalBase::YAW);
                         last_gimbal_pitch = GimbalSKD::get_accumulated_angle(GimbalBase::PITCH);
+                        last_update_delta = SYSTIME - last_update_time;
                         last_update_time = SYSTIME;
 
                         // Indicate receiving
@@ -162,6 +159,21 @@ void Vision::uart_rx_callback(UARTDriver *uartp) {
     }
 
     chSysUnlockFromISR();  /// --- EXIT I-Locked state ---
+}
+
+void Vision::VelocityCalculator::update(float armor_yaw, float armor_pitch) {
+    auto now = SYSTIME;
+    if (last_compute_time == 0) {
+        last_yaw = armor_yaw;
+        last_pitch = armor_pitch;
+        last_compute_time = now;
+    } else if (now - last_compute_time > MIN_COMPUTE_INTERNAL) {
+        yaw_velocity = (armor_yaw - last_yaw) / (float) (now - last_compute_time);
+        pitch_velocity = (armor_pitch - last_pitch) / (float) (now - last_compute_time);
+        last_yaw = armor_yaw;
+        last_pitch = armor_pitch;
+        last_compute_time = now;
+    }
 }
 
 void Vision::uart_err_callback(UARTDriver *uartp, uartflags_t e) {

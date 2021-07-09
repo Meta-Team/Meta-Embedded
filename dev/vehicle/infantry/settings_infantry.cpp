@@ -107,7 +107,7 @@ using namespace chibios_rt;
 //    chprintf(chp, "!so" SHELL_NEWLINE_STR);
 //}
 
-#define MOTOR_COUNT  6
+#define MOTOR_COUNT  9
 #define THREAD_FEEDBACK_PRIO  (LOWPRIO + 6)
 unsigned const GIMBAL_FEEDBACK_INTERVAL = 25; // [ms]
 
@@ -119,32 +119,37 @@ const char *motor_name[MOTOR_COUNT] = {
         "ahrs",
         "gyro",
         "accel",
-        "magnet"};
+        "magnet",
+        "vision_armor",
+        "vision_velocity",
+        "vision_last_gimbal"};
 
 void cmd_enable_feedback(BaseSequentialStream *chp, int argc, char *argv[]) {
-    (void) argv;
-    if (argc != 2) {
-        shellUsage(chp, "fb_enable motor enabled(0/1)");
-        chprintf(chp, "!pe" SHELL_NEWLINE_STR);  // echo parameters error
+    if (argc != 1) {
+        shellUsage(chp, "fb_enable motor_id");
         return;
     }
     int motor_id = Shell::atoi(argv[0]);
     if (motor_id < 0 || motor_id >= MOTOR_COUNT) {
-        chprintf(chp, "!pe" SHELL_NEWLINE_STR);  // echo parameters error
+        chprintf(chp, "Invalid motor ID %d" SHELL_NEWLINE_STR, motor_id);
         return;
     }
-    feedback_enable[motor_id] = (*argv[1] != '0');
-    chprintf(chp, "Motor %d feedback set" SHELL_NEWLINE_STR, motor_id); // echo parameters set
+    feedback_enable[motor_id] = true;
+    chprintf(chp, "%s feedback enabled" SHELL_NEWLINE_STR, motor_name[motor_id]);
 }
 
-void cmd_set_target_angle(BaseSequentialStream *chp, int argc, char *argv[]) {
-    (void) argv;
-    if (argc != 2) {
-        shellUsage(chp, "set_a yaw_angle pitch_angle");
+void cmd_disable_feedback(BaseSequentialStream *chp, int argc, char *argv[]) {
+    if (argc != 1) {
+        shellUsage(chp, "fb_disable motor_id");
         return;
     }
-    GimbalLG::set_target(Shell::atof((argv[0])), Shell::atof(argv[1]));
-    chprintf(chp, "!ps" SHELL_NEWLINE_STR); // echo parameters set
+    int motor_id = Shell::atoi(argv[0]);
+    if (motor_id < 0 || motor_id >= MOTOR_COUNT) {
+        chprintf(chp, "Invalid motor ID %d" SHELL_NEWLINE_STR, motor_id);
+        return;
+    }
+    feedback_enable[motor_id] = false;
+    chprintf(chp, "%s feedback disabled" SHELL_NEWLINE_STR, motor_name[motor_id]);
 }
 
 
@@ -183,17 +188,17 @@ void cmd_set_param(BaseSequentialStream *chp, int argc, char *argv[]) {
                                           Shell::atof(argv[6])},
                                          motor_id == 0,
                                          pid_id == 1);
+    } else {
+        chprintf(chp, "Invalid motor ID %d" SHELL_NEWLINE_STR, motor_id);
     }
-
-    chprintf(chp, "!ps" SHELL_NEWLINE_STR); // echo parameters set
 }
 
 // Shell commands to ...
 ShellCommand mainProgramCommands[] = {
-        {"fb_enable", cmd_enable_feedback},
-        {"set_a",     cmd_set_target_angle},
-        {"set_pid",   cmd_set_param},
-        {nullptr,     nullptr}
+        {"fb_enable",  cmd_enable_feedback},
+        {"fb_disable", cmd_disable_feedback},
+        {"set_pid",    cmd_set_param},
+        {nullptr,      nullptr}
 };
 
 extern AHRSOnBoard ahrs;
@@ -206,7 +211,7 @@ private:
             float actual_angle, target_angle, actual_velocity, target_velocity;
 
             // Gimbal
-            for (int i = 0; i < MOTOR_COUNT; i++) {
+            for (int i = 0; i < 2; i++) {
                 if (feedback_enable[i]) {
                     actual_angle = GimbalSKD::get_accumulated_angle((GimbalBase::motor_id_t) i);
                     target_angle = GimbalSKD::get_target_angle((GimbalBase::motor_id_t) i);
@@ -220,25 +225,33 @@ private:
                 }
             }
 
-            if (feedback_enable[2]) {
+            // AHRS
+            if (feedback_enable[2])
                 Shell::printf("fb %s %.2f 0 %.2f 0 %.2f 0" SHELL_NEWLINE_STR,
                               motor_name[2], ahrs.get_angle().x, ahrs.get_angle().y, ahrs.get_angle().z);
-            }
-
-            if (feedback_enable[3]) {
+            if (feedback_enable[3])
                 Shell::printf("fb %s %.2f 0 %.2f 0 %.2f 0" SHELL_NEWLINE_STR,
                               motor_name[3], ahrs.get_gyro().x, ahrs.get_gyro().y, ahrs.get_gyro().z);
-            }
-
-            if (feedback_enable[4]) {
+            if (feedback_enable[4])
                 Shell::printf("fb %s %.2f 0 %.2f 0 %.2f 0" SHELL_NEWLINE_STR,
                               motor_name[4], ahrs.get_accel().x, ahrs.get_accel().y, ahrs.get_accel().z);
-            }
-
-            if (feedback_enable[5]) {
+            if (feedback_enable[5])
                 Shell::printf("fb %s %.2f 0 %.2f 0 %.2f 0" SHELL_NEWLINE_STR,
                               motor_name[5], ahrs.get_magnet().x, ahrs.get_magnet().y, ahrs.get_magnet().z);
-            }
+
+            // Vision
+            if (feedback_enable[6])
+                Shell::printf("fb %s %.2f 0 %.2f 0 %.2f 0" SHELL_NEWLINE_STR,
+                              motor_name[6], Vision::target_armor_yaw, Vision::target_armor_pitch,
+                              Vision::target_armor_distance);
+            if (feedback_enable[7])
+                Shell::printf("fb %s %.2f 0 %.2f 0 0 %d" SHELL_NEWLINE_STR, motor_name[7],
+                              Vision::velocity_calculator.latest_yaw_velocity() * 1000,
+                              Vision::velocity_calculator.latest_pitch_velocity() * 1000,
+                              Vision::last_update_delta);
+            if (feedback_enable[8])
+                Shell::printf("fb %s %.2f 0 %.2f 0 0 0" SHELL_NEWLINE_STR,
+                              motor_name[8], Vision::last_gimbal_yaw, Vision::last_gimbal_pitch);
 
             sleep(TIME_MS2I(GIMBAL_FEEDBACK_INTERVAL));
         }

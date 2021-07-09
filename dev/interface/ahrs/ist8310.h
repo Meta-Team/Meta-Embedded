@@ -11,7 +11,6 @@
 
 #include "ahrs_abstract.h"
 #include "ahrs_math.hpp"
-#include "math.h"
 
 #include "mpu6500_reg.h"
 #include "ist8310_reg.h"
@@ -34,8 +33,6 @@
  */
 class ISTOnBoard : virtual public AbstractIST {
 public:
-
-
 
     /**
      * Start IST8310 driver and the thread of data fetching

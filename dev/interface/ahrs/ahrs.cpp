@@ -51,7 +51,11 @@ void AHRSOnBoard::update() {
 void AHRSOnBoard::UpdateThread::main() {
     setName("AHRS");
     while (!shouldTerminate()) {
-        ahrs.update();
+        chSysLock();  /// --- ENTER S-Locked state. DO NOT use LOG, printf, non S/I-Class functions or return ---
+        {
+            ahrs.update();
+        }
+        chSysUnlock();  /// --- EXIT S-Locked state ---
         sleep(TIME_MS2I(CALCULATION_INTERVAL));
     }
 }

@@ -112,7 +112,6 @@
 #define MPU6500_RESET               (0x80) // bit 7
 #define MPU6500_AUTO_SELECT_CLK     (0x01)
 
-
 #define MPU6500_SPI_READ            (0x80)
 #define MPU6500_SPI_WRITE           (0x00)
 
@@ -122,5 +121,7 @@
 
 /** I2C_SLVX_CTRL **/
 #define MPU6500_I2C_SLV_EN          (0x80)
+#define MPU6500_I2C_SLV_GRP         (0x08)
+#define MPU6500_I2C_SLV_READ_7      (0x07)
 
 #endif //META_INFANTRY_MPU6500_REG_H

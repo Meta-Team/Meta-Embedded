@@ -21,14 +21,21 @@
 #define IST8310_AVGCNTL    0x41
 #define IST8310_PDCTNL     0x42
 
+/** IST8310_STAT1 **/
 #define IST8310_STAT1_DOR  0x02
 #define IST8310_STAT1_DRDY 0x01
 
+/** IST8310_CTRL1 **/
+#define IST8310_CONTINUOUS_200HZ 0x0B
+/* IST8310 datasheet only shows single-measurement mode, while IST8303 datasheet shows continuous mode.
+ * It seems(?) to work on IST8310... */
+
+/** IST8310_CTRL2 **/
 #define IST8310_CTRL2_DREN 0x08
 #define IST8310_CTRL2_DRP  0x04
 #define IST8310_CTRL2_SRST 0x01
 
-#define IST8310_PSC 0.3f
+/** Unknown **/
 #define IST8310_SINGLE_MEASUREMENT    0
 #define IST8310_SAMPLE_RATE_1_2HZ   255
 
@@ -50,5 +57,7 @@
 
 #define IST8310_IIC_ADDRESS 0x0E
 #define IST8310_IIC_READ_MSB 0x80
+
+#define IST8310_PSC 0.3f  // Resolution: 0.3 uT/LSB (Least Significant Bit), p.11 on datasheet
 
 #endif //META_INFANTRY_IST8310_REG_H
