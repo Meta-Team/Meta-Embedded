@@ -85,7 +85,7 @@ static void cmd_set_target(BaseSequentialStream *chp, int argc, char *argv[]) {
     targetVelocity[1] = Shell::atof(argv[1]);
 }
 
-static void cmd_set_param(BaseSequentialStream *chp, int argc, char *argv[]) {
+static void cmd_set_pid(BaseSequentialStream *chp, int argc, char **argv) {
     (void) argv;
     if (argc != 7) {
         shellUsage(chp, "g_set_params yaw(0)/pitch(1) angle_to_v(0)/v_to_i(1) ki kp kd i_limit out_limit");
@@ -111,10 +111,10 @@ static void cmd_set_param(BaseSequentialStream *chp, int argc, char *argv[]) {
 
 // Shell commands to ...
 ShellCommand ShellCommands[] = {
-        {"g_set_v", cmd_set_target},
-        {"g_set_params", cmd_set_param},
-        {"g_enable_fb", cmd_gimbal_enable_feedback},
-        {nullptr,    nullptr}
+        {"g_set_v",      cmd_set_target},
+        {"g_set_params", cmd_set_pid},
+        {"g_enable_fb",  cmd_gimbal_enable_feedback},
+        {nullptr,        nullptr}
 };
 
 

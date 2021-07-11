@@ -160,7 +160,7 @@ private:
         void main() final;
     };
 
-    static SKDThread skdThread;
+    static SKDThread skd_thread;
 
 };
 

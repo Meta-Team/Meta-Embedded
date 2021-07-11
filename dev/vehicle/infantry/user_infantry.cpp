@@ -74,7 +74,9 @@ void UserI::UserThread::main() {
 
                 float pitch_target;
                 if (Remote::rc.ch1 > 0) pitch_target += Remote::rc.ch1 * gimbal_pitch_max_angle * 0.1;
-                else pitch_target -= Remote::rc.ch1 * gimbal_pitch_min_angle * 0.1;  // GIMBAL_PITCH_MIN_ANGLE is negative
+                else
+                    pitch_target -=
+                            Remote::rc.ch1 * gimbal_pitch_min_angle * 0.1;  // GIMBAL_PITCH_MIN_ANGLE is negative
                 // ch1 use up as positive direction, while GimbalLG also use up as positive direction
 
                 VAL_CROP(pitch_target, gimbal_pitch_max_angle, gimbal_pitch_min_angle);
@@ -150,8 +152,7 @@ void UserI::UserThread::main() {
 
         if (!InspectorI::remote_failure() && !InspectorI::chassis_failure() && !InspectorI::gimbal_failure()) {
             if ((Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_UP) ||
-                (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_MIDDLE) ||
-                (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_DOWN)) {
+                (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_MIDDLE)) {
 
                 /// Remote - Shoot with Scrolling Wheel
 
@@ -181,6 +182,35 @@ void UserI::UserThread::main() {
 
                 ShootLG::set_friction_wheels(shoot_common_duty_cycle);
 
+            } else if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_DOWN) {
+
+                /// Remote - Vision
+
+                // TODO: move to ShootLG
+                if (Remote::rc.wheel > 0.5) {  // down
+                    if (Referee::power_heat_data.shooter_id1_17mm_cooling_heat <
+                        (uint16_t) (Referee::game_robot_state.shooter_id1_17mm_cooling_limit * 0.75)) {
+                        if (ShootLG::get_shooter_state() == ShootLG::STOP) {
+                            ShootLG::shoot(shoot_launch_left_count, shoot_launch_speed);
+                        }
+                    } else {
+                        ShootLG::stop();
+                    }
+                } else if (Remote::rc.wheel < -0.5) {  // up
+                    if (Vision::should_shoot()) {
+                        if (ShootLG::get_shooter_state() == ShootLG::STOP) {
+                            ShootLG::shoot(3, 8);
+                        }
+                    } else {
+//                        ShootLG::stop();
+                    }
+                } else {
+                    if (ShootLG::get_shooter_state() != ShootLG::STOP) {
+                        ShootLG::stop();
+                    }
+                }
+
+                ShootLG::set_friction_wheels(shoot_common_duty_cycle);
             } else if (Remote::rc.s1 == Remote::S_DOWN) {
 
                 /// PC control mode

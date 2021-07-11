@@ -57,7 +57,7 @@ public:
     };
 
     /**
-     * Start this scheduler
+     * Start this scheduler.
      * @param loader_install_            Installation direction of loader
      * @param plate_install_             Installation direction of plate
      * @param thread_prio                Priority of PID calculating thread
@@ -65,18 +65,20 @@ public:
     static void start(install_direction_t loader_install_, install_direction_t plate_install_, tprio_t thread_prio);
 
     /**
-     * Set PID parameters of loader and plate
+     * Set PID parameters of bullet loader, bullet plate and friction wheels.
      * @param loader_a2v_params
      * @param loader_v2i_params
      * @param plate_a2v_params
      * @param plate_v2i_params
+     * @param fw_left_v2i_params
+     * @param fw_right_v2i_params
      */
     static void load_pid_params(pid_params_t loader_a2v_params, pid_params_t loader_v2i_params,
                                 pid_params_t plate_a2v_params, pid_params_t plate_v2i_params,
                                 pid_params_t fw_left_v2i_params, pid_params_t fw_right_v2i_params);
 
     /**
-     * Set mode of this SKD
+     * Set mode of this SKD.
      * @param skd_mode
      */
     static void set_mode(mode_t skd_mode);
@@ -196,7 +198,7 @@ private:
         void main() final;
     };
 
-    static SKDThread skdThread;
+    static SKDThread skd_thread;
 };
 
 #endif //META_INFANTRY_SHOOT_SCHEDULER_H

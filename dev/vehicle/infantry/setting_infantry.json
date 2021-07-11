@@ -35,7 +35,7 @@
         },
         {
             "motor_id": 8,
-            "motor_name": "vision_last_gimbal"
+            "motor_name": "vision_shoot"
         }
     ],
     "commands": [

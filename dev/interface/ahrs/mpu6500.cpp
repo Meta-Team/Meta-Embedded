@@ -49,6 +49,10 @@ void MPUOnBoard::start(tprio_t prio) {
     mpu6500_write_reg(MPU6500_PWR_MGMT_1, MPU6500_RESET);
     chThdSleepMilliseconds(100);  // wait for MPU6500 to reset, see data sheet
 
+    // Enable MPU6500 as I2C Master (for IST8310) and disable as I2C Slave
+    // MPU6500_I2C_IF_DIS disable MPU6500 as I2C Slave and enable SPI only, by datasheet p.30 6.1 Note
+    mpu6500_write_reg(MPU6500_USER_CTRL, MPU6500_I2C_MST_EN | MPU6500_I2C_IF_DIS);
+
     // Configure MPU6500 for gyro and accel
     uint8_t init_reg[5][2] = {
             {MPU6500_PWR_MGMT_1, MPU6500_AUTO_SELECT_CLK},  // auto clock
@@ -57,8 +61,8 @@ void MPUOnBoard::start(tprio_t prio) {
             {MPU6500_ACCEL_CONFIG,   CONFIG._accel_scale << 3U},
             {MPU6500_ACCEL_CONFIG_2, CONFIG._acc_dlpf_config}
     };
-    for (int i = 0; i < 5; i++) {
-        mpu6500_write_reg(init_reg[i][0], init_reg[i][1]);
+    for (auto & i : init_reg) {
+        mpu6500_write_reg(i[0], i[1]);
         chThdSleepMilliseconds(10);
     }
 

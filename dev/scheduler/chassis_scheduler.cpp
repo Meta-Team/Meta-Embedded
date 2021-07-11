@@ -34,7 +34,7 @@ float ChassisSKD::chassis_gimbal_offset_ = 0.0f;
 
 ChassisSKD::install_mode_t ChassisSKD::install_mode_ = POSITIVE;
 
-ChassisSKD::SKDThread ChassisSKD::skdThread;
+ChassisSKD::SKDThread ChassisSKD::skd_thread;
 
 
 void ChassisSKD::start(float wheel_base, float wheel_tread, float wheel_circumference, install_mode_t install_mode,
@@ -59,7 +59,7 @@ void ChassisSKD::start(float wheel_base, float wheel_tread, float wheel_circumfe
     chassis_gimbal_offset_ = chassis_gimbal_offset;
     install_mode_ = install_mode;
 
-    skdThread.start(thread_prio);
+    skd_thread.start(thread_prio);
 }
 
 PIDController::pid_params_t ChassisSKD::echo_pid_params() {

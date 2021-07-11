@@ -83,8 +83,8 @@ void GimbalLG::VisionControlThread::main() {
         }
         chSysUnlock();  /// --- EXIT S-Locked state ---
 
-        Vision::VisionControlCommand command = {0, 0};
-        if (Vision::getControlCommand(command)) {
+        Vision::GimbalCommand command = {0, 0};
+        if (Vision::should_update_gimbal(command)) {
             GimbalSKD::set_target_angle(command.gimbal_yaw_target, command.gimbal_pitch_target);
         }  // otherwise, keep current target angles
 

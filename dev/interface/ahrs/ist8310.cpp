@@ -28,11 +28,15 @@ bool ISTOnBoard::start(tprio_t prio) {
 
     /*
      * Here we set up MPU6500 as the I2C Master to IST8310. We control MPU6500 through SPI (see mpu6500.c for SPI
-     * protocol), which indirectly control IST8310 through its I2C.
+     * protocol), which indirectly controls IST8310 through its I2C. The process of indirect read/write:
+     *  1. Write the Slave register address to I2C_SLVX_ADDR (SLVX can be SLV0, SLV1, up to SLV4). If read, bit 7
+     *     should be set (MPU6500_I2C_MSTR_READ).
+     *  2. (For write) write the data to I2C_SLVX_DO.
+     *  3. Enable read/write by I2C_SLV4_CTRL
+     *  4. (For read) read data from MPU6500_EXT_SENS_DATA_XX.
      *
-     * For the first step, we need to configure IST8310 by writing some data to its register. We use indirectly writes.
-     * That is, we set up MPU6500 as the I2C Master, write the IST8310's register and data to MPU6500's registers, and
-     * ask MPU6500 to send the data.
+     *
+     * To use IST8310, we need to configure IST8310 by writing some data to its register. We use indirectly writes.
      *
      * Then, we ask MPU6500 to fetch data automatically through I2C. And we then fetch the data from it through SPI.
      * Recommended IST8310 Read Process from datasheet p.9 3.4:
@@ -40,6 +44,13 @@ bool ISTOnBoard::start(tprio_t prio) {
      *  Read Measurement Data in 6 registers.
      * STAT1 is right before the measurement data registers, so we ask MPU6500 to fetch 7 registers
      * (MPU6500_I2C_SLV_READ_7) starting from STAT1.
+     * Data of these 7 registers are stored starting from MPU6500_EXT_SENS_DATA_00. In update thread, we start reading
+     * from MPU6500_EXT_SENS_DATA_01 to skip the STAT1 register.
+     *
+     * By default MPU6500 considers Slave register 0 and 1, 2 and 3, etc. as a word. If byte-swapping in
+     * I2C_SLVX_CTRL is enabled, the two bytes in each word is swap. As we start reading from STAT1, which is a
+     * standalone register, we want to ask MPU6500 to group 1 and 2 (X), 3 and 4 (Y), 5 and 6 (Z). Therefore, we
+     * set MPU6500_I2C_SLV_GRP. However, this bit is (very likely) useless since byte-swapping is not enabled.
      */
 
     uint8_t data[5];
@@ -55,7 +66,7 @@ bool ISTOnBoard::start(tprio_t prio) {
     uint8_t init_reg[4][2] = {
             {IST8310_CTRL2,   IST8310_CTRL2_DREN},             // FIXME: unknown
             {IST8310_AVGCNTL, IST8310_X_AND_Z_AVG_2_TIMES | IST8310_Y_AVG_2_TIMES},
-            {IST8310_PDCTNL,  IST8310_PULSE_DURATION_NORMAL},  // recommended by datasheet on p.8 3.1.1
+            {IST8310_PDCTNL,  IST8310_PULSE_DURATION_NORMAL},  // recommended by datasheet p.8 3.1.1
             {IST8310_CTRL1,   IST8310_CONTINUOUS_200HZ}        // see IST8310_CONTINUOUS_200HZ definition
     };
     for (auto &i : init_reg) {
@@ -67,18 +78,13 @@ bool ISTOnBoard::start(tprio_t prio) {
 
     // Set MPU6500 as I2C master of IST8310 as Slave 0
     // We use Slave 0 for reading as its Data In regs are right after gyro data regs, allowing burst read
-    data[0] = MPU6500_I2C_MST_CTRL | MPU6500_SPI_WRITE;    // start writing from MPU6500_I2C_MST_CTRL (36)
-    data[1] = MPU6500_I2CMST_CLK_400K;                     // reg 36: I2C Master Control, use 400KHz I2C to Slave
-    data[2] = IST8310_IIC_ADDRESS | MPU6500_I2C_MSTR_READ; // reg 37: I2C_SLV0_ADDR, to read from I2C addr 0x0E
-    data[3] = IST8310_STAT1;                               // reg 38: I2C_SLV0_REG, to start read from reg STAT1
+    data[0] = MPU6500_I2C_MST_CTRL | MPU6500_SPI_WRITE;     // start writing from MPU6500_I2C_MST_CTRL (36)
+    data[1] = MPU6500_I2CMST_CLK_400K;                      // reg 36: I2C Master Control, use 400KHz I2C to Slave
+    data[2] = IST8310_IIC_ADDRESS | MPU6500_I2C_MSTR_READ;  // reg 37: I2C_SLV0_ADDR, to read from I2C addr 0x0E
+    data[3] = IST8310_STAT1;                                // reg 38: I2C_SLV0_REG, to start read from reg STAT1
     data[4] = MPU6500_I2C_SLV_EN | MPU6500_I2C_SLV_GRP | MPU6500_I2C_SLV_READ_7;  // reg 39: I2C_SLV0_CTRL
+    // Enable reading 7 registers. See the paragraph above for MPU6500_I2C_SLV_GRP
     write_spi_reg(data, 5);
-
-    // Enable MPU6500
-    data[0] = MPU6500_USER_CTRL;
-    data[1] = MPU6500_USER_I2C_MST | 0x10;
-    write_spi_reg(data, 2);
-
 
     // Start the update thread
     updateThread.start(prio);
@@ -89,7 +95,8 @@ bool ISTOnBoard::start(tprio_t prio) {
 
 void ISTOnBoard::update() {
     int16_t rawData[3];
-    uint8_t data = MPU6500_EXT_SENS_DATA_01 | MPU6500_I2C_MSTR_READ;  // FIXME: data start
+    uint8_t data = MPU6500_EXT_SENS_DATA_01 | MPU6500_I2C_MSTR_READ;
+    // See the paragraph above for the reason of start reading from MPU6500_EXT_SENS_DATA_01
 
     spiAcquireBus(&MPU6500_SPI_DRIVER);
     spiSelect(&MPU6500_SPI_DRIVER);
@@ -105,8 +112,8 @@ void ISTOnBoard::update() {
         magnet.z = (float) rawData[2] * IST8310_PSC;
     }
     chSysUnlock();  /// --- EXIT S-Locked state ---
-    ist_update_time = SYSTIME;
 
+    ist_update_time = SYSTIME;
 }
 
 

@@ -100,9 +100,8 @@ public:
     static void stop();
 
     /**
-     * Stop shooting. Will change shooter state.
+     * Stop shooting immediately. Will change shooter state.
      */
-
     static void force_stop();
 
 private:

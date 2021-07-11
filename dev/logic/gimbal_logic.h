@@ -14,7 +14,7 @@
 #define META_INFANTRY_GIMBAL_LOGIC_H
 
 #include "gimbal_scheduler.h"
-#include "vision_port.h"
+#include "vision.h"
 
 /**
  * @name GimbalLG
