@@ -75,7 +75,7 @@ public:
      * @param params
      * @param is_theta2v
      */
-    void load_pid_params_by_id(PIDControllerBase::pid_params_t params, bool is_theta2v);
+    static void load_pid_params_by_type(PIDControllerBase::pid_params_t params, bool is_theta2v);
 
     /**
      * Set mode of this SKD
@@ -99,6 +99,12 @@ public:
      */
      static void set_dodge_target(float vx, float vy, float omega);
 
+     /**
+      * Get target theta
+      * @return Target theta value
+      */
+     static float get_target_theta();
+
     /**
      * Get actual angle difference between gimbal coordinate and chassis coordinate [degree]
      * @return Theta value
@@ -106,10 +112,10 @@ public:
     static float get_actual_theta();
 
     /**
-     * Get v2i PID parameters.
+     * Get PID parameters.
      * @return PID params
      */
-    static pid_params_t echo_pid_params();
+    static pid_params_t echo_pid_params_by_type(bool is_theta2v);
 
     /**
      * Get actual velocity involved in the PID calculation

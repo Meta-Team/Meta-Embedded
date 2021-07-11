@@ -78,10 +78,16 @@ void GimbalSKD::load_pid_params(pid_params_t yaw_a2v_params, pid_params_t yaw_v2
     v2i_pid[PITCH].change_parameters(pitch_v2i_params);
 }
 
-void GimbalSKD::load_pid_params_by_id(pid_params_t pid_params, bool is_yaw, bool is_a2v) {
+void GimbalSKD::load_pid_params_by_type(pid_params_t pid_params, bool is_yaw, bool is_a2v) {
     PIDController *p = is_a2v ? a2v_pid : v2i_pid;
     motor_id_t id = is_yaw ? YAW : PITCH;
     p[id].change_parameters(pid_params);
+}
+
+PIDController::pid_params_t GimbalSKD::echo_pid_params_by_type(bool is_yaw, bool is_a2v) {
+    PIDController *p = is_a2v ? a2v_pid : v2i_pid;
+    motor_id_t id = is_yaw ? YAW : PITCH;
+    return p[id].get_parameters();
 }
 
 void GimbalSKD::set_yaw_restriction(float yaw_min, float yaw_max, float restrict_velocity) {

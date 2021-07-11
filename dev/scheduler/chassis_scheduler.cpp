@@ -50,11 +50,8 @@ void ChassisSKD::start(float wheel_base, float wheel_tread, float wheel_circumfe
      *        season 2019.
      */
 
-#if defined(HERO)
-    w_to_v_ratio_ = (wheel_base + wheel_tread) / 2.0f / 360.0f * 3.14159f;
-#else
-    w_to_v_ratio_ = (wheel_base + wheel_tread) / 2.0f / 360.0f * 3.14159f;
-#endif
+    w_to_v_ratio_ = (wheel_base_ + wheel_tread_) / 2.0f / 360.0f * 3.14159f;
+
     v_to_wheel_angular_velocity_ = (360.0f / wheel_circumference_);
     chassis_gimbal_offset_ = chassis_gimbal_offset;
     install_mode_ = install_mode;
@@ -62,8 +59,8 @@ void ChassisSKD::start(float wheel_base, float wheel_tread, float wheel_circumfe
     skdThread.start(thread_prio);
 }
 
-PIDController::pid_params_t ChassisSKD::echo_pid_params() {
-    return v2i_pid->get_parameters();
+PIDController::pid_params_t ChassisSKD::echo_pid_params_by_type(bool is_theta2v) {
+    return (is_theta2v) ? a2v_pid.get_parameters() : v2i_pid->get_parameters();
 }
 
 void ChassisSKD::load_pid_params(PIDControllerBase::pid_params_t theta2v_pid_params,
@@ -74,7 +71,7 @@ void ChassisSKD::load_pid_params(PIDControllerBase::pid_params_t theta2v_pid_par
     }
 }
 
-void ChassisSKD::load_pid_params_by_id(PIDControllerBase::pid_params_t params, bool is_theta2v) {
+void ChassisSKD::load_pid_params_by_type(PIDControllerBase::pid_params_t params, bool is_theta2v) {
     if (is_theta2v) {
         a2v_pid.change_parameters(params);
     } else {
@@ -102,6 +99,10 @@ void ChassisSKD::set_dodge_target(float vx, float vy, float omega) {
 
 float ChassisSKD::get_actual_theta() {
     return GimbalIF::feedback[GimbalIF::YAW]->actual_angle * GIMBAL_YAW_INSTALL_DIRECTION;
+}
+
+float ChassisSKD::get_target_theta() {
+    return target_theta;
 }
 
 void ChassisSKD::velocity_decompose_(float vx, float vy, float w) {
@@ -136,9 +137,7 @@ void ChassisSKD::SKDThread::main() {
 
             float theta = get_actual_theta();
             if (mode == GIMBAL_COORDINATE_MODE) target_w = a2v_pid.calc(theta, target_theta);
-//            if (!sports_mode_on) {
-//                if ((target_vx != 0) && (target_vy != 0)) target_w = 0;   // for the use of further development
-//            }
+
             velocity_decompose_(target_vx * cosf(theta / 180.0f * M_PI) - target_vy * sinf(theta / 180.0f * M_PI)
                                 - target_w / 180.0f * M_PI * chassis_gimbal_offset_,
 

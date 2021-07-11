@@ -82,7 +82,21 @@ public:
     static void load_pid_params(pid_params_t yaw_a2v_params, pid_params_t yaw_v2i_params,
                                 pid_params_t pitch_a2v_params, pid_params_t pitch_v2i_params);
 
-    static void load_pid_params_by_id(pid_params_t pid_params, bool is_yaw, bool is_a2v);
+    /**
+     * Get PID parameters through motor type and pid type
+     * @param pid_params
+     * @param is_yaw
+     * @param is_a2v
+     */
+    static void load_pid_params_by_type(pid_params_t pid_params, bool is_yaw, bool is_a2v);
+
+    /**
+     * Get PID parameters through motor type and pid type
+     * @param is_yaw
+     * @param is_a2v
+     * @return
+     */
+    static pid_params_t echo_pid_params_by_type(bool is_yaw, bool is_a2v);
 
     /**
      * Set mode of this SKD
