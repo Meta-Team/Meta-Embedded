@@ -130,41 +130,45 @@ void ShootSKD::SKDThread::main() {
     setName("ShootSKD");
     while (!shouldTerminate()) {
 
-        if (mode == LIMITED_SHOOTING_MODE) {
+        chSysLock();  /// --- ENTER S-Locked state. DO NOT use LOG, printf, non S/I-Class functions or return ---
+        {
+            if (mode == LIMITED_SHOOTING_MODE) {
 
-            // PID calculation
-            for (size_t i = 0; i < 4; i++) {
-                if (i < 2) {  // bullet loader and plate
-                    target_velocity[i] = a2v_pid[i].calc(
-                            GimbalIF::feedback[2 + i]->accumulated_angle() * (float) install_position[i],
-                            target_angle[i]);
-                    target_current[i] = (int) v2i_pid[i].calc(
-                            GimbalIF::feedback[i + 2]->actual_velocity * (float) install_position[i],
-                            target_velocity[i]);
-                    *GimbalIF::target_current[i + 2] = target_current[i] * install_position[i];
+                // PID calculation
+                for (size_t i = 0; i < 4; i++) {
+                    if (i < 2) {  // bullet loader and plate
+                        target_velocity[i] = a2v_pid[i].calc(
+                                GimbalIF::feedback[i + 2]->accumulated_angle() * (float) install_position[i],
+                                target_angle[i]);
+                        target_current[i] = (int) v2i_pid[i].calc(
+                                GimbalIF::feedback[i + 2]->actual_velocity * (float) install_position[i],
+                                target_velocity[i]);
+                        *GimbalIF::target_current[i + 2] = target_current[i] * install_position[i];
 
-                } else {  // friction wheels
-                    target_current[i] = (int) v2i_pid[i].calc(GimbalIF::feedback[i + 2]->actual_velocity,
-                                                              target_velocity[i] * (float) install_position[i]);
-                    *GimbalIF::target_current[i + 2] = target_current[i];
+                    } else {  // friction wheels
+                        target_current[i] = (int) v2i_pid[i].calc(GimbalIF::feedback[i + 2]->actual_velocity,
+                                                                  target_velocity[i] * (float) install_position[i]);
+                        *GimbalIF::target_current[i + 2] = target_current[i];
+                    }
                 }
-            }
 
-        } else if (mode == FORCED_RELAX_MODE) {
+            } else if (mode == FORCED_RELAX_MODE) {
 
-            *GimbalIF::target_current[GimbalIF::BULLET] = 0;
-            *GimbalIF::target_current[GimbalIF::PLATE] = 0;
+                *GimbalIF::target_current[GimbalIF::BULLET] = 0;
+                *GimbalIF::target_current[GimbalIF::PLATE] = 0;
 
-            for (size_t i = 2; i < 4; i++) {
-                if (ABS_IN_RANGE(GimbalIF::feedback[i + 2]->actual_velocity, 100)) {
-                    *GimbalIF::target_current[i + 2] = 0;
-                } else {
-                    ShootSKD::target_current[i] = (int) v2i_pid[i].calc(GimbalIF::feedback[i + 2]->actual_velocity,
-                                                                        0.0f);
-                    *GimbalIF::target_current[i + 2] = ShootSKD::target_current[i];
+                for (size_t i = 2; i < 4; i++) {
+                    if (ABS_IN_RANGE(GimbalIF::feedback[i + 2]->actual_velocity, 100)) {
+                        *GimbalIF::target_current[i + 2] = 0;
+                    } else {
+                        ShootSKD::target_current[i] = (int) v2i_pid[i].calc(GimbalIF::feedback[i + 2]->actual_velocity,
+                                                                            0.0f);
+                        *GimbalIF::target_current[i + 2] = ShootSKD::target_current[i];
+                    }
                 }
             }
         }
+        chSysUnlock();  /// --- EXIT S-Locked state ---
 
         sleep(TIME_MS2I(SKD_THREAD_INTERVAL));
     }

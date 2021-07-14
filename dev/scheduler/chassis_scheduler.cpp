@@ -104,7 +104,7 @@ float ChassisSKD::get_actual_theta() {
     return GimbalIF::feedback[GimbalIF::YAW]->actual_angle * GIMBAL_YAW_INSTALL_DIRECTION;
 }
 
-void ChassisSKD::velocity_decompose_(float vx, float vy, float w) {
+void ChassisSKD::velocity_decompose(float vx, float vy, float w) {
 
     // FR, +vx, -vy, +w
     // FL, +vx, +vy, +w, since the motor is installed in the opposite direction
@@ -132,33 +132,42 @@ void ChassisSKD::SKDThread::main() {
     setName("ChassisSKD");
     while (!shouldTerminate()) {
 
-        if ((mode == GIMBAL_COORDINATE_MODE) || (mode == ANGULAR_VELOCITY_DODGE_MODE)) {
+        chSysLock();  /// --- ENTER S-Locked state. DO NOT use LOG, printf, non S/I-Class functions or return ---
+        {
+            if ((mode == GIMBAL_COORDINATE_MODE) || (mode == ANGULAR_VELOCITY_DODGE_MODE)) {
 
-            float theta = get_actual_theta();
-            if (mode == GIMBAL_COORDINATE_MODE) target_w = a2v_pid.calc(theta, target_theta);
-//            if (!sports_mode_on) {
-//                if ((target_vx != 0) && (target_vy != 0)) target_w = 0;   // for the use of further development
-//            }
-            velocity_decompose_(target_vx * cosf(theta / 180.0f * M_PI) - target_vy * sinf(theta / 180.0f * M_PI)
-                                - target_w / 180.0f * M_PI * chassis_gimbal_offset_,
+                float theta = get_actual_theta();
 
-                                target_vx * sinf(theta / 180.0f * M_PI) + target_vy * cosf(theta / 180.0f * M_PI),
+                if (mode == GIMBAL_COORDINATE_MODE) {
+                    if (ABS(theta - target_theta) < THETA_DEAD_ZONE) {
+                        target_w = 0;
+                    } else {
+                        target_w = a2v_pid.calc(theta, target_theta);
+                    }
+                }
 
-                                target_w);
+                velocity_decompose(target_vx * cosf(theta / 180.0f * M_PI) - target_vy * sinf(theta / 180.0f * M_PI)
+                                   - target_w / 180.0f * M_PI * chassis_gimbal_offset_,
 
-        } else if (mode == FORCED_RELAX_MODE) {
+                                   target_vx * sinf(theta / 180.0f * M_PI) + target_vy * cosf(theta / 180.0f * M_PI),
 
-            for (size_t i = 0; i < MOTOR_COUNT; i++) {
-                target_current[i] = 0;
+                                   target_w);
+
+            } else if (mode == FORCED_RELAX_MODE) {
+
+                for (size_t i = 0; i < MOTOR_COUNT; i++) {
+                    target_current[i] = 0;
+                }
+
             }
 
+            // Send currents
+            for (size_t i = 0; i < MOTOR_COUNT; i++) {
+                *ChassisIF::target_current[i] = target_current[i];
+            }
+            ChassisIF::clip_chassis_current();
         }
-
-        // Send currents
-        for (size_t i = 0; i < MOTOR_COUNT; i++) {
-            *ChassisIF::target_current[i] = target_current[i];
-        }
-        ChassisIF::clip_chassis_current();
+        chSysUnlock();  /// --- EXIT S-Locked state ---
 
         sleep(TIME_MS2I(SKD_THREAD_INTERVAL));
     }

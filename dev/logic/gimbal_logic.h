@@ -42,55 +42,56 @@ public:
     };
 
     /**
-     * Get current action of gimbal
-     *
+     * Get current action of gimbal.
      * @return   Current action of gimbal
      */
     static action_t get_action();
 
     /**
-     * Set action of gimbal
+     * Set action of gimbal.
      * @param value   Action to be applied
      */
     static void set_action(action_t value);
 
     /**
-     * Set target angles in ABS_ANGLE_MODE
+     * Set target angles in ABS_ANGLE_MODE.
      * @param yaw_target_angle    Yaw target ACCUMULATED angle on ground coordinate [degree]
      * @param pitch_target_angle  Pitch target ACCUMULATED angle on ground coordinate [degree]
      */
     static void set_target(float yaw_target_angle, float pitch_target_angle);
 
     /**
-     * Get accumulated angle maintained by this SKD
+     * Get accumulated angle maintained by GimbalSKD.
      * @param motor   YAW or PITCH
      * @return Accumulated angle
      */
     static float get_accumulated_angle(motor_id_t motor);
 
     /**
-    * Get relative angle maintained by this SKD
+    * Get relative angle maintained by GimbalSKD.
     * @param motor   YAW or PITCH
-    * @return Accumulated angle of MOTOR
+    * @return Accumulated angle of the motor
     */
     static float get_relative_angle(motor_id_t motor);
 
+    /**
+     * Get current target angle maintained by GimbalSKD.
+     * @param motor   YAW or PITCH
+     * @return Current target angle involved in the PID calculation.
+     */
     static float get_current_target_angle(motor_id_t motor);
 
 private:
 
     static action_t action;
 
-    class VisionControlThread : public chibios_rt::BaseStaticThread<512> {
-    public:
-        bool started = false;
-    private:
+    class VisionControlThread : public chibios_rt::BaseStaticThread<256> {
+        event_listener_t vision_listener;
+        static constexpr eventmask_t VISION_UPDATED_EVENT_MASK = EVENT_MASK(0);
         void main() final;
-        static constexpr unsigned VISION_THREAD_INTERVAL = 4;  // [ms]
     };
 
     static VisionControlThread vision_control_thread;
-    static chibios_rt::ThreadReference vision_control_thread_reference;
 
 };
 

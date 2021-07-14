@@ -10,13 +10,14 @@
 #include "led.h"
 #include "gimbal_scheduler.h"
 
+EVENTSOURCE_DECL(Vision::gimbal_updated_event);
+EVENTSOURCE_DECL(Vision::shoot_time_updated_event);
 float Vision::bullet_speed = 0;
 time_msecs_t Vision::basic_gimbal_delay = 0;
 time_msecs_t Vision::basic_shoot_delay = 0;
-time_msecs_t Vision::shoot_tolerance = 0;
-float Vision::target_armor_yaw = 0;
-float Vision::target_armor_pitch = 0;
-Vision::LowPassFilteredValue Vision::target_armor_dist;
+LowPassFilteredValue Vision::target_armor_yaw;
+LowPassFilteredValue Vision::target_armor_pitch;
+LowPassFilteredValue Vision::target_armor_dist;
 float Vision::last_gimbal_yaw = 0;
 float Vision::last_gimbal_pitch = 0;
 time_msecs_t Vision::last_update_time = 0;
@@ -24,8 +25,11 @@ time_msecs_t Vision::last_update_delta = 0;
 Vision::VelocityCalculator Vision::velocity_calculator;
 bool Vision::can_reach_the_target = false;
 int Vision::flight_time_to_target = 0;
-Vision::GimbalCommand Vision::latest_gimbal_command;
-int Vision::expected_shoot_time = 0;
+LowPassFilteredValue Vision::measured_pitch_offset;
+LowPassFilteredValue Vision::measured_shoot_delay;
+float Vision::latest_target_yaw = 0;
+float Vision::latest_target_pitch = 0;
+time_msecs_t Vision::expected_shoot_time = 0;
 int Vision::expected_shoot_after_periods = 0;
 constexpr size_t Vision::DATA_SIZE[Vision::CMD_ID_COUNT];
 
@@ -44,13 +48,17 @@ const UARTConfig Vision::UART_CONFIG = {
         0
 };
 
-void Vision::init(float distance_filter_alpha, time_msecs_t basic_gimbal_delay_, time_msecs_t basic_shoot_delay_,
-                  time_msecs_t shoot_tolerance_) {
+void Vision::init(time_msecs_t basic_gimbal_delay_, time_msecs_t basic_shoot_delay_) {
+    target_armor_dist.set_alpha(DIST_LPF_ALPHA);
+    measured_pitch_offset.set_alpha(MEASUREMENT_LPF_ALPHA);
+    measured_shoot_delay.set_alpha(MEASUREMENT_LPF_ALPHA);
 
-    target_armor_dist.set_alpha(distance_filter_alpha);
+    // LPFs for angles are only effective for TopKiller
+    target_armor_yaw.set_alpha(TOP_KILLER_ANGLE_LPF_ALPHA);
+    target_armor_pitch.set_alpha(TOP_KILLER_ANGLE_LPF_ALPHA);
+
     basic_gimbal_delay = basic_gimbal_delay_;
     basic_shoot_delay = basic_shoot_delay_;
-    shoot_tolerance = shoot_tolerance_;
 
     // Start UART driver
     uartStart(UART_DRIVER, &UART_CONFIG);
@@ -60,33 +68,17 @@ void Vision::init(float distance_filter_alpha, time_msecs_t basic_gimbal_delay_,
     uartStartReceive(UART_DRIVER, sizeof(uint8_t), &pak);
 }
 
-bool Vision::should_update_gimbal(GimbalCommand &command) {
-    bool ret;
-    chSysLock();  /// --- ENTER S-Locked state. DO NOT use LOG, printf, non S/I-Class functions or return ---
-    {
-        if (WITHIN_RECENT_TIME(last_update_time, 1000)) {
-            if (!can_reach_the_target) {
-                ret = false;
-            } else {
-                command = latest_gimbal_command;
-                ret = true;
-            }
+bool Vision::get_gimbal_target_angles(float &yaw, float &pitch) {
+    if (WITHIN_RECENT_TIME(last_update_time, 1000)) {
+        if (!can_reach_the_target) {
+            return false;
         } else {
-            velocity_calculator.reset();
-            ret = false;
+            yaw = latest_target_yaw;
+            pitch = latest_target_pitch;
+            return true;
         }
-    }
-    chSysUnlock();  /// --- EXIT S-Locked state ---
-    return ret;
-}
-
-bool Vision::should_shoot() {
-    if (!WITHIN_RECENT_TIME(last_update_time, 1000)) return true;  // vision command invalid, shoot anytime
-    if (!can_reach_the_target) return false;  // you can not reach the target...
-    if (expected_shoot_time == 0) return true;  // free fire
-    if (ABS((int) (SYSTIME) - (int) (expected_shoot_time)) <= (int) shoot_tolerance) {
-        return true;  // if shoot now, we expect to hit the target
     } else {
+        velocity_calculator.reset();
         return false;
     }
 }
@@ -119,58 +111,83 @@ bool Vision::compensate_for_gravity(float &pitch, float dist, int &flight_time) 
 }
 
 void Vision::handle_vision_command(const vision_command_t &command) {
-    // This function is called in I-Locked state. DO NOT use LOG, printf, non I-Class functions.
+    /// This function is called in I-Locked state. DO NOT use LOG, printf, non I-Class functions.
 
     time_msecs_t now = SYSTIME;
 
     if (command.flag & DETECTED) {
 
-        if (last_update_time == 0 || !WITHIN_DURATION(now, last_update_time, 1000)) {
-            // No previous data or out-of-date, use the latest data
+        if (last_update_time == 0 || !WITHIN_DURATION(now, last_update_time, 200)) {
+            // No previous data or out-of-date (including between TopKiller pulses), use the latest data
             last_gimbal_yaw = GimbalSKD::get_accumulated_angle(GimbalSKD::YAW);
             last_gimbal_pitch = GimbalSKD::get_accumulated_angle(GimbalSKD::PITCH);
+
+            target_armor_yaw.reset();
+            target_armor_pitch.reset();
+            target_armor_dist.reset();
+
         }  // otherwise,  Use gimbal angles at last command, which is roughly the angles when the image is captured
 
         float new_armor_yaw = ((float) command.yaw_delta / 100.0f) + last_gimbal_yaw;
         float new_armor_pitch = ((float) command.pitch_delta / 100.0f) + last_gimbal_pitch;
         if (command.flag & TOP_KILLER_TRIGGERED) {
-            target_armor_dist.direct_set(command.dist);
+            target_armor_dist.update(command.dist);
             velocity_calculator.reset();
+
+            // The target position will be used between the current pulse and the next, filter for better accuracy
+            target_armor_yaw.direct_set(new_armor_yaw);
+            target_armor_pitch.direct_set(new_armor_pitch);
+
         } else {
+
             target_armor_dist.update(command.dist);
             velocity_calculator.update(new_armor_yaw, new_armor_pitch, target_armor_dist.get(), now);
+
+            // Continuous high-frequency commands arrives for normal mode, no need to LPF
+            target_armor_yaw.direct_set(new_armor_yaw);
+            target_armor_pitch.direct_set(new_armor_pitch);
         }
 
-        // Store latest armor position if detected
-        target_armor_yaw = new_armor_yaw;
-        target_armor_pitch = new_armor_pitch;
-
         // Predict and compensate
-        float yaw = target_armor_yaw, pitch = target_armor_pitch, dist = target_armor_dist.get();
+        float yaw = target_armor_yaw.get(), pitch = target_armor_pitch.get(), dist = target_armor_dist.get();
         predict_target_position(yaw, pitch, dist);
         can_reach_the_target = compensate_for_gravity(pitch, dist, flight_time_to_target);
         if (can_reach_the_target) {
 
-            latest_gimbal_command = {yaw, pitch};
+            // Issue new gimbal command
+            latest_target_yaw = yaw;
+            latest_target_pitch = pitch;
+            chEvtBroadcastI(&gimbal_updated_event);  // we are still in I-Lock state
 
-            // Predict time to shootx
+            // Predict time to shoot
             if (command.flag & TOP_KILLER_TRIGGERED) {
-                expected_shoot_time = (int) last_update_time
-                                      + (int) command.remainingTimeToTarget
-                                      - (int) flight_time_to_target
-                                      - (int) basic_shoot_delay;
+
+                // Calculate using time_msecs_t so that we don't need to care about wrap around
+                time_msecs_t shoot_time = last_update_time
+                                     + (time_msecs_t) command.remainingTimeToTarget
+                                     - (time_msecs_t) flight_time_to_target
+                                     - (time_msecs_t) measured_shoot_delay.get();
+
+                // Compensate for one or more periods until we can catch up expected_shoot_time
                 expected_shoot_after_periods = 0;
                 while (true) {
-                    int time_delta = (int) expected_shoot_time - (int) now;
+                    // Minus using time_msecs_t so that we don't need to care about wrap around
+                    auto time_delta = (int32_t) (shoot_time - now);  // compare by casting to signed
                     if (time_delta < 0) {
                         expected_shoot_after_periods++;
-                        expected_shoot_time += command.period;
+                        shoot_time += command.period;
                     } else {
                         break;
                     }
                 }
+
+                // Issue shoot command
+                expected_shoot_time = (time_msecs_t) shoot_time;
+                chEvtBroadcastI(&shoot_time_updated_event);  // we are still in I-Lock state
+
             } else {
-                expected_shoot_time = 0;  // shoot anytime
+
+                expected_shoot_time = 0;
             }
 
         }
@@ -238,7 +255,7 @@ void Vision::uart_rx_callback(UARTDriver *uartp) {
 
         case WAIT_DATA_TAIL:
 
-            if (Verify_CRC8_Check_Sum(pak_uint8, sizeof(uint8_t) * 2 + DATA_SIZE[pak.cmd_id] + sizeof(uint8_t))) {
+            if (verify_crc8_check_sum(pak_uint8, sizeof(uint8_t) * 2 + DATA_SIZE[pak.cmd_id] + sizeof(uint8_t))) {
                 switch (pak.cmd_id) {
                     case VISION_CONTROL_CMD_ID: {
                         handle_vision_command(pak.command);

@@ -39,12 +39,24 @@ class ShootLG {
 
 public:
 
+    enum mode_t {
+        MANUAL_MODE,
+        VISION_AUTO_MODE
+    };
+
+    static mode_t get_mode() { return mode; }
+
+    static void set_mode(mode_t newMode) { mode = newMode; }
+
     /**
      * Initialize this module
      * @param angle_per_bullet_            Angle for bullet loader to rotate to fill one bullet [degree]
      * @param stuck_detector_thread_prio   Thread priority for stuck detector thread
+     * @param bullet_counter_thread_prio   Thread priority for bullet counter thread
+     * @param vision_shooting_thread_prio  Thread priority for Vision automatic shooting thread
      */
-    static void init(float angle_per_bullet_, tprio_t stuck_detector_thread_prio, tprio_t bullet_counter_thread_prio);
+    static void init(float angle_per_bullet_, tprio_t stuck_detector_thread_prio, tprio_t bullet_counter_thread_prio,
+                     tprio_t vision_shooting_thread_prio);
 
     /**
      * Add bullet to internal bullet counter
@@ -106,6 +118,8 @@ public:
 
 private:
 
+    static mode_t mode;
+
     static float angle_per_bullet;
 
     static int bullet_count;
@@ -120,7 +134,7 @@ private:
     public:
 
         bool started = false;
-        bool waited = false;
+        bool paused_once = false;
 
     private:
         long int stuck_count = 0;
@@ -139,20 +153,34 @@ private:
         void main() final;
     };
 
-    static StuckNHeatDetectorThread stuckDetector;
-    static chibios_rt::ThreadReference stuckDetectorReference;
+    static StuckNHeatDetectorThread stuck_detector_thread;
+    static chibios_rt::ThreadReference stuck_detector_ref;
 
 
     /// Bullet Counter using Referee Data
     class BulletCounterThread : public chibios_rt::BaseStaticThread<256> {
 
         event_listener_t data_received_listener;
-        static constexpr eventmask_t DATA_RECEIVED_EVENTMASK = (1U << 0U);
+        static constexpr eventmask_t DATA_RECEIVED_EVENTMASK = EVENT_MASK(0);
 
         void main() final;
     };
 
-    static BulletCounterThread bulletCounterThread;
+    static BulletCounterThread bullet_counter_thread;
+
+    /// Vision-Controlled Shooting
+    class VisionShootThread : public chibios_rt::BaseStaticThread<256> {
+        event_listener_t vision_listener;
+        static constexpr eventmask_t VISION_UPDATED_EVENT_MASK = EVENT_MASK(0);
+
+        static constexpr float SHOOT_BULLET_COUNT = 2;                  // shoot amount [bullet]
+        static constexpr float SHOOT_BULLET_SPEED = 10;                 // feed rate [bullet per second]
+        static constexpr time_msecs_t WAIT_TIME_BETWEEN_SHOOTS = 1500;   // [ms]
+
+        void main() final;
+    };
+
+    static VisionShootThread vision_shoot_thread;
 
 };
 

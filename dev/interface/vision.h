@@ -7,6 +7,7 @@
 
 #include "ch.hpp"
 #include "hal.h"
+#include "low_pass_filter.hpp"
 
 class Vision {
 
@@ -14,13 +15,10 @@ public:
 
     /**
      * Setup Vision module.
-     * @param distance_filter_alpha  Distance low-pass filter alpha (weight for history)
      * @param basic_gimbal_delay     Fixed gimbal control delay [ms]
      * @param basic_shoot_delay      Fixed shooter control delay [ms]
-     * @param shoot_tolerance        Tolerance of time difference to shoot [ms]
      */
-    static void init(float distance_filter_alpha, time_msecs_t basic_gimbal_delay, time_msecs_t basic_shoot_delay,
-                     time_msecs_t shoot_tolerance);
+    static void init(time_msecs_t basic_gimbal_delay, time_msecs_t basic_shoot_delay);
 
     /**
      * Set bullet speed.
@@ -34,23 +32,44 @@ public:
      */
     static float get_bullet_speed() { return bullet_speed; }
 
-    struct GimbalCommand {
-        float gimbal_yaw_target;
-        float gimbal_pitch_target;
-    };
-
     /**
-     * Get gimbal update command.
-     * @param command [Out] The gimbal command if an update is required
-     * @return Whether an update is required
+     * Get gimbal target angles.
+     * @note Should be called inside lock to prevent changes from the interrupt.
+     * @param yaw    [Out] Gimbal target yaw if return true
+     * @param pitch  [Out] Gimbal target pitch if return true
+     * @return Whether the target can be reached
      */
-    static bool should_update_gimbal(GimbalCommand &command);
+    static bool get_gimbal_target_angles(float &yaw, float &pitch);
 
     /**
-     * Whether we should shoot now.
+     * Get whether the bullet can reach the target.
+     * @note Should be called inside lock to prevent changes from the interrupt.
      * @return
      */
-    static bool should_shoot();
+    static bool can_reach_target() { return can_reach_the_target; }
+
+    /**
+     * Get the time point that we should shoot in the TopKiller mode
+     * @note Should be called inside lock to prevent changes from the interrupt.
+     * @return
+     */
+    static time_msecs_t get_expected_shoot_time() { return expected_shoot_time; }
+
+    /**
+     * Received updated gimbal target.
+     */
+    static event_source_t gimbal_updated_event;
+
+    /**
+     * Received expected shoot time in the TopKiller mode.
+     */
+    static event_source_t shoot_time_updated_event;
+
+    static time_msecs_t get_last_update_time() { return last_update_time; }
+
+    static void update_measured_pitch_offset(time_msecs_t offset) { measured_pitch_offset.update(offset); }
+
+    static void update_measured_shoot_delay(time_msecs_t delay) { measured_shoot_delay.update(delay); }
 
 public:
 
@@ -58,29 +77,20 @@ public:
     static float bullet_speed;                // [mm/ms = m/s]
     static time_msecs_t basic_gimbal_delay;   // [ms]
     static time_msecs_t basic_shoot_delay;    // [ms]
-    static time_msecs_t shoot_tolerance;      // [ms]
 
 private:
+
     /** Armor and Control **/
-    class LowPassFilteredValue {
-    public:
-        LowPassFilteredValue() = default;
-        explicit LowPassFilteredValue(float alpha) : alpha_(alpha) {}
-        void set_alpha(float alpha /* weight for history */) { alpha_ = alpha; }
-        void update(float val) { val_ = val_ * alpha_ + val * (1 - alpha_); }
-        float get() const { return val_; }
-        void direct_set(float val) { val_ = val; }
-    private:
-        float alpha_ = 0;
-        float val_ = 0;
-    };
 
-    // Latest armor position (without compensation)
-    static float target_armor_yaw;    // [deg]
-    static float target_armor_pitch;  // [deg]
-    static LowPassFilteredValue target_armor_dist;  // [mm]
+    // Latest armor position (without prediction and compensation)
+    static LowPassFilteredValue target_armor_yaw;    // [deg]
+    static LowPassFilteredValue target_armor_pitch;  // [deg]
+    static LowPassFilteredValue target_armor_dist;   // [mm]
 
-    // Velocity
+    static constexpr float DIST_LPF_ALPHA = 0.5f;
+    static constexpr float TOP_KILLER_ANGLE_LPF_ALPHA = 0.5f;
+
+    // Velocities
     class VelocityCalculator {
     public:
         VelocityCalculator() : yaw_v(FILTER_ALPHA), pitch_v(FILTER_ALPHA), dist_v(FILTER_ALPHA) {}
@@ -92,32 +102,27 @@ private:
 
     private:
         time_msecs_t last_compute_time = 0;
-        float last_yaw = 0, last_pitch = 0, last_dist;
+        float last_yaw = 0, last_pitch = 0, last_dist = 0;
         LowPassFilteredValue yaw_v, pitch_v , dist_v;
-        static constexpr float FILTER_ALPHA = 0;
+        static constexpr float FILTER_ALPHA = 0.5f;
         static constexpr time_msecs_t MIN_COMPUTE_INTERNAL = 50;  // [ms]
     };
 
     static VelocityCalculator velocity_calculator;
 
-    // Predict and compensation
+    // Prediction and compensation
     static bool can_reach_the_target;
     static int flight_time_to_target;  // [ms]
+    static LowPassFilteredValue measured_pitch_offset;
+    static LowPassFilteredValue measured_shoot_delay;
+
+    static constexpr float MEASUREMENT_LPF_ALPHA = 0.9f;
 
     // Control commands
-    static GimbalCommand latest_gimbal_command;
-    static int expected_shoot_time;          // [ms] for TopKiller, 0 for anytime
+    static float latest_target_yaw;
+    static float latest_target_pitch;
+    static time_msecs_t expected_shoot_time;          // [ms] for TopKiller, 0 for anytime
     static int expected_shoot_after_periods;
-
-    /** Updates **/
-
-    // Gimbal angles at last vision command
-    static float last_gimbal_yaw;    // [deg]
-    static float last_gimbal_pitch;  // [deg]
-
-    // Last vision command time
-    static time_msecs_t last_update_time;   // [ms]
-    static time_msecs_t last_update_delta;  // [ms]
 
     /**
      * Predict target position based on computed velocities.
@@ -137,6 +142,16 @@ private:
     static bool compensate_for_gravity(float &pitch, float dist, int &flight_time);
 
     static constexpr float g = 9.8067E-3f;  // [mm/ms^2]
+
+    /** Updates **/
+
+    // Gimbal angles at last vision command
+    static float last_gimbal_yaw;    // [deg]
+    static float last_gimbal_pitch;  // [deg]
+
+    // Last vision command time
+    static time_msecs_t last_update_time;   // [ms]
+    static time_msecs_t last_update_delta;  // [ms]
 
 private:
     enum vision_flag_t : uint8_t {

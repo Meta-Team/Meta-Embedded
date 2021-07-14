@@ -2,7 +2,7 @@
 // Created by Ye Anbang on 2019/1/17 0017.
 //
 
-//crc8 generator polynomial:G(x)=x8+x5+x4+1
+// crc8 generator polynomial: G(x)=x8+x5+x4+1
 const unsigned char CRC8_INIT = 0xff;
 const unsigned char CRC8_TAB[256] =
         {
@@ -24,8 +24,8 @@ const unsigned char CRC8_TAB[256] =
                 0x74, 0x2a, 0xc8, 0x96, 0x15, 0x4b, 0xa9, 0xf7, 0xb6, 0xe8, 0x0a, 0x54, 0xd7, 0x89, 0x6b, 0x35,
         };
 
-unsigned char Get_CRC8_Check_Sum(unsigned char *pchMessage, unsigned int dwLength, unsigned
-char ucCRC8) {
+unsigned char get_crc8_check_sum(unsigned char *pchMessage, unsigned int dwLength) {
+    unsigned char ucCRC8 = CRC8_INIT;
     unsigned char ucIndex;
     while (dwLength--) {
         ucIndex = ucCRC8 ^ (*pchMessage++);
@@ -34,26 +34,26 @@ char ucCRC8) {
     return (ucCRC8);
 }
 
-/*
-** Descriptions: CRC8 Verify function
-** Input: Data to Verify,Stream length = Data + checksum
-** Output: True or False (CRC Verify Result)
+/**
+ * Descriptions: CRC8 Verify function
+ * Input: Data to Verify,Stream length = Data + checksum
+ * Output: True or False (CRC Verify Result)
 */
-unsigned int Verify_CRC8_Check_Sum(unsigned char *pchMessage, unsigned int dwLength) {
+unsigned int verify_crc8_check_sum(unsigned char *pchMessage, unsigned int dwLength) {
     unsigned char ucExpected = 0;
     if ((pchMessage == 0) || (dwLength <= 2)) return 0;
-    ucExpected = Get_CRC8_Check_Sum(pchMessage, dwLength - 1, CRC8_INIT);
+    ucExpected = get_crc8_check_sum(pchMessage, dwLength - 1);
     return (ucExpected == pchMessage[dwLength - 1]);
 }
 
-/*
-** Descriptions: append CRC8 to the end of data
-** Input: Data to CRC and append,Stream length = Data + checksum
-** Output: True or False (CRC Verify Result)
+/**
+ * Descriptions: append CRC8 to the end of data
+ * Input: Data to CRC and append,Stream length = Data + checksum
+ * Output: True or False (CRC Verify Result)
 */
-void Append_CRC8_Check_Sum(unsigned char *pchMessage, unsigned int dwLength) {
+void append_crc8_check_sum(unsigned char *pchMessage, unsigned int dwLength) {
     unsigned char ucCRC = 0;
     if ((pchMessage == 0) || (dwLength <= 2)) return;
-    ucCRC = Get_CRC8_Check_Sum((unsigned char *) pchMessage, dwLength - 1, CRC8_INIT);
+    ucCRC = get_crc8_check_sum((unsigned char *) pchMessage, dwLength - 1);
     pchMessage[dwLength - 1] = ucCRC;
 }

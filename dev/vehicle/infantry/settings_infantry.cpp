@@ -270,13 +270,13 @@ private:
                               Vision::velocity_calculator.pitch_velocity() * 1000, // [deg/s]
                               Vision::velocity_calculator.dist_velocity() * 1000); // [mm/s]
             if (feedback_enable[8])
-                Shell::printf("fb %s %d %d %d %d %d %d" SHELL_NEWLINE_STR, motor_name[8],
-                              (int) Vision::should_shoot() * 1000,
-                              (int) (SYSTIME) - (int) (Vision::expected_shoot_time),
-                              Vision::expected_shoot_after_periods, // blue
-                              Vision::pak.command.period,  //red
+                Shell::printf("fb %s %d %d %d %d %d 0" SHELL_NEWLINE_STR, motor_name[8],
+                              Vision::expected_shoot_after_periods * 10, // blue
+                              (int) Vision::pak.command.period,  // red
                               Vision::flight_time_to_target,  // blue
-                              Vision::pak.command.remainingTimeToTarget); //red
+                              (int) Vision::pak.command.remainingTimeToTarget, //red
+                              (int) Vision::measured_shoot_delay.get()  // blue
+                              );
 
             sleep(TIME_MS2I(GIMBAL_FEEDBACK_INTERVAL));
         }

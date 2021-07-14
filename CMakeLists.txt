@@ -58,7 +58,6 @@ set(COMMON_SRC  # common cpp sources, which are included to every tartget at pos
         dev/interface/led.cpp
         dev/interface/buzzer_interface.cpp
         dev/scheduler/buzzer_scheduler.cpp
-        #        dev/module/state_handler.cpp
         )
 
 set(AHRS_SRC

@@ -156,6 +156,8 @@ void UserI::UserThread::main() {
 
                 /// Remote - Shoot with Scrolling Wheel
 
+                ShootLG::set_mode(ShootLG::MANUAL_MODE);
+
                 if (Remote::rc.wheel > 0.5) {  // down
                     if (Referee::power_heat_data.shooter_id1_17mm_cooling_heat <
                         (uint16_t) (Referee::game_robot_state.shooter_id1_17mm_cooling_limit * 0.75)) {
@@ -188,6 +190,7 @@ void UserI::UserThread::main() {
 
                 // TODO: move to ShootLG
                 if (Remote::rc.wheel > 0.5) {  // down
+                    ShootLG::set_mode(ShootLG::MANUAL_MODE);
                     if (Referee::power_heat_data.shooter_id1_17mm_cooling_heat <
                         (uint16_t) (Referee::game_robot_state.shooter_id1_17mm_cooling_limit * 0.75)) {
                         if (ShootLG::get_shooter_state() == ShootLG::STOP) {
@@ -197,14 +200,9 @@ void UserI::UserThread::main() {
                         ShootLG::stop();
                     }
                 } else if (Remote::rc.wheel < -0.5) {  // up
-                    if (Vision::should_shoot()) {
-                        if (ShootLG::get_shooter_state() == ShootLG::STOP) {
-                            ShootLG::shoot(3, 8);
-                        }
-                    } else {
-//                        ShootLG::stop();
-                    }
+                    ShootLG::set_mode(ShootLG::VISION_AUTO_MODE);
                 } else {
+                    ShootLG::set_mode(ShootLG::MANUAL_MODE);
                     if (ShootLG::get_shooter_state() != ShootLG::STOP) {
                         ShootLG::stop();
                     }
@@ -214,6 +212,8 @@ void UserI::UserThread::main() {
             } else if (Remote::rc.s1 == Remote::S_DOWN) {
 
                 /// PC control mode
+
+                ShootLG::set_mode(ShootLG::MANUAL_MODE);
 
                 /// Read shoot limit
 
@@ -344,9 +344,8 @@ void UserI::UserThread::main() {
                 ChassisLG::set_action(ChassisLG::FOLLOW_MODE);
                 ChassisLG::set_target(Remote::rc.ch2 * chassis_v_left_right,  // Both use right as positive direction
                                       (Remote::rc.ch3 > 0 ?
-                                       // FIXME: revert back to common velocity
                                        Remote::rc.ch3 * 1000 :
-                                       Remote::rc.ch3 * 800)   // Both use up    as positive direction
+                                       Remote::rc.ch3 * 800)   // Both use up as positive direction
                 );
 
             } else if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_MIDDLE) {
@@ -355,9 +354,8 @@ void UserI::UserThread::main() {
                 ChassisLG::set_action(ChassisLG::DODGE_MODE);
                 ChassisLG::set_target(Remote::rc.ch2 * chassis_v_left_right,  // Both use right as positive direction
                                       (Remote::rc.ch3 > 0 ?
-                                       // FIXME: revert back to common velocity
                                        Remote::rc.ch3 * 1000 :
-                                       Remote::rc.ch3 * 800)   // Both use up    as positive direction
+                                       Remote::rc.ch3 * 800)   // Both use up as positive direction
                 );
 
             } else if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_DOWN) {
@@ -425,6 +423,8 @@ void UserI::UserActionThread::main() {
     chEvtRegisterMask(&Remote::mouse_release_event, &mouse_release_listener, MOUSE_RELEASE_EVENTMASK);
     chEvtRegisterMask(&Remote::key_press_event, &key_press_listener, KEY_PRESS_EVENTMASK);
     chEvtRegisterMask(&Remote::key_release_event, &key_release_listener, KEY_RELEASE_EVENTMASK);
+
+    // FIXME: flags are ORed together among events!!!
 
     while (!shouldTerminate()) {
 

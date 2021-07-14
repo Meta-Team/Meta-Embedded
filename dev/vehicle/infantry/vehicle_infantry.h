@@ -227,10 +227,9 @@
 #define CHASSIS_BIASED_ANGLE 0
 
 /// Vision
-#define VISION_DISTANCE_FILTER_ALPHA    0.9f  /* 0 to disable LPF */
 #define VISION_BASIC_CONTROL_DELAY      100   /* ms */
-#define VISION_BASIC_SHOOT_DELAY        120   /* ms */
-#define VISION_DEFAULT_BULLET_SPEED     13.5f /* mm/ms = m/s */
+#define VISION_BASIC_SHOOT_DELAY        0   /* ms */
+#define VISION_DEFAULT_BULLET_SPEED     14.0f /* mm/ms = m/s */
 #define VISION_SHOOT_TOLERANCE          7   /* ms */
 
 /// Thread Priority List
@@ -246,6 +245,7 @@
 #define THREAD_SHOOT_SKD_PRIO               (NORMALPRIO + 1)
 #define THREAD_USER_PRIO                    (NORMALPRIO)
 #define THREAD_USER_ACTION_PRIO             (NORMALPRIO - 1)
+#define THREAD_SHOOT_LG_VISION_PRIO         (NORMALPRIO - 1)
 #define THREAD_GIMBAL_LG_VISION_PRIO        (NORMALPRIO - 1)
 #define THREAD_CHASSIS_LG_DODGE_PRIO        (NORMALPRIO - 2)
 #define THREAD_CHASSIS_POWER_SET_PRIO       (NORMALPRIO - 3)
