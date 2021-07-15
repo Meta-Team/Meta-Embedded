@@ -88,6 +88,9 @@ void UserI::UserThread::main() {
 
                 GimbalLG::set_action(GimbalLG::VISION_MODE);
 
+                if (Remote::rc.ch1 > 0.5) Vision::set_bullet_speed(Vision::get_bullet_speed() - 0.001f);
+                else if (Remote::rc.ch1 <= - 0.5) Vision::set_bullet_speed(Vision::get_bullet_speed() + 0.001f);
+
             } else if (Remote::rc.s1 == Remote::S_DOWN) {
 
                 /// PC control mode

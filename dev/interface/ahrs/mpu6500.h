@@ -177,7 +177,7 @@ private:
         acc_dlpf_config_t _acc_dlpf_config;
     } mpu6500_config_t;
 
-    static constexpr int mpu6500_start_up_time = 20000; // [ms]
+    static constexpr int mpu6500_start_up_time = 5000; // [ms]
 
     static constexpr mpu6500_config_t CONFIG = {
             MPU6500_GYRO_SCALE_1000,  // Gyro full scale 1000 dps (degree per second)

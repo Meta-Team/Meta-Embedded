@@ -205,7 +205,7 @@ void ShootLG::VisionShootThread::main() {
             ShootSKD::set_loader_target_angle(target_angle);
 
             // Wait for ShootSKD to achieve the target
-            while (mode == VISION_AUTO_MODE && ShootSKD::get_mode() == ShootSKD::LIMITED_SHOOTING_MODE &&
+            while (ShootSKD::get_mode() == ShootSKD::LIMITED_SHOOTING_MODE &&
                    ShootSKD::get_loader_target_angle() == target_angle &&
                    target_angle - ShootSKD::get_loader_accumulated_angle() < 0.5 * angle_per_bullet) {
 
@@ -213,10 +213,12 @@ void ShootLG::VisionShootThread::main() {
             }
 
             // Update measured shoot delay
-            if (mode == VISION_AUTO_MODE && ShootSKD::get_mode() == ShootSKD::LIMITED_SHOOTING_MODE &&
+            if (ShootSKD::get_mode() == ShootSKD::LIMITED_SHOOTING_MODE &&
                 ShootSKD::get_loader_target_angle() == target_angle) {  // make sure there is no interference
 
                 Vision::update_measured_shoot_delay(SYSTIME - command_issue_time);
+            } else {
+                //LOG_WARN("ShootLG_Vision: shoot delay not updated");
             }
 
             // Wait for some time

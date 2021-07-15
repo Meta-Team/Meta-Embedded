@@ -173,9 +173,9 @@ private:
         event_listener_t vision_listener;
         static constexpr eventmask_t VISION_UPDATED_EVENT_MASK = EVENT_MASK(0);
 
-        static constexpr float SHOOT_BULLET_COUNT = 2;                  // shoot amount [bullet]
+        static constexpr float SHOOT_BULLET_COUNT = 1;                  // shoot amount [bullet]
         static constexpr float SHOOT_BULLET_SPEED = 10;                 // feed rate [bullet per second]
-        static constexpr time_msecs_t WAIT_TIME_BETWEEN_SHOOTS = 1500;   // [ms]
+        static constexpr time_msecs_t WAIT_TIME_BETWEEN_SHOOTS = 500;   // [ms]
 
         void main() final;
     };

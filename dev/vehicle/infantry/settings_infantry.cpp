@@ -107,7 +107,7 @@ using namespace chibios_rt;
 //    chprintf(chp, "!so" SHELL_NEWLINE_STR);
 //}
 
-#define MOTOR_COUNT  9
+#define MOTOR_COUNT  10
 #define THREAD_FEEDBACK_PRIO  (LOWPRIO + 6)
 unsigned const GIMBAL_FEEDBACK_INTERVAL = 25; // [ms]
 
@@ -122,7 +122,8 @@ const char *motor_name[MOTOR_COUNT] = {
         "magnet",
         "vision_armor",
         "vision_velocity",
-        "vision_shoot"};
+        "vision_shoot",
+        "vision_command"};
 
 void cmd_enable_feedback(BaseSequentialStream *chp, int argc, char *argv[]) {
     if (argc != 1) {
@@ -214,12 +215,12 @@ void cmd_vision_shoot_delay(BaseSequentialStream *chp, int argc, char **argv) {
 
 // Shell commands to ...
 ShellCommand mainProgramCommands[] = {
-        {"fb_enable", cmd_enable_feedback},
-        {"fb_disable", cmd_disable_feedback},
-        {"set_pid", cmd_set_pid},
+        {"fb_enable",           cmd_enable_feedback},
+        {"fb_disable",          cmd_disable_feedback},
+        {"set_pid",             cmd_set_pid},
         {"vision_bullet_speed", cmd_vision_bullet_speed},
-        {"vision_shoot_delay", cmd_vision_shoot_delay},
-        {nullptr, nullptr}
+        {"vision_shoot_delay",  cmd_vision_shoot_delay},
+        {nullptr,               nullptr}
 };
 
 extern AHRSOnBoard ahrs;
@@ -261,22 +262,38 @@ private:
                               motor_name[5], ahrs.get_magnet().x, ahrs.get_magnet().y, ahrs.get_magnet().z);
 
             // Vision
-            if (feedback_enable[6])
+            if (feedback_enable[6]) {
                 Shell::printf("fb %s %.2f 0 %.2f 0 %.2f 0" SHELL_NEWLINE_STR, motor_name[6],
-                              Vision::target_armor_yaw, Vision::target_armor_pitch, Vision::target_armor_dist.get());
-            if (feedback_enable[7])
+                              Vision::target_armor_yaw.get(),
+                              Vision::target_armor_pitch.get(),
+                              Vision::target_armor_dist.get());
+            }
+
+            if (feedback_enable[7]) {
                 Shell::printf("fb %s %.2f 0 %.2f 0 %.2f 0" SHELL_NEWLINE_STR, motor_name[7],
                               Vision::velocity_calculator.yaw_velocity() * 1000,   // [deg/s]
                               Vision::velocity_calculator.pitch_velocity() * 1000, // [deg/s]
                               Vision::velocity_calculator.dist_velocity() * 1000); // [mm/s]
-            if (feedback_enable[8])
-                Shell::printf("fb %s %d %d %d %d %d 0" SHELL_NEWLINE_STR, motor_name[8],
+            }
+
+            if (feedback_enable[8]) {
+                Shell::printf("fb %s %d %d %d %d %.2f %d" SHELL_NEWLINE_STR, motor_name[8],
                               Vision::expected_shoot_after_periods * 10, // blue
                               (int) Vision::pak.command.period,  // red
                               Vision::flight_time_to_target,  // blue
                               (int) Vision::pak.command.remainingTimeToTarget, //red
-                              (int) Vision::measured_shoot_delay.get()  // blue
-                              );
+                              Vision::measured_shoot_delay.get(),  // blue
+                              (int) Vision::last_update_delta  // red
+                );
+            }
+
+            if (feedback_enable[9]) {
+                Shell::printf("fb %s %.2f 0 %.2f 0 %.2f 0" SHELL_NEWLINE_STR, motor_name[9],
+                              Vision::pak.command.yaw_delta / 100.0f, // blue
+                              Vision::pak.command.pitch_delta / 100.0f, // blue
+                              Vision::pak.command.dist / 100.0f // blue
+                );
+            }
 
             sleep(TIME_MS2I(GIMBAL_FEEDBACK_INTERVAL));
         }

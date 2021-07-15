@@ -104,8 +104,8 @@ private:
         time_msecs_t last_compute_time = 0;
         float last_yaw = 0, last_pitch = 0, last_dist = 0;
         LowPassFilteredValue yaw_v, pitch_v , dist_v;
-        static constexpr float FILTER_ALPHA = 0.5f;
-        static constexpr time_msecs_t MIN_COMPUTE_INTERNAL = 50;  // [ms]
+        static constexpr float FILTER_ALPHA = 0.2f;
+        static constexpr time_msecs_t MIN_COMPUTE_INTERNAL = 100;  // [ms]
     };
 
     static VelocityCalculator velocity_calculator;
