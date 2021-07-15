@@ -60,6 +60,7 @@ void UserI::UserThread::main() {
     while (!shouldTerminate()) {
 
         /*** ---------------------------------- Gimbal --------------------------------- ***/
+#if INFANTRY_GIMBAL_ENABLE
         if (!InspectorI::remote_failure() && !InspectorI::chassis_failure() && !InspectorI::gimbal_failure()) {
             if ((Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_UP) ||
                 (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_MIDDLE)) {
@@ -83,9 +84,9 @@ void UserI::UserThread::main() {
             } else if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_DOWN) {
 
                 /// Vision - Yaw + Pitch
-
+#if INFANTRY_VISION_ENABLE
                 GimbalLG::set_action(GimbalLG::VISION_MODE);
-
+#endif
             } else if (Remote::rc.s1 == Remote::S_DOWN) {
 
                 /// PC control mode
@@ -144,10 +145,10 @@ void UserI::UserThread::main() {
             /// Safe Mode
             GimbalLG::set_action(GimbalLG::FORCED_RELAX_MODE);
         }
-
+#endif
 
         /*** ---------------------------------- Shoot --------------------------------- ***/
-
+#if INFANTRY_GIMBAL_ENABLE
         if (!InspectorI::remote_failure() && !InspectorI::chassis_failure() && !InspectorI::gimbal_failure()) {
             if ((Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_UP) ||
                 (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_MIDDLE) ||
@@ -303,9 +304,9 @@ void UserI::UserThread::main() {
             ShootLG::stop();
             ShootLG::set_friction_wheels(0);
         }
-
+#endif
         /*** ---------------------------------- Chassis --------------------------------- ***/
-
+#if INFANTRY_CHASSIS_ENABLE
         if (!InspectorI::remote_failure() && !InspectorI::chassis_failure() && !InspectorI::gimbal_failure()) {
 
             if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_UP) {
@@ -380,7 +381,7 @@ void UserI::UserThread::main() {
             /// Safe Mode
             ChassisLG::set_action(ChassisLG::FORCED_RELAX_MODE);
         }
-
+#endif
 
         /// Final
         sleep(TIME_MS2I(USER_THREAD_INTERVAL));
@@ -411,9 +412,11 @@ void UserI::UserActionThread::main() {
             eventflags_t mouse_flag = chEvtGetAndClearFlags(&mouse_press_listener);
 
             /// Shoot
+#if INFANTRY_GIMBAL_ENABLE
             if (ShootLG::get_friction_wheels_duty_cycle() == 0) {  // force start friction wheels
                 ShootLG::set_friction_wheels(shoot_common_duty_cycle);
             }
+#endif
             if (mouse_flag & (1U << Remote::MOUSE_LEFT)) {
                 left_mouse_pressed = true;
             } else if (mouse_flag & (1U << Remote::MOUSE_RIGHT)) {
@@ -433,6 +436,7 @@ void UserI::UserActionThread::main() {
             eventflags_t key_flag = chEvtGetAndClearFlags(&key_press_listener);
 
             /// Chassis
+#if INFANTRY_CHASSIS_ENABLE
             if (key_flag & (1U << chassis_dodge_switch)) {
                 if (ChassisLG::get_action() == ChassisLG::FOLLOW_MODE) {
                     ChassisLG::set_action(ChassisLG::DODGE_MODE);
@@ -440,7 +444,9 @@ void UserI::UserActionThread::main() {
                     ChassisLG::set_action(ChassisLG::FOLLOW_MODE);
                 }
             }
-
+#endif
+            /// Gimbal
+#if INFANTRY_GIMBAL_ENABLE
             if (key_flag & (1U << Remote::KEY_Q)) {
                 gimbal_yaw_target_angle_ += 90.0f;
                 GimbalLG::set_target(gimbal_yaw_target_angle_, gimbal_pc_pitch_target_angle_);
@@ -448,8 +454,9 @@ void UserI::UserActionThread::main() {
                 gimbal_yaw_target_angle_ -= 90.0f;
                 GimbalLG::set_target(gimbal_yaw_target_angle_, gimbal_pc_pitch_target_angle_);
             }
-
+#endif
             /// Shoot
+#if INFANTRY_GIMBAL_ENABLE
             if (key_flag & (1U << shoot_fw_switch)) {
                 if (ABS(ShootLG::get_friction_wheels_duty_cycle()) > 0) {
                     ShootLG::set_friction_wheels(0);
@@ -465,6 +472,7 @@ void UserI::UserActionThread::main() {
             if (key_flag & (1U << Remote::KEY_F)) {
                 ShootLG::set_friction_wheels(0.5);
             }
+#endif
         }
 
         // If more event type is added, remember to modify chEvtWaitAny() above

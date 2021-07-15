@@ -25,7 +25,7 @@ CANInterface *GimbalIF::can2_ = nullptr;
 
 void GimbalIF::init(CANInterface *can1_interface, CANInterface *can2_interface,
                     motor_can_config_t motor_can_config[MOTOR_COUNT],
-                    uint16_t yaw_front_angle_raw, uint16_t pitch_front_angle_raw) {
+                    uint16_t yaw_front_angle_raw, uint16_t pitch_front_angle_raw, uint16_t sub_pitch_front_angle_raw) {
 
     // Get the CAN address.
     can1_ = can1_interface;
@@ -86,6 +86,8 @@ void GimbalIF::init(CANInterface *can1_interface, CANInterface *can2_interface,
 #endif
         } else if (PITCH == (motor_id_t) i) {
             feedback[i]->last_angle_raw = pitch_front_angle_raw;
+        } else if (SUB_PITCH == (motor_id_t) i) {
+            feedback[i]->last_angle_raw = sub_pitch_front_angle_raw;
         }
 
     }

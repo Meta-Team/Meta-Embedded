@@ -13,42 +13,36 @@
 
 #include "shoot_scheduler.h"
 
-ShootSKD::install_direction_t ShootSKD::install_position[4];
+ShootSKD::install_direction_t ShootSKD::install_position[3];
 
 ShootSKD::mode_t ShootSKD::mode = FORCED_RELAX_MODE;
 
-float ShootSKD::target_angle[2] = {0, 0};
-float ShootSKD::target_velocity[4] = {0, 0, 0, 0};
-int ShootSKD::target_current[4] = {0, 0, 0, 0};
+float ShootSKD::target_angle = 0;
+float ShootSKD::target_velocity[3] = {0, 0, 0};
+int ShootSKD::target_current[3] = {0, 0, 0};
 
-PIDController ShootSKD::v2i_pid[4];
-PIDController ShootSKD::a2v_pid[2];
+PIDController ShootSKD::v2i_pid[3];
+PIDController ShootSKD::a2v_pid;
 
 ShootSKD::SKDThread ShootSKD::skdThread;
 
-void ShootSKD::start(ShootSKD::install_direction_t loader_install_, ShootSKD::install_direction_t plate_install_,
-                     tprio_t thread_prio) {
+void ShootSKD::start(ShootSKD::install_direction_t loader_install_, tprio_t thread_prio) {
     install_position[0] = loader_install_;
-    install_position[1] = plate_install_;
-    install_position[2] = NEGATIVE;
-    install_position[3] = POSITIVE;
+    install_position[1] = NEGATIVE;
+    install_position[2] = POSITIVE;
 
     skdThread.start(thread_prio);
 }
 
 void ShootSKD::load_pid_params(pid_params_t loader_a2v_params,
                                pid_params_t loader_v2i_params,
-                               pid_params_t plate_a2v_params,
-                               pid_params_t plate_v2i_params,
                                pid_params_t fw_left_v2i_params,
                                pid_params_t fw_right_v2i_params) {
 
     v2i_pid[0].change_parameters(loader_v2i_params);
-    v2i_pid[1].change_parameters(plate_v2i_params);
-    a2v_pid[0].change_parameters(loader_a2v_params);
-    a2v_pid[1].change_parameters(plate_a2v_params);
-    v2i_pid[2].change_parameters(fw_left_v2i_params);
-    v2i_pid[3].change_parameters(fw_right_v2i_params);
+    a2v_pid.change_parameters(loader_a2v_params);
+    v2i_pid[1].change_parameters(fw_left_v2i_params);
+    v2i_pid[2].change_parameters(fw_right_v2i_params);
 }
 
 void ShootSKD::set_mode(ShootSKD::mode_t skd_mode) {
@@ -60,30 +54,19 @@ ShootSKD::mode_t ShootSKD::get_mode() {
 }
 
 void ShootSKD::set_loader_target_angle(float loader_target_angle) {
-    target_angle[0] = loader_target_angle;
-}
-
-void ShootSKD::set_plate_target_angle(float plate_target_angle) {
-    target_angle[1] = plate_target_angle;
+    target_angle = loader_target_angle;
 }
 
 void ShootSKD::set_loader_target_velocity(float degree_per_second) {
-    pid_params_t p = a2v_pid[0].get_parameters();
+    pid_params_t p = a2v_pid.get_parameters();
     p.out_limit = degree_per_second;
-    a2v_pid[0].change_parameters(p);
-    a2v_pid[0].clear_i_out();
-}
-
-void ShootSKD::set_plate_target_velocity(float degree_per_second) {
-    pid_params_t p = a2v_pid[1].get_parameters();
-    p.out_limit = degree_per_second;
-    a2v_pid[1].change_parameters(p);
-    a2v_pid[1].clear_i_out();
+    a2v_pid.change_parameters(p);
+    a2v_pid.clear_i_out();
 }
 
 void ShootSKD::set_friction_wheels(float duty_cycle) {
-    target_velocity[2] = -duty_cycle *3000.0f;
-    target_velocity[3] = target_velocity[2];
+    target_velocity[1] = -duty_cycle *3000.0f;
+    target_velocity[2] = target_velocity[1];
 }
 
 float ShootSKD::get_friction_wheels_duty_cycle() {
@@ -94,36 +77,20 @@ int ShootSKD::get_loader_target_current() {
     return ShootSKD::target_current[0];
 }
 
-int ShootSKD::get_plate_target_current() {
-    return ShootSKD::target_current[1];
-}
-
 float ShootSKD::get_loader_actual_velocity() {
-    return GimbalIF::feedback[GimbalIF::BULLET]->actual_velocity * install_position[0];
-}
-
-float ShootSKD::get_plate_actual_velocity() {
-    return GimbalIF::feedback[GimbalIF::PLATE]->actual_velocity * install_position[1];
+    return GimbalIF::feedback[GimbalIF::BULLET]->actual_velocity * float(install_position[0]);
 }
 
 float ShootSKD::get_loader_target_angle() {
-    return target_angle[ShootSKD::BULLET];
+    return target_angle;
 }
 
 float ShootSKD::get_loader_accumulated_angle() {
-    return GimbalIF::feedback[GimbalIF::BULLET]->accumulated_angle() * install_position[0];
-}
-
-float ShootSKD::get_plate_accumulated_angle() {
-    return GimbalIF::feedback[GimbalIF::PLATE]->accumulated_angle() * install_position[1];
+    return GimbalIF::feedback[GimbalIF::BULLET]->accumulated_angle() * float(install_position[0]);
 }
 
 void ShootSKD::reset_loader_accumulated_angle() {
     GimbalIF::feedback[GimbalIF::BULLET]->reset_front_angle();
-}
-
-void ShootSKD::reset_plate_accumulated_angle() {
-    GimbalIF::feedback[GimbalIF::PLATE]->reset_front_angle();
 }
 
 void ShootSKD::SKDThread::main() {
@@ -133,30 +100,25 @@ void ShootSKD::SKDThread::main() {
         if (mode == LIMITED_SHOOTING_MODE) {
 
             // PID calculation
-            for (size_t i = 0; i < 4; i++) {
-                if(i < 2) {
-                    target_velocity[i] = a2v_pid[i].calc(GimbalIF::feedback[2 + i]->accumulated_angle() * install_position[i],
-                                                         target_angle[i]);
-                    ShootSKD::target_current[i] = (int) v2i_pid[i].calc(
-                            GimbalIF::feedback[i + 2]->actual_velocity * install_position[i],
-                            target_velocity[i]);
-                    *GimbalIF::target_current[i + 2] = ShootSKD::target_current[i] * install_position[i];
-                } else {
-                    ShootSKD::target_current[i] = (int) v2i_pid[i].calc(GimbalIF::feedback[i + 2]->actual_velocity,
-                                                                        target_velocity[i]*float(install_position[i]));
-                    *GimbalIF::target_current[i + 2] = ShootSKD::target_current[i];
-                }
-            }
+
+            // Bullet calculation
+            target_velocity[0] = a2v_pid.calc(GimbalIF::feedback[GimbalIF::BULLET]->accumulated_angle() * float(install_position[0]), target_angle);
+            target_current[0] = (int) v2i_pid[0].calc(GimbalIF::feedback[GimbalIF::BULLET]->actual_velocity * float(install_position[0]), target_velocity[0]);
+            *GimbalIF::target_current[GimbalIF::BULLET] = target_current[0] * install_position[0];
+            // Fraction wheels calculation
+            ShootSKD::target_current[1] = (int) v2i_pid[1].calc(GimbalIF::feedback[GimbalIF::FW_LEFT]->actual_velocity,target_velocity[1] * float(install_position[1]));
+            *GimbalIF::target_current[GimbalIF::FW_LEFT] = ShootSKD::target_current[1];
+            ShootSKD::target_current[2] = (int) v2i_pid[2].calc(GimbalIF::feedback[GimbalIF::FW_RIGHT]->actual_velocity,target_velocity[2] * float(install_position[2]));
+            *GimbalIF::target_current[GimbalIF::FW_RIGHT] = ShootSKD::target_current[2];
+
 
         } else if (mode == FORCED_RELAX_MODE) {
             *GimbalIF::target_current[GimbalIF::BULLET] = 0;
-            *GimbalIF::target_current[GimbalIF::PLATE] = 0;
             for (size_t i = 2; i < 4; i++) {
                 if(ABS_IN_RANGE(GimbalIF::feedback[i + 2]->actual_velocity, 100)) {
                     *GimbalIF::target_current[i + 2] = 0;
                 } else {
-                    ShootSKD::target_current[i] = (int) v2i_pid[i].calc(GimbalIF::feedback[i + 2]->actual_velocity,
-                                                                        0.0f);
+                    ShootSKD::target_current[i] = (int) v2i_pid[i].calc(GimbalIF::feedback[i + 2]->actual_velocity,0.0f);
                     *GimbalIF::target_current[i + 2] = ShootSKD::target_current[i];
                 }
             }

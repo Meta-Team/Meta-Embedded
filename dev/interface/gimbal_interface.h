@@ -21,6 +21,7 @@
 #include "ch.hpp"
 #include "hal.h"
 #include "can_interface.h"
+#include "motor_interface.h"
 
 /// Board Guard
 #if defined(BOARD_RM_2018_A)
@@ -39,8 +40,8 @@ public:
     enum motor_id_t {
         YAW = 0,
         PITCH = 1,
-        BULLET = 2,
-        PLATE = 3,
+        SUB_PITCH = 2,
+        BULLET = 3,
         FW_LEFT = 4,
         FW_RIGHT = 5,
         MOTOR_COUNT = 6
@@ -86,21 +87,9 @@ public:
 #define GIMBAL_INTERFACE_BULLET_PLATE_MAX_CURRENT 5000
 #endif
 
-class GimbalIF : public GimbalBase {
+class GimbalIF : public GimbalBase, public MotorIFBase {
 
 public:
-
-    enum motor_can_channel_t {
-        none_can_channel,
-        can_channel_1,
-        can_channel_2
-    };
-
-    struct motor_can_config_t {
-        motor_can_channel_t motor_can_channel;
-        unsigned motor_can_id;
-        CANInterface::motor_type_t motor_type;
-    };
 
     /**
      * Initialize GimbalIF. Angles of bullet loader and bullet plate will be reset.
@@ -113,7 +102,7 @@ public:
 
     static void init(CANInterface *can1_interface, CANInterface *can2_interface,
                      motor_can_config_t motor_can_config[MOTOR_COUNT],
-                     uint16_t yaw_front_angle_raw, uint16_t pitch_front_angle_raw);
+                     uint16_t yaw_front_angle_raw, uint16_t pitch_front_angle_raw, uint16_t sub_pitch_front_angle_raw);
 
     /**
      * Motor feedback structure

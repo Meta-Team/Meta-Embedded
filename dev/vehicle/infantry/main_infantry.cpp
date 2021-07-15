@@ -110,7 +110,9 @@ int main() {
     feedback_thread_start();
 
     /// Setup SuperCapacitor Port
+#if INFANTRY_SUPER_CAPACITOR_ENABLE
     SuperCapacitor::init(&can2, THREAD_SUPERCAP_INIT_PRIO);
+#endif
     /// Complete Period 1
     LED::green_on();  // LED Green on now
 
@@ -138,16 +140,20 @@ int main() {
 
 
     /// Setup GimbalIF (for Gimbal and Shoot)
-    GimbalIF::init(&can1, &can2, GIMBAL_MOTOR_CONFIG_, GIMBAL_YAW_FRONT_ANGLE_RAW, GIMBAL_PITCH_FRONT_ANGLE_RAW);
+#if INFANTRY_GIMBAL_ENABLE
+    GimbalIF::init(&can1, &can2, GIMBAL_MOTOR_CONFIG_, GIMBAL_YAW_FRONT_ANGLE_RAW, GIMBAL_PITCH_FRONT_ANGLE_RAW, 0/* Not used */);
     chThdSleepMilliseconds(2000);  // wait for C610 to be online and friction wheel to reset
     InspectorI::startup_check_gimbal_feedback(); // check gimbal motors has continuous feedback. Block for 20 ms
+#endif
     LED::led_on(DEV_BOARD_LED_GIMBAL);  // LED 5 on now
 
 
     /// Setup ChassisIF
+#if INFANTRY_CHASSIS_ENABLE
     ChassisIF::init(&can1, &can2 ,CHASSIS_MOTOR_CONFIG_);
     chThdSleepMilliseconds(10);
     InspectorI::startup_check_chassis_feedback();  // check chassis motors has continuous feedback. Block for 20 ms
+#endif
     LED::led_on(DEV_BOARD_LED_CHASSIS);  // LED 6 on now
 
 
@@ -159,6 +165,7 @@ int main() {
 
     /*** ------------ Period 2. Calibration and Start Logic Control Thread ----------- ***/
 
+#if INFANTRY_GIMBAL_ENABLE
     /// Echo Gimbal Raws and Converted Angles
     LOG("Gimbal Yaw: %u, %f, Pitch: %u, %f",
         GimbalIF::feedback[GimbalIF::YAW]->last_angle_raw, GimbalIF::feedback[GimbalIF::YAW]->actual_angle,
@@ -166,29 +173,39 @@ int main() {
 
     /// Start SKDs
     GimbalSKD::start(&ahrs, GIMBAL_ANGLE_INSTALLATION_MATRIX_, GIMBAL_GYRO_INSTALLATION_MATRIX_,
-                     GIMBAL_YAW_INSTALL_DIRECTION, GIMBAL_PITCH_INSTALL_DIRECTION, THREAD_GIMBAL_SKD_PRIO);
+                     GIMBAL_YAW_INSTALL_DIRECTION, GIMBAL_PITCH_INSTALL_DIRECTION, GimbalSKD::POSITIVE/* Not used */, THREAD_GIMBAL_SKD_PRIO);
     GimbalSKD::load_pid_params(GIMBAL_PID_YAW_A2V_PARAMS, GIMBAL_PID_YAW_V2I_PARAMS,
-                               GIMBAL_PID_PITCH_A2V_PARAMS, GIMBAL_PID_PITCH_V2I_PARAMS);
+                               GIMBAL_PID_PITCH_A2V_PARAMS, GIMBAL_PID_PITCH_V2I_PARAMS,
+                               {0, 0, 0, 0, 0}/* Not used */, {0, 0, 0, 0, 0}/* Not used */);
     GimbalSKD::set_yaw_restriction(GIMBAL_RESTRICT_YAW_MIN_ANGLE, GIMBAL_RESTRICT_YAW_MAX_ANGLE,
                                    GIMBAL_RESTRICT_YAW_VELOCITY);
 
-    ShootSKD::start(SHOOT_BULLET_INSTALL_DIRECTION, ShootSKD::POSITIVE /* of no use */, THREAD_SHOOT_SKD_PRIO);
+    ShootSKD::start(SHOOT_BULLET_INSTALL_DIRECTION, THREAD_SHOOT_SKD_PRIO);
     ShootSKD::load_pid_params(SHOOT_PID_BULLET_LOADER_A2V_PARAMS, SHOOT_PID_BULLET_LOADER_V2I_PARAMS,
-                              {0, 0, 0, 0, 0} /* of no use */, {0, 0, 0, 0, 0} /* of no use */, SHOOT_PID_FW_LEFT_V2I_PARAMS, SHOOT_PID_FW_RIGHT_V2I_PARAMS);
+                              SHOOT_PID_FW_LEFT_V2I_PARAMS, SHOOT_PID_FW_RIGHT_V2I_PARAMS);
+#endif
 
+#if INFANTRY_CHASSIS_ENABLE
     ChassisSKD::start(CHASSIS_WHEEL_BASE, CHASSIS_WHEEL_TREAD, CHASSIS_WHEEL_CIRCUMFERENCE, ChassisSKD::POSITIVE,
                       0, THREAD_CHASSIS_SKD_PRIO);
     ChassisSKD::load_pid_params(CHASSIS_FOLLOW_PID_THETA2V_PARAMS, CHASSIS_PID_V2I_PARAMS);
+#endif
 
     /// Start LGs
+#if INFANTRY_GIMBAL_ENABLE
     GimbalLG::init(THREAD_GIMBAL_LG_VISION_PRIO);
     ShootLG::init(SHOOT_DEGREE_PER_BULLET, THREAD_SHOOT_LG_STUCK_DETECT_PRIO, THREAD_SHOOT_BULLET_COUNTER_PRIO);
+#endif
+
+#if INFANTRY_CHASSIS_ENABLE
     ChassisLG::init(THREAD_CHASSIS_LG_DODGE_PRIO, THREAD_CHASSIS_POWER_SET_PRIO, CHASSIS_DODGE_MODE_THETA, CHASSIS_BIASED_ANGLE, CHASSIS_LOGIC_DODGE_OMEGA2VOLT_PARAMS);
+#endif
 
     /// Setup VisionPort
     // Should be put after initialization of GimbalSKD
+#if INFANTRY_VISION_ENABLE
     Vision::init(VISION_VELOCITY_UPDATE_FRACTION, VISION_PREDICT_FORWARD_AMOUNT);
-
+#endif
     /// Start Inspector and User Threads
     InspectorI::start_inspection(THREAD_INSPECTOR_PRIO);
     UserI::start(THREAD_USER_PRIO, THREAD_USER_ACTION_PRIO, THREAD_USER_CLIENT_DATA_SEND_PRIO);

@@ -35,7 +35,7 @@ void GimbalLG::set_action(GimbalLG::action_t value) {
     } else if (action == ABS_ANGLE_MODE || action == AERIAL_MODE) {
         GimbalSKD::set_mode(GimbalSKD::ABS_ANGLE_MODE);
     } else if (action == SENTRY_MODE) {
-        GimbalSKD::set_mode(GimbalSKD::SENTRY_MODE);
+//        GimbalSKD::set_mode(GimbalSKD::SENTRY_MODE);
     } else if (action == VISION_MODE) {
         GimbalSKD::set_mode(GimbalSKD::ABS_ANGLE_MODE);
         // Resume the thread
@@ -52,11 +52,20 @@ void GimbalLG::set_action(GimbalLG::action_t value) {
 
 void GimbalLG::set_target(float yaw_target_angle, float pitch_target_angle) {
     if (action != FORCED_RELAX_MODE && action != VISION_MODE) {
-        GimbalSKD::set_target_angle(yaw_target_angle, pitch_target_angle);
+        GimbalSKD::set_target_angle(yaw_target_angle, pitch_target_angle, 0);
     } else {
         LOG_ERR("GimbalLG - set_target(): invalid mode");
     }
 }
+
+//void GimbalLG::set_target_with_sub_pitch(float yaw_target_angle, float pitch_target_angle, float sub_pitch_target_angle) {
+//    if (action != FORCED_RELAX_MODE && action != VISION_MODE) {
+//        GimbalSKD::set_target_angle(yaw_target_angle, pitch_target_angle);
+//        SubPitchSKD::set_target_angle(sub_pitch_target_angle);
+//    } else {
+//        LOG_ERR("GimbalLG - set_target(): invalid mode");
+//    }
+//}
 
 float GimbalLG::get_accumulated_angle(GimbalBase::motor_id_t motor) {
     return GimbalSKD::get_accumulated_angle(motor);
@@ -85,7 +94,7 @@ void GimbalLG::VisionControlThread::main() {
 
         Vision::VisionControlCommand command = {0, 0};
         if (Vision::getControlCommand(command)) {
-            GimbalSKD::set_target_angle(command.gimbal_yaw_target, command.gimbal_pitch_target);
+            GimbalSKD::set_target_angle(command.gimbal_yaw_target, command.gimbal_pitch_target, 0);
         }  // otherwise, keep current target angles
 
         sleep(TIME_MS2I(VISION_THREAD_INTERVAL));

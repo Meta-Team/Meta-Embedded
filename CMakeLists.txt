@@ -463,6 +463,20 @@ add_executable(pa_gimbal
 target_compile_definitions(pa_gimbal PRIVATE SHELL_NO_ECHO_MODE)
 target_link_libraries(pa_gimbal ${PROJECT_SOURCE_DIR}/dev/interface/ahrs/ahrs_lib.lib)
 
+add_executable(pa_new_gimbal
+        dev/common/CRC16.cpp
+        dev/interface/sd_card_interface.cpp
+        ${AHRS_SRC}
+        dev/interface/can_interface.cpp
+        dev/interface/gimbal_interface.cpp
+        dev/module/pid_controller.hpp
+        dev/scheduler/gimbal_scheduler.cpp
+        dev/scheduler/shoot_scheduler.cpp
+        dev/scheduler/buzzer_scheduler.cpp
+        dev/interface/ahrs/ahrs.cpp
+        dev/debug/Param_Adjusts/pa_new_gimbal.cpp)
+target_link_libraries(pa_new_gimbal ${PROJECT_SOURCE_DIR}/dev/interface/ahrs/ahrs_lib.lib)
+
 # Elevator: include CANInterface, ElevatorInterface, ElevatorController, and the unit test modules.
 add_executable(pa_elevator
         dev/interface/can_interface.cpp

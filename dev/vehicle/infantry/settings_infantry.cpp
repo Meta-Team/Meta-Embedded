@@ -189,9 +189,13 @@ void cmd_set_param(BaseSequentialStream *chp, int argc, char *argv[]) {
                                              Shell::atof(argv[5]),
                                              Shell::atof(argv[6])};
     if (motor_id < 2) {
-        GimbalSKD::load_pid_params_by_type(pid_param, motor_id == 0, pid_id == 0);
+#if INFANTRY_GIMBAL_ENABLE
+        GimbalSKD::load_pid_params_by_type(pid_param, (GimbalBase::motor_id_t) motor_id, pid_id == 0);
+#endif
     } else if (motor_id >= 2 && motor_id < 6) {
+#if INFANTRY_CHASSIS_ENABLE
         ChassisSKD::load_pid_params_by_type(pid_param, pid_id == 0);
+#endif
     } else {
         chprintf(chp, "Invalid motor ID %d" SHELL_NEWLINE_STR, motor_id);
     }
@@ -209,9 +213,13 @@ void cmd_echo_param(BaseSequentialStream *chp, int argc, char *argv[]) {
     if (motor_id < 6) {
         PIDController::pid_params_t pid_param = {0,0,0,0,0};
         if (motor_id < 2) {
-            pid_param = GimbalSKD::echo_pid_params_by_type(motor_id == GimbalBase::YAW, pid_id == 0);
+#if INFANTRY_GIMBAL_ENABLE
+            pid_param = GimbalSKD::echo_pid_params_by_type((GimbalBase::motor_id_t) motor_id, pid_id == 0);
+#endif
         } else {
+#if INFANTRY_CHASSIS_ENABLE
             pid_param = ChassisSKD::echo_pid_params_by_type(pid_id == 0);
+#endif
         }
         chprintf(chp, "ki: %.2f, kp: %.2f, kd: %.2f, i_limit: %.2f, out_limit: %.2f" SHELL_NEWLINE_STR,
                  pid_param.ki, pid_param.kp, pid_param.kd, pid_param.i_limit, pid_param.out_limit);
@@ -238,6 +246,7 @@ private:
         while (!shouldTerminate()) {
             float actual_angle, target_angle, actual_velocity, target_velocity;
 
+#if INFANTRY_GIMBAL_ENABLE
             // Gimbal
             for (int i = 0; i < 2; i++) {
                 if (feedback_enable[i]) {
@@ -252,7 +261,9 @@ private:
                                   GimbalIF::feedback[i]->actual_current, *GimbalIF::target_current[i]);
                 }
             }
+#endif
 
+#if INFANTRY_CHASSIS_ENABLE
             // Chassis
             for (int i = 2; i < 6; i++) {
                 if (feedback_enable[i]) {
@@ -267,6 +278,7 @@ private:
                                   ChassisIF::feedback[i-2]->actual_current, *ChassisIF::target_current[i-2]);
                 }
             }
+#endif
 
             // AHRS
             if (feedback_enable[6])
