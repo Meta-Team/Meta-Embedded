@@ -88,11 +88,10 @@ void UserI::UserThread::main() {
                 /// Vision - Yaw + Pitch
 #if INFANTRY_VISION_ENABLE
                 GimbalLG::set_action(GimbalLG::VISION_MODE);
-#endif
 
                 if (Remote::rc.ch1 > 0.5) Vision::set_bullet_speed(Vision::get_bullet_speed() - 0.001f);
                 else if (Remote::rc.ch1 <= - 0.5) Vision::set_bullet_speed(Vision::get_bullet_speed() + 0.001f);
-
+#endif
             } else if (Remote::rc.s1 == Remote::S_DOWN) {
 
                 /// PC control mode

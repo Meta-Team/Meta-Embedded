@@ -108,7 +108,7 @@ float ChassisSKD::get_target_theta() {
     return target_theta;
 }
 
-void ChassisSKD::velocity_decompose_(float vx, float vy, float w) {
+void ChassisSKD::velocity_decompose(float vx, float vy, float w) {
 
     // FR, +vx, -vy, +w
     // FL, +vx, +vy, +w, since the motor is installed in the opposite direction

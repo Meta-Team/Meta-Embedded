@@ -284,6 +284,7 @@
 #define THREAD_SHOOT_SKD_PRIO                      (NORMALPRIO + 1)
 #define THREAD_USER_PRIO                           (NORMALPRIO)
 #define THREAD_USER_ACTION_PRIO                    (NORMALPRIO - 1)
+#define THREAD_SHOOT_LG_VISION_PRIO                (NORMALPRIO - 1)
 #define THREAD_GIMBAL_LG_VISION_PRIO               (NORMALPRIO - 1)
 #define THREAD_CHASSIS_LG_DODGE_PRIO               (NORMALPRIO - 2)
 #define THREAD_CHASSIS_POWER_SET_PRIO              (NORMALPRIO - 3)

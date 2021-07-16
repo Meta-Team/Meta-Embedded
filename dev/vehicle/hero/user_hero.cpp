@@ -80,25 +80,11 @@ void UserH::UserThread::main() {
             } else if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_DOWN) {
 
                 /// Vision - Yaw + Pitch
-#if HERHERO_VISION_ENABLE
-                GimbalLG::set_action(GimbalLG::ABS_ANGLE_MODE);
+#if HERO_VISION_ENABLE
+                GimbalLG::set_action(GimbalLG::VISION_MODE);
 
-                float yaw_va_target, pitch_va_target;
-                yaw_va_target = GimbalLG::get_relative_angle(GimbalBase::YAW);
-                pitch_va_target = GimbalLG::get_relative_angle(GimbalBase::PITCH);
-
-                float yaw_delta,pitch_delta;
-                yaw_delta = Vision::enemy_info.yaw_delta;
-                pitch_delta = Vision::enemy_info.pitch_delta;
-
-                static time_msecs_t last_one = Vision::last_update_time;
-                if (Vision::last_update_time - last_one < 500) { // TODO:: may not be safe enough
-                    if ((yaw_delta > 2.0f) || (yaw_delta < -2.0f)) yaw_va_target -= yaw_delta;
-                    if ((pitch_delta > 1.0f) || (pitch_delta < -1.0f)) pitch_va_target -= pitch_delta;
-                }
-                last_one = Vision::last_update_time;
-
-                GimbalLG::set_target(yaw_va_target, pitch_va_target);
+                if (Remote::rc.ch1 > 0.5) Vision::set_bullet_speed(Vision::get_bullet_speed() - 0.001f);
+                else if (Remote::rc.ch1 <= - 0.5) Vision::set_bullet_speed(Vision::get_bullet_speed() + 0.001f);
 #endif
             } else if (Remote::rc.s1 == Remote::S_DOWN) {
 

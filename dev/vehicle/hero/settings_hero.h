@@ -2,8 +2,8 @@
 // Created by liuzikai on 2019-07-12.
 //
 
-#ifndef META_INFANTRY_SETTINGS_HERO_H
-#define META_INFANTRY_SETTINGS_HERO_H
+#ifndef META_INFANTRY_SETTINGS_INFANTRY_H
+#define META_INFANTRY_SETTINGS_INFANTRY_H
 
 #include "ch.hpp"
 #include "hal.h"
@@ -30,4 +30,4 @@ void feedback_thread_start();
 
 extern ShellCommand mainProgramCommands[];
 
-#endif //META_INFANTRY_SETTINGS_HERO_H
+#endif //META_INFANTRY_SETTINGS_INFANTRY_H
