@@ -95,8 +95,8 @@ int main() {
     LED::led_on(DEV_BOARD_LED_SYSTEM_INIT);  // LED 1 on now
 
     /// Setup CAN1 & CAN2
-    can1.start(THREAD_CAN1_PRIO, THREAD_CAN1_FB_PRIO);
-    can2.start(THREAD_CAN2_PRIO, THREAD_CAN2_FB_PRIO);
+    can1.start(THREAD_CAN1_RX_PRIO, THREAD_CAN1_TX_PRIO);
+    can2.start(THREAD_CAN2_RX_PRIO, THREAD_CAN2_TX_PRIO);
     chThdSleepMilliseconds(5);
     InspectorH::startup_check_can();  // check no persistent CAN Error. Block for 100 ms
     LED::led_on(DEV_BOARD_LED_CAN);  // LED 2 on now

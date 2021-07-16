@@ -73,6 +73,10 @@ public:
     static void load_pid_params(pid_params_t loader_a2v_params, pid_params_t loader_v2i_params,
                                 pid_params_t fw_left_v2i_params, pid_params_t fw_right_v2i_params);
 
+    static void load_pid_params_by_type(pid_params_t params, unsigned motor_id, bool is_a2v);
+
+    static pid_params_t echo_pid_params_by_type(unsigned motor_id, bool is_a2v);
+
     /**
      * Set mode of this SKD
      * @param skd_mode
@@ -140,11 +144,34 @@ public:
      */
     static void reset_loader_accumulated_angle();
 
+    /*------------------------------------- Functions for Test Status -------------------------------------*/
+
+    /**
+     * Set the test status
+     * @param test_status
+     */
+    static void set_test_status(bool test_status);
+
+    /**
+     * Enable the motors
+     * @param motor
+     */
+    static void enable_motor(unsigned motor);
+
+    /**
+     * Disable the motors
+     * @param motor
+     */
+    static void disable_motor(unsigned motor);
+
 private:
 
     static install_direction_t install_position[3];
 
+    static bool is_test;
     static mode_t mode;
+
+    static bool motor_enable[3];
 
     static float target_angle;
     static float target_velocity[3];

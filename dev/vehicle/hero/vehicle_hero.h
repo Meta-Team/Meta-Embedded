@@ -272,13 +272,13 @@
 #define VISION_PREDICT_FORWARD_AMOUNT   300
 
 /// Thread Priority List
-#define THREAD_CAN1_PRIO                           (HIGHPRIO - 1)
-#define THREAD_CAN2_PRIO                           (HIGHPRIO - 2)
+#define THREAD_CAN1_RX_PRIO                        (HIGHPRIO - 1)
+#define THREAD_CAN1_TX_PRIO                        (HIGHPRIO - 2)
+#define THREAD_CAN2_RX_PRIO                        (HIGHPRIO - 3)
+#define THREAD_CAN2_TX_PRIO                        (HIGHPRIO - 4)
 #define THREAD_MPU_PRIO                            (HIGHPRIO - 3)
 #define THREAD_IST_PRIO                            (HIGHPRIO - 4)
 #define THREAD_AHRS_PRIO                           (HIGHPRIO - 5)
-#define THREAD_CAN1_FB_PRIO                        (HIGHPRIO - 6)
-#define THREAD_CAN2_FB_PRIO                        (HIGHPRIO - 7)
 #define THREAD_GIMBAL_SKD_PRIO                     (NORMALPRIO + 3)
 #define THREAD_CHASSIS_SKD_PRIO                    (NORMALPRIO + 2)
 #define THREAD_SHOOT_SKD_PRIO                      (NORMALPRIO + 1)

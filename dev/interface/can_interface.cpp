@@ -67,25 +67,70 @@ void CANInterface::motor_feedback_t::reset_front_angle() {
     round_count = 0;
 }
 
-void CANInterface::set_target_current(unsigned id, int target_current) {
-    currentSendThread.target_current[id] = target_current;
+int *CANInterface::register_target_current_address(unsigned int id, motor_type_t motor_type) {
+    unsigned tx_id = 4;
+    int *p = currentSendThread.x1ff_target_current;
+    motor_type_t *m = currentSendThread.x1ff_motorType;
+    switch (motor_type) {
+        case M2006:
+        case M3508:
+            if (id <= 4 && id >= 1) {
+                p = currentSendThread.x200_target_current;
+                m = currentSendThread.x200_motorType;
+                tx_id = id - 1;
+            } else if (id >=5 && id <= 8) {
+                p = currentSendThread.x1ff_target_current;
+                m = currentSendThread.x1ff_motorType;
+                tx_id = id - 5;
+            }
+            break;
+        case GM3510:
+            if (id >= 1 && id <= 3) {
+                p = currentSendThread.x1ff_target_current;
+                m = currentSendThread.x1ff_motorType;
+                tx_id = id - 1;
+            }
+            break;
+        case GM6020_HEROH:
+        case GM6020:
+            if (id <= 4 && id >= 1) {
+                p = currentSendThread.x1ff_target_current;
+                m = currentSendThread.x1ff_motorType;
+                tx_id = id - 1;
+            } else if (id >=5 && id <= 7) {
+                p = currentSendThread.x2ff_target_current;
+                m = currentSendThread.x2ff_motorType;
+                tx_id = id - 5;
+            }
+            break;
+        case NONE_MOTOR:
+        default:
+            break;
+    }
+    m[tx_id] = motor_type;
+    return p + tx_id;
 }
 
-void CANInterface::set_motor_type(unsigned int id, motor_type_t motor_type_) {
-    currentSendThread.motorType[id] = motor_type_;
-    processFeedbackThread.feedback[id].type = motor_type_;
-}
-
-int CANInterface::echo_target_current(unsigned id) {
-    return currentSendThread.target_current[id];
-}
-
-int *CANInterface::get_target_current_address(unsigned int id) {
-    return &currentSendThread.target_current[id];
-}
-
-CANInterface::motor_feedback_t *CANInterface::get_feedback_address(unsigned id) {
-    return &processFeedbackThread.feedback[id];
+CANInterface::motor_feedback_t *CANInterface::register_feedback_address(unsigned id, motor_type_t motor_type) {
+    unsigned rx_id = MAXIMUM_MOTOR_COUNT;
+    switch (motor_type) {
+        case M3508:
+        case M2006:
+            if (id <= 8 && id >= 1) rx_id = id - 1;
+            break;
+        case GM3510:
+            if (id <= 3 && id >= 1) rx_id = id + 4 - 1;
+            break;
+        case GM6020:
+        case GM6020_HEROH:
+            if (id <= 7 && id >= 1) rx_id = id + 4 - 1;
+            break;
+        case NONE_MOTOR:
+        default:
+            break;
+    }
+    processFeedbackThread.feedback[rx_id].type = motor_type;
+    return &processFeedbackThread.feedback[rx_id];
 }
 
 CANInterface::cap_feedback_t *CANInterface::get_cap_feedback_address() {
@@ -284,37 +329,45 @@ void CANInterface::CurrentSendThread::main() {
         setName("CAN?_TX");
     }
     while(!shouldTerminate()) {
-        CANTxFrame low_tx_frame;
-        CANTxFrame high_tx_frame;
+        CANTxFrame x200_tx_frame;
+        CANTxFrame x1ff_tx_frame;
+        CANTxFrame x2ff_tx_frame;
 
-        low_tx_frame.IDE = high_tx_frame.IDE = CAN_IDE_STD;
+        x200_tx_frame.IDE = x1ff_tx_frame.IDE = x2ff_tx_frame.IDE = CAN_IDE_STD;
 
-        low_tx_frame.SID = 0x200;
-        high_tx_frame.SID = 0x1FF;
+        x200_tx_frame.SID = 0x200;
+        x1ff_tx_frame.SID = 0x1FF;
+        x2ff_tx_frame.SID = 0x2FF;
 
-        low_tx_frame.RTR = high_tx_frame.RTR = CAN_RTR_DATA;
-        low_tx_frame.DLC = high_tx_frame.DLC = 0x008;
+        x200_tx_frame.RTR = x1ff_tx_frame.RTR = x2ff_tx_frame.RTR = CAN_RTR_DATA;
+        x200_tx_frame.DLC = x1ff_tx_frame.DLC = x2ff_tx_frame.DLC = 0x008;
 
         for (int i = 0; i < 4; i++) {
-            if (motorType[i] != RM6623) {
-                low_tx_frame.data8[i * 2] = (uint8_t) (target_current[i] >> 8);
-                low_tx_frame.data8[i * 2 + 1] = (uint8_t) target_current [i];
+            if (x200_motorType[i] != RM6623) {
+                x200_tx_frame.data8[i * 2] = (uint8_t) (x200_target_current[i] >> 8);
+                x200_tx_frame.data8[i * 2 + 1] = (uint8_t) x200_target_current [i];
             } else {
-                low_tx_frame.data8[i * 2] = (uint8_t) (-target_current[i] >> 8);
-                low_tx_frame.data8[i * 2 + 1] = (uint8_t) -target_current [i];
+                x200_tx_frame.data8[i * 2] = (uint8_t) (-x200_target_current[i] >> 8);
+                x200_tx_frame.data8[i * 2 + 1] = (uint8_t) -x200_target_current [i];
+            }
+            if (x1ff_motorType[i] != RM6623) {
+                x1ff_tx_frame.data8[i * 2] = (uint8_t) (x1ff_target_current[i] >> 8);
+                x1ff_tx_frame.data8[i * 2 + 1] = (uint8_t) x1ff_target_current [i];
+            } else {
+                x1ff_tx_frame.data8[i * 2] = (uint8_t) (-x1ff_target_current[i] >> 8);
+                x1ff_tx_frame.data8[i * 2 + 1] = (uint8_t) -x1ff_target_current [i];
+            }
+            if (x2ff_motorType[i] != RM6623) {
+                x2ff_tx_frame.data8[i * 2] = (uint8_t) (x2ff_target_current[i] >> 8);
+                x2ff_tx_frame.data8[i * 2 + 1] = (uint8_t) x2ff_target_current [i];
+            } else {
+                x2ff_tx_frame.data8[i * 2] = (uint8_t) (-x2ff_target_current[i] >> 8);
+                x2ff_tx_frame.data8[i * 2 + 1] = (uint8_t) -x2ff_target_current [i];
             }
         }
-        for (int i = 4; i < 8; i++) {
-            if (motorType[i] != RM6623) {
-                high_tx_frame.data8[i * 2 - 8] = (uint8_t) (target_current[i] >> 8);
-                high_tx_frame.data8[i * 2 + 1 - 8] = (uint8_t) target_current [i];
-            } else {
-                high_tx_frame.data8[i * 2 - 8] = (uint8_t) (-target_current[i] >> 8);
-                high_tx_frame.data8[i * 2 + 1 - 8] = (uint8_t) -target_current [i];
-            }
-        }
-        send_msg(&low_tx_frame);
-        send_msg(&high_tx_frame);
+        send_msg(&x200_tx_frame);
+        send_msg(&x1ff_tx_frame);
+        send_msg(&x2ff_tx_frame);
         if(!capMsgSent) {
             capMsgSent = true;
             send_msg(capMsg);

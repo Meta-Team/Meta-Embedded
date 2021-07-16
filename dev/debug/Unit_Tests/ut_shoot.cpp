@@ -99,11 +99,11 @@ int main(void) {
     Remote::start();
     can1.start(NORMALPRIO + 2, NORMALPRIO + 3);
 
-    FW_L_CURRENT = can1.get_target_current_address(2);
-    FW_R_CURRENT = can1.get_target_current_address(3);
+    FW_L_CURRENT = can1.register_target_current_address(2);
+    FW_R_CURRENT = can1.register_target_current_address(3);
 
-    FW_L_FB = can1.get_feedback_address(2);
-    FW_R_FB = can1.get_feedback_address(3);
+    FW_L_FB = can1.register_feedback_address(2);
+    FW_R_FB = can1.register_feedback_address(3);
 
     FW_L_v2i_PID.change_parameters(SHOOT_PID_FW_LEFT_V2I_PARAMS);
     FW_R_v2i_PID.change_parameters(SHOOT_PID_FW_RIGHT_V2I_PARAMS);

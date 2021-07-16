@@ -16,6 +16,8 @@
 ShootSKD::install_direction_t ShootSKD::install_position[3];
 
 ShootSKD::mode_t ShootSKD::mode = FORCED_RELAX_MODE;
+bool ShootSKD::is_test = false;
+bool ShootSKD::motor_enable[3] = {false, false, false};
 
 float ShootSKD::target_angle = 0;
 float ShootSKD::target_velocity[3] = {0, 0, 0};
@@ -43,6 +45,22 @@ void ShootSKD::load_pid_params(pid_params_t loader_a2v_params,
     a2v_pid.change_parameters(loader_a2v_params);
     v2i_pid[1].change_parameters(fw_left_v2i_params);
     v2i_pid[2].change_parameters(fw_right_v2i_params);
+}
+
+void ShootSKD::load_pid_params_by_type(pid_params_t params, unsigned int motor_id, bool is_a2v) {
+    if (is_a2v) {
+        a2v_pid.change_parameters(params);
+    } else {
+        v2i_pid[motor_id].change_parameters(params);
+    }
+}
+
+PIDController::pid_params_t ShootSKD::echo_pid_params_by_type(unsigned motor_id, bool is_a2v) {
+    if (is_a2v) {
+        return a2v_pid.get_parameters();
+    } else {
+        return v2i_pid[motor_id].get_parameters();
+    }
 }
 
 void ShootSKD::set_mode(ShootSKD::mode_t skd_mode) {
@@ -91,6 +109,18 @@ float ShootSKD::get_loader_accumulated_angle() {
 
 void ShootSKD::reset_loader_accumulated_angle() {
     GimbalIF::feedback[GimbalIF::BULLET]->reset_front_angle();
+}
+
+void ShootSKD::set_test_status(bool test_status) {
+    is_test = test_status;
+}
+
+void ShootSKD::enable_motor(unsigned motor) {
+    motor_enable[motor] = true;
+}
+
+void ShootSKD::disable_motor(unsigned motor) {
+    motor_enable[motor] = false;
 }
 
 void ShootSKD::SKDThread::main() {
