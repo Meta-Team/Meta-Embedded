@@ -138,7 +138,7 @@ Shell指令集（所有通过窗口发送的指令名和相对应的函数名都
                     }
                 }
 
-                Chassis::enable_chassis_current_clip();
+                Chassis::clip_chassis_current();
 
                 sleep(TIME_MS2I(CHASSIS_THREAD_INTERVAL));
             }

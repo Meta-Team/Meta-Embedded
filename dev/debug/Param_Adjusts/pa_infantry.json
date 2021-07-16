@@ -1,0 +1,18 @@
+{
+    "project": "Infantry",
+    "motor_config": [
+        {
+            "motor_id": 0,
+            "motor_name": "yaw"
+        },
+        {
+            "motor_id": 1,
+            "motor_name": "pitch"
+        }
+    ],
+    "commands": [
+        "fb_enable motor_id set_enable",
+        "set_a motor_id target_angle -> yaw pitch bullet",
+        "set_pid motor_id pid_id ki kp kd i_limit out_limit"
+    ]
+}

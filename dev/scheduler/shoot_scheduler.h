@@ -24,7 +24,7 @@
  * @note SKD stands for "scheduler"
  * @brief Scheduler to control shooter to meet the target, including a thread to invoke PID calculation in period.
  * @pre GimbalIF and ChassisIF have been initialized properly
- * @pre GimbalSKD has started, since this SKD relies on GimbalSKD to call GimbalIF::enable_gimbal_current_clip()
+ * @pre GimbalSKD has started, since this SKD relies on GimbalSKD to call GimbalIF::clip_gimbal_current()
  * @usage 1. start(), load_pid_params()
  *        2. set_mode() and set_target_angle() as needed
  *        3. Leave the rest of the work to this SKD
@@ -57,22 +57,20 @@ public:
     };
 
     /**
-     * Start this scheduler
+     * Start this scheduler.
      * @param loader_install_            Installation direction of loader
-     * @param plate_install_             Installation direction of plate
      * @param thread_prio                Priority of PID calculating thread
      */
-    static void start(install_direction_t loader_install_, install_direction_t plate_install_, tprio_t thread_prio);
+    static void start(install_direction_t loader_install_, tprio_t thread_prio);
 
     /**
-     * Set PID parameters of loader and plate
+     * Set PID parameters of loader and fraction wheel
      * @param loader_a2v_params
      * @param loader_v2i_params
-     * @param plate_a2v_params
-     * @param plate_v2i_params
+     * @param fw_left_v2i_params
+     * @param fw_right_v2i_params
      */
     static void load_pid_params(pid_params_t loader_a2v_params, pid_params_t loader_v2i_params,
-                                pid_params_t plate_a2v_params, pid_params_t plate_v2i_params,
                                 pid_params_t fw_left_v2i_params, pid_params_t fw_right_v2i_params);
 
     /**
@@ -94,34 +92,16 @@ public:
     static void set_loader_target_angle(float loader_target_angle);
 
     /**
-     * Set bullet plate target angle (related to shoot NUMBER ) in LIMITED_SHOOTING_MODE
-     * @param plate_target_angle   Bullet plate target ACCUMULATED angle [positive, degree]
-     */
-    static void set_plate_target_angle(float plate_target_angle);
-
-    /**
      * Set bullet loader target velocity (related to shoot SPEED) in LIMITED_SHOOTING_MODE
      * @param degree_per_second   Bullet loader target velocity [positive, degree/s]
      */
     static void set_loader_target_velocity(float degree_per_second);
 
     /**
-     * Set bullet plate target velocity (related to shoot SPEED) in LIMITED_SHOOTING_MODE
-     * @param degree_per_second   Bullet plate target velocity [positive, degree/s]
-     */
-    static void set_plate_target_velocity(float degree_per_second);
-
-    /**
      * Set friction wheels duty cycle in LIMITED_SHOOTING_MODE or REVERSE_TURNING_MODE
      * @param duty_cycle  Friction wheels duty cycle, from 0 to 1.0
      */
     static void set_friction_wheels(float duty_cycle);
-
-    /**
-     *  Set the status of the mag cover open or close
-     * @param duty_cycle
-     */
-    static void set_mag_cover(float angle, GimbalIF::MG995_loc_t MG995);
 
 
     /** -------------------------------------- Functions to access GimbalIF -------------------------------------- */
@@ -139,22 +119,10 @@ public:
     static int get_loader_target_current();
 
     /**
-     * Get bullet plate target current calculated in this SKD
-     * @return Bullet plate target current [positive for normal shooting]
-     */
-    static int get_plate_target_current();
-
-    /**
      * Get bullet loader actual velocity
      * @return Bullet loader actual velocity [positive for normal shooting]
      */
     static float get_loader_actual_velocity();
-
-    /**
-     * Get bullet plate actual velocity
-     * @return Bullet plate actual velocity [positive for normal shooting]
-     */
-    static float get_plate_actual_velocity();
 
     /**
      * Get bullet loader target angle
@@ -168,36 +136,22 @@ public:
     static float get_loader_accumulated_angle();
 
     /**
-     * Get bullet plate accumulated angle
-     * @return Bullet plate accumulated angle [positive for normal shooting, degree]
-     */
-    static float get_plate_accumulated_angle();
-
-    /**
      * Reset accumulated angle of bullet loader to 0
      */
     static void reset_loader_accumulated_angle();
 
-    /**
-     * Reset accumulated angle of bullet plate to 0
-     */
-    static void reset_plate_accumulated_angle();
-
-    /**
-     *
-     */
 private:
 
-    static install_direction_t install_position[4];
+    static install_direction_t install_position[3];
 
     static mode_t mode;
 
-    static float target_angle[2];
-    static float target_velocity[4];
-    static int target_current[4];
+    static float target_angle;
+    static float target_velocity[3];
+    static int target_current[3];
 
-    static PIDController v2i_pid[4];
-    static PIDController a2v_pid[2];
+    static PIDController v2i_pid[3];
+    static PIDController a2v_pid;
 
     static constexpr unsigned int SKD_THREAD_INTERVAL = 2; // PID calculation interval [ms]
 
@@ -205,7 +159,7 @@ private:
         void main() final;
     };
 
-    static SKDThread skdThread;
+    static SKDThread skd_thread;
 };
 
 #endif //META_INFANTRY_SHOOT_SCHEDULER_H

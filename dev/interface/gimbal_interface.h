@@ -21,6 +21,7 @@
 #include "ch.hpp"
 #include "hal.h"
 #include "can_interface.h"
+#include "motor_interface.h"
 
 /// Board Guard
 #if defined(BOARD_RM_2018_A)
@@ -39,8 +40,8 @@ public:
     enum motor_id_t {
         YAW = 0,
         PITCH = 1,
-        BULLET = 2,
-        PLATE = 3,
+        SUB_PITCH = 2,
+        BULLET = 3,
         FW_LEFT = 4,
         FW_RIGHT = 5,
         MOTOR_COUNT = 6
@@ -57,7 +58,7 @@ public:
  * @pre PWM pins are set properly in board.h (I5 - alt 3, I6 - alt 3)
  * @usage 1. Call init(CANInterface *). The interface should be properly initialized.
  *        2. Read feedback from variables.
- *           Write target current / duty cycle to variables, then call enable_gimbal_current_clip to apply changes
+ *           Write target current / duty cycle to variables, then call clip_gimbal_current to apply changes
  * @note This module is designed to process feedback automatically, but not to send current automatically, to avoid
  *       unintended gimbal movements.
  * @note About coordinate: all components in this module use original coordinate of EACH motor. DO NOT directly add
@@ -86,31 +87,9 @@ public:
 #define GIMBAL_INTERFACE_BULLET_PLATE_MAX_CURRENT 5000
 #endif
 
-class GimbalIF : public GimbalBase {
+class GimbalIF : public GimbalBase, public MotorIFBase {
 
 public:
-    enum MG995_loc_t {
-        MG995_LEFT,
-        MG995_RIGHT
-    };
-
-    enum motor_can_channel_t {
-        none_can_channel,
-        can_channel_1,
-        can_channel_2
-    };
-
-    struct motor_can_config_t {
-        motor_can_channel_t motor_can_channel;
-        unsigned motor_can_id;
-        CANInterface::motor_type_t motor_type;
-    };
-//                         motor_can_channel_t yaw_can_channel,               unsigned yaw_can_id,
-//                         motor_can_channel_t pitch_can_channel,             unsigned pitch_can_id,
-//                         motor_can_channel_t bullet_can_channel,            unsigned bullet_can_id,
-//                         motor_can_channel_t plate_can_channel,             unsigned plate_can_id,
-//                         motor_can_channel_t fw_left_can_channel,           unsigned fw_left_can_id,
-//                         motor_can_channel_t fw_right_can_channel,          unsigned fw_right_can_id
 
     /**
      * Initialize GimbalIF. Angles of bullet loader and bullet plate will be reset.
@@ -121,9 +100,9 @@ public:
      * @param pitch_front_angle_raw   Raw angle of pitch when gimbal points straight forward, depending on installation.
      */
 
-    static void init( CANInterface *can1_interface,                      CANInterface *can2_interface,
-                      motor_can_config_t motor_can_config[MOTOR_COUNT],
-                      uint16_t yaw_front_angle_raw,                      uint16_t pitch_front_angle_raw);
+    static void init(CANInterface *can1_interface, CANInterface *can2_interface,
+                     motor_can_config_t motor_can_config[MOTOR_COUNT],
+                     uint16_t yaw_front_angle_raw, uint16_t pitch_front_angle_raw, uint16_t sub_pitch_front_angle_raw);
 
     /**
      * Motor feedback structure
@@ -137,51 +116,19 @@ public:
     static int *target_current[MOTOR_COUNT];
 
     /**
-     * Send target_current of each motor
-     * @return Whether currents are sent successfully
+     * Clip gimbal target currents (if enabled)
      */
-    static void enable_gimbal_current_clip();
+    static void clip_gimbal_current();
 
-    /**
-     * Set PWM signal for MG995 Left or Right
-     * @param duty_cycle the duty_cycle to set.
-     * @param MOTORLOC the MOTOR need to set, available: GimbalIF::MG995_LEFT or GimbalIF::MG995_RIGHT
-     */
-    static void setPWM(float duty_cycle, MG995_loc_t MOTORLOC);
 
 private:
 
     static CANInterface *can1_;
     static CANInterface *can2_;
 
-    friend CANInterface;
-
 #if GIMBAL_INTERFACE_ENABLE_VELOCITY_DIFFERENTIAL
     static constexpr int VELOCITY_SAMPLE_INTERVAL = 50;  // count of feedback for one sample of angular velocity
 #endif
-
-    /***------------------PWM Config for MG 995-------------------***/
-
-    static constexpr PWMDriver *MAG_COVER_PWM_DRIVER = &PWMD8;
-
-    enum mag_cover_channel_t {
-        MAG_LEFT = 0,  // The left friction wheel, PI5, channel 0
-        MAG_RIGHT = 1  // The right friction wheel, PI6, channel 1
-    };
-
-    static constexpr PWMConfig FRICTION_WHEELS_PWM_CFG = {
-            50000,   // frequency
-            1000,    // period
-            nullptr, // callback
-            {
-                    {PWM_OUTPUT_ACTIVE_HIGH, nullptr}, // CH0
-                    {PWM_OUTPUT_ACTIVE_HIGH, nullptr}, // CH1
-                    {PWM_OUTPUT_DISABLED, nullptr},    // CH2
-                    {PWM_OUTPUT_DISABLED, nullptr}     // CH3
-            },
-            0,
-            0
-    };
 
 };
 

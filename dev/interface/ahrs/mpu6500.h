@@ -63,7 +63,7 @@ public:
     /**
      * Temperature data [C]
      */
-    float temperature;
+    float temperature = 0;
 
 
     MPUOnBoard() : updateThread(*this) {};
@@ -75,8 +75,8 @@ public:
 
 private:
 
-    Vector3D gyro_orig;   // raw (biased) data of gyro
-    Vector3D accel_orig;  // raw (not rotated) data from accel
+    Vector3D gyro_raw;   // raw (biased) data of gyro
+    Vector3D accel_raw;  // raw (not rotated) data from accel
 
     float gyro_psc;   // the coefficient converting the raw data to degree
     float accel_psc;  // the coefficient converting the raw data to m/s^2
@@ -84,36 +84,36 @@ private:
     static constexpr size_t RX_BUF_SIZE = 0x0E;
     uint8_t rx_buf[RX_BUF_SIZE];
 
-
     Vector3D gyro_bias;        // averaged gyro value when "static"
     Vector3D temp_gyro_bias;   // temp sum of gyro for calibration
+
 #if MPU6500_ENABLE_ACCEL_BIAS
     Matrix33 accel_rotation;   // a matrix to rotate accel
     Vector3D temp_accel_bias;  // temp sum of accel for calibration
 #endif
+
     const float TEMPERATURE_BIAS = 0.0f;
 
     // If changes in x, y, z of gyro is in this range MPU6500 is regarded as "static"
     const float STATIC_RANGE = 0.5f;
 
     const unsigned BIAS_SAMPLE_COUNT = 500;
-    // When static_measurement_count reaches BIAS_SAMPLE_COUNT, calibration is performed.
     unsigned static_measurement_count;
+    // When static_measurement_count reaches BIAS_SAMPLE_COUNT, calibration is performed.
 
     bool MPU6500_startup_calibrated;
 
     time_msecs_t last_calibration_time = 0;
 
-    void mpu6500_write_reg(uint8_t reg_addr, uint8_t value);  // helper function to use SPI
     void update();
 
     class UpdateThread : public chibios_rt::BaseStaticThread<512> {
     public:
-        UpdateThread(MPUOnBoard& mpu_) : mpu(mpu_) {}
-        long int THREAD_START_TIME;
+        explicit UpdateThread(MPUOnBoard &imu) : imu(imu) {}
+        long int thread_start_time = 0;
     private:
         static constexpr unsigned int THREAD_UPDATE_INTERVAL = 1;  // read interval 1ms (1kHz)
-        MPUOnBoard& mpu;
+        MPUOnBoard &imu;
         void main() final;
     } updateThread;
 
@@ -156,7 +156,7 @@ private:
         MPU6500_GYRO_SCALE_250 = 0,  // range of 250 dps with sensitivity factor 131
         MPU6500_GYRO_SCALE_500 = 1,  // range of 500 dps with sensitivity factor 65.5
         MPU6500_GYRO_SCALE_1000 = 2, // range of 1000 dps with sensitivity factor 32.8 √
-        MPU6500_GYRO_SCALE_2000 = 3  // range of 1000 dps with sensitivity factor 16.4
+        MPU6500_GYRO_SCALE_2000 = 3  // range of 2000 dps with sensitivity factor 16.4
     } gyro_scale_t;
 
     /**
@@ -164,9 +164,9 @@ private:
      * MPU6500_ACCEL_CONFIG, [4:3] bits, shift when set SPI
      */
     typedef enum {
-        MPU6500_ACCEL_SCALE_2G = 0, // √
+        MPU6500_ACCEL_SCALE_2G = 0,
         MPU6500_ACCEL_SCALE_4G = 1,
-        MPU6500_ACCEL_SCALE_8G = 2,
+        MPU6500_ACCEL_SCALE_8G = 2,  // √
         MPU6500_ACCEL_SCALE_16G = 3
     } accel_scale_t;
 
@@ -177,15 +177,16 @@ private:
         acc_dlpf_config_t _acc_dlpf_config;
     } mpu6500_config_t;
 
-    static constexpr int mpu6500_start_up_time = 20000; // [ms]
+    static constexpr int mpu6500_start_up_time = 5000; // [ms]
 
-    static constexpr mpu6500_config_t CONFIG = {MPU6500_GYRO_SCALE_1000,  // Gyro full scale 1000 dps (degree per second)
-                                     MPU6500_ACCEL_SCALE_2G,  // Accel full scale 8g
-                                     MPU6500_DLPF_41HZ,       // Gyro digital low-pass filter 41Hz
-                                     MPU6500_ADLPF_20HZ};     // Accel digital low-pass filter 20Hz
+    static constexpr mpu6500_config_t CONFIG = {
+            MPU6500_GYRO_SCALE_1000,  // Gyro full scale 1000 dps (degree per second)
+            MPU6500_ACCEL_SCALE_8G,  // Accel full scale 8g
+            MPU6500_DLPF_41HZ,       // Gyro digital low-pass filter 41Hz
+            MPU6500_ADLPF_20HZ};  // Accel digital low-pass filter 20Hz
 
     friend void cmd_echo_gyro_bias(BaseSequentialStream *chp, int argc, char *argv[]);
-    friend class AHRSCalibrationThread;
+
 };
 
 #endif

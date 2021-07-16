@@ -47,9 +47,7 @@ include_directories(  # common include directories
         dev/interface/ahrs
         dev/module
         dev/scheduler
-        dev/logic
-        # TODO: elimiate control directory someday
-        dev/control)
+        dev/logic)
 
 set(COMMON_SRC  # common cpp sources, which are included to every tartget at post configuration below
         dev/debug/shell/shell_base.c
@@ -60,7 +58,6 @@ set(COMMON_SRC  # common cpp sources, which are included to every tartget at pos
         dev/interface/led.cpp
         dev/interface/buzzer_interface.cpp
         dev/scheduler/buzzer_scheduler.cpp
-        #        dev/module/state_handler.cpp
         )
 
 set(AHRS_SRC
@@ -118,7 +115,7 @@ set(INFANTRY
         ${AHRS_SRC}
         ${INFANTRY_SHOOT_SRC}
         ${CHASSIS_SRC}
-        dev/interface/vision_port.cpp
+        dev/interface/vision.cpp
         dev/interface/super_capacitor_port.cpp
         dev/interface/referee_interface.cpp
         dev/interface/sd_card_interface.cpp
@@ -155,7 +152,7 @@ add_executable(HERO
         ${AHRS_SRC}
         ${HERO_SHOOT_SRC}
         ${CHASSIS_SRC}
-        dev/interface/vision_port.cpp
+        dev/interface/vision.cpp
         dev/interface/super_capacitor_port.cpp
         dev/interface/referee_interface.cpp
         dev/interface/sd_card_interface.cpp
@@ -175,7 +172,7 @@ add_executable(SENTRY
         dev/interface/remote_interpreter.cpp
         dev/interface/referee_interface.cpp
         dev/interface/sd_card_interface.cpp
-        dev/interface/vision_port.cpp
+        dev/interface/vision.cpp
         dev/interface/ahrs/ahrs_ext.cpp
         dev/common/CRC8.cpp
         dev/common/CRC16.cpp
@@ -214,7 +211,7 @@ add_executable(AERIAL
         dev/interface/referee_interface.cpp
         dev/common/CRC8.cpp
         dev/common/CRC16.cpp
-        dev/interface/vision_port.cpp
+        dev/interface/vision.cpp
 
         dev/interface/ahrs/ahrs_ext.cpp
 
@@ -385,7 +382,7 @@ add_executable(ut_referee_interface
 add_executable(ut_vision_port
         dev/common/CRC8.cpp
         dev/common/CRC16.cpp
-        dev/interface/vision_port.cpp
+        dev/interface/vision.cpp
         dev/debug/Unit_Tests/ut_vision_port.cpp)
 target_compile_definitions(ut_vision_port PRIVATE VISION_PORT_DEBUG)
 
@@ -465,6 +462,20 @@ add_executable(pa_gimbal
         dev/debug/Param_Adjusts/pa_gimbal.cpp)
 target_compile_definitions(pa_gimbal PRIVATE SHELL_NO_ECHO_MODE)
 target_link_libraries(pa_gimbal ${PROJECT_SOURCE_DIR}/dev/interface/ahrs/ahrs_lib.lib)
+
+add_executable(pa_new_gimbal
+        dev/common/CRC16.cpp
+        dev/interface/sd_card_interface.cpp
+        ${AHRS_SRC}
+        dev/interface/can_interface.cpp
+        dev/interface/gimbal_interface.cpp
+        dev/module/pid_controller.hpp
+        dev/scheduler/gimbal_scheduler.cpp
+        dev/scheduler/shoot_scheduler.cpp
+        dev/scheduler/buzzer_scheduler.cpp
+        dev/interface/ahrs/ahrs.cpp
+        dev/debug/Param_Adjusts/pa_new_gimbal.cpp)
+target_link_libraries(pa_new_gimbal ${PROJECT_SOURCE_DIR}/dev/interface/ahrs/ahrs_lib.lib)
 
 # Elevator: include CANInterface, ElevatorInterface, ElevatorController, and the unit test modules.
 add_executable(pa_elevator

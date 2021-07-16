@@ -182,13 +182,17 @@ void InspectorH::InspectorThread::main() {
         if (remote_failure_) LED::led_off(DEV_BOARD_LED_REMOTE);
         else LED::led_on(DEV_BOARD_LED_REMOTE);
 
+#if HERO_GIMBAL_ENABLE
         gimbal_failure_ = check_gimbal_failure();
         if (gimbal_failure_) LED::led_off(DEV_BOARD_LED_GIMBAL);
         else LED::led_on(DEV_BOARD_LED_GIMBAL);
+#endif
 
+#if HERO_CHASSIS_ENABLE
         chassis_failure_ = check_chassis_failure();
         if (chassis_failure_) LED::led_off(DEV_BOARD_LED_CHASSIS);
         else LED::led_on(DEV_BOARD_LED_CHASSIS);
+#endif
 
         if (remote_failure_ || gimbal_failure_ || chassis_failure_) {
             if (!BuzzerSKD::alerting()) BuzzerSKD::alert_on();

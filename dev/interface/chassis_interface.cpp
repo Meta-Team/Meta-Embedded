@@ -19,15 +19,11 @@ CANInterface *ChassisIF::can2_ = nullptr;
 CANInterface::motor_feedback_t *ChassisIF::feedback[ChassisIF::MOTOR_COUNT];
 int *ChassisIF::target_current[ChassisIF::MOTOR_COUNT];
 
-bool ChassisIF::enable_chassis_current_clip() {
-
-    if (!can1_ && !can2_) return false;
+void ChassisIF::clip_chassis_current() {
 
 #if CHASSIS_INTERFACE_ENABLE_CLIP
-        ABS_CROP(target_current[i], CHASSIS_INTERFACE_MAX_CURRENT);
+        ABS_CROP(*target_current[i], CHASSIS_INTERFACE_MAX_CURRENT);
 #endif
-
-    return true;
 
 }
 

@@ -262,22 +262,22 @@ void UserS::VitualUserThread::main() {
         }
         chSysUnlock();  /// --- EXIT S-Locked state ---
 
-        VisionPort::send_gimbal(GimbalLG::get_accumulated_angle(GimbalLG::YAW),
-                                GimbalLG::get_accumulated_angle(GimbalLG::PITCH));
+        Vision::send_gimbal(GimbalLG::get_accumulated_angle(GimbalLG::YAW),
+                            GimbalLG::get_accumulated_angle(GimbalLG::PITCH));
 
 //        VisionPort::send_enemy_color(Referee::game_robot_state.robot_id < 10);
 
-        enemy_spotted = WITHIN_RECENT_TIME(VisionPort::last_update_time, 50);
+        enemy_spotted = WITHIN_RECENT_TIME(Vision::last_update_time, 50);
 
         if (enemy_spotted){
-            LOG("%.2f, %.2f   yaw: %.2f, pitch: %%.2f, distance: %.2f", GimbalLG::get_accumulated_angle(GimbalLG::YAW), GimbalLG::get_accumulated_angle(GimbalLG::PITCH), VisionPort::enemy_info.yaw_delta, VisionPort::enemy_info.pitch_delta, VisionPort::enemy_info.distance);
+            LOG("%.2f, %.2f   yaw: %.2f, pitch: %%.2f, distance: %.2f", GimbalLG::get_accumulated_angle(GimbalLG::YAW), GimbalLG::get_accumulated_angle(GimbalLG::PITCH), Vision::enemy_info.yaw_delta, Vision::enemy_info.pitch_delta, Vision::enemy_info.dist);
         }
 
         /*** ---------------------------------- Gimbal + Shooter --------------------------------- ***/
 
         if (v_user_mode == FINAL_AUTO_MODE && enemy_spotted) {
-            float yaw_delta = VisionPort::enemy_info.yaw_delta + 17 - gimbal_yaw_target_angle_,
-                    pitch_delta = VisionPort::enemy_info.pitch_delta - 12 - gimbal_pitch_target_angle_;
+            float yaw_delta = Vision::enemy_info.yaw_delta + 17 - gimbal_yaw_target_angle_,
+                    pitch_delta = Vision::enemy_info.pitch_delta - 12 - gimbal_pitch_target_angle_;
 
             if (!ABS_IN_RANGE(yaw_delta, GIMBAL_YAW_TARGET_FAST_TRIGGER)) {
                 gimbal_yaw_target_angle_ +=

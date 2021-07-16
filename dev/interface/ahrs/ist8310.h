@@ -11,7 +11,6 @@
 
 #include "ahrs_abstract.h"
 #include "ahrs_math.hpp"
-#include "math.h"
 
 #include "mpu6500_reg.h"
 #include "ist8310_reg.h"
@@ -34,18 +33,6 @@
  */
 class ISTOnBoard : virtual public AbstractIST {
 public:
-
-    /* (From AbstractIST)
-
-    (public)
-    Vector3D get_magnet();  // get magnet data [uT]
-    time_msecs_t get_ist_update_time(); // get last update time from system start [ms]
-
-    (protected)
-    Vector3D magnet;  // Magnet data [uT]
-    time_msecs_t ist_update_time = 0;  // Last update time from system start [ms]
-
-    */
 
     /**
      * Start IST8310 driver and the thread of data fetching
@@ -70,29 +57,6 @@ private:
         void main() final;
     } updateThread;
 
-
-    static void writeSPIReg(const uint8_t *data, size_t n);  // helper function to write register
-
-    enum mpu_i2cmst_clk_t{
-        MPU6500_I2CMST_CLK_348K = 0,
-        MPU6500_I2CMST_CLK_333K = 1,
-        MPU6500_I2CMST_CLK_320K = 2,
-        MPU6500_I2CMST_CLK_308K = 3,
-        MPU6500_I2CMST_CLK_296K = 4,
-        MPU6500_I2CMST_CLK_286K = 5,
-        MPU6500_I2CMST_CLK_276K = 6,
-        MPU6500_I2CMST_CLK_267K = 7,
-        MPU6500_I2CMST_CLK_258K = 8,
-        MPU6500_I2CMST_CLK_500K = 9,
-        MPU6500_I2CMST_CLK_471K = 10,
-        MPU6500_I2CMST_CLK_444K = 11,
-        MPU6500_I2CMST_CLK_421K = 12,
-        MPU6500_I2CMST_CLK_400K = 13,
-        MPU6500_I2CMST_CLK_381K = 14,
-        MPU6500_I2CMST_CLK_364K = 15
-    };
-
-    static constexpr mpu_i2cmst_clk_t I2C_MASTER_CLK = MPU6500_I2CMST_CLK_400K;
 };
 
 #endif //META_INFANTRY_IST8310_H

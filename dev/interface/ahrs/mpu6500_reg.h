@@ -108,12 +108,42 @@
 #define MPU6500_ZA_OFFSET_H         (0x7D)
 #define MPU6500_ZA_OFFSET_L         (0x7E)
 
+/** MPU6500_I2C_MST_CTRL **/
+#define MPU6500_I2CMST_CLK_348K     0
+#define MPU6500_I2CMST_CLK_333K     1
+#define MPU6500_I2CMST_CLK_320K     2
+#define MPU6500_I2CMST_CLK_308K     3
+#define MPU6500_I2CMST_CLK_296K     4
+#define MPU6500_I2CMST_CLK_286K     5
+#define MPU6500_I2CMST_CLK_276K     6
+#define MPU6500_I2CMST_CLK_267K     7
+#define MPU6500_I2CMST_CLK_258K     8
+#define MPU6500_I2CMST_CLK_500K     9
+#define MPU6500_I2CMST_CLK_471K     10
+#define MPU6500_I2CMST_CLK_444K     11
+#define MPU6500_I2CMST_CLK_421K     12
+#define MPU6500_I2CMST_CLK_400K     13
+#define MPU6500_I2CMST_CLK_381K     14
+#define MPU6500_I2CMST_CLK_364K     15
+
+/** MPU6500_I2C_SLVX_ADDR **/
+#define MPU6500_I2C_MSTR_READ       (0x80)
+#define MPU6500_I2C_MSTR_WRITE      (0x00)
+
+/** MPU6500_I2C_SLVX_CTRL **/
+#define MPU6500_I2C_SLV_EN          (0x80)
+#define MPU6500_I2C_SLV_GRP         (0x08)
+#define MPU6500_I2C_SLV_READ_7      (0x07)
+
+/**MPU6500_USER_CTRL **/
+#define MPU6500_I2C_MST_EN          (0x20)
+#define MPU6500_I2C_IF_DIS          (0x10)
+
 /** MPU6500_PWR_MGMT_1 **/
 #define MPU6500_RESET               (0x80) // bit 7
 #define MPU6500_AUTO_SELECT_CLK     (0x01)
 
-
-#define MPU6500_SPI_READ             0x80
-#define MPU6500_I2C_MSTR_READ        0x80
+#define MPU6500_SPI_READ            (0x80)
+#define MPU6500_SPI_WRITE           (0x00)
 
 #endif //META_INFANTRY_MPU6500_REG_H

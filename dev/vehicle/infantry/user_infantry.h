@@ -34,8 +34,8 @@ private:
     static float gimbal_pitch_max_angle; //  up range for pitch [degree]
 
     /// Chassis Config
-    static float Basepower;             // [w]
-    static float Base_V_forword;        // [mm/s]
+    static float base_power;             // [w]
+    static float base_v_forward;        // [mm/s]
     static float chassis_v_left_right;  // [mm/s]
     static float Base_left_right_power; // [w]
     static  float Base_left_right;      // [mm/s]

@@ -16,7 +16,13 @@
 #if (CAN_INTERFACE_ENABLE_ERROR_FEEDBACK_THREAD == TRUE)
 
 void CANInterface::ErrorFeedbackThread::main() {
-    setName("CAN_Err_FB");
+    if (can_driver == &CAND1) {
+        setName("CAN1_Monitor");
+    } else if (can_driver == &CAND2) {
+        setName("CAN2_Monitor");
+    } else {
+        setName("CAN?_Monitor");
+    }
 
     event_listener_t el;
     chEvtRegister(&(can_driver->error_event), &el, 0);
@@ -39,17 +45,17 @@ void CANInterface::ErrorFeedbackThread::main() {
 #endif
 
 
-void CANInterface::start(tprio_t feedback_prio, tprio_t send_current_prio) {
+void CANInterface::start(tprio_t rx_thread_prio, tprio_t tx_thread_prio) {
     canStart(can_driver, &can_cfg);
 #if (CAN_INTERFACE_ENABLE_ERROR_FEEDBACK_THREAD == TRUE)
     errorFeedbackThread.can_driver = can_driver;
     errorFeedbackThread.start(LOWPRIO);
 #endif
     currentSendThread.can_driver = can_driver;
-    currentSendThread.start(send_current_prio);
+    currentSendThread.start(tx_thread_prio);
 
     processFeedbackThread.can_driver = can_driver;
-    processFeedbackThread.start(feedback_prio);
+    processFeedbackThread.start(rx_thread_prio);
 }
 
 float CANInterface::motor_feedback_t::accumulated_angle() {
@@ -102,11 +108,11 @@ void CANInterface::ProcessFeedbackThread::main() {
      *      motor_feedback_t feedback[MAXIMUM_MOTOR_COUNT + 1];
      */
     if (can_driver == &CAND1) {
-        setName("FEEDBACK_CAN1");
+        setName("CAN1_RX");
     } else if (can_driver == &CAND2) {
-        setName("FEEDBACK_CAN2");
+        setName("CAN2_RX");
     } else {
-        setName("CAN_Unknown");
+        setName("CAN_Unknown_RX");
     }
 
     CANRxFrame rxmsg;
@@ -123,13 +129,13 @@ void CANInterface::ProcessFeedbackThread::main() {
         // Process every received message
         while (canReceive(can_driver, CAN_ANY_MAILBOX, &rxmsg, TIME_IMMEDIATE) == MSG_OK) {
 
-            //pointer fb points to the corresponding motor feedback structure defined in the processFeedbackThread
             if(rxmsg.SID != 0x211 && rxmsg.SID != 0x003) {
                 uint16_t new_actual_angle_raw = (rxmsg.data8[0] << 8 | rxmsg.data8[1]);
 
                 // Check whether this new raw angle is valid
                 if (new_actual_angle_raw > 8191) return;
 
+                // pointer fb points to the corresponding motor feedback structure defined in the processFeedbackThread
                 motor_feedback_t *fb;
                 fb = &feedback[rxmsg.SID - 0x201];
 
@@ -141,7 +147,7 @@ void CANInterface::ProcessFeedbackThread::main() {
                 // Store new_actual_angle_raw for calculation of angle_movement next time
                 fb->last_angle_raw = new_actual_angle_raw;
 
-                /// If angle_movement is too extreme between two samples, we grant that it's caused by moving over the 0(8192) point
+                /// If angle_movement is too extreme between two samples, we grant that it's caused by moving over the 0 (8192) point
                 if (angle_movement < -4096) angle_movement += 8192;
                 if (angle_movement > 4096) angle_movement -= 8192;
 
@@ -234,12 +240,16 @@ void CANInterface::ProcessFeedbackThread::main() {
                 }
 
                 fb->last_update_time = SYSTIME;
+
             } else if (rxmsg.SID == 0x211){
+
                 capfeedback.input_voltage = rxmsg.data16[0] / 100.0f;
                 capfeedback.capacitor_voltage = rxmsg.data16[1] / 100.0f;
                 capfeedback.input_current = rxmsg.data16[2] / 100.0f;
                 capfeedback.output_power = rxmsg.data16[3] / 100.0f;
+
             } else if (rxmsg.SID == 0x003) {
+
                 lidar_dist = (float) (rxmsg.data8[1] << 8 | rxmsg.data8[0]);
             }
         }
@@ -248,7 +258,7 @@ void CANInterface::ProcessFeedbackThread::main() {
 }
 
 bool CANInterface::CurrentSendThread::send_msg(const CANTxFrame *txmsg) {
-    if (canTransmit(can_driver, CAN_ANY_MAILBOX, txmsg, TIME_MS2I(TRANSMIT_TIMEOUT_MS)) != MSG_OK) {
+    if (canTransmitTimeout(can_driver, CAN_ANY_MAILBOX, txmsg, TIME_MS2I(TRANSMIT_TIMEOUT_MS)) != MSG_OK) {
         // TODO: show debug info for failure
         return false;
     }
@@ -261,50 +271,50 @@ bool CANInterface::send_cap_msg(const CANTxFrame *txmsg) {
 }
 
 void CANInterface::CurrentSendThread::cap_send(const CANTxFrame *txmsg) {
-    CurrentSendThread::capMsg = txmsg;
-    CurrentSendThread::capMsgSent = false;
+    capMsg = txmsg;
+    capMsgSent = false;
 }
 
 void CANInterface::CurrentSendThread::main() {
     if (can_driver == &CAND1) {
-        setName("CURRENT_SEND_CAN1");
+        setName("CAN1_TX");
     } else if (can_driver == &CAND2) {
-        setName("CURRENT_SEND_CAN2");
+        setName("CAN2_TX");
     } else {
-        setName("CAN_Unknown");
+        setName("CAN?_TX");
     }
     while(!shouldTerminate()) {
-        CANTxFrame CAN_LOW_TX_FRAME;
-        CANTxFrame CAN_HIGH_TX_FRAME;
+        CANTxFrame low_tx_frame;
+        CANTxFrame high_tx_frame;
 
-        CAN_LOW_TX_FRAME.IDE = CAN_HIGH_TX_FRAME.IDE = CAN_IDE_STD;
+        low_tx_frame.IDE = high_tx_frame.IDE = CAN_IDE_STD;
 
-        CAN_LOW_TX_FRAME.SID = 0x200;
-        CAN_HIGH_TX_FRAME.SID = 0x1FF;
+        low_tx_frame.SID = 0x200;
+        high_tx_frame.SID = 0x1FF;
 
-        CAN_LOW_TX_FRAME.RTR = CAN_HIGH_TX_FRAME.RTR = CAN_RTR_DATA;
-        CAN_LOW_TX_FRAME.DLC = CAN_HIGH_TX_FRAME.DLC = 0x008;
+        low_tx_frame.RTR = high_tx_frame.RTR = CAN_RTR_DATA;
+        low_tx_frame.DLC = high_tx_frame.DLC = 0x008;
 
         for (int i = 0; i < 4; i++) {
             if (motorType[i] != RM6623) {
-                CAN_LOW_TX_FRAME.data8[i * 2] = (uint8_t) (target_current[i] >> 8);
-                CAN_LOW_TX_FRAME.data8[i * 2 + 1] = (uint8_t) target_current [i];
+                low_tx_frame.data8[i * 2] = (uint8_t) (target_current[i] >> 8);
+                low_tx_frame.data8[i * 2 + 1] = (uint8_t) target_current [i];
             } else {
-                CAN_LOW_TX_FRAME.data8[i * 2] = (uint8_t) (-target_current[i] >> 8);
-                CAN_LOW_TX_FRAME.data8[i * 2 + 1] = (uint8_t) -target_current [i];
+                low_tx_frame.data8[i * 2] = (uint8_t) (-target_current[i] >> 8);
+                low_tx_frame.data8[i * 2 + 1] = (uint8_t) -target_current [i];
             }
         }
         for (int i = 4; i < 8; i++) {
             if (motorType[i] != RM6623) {
-                CAN_HIGH_TX_FRAME.data8[i * 2 - 8] = (uint8_t) (target_current[i] >> 8);
-                CAN_HIGH_TX_FRAME.data8[i * 2 + 1 - 8] = (uint8_t) target_current [i];
+                high_tx_frame.data8[i * 2 - 8] = (uint8_t) (target_current[i] >> 8);
+                high_tx_frame.data8[i * 2 + 1 - 8] = (uint8_t) target_current [i];
             } else {
-                CAN_HIGH_TX_FRAME.data8[i * 2 - 8] = (uint8_t) (-target_current[i] >> 8);
-                CAN_HIGH_TX_FRAME.data8[i * 2 + 1 - 8] = (uint8_t) -target_current [i];
+                high_tx_frame.data8[i * 2 - 8] = (uint8_t) (-target_current[i] >> 8);
+                high_tx_frame.data8[i * 2 + 1 - 8] = (uint8_t) -target_current [i];
             }
         }
-        send_msg(&CAN_LOW_TX_FRAME);
-        send_msg(&CAN_HIGH_TX_FRAME);
+        send_msg(&low_tx_frame);
+        send_msg(&high_tx_frame);
         if(!capMsgSent) {
             capMsgSent = true;
             send_msg(capMsg);

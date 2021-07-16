@@ -63,7 +63,7 @@ void EngineerChassisSKD::pivot_turn(float x, float y, float w) {
 }
 
 void EngineerChassisSKD::SKDThread::main() {
-    setName("EChasssisSKD");
+    setName("EngChasssisSKD");
 
     while (!shouldTerminate()) {
 
@@ -96,7 +96,7 @@ void EngineerChassisSKD::SKDThread::main() {
 
         }
 
-        ChassisIF::enable_chassis_current_clip();
+        ChassisIF::clip_chassis_current();
         sleep(TIME_MS2I(SKD_THREAD_INTERVAL));
     }
 }

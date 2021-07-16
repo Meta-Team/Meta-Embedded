@@ -48,7 +48,8 @@ const uint16_t wCRC_Table[256] =
 ** Input: Data to check,Stream length, initialized checksum
 ** Output: CRC checksum
 */
-uint16_t Get_CRC16_Check_Sum(uint8_t *pchMessage, uint32_t dwLength, uint16_t wCRC) {
+uint16_t get_crc16_check_sum(uint8_t *pchMessage, uint32_t dwLength) {
+    uint16_t wCRC = CRC_INIT;
     uint8_t chData;
     if (pchMessage == NULL) {
         return 0xFFFF;
@@ -66,12 +67,12 @@ uint16_t Get_CRC16_Check_Sum(uint8_t *pchMessage, uint32_t dwLength, uint16_t wC
 ** Input: Data to Verify,Stream length = Data + checksum
 ** Output: True or False (CRC Verify Result)
 */
-uint32_t Verify_CRC16_Check_Sum(uint8_t *pchMessage, uint32_t dwLength) {
+uint32_t verify_crc16_check_sum(uint8_t *pchMessage, uint32_t dwLength) {
     uint16_t wExpected = 0;
     if ((pchMessage == NULL) || (dwLength <= 2)) {
         return FALSE;
     }
-    wExpected = Get_CRC16_Check_Sum(pchMessage, dwLength - 2, CRC_INIT);
+    wExpected = get_crc16_check_sum(pchMessage, dwLength - 2);
     return ((wExpected & 0xff) == pchMessage[dwLength - 2] && ((wExpected >> 8) & 0xff) == pchMessage[dwLength - 1]) ? 1
                                                                                                                      : 0;
 }
@@ -81,12 +82,12 @@ uint32_t Verify_CRC16_Check_Sum(uint8_t *pchMessage, uint32_t dwLength) {
 ** Input: Data to CRC and append,Stream length = Data + checksum
 ** Output: True or False (CRC Verify Result)
 */
-void Append_CRC16_Check_Sum(uint8_t *pchMessage, uint32_t dwLength) {
+void append_crc16_check_sum(uint8_t *pchMessage, uint32_t dwLength) {
     uint16_t wCRC = 0;
     if ((pchMessage == NULL) || (dwLength <= 2)) {
         return;
     }
-    wCRC = Get_CRC16_Check_Sum(pchMessage, dwLength - 2, CRC_INIT);
+    wCRC = get_crc16_check_sum(pchMessage, dwLength - 2);
     pchMessage[dwLength - 2] = (uint8_t) (wCRC & 0x00ff);
     pchMessage[dwLength - 1] = (uint8_t) ((wCRC >> 8) & 0x00ff);
 }
