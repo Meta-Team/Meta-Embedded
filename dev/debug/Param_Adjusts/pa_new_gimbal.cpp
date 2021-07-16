@@ -238,6 +238,20 @@ void cmd_echo_actual_angle(BaseSequentialStream *chp, int argc, char *argv[]) {
     chprintf(chp, "%.2f" SHELL_NEWLINE_STR, GimbalSKD::get_accumulated_angle((GimbalBase::motor_id_t) motor_id));
 }
 
+void cmd_echo_raw_angle(BaseSequentialStream *chp, int argc, char *argv[]) {
+    (void) argv;
+    if (argc != 1) {
+        shellUsage(chp, "echo_raw_angle motor_id(0/1/2)");
+        return;
+    }
+    unsigned motor_id = Shell::atoi(argv[0]);
+    if (motor_id > 2) {
+        chprintf(chp, "Invalid motor ID %d" SHELL_NEWLINE_STR, motor_id);
+        return;
+    }
+    chprintf(chp, "%d" SHELL_NEWLINE_STR, GimbalIF::feedback[motor_id]->last_angle_raw);
+}
+
 class FeedbackThread : public BaseStaticThread<512> {
 private:
     void main() final {
@@ -305,6 +319,7 @@ ShellCommand mainProgramCommands[] = {
         {"set_target_angle",    cmd_set_target_angle},
         {"echo_target_angle",   cmd_echo_target_angle},
         {"echo_actual_angle",   cmd_echo_actual_angle},
+        {"echo_raw_angle",      cmd_echo_raw_angle},
         {nullptr,         nullptr}
 };
 
