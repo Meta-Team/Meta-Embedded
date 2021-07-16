@@ -231,8 +231,10 @@
 #define CHASSIS_BIASED_ANGLE 0
 
 /// Vision
-#define VISION_VELOCITY_UPDATE_FRACTION 1.0f
-#define VISION_PREDICT_FORWARD_AMOUNT   300
+#define VISION_BASIC_CONTROL_DELAY      100   /* ms */
+#define VISION_BASIC_SHOOT_DELAY        0   /* ms */
+#define VISION_DEFAULT_BULLET_SPEED     14.0f /* mm/ms = m/s */
+#define VISION_SHOOT_TOLERANCE          7   /* ms */
 
 /// Thread Priority List
 #define THREAD_CAN1_RX_PRIO                 (HIGHPRIO - 1)
@@ -247,6 +249,7 @@
 #define THREAD_SHOOT_SKD_PRIO               (NORMALPRIO + 1)
 #define THREAD_USER_PRIO                    (NORMALPRIO)
 #define THREAD_USER_ACTION_PRIO             (NORMALPRIO - 1)
+#define THREAD_SHOOT_LG_VISION_PRIO         (NORMALPRIO - 1)
 #define THREAD_GIMBAL_LG_VISION_PRIO        (NORMALPRIO - 1)
 #define THREAD_CHASSIS_LG_DODGE_PRIO        (NORMALPRIO - 2)
 #define THREAD_CHASSIS_POWER_SET_PRIO       (NORMALPRIO - 3)

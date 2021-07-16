@@ -34,7 +34,7 @@ float ChassisSKD::chassis_gimbal_offset_ = 0.0f;
 
 ChassisSKD::install_mode_t ChassisSKD::install_mode_ = POSITIVE;
 
-ChassisSKD::SKDThread ChassisSKD::skdThread;
+ChassisSKD::SKDThread ChassisSKD::skd_thread;
 
 
 void ChassisSKD::start(float wheel_base, float wheel_tread, float wheel_circumference, install_mode_t install_mode,
@@ -50,13 +50,16 @@ void ChassisSKD::start(float wheel_base, float wheel_tread, float wheel_circumfe
      *        season 2019.
      */
 
-    w_to_v_ratio_ = (wheel_base_ + wheel_tread_) / 2.0f / 360.0f * 3.14159f;
-
+#if defined(HERO)
+    w_to_v_ratio_ = (wheel_base + wheel_tread) / 2.0f / 360.0f * 3.14159f;
+#else
+    w_to_v_ratio_ = (wheel_base + wheel_tread) / 2.0f / 360.0f * 3.14159f;
+#endif
     v_to_wheel_angular_velocity_ = (360.0f / wheel_circumference_);
     chassis_gimbal_offset_ = chassis_gimbal_offset;
     install_mode_ = install_mode;
 
-    skdThread.start(thread_prio);
+    skd_thread.start(thread_prio);
 }
 
 PIDController::pid_params_t ChassisSKD::echo_pid_params_by_type(bool is_theta2v) {
@@ -133,31 +136,42 @@ void ChassisSKD::SKDThread::main() {
     setName("ChassisSKD");
     while (!shouldTerminate()) {
 
-        if ((mode == GIMBAL_COORDINATE_MODE) || (mode == ANGULAR_VELOCITY_DODGE_MODE)) {
+        chSysLock();  /// --- ENTER S-Locked state. DO NOT use LOG, printf, non S/I-Class functions or return ---
+        {
+            if ((mode == GIMBAL_COORDINATE_MODE) || (mode == ANGULAR_VELOCITY_DODGE_MODE)) {
 
-            float theta = get_actual_theta();
-            if (mode == GIMBAL_COORDINATE_MODE) target_w = a2v_pid.calc(theta, target_theta);
+                float theta = get_actual_theta();
 
-            velocity_decompose_(target_vx * cosf(theta / 180.0f * M_PI) - target_vy * sinf(theta / 180.0f * M_PI)
-                                - target_w / 180.0f * M_PI * chassis_gimbal_offset_,
+                if (mode == GIMBAL_COORDINATE_MODE) {
+                    if (ABS(theta - target_theta) < THETA_DEAD_ZONE) {
+                        target_w = 0;
+                    } else {
+                        target_w = a2v_pid.calc(theta, target_theta);
+                    }
+                }
 
-                                target_vx * sinf(theta / 180.0f * M_PI) + target_vy * cosf(theta / 180.0f * M_PI),
+                velocity_decompose(target_vx * cosf(theta / 180.0f * M_PI) - target_vy * sinf(theta / 180.0f * M_PI)
+                                   - target_w / 180.0f * M_PI * chassis_gimbal_offset_,
 
-                                target_w);
+                                   target_vx * sinf(theta / 180.0f * M_PI) + target_vy * cosf(theta / 180.0f * M_PI),
 
-        } else if (mode == FORCED_RELAX_MODE) {
+                                   target_w);
 
-            for (size_t i = 0; i < MOTOR_COUNT; i++) {
-                target_current[i] = 0;
+            } else if (mode == FORCED_RELAX_MODE) {
+
+                for (size_t i = 0; i < MOTOR_COUNT; i++) {
+                    target_current[i] = 0;
+                }
+
             }
 
+            // Send currents
+            for (size_t i = 0; i < MOTOR_COUNT; i++) {
+                *ChassisIF::target_current[i] = target_current[i];
+            }
+            ChassisIF::clip_chassis_current();
         }
-
-        // Send currents
-        for (size_t i = 0; i < MOTOR_COUNT; i++) {
-            *ChassisIF::target_current[i] = target_current[i];
-        }
-        ChassisIF::clip_chassis_current();
+        chSysUnlock();  /// --- EXIT S-Locked state ---
 
         sleep(TIME_MS2I(SKD_THREAD_INTERVAL));
     }

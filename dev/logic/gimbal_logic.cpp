@@ -14,12 +14,9 @@
 
 GimbalLG::action_t GimbalLG::action = FORCED_RELAX_MODE;
 GimbalLG::VisionControlThread GimbalLG::vision_control_thread;
-chibios_rt::ThreadReference GimbalLG::vision_control_thread_reference;
-
 
 void GimbalLG::init(tprio_t vision_control_thread_prio) {
-    vision_control_thread.started = true;
-    vision_control_thread_reference = vision_control_thread.start(vision_control_thread_prio);
+    vision_control_thread.start(vision_control_thread_prio);
 }
 
 GimbalLG::action_t GimbalLG::get_action() {
@@ -38,15 +35,7 @@ void GimbalLG::set_action(GimbalLG::action_t value) {
 //        GimbalSKD::set_mode(GimbalSKD::SENTRY_MODE);
     } else if (action == VISION_MODE) {
         GimbalSKD::set_mode(GimbalSKD::ABS_ANGLE_MODE);
-        // Resume the thread
-        chSysLock();  /// --- ENTER S-Locked state. DO NOT use LOG, printf, non S/I-Class functions or return ---
-        {
-            if (!vision_control_thread.started) {
-                vision_control_thread.started = true;
-                chSchWakeupS(vision_control_thread_reference.getInner(), 0);
-            }
-        }
-        chSysUnlock();  /// --- EXIT S-Locked state ---
+        // Variable action is checked in the vision thread
     }
 }
 
@@ -57,15 +46,6 @@ void GimbalLG::set_target(float yaw_target_angle, float pitch_target_angle) {
         LOG_ERR("GimbalLG - set_target(): invalid mode");
     }
 }
-
-//void GimbalLG::set_target_with_sub_pitch(float yaw_target_angle, float pitch_target_angle, float sub_pitch_target_angle) {
-//    if (action != FORCED_RELAX_MODE && action != VISION_MODE) {
-//        GimbalSKD::set_target_angle(yaw_target_angle, pitch_target_angle);
-//        SubPitchSKD::set_target_angle(sub_pitch_target_angle);
-//    } else {
-//        LOG_ERR("GimbalLG - set_target(): invalid mode");
-//    }
-//}
 
 float GimbalLG::get_accumulated_angle(GimbalBase::motor_id_t motor) {
     return GimbalSKD::get_accumulated_angle(motor);
@@ -80,24 +60,28 @@ float GimbalLG::get_current_target_angle(GimbalBase::motor_id_t motor) {
 }
 
 void GimbalLG::VisionControlThread::main() {
-    setName("GimbalIF_Vision");
+    setName("GimbalLG_Vision");
 
-    while(!shouldTerminate()) {
-        chSysLock();  /// --- ENTER S-Locked state. DO NOT use LOG, printf, non S/I-Class functions or return ---
-        {
-            if (action != VISION_MODE) {
-                started = false;
-                chSchGoSleepS(CH_STATE_SUSPENDED);
+    chEvtRegisterMask(&Vision::gimbal_updated_event, &vision_listener, VISION_UPDATED_EVENT_MASK);
+
+    while (!shouldTerminate()) {
+
+        chEvtWaitAny(VISION_UPDATED_EVENT_MASK);
+
+        if (action == VISION_MODE) {
+            float yaw, pitch;
+            bool can_reach_the_target;
+
+            chSysLock();  /// --- ENTER S-Locked state. DO NOT use LOG, printf, non S/I-Class functions or return ---
+            {
+                can_reach_the_target = Vision::get_gimbal_target_angles(yaw, pitch);
             }
+            chSysUnlock();  /// --- EXIT S-Locked state ---
+
+            if (can_reach_the_target) {
+                GimbalSKD::set_target_angle(yaw, pitch, 0);
+            }  // otherwise, keep current target angles
         }
-        chSysUnlock();  /// --- EXIT S-Locked state ---
-
-        Vision::VisionControlCommand command = {0, 0};
-        if (Vision::getControlCommand(command)) {
-            GimbalSKD::set_target_angle(command.gimbal_yaw_target, command.gimbal_pitch_target, 0);
-        }  // otherwise, keep current target angles
-
-        sleep(TIME_MS2I(VISION_THREAD_INTERVAL));
     }
 }
 

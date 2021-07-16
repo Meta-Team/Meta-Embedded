@@ -7,10 +7,10 @@
 
 #include "ch.hpp"
 
-uint16_t Get_CRC16_Check_Sum(uint8_t *pchMessage, uint32_t dwLength, uint16_t wCRC);
+uint16_t get_crc16_check_sum(uint8_t *pchMessage, uint32_t dwLength);
 
-uint32_t Verify_CRC16_Check_Sum(uint8_t *pchMessage, uint32_t dwLength);
+uint32_t verify_crc16_check_sum(uint8_t *pchMessage, uint32_t dwLength);
 
-void Append_CRC16_Check_Sum(uint8_t *pchMessage, uint32_t dwLength);
+void append_crc16_check_sum(uint8_t *pchMessage, uint32_t dwLength);
 
 #endif //META_INFANTRY_CRC16_H

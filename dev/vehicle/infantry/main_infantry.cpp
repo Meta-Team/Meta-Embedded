@@ -15,7 +15,7 @@
 #include "ahrs.h"
 #include "remote_interpreter.h"
 #include "sd_card_interface.h"
-#include "vision_port.h"
+#include "vision.h"
 #include "super_capacitor_port.h"
 
 #include "gimbal_interface.h"
@@ -194,7 +194,7 @@ int main() {
     /// Start LGs
 #if INFANTRY_GIMBAL_ENABLE
     GimbalLG::init(THREAD_GIMBAL_LG_VISION_PRIO);
-    ShootLG::init(SHOOT_DEGREE_PER_BULLET, THREAD_SHOOT_LG_STUCK_DETECT_PRIO, THREAD_SHOOT_BULLET_COUNTER_PRIO);
+    ShootLG::init(SHOOT_DEGREE_PER_BULLET, THREAD_SHOOT_LG_STUCK_DETECT_PRIO, THREAD_SHOOT_BULLET_COUNTER_PRIO, THREAD_SHOOT_LG_VISION_PRIO);
 #endif
 
 #if INFANTRY_CHASSIS_ENABLE
@@ -204,8 +204,10 @@ int main() {
     /// Setup VisionPort
     // Should be put after initialization of GimbalSKD
 #if INFANTRY_VISION_ENABLE
-    Vision::init(VISION_VELOCITY_UPDATE_FRACTION, VISION_PREDICT_FORWARD_AMOUNT);
+    Vision::init(VISION_BASIC_CONTROL_DELAY, VISION_BASIC_SHOOT_DELAY);
+    Vision::set_bullet_speed(VISION_DEFAULT_BULLET_SPEED);
 #endif
+
     /// Start Inspector and User Threads
     InspectorI::start_inspection(THREAD_INSPECTOR_PRIO);
     UserI::start(THREAD_USER_PRIO, THREAD_USER_ACTION_PRIO, THREAD_USER_CLIENT_DATA_SEND_PRIO);

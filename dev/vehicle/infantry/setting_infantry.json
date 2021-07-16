@@ -51,7 +51,11 @@
         },
         {
             "motor_id": 12,
-            "motor_name": "vision_last_gimbal"
+            "motor_name": "vision_shoot"
+        },
+        {
+            "motor_id": 13,
+            "motor_name": "vision_command"
         }
     ],
     "commands": [

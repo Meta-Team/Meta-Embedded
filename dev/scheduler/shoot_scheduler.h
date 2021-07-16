@@ -57,7 +57,7 @@ public:
     };
 
     /**
-     * Start this scheduler
+     * Start this scheduler.
      * @param loader_install_            Installation direction of loader
      * @param thread_prio                Priority of PID calculating thread
      */
@@ -159,7 +159,7 @@ private:
         void main() final;
     };
 
-    static SKDThread skdThread;
+    static SKDThread skd_thread;
 };
 
 #endif //META_INFANTRY_SHOOT_SCHEDULER_H

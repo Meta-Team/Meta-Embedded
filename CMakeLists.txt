@@ -58,7 +58,6 @@ set(COMMON_SRC  # common cpp sources, which are included to every tartget at pos
         dev/interface/led.cpp
         dev/interface/buzzer_interface.cpp
         dev/scheduler/buzzer_scheduler.cpp
-        #        dev/module/state_handler.cpp
         )
 
 set(AHRS_SRC
@@ -116,7 +115,7 @@ set(INFANTRY
         ${AHRS_SRC}
         ${INFANTRY_SHOOT_SRC}
         ${CHASSIS_SRC}
-        dev/interface/vision_port.cpp
+        dev/interface/vision.cpp
         dev/interface/super_capacitor_port.cpp
         dev/interface/referee_interface.cpp
         dev/interface/sd_card_interface.cpp
@@ -153,7 +152,7 @@ add_executable(HERO
         ${AHRS_SRC}
         ${HERO_SHOOT_SRC}
         ${CHASSIS_SRC}
-        dev/interface/vision_port.cpp
+        dev/interface/vision.cpp
         dev/interface/super_capacitor_port.cpp
         dev/interface/referee_interface.cpp
         dev/interface/sd_card_interface.cpp
@@ -173,7 +172,7 @@ add_executable(SENTRY
         dev/interface/remote_interpreter.cpp
         dev/interface/referee_interface.cpp
         dev/interface/sd_card_interface.cpp
-        dev/interface/vision_port.cpp
+        dev/interface/vision.cpp
         dev/interface/ahrs/ahrs_ext.cpp
         dev/common/CRC8.cpp
         dev/common/CRC16.cpp
@@ -212,7 +211,7 @@ add_executable(AERIAL
         dev/interface/referee_interface.cpp
         dev/common/CRC8.cpp
         dev/common/CRC16.cpp
-        dev/interface/vision_port.cpp
+        dev/interface/vision.cpp
 
         dev/interface/ahrs/ahrs_ext.cpp
 
@@ -383,7 +382,7 @@ add_executable(ut_referee_interface
 add_executable(ut_vision_port
         dev/common/CRC8.cpp
         dev/common/CRC16.cpp
-        dev/interface/vision_port.cpp
+        dev/interface/vision.cpp
         dev/debug/Unit_Tests/ut_vision_port.cpp)
 target_compile_definitions(ut_vision_port PRIVATE VISION_PORT_DEBUG)
 

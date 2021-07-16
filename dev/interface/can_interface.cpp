@@ -21,7 +21,7 @@ void CANInterface::ErrorFeedbackThread::main() {
     } else if (can_driver == &CAND2) {
         setName("CAN2_Monitor");
     } else {
-        setName("CAN_Unknown_Monitor");
+        setName("CAN?_Monitor");
     }
 
     event_listener_t el;
@@ -258,7 +258,7 @@ void CANInterface::ProcessFeedbackThread::main() {
 }
 
 bool CANInterface::CurrentSendThread::send_msg(const CANTxFrame *txmsg) {
-    if (canTransmit(can_driver, CAN_ANY_MAILBOX, txmsg, TIME_MS2I(TRANSMIT_TIMEOUT_MS)) != MSG_OK) {
+    if (canTransmitTimeout(can_driver, CAN_ANY_MAILBOX, txmsg, TIME_MS2I(TRANSMIT_TIMEOUT_MS)) != MSG_OK) {
         // TODO: show debug info for failure
         return false;
     }
@@ -281,7 +281,7 @@ void CANInterface::CurrentSendThread::main() {
     } else if (can_driver == &CAND2) {
         setName("CAN2_TX");
     } else {
-        setName("CAN_Unknown_TX");
+        setName("CAN?_TX");
     }
     while(!shouldTerminate()) {
         CANTxFrame low_tx_frame;

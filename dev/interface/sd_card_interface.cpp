@@ -37,7 +37,7 @@ int SDCard::read_all() {
     // Verify SD header
     if (blk[0].header.data_id != SD_INFO_DATA_ID) return DATA_ERROR;
     if (blk[0].header.data_length != sizeof(sd_info)) return DATA_ERROR;
-    if (!Verify_CRC16_Check_Sum((uint8_t *) &blk[0], sizeof(block_header_t) + sizeof(sd_info) + 2)) return DATA_ERROR;
+    if (!verify_crc16_check_sum((uint8_t * ) & blk[0], sizeof(block_header_t) + sizeof(sd_info) + 2)) return DATA_ERROR;
 
     // Check protocol version
     memcpy(&sd_info, blk[0].data, sizeof(sd_info));
@@ -63,7 +63,7 @@ int SDCard::get_data(uint16_t data_id, void *data, size_t n) {
     if (idx == -1) return DATA_UNAVAILABLE;
 
     if (blk[idx].header.data_length != n) return DATA_ERROR;
-    if (!Verify_CRC16_Check_Sum((uint8_t *) &blk[idx], sizeof(block_header_t) + n + 2)) return DATA_ERROR;
+    if (!verify_crc16_check_sum((uint8_t * ) & blk[idx], sizeof(block_header_t) + n + 2)) return DATA_ERROR;
 
     memcpy(data, blk[idx].data, n);
 
@@ -84,7 +84,7 @@ int SDCard::write_data(uint16_t data_id, void *data, size_t n) {
     blk[idx].header.data_id = data_id;
     blk[idx].header.data_length = n;
     memcpy(blk[idx].data, data, n);
-    Append_CRC16_Check_Sum((uint8_t *) &blk[idx], sizeof(block_header_t) + n + 2);
+    append_crc16_check_sum((uint8_t *) &blk[idx], sizeof(block_header_t) + n + 2);
 
     if (sdcWrite(&SDC_DRIVER, idx, (uint8_t *) &blk[idx], 1) == HAL_FAILED) return IO_ERROR;
     return OK;
@@ -97,7 +97,7 @@ int SDCard::update_header() {
     blk[0].header.data_id = SD_INFO_DATA_ID;
     blk[0].header.data_length = sizeof(sd_info);
     memcpy(blk[0].data, &sd_info, sizeof(sd_info));
-    Append_CRC16_Check_Sum((uint8_t *) &blk[0], sizeof(block_header_t) + sizeof(sd_info) + 2);
+    append_crc16_check_sum((uint8_t * ) & blk[0], sizeof(block_header_t) + sizeof(sd_info) + 2);
 
     if (sdcWrite(&SDC_DRIVER, 0, (uint8_t *) &blk[0], 1) == HAL_FAILED) return IO_ERROR;
     return OK;

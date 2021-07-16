@@ -95,7 +95,7 @@ void Referee::uart_rx_callback(UARTDriver *uartp) {
 
         case WAIT_REMAINING_HEADER:
 
-            if (Verify_CRC8_Check_Sum(pak_uint8, FRAME_HEADER_SIZE)) {
+            if (verify_crc8_check_sum(pak_uint8, FRAME_HEADER_SIZE)) {
                 rx_status = WAIT_CMD_ID_DATA_TAIL; // go to next status
             } else {
                 rx_status = WAIT_STARTING_BYTE;
@@ -104,7 +104,7 @@ void Referee::uart_rx_callback(UARTDriver *uartp) {
 
         case WAIT_CMD_ID_DATA_TAIL:
 
-            if (Verify_CRC16_Check_Sum(pak_uint8,
+            if (verify_crc16_check_sum(pak_uint8,
                                        FRAME_HEADER_SIZE + CMD_ID_SIZE + pak.header.data_length + FRAME_TAIL_SIZE)) {
 
                 switch (pak.cmd_id) {
@@ -258,7 +258,7 @@ void Referee::send_data_(receiver_index_t receiver_id, interactive_cmd_id_t data
         }
     }
     tx_pak.header.seq = tx_seq++;
-    Append_CRC8_Check_Sum((uint8_t *)&tx_pak, FRAME_HEADER_SIZE);
+    append_crc8_check_sum((uint8_t *) &tx_pak, FRAME_HEADER_SIZE);
 
     tx_pak.cmd_id = 0x0301;
 
@@ -275,7 +275,7 @@ void Referee::send_data_(receiver_index_t receiver_id, interactive_cmd_id_t data
             tx_pak_size = FRAME_HEADER_SIZE + CMD_ID_SIZE + sizeof(student_interactive_header_data_t) + sizeof(aerial_to_sentry_t) + FRAME_TAIL_SIZE;
         }
     }
-    Append_CRC16_Check_Sum((uint8_t *)&tx_pak, tx_pak_size);
+    append_crc16_check_sum((uint8_t *) &tx_pak, tx_pak_size);
     uartSendTimeout(UART_DRIVER, &tx_pak_size, &tx_pak, TIME_MS2I(20));
 }
 

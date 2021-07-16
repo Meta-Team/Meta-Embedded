@@ -57,25 +57,6 @@ private:
         void main() final;
     } updateThread;
 
-    enum mpu_i2cmst_clk_t{
-        MPU6500_I2CMST_CLK_348K = 0,
-        MPU6500_I2CMST_CLK_333K = 1,
-        MPU6500_I2CMST_CLK_320K = 2,
-        MPU6500_I2CMST_CLK_308K = 3,
-        MPU6500_I2CMST_CLK_296K = 4,
-        MPU6500_I2CMST_CLK_286K = 5,
-        MPU6500_I2CMST_CLK_276K = 6,
-        MPU6500_I2CMST_CLK_267K = 7,
-        MPU6500_I2CMST_CLK_258K = 8,
-        MPU6500_I2CMST_CLK_500K = 9,
-        MPU6500_I2CMST_CLK_471K = 10,
-        MPU6500_I2CMST_CLK_444K = 11,
-        MPU6500_I2CMST_CLK_421K = 12,
-        MPU6500_I2CMST_CLK_400K = 13,
-        MPU6500_I2CMST_CLK_381K = 14,
-        MPU6500_I2CMST_CLK_364K = 15
-    };
-
 };
 
 #endif //META_INFANTRY_IST8310_H

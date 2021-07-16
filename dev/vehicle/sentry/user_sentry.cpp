@@ -270,7 +270,7 @@ void UserS::VitualUserThread::main() {
         enemy_spotted = WITHIN_RECENT_TIME(Vision::last_update_time, 50);
 
         if (enemy_spotted){
-            LOG("%.2f, %.2f   yaw: %.2f, pitch: %%.2f, distance: %.2f", GimbalLG::get_accumulated_angle(GimbalLG::YAW), GimbalLG::get_accumulated_angle(GimbalLG::PITCH), Vision::enemy_info.yaw_delta, Vision::enemy_info.pitch_delta, Vision::enemy_info.distance);
+            LOG("%.2f, %.2f   yaw: %.2f, pitch: %%.2f, distance: %.2f", GimbalLG::get_accumulated_angle(GimbalLG::YAW), GimbalLG::get_accumulated_angle(GimbalLG::PITCH), Vision::enemy_info.yaw_delta, Vision::enemy_info.pitch_delta, Vision::enemy_info.dist);
         }
 
         /*** ---------------------------------- Gimbal + Shooter --------------------------------- ***/

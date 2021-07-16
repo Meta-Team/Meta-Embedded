@@ -158,15 +158,16 @@ private:
     static install_mode_t install_mode_;
 
     // Helper function to convert chassis velocity to velocities of each wheel and perform PID calculation once
-    static void velocity_decompose_(float vx, float vy, float w);
+    static void velocity_decompose(float vx, float vy, float w);
 
+    static constexpr float THETA_DEAD_ZONE = 3;  // ignore theta difference if less than [deg]
     static constexpr unsigned int SKD_THREAD_INTERVAL = 2; // PID calculation interval [ms]
 
     class SKDThread : public chibios_rt::BaseStaticThread<512> {
         void main() final;
     };
 
-    static SKDThread skdThread;
+    static SKDThread skd_thread;
 
 };
 

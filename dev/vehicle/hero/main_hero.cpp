@@ -16,7 +16,7 @@
 #include "ahrs.h"
 #include "remote_interpreter.h"
 #include "sd_card_interface.h"
-#include "vision_port.h"
+#include "vision.h"
 #include "super_capacitor_port.h"
 
 #include "gimbal_interface.h"

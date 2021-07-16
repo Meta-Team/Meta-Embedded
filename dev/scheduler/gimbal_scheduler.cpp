@@ -32,7 +32,7 @@ float GimbalSKD::last_angle[3] = {0, 0, 0};
 float GimbalSKD::accumulated_angle[3] = {0, 0, 0};
 PIDController GimbalSKD::a2v_pid[3];
 PIDController GimbalSKD::v2i_pid[3];
-GimbalSKD::SKDThread GimbalSKD::skdThread;
+GimbalSKD::SKDThread GimbalSKD::skd_thread;
 AbstractAHRS *GimbalSKD::gimbal_ahrs = nullptr;
 float GimbalSKD::yaw_restrict_angle[2] = {-MAXFLOAT, MAXFLOAT};
 float GimbalSKD::yaw_restrict_velocity = 0;
@@ -73,7 +73,7 @@ GimbalSKD::start(AbstractAHRS *gimbal_ahrs_, const Matrix33 ahrs_angle_rotation_
     last_angle[PITCH] = ahrs_angle.y;
     last_angle[SUB_PITCH] = GimbalIF::feedback[SUB_PITCH]->actual_angle;
 
-    skdThread.start(thread_prio);
+    skd_thread.start(thread_prio);
 }
 
 void GimbalSKD::load_pid_params(pid_params_t yaw_a2v_params, pid_params_t yaw_v2i_params,

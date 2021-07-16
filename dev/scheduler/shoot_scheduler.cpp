@@ -24,14 +24,14 @@ int ShootSKD::target_current[3] = {0, 0, 0};
 PIDController ShootSKD::v2i_pid[3];
 PIDController ShootSKD::a2v_pid;
 
-ShootSKD::SKDThread ShootSKD::skdThread;
+ShootSKD::SKDThread ShootSKD::skd_thread;
 
 void ShootSKD::start(ShootSKD::install_direction_t loader_install_, tprio_t thread_prio) {
     install_position[0] = loader_install_;
     install_position[1] = NEGATIVE;
     install_position[2] = POSITIVE;
 
-    skdThread.start(thread_prio);
+    skd_thread.start(thread_prio);
 }
 
 void ShootSKD::load_pid_params(pid_params_t loader_a2v_params,
@@ -70,7 +70,7 @@ void ShootSKD::set_friction_wheels(float duty_cycle) {
 }
 
 float ShootSKD::get_friction_wheels_duty_cycle() {
-    return target_velocity[2]/3000.0f;
+    return target_velocity[2] / 3000.0f;
 }
 
 int ShootSKD::get_loader_target_current() {
@@ -97,34 +97,45 @@ void ShootSKD::SKDThread::main() {
     setName("ShootSKD");
     while (!shouldTerminate()) {
 
-        if (mode == LIMITED_SHOOTING_MODE) {
+        chSysLock();  /// --- ENTER S-Locked state. DO NOT use LOG, printf, non S/I-Class functions or return ---
+        {
+            if (mode == LIMITED_SHOOTING_MODE) {
 
-            // PID calculation
+                // PID calculation
 
-            // Bullet calculation
-            target_velocity[0] = a2v_pid.calc(GimbalIF::feedback[GimbalIF::BULLET]->accumulated_angle() * float(install_position[0]), target_angle);
-            target_current[0] = (int) v2i_pid[0].calc(GimbalIF::feedback[GimbalIF::BULLET]->actual_velocity * float(install_position[0]), target_velocity[0]);
-            *GimbalIF::target_current[GimbalIF::BULLET] = target_current[0] * install_position[0];
-            // Fraction wheels calculation
-            ShootSKD::target_current[1] = (int) v2i_pid[1].calc(GimbalIF::feedback[GimbalIF::FW_LEFT]->actual_velocity,target_velocity[1] * float(install_position[1]));
-            *GimbalIF::target_current[GimbalIF::FW_LEFT] = ShootSKD::target_current[1];
-            ShootSKD::target_current[2] = (int) v2i_pid[2].calc(GimbalIF::feedback[GimbalIF::FW_RIGHT]->actual_velocity,target_velocity[2] * float(install_position[2]));
-            *GimbalIF::target_current[GimbalIF::FW_RIGHT] = ShootSKD::target_current[2];
+                // Bullet calculation
+                target_velocity[0] = a2v_pid.calc(
+                        GimbalIF::feedback[GimbalIF::BULLET]->accumulated_angle() * float(install_position[0]),
+                        target_angle);
+                target_current[0] = (int) v2i_pid[0].calc(
+                        GimbalIF::feedback[GimbalIF::BULLET]->actual_velocity * float(install_position[0]),
+                        target_velocity[0]);
+                *GimbalIF::target_current[GimbalIF::BULLET] = target_current[0] * install_position[0];
+                // Fraction wheels calculation
+                ShootSKD::target_current[1] = (int) v2i_pid[1].calc(
+                        GimbalIF::feedback[GimbalIF::FW_LEFT]->actual_velocity,
+                        target_velocity[1] * float(install_position[1]));
+                *GimbalIF::target_current[GimbalIF::FW_LEFT] = ShootSKD::target_current[1];
+                ShootSKD::target_current[2] = (int) v2i_pid[2].calc(
+                        GimbalIF::feedback[GimbalIF::FW_RIGHT]->actual_velocity,
+                        target_velocity[2] * float(install_position[2]));
+                *GimbalIF::target_current[GimbalIF::FW_RIGHT] = ShootSKD::target_current[2];
 
 
-        } else if (mode == FORCED_RELAX_MODE) {
-            *GimbalIF::target_current[GimbalIF::BULLET] = 0;
-            for (size_t i = 2; i < 4; i++) {
-                if(ABS_IN_RANGE(GimbalIF::feedback[i + 2]->actual_velocity, 100)) {
-                    *GimbalIF::target_current[i + 2] = 0;
-                } else {
-                    ShootSKD::target_current[i] = (int) v2i_pid[i].calc(GimbalIF::feedback[i + 2]->actual_velocity,0.0f);
-                    *GimbalIF::target_current[i + 2] = ShootSKD::target_current[i];
+            } else if (mode == FORCED_RELAX_MODE) {
+                *GimbalIF::target_current[GimbalIF::BULLET] = 0;
+                for (size_t i = 2; i < 4; i++) {
+                    if (ABS_IN_RANGE(GimbalIF::feedback[i + 2]->actual_velocity, 100)) {
+                        *GimbalIF::target_current[i + 2] = 0;
+                    } else {
+                        ShootSKD::target_current[i] = (int) v2i_pid[i].calc(GimbalIF::feedback[i + 2]->actual_velocity,
+                                                                            0.0f);
+                        *GimbalIF::target_current[i + 2] = ShootSKD::target_current[i];
+                    }
                 }
             }
         }
-
-        // Send currents with GimbalSKD (has smaller SKD_THREAD_INTERVAL)
+        chSysUnlock();  /// --- EXIT S-Locked state ---
 
         sleep(TIME_MS2I(SKD_THREAD_INTERVAL));
     }
