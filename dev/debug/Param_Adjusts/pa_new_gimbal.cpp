@@ -21,10 +21,13 @@
 
 using namespace chibios_rt;
 
-const char *motor_name[10] = {
+const char *motor_name[13] = {
         "yaw",
         "pitch",
         "sub_pitch",
+        "bullet",
+        "fw_left",
+        "fw_right",
         "ahrs",
         "gyro",
         "accel",
@@ -81,15 +84,19 @@ AHRSOnBoard ahrs;
 static void cmd_set_enable(BaseSequentialStream *chp, int argc, char *argv[]) {
     (void) argv;
     if (argc != 1) {
-        shellUsage(chp, "set_enable motor_id(0/1/2)");
+        shellUsage(chp, "set_enable motor_id(0-5)");
         return;
     }
-    int motor_id = Shell::atoi(argv[0]);
-    if (motor_id < 0 || motor_id > 2) {
+    unsigned motor_id = Shell::atoi(argv[0]);
+    if (motor_id > 5) {
         chprintf(chp, "Invalid motor ID %d" SHELL_NEWLINE_STR, motor_id);
         return;
     }
-    GimbalSKD::enable_motor((GimbalSKD::motor_id_t) motor_id);
+    if (motor_id < 3) {
+        GimbalSKD::enable_motor((GimbalSKD::motor_id_t) motor_id);
+    } else {
+        ShootSKD::enable_motor(motor_id - 3);
+    }
 }
 
 /**
@@ -109,7 +116,11 @@ static void cmd_set_disable(BaseSequentialStream *chp, int argc, char *argv[]) {
         chprintf(chp, "Invalid motor ID %d" SHELL_NEWLINE_STR, motor_id);
         return;
     }
-    GimbalSKD::disable_motor((GimbalSKD::motor_id_t) motor_id);
+    if (motor_id < 3) {
+        GimbalSKD::disable_motor((GimbalSKD::motor_id_t) motor_id);
+    } else {
+        ShootSKD::disable_motor(motor_id - 3);
+    }
 }
 
 
@@ -150,7 +161,7 @@ void cmd_set_param(BaseSequentialStream *chp, int argc, char *argv[]) {
         return;
     }
     unsigned motor_id = Shell::atoi(argv[0]);
-    if (motor_id > 2) {
+    if (motor_id > 5) {
         chprintf(chp, "Invalid motor ID %d" SHELL_NEWLINE_STR, motor_id);
         return;
     }
@@ -165,7 +176,11 @@ void cmd_set_param(BaseSequentialStream *chp, int argc, char *argv[]) {
                                              Shell::atof(argv[5]),
                                              Shell::atof(argv[6])};
 
-    GimbalSKD::load_pid_params_by_type(pid_param, (GimbalBase::motor_id_t) motor_id, pid_id == 0);
+    if (motor_id <= 2) {
+        GimbalSKD::load_pid_params_by_type(pid_param, (GimbalBase::motor_id_t) motor_id, pid_id == 0);
+    } else {
+        ShootSKD::load_pid_params_by_type(pid_param, motor_id - 3, pid_id == 0);
+    }
     chprintf(chp, "ps!" SHELL_NEWLINE_STR);
 }
 
@@ -176,7 +191,7 @@ void cmd_echo_param(BaseSequentialStream *chp, int argc, char *argv[]) {
         return;
     }
     unsigned motor_id = Shell::atoi(argv[0]);
-    if (motor_id > 2) {
+    if (motor_id > 5) {
         chprintf(chp, "Invalid motor ID %d" SHELL_NEWLINE_STR, motor_id);
         return;
     }
@@ -186,7 +201,12 @@ void cmd_echo_param(BaseSequentialStream *chp, int argc, char *argv[]) {
         return;
     }
 
-    PIDController::pid_params_t pid_param = GimbalSKD::echo_pid_params_by_type((GimbalBase::motor_id_t) motor_id, pid_id == 0);
+    PIDController::pid_params_t pid_param = {0,0,0,0,0};
+    if (motor_id <= 2) {
+        pid_param = GimbalSKD::echo_pid_params_by_type((GimbalBase::motor_id_t) motor_id, pid_id == 0);
+    } else {
+        pid_param = ShootSKD::echo_pid_params_by_type(motor_id - 3, pid_id == 0);
+    }
     chprintf(chp, "ki: %.2f, kp: %.2f, kd: %.2f, i_limit: %.2f, out_limit: %.2f" SHELL_NEWLINE_STR,
                  pid_param.ki, pid_param.kp, pid_param.kd, pid_param.i_limit, pid_param.out_limit);
 }
@@ -354,8 +374,8 @@ int main(void) {
     }
 
     /// Setup CAN1 & CAN2
-    can1.start(THREAD_CAN1_PRIO, THREAD_CAN1_FB_PRIO);
-    can2.start(THREAD_CAN2_PRIO, THREAD_CAN2_FB_PRIO);
+    can1.start(THREAD_CAN1_RX_PRIO, THREAD_CAN1_TX_PRIO);
+    can2.start(THREAD_CAN2_RX_PRIO, THREAD_CAN2_TX_PRIO);
     chThdSleepMilliseconds(5);
 
     /// Start Feedback Thread
@@ -405,9 +425,9 @@ int main(void) {
 //    GimbalSKD::set_yaw_restriction(GIMBAL_RESTRICT_YAW_MIN_ANGLE, GIMBAL_RESTRICT_YAW_MAX_ANGLE,
 //                                   GIMBAL_RESTRICT_YAW_VELOCITY);
 
-//    ShootSKD::start(SHOOT_BULLET_INSTALL_DIRECTION, THREAD_SHOOT_SKD_PRIO);
-//    ShootSKD::load_pid_params(SHOOT_PID_BULLET_LOADER_A2V_PARAMS, SHOOT_PID_BULLET_LOADER_V2I_PARAMS,
-//                              SHOOT_PID_FW_LEFT_V2I_PARAMS, SHOOT_PID_FW_RIGHT_V2I_PARAMS);
+    ShootSKD::start(SHOOT_BULLET_INSTALL_DIRECTION, THREAD_SHOOT_SKD_PRIO);
+    ShootSKD::load_pid_params(SHOOT_PID_BULLET_LOADER_A2V_PARAMS, SHOOT_PID_BULLET_LOADER_V2I_PARAMS,
+                              SHOOT_PID_FW_LEFT_V2I_PARAMS, SHOOT_PID_FW_RIGHT_V2I_PARAMS);
 
     /// Complete Period 2
     BuzzerSKD::play_sound(BuzzerSKD::sound_startup_intel);  // Now play the startup sound
