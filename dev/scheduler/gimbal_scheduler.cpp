@@ -201,7 +201,7 @@ void GimbalSKD::SKDThread::main() {
                 /// Pitch
                 if (!is_test || (motor_enable[PITCH])) {
                     // Use AHRS angle and AHRS velocity
-                    target_velocity[PITCH] = a2v_pid[PITCH].calc(accumulated_angle[PITCH], target_angle[PITCH]);
+                    target_velocity[PITCH] = a2v_pid[PITCH].calc(last_angle[PITCH], target_angle[PITCH]);
                     target_current[PITCH] = (int) v2i_pid[PITCH].calc(actual_velocity[PITCH], target_velocity[PITCH]);
                 }
                 /// Sub-pitch
