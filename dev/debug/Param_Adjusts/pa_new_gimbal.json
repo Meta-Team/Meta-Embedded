@@ -45,6 +45,7 @@
     "commands": [
         "set_enable motor_id -> yaw pitch sub_pitch",
         "set_disable motor_id -> yaw pitch sub_pitch",
+        "get_sid -> yaw pitch sub_pitch",
         "fb_enable motor_id",
         "fb_disable motor_id",
         "set_pid motor_id pid_id ki kp kd i_limit out_limit -> yaw pitch sub_pitch",

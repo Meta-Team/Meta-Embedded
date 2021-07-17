@@ -123,6 +123,19 @@ static void cmd_set_disable(BaseSequentialStream *chp, int argc, char *argv[]) {
     }
 }
 
+static void cmd_get_sid(BaseSequentialStream *chp, int argc, char *argv[]) {
+    (void) argv;
+    if (argc != 1) {
+        shellUsage(chp, "get_sid motor_id(0/1/2)");
+        return;
+    }
+    int motor_id = Shell::atoi(argv[0]);
+    if (motor_id < 0 || motor_id > 2) {
+        chprintf(chp, "Invalid motor ID %d" SHELL_NEWLINE_STR, motor_id);
+        return;
+    }
+    chprintf(chp, "motor type: %d, motor sid: %d" SHELL_NEWLINE_STR, GimbalIF::feedback[(GimbalIF::motor_id_t) motor_id]->type, GimbalIF::feedback[(GimbalIF::motor_id_t) motor_id]->sid);
+}
 
 void cmd_enable_feedback(BaseSequentialStream *chp, int argc, char *argv[]) {
     if (argc != 1) {
@@ -332,6 +345,7 @@ private:
 ShellCommand mainProgramCommands[] = {
         {"set_enable",          cmd_set_enable},
         {"set_disable",         cmd_set_disable},
+        {"get_sid",             cmd_get_sid},
         {"fb_enable",           cmd_enable_feedback},
         {"fb_disable",          cmd_disable_feedback},
         {"set_pid",             cmd_set_param},

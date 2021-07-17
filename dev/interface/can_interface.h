@@ -79,6 +79,8 @@ public:
 
         motor_type_t type;
 
+        uint32_t sid;
+
         /**
          * Normalized angle
          * @note Viewing from TOP of 6623/2006 motor. 180 <--CCW-- front_angle_raw --CW--> -180
