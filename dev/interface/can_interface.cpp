@@ -184,6 +184,8 @@ void CANInterface::ProcessFeedbackThread::main() {
                 motor_feedback_t *fb;
                 fb = &feedback[rxmsg.SID - 0x201];
 
+                fb->sid = rxmsg.SID;
+
                 /// Calculate the angle movement in raw data
                 // KEY IDEA: add the change of angle to actual angle
                 // We assume that the absolute value of the angle movement is smaller than 180 degrees (4096 of raw data)
