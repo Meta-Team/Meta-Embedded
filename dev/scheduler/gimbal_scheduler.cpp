@@ -149,28 +149,31 @@ void GimbalSKD::SKDThread::main() {
                     ahrs_gyro.x * cosf(ahrs_angle.y / 180.0f * M_PI) + ahrs_gyro.z * sinf(ahrs_angle.y / 180.0f * M_PI),
                     ahrs_gyro.y};
 
-            for (int i = YAW; i <= PITCH; i++) {
 
-                float angle_movement = angle[i] - last_angle[i];
-                last_angle[i] = angle[i];
+            float yaw_angle_movement = angle[0] - last_angle[YAW];
+            last_angle[YAW] = angle[0];
 
-                /**
-                 * Deal with cases crossing 0 point
-                 * For example,
-                 * 1. new = 179, last = -179, movement = 358, should be corrected to 358 - 360 = -2
-                 * 2. new = -179, last = 179, movement = -358, should be corrected to -358 + 360 = 2
-                 * 200 (-200) is a threshold that is large enough that it's normally impossible to move in 1 ms
-                 */
-                if (angle_movement < -200) angle_movement += 360;
-                if (angle_movement > 200) angle_movement -= 360;
+            /**
+             * Deal with cases crossing 0 point
+             * For example,
+             * 1. new = 179, last = -179, movement = 358, should be corrected to 358 - 360 = -2
+             * 2. new = -179, last = 179, movement = -358, should be corrected to -358 + 360 = 2
+             * 200 (-200) is a threshold that is large enough that it's normally impossible to move in 1 ms
+             */
+            if (yaw_angle_movement < -200) yaw_angle_movement += 360;
+            if (yaw_angle_movement > 200) yaw_angle_movement -= 360;
 
-                // Use increment to calculate accumulated angles
-                accumulated_angle[i] += angle_movement;
-                actual_velocity[i] = velocity[i];
-            }
+            // Use increment to calculate accumulated angles
+            accumulated_angle[YAW] += yaw_angle_movement;
+            actual_velocity[YAW] = velocity[0];
+
+            last_angle[PITCH] = angle[1];
+            accumulated_angle[PITCH] = angle[1];
+            actual_velocity[PITCH] = velocity[1];
+
 
             last_angle[SUB_PITCH] = accumulated_angle[SUB_PITCH];
-            accumulated_angle[SUB_PITCH] = GimbalIF::feedback[SUB_PITCH]->accumulated_angle();
+            accumulated_angle[SUB_PITCH] = GimbalIF::feedback[SUB_PITCH]->actual_angle;
             actual_velocity[SUB_PITCH] = GimbalIF::feedback[SUB_PITCH]->actual_velocity;
 
             if (mode == ABS_ANGLE_MODE) {
