@@ -209,8 +209,9 @@ void GimbalSKD::SKDThread::main() {
                 }
                 /// Sub-pitch
                 if (!is_test || (motor_enable[SUB_PITCH])) {
-                    target_velocity[SUB_PITCH] = a2v_pid[SUB_PITCH].calc(accumulated_angle[SUB_PITCH], target_angle[SUB_PITCH]);
-                    target_current[SUB_PITCH] = (int) v2i_pid[SUB_PITCH].calc(actual_velocity[SUB_PITCH], target_velocity[SUB_PITCH]);
+//                    target_velocity[SUB_PITCH] = a2v_pid[SUB_PITCH].calc(accumulated_angle[SUB_PITCH], target_angle[SUB_PITCH]);
+//                    target_current[SUB_PITCH] = (int) v2i_pid[SUB_PITCH].calc(actual_velocity[SUB_PITCH], target_velocity[SUB_PITCH]);
+                    target_current[SUB_PITCH] = (int) a2v_pid[SUB_PITCH].calc(accumulated_angle[SUB_PITCH], target_angle[SUB_PITCH]);
                 }
             }
 //            else if (mode == SENTRY_MODE) {
