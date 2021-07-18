@@ -22,7 +22,7 @@ class UserI {
 public:
 
     static void start(tprio_t user_thd_prio, tprio_t user_action_thd_prio, tprio_t client_data_sending_thd_prio);
-    enum shoot_mode_type {single, triple, burst};
+
 private:
 
     /// Gimbal Config
@@ -43,22 +43,12 @@ private:
     static float chassis_pc_shift_ratio;  // 150% when Shift is pressed
     static float chassis_pc_ctrl_ratio;    // 50% when Ctrl is pressed
 
-    static Remote::key_t chassis_dodge_switch;
-
-    /// Shoot Config
-    static float shoot_base;
-    static float shoot_heat_base;
-
     static float shoot_launch_left_count;
     static float shoot_launch_right_count;
 
     static float shoot_launch_speed;
 
     static float shoot_common_duty_cycle;
-
-    static Remote::key_t shoot_fw_switch;
-
-    static shoot_mode_type shoot_mode;
 
     /// Helpers
 
@@ -117,8 +107,6 @@ private:
     friend void shoot_get_config(BaseSequentialStream *chp, int argc, char *argv[]);
     friend void shoot_set_config(BaseSequentialStream *chp, int argc, char *argv[]);
 
-    static bool left_mouse_pressed;
-    static bool right_mouse_pressed;
 };
 
 
