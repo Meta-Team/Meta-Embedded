@@ -53,6 +53,6 @@
         "set_target_angle motor_id angle -> yaw pitch sub_pitch",
         "echo_target_angle motor_id -> yaw pitch sub_pitch",
         "echo_actual_angle motor_id -> yaw pitch sub_pitch",
-        "echo_raw_angle motor_id -> yaw pitch sub_pitch"
+        "echo_raw_angle motor_id"
     ]
 }

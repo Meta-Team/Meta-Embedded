@@ -278,12 +278,27 @@ void cmd_echo_raw_angle(BaseSequentialStream *chp, int argc, char *argv[]) {
         return;
     }
     unsigned motor_id = Shell::atoi(argv[0]);
-    if (motor_id > 2) {
+    if (motor_id > 5) {
         chprintf(chp, "Invalid motor ID %d" SHELL_NEWLINE_STR, motor_id);
         return;
     }
     chprintf(chp, "%d" SHELL_NEWLINE_STR, GimbalIF::feedback[motor_id]->last_angle_raw);
 }
+
+void cmd_echo_last_update_time(BaseSequentialStream *chp, int argc, char *argv[]) {
+    (void) argv;
+    if (argc != 1) {
+        shellUsage(chp, "echo_last_t motor_id(0/1/2)");
+        return;
+    }
+    unsigned motor_id = Shell::atoi(argv[0]);
+    if (motor_id > 5) {
+        chprintf(chp, "Invalid motor ID %d" SHELL_NEWLINE_STR, motor_id);
+        return;
+    }
+    chprintf(chp, "%d" SHELL_NEWLINE_STR, GimbalIF::feedback[motor_id]->last_update_time);
+}
+
 
 class FeedbackThread : public BaseStaticThread<512> {
 private:
@@ -354,6 +369,7 @@ ShellCommand mainProgramCommands[] = {
         {"echo_target_angle",   cmd_echo_target_angle},
         {"echo_actual_angle",   cmd_echo_actual_angle},
         {"echo_raw_angle",      cmd_echo_raw_angle},
+        {"echo_last_t", cmd_echo_last_update_time},
         {nullptr,         nullptr}
 };
 

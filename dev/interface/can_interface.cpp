@@ -192,8 +192,8 @@ void CANInterface::ProcessFeedbackThread::main() {
                 int angle_movement = (int) new_actual_angle_raw - (int) fb->last_angle_raw;
 
                 // Store new_actual_angle_raw for calculation of angle_movement next time
-                fb->last_angle_raw = new_actual_angle_raw;
-
+//                fb->last_angle_raw = new_actual_angle_raw;
+                fb->last_angle_raw = 2021;
                 /// If angle_movement is too extreme between two samples, we grant that it's caused by moving over the 0 (8192) point
                 if (angle_movement < -4096) angle_movement += 8192;
                 if (angle_movement > 4096) angle_movement -= 8192;
