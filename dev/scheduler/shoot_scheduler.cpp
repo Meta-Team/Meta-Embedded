@@ -142,36 +142,45 @@ void ShootSKD::SKDThread::main() {
                 // PID calculation
 
                 // Bullet calculation
-                target_velocity[0] = a2v_pid.calc(
-                        GimbalIF::feedback[GimbalIF::BULLET]->accumulated_angle() * float(install_position[0]),
-                        target_angle);
-                target_current[0] = (int) v2i_pid[0].calc(
-                        GimbalIF::feedback[GimbalIF::BULLET]->actual_velocity * float(install_position[0]),
-                        target_velocity[0]);
-                *GimbalIF::target_current[GimbalIF::BULLET] = target_current[0] * install_position[0];
+                if (!is_test || motor_enable[0]) {
+                    target_velocity[0] = a2v_pid.calc(
+                            GimbalIF::feedback[GimbalIF::BULLET]->accumulated_angle() * float(install_position[0]),
+                            target_angle);
+                    target_current[0] = (int) v2i_pid[0].calc(
+                            GimbalIF::feedback[GimbalIF::BULLET]->actual_velocity * float(install_position[0]),
+                            target_velocity[0]);
+                }
                 // Fraction wheels calculation
-                ShootSKD::target_current[1] = (int) v2i_pid[1].calc(
-                        GimbalIF::feedback[GimbalIF::FW_LEFT]->actual_velocity,
-                        target_velocity[1] * float(install_position[1]));
-                *GimbalIF::target_current[GimbalIF::FW_LEFT] = ShootSKD::target_current[1];
-                ShootSKD::target_current[2] = (int) v2i_pid[2].calc(
-                        GimbalIF::feedback[GimbalIF::FW_RIGHT]->actual_velocity,
-                        target_velocity[2] * float(install_position[2]));
-                *GimbalIF::target_current[GimbalIF::FW_RIGHT] = ShootSKD::target_current[2];
-
+                if (!is_test || motor_enable[1]) {
+                    ShootSKD::target_current[1] = (int) v2i_pid[1].calc(
+                            GimbalIF::feedback[GimbalIF::FW_LEFT]->actual_velocity,
+                            target_velocity[1] * float(install_position[1]));
+                }
+                if (!is_test || motor_enable[2]) {
+                    ShootSKD::target_current[2] = (int) v2i_pid[2].calc(
+                            GimbalIF::feedback[GimbalIF::FW_RIGHT]->actual_velocity,
+                            target_velocity[2] * float(install_position[2]));
+                }
 
             } else if (mode == FORCED_RELAX_MODE) {
-                *GimbalIF::target_current[GimbalIF::BULLET] = 0;
-                for (size_t i = 2; i < 4; i++) {
-                    if (ABS_IN_RANGE(GimbalIF::feedback[i + 2]->actual_velocity, 100)) {
-                        *GimbalIF::target_current[i + 2] = 0;
-                    } else {
-                        ShootSKD::target_current[i] = (int) v2i_pid[i].calc(GimbalIF::feedback[i + 2]->actual_velocity,
-                                                                            0.0f);
-                        *GimbalIF::target_current[i + 2] = ShootSKD::target_current[i];
-                    }
+                target_current[0] = 0;
+
+                target_current[1] = ABS_IN_RANGE(GimbalIF::feedback[GimbalBase::FW_LEFT]->actual_velocity, 100) ?
+                        0 : (int) v2i_pid[1].calc(GimbalIF::feedback[GimbalBase::FW_LEFT]->actual_velocity,0.0f);
+
+                target_current[2] = ABS_IN_RANGE(GimbalIF::feedback[GimbalBase::FW_RIGHT]->actual_velocity, 100) ?
+                                    0 : (int) v2i_pid[2].calc(GimbalIF::feedback[GimbalBase::FW_RIGHT]->actual_velocity,0.0f);
+            }
+
+            if (is_test) {
+                for (int i = 0; i <= 2; i++) {
+                    target_current[i] = motor_enable[i] ? target_current[i] : 0;
                 }
             }
+
+            *GimbalIF::target_current[GimbalIF::BULLET] = target_current[0] * install_position[0];
+            *GimbalIF::target_current[GimbalIF::FW_LEFT] = ShootSKD::target_current[1];
+            *GimbalIF::target_current[GimbalIF::FW_RIGHT] = ShootSKD::target_current[2];
         }
         chSysUnlock();  /// --- EXIT S-Locked state ---
 
