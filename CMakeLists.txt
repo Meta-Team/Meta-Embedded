@@ -465,6 +465,7 @@ target_link_libraries(pa_gimbal ${PROJECT_SOURCE_DIR}/dev/interface/ahrs/ahrs_li
 add_executable(pa_new_gimbal
         dev/common/CRC16.cpp
         dev/interface/sd_card_interface.cpp
+        dev/interface/remote_interpreter.cpp
         ${AHRS_SRC}
         dev/interface/can_interface.cpp
         dev/interface/gimbal_interface.cpp

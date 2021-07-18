@@ -11,6 +11,7 @@
 #include "can_interface.h"
 #include "ahrs.h"
 #include "sd_card_interface.h"
+#include "remote_interpreter.h"
 
 #include "buzzer_scheduler.h"
 
@@ -21,7 +22,7 @@
 
 using namespace chibios_rt;
 
-const char *motor_name[13] = {
+const char *motor_name[10] = {
         "yaw",
         "pitch",
         "sub_pitch",
@@ -31,10 +32,7 @@ const char *motor_name[13] = {
         "ahrs",
         "gyro",
         "accel",
-        "magnet",
-        "vision_armor",
-        "vision_velocity",
-        "vision_last_gimbal"};
+        "magnet"};
 
 // Calculation interval for gimbal thread
 unsigned const GIMBAL_THREAD_INTERVAL = 1;    // [ms]
@@ -108,11 +106,11 @@ static void cmd_set_enable(BaseSequentialStream *chp, int argc, char *argv[]) {
 static void cmd_set_disable(BaseSequentialStream *chp, int argc, char *argv[]) {
     (void) argv;
     if (argc != 1) {
-        shellUsage(chp, "set_disable motor_id(0/1/2)");
+        shellUsage(chp, "set_disable motor_id(0-5)");
         return;
     }
-    int motor_id = Shell::atoi(argv[0]);
-    if (motor_id < 0 || motor_id > 2) {
+    unsigned motor_id = Shell::atoi(argv[0]);
+    if (motor_id > 5) {
         chprintf(chp, "Invalid motor ID %d" SHELL_NEWLINE_STR, motor_id);
         return;
     }
@@ -126,11 +124,11 @@ static void cmd_set_disable(BaseSequentialStream *chp, int argc, char *argv[]) {
 static void cmd_get_sid(BaseSequentialStream *chp, int argc, char *argv[]) {
     (void) argv;
     if (argc != 1) {
-        shellUsage(chp, "get_sid motor_id(0/1/2)");
+        shellUsage(chp, "get_sid motor_id(0-5)");
         return;
     }
-    int motor_id = Shell::atoi(argv[0]);
-    if (motor_id < 0 || motor_id > 2) {
+    unsigned motor_id = Shell::atoi(argv[0]);
+    if (motor_id > 5) {
         chprintf(chp, "Invalid motor ID %d" SHELL_NEWLINE_STR, motor_id);
         return;
     }
@@ -142,15 +140,14 @@ void cmd_enable_feedback(BaseSequentialStream *chp, int argc, char *argv[]) {
         shellUsage(chp, "fb_enable feedback_id(0-9)");
         return;
     }
-    int feedback_id = Shell::atoi(argv[0]);
-    if (feedback_id < 0 || feedback_id > 9) {
+    unsigned feedback_id = Shell::atoi(argv[0]);
+    if (feedback_id > 9) {
         chprintf(chp, "Invalid feedback ID %d" SHELL_NEWLINE_STR, feedback_id);
         return;
     }
     feedback_enable[feedback_id] = true;
     chprintf(chp, "%s feedback enabled" SHELL_NEWLINE_STR, motor_name[feedback_id]);
 }
-
 
 void cmd_disable_feedback(BaseSequentialStream *chp, int argc, char *argv[]) {
     if (argc != 1) {
@@ -166,11 +163,10 @@ void cmd_disable_feedback(BaseSequentialStream *chp, int argc, char *argv[]) {
     chprintf(chp, "%s feedback disabled" SHELL_NEWLINE_STR, motor_name[feedback_id]);
 }
 
-
 void cmd_set_param(BaseSequentialStream *chp, int argc, char *argv[]) {
     (void) argv;
     if (argc != 7) {
-        shellUsage(chp, "set_pid motor_id(0/1/2) pid_id(0: angle_to_v, 1: v_to_i) ki kp kd i_limit out_limit");
+        shellUsage(chp, "set_pid motor_id(0-5) pid_id(0: angle_to_v, 1: v_to_i) ki kp kd i_limit out_limit");
         return;
     }
     unsigned motor_id = Shell::atoi(argv[0]);
@@ -189,7 +185,7 @@ void cmd_set_param(BaseSequentialStream *chp, int argc, char *argv[]) {
                                              Shell::atof(argv[5]),
                                              Shell::atof(argv[6])};
 
-    if (motor_id <= 2) {
+    if (motor_id < 3) {
         GimbalSKD::load_pid_params_by_type(pid_param, (GimbalBase::motor_id_t) motor_id, pid_id == 0);
     } else {
         ShootSKD::load_pid_params_by_type(pid_param, motor_id - 3, pid_id == 0);
@@ -200,7 +196,7 @@ void cmd_set_param(BaseSequentialStream *chp, int argc, char *argv[]) {
 void cmd_echo_param(BaseSequentialStream *chp, int argc, char *argv[]) {
     (void) argv;
     if (argc != 2) {
-        shellUsage(chp, "echo_pid motor_id(0/1/2) pid_id(0: angle_to_v, 1: v_to_i)");
+        shellUsage(chp, "echo_pid motor_id(0-5) pid_id(0: angle_to_v, 1: v_to_i)");
         return;
     }
     unsigned motor_id = Shell::atoi(argv[0]);
@@ -215,7 +211,7 @@ void cmd_echo_param(BaseSequentialStream *chp, int argc, char *argv[]) {
     }
 
     PIDController::pid_params_t pid_param = {0,0,0,0,0};
-    if (motor_id <= 2) {
+    if (motor_id < 3) {
         pid_param = GimbalSKD::echo_pid_params_by_type((GimbalBase::motor_id_t) motor_id, pid_id == 0);
     } else {
         pid_param = ShootSKD::echo_pid_params_by_type(motor_id - 3, pid_id == 0);
@@ -227,58 +223,76 @@ void cmd_echo_param(BaseSequentialStream *chp, int argc, char *argv[]) {
 void cmd_set_target_angle(BaseSequentialStream *chp, int argc, char *argv[]) {
     (void) argv;
     if (argc != 2) {
-        shellUsage(chp, "set_target_angle motor_id(0/1/2) angle");
+        shellUsage(chp, "set_target_angle motor_id(0-3) angle");
         return;
     }
     unsigned motor_id = Shell::atoi(argv[0]);
-    if (motor_id > 2) {
+    if (motor_id > 3) {
         chprintf(chp, "Invalid motor ID %d" SHELL_NEWLINE_STR, motor_id);
         return;
     }
     float angle = Shell::atof(argv[1]);
-    float yaw_target = motor_id == GimbalBase::YAW ? angle : GimbalSKD::get_target_angle(GimbalBase::YAW);
-    float pitch_target = motor_id == GimbalBase::PITCH ? angle : GimbalSKD::get_target_angle(GimbalBase::PITCH);
-    float sub_pitch_target = motor_id == GimbalBase::SUB_PITCH ? angle : GimbalSKD::get_target_angle(GimbalBase::SUB_PITCH);
-    GimbalSKD::set_target_angle(yaw_target, pitch_target, sub_pitch_target);
+    if (motor_id < 3) {
+        float yaw_target = motor_id == GimbalBase::YAW ? angle : GimbalSKD::get_target_angle(GimbalBase::YAW);
+        float pitch_target = motor_id == GimbalBase::PITCH ? angle : GimbalSKD::get_target_angle(GimbalBase::PITCH);
+        float sub_pitch_target = motor_id == GimbalBase::SUB_PITCH ? angle : GimbalSKD::get_target_angle(GimbalBase::SUB_PITCH);
+        GimbalSKD::set_target_angle(yaw_target, pitch_target, sub_pitch_target);
+    } else {
+        ShootSKD::reset_loader_accumulated_angle();
+        ShootSKD::set_loader_target_angle(angle);
+    }
+
     chprintf(chp, "ps!" SHELL_NEWLINE_STR);
 }
 
 void cmd_echo_target_angle(BaseSequentialStream *chp, int argc, char *argv[]) {
     (void) argv;
     if (argc != 1) {
-        shellUsage(chp, "echo_target_angle motor_id(0/1/2)");
+        shellUsage(chp, "echo_target_angle motor_id(0-3)");
         return;
     }
     unsigned motor_id = Shell::atoi(argv[0]);
-    if (motor_id > 2) {
+    if (motor_id > 3) {
         chprintf(chp, "Invalid motor ID %d" SHELL_NEWLINE_STR, motor_id);
         return;
     }
-    chprintf(chp, "%.2f" SHELL_NEWLINE_STR, GimbalSKD::get_target_angle((GimbalBase::motor_id_t) motor_id));
+    float angle = 0;
+    if (motor_id < 3) {
+        angle = GimbalSKD::get_target_angle((GimbalBase::motor_id_t) motor_id);
+    } else {
+        angle = ShootSKD::get_loader_target_angle();
+    }
+    chprintf(chp, "%.2f" SHELL_NEWLINE_STR, angle);
 }
 
 void cmd_echo_actual_angle(BaseSequentialStream *chp, int argc, char *argv[]) {
     (void) argv;
     if (argc != 1) {
-        shellUsage(chp, "echo_actual_angle motor_id(0/1/2)");
+        shellUsage(chp, "echo_actual_angle motor_id(0-3)");
         return;
     }
     unsigned motor_id = Shell::atoi(argv[0]);
-    if (motor_id > 2) {
+    if (motor_id > 3) {
         chprintf(chp, "Invalid motor ID %d" SHELL_NEWLINE_STR, motor_id);
         return;
     }
-    chprintf(chp, "%.2f" SHELL_NEWLINE_STR, GimbalSKD::get_accumulated_angle((GimbalBase::motor_id_t) motor_id));
+    float angle = 0;
+    if (motor_id < 3) {
+        angle = GimbalSKD::get_accumulated_angle((GimbalBase::motor_id_t) motor_id);
+    } else {
+        angle = ShootSKD::get_loader_accumulated_angle();
+    }
+    chprintf(chp, "%.2f" SHELL_NEWLINE_STR, angle);
 }
 
 void cmd_echo_raw_angle(BaseSequentialStream *chp, int argc, char *argv[]) {
     (void) argv;
     if (argc != 1) {
-        shellUsage(chp, "echo_raw_angle motor_id(0/1/2)");
+        shellUsage(chp, "echo_raw_angle motor_id(0-3)");
         return;
     }
     unsigned motor_id = Shell::atoi(argv[0]);
-    if (motor_id > 2) {
+    if (motor_id > 3) {
         chprintf(chp, "Invalid motor ID %d" SHELL_NEWLINE_STR, motor_id);
         return;
     }
@@ -307,39 +321,125 @@ private:
                 }
             }
 
-            // AHRS
             if (feedback_enable[3])
                 Shell::printf("fb %s %.2f 0 %.2f 0 %.2f 0" SHELL_NEWLINE_STR,
-                              motor_name[6], ahrs.get_angle().x, ahrs.get_angle().y, ahrs.get_angle().z);
-            if (feedback_enable[4])
-                Shell::printf("fb %s %.2f 0 %.2f 0 %.2f 0" SHELL_NEWLINE_STR,
-                              motor_name[7], ahrs.get_gyro().x, ahrs.get_gyro().y, ahrs.get_gyro().z);
-            if (feedback_enable[5])
-                Shell::printf("fb %s %.2f 0 %.2f 0 %.2f 0" SHELL_NEWLINE_STR,
-                              motor_name[8], ahrs.get_accel().x, ahrs.get_accel().y, ahrs.get_accel().z);
+                              motor_name[3],
+                              ShootSKD::get_loader_accumulated_angle(), ShootSKD::get_loader_target_angle(),
+                              ShootSKD::get_actual_velocity(0), ShootSKD::get_target_velocity(0),
+                              GimbalIF::feedback[GimbalBase::BULLET]->actual_current, ShootSKD::get_target_current(0));
+
+            for (int i = 4; i <= 5; i++) {
+                if (feedback_enable[i])
+                    Shell::printf("fb %s %.2f 0 %.2f 0 %.2f 0" SHELL_NEWLINE_STR,
+                                  motor_name[i],
+                                  0, 0,
+                                  ShootSKD::get_actual_velocity(i-3), ShootSKD::get_actual_velocity(i-3),
+                                  GimbalIF::feedback[i]->actual_current, ShootSKD::get_target_current(i-3));
+            }
+
+            // AHRS
             if (feedback_enable[6])
                 Shell::printf("fb %s %.2f 0 %.2f 0 %.2f 0" SHELL_NEWLINE_STR,
+                              motor_name[6], ahrs.get_angle().x, ahrs.get_angle().y, ahrs.get_angle().z);
+            if (feedback_enable[7])
+                Shell::printf("fb %s %.2f 0 %.2f 0 %.2f 0" SHELL_NEWLINE_STR,
+                              motor_name[7], ahrs.get_gyro().x, ahrs.get_gyro().y, ahrs.get_gyro().z);
+            if (feedback_enable[8])
+                Shell::printf("fb %s %.2f 0 %.2f 0 %.2f 0" SHELL_NEWLINE_STR,
+                              motor_name[8], ahrs.get_accel().x, ahrs.get_accel().y, ahrs.get_accel().z);
+            if (feedback_enable[9])
+                Shell::printf("fb %s %.2f 0 %.2f 0 %.2f 0" SHELL_NEWLINE_STR,
                               motor_name[9], ahrs.get_magnet().x, ahrs.get_magnet().y, ahrs.get_magnet().z);
-
-            // Vision
-//            if (feedback_enable[7])
-//                Shell::printf("fb %s %.2f 0 %.2f 0 %.2f 0" SHELL_NEWLINE_STR,
-//                              motor_name[10], Vision::target_armor_yaw, Vision::target_armor_pitch,
-//                              Vision::target_armor_distance);
-//            if (feedback_enable[8])
-//                Shell::printf("fb %s %.2f 0 %.2f 0 0 %d" SHELL_NEWLINE_STR, motor_name[11],
-//                              Vision::velocity_calculator.latest_yaw_velocity() * 1000,
-//                              Vision::velocity_calculator.latest_pitch_velocity() * 1000,
-//                              Vision::last_update_delta);
-//            if (feedback_enable[9])
-//                Shell::printf("fb %s %.2f 0 %.2f 0 0 0" SHELL_NEWLINE_STR,
-//                              motor_name[12], Vision::last_gimbal_yaw, Vision::last_gimbal_pitch);
 
             sleep(TIME_MS2I(GIMBAL_FEEDBACK_INTERVAL));
         }
     }
 } feedbackThread;
 
+constexpr unsigned USER_THREAD_INTERVAL = 7;  // [ms]
+
+float gimbal_yaw_target_angle_ = 0;
+float gimbal_rc_yaw_max_speed = 180;  // [degree/s]
+
+float gimbal_pitch_min_angle = -30; // down range for pitch [degree]
+float gimbal_pitch_max_angle = 10; //  up range for pitch [degree]
+
+bool is_shooting = false;
+float bullet_velocity = 0;
+float shoot_common_duty_cycle = 0.4;
+
+
+class RemoteThread : public BaseStaticThread<512> {
+private:
+    void main() final {
+        setName("Remote");
+        while (!shouldTerminate()) {
+            if (Remote::rc.s1 == Remote::S_MIDDLE) {
+
+                /// Remote - Yaw + Pitch
+                GimbalSKD::set_mode(GimbalSKD::ABS_ANGLE_MODE);
+
+                gimbal_yaw_target_angle_ +=
+                        -Remote::rc.ch0 * (gimbal_rc_yaw_max_speed * USER_THREAD_INTERVAL / 1000.0f);
+                // ch0 use right as positive direction, while GimbalLG use CCW (left) as positive direction
+
+                float pitch_target;
+                if (Remote::rc.ch1 > 0) pitch_target = Remote::rc.ch1 * gimbal_pitch_max_angle * 0.1;
+                else pitch_target = Remote::rc.ch1 * gimbal_pitch_min_angle * 0.1;  // GIMBAL_PITCH_MIN_ANGLE is negative
+                // ch1 use up as positive direction, while GimbalLG also use up as positive direction
+
+                VAL_CROP(pitch_target, gimbal_pitch_max_angle, gimbal_pitch_min_angle);
+                GimbalSKD::set_target_angle(gimbal_yaw_target_angle_, pitch_target, 0);
+
+            } else {
+                /// Safe Mode
+                GimbalSKD::set_mode(GimbalSKD::FORCED_RELAX_MODE);
+            }
+
+
+            /*** ---------------------------------- Shoot --------------------------------- ***/
+
+            if (Remote::rc.s1 == Remote::S_MIDDLE) {
+
+                /// Remote - Shoot with Scrolling Wheel
+
+                ShootSKD::set_mode(ShootSKD::LIMITED_SHOOTING_MODE);
+
+                if (Remote::rc.wheel > 0.5) {  // down
+                    if (!is_shooting){
+                        is_shooting = true;
+                        ShootSKD::reset_loader_accumulated_angle();
+                        ShootSKD::set_loader_target_velocity(bullet_velocity);
+                    }
+                    ShootSKD::set_loader_target_angle(GimbalIF::feedback[GimbalBase::BULLET]->accumulated_angle() + 600);
+                } else if (Remote::rc.wheel < -0.5) {  // up
+                    if (!is_shooting){
+                        is_shooting = true;
+                        ShootSKD::reset_loader_accumulated_angle();
+                        ShootSKD::set_loader_target_velocity(bullet_velocity);
+                    }
+                    ShootSKD::set_loader_target_angle(GimbalIF::feedback[GimbalBase::BULLET]->accumulated_angle() - 600);
+                } else {
+                    if (is_shooting){
+                        is_shooting = false;
+                        ShootSKD::reset_loader_accumulated_angle();
+                        ShootSKD::set_loader_target_angle(0);
+                    }
+                }
+
+                ShootSKD::set_friction_wheels(shoot_common_duty_cycle);
+
+            } else {
+                /// Safe Mode
+                ShootSKD::set_mode(ShootSKD::FORCED_RELAX_MODE);
+                ShootSKD::set_friction_wheels(0);
+            }
+
+            /// Final
+            sleep(TIME_MS2I(USER_THREAD_INTERVAL));
+        }
+    }
+} remoteThread;
 
 // Command lists for gimbal controller test and adjustments
 ShellCommand mainProgramCommands[] = {
@@ -408,7 +508,7 @@ int main(void) {
     chThdSleepMilliseconds(5);
 
     /// Setup Remote
-//    Remote::start();
+    Remote::start();
 
 
     /// Setup GimbalIF (for Gimbal and Shoot)
@@ -430,7 +530,6 @@ int main(void) {
 
     /// Start SKDs
     GimbalSKD::set_test_status(true);
-    GimbalSKD::set_mode(GimbalSKD::ABS_ANGLE_MODE);
     GimbalSKD::start(&ahrs, GIMBAL_ANGLE_INSTALLATION_MATRIX_, GIMBAL_GYRO_INSTALLATION_MATRIX_,
                      GIMBAL_YAW_INSTALL_DIRECTION, GIMBAL_PITCH_INSTALL_DIRECTION, GIMBAL_SUB_PITCH_INSTALL_DIRECTION, THREAD_GIMBAL_SKD_PRIO);
     GimbalSKD::load_pid_params(GIMBAL_PID_YAW_A2V_PARAMS, GIMBAL_PID_YAW_V2I_PARAMS,
@@ -439,9 +538,11 @@ int main(void) {
 //    GimbalSKD::set_yaw_restriction(GIMBAL_RESTRICT_YAW_MIN_ANGLE, GIMBAL_RESTRICT_YAW_MAX_ANGLE,
 //                                   GIMBAL_RESTRICT_YAW_VELOCITY);
 
+    ShootSKD::set_test_status(true);
     ShootSKD::start(SHOOT_BULLET_INSTALL_DIRECTION, THREAD_SHOOT_SKD_PRIO);
     ShootSKD::load_pid_params(SHOOT_PID_BULLET_LOADER_A2V_PARAMS, SHOOT_PID_BULLET_LOADER_V2I_PARAMS,
                               SHOOT_PID_FW_LEFT_V2I_PARAMS, SHOOT_PID_FW_RIGHT_V2I_PARAMS);
+    remoteThread.start(THREAD_USER_PRIO);
 
     /// Complete Period 2
     BuzzerSKD::play_sound(BuzzerSKD::sound_startup_intel);  // Now play the startup sound

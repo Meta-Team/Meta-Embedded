@@ -49,7 +49,8 @@ void ShootSKD::load_pid_params(pid_params_t loader_a2v_params,
 
 void ShootSKD::load_pid_params_by_type(pid_params_t params, unsigned int motor_id, bool is_a2v) {
     if (is_a2v) {
-        a2v_pid.change_parameters(params);
+        if (motor_id == 0)
+            a2v_pid.change_parameters(params);
     } else {
         v2i_pid[motor_id].change_parameters(params);
     }
@@ -57,7 +58,10 @@ void ShootSKD::load_pid_params_by_type(pid_params_t params, unsigned int motor_i
 
 PIDController::pid_params_t ShootSKD::echo_pid_params_by_type(unsigned motor_id, bool is_a2v) {
     if (is_a2v) {
-        return a2v_pid.get_parameters();
+        if (motor_id == 0)
+            return a2v_pid.get_parameters();
+        else
+            return {0,0,0,0,0};
     } else {
         return v2i_pid[motor_id].get_parameters();
     }
@@ -91,12 +95,16 @@ float ShootSKD::get_friction_wheels_duty_cycle() {
     return target_velocity[2] / 3000.0f;
 }
 
-int ShootSKD::get_loader_target_current() {
-    return ShootSKD::target_current[0];
+float ShootSKD::get_target_velocity(uint32_t motor_id) {
+    return target_velocity[motor_id];
 }
 
-float ShootSKD::get_loader_actual_velocity() {
-    return GimbalIF::feedback[GimbalIF::BULLET]->actual_velocity * float(install_position[0]);
+int ShootSKD::get_target_current(uint32_t motor_id) {
+    return ShootSKD::target_current[motor_id];
+}
+
+float ShootSKD::get_actual_velocity(uint32_t motor_id) {
+    return GimbalIF::feedback[motor_id + 3]->actual_velocity * float(install_position[motor_id]);
 }
 
 float ShootSKD::get_loader_target_angle() {
