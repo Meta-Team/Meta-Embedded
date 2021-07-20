@@ -24,6 +24,13 @@ public:
         NONE
     };
 
+    enum operate_type_t {
+        NULL_OP,
+        ADD_OP,
+        MODIFY_OP,
+        DEL_OP
+    };
+
     enum color_t {
         ACCENT_COLOR,
         YELLOW,
@@ -34,13 +41,6 @@ public:
         CYAN,
         BLACK,
         WHITE
-    };
-
-    enum operate_type_t {
-        NULL_OP,
-        ADD,
-        MODIFY,
-        DELETE
     };
 
     struct UI_point {
@@ -62,7 +62,17 @@ public:
 
     static void add_int(char name[3], uint32_t layer, color_t color, UI_point start_p, uint32_t font_size, int data);
 
+    static void revise_character(char name[3], char *string, color_t color);
+
+    static void revise_shape_loc(char name[3], UI_point point, color_t color);
+
+    static void revise_line(char name[3], UI_point start_p, UI_point end_p);
+
     static void remove_layer(uint32_t layer);
+
+    static void remove_shape(char name[3]);
+
+    static void remove_chara(char name[3]);
 
     static void remove_all();
 

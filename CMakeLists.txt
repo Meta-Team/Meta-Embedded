@@ -89,6 +89,13 @@ set(CHASSIS_SRC
         dev/scheduler/chassis_scheduler.cpp
         dev/logic/chassis_logic.cpp)
 
+set(REFEREE_SRC
+        dev/common/CRC8.cpp
+        dev/common/CRC16.cpp
+        dev/interface/referee_interface.cpp
+        dev/scheduler/referee_UI_update_scheduler.cpp
+        dev/logic/referee_UI_logic.cpp)
+
 set(PA_CHASSIS_SRC
         dev/module/pid_controller.hpp
         dev/interface/can_interface.cpp
@@ -118,12 +125,10 @@ set(INFANTRY
         ${AHRS_SRC}
         ${INFANTRY_SHOOT_SRC}
         ${CHASSIS_SRC}
+        ${REFEREE_SRC}
         dev/interface/vision_port.cpp
         dev/interface/super_capacitor_port.cpp
-        dev/interface/referee_interface.cpp
         dev/interface/sd_card_interface.cpp
-        dev/common/CRC8.cpp
-        dev/common/CRC16.cpp
         dev/vehicle/infantry/inspector_infantry.cpp
         dev/vehicle/infantry/user_infantry.cpp
         dev/vehicle/infantry/main_infantry.cpp
@@ -406,10 +411,7 @@ add_executable(ut_super_capacitor
         dev/common/CRC16.cpp)
 
 add_executable(ut_referee_UI
-        dev/interface/referee_interface.cpp
-        dev/scheduler/referee_UI_update_scheduler.cpp
-        dev/common/CRC8.cpp
-        dev/common/CRC16.cpp
+        ${REFEREE_SRC}
         dev/debug/Unit_Tests/ut_Referee_UI.cpp)
 
 add_executable(ut_adc

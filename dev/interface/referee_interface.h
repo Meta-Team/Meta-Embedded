@@ -223,14 +223,14 @@ public:
     };
 
     __PACKED_STRUCT ext_client_custom_graphic_delete_t {
-        uint8_t operate_tpye;
+        uint8_t operate_type;
         uint8_t layer;
     };
 
     __PACKED_STRUCT graphic_data_struct_t {
         uint8_t graphic_name[3];
-        uint32_t operate_tpye:3;
-        uint32_t graphic_tpye:3;
+        uint32_t operate_type:3;
+        uint32_t graphic_type:3;
         uint32_t layer:4;
         uint32_t color:4;
         uint32_t start_angle:9;

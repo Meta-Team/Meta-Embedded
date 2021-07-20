@@ -121,7 +121,7 @@ void Referee::uart_rx_callback(UARTDriver *uartp) {
                             game_robot_state = pak.game_robot_state_;
                             int robot_id = game_robot_state.robot_id;
                             client_custom_data.header.send_ID = robot_id;
-                            client_custom_data.header.receiver_ID = (robot_id%100) + (robot_id / 100) * 0x164;
+                            client_custom_data.header.receiver_ID = (robot_id%100) + (robot_id / 100) * 0x064 + 0x100;
                             robot_data_send.header.send_ID = robot_id;
                         } else game_robot_state = pak.game_robot_state_;
                         break;
@@ -219,7 +219,7 @@ void Referee::DataSendingThread::main() {
     null_graphic.graphic_name[0] = (uint8_t) null_name[0];
     null_graphic.graphic_name[1] = (uint8_t) null_name[1];
     null_graphic.graphic_name[2] = (uint8_t) null_name[2];
-    null_graphic.operate_tpye = 3;
+    null_graphic.operate_type = 0;
     while (!shouldTerminate()) {
         /***Update UI Info***/
         if(graphic_buffer_index != 0){
@@ -241,7 +241,7 @@ void Referee::DataSendingThread::main() {
                     client_custom_data.ext_client_custom_graphic_seven.grapic_data_[i] = null_graphic;
                 }
             } else if (graphic_buffer_index < 8) { // 6 - 7 buffer full filled
-                client_custom_data.header.data_cmd_id = 0x104;
+                client_custom_data.header.data_cmd_id = 0x0104;
                 int i = 0;
                 for (i = 0; i < graphic_buffer_index; i++) {
                     client_custom_data.ext_client_custom_graphic_seven.grapic_data_[i] = graphic_data_buffer[i];
@@ -256,24 +256,29 @@ void Referee::DataSendingThread::main() {
             sleep(TIME_MS2I(100)); // wait for 100ms, as the maximum sending interval is 10 Hz
         }
         if(!client_character_sent) {
-            client_custom_data.header.data_cmd_id = 0x110;
+            client_custom_data.header.data_cmd_id = 0x0110;
             client_custom_data.ext_client_custom_character = client_character_buffer;
             client_character_sent = true;
             send_data_(Referee::CLIENT);
             sleep(TIME_MS2I(100));
         }
         if(invoke_ui_delete_layer) {
-            client_custom_data.header.data_cmd_id = 0x100;
-            client_custom_data.ext_client_custom_graphic_delete.operate_tpye = 1;
+            client_custom_data.header.data_cmd_id = 0x0100;
+            client_custom_data.ext_client_custom_graphic_delete.operate_type = 1;
             client_custom_data.ext_client_custom_graphic_delete.layer = layer_deleting;
             send_data_(Referee::CLIENT);
             invoke_ui_delete_layer = false;
             sleep(TIME_MS2I(100));
         }
         if(invoke_ui_delete_all) {
-            client_custom_data.header.data_cmd_id = 0x100;
-            client_custom_data.ext_client_custom_graphic_delete.operate_tpye = 2;
-            client_custom_data.ext_client_custom_graphic_delete.layer = 0;
+            for(int i = 0; i < 9; i++) {
+                client_custom_data.header.data_cmd_id = 0x0100;
+                client_custom_data.ext_client_custom_graphic_delete.operate_type = 2;
+                client_custom_data.ext_client_custom_graphic_delete.layer = 0;
+                send_data_(Referee::CLIENT);
+                sleep(TIME_MS2I(100));
+            }
+            invoke_ui_delete_all = false;
         }
         sleep(TIME_MS2I(100));  // maximum sending interval 10 Hz
     }
@@ -283,18 +288,43 @@ void Referee::send_data_(receiver_index_t receiver_id) {
     if (game_robot_state.robot_id == 0)
         return;
     package_t tx_pak;
-    tx_pak.header.sof = 0xA5;
-    if (receiver_id == CLIENT) {
-        tx_pak.header.data_length = sizeof(client_custom_data_t);
-    }
-    tx_pak.header.seq = tx_seq++;
-    Append_CRC8_Check_Sum((uint8_t *)&tx_pak, FRAME_HEADER_SIZE);
-    tx_pak.cmd_id = 0x0301;
-
     size_t tx_pak_size = 0;
     if (receiver_id == CLIENT){
+        int client_custom_data_length = 0;
+        switch (client_custom_data.header.data_cmd_id) {
+            case 0x0101:
+                client_custom_data_length = sizeof(Referee::student_interactive_header_data_t)
+                        + sizeof (Referee::ext_client_custom_graphic_single_t);
+                break;
+            case 0x0102:
+                client_custom_data_length = sizeof(Referee::student_interactive_header_data_t)
+                                            + sizeof (Referee::ext_client_custom_graphic_double_t);
+                break;
+            case 0x0103:
+                client_custom_data_length = sizeof(Referee::student_interactive_header_data_t)
+                                            + sizeof (Referee::ext_client_custom_graphic_five_t);
+                break;
+            case 0x0104:
+                client_custom_data_length = sizeof(Referee::student_interactive_header_data_t)
+                                            + sizeof (Referee::ext_client_custom_graphic_seven_t);
+                break;
+            case 0x0110:
+                client_custom_data_length = sizeof(Referee::student_interactive_header_data_t)
+                                            + sizeof (Referee::ext_client_custom_character_t);
+                break;
+            case 0x0100:
+                client_custom_data_length = sizeof(Referee::student_interactive_header_data_t)
+                                            + sizeof (Referee::ext_client_custom_graphic_delete_t);
+                break;
+        }
+        tx_pak.header.sof = 0xA5;
+        tx_pak.header.data_length = client_custom_data_length;
+        tx_pak.header.seq = tx_seq++;
+        Append_CRC8_Check_Sum((uint8_t *)&tx_pak, FRAME_HEADER_SIZE);
+        tx_pak.cmd_id = 0x0301;
+
         tx_pak.client_custom_data_ = client_custom_data;
-        tx_pak_size = FRAME_HEADER_SIZE + CMD_ID_SIZE + sizeof(client_custom_data_t) + FRAME_TAIL_SIZE;
+        tx_pak_size = FRAME_HEADER_SIZE + CMD_ID_SIZE + client_custom_data_length + FRAME_TAIL_SIZE;
     }
     Append_CRC16_Check_Sum((uint8_t *)&tx_pak, tx_pak_size);
     uartSendTimeout(UART_DRIVER, &tx_pak_size, &tx_pak, TIME_MS2I(20));
