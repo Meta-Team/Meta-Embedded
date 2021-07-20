@@ -24,6 +24,8 @@
 #include "pid_controller.hpp"
 #include "math.h"
 
+#include "referee_UI_logic.h"
+
 /**
  * @name ChassisSKD
  * @note SKD stands for "scheduler"

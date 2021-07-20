@@ -13,7 +13,7 @@ using namespace chibios_rt;
 
 class RefereeUILG {
 public:
-    static void init(tprio_t LOGIC_PRIO);
+    static void init();
     static void revise_cap(float cap_volt);
     static void toggle_top(bool top_stat);
     static void toggle_dodge(bool dodge_stat);
@@ -22,12 +22,15 @@ public:
 private:
     static char cap_name[3];
     static char cap_title[30];
+    static unsigned long cap_update_time;
 
     static char top_name[3];
     static char top_title[30];
+    static unsigned long top_update_time;
 
     static char dodge_name[3];
     static char dodge_title[30];
+    static unsigned long dodge_update_time;
 
     static char chassis_indicator_1_name[3];
     static RefereeUISKD::UI_point chassis_1_start_point;
@@ -40,6 +43,8 @@ private:
     static char gun_indicator_name[3];
     static RefereeUISKD::UI_point gun_start_point;
     static RefereeUISKD::UI_point gun_end_point;
+
+    static unsigned long angle_update_time;
 
     static char main_enemy_name[3];
     static RefereeUISKD::UI_point enemy_info[5];

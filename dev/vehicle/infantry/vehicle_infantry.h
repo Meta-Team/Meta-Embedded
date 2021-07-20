@@ -27,12 +27,12 @@
 #define GIMBAL_FW_LEFT_CAN_CHANNEL  (GimbalIF::can_channel_1)
 #define GIMBAL_FW_RIGHT_CAN_CHANNEL (GimbalIF::can_channel_1)
 
-#define GIMBAL_YAW_CAN_ID         4
-#define GIMBAL_PITCH_CAN_ID       5
+#define GIMBAL_YAW_CAN_ID         1
+#define GIMBAL_PITCH_CAN_ID       2
 #define GIMBAL_SUB_PITCH_CAN_ID   7
-#define GIMBAL_BULLET_CAN_ID      6
-#define GIMBAL_FW_LEFT_CAN_ID     2
-#define GIMBAL_FW_RIGHT_CAN_ID    3
+#define GIMBAL_BULLET_CAN_ID      7
+#define GIMBAL_FW_LEFT_CAN_ID     3
+#define GIMBAL_FW_RIGHT_CAN_ID    4
 
 #define GIMBAL_YAW_MOTOR_TYPE      (CANInterface::GM6020)
 #define GIMBAL_PITCH_MOTOR_TYPE    (CANInterface::GM6020)
@@ -54,10 +54,10 @@
 #define CHASSIS_BL_CHANNEL      (ChassisIF::can_channel_2)
 #define CHASSIS_BR_CHANNEL      (ChassisIF::can_channel_2)
 
-#define CHASSIS_FR_CAN_ID      0
-#define CHASSIS_FL_CAN_ID      1
-#define CHASSIS_BL_CAN_ID      2
-#define CHASSIS_BR_CAN_ID      3
+#define CHASSIS_FR_CAN_ID      1
+#define CHASSIS_FL_CAN_ID      2
+#define CHASSIS_BL_CAN_ID      3
+#define CHASSIS_BR_CAN_ID      4
 
 #define CHASSIS_FR_MOTOR_TYPE  (CANInterface::M3508)
 #define CHASSIS_FL_MOTOR_TYPE  (CANInterface::M3508)
@@ -274,6 +274,7 @@
 #define THREAD_CHASSIS_POWER_SET_PRIO       (NORMALPRIO - 3)
 #define THREAD_SHOOT_LG_STUCK_DETECT_PRIO   (NORMALPRIO - 4)
 #define THREAD_REFEREE_SENDING_PRIO         (NORMALPRIO - 6)
+#define THREAD_REFEREE_SKD_PRIO             (NORMALPRIO - 7)
 #define THREAD_SUPERCAP_INIT_PRIO           (NORMALPRIO - 8)
 #define THREAD_INSPECTOR_PRIO               (NORMALPRIO - 10)
 #define THREAD_SHOOT_BULLET_COUNTER_PRIO    (LOWPRIO + 7)

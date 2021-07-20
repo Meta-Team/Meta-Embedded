@@ -101,7 +101,7 @@ void Referee::uart_rx_callback(UARTDriver *uartp) {
 
         case WAIT_REMAINING_HEADER:
 
-            if (Verify_CRC8_Check_Sum(pak_uint8, FRAME_HEADER_SIZE)) {
+            if (verify_crc8_check_sum(pak_uint8, FRAME_HEADER_SIZE)) {
                 rx_status = WAIT_CMD_ID_DATA_TAIL; // go to next status
             } else {
                 rx_status = WAIT_STARTING_BYTE;
@@ -110,7 +110,7 @@ void Referee::uart_rx_callback(UARTDriver *uartp) {
 
         case WAIT_CMD_ID_DATA_TAIL:
 
-            if (Verify_CRC16_Check_Sum(pak_uint8,
+            if (verify_crc16_check_sum(pak_uint8,
                                        FRAME_HEADER_SIZE + CMD_ID_SIZE + pak.header.data_length + FRAME_TAIL_SIZE)) {
 
                 switch (pak.cmd_id) {
@@ -224,9 +224,15 @@ void Referee::DataSendingThread::main() {
         /***Update UI Info***/
         if(graphic_buffer_index != 0){
             if(graphic_buffer_index == 1) { // 1 buffer used
+                if(graphic_data_buffer[0].graphic_name[0] == 'c' && graphic_data_buffer[0].graphic_name[1] == 'h') {
+                    goto send_character;
+                }
                 client_custom_data.header.data_cmd_id = 0x0101;
                 client_custom_data.ext_client_custom_graphic_single.grapic_data_ = graphic_data_buffer[0];
             } else if (graphic_buffer_index < 3) { // 2 buffer used
+                if(graphic_data_buffer[1].graphic_name[0] != 'c' && graphic_data_buffer[1].graphic_name[1] == 'h') {
+                    goto send_character;
+                }
                 client_custom_data.header.data_cmd_id = 0x0102;
                 client_custom_data.ext_client_custom_graphic_double.grapic_data_[0] = graphic_data_buffer[0];
                 client_custom_data.ext_client_custom_graphic_double.grapic_data_[1] = graphic_data_buffer[1];
@@ -255,6 +261,7 @@ void Referee::DataSendingThread::main() {
             send_data_(Referee::CLIENT);
             sleep(TIME_MS2I(100)); // wait for 100ms, as the maximum sending interval is 10 Hz
         }
+        send_character:
         if(!client_character_sent) {
             client_custom_data.header.data_cmd_id = 0x0110;
             client_custom_data.ext_client_custom_character = client_character_buffer;
@@ -280,7 +287,7 @@ void Referee::DataSendingThread::main() {
             }
             invoke_ui_delete_all = false;
         }
-        sleep(TIME_MS2I(100));  // maximum sending interval 10 Hz
+        sleep(TIME_MS2I(80));  // maximum sending interval 10 Hz
     }
 }
 
@@ -320,13 +327,13 @@ void Referee::send_data_(receiver_index_t receiver_id) {
         tx_pak.header.sof = 0xA5;
         tx_pak.header.data_length = client_custom_data_length;
         tx_pak.header.seq = tx_seq++;
-        Append_CRC8_Check_Sum((uint8_t *)&tx_pak, FRAME_HEADER_SIZE);
+        append_crc8_check_sum((uint8_t *)&tx_pak, FRAME_HEADER_SIZE);
         tx_pak.cmd_id = 0x0301;
 
         tx_pak.client_custom_data_ = client_custom_data;
         tx_pak_size = FRAME_HEADER_SIZE + CMD_ID_SIZE + client_custom_data_length + FRAME_TAIL_SIZE;
     }
-    Append_CRC16_Check_Sum((uint8_t *)&tx_pak, tx_pak_size);
+    append_crc16_check_sum((uint8_t *)&tx_pak, tx_pak_size);
     uartSendTimeout(UART_DRIVER, &tx_pak_size, &tx_pak, TIME_MS2I(20));
 }
 

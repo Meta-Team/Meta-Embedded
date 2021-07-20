@@ -79,7 +79,9 @@ public:
     static void echo_shapes();
 
     static void echo_titles();
-private:
+
+public:
+
     enum component_state_t{
         WAITING,
         REVISING,
@@ -88,10 +90,12 @@ private:
 
     static component_state_t shape_state[REFEREE_UI_MAX_SHAPE_COUNT];
     static Referee::graphic_data_struct_t shapes[REFEREE_UI_MAX_SHAPE_COUNT];
+    static long unsigned shape_last_revision_time[REFEREE_UI_MAX_SHAPE_COUNT];
     static int shape_count;
 
     static component_state_t label_state[REFEREE_UI_MAX_LABEL_COUNT];
     static Referee::ext_client_custom_character_t labels[REFEREE_UI_MAX_LABEL_COUNT];
+    static long unsigned label_last_revision_time[REFEREE_UI_MAX_LABEL_COUNT];
     static int label_count;
     static int strlen(char *s);
 

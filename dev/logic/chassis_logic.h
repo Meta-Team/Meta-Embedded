@@ -17,6 +17,7 @@
 #include "math.h"
 
 #include "referee_interface.h"
+#include "referee_UI_logic.h"
 #include "super_capacitor_port.h"
 #include "pid_controller.hpp"
 

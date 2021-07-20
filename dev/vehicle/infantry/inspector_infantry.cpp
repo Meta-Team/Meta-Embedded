@@ -116,6 +116,10 @@ void InspectorI::startup_check_gimbal_feedback() {
                 t = SYSTIME;  // reset the counter
             }
         }
+        LOG("Gimbal Yaw: %u, %f, Pitch: %u, %f",
+            GimbalIF::feedback[GimbalIF::YAW]->last_angle_raw, GimbalIF::feedback[GimbalIF::YAW]->actual_angle,
+            GimbalIF::feedback[GimbalIF::PITCH]->last_angle_raw, GimbalIF::feedback[GimbalIF::PITCH]->actual_angle);
+
         if (not WITHIN_RECENT_TIME(GimbalIF::feedback[GimbalIF::YAW]->last_update_time, 5)) {
             // No feedback in last 5 ms (normal 1 ms)
             LOG_ERR("Startup - Gimbal Yaw offline.");

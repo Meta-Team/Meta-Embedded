@@ -5,15 +5,17 @@
 #include "referee_UI_update_scheduler.h"
 #include "shell.h"
 
-int RefereeUISKD::label_count;
+int RefereeUISKD::label_count = 0;
 int RefereeUISKD::shape_count;
 
 Referee::ext_client_custom_character_t RefereeUISKD::labels[REFEREE_UI_MAX_LABEL_COUNT];
 Referee::graphic_data_struct_t RefereeUISKD::shapes[REFEREE_UI_MAX_SHAPE_COUNT];
+unsigned long RefereeUISKD::shape_last_revision_time[REFEREE_UI_MAX_SHAPE_COUNT];
 RefereeUISKD::SKDThread RefereeUISKD::skdThread;
 
 RefereeUISKD::component_state_t RefereeUISKD::shape_state[REFEREE_UI_MAX_SHAPE_COUNT];
 RefereeUISKD::component_state_t RefereeUISKD::label_state[REFEREE_UI_MAX_LABEL_COUNT];
+unsigned long RefereeUISKD::label_last_revision_time[REFEREE_UI_MAX_LABEL_COUNT];
 
 void RefereeUISKD::init(tprio_t SKDThreadPRIO) {
     skdThread.start(SKDThreadPRIO);
@@ -46,6 +48,7 @@ void RefereeUISKD::add_character(char* name, UI_point start_p, color_t color, ui
     }
     RefereeUISKD::labels[label_count] = Charact;
     RefereeUISKD::label_count += 1;
+    Shell::printf("interval: %d" SHELL_NEWLINE_STR, RefereeUISKD::label_count);
     chThdSleepMilliseconds(100);
 }
 
@@ -201,14 +204,14 @@ void RefereeUISKD::remove_layer(uint32_t layer) {
         shape_state[i] = shape_state[i+step_offset];
     }
     step_offset = 0;
+
     for(int i = 0; i < label_count; i++) {
-        while(labels[i+step_offset].grapic_data_struct.layer != layer) {
+        while(labels[i+step_offset].grapic_data_struct.layer == layer) {
             step_offset++;
             label_count--;
         }
         labels[i] = labels[i+step_offset];
         label_state[i] = label_state[i+step_offset];
-
     }
     Referee::remove_layer(layer);
 }
@@ -217,9 +220,9 @@ void RefereeUISKD::remove_shape(char *name) {
     if(shape_count == 0) return;
     int step_offset = 0;
     for(int i = 0; i < shape_count; i++) {
-        while(shapes[i].graphic_name[0] == (uint8_t) name[0]&&
-              shapes[i].graphic_name[1] == (uint8_t) name[1]&&
-              shapes[i].graphic_name[2] == (uint8_t) name[2]) {
+        if( shapes[i].graphic_name[0] == (uint8_t) name[0]&&
+            shapes[i].graphic_name[1] == (uint8_t) name[1]&&
+            shapes[i].graphic_name[2] == (uint8_t) name[2]) {
             step_offset++;
             shape_count--;
             shapes[i].operate_type = DEL_OP;
@@ -236,9 +239,9 @@ void RefereeUISKD::remove_chara(char *name) {
     if(label_count == 0) return;
     int step_offset = 0;
     for(int i = 0; i < label_count; i++) {
-        while(labels[i].grapic_data_struct.graphic_name[0] == (uint8_t) name[0]&&
-              labels[i].grapic_data_struct.graphic_name[1] == (uint8_t) name[1]&&
-              labels[i].grapic_data_struct.graphic_name[2] == (uint8_t) name[2]) {
+        if( labels[i].grapic_data_struct.graphic_name[0] == (uint8_t) name[0]&&
+            labels[i].grapic_data_struct.graphic_name[1] == (uint8_t) name[1]&&
+            labels[i].grapic_data_struct.graphic_name[2] == (uint8_t) name[2]) {
             labels[i].grapic_data_struct.operate_type = DEL_OP;
             step_offset++;
             label_count--;
@@ -255,25 +258,26 @@ void RefereeUISKD::remove_chara(char *name) {
 void RefereeUISKD::echo_shapes() {
     for (int i = 0; i<shape_count; i++) {
         char name[3] = {shapes[i].graphic_name[0], shapes[i].graphic_name[1], shapes[i].graphic_name[2]};
-        Shell::printf("%s ", name);
+        Shell::printf("%s " SHELL_NEWLINE_STR, name);
     }
-    Shell::printf(SHELL_NEWLINE_STR);
 }
 
 void RefereeUISKD::echo_titles() {
     for (int i = 0; i < label_count; i++) {
         for(int j = 0; j < labels[i].grapic_data_struct.end_angle; j++) {
-            Shell::printf("%d ", labels[i].data[j]);
+            Shell::printf("%d " SHELL_NEWLINE_STR, labels[i].data[j]);
         }
-        Shell::printf(SHELL_NEWLINE_STR);
+
     }
 }
 
 void RefereeUISKD::revise_character(char *name, char *string, color_t color) {
+
     for (int i=0; i<label_count; i++) {
         if( labels[i].grapic_data_struct.graphic_name[0] == (uint8_t) name[0]&&
             labels[i].grapic_data_struct.graphic_name[1] == (uint8_t) name[1]&&
             labels[i].grapic_data_struct.graphic_name[2] == (uint8_t) name[2]) { // find object
+            if(WITHIN_RECENT_TIME(label_last_revision_time[i], label_count * 100)) return;
             int char_length = strlen(string);
             if(char_length > 30) {
                 return;
@@ -285,6 +289,7 @@ void RefereeUISKD::revise_character(char *name, char *string, color_t color) {
                 labels[i].data[j] = (uint8_t) string[j];
             }
             label_state[i] = REVISING;
+            label_last_revision_time[i] = SYSTIME;
             return;
         }
     }
@@ -296,6 +301,7 @@ void RefereeUISKD::revise_shape_loc(char *name, UI_point point, color_t color) {
         if( shapes[i].graphic_name[0] == (uint8_t) name[0]&&
             shapes[i].graphic_name[1] == (uint8_t) name[1]&&
             shapes[i].graphic_name[2] == (uint8_t) name[2]) { // find object
+            if(WITHIN_RECENT_TIME(shape_last_revision_time[i],100)) return;
             if(shapes[i].graphic_type == RECT) {
                 int width = 0;
                 int height = 0;
@@ -306,7 +312,9 @@ void RefereeUISKD::revise_shape_loc(char *name, UI_point point, color_t color) {
             }
             shapes[i].start_x = point.x;
             shapes[i].start_y = point.y;
+            shapes[i].color = color;
             shape_state[i] = REVISING;
+            shape_last_revision_time[i] = SYSTIME;
         }
     }
 }
@@ -316,12 +324,14 @@ void RefereeUISKD::revise_line(char *name, UI_point start_p, UI_point end_p) {
         if( shapes[i].graphic_name[0] == (uint8_t) name[0]&&
             shapes[i].graphic_name[1] == (uint8_t) name[1]&&
             shapes[i].graphic_name[2] == (uint8_t) name[2]) { // find object
+            if(WITHIN_RECENT_TIME(shape_last_revision_time[i],100)) return;
             if(shapes[i].graphic_type != LINE) return;
             shapes[i].start_x = start_p.x;
             shapes[i].start_y = start_p.y;
             shapes[i].end_x = end_p.x;
             shapes[i].end_y = end_p.y;
             shape_state[i] = REVISING;
+            shape_last_revision_time[i] = SYSTIME;
         }
     }
 }
@@ -345,7 +355,7 @@ void RefereeUISKD::SKDThread::main() {
             }
             while(label_state[i]!=FINISHED) {
                 label_state[i] = Referee::set_title(labels[i]) ? FINISHED : label_state[i];
-                sleep(TIME_MS2I(50));
+                sleep(TIME_MS2I(100));
             }
         }
         sleep(TIME_MS2I(200));

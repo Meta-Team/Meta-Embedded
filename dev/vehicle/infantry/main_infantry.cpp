@@ -17,6 +17,8 @@
 #include "sd_card_interface.h"
 #include "vision.h"
 #include "super_capacitor_port.h"
+#include "referee_UI_update_scheduler.h"
+#include "referee_UI_logic.h"
 
 #include "gimbal_interface.h"
 #include "gimbal_scheduler.h"
@@ -106,13 +108,18 @@ int main() {
     InspectorI::startup_check_can();  // check no persistent CAN Error. Block for 100 ms
     LED::led_on(DEV_BOARD_LED_CAN);  // LED 2 on now
 
-    /// Start Feedback Thread
-    feedback_thread_start();
-
     /// Setup SuperCapacitor Port
 #if INFANTRY_SUPER_CAPACITOR_ENABLE
     SuperCapacitor::init(&can2, THREAD_SUPERCAP_INIT_PRIO);
 #endif
+
+    /// Setup Referee
+    Referee::init(THREAD_REFEREE_SENDING_PRIO);
+    RefereeUISKD::init(THREAD_REFEREE_SKD_PRIO);
+    RefereeUILG::init();
+
+    /// Start Feedback Thread
+    feedback_thread_start();
     /// Complete Period 1
     LED::green_on();  // LED Green on now
 
@@ -120,10 +127,10 @@ int main() {
     Vector3D ahrs_bias;
     if (SDCard::get_data(MPU6500_BIAS_DATA_ID, &ahrs_bias, sizeof(ahrs_bias)) == SDCard::OK) {
         ahrs.load_calibration_data(ahrs_bias);
-        LOG("Use AHRS bias in SD Card");
+        //LOG("Use AHRS bias in SD Card");
     } else {
         ahrs.load_calibration_data(MPU6500_STORED_GYRO_BIAS);
-        LOG_WARN("Use default AHRS bias");
+        //LOG_WARN("Use default AHRS bias");
     }
     ahrs.start(ON_BOARD_AHRS_MATRIX_, THREAD_MPU_PRIO, THREAD_IST_PRIO, THREAD_AHRS_PRIO);
     while(!ahrs.AHRS_ready()) {
@@ -160,16 +167,13 @@ int main() {
     /// Setup Red Spot Laser
     palSetPad(GPIOG, GPIOG_RED_SPOT_LASER);  // enable the red spot laser
 
-    /// Setup Referee
-    Referee::init(THREAD_REFEREE_SENDING_PRIO);
-
     /*** ------------ Period 2. Calibration and Start Logic Control Thread ----------- ***/
 
 #if INFANTRY_GIMBAL_ENABLE
     /// Echo Gimbal Raws and Converted Angles
-    LOG("Gimbal Yaw: %u, %f, Pitch: %u, %f",
-        GimbalIF::feedback[GimbalIF::YAW]->last_angle_raw, GimbalIF::feedback[GimbalIF::YAW]->actual_angle,
-        GimbalIF::feedback[GimbalIF::PITCH]->last_angle_raw, GimbalIF::feedback[GimbalIF::PITCH]->actual_angle);
+//    LOG("Gimbal Yaw: %u, %f, Pitch: %u, %f",
+//        GimbalIF::feedback[GimbalIF::YAW]->last_angle_raw, GimbalIF::feedback[GimbalIF::YAW]->actual_angle,
+//        GimbalIF::feedback[GimbalIF::PITCH]->last_angle_raw, GimbalIF::feedback[GimbalIF::PITCH]->actual_angle);
 
     /// Start SKDs
     GimbalSKD::start(&ahrs, GIMBAL_ANGLE_INSTALLATION_MATRIX_, GIMBAL_GYRO_INSTALLATION_MATRIX_,
