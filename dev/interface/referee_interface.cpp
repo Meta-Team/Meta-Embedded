@@ -224,15 +224,9 @@ void Referee::DataSendingThread::main() {
         /***Update UI Info***/
         if(graphic_buffer_index != 0){
             if(graphic_buffer_index == 1) { // 1 buffer used
-                if(graphic_data_buffer[0].graphic_name[0] == 'c' && graphic_data_buffer[0].graphic_name[1] == 'h') {
-                    goto send_character;
-                }
                 client_custom_data.header.data_cmd_id = 0x0101;
                 client_custom_data.ext_client_custom_graphic_single.grapic_data_ = graphic_data_buffer[0];
             } else if (graphic_buffer_index < 3) { // 2 buffer used
-                if(graphic_data_buffer[1].graphic_name[0] != 'c' && graphic_data_buffer[1].graphic_name[1] == 'h') {
-                    goto send_character;
-                }
                 client_custom_data.header.data_cmd_id = 0x0102;
                 client_custom_data.ext_client_custom_graphic_double.grapic_data_[0] = graphic_data_buffer[0];
                 client_custom_data.ext_client_custom_graphic_double.grapic_data_[1] = graphic_data_buffer[1];
@@ -287,7 +281,7 @@ void Referee::DataSendingThread::main() {
             }
             invoke_ui_delete_all = false;
         }
-        sleep(TIME_MS2I(80));  // maximum sending interval 10 Hz
+        sleep(TIME_MS2I(10));
     }
 }
 

@@ -277,7 +277,7 @@ void RefereeUISKD::revise_character(char *name, char *string, color_t color) {
         if( labels[i].grapic_data_struct.graphic_name[0] == (uint8_t) name[0]&&
             labels[i].grapic_data_struct.graphic_name[1] == (uint8_t) name[1]&&
             labels[i].grapic_data_struct.graphic_name[2] == (uint8_t) name[2]) { // find object
-            if(WITHIN_RECENT_TIME(label_last_revision_time[i], label_count * 100)) return;
+            if(WITHIN_RECENT_TIME(label_last_revision_time[i], 1000)) return;
             int char_length = strlen(string);
             if(char_length > 30) {
                 return;

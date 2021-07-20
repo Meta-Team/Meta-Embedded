@@ -87,17 +87,17 @@ void RefereeUILG::toggle_dodge(bool dodge_stat) {
 }
 
 void RefereeUILG::set_chassis_angle(float angle) {
-    if(WITHIN_RECENT_TIME(angle_update_time,100)) return;
+    if(WITHIN_RECENT_TIME(angle_update_time,25)) return;
     double x_offset = 25.0f*sin(angle);
     double y_offset = 25.0f*cos(angle);
     chassis_1_start_point.x   = (uint32_t) (960.0f - x_offset);
     chassis_1_end_point.x     = (uint32_t) (960.0f + x_offset);
     chassis_1_start_point.y   = (uint32_t) (200.0f - y_offset);
     chassis_1_end_point.y     = (uint32_t) (200.0f + y_offset);
-    chassis_2_end_point.x     = (uint32_t) (960.0f + 30.0f*sin(angle));
-    chassis_2_end_point.y     = (uint32_t) (200.0f + 30.0f*cos(angle));
+//    chassis_2_end_point.x     = (uint32_t) (960.0f + 30.0f*sin(angle));
+//    chassis_2_end_point.y     = (uint32_t) (200.0f + 30.0f*cos(angle));
     RefereeUISKD::revise_line(chassis_indicator_1_name, chassis_1_start_point, chassis_1_end_point);
-    RefereeUISKD::revise_line(chassis_indicator_2_name, chassis_1_start_point, chassis_2_end_point);
+//    RefereeUISKD::revise_line(chassis_indicator_2_name, chassis_1_start_point, chassis_2_end_point);
     angle_update_time = SYSTIME;
 }
 
@@ -125,8 +125,8 @@ void RefereeUILG::init_chassis_UI() {
     RefereeUILG::chassis_1_end_point = {960, 200 + 25};
     RefereeUILG::chassis_1_start_point = {960, 200 - 25};
     RefereeUISKD::add_line(chassis_indicator_1_name, 2, RefereeUISKD::ACCENT_COLOR, chassis_1_start_point, chassis_1_end_point, 30);
-    RefereeUILG::chassis_2_end_point = {960, 230};
-    RefereeUISKD::add_line(chassis_indicator_2_name, 2, RefereeUISKD::ACCENT_COLOR, chassis_1_start_point, chassis_2_end_point, 20);
+//    RefereeUILG::chassis_2_end_point = {960, 230};
+//    RefereeUISKD::add_line(chassis_indicator_2_name, 2, RefereeUISKD::ACCENT_COLOR, chassis_1_start_point, chassis_2_end_point, 20);
 }
 
 void RefereeUILG::init_vision_UI() {
