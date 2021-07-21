@@ -8,6 +8,7 @@
 #include "ch.hpp"
 #include "hal.h"
 #include "low_pass_filter.hpp"
+#include "position_kalman_filter.hpp"
 
 class Vision {
 
@@ -83,36 +84,14 @@ private:
     /** Armor and Control **/
 
     // Latest armor position (without prediction and compensation)
-    static LowPassFilteredValue target_armor_yaw;    // [deg]
-    static LowPassFilteredValue target_armor_pitch;  // [deg]
-    static LowPassFilteredValue target_armor_dist;   // [mm]
-
-    static constexpr float DIST_LPF_ALPHA = 0.5f;
-    static constexpr float TOP_KILLER_ANGLE_LPF_ALPHA = 0.5f;
-
-    // Velocities
-    class VelocityCalculator {
-    public:
-        VelocityCalculator() : yaw_v(FILTER_ALPHA), pitch_v(FILTER_ALPHA), dist_v(FILTER_ALPHA) {}
-        float yaw_velocity() const { return yaw_v.get(); }      // [deg/ms]
-        float pitch_velocity() const { return pitch_v.get(); }  // [deg/ms]
-        float dist_velocity() const { return dist_v.get(); }    // [mm/ms]
-        void update(float armor_yaw, float armor_pitch, float armor_dist, time_msecs_t time);
-        void reset();
-
-    private:
-        time_msecs_t last_compute_time = 0;
-        float last_yaw = 0, last_pitch = 0, last_dist = 0;
-        LowPassFilteredValue yaw_v, pitch_v , dist_v;
-        static constexpr float FILTER_ALPHA = 0.2f;
-        static constexpr time_msecs_t MIN_COMPUTE_INTERNAL = 100;  // [ms]
-    };
-
-    static VelocityCalculator velocity_calculator;
+    static PositionKalmanFilter armor_ypd[3];    // [deg, deg, mm]
+    static constexpr float Q_POSITION[3] = {1E-9, 1E-9, 1E-6};
+    static constexpr float Q_VELOCITY[3] = {4E-4, 1E-5, 1};
+    static constexpr float R_POSITION[3] = {0.3, 0.3, 200};
 
     // Prediction and compensation
     static bool can_reach_the_target;
-    static int flight_time_to_target;  // [ms]
+    static float flight_time_to_target;  // [ms]
     static LowPassFilteredValue measured_pitch_offset;
     static LowPassFilteredValue measured_shoot_delay;
 
@@ -124,25 +103,6 @@ private:
     static time_msecs_t expected_shoot_time;          // [ms] for TopKiller, 0 for anytime
     static int expected_shoot_after_periods;
 
-    /**
-     * Predict target position based on computed velocities.
-     * @param yaw   [In/Out] [deg]
-     * @param pitch [In/Out] [deg]
-     * @param dist  [In/Out] [mm]
-     */
-    static void predict_target_position(float &yaw, float &pitch, float &dist);
-
-    /**
-     * Compensate for gravity.
-     * @param pitch       [In] target pitch angle & [Out] compensated pitch angle [deg]
-     * @param dist        [In] Target distance [mm]
-     * @param flight_time [Out] [ms]
-     * @return            Whether the bullet can hit the target
-     */
-    static bool compensate_for_gravity(float &pitch, float dist, int &flight_time);
-
-    static constexpr float g = 9.8067E-3f;  // [mm/ms^2]
-
     /** Updates **/
 
     // Gimbal angles at last vision command
@@ -150,6 +110,7 @@ private:
     static float last_gimbal_pitch;  // [deg]
 
     // Last vision command time
+    static uint16_t last_frame_timestamp;   // [ms]
     static time_msecs_t last_update_time;   // [ms]
     static time_msecs_t last_update_delta;  // [ms]
 
@@ -162,11 +123,12 @@ private:
 
     __PACKED_STRUCT vision_command_t {
         uint8_t flag;
-        int16_t yaw_delta;              // yaw relative angle [deg] * 100
-        int16_t pitch_delta;            // pitch relative angle [deg] * 100
-        int16_t dist;                   // [mm]
-        int16_t remainingTimeToTarget;  // [ms]
-        int16_t period;                 // [ms]
+        uint16_t time_stamp;               // [0.1ms]
+        int16_t yaw_delta;                 // yaw relative angle [deg] * 100
+        int16_t pitch_delta;               // pitch relative angle [deg] * 100
+        int16_t dist;                      // [mm]
+        int16_t remaining_time_to_target;  // [0.1ms]
+        int16_t period;                    // [0.1ms]
     };
 
     __PACKED_STRUCT package_t {

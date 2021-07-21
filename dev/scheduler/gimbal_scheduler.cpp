@@ -54,7 +54,7 @@ GimbalSKD::start(AbstractAHRS *gimbal_ahrs_, const Matrix33 ahrs_angle_rotation_
     }
 
     // Initialize last_angle, to use current pointing direction as startup direction
-    Vector3D ahrs_angle = gimbal_ahrs->get_angle() * ahrs_angle_rotation;
+    Vector3D ahrs_angle = ahrs_angle_rotation * gimbal_ahrs->get_angle();
 
     // FIXME: find a more elegant way to handle this 
 #if defined(SENTRY) || defined(AERIAL)
@@ -118,8 +118,8 @@ void GimbalSKD::SKDThread::main() {
         chSysLock();  /// --- ENTER S-Locked state. DO NOT use LOG, printf, non S/I-Class functions or return ---
         {
             // Fetch data
-            Vector3D ahrs_angle = gimbal_ahrs->get_angle() * ahrs_angle_rotation;
-            Vector3D ahrs_gyro = gimbal_ahrs->get_gyro() * ahrs_gyro_rotation;
+            Vector3D ahrs_angle = ahrs_angle_rotation * gimbal_ahrs->get_angle();
+            Vector3D ahrs_gyro = ahrs_gyro_rotation * gimbal_ahrs->get_gyro();
 
             // TODO: document calculations here
             float angle[2] = {ahrs_angle.x, ahrs_angle.y};
@@ -229,7 +229,7 @@ float GimbalSKD::get_accumulated_angle(motor_id_t motor) {
         if (mode == SENTRY_MODE) {
             return GimbalIF::feedback[PITCH]->accumulated_angle() * pitch_install / pitch_deceleration_ratio;
         } else {
-            return (gimbal_ahrs->get_angle() * ahrs_angle_rotation).y;
+            return (ahrs_angle_rotation * gimbal_ahrs->get_angle()).y;
         }
     }
     return 0;

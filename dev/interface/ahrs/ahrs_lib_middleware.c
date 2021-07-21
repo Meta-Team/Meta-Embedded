@@ -16,7 +16,7 @@
   */
 
 #include "ahrs_lib_middleware.h"
-#include "math.h"
+#include "arm_math.h"
 
 /**
   * @brief          用于获取当前高度
@@ -44,7 +44,7 @@ void AHRS_get_latitude(fp32 *latitude)
 {
     if (latitude != NULL)
     {
-        *latitude = LATITUDE_AT_HANGZHOU;
+        *latitude = LATITUDE_AT_HAINING;
     }
 }
 
@@ -75,7 +75,7 @@ fp32 AHRS_invSqrt(fp32 num)
 
 fp32 AHRS_sinf(fp32 angle)
 {
-    return sinf(angle);
+    return arm_sin_f32(angle);
 }
 /**
   * @brief          cos函数
@@ -86,7 +86,7 @@ fp32 AHRS_sinf(fp32 angle)
 
 fp32 AHRS_cosf(fp32 angle)
 {
-    return cosf(angle);
+    return arm_cos_f32(angle);
 }
 
 /**

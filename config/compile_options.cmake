@@ -43,7 +43,7 @@ set(MCU_FLAGS "-mcpu=cortex-m4")
 
 # Flags for thumb compile mode.
 set(THUMB_FLAGS "-mthumb -DTHUMB -DTHUMB_PRESENT -mno-thumb-interwork -DTHUMB_NO_INTERWORKING")
-# Some defintions are not needed for ARM or linker, but it doesn't matter so they are all included :)
+# Some definitions are not needed for ARM or linker, but it doesn't matter so they are all included :)
 # Omitted flags from Makefiles: -MD -MP -MF .build/dep/(filename).d (For .d files generation)
 
 # Startup LD directory and LD file
@@ -55,7 +55,7 @@ elseif (${BOARD_NAME} STREQUAL rm_board_2018_a)
     set(STARTUP_LD_DICT ${PROJECT_SOURCE_DIR}/os/common/startup/ARMCMx/compilers/GCC/ld)
     set(STARTUP_LD_FILE ${STARTUP_LD_DICT}/STM32F429xI.ld)
 else ()
-    message(FATAL_ERROR "[ERROR] Dev board \"${BOARD_NAME}\" is not configuared." )
+    message(FATAL_ERROR "[ERROR] Dev board \"${BOARD_NAME}\" is not configured." )
 endif ()
 
 

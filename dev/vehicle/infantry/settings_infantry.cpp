@@ -263,17 +263,10 @@ private:
 
             // Vision
             if (feedback_enable[6]) {
-                Shell::printf("fb %s %.2f 0 %.2f 0 %.2f 0" SHELL_NEWLINE_STR, motor_name[6],
-                              Vision::target_armor_yaw.get(),
-                              Vision::target_armor_pitch.get(),
-                              Vision::target_armor_dist.get());
-            }
-
-            if (feedback_enable[7]) {
-                Shell::printf("fb %s %.2f 0 %.2f 0 %.2f 0" SHELL_NEWLINE_STR, motor_name[7],
-                              Vision::velocity_calculator.yaw_velocity() * 1000,   // [deg/s]
-                              Vision::velocity_calculator.pitch_velocity() * 1000, // [deg/s]
-                              Vision::velocity_calculator.dist_velocity() * 1000); // [mm/s]
+                Shell::printf("fb %s %.2f %.2f %.2f %.2f %.2f %.2f" SHELL_NEWLINE_STR, motor_name[6],
+                              Vision::armor_ypd[0].get_position(), Vision::armor_ypd[0].get_velocity(),
+                              Vision::armor_ypd[1].get_position(), Vision::armor_ypd[1].get_velocity(),
+                              Vision::armor_ypd[2].get_position(), Vision::armor_ypd[2].get_velocity());
             }
 
             if (feedback_enable[8]) {
@@ -281,7 +274,7 @@ private:
                               Vision::expected_shoot_after_periods * 10, // blue
                               (int) Vision::pak.command.period,  // red
                               Vision::flight_time_to_target,  // blue
-                              (int) Vision::pak.command.remainingTimeToTarget, //red
+                              (int) Vision::pak.command.remaining_time_to_target, //red
                               Vision::measured_shoot_delay.get(),  // blue
                               (int) Vision::last_update_delta  // red
                 );

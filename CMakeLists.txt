@@ -8,7 +8,7 @@ include(config/toolchain.cmake)  # include cross compile configurations
 
 set(CMAKE_CXX_STANDARD 11)
 
-# Check dev board defintion 
+# Check dev board definition
 # NOTICE: ${BOARD_NAME} needs to be specific externally
 # NOTICE: if you want to adapt this project to a new board, be sure to also set startup file in compile_options.cmake
 if (NOT DEFINED BOARD_NAME)
@@ -19,7 +19,7 @@ endif ()
 if ((${BOARD_NAME} STREQUAL rm_board_2017) OR (${BOARD_NAME} STREQUAL rm_board_2018_a))
     message("[Notice] Current profile is configurated for dev board \"${BOARD_NAME}\".")
 else ()
-    message(FATAL_ERROR "[ERROR] Dev board \"${BOARD_NAME}\" is not configuared.")
+    message(FATAL_ERROR "[ERROR] Dev board \"${BOARD_NAME}\" is not configured.")
 endif ()
 
 project(Meta_Infantry ASM C CXX)
@@ -37,6 +37,8 @@ set(CMAKE_VERBOSE_MAKEFILE OFF)  # Enable this if you want to see verbose log
 # =========== Common Files and Targets Configurations ===========
 
 include(os/ch.cmake)  # add files and directories from ChibiOS
+
+add_subdirectory(cmsis)
 
 include_directories(  # common include directories
         dev
@@ -99,8 +101,8 @@ set(PA_CHASSIS_SRC
 include_directories(dev/board/${BOARD_NAME})  # include board configs
 
 # Reuse ChibiOS object files (without linking) to avoid repeat compile
-# They are included to every tartget at post configuration below
-add_library(ChibiOS_OBJ OBJECT ${CHIBIOS_XASM_SRC} ${CHIBIOS_C_SRC} ${CHIBIOS_CPP_SRC} dev/board/${BOARD_NAME}/board.c)
+# They are included to every target at post configuration below
+add_library(ChibiOS OBJECT ${CHIBIOS_XASM_SRC} ${CHIBIOS_C_SRC} ${CHIBIOS_CPP_SRC} dev/board/${BOARD_NAME}/board.c)
 
 
 # ========================== Files and Targets Configurations ==========================
@@ -523,18 +525,17 @@ target_compile_definitions(ca_ahrs_hero PRIVATE HERO)
 
 # ================================= Post Configurations for all targets =================================
 
-# Make all targets compile to this filename to allow upload script to work properly
-set(ELF_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/build)
-set(ELF_OUTPUT_NAME meta.elf)
-message("[Notice] All executables are built to ${ELF_OUTPUT_PATH}/${ELF_OUTPUT_NAME}")
-
 add_definitions(-DBUILD_TARGET_NAME="$<TARGET_PROPERTY:NAME>")
 
-get_directory_property(TARGER_LIST BUILDSYSTEM_TARGETS)
-foreach (target ${TARGER_LIST})
-    if (NOT ${target} STREQUAL "ChibiOS_OBJ")  # OBJECT library doesn't have PRE_BUILD or POST_BUILD
-        # Add ChibiOS files and commom sources
-        target_sources(${target} PRIVATE $<TARGET_OBJECTS:ChibiOS_OBJ> ${COMMON_SRC})
+get_directory_property(TARGET_LIST BUILDSYSTEM_TARGETS)
+foreach (target ${TARGET_LIST})
+    if (NOT ${target} STREQUAL "ChibiOS" AND NOT ${target} STREQUAL "CMSIS_DSP")  # OBJECT library doesn't have PRE_BUILD or POST_BUILD
+
+        # Add ChibiOS files and common sources
+        target_sources(${target} PRIVATE $<TARGET_OBJECTS:ChibiOS> $<TARGET_OBJECTS:CMSIS_DSP> ${COMMON_SRC})
+
+        # Link CMSIS DSP
+        target_link_libraries(${target} CMSIS_DSP)
 
         # Echo target dev board before link
         add_custom_command(TARGET ${target} PRE_BUILD
@@ -543,13 +544,8 @@ foreach (target ${TARGER_LIST})
         # Run size utility after link to show the size of elf file
         add_custom_command(TARGET ${target} POST_BUILD
                 COMMAND echo
-                COMMAND ${CMAKE_SIZE_UTILITY} ${ELF_OUTPUT_PATH}/${ELF_OUTPUT_NAME}
+                COMMAND ${CMAKE_SIZE_UTILITY} "$<TARGET_FILE:${target}>"
                 COMMAND echo)  # execute size utility to show size of executable file
-
-        # Set unique output file
-        set_target_properties(${target} PROPERTIES
-                RUNTIME_OUTPUT_DIRECTORY ${ELF_OUTPUT_PATH}
-                OUTPUT_NAME ${ELF_OUTPUT_NAME})  #
     endif ()
 endforeach (target)
 

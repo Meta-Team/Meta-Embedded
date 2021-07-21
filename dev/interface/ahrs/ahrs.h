@@ -82,7 +82,7 @@ public:
 
 private:
 
-    Matrix33 installPos;
+    Matrix33 mpuRotationMatrix;
 
     // Local storage
     Vector3D gyro_;  // angular speed [rad/s]
