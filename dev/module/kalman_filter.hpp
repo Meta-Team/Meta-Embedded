@@ -6,6 +6,13 @@
 #define META_INFANTRY_KALMAN_FILTER_HPP
 
 #include "arm_math.h"
+/*
+ * Reference: https://github.com/jebohndavida/KalmanFilter
+ *
+ * It seems that arm_mat_inverse_f32 modifies the source matrix. Some reference:
+ *  Comments in https://github.com/jebohndavida/KalmanFilter
+ *  https://community.arm.com/developer/tools-software/tools/f/keil-forum/32946/cmsis-dsp-matrix-inverse-problem
+ */
 
 /**
  * Kalman filter.
@@ -40,6 +47,11 @@ public:
     float32_t R_data[M * M];
     float32_t z_data[M];
 
+    void set_H(const float32_t new_H[M * N]) {
+        arm_mat_copy(new_H, H);
+        arm_mat_trans_f32(&H, &H_T);
+    }
+
 private:
     arm_matrix_instance_f32 auxA_N_1;
     arm_matrix_instance_f32 auxA_M_1;
@@ -69,17 +81,7 @@ private:
 public:
     KalmanFilter() {
 
-        memset(x_data, 0, sizeof(x_data));
-        memset(x_prime_data, 0, sizeof(x_prime_data));
-        memset(P_data, 0, sizeof(P_data));
-        memset(P_prime_data, 0, sizeof(P_prime_data));
-        memset(F_data, 0, sizeof(F_data));
-        memset(Q_data, 0, sizeof(Q_data));
-        memset(H_data, 0, sizeof(H_data));
-        memset(H_T_data, 0, sizeof(H_T_data));
-        memset(K_prime_data, 0, sizeof(K_prime_data));
-        memset(R_data, 0, sizeof(R_data));
-        memset(z_data, 0, sizeof(z_data));
+        reset();
 
         arm_mat_init_f32(&x, N, 1, x_data);
         arm_mat_init_f32(&x_prime, N, 1, x_prime_data);
@@ -123,12 +125,12 @@ public:
 
         /** Update Step */
 
-        // K' = P' * H^T / (H * P' * H^T + R);
+        // K' = P * H^T / (H * P' * H^T + R);
         arm_mat_mult_f32(&P, &H_T, &auxA_N_M);
         arm_mat_mult_f32(&H, &P, &auxB_M_N);
         arm_mat_mult_f32(&auxB_M_N, &H_T, &auxC_M_M);
         arm_mat_add_f32(&auxC_M_M, &R, &auxB_M_M);
-        arm_mat_copy(&auxB_M_M, &auxD_M_M);  // TODO: arm_mat_inverse_f32 modifies source matrix? really?
+        arm_mat_copy(&auxB_M_M, &auxD_M_M);  // it seems that arm_mat_inverse_f32 modifies source matrix, see top
         arm_mat_inverse_f32(&auxD_M_M, &auxC_M_M);
         arm_mat_mult_f32(&auxA_N_M, &auxC_M_M, &K_prime);
 
@@ -144,11 +146,26 @@ public:
         arm_mat_sub_f32(&P, &auxC_N_N, &P_prime);
     }
 
+    void reset() {
+        memset(x_data, 0, sizeof(x_data));
+        memset(x_prime_data, 0, sizeof(x_prime_data));
+        memset(P_data, 0, sizeof(P_data));
+        memset(P_prime_data, 0, sizeof(P_prime_data));
+        memset(F_data, 0, sizeof(F_data));
+        memset(Q_data, 0, sizeof(Q_data));
+        memset(H_data, 0, sizeof(H_data));
+        memset(H_T_data, 0, sizeof(H_T_data));
+        memset(K_prime_data, 0, sizeof(K_prime_data));
+        memset(R_data, 0, sizeof(R_data));
+        memset(z_data, 0, sizeof(z_data));
+    }
+
 private:
-    void arm_mat_copy(arm_matrix_instance_f32 *src, arm_matrix_instance_f32 *dst) {
-        for (unsigned i = 0; i < (src->numCols * src->numRows); i++) {
+    void arm_mat_copy(const arm_matrix_instance_f32 *src, arm_matrix_instance_f32 *dst) {
+        memcpy(dst->pData, src->pData, src->numCols * src->numRows * sizeof(float32_t));
+        /*for (unsigned i = 0; i < (src->numCols * src->numRows); i++) {
             dst->pData[i] = src->pData[i];
-        }
+        }*/
     }
 
 };

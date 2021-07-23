@@ -96,8 +96,8 @@ void UserI::UserThread::main() {
                         Vision::set_bullet_speed(Vision::get_bullet_speed() + 0.001f);
                     }
 
-                    gimbal_yaw_target_angle_ = GimbalLG::get_accumulated_angle(GimbalLG::YAW);
-                    gimbal_pc_pitch_target_angle_ = GimbalLG::get_accumulated_angle(GimbalLG::PITCH);
+                    gimbal_yaw_target_angle_ = GimbalLG::get_actual_angle(GimbalLG::YAW);
+                    gimbal_pc_pitch_target_angle_ = GimbalLG::get_actual_angle(GimbalLG::PITCH);
 
                 } else {
 

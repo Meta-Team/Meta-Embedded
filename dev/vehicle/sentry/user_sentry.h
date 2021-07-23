@@ -16,7 +16,7 @@
 #include "sentry_chassis_logic.h"
 
 #include "inspector_sentry.h"
-#include "vision.h"
+#include "vision_interface.h"
 
 class UserS {
 

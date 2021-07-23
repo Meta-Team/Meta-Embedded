@@ -13,15 +13,20 @@ public:
     explicit PositionKalmanFilter(float Q_position = 0, float Q_velocity = 0, float R_position = 0)
             : KalmanFilter<2, 1>() {
 
+        reset();
+        set_Q_position(Q_position);
+        set_Q_velocity(Q_velocity);
+        set_R_position(R_position);
+    }
+
+    void reset() {
+        KalmanFilter<2, 1>::reset();
+
         F_data[0] = 1;
         F_data[3] = 1;
 
-        set_Q_position(Q_position);
-        set_Q_velocity(Q_velocity);
+        H_data[0] = H_T_data[0] = 1;
 
-        set_R_position(R_position);
-
-        H_data[0] = 1;
     }
 
     void set_R_position(float R_position) { R_data[0] = R_position; }

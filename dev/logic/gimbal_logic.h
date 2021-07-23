@@ -14,7 +14,7 @@
 #define META_INFANTRY_GIMBAL_LOGIC_H
 
 #include "gimbal_scheduler.h"
-#include "vision.h"
+#include "vision_interface.h"
 
 /**
  * @name GimbalLG
@@ -61,11 +61,11 @@ public:
     static void set_target(float yaw_target_angle, float pitch_target_angle);
 
     /**
-     * Get accumulated angle maintained by GimbalSKD.
+     * Get actual angle maintained by GimbalSKD.
      * @param motor   YAW or PITCH
-     * @return Accumulated angle
+     * @return Actual angle of the motor
      */
-    static float get_accumulated_angle(motor_id_t motor);
+    static float get_actual_angle(motor_id_t motor);
 
     /**
     * Get relative angle maintained by GimbalSKD.

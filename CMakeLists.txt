@@ -88,6 +88,10 @@ set(CHASSIS_SRC
         dev/scheduler/chassis_scheduler.cpp
         dev/logic/chassis_logic.cpp)
 
+set(VISION_SRC
+        dev/interface/vision_interface.cpp
+        dev/scheduler/vision_scheduler.cpp)
+
 set(PA_CHASSIS_SRC
         dev/module/pid_controller.hpp
         dev/interface/can_interface.cpp
@@ -117,7 +121,7 @@ set(INFANTRY
         ${AHRS_SRC}
         ${INFANTRY_SHOOT_SRC}
         ${CHASSIS_SRC}
-        dev/interface/vision.cpp
+        ${VISION_SRC}
         dev/interface/super_capacitor_port.cpp
         dev/interface/referee_interface.cpp
         dev/interface/sd_card_interface.cpp
@@ -154,7 +158,7 @@ add_executable(HERO
         ${AHRS_SRC}
         ${HERO_SHOOT_SRC}
         ${CHASSIS_SRC}
-        dev/interface/vision.cpp
+        ${VISION_SRC}
         dev/interface/super_capacitor_port.cpp
         dev/interface/referee_interface.cpp
         dev/interface/sd_card_interface.cpp
@@ -174,7 +178,7 @@ add_executable(SENTRY
         dev/interface/remote_interpreter.cpp
         dev/interface/referee_interface.cpp
         dev/interface/sd_card_interface.cpp
-        dev/interface/vision.cpp
+        ${VISION_SRC}
         dev/interface/ahrs/ahrs_ext.cpp
         dev/common/CRC8.cpp
         dev/common/CRC16.cpp
@@ -213,7 +217,7 @@ add_executable(AERIAL
         dev/interface/referee_interface.cpp
         dev/common/CRC8.cpp
         dev/common/CRC16.cpp
-        dev/interface/vision.cpp
+        ${VISION_SRC}
 
         dev/interface/ahrs/ahrs_ext.cpp
 
@@ -380,13 +384,6 @@ add_executable(ut_referee_interface
         dev/common/CRC16.cpp
         dev/interface/referee_interface.cpp
         dev/debug/Unit_Tests/ut_refereeIF.cpp)
-
-add_executable(ut_vision_port
-        dev/common/CRC8.cpp
-        dev/common/CRC16.cpp
-        dev/interface/vision.cpp
-        dev/debug/Unit_Tests/ut_vision_port.cpp)
-target_compile_definitions(ut_vision_port PRIVATE VISION_PORT_DEBUG)
 
 add_executable(ut_sd_card
         dev/interface/sd_card_interface.cpp

@@ -228,8 +228,7 @@
 
 /// Vision
 #define VISION_BASIC_CONTROL_DELAY      100   /* ms */
-#define VISION_BASIC_SHOOT_DELAY        0   /* ms */
-#define VISION_DEFAULT_BULLET_SPEED     14.0f /* mm/ms = m/s */
+#define VISION_DEFAULT_BULLET_SPEED     15.0f /* mm/ms = m/s */
 #define VISION_SHOOT_TOLERANCE          7   /* ms */
 
 /// Thread Priority List

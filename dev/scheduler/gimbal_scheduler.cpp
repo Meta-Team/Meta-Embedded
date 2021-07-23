@@ -218,23 +218,6 @@ void GimbalSKD::SKDThread::main() {
     }
 }
 
-float GimbalSKD::get_accumulated_angle(motor_id_t motor) {
-    if (motor == YAW) {
-        if (mode == SENTRY_MODE) {
-            return GimbalIF::feedback[YAW]->accumulated_angle() * yaw_install / yaw_deceleration_ratio;
-        } else {
-            return accumulated_angle[YAW];
-        }
-    } else if (motor == PITCH) {
-        if (mode == SENTRY_MODE) {
-            return GimbalIF::feedback[PITCH]->accumulated_angle() * pitch_install / pitch_deceleration_ratio;
-        } else {
-            return (ahrs_angle_rotation * gimbal_ahrs->get_angle()).y;
-        }
-    }
-    return 0;
-}
-
 float GimbalSKD::get_relative_angle(GimbalBase::motor_id_t motor) {
     if (motor == YAW) {
         return GimbalIF::feedback[YAW]->accumulated_angle() * yaw_install / yaw_deceleration_ratio;

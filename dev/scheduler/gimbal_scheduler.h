@@ -120,13 +120,6 @@ public:
     static void set_yaw_restriction(float yaw_min, float yaw_max, float restrict_velocity);
 
     /**
-     * Get accumulated angle maintained by this SKD
-     * @param motor   YAW or PITCH
-     * @return Accumulated angle of GIMBAL
-     */
-    static float get_accumulated_angle(motor_id_t motor);
-
-    /**
     * Get actual angle involved in PID calculation in this SKD
     * @param motor   YAW or PITCH
     * @return Actual angle of GIMBAL

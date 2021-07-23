@@ -47,8 +47,8 @@ void GimbalLG::set_target(float yaw_target_angle, float pitch_target_angle) {
     }
 }
 
-float GimbalLG::get_accumulated_angle(GimbalBase::motor_id_t motor) {
-    return GimbalSKD::get_accumulated_angle(motor);
+float GimbalLG::get_actual_angle(GimbalBase::motor_id_t motor) {
+    return GimbalSKD::get_actual_angle(motor);
 }
 
 float GimbalLG::get_relative_angle(GimbalBase::motor_id_t motor) {
@@ -74,7 +74,7 @@ void GimbalLG::VisionControlThread::main() {
 
             chSysLock();  /// --- ENTER S-Locked state. DO NOT use LOG, printf, non S/I-Class functions or return ---
             {
-                can_reach_the_target = Vision::get_gimbal_target_angles(yaw, pitch);
+                can_reach_the_target = Vision::get_gimbal_target_angles_S(yaw, pitch);
             }
             chSysUnlock();  /// --- EXIT S-Locked state ---
 

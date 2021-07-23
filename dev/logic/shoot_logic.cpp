@@ -17,7 +17,7 @@
 #include "shoot_scheduler.h"
 #include "referee_interface.h"
 #include "buzzer_scheduler.h"
-#include "vision.h"
+#include "vision_interface.h"
 #include <cmath>
 
 ShootLG::mode_t ShootLG::mode = MANUAL_MODE;
@@ -175,6 +175,8 @@ void ShootLG::BulletCounterThread::main() {
 void ShootLG::VisionShootThread::main() {
     setName("ShootLG_Vision");
 
+    LowPassFilteredValue measuredShootDelay(0.8);
+
     chEvtRegisterMask(&Vision::shoot_time_updated_event, &vision_listener, VISION_UPDATED_EVENT_MASK);
 
     while (!shouldTerminate()) {
@@ -186,13 +188,14 @@ void ShootLG::VisionShootThread::main() {
             time_msecs_t expected_shoot_time, command_issue_time;
             chSysLock();  /// --- ENTER S-Locked state. DO NOT use LOG, printf, non S/I-Class functions or return ---
             {
-                expected_shoot_time = Vision::get_expected_shoot_time();
-                command_issue_time = Vision::get_last_update_time();
+                expected_shoot_time = Vision::get_expected_shoot_time_S();
+                command_issue_time = Vision::get_last_update_time_S();
             }
             chSysUnlock();  /// --- EXIT S-Locked state ---
             int64_t time_delta = (int64_t) expected_shoot_time - (int64_t) (SYSTIME);
 
             if (time_delta > 0) {
+                // TODO: circular wait
                 sleep(TIME_MS2I(time_delta));  // wait for the remaining time
             }
 
@@ -216,7 +219,11 @@ void ShootLG::VisionShootThread::main() {
             if (ShootSKD::get_mode() == ShootSKD::LIMITED_SHOOTING_MODE &&
                 ShootSKD::get_loader_target_angle() == target_angle) {  // make sure there is no interference
 
-                Vision::update_measured_shoot_delay(SYSTIME - command_issue_time);
+                chSysLock();  /// --- ENTER S-Locked state. DO NOT use LOG, printf, non S/I-Class functions or return ---
+                {
+                    measuredShootDelay.update(SYSTIME - command_issue_time);
+                }
+                chSysUnlock();  /// --- EXIT S-Locked state ---
             } else {
                 //LOG_WARN("ShootLG_Vision: shoot delay not updated");
             }

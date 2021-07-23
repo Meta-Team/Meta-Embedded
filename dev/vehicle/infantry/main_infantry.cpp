@@ -15,7 +15,7 @@
 #include "ahrs.h"
 #include "remote_interpreter.h"
 #include "sd_card_interface.h"
-#include "vision.h"
+#include "vision_interface.h"
 #include "super_capacitor_port.h"
 
 #include "gimbal_interface.h"
@@ -187,7 +187,7 @@ int main() {
 
     /// Setup VisionPort
     // Should be put after initialization of GimbalSKD
-    Vision::init(VISION_BASIC_CONTROL_DELAY, VISION_BASIC_SHOOT_DELAY);
+    Vision::init(VISION_BASIC_CONTROL_DELAY);
     Vision::set_bullet_speed(VISION_DEFAULT_BULLET_SPEED);
 
     /// Start Inspector and User Threads

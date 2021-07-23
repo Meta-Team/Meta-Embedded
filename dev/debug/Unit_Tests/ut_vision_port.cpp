@@ -8,7 +8,7 @@
 
 #include "led.h"
 #include "shell.h"
-#include "vision.h"
+#include "vision_interface.h"
 
 class VisionPortEchoThread: public chibios_rt::BaseStaticThread<512>{
     void main() final {

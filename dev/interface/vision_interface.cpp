@@ -2,7 +2,7 @@
 // Created by Kerui Zhu on 7/4/2019.
 //
 
-#include "vision.h"
+#include "vision_interface.h"
 #include "CRC16.h"
 #include "CRC8.h"
 #include "shell.h"
@@ -15,20 +15,17 @@ EVENTSOURCE_DECL(Vision::gimbal_updated_event);
 EVENTSOURCE_DECL(Vision::shoot_time_updated_event);
 float Vision::bullet_speed = 0;
 time_msecs_t Vision::basic_gimbal_delay = 0;
-time_msecs_t Vision::basic_shoot_delay = 0;
 PositionKalmanFilter Vision::armor_ypd[3];
-constexpr float Vision::Q_POSITION[3];
-constexpr float Vision::Q_VELOCITY[3];
-constexpr float Vision::R_POSITION[3];
+constexpr float Vision::ARMOR_Q_POSITION[3];
+constexpr float Vision::ARMOR_Q_VELOCITY[3];
+constexpr float Vision::ARMOR_R_POSITION[3];
 float Vision::last_gimbal_yaw = 0;
 float Vision::last_gimbal_pitch = 0;
 uint16_t Vision::last_frame_timestamp = 0;
 time_msecs_t Vision::last_update_time = 0;
-time_msecs_t Vision::last_update_delta = 0;
-bool Vision::can_reach_the_target = false;
-float Vision::flight_time_to_target = 0;
-LowPassFilteredValue Vision::measured_pitch_offset;
-LowPassFilteredValue Vision::measured_shoot_delay;
+time_msecs_t Vision::last_update_time_delta = 0;
+bool Vision::can_reach_target = false;
+float Vision::bullet_flight_time = 0;
 float Vision::latest_target_yaw = 0;
 float Vision::latest_target_pitch = 0;
 time_msecs_t Vision::expected_shoot_time = 0;
@@ -50,19 +47,15 @@ const UARTConfig Vision::UART_CONFIG = {
         0
 };
 
-void Vision::init(time_msecs_t basic_gimbal_delay_, time_msecs_t basic_shoot_delay_) {
+void Vision::init(time_msecs_t basic_gimbal_delay_) {
 
     for (int i = 0; i < 3; i++) {
-        armor_ypd->set_Q_position(Q_POSITION[i]);
-        armor_ypd->set_Q_velocity(Q_VELOCITY[i]);
-        armor_ypd->set_R_position(R_POSITION[i]);
+        armor_ypd[i].set_Q_position(ARMOR_Q_POSITION[i]);
+        armor_ypd[i].set_Q_velocity(ARMOR_Q_VELOCITY[i]);
+        armor_ypd[i].set_R_position(ARMOR_R_POSITION[i]);
     }
 
-    measured_pitch_offset.set_alpha(MEASUREMENT_LPF_ALPHA);
-    measured_shoot_delay.set_alpha(MEASUREMENT_LPF_ALPHA);
-
     basic_gimbal_delay = basic_gimbal_delay_;
-    basic_shoot_delay = basic_shoot_delay_;
 
     // Start UART driver
     uartStart(UART_DRIVER, &UART_CONFIG);
@@ -72,9 +65,9 @@ void Vision::init(time_msecs_t basic_gimbal_delay_, time_msecs_t basic_shoot_del
     uartStartReceive(UART_DRIVER, sizeof(uint8_t), &pak);
 }
 
-bool Vision::get_gimbal_target_angles(float &yaw, float &pitch) {
+bool Vision::get_gimbal_target_angles_S(float &yaw, float &pitch) {
     if (WITHIN_RECENT_TIME(last_update_time, 1000)) {
-        if (!can_reach_the_target) {
+        if (!can_reach_target) {
             return false;
         } else {
             yaw = latest_target_yaw;
@@ -118,9 +111,9 @@ void Vision::handle_vision_command(const vision_command_t &command) {
             }
 
             // Compensate for gravity
-            can_reach_the_target = Trajectory::compensate_for_gravity(pitch, dist, bullet_speed, flight_time_to_target);
+            can_reach_target = Trajectory::compensate_for_gravity(pitch, dist, bullet_speed, bullet_flight_time);
 
-            if (can_reach_the_target) {
+            if (can_reach_target) {
 
                 // Issue new gimbal command
                 latest_target_yaw = yaw;
@@ -161,17 +154,17 @@ void Vision::handle_vision_command(const vision_command_t &command) {
     }
 
     // Record current gimbal angles, which will be used for next control command
-    last_gimbal_yaw = GimbalSKD::get_accumulated_angle(GimbalBase::YAW);
-    last_gimbal_pitch = GimbalSKD::get_accumulated_angle(GimbalBase::PITCH);
+    last_gimbal_yaw = GimbalSKD::get_actual_angle(GimbalBase::YAW);
+    last_gimbal_pitch = GimbalSKD::get_actual_angle(GimbalBase::PITCH);
     last_frame_timestamp = command.time_stamp;
-    last_update_delta = now - last_update_time;
+    last_update_time_delta = now - last_update_time;
     last_update_time = now;
 }
 
 void Vision::uart_rx_callback(UARTDriver *uartp) {
     (void) uartp;
 
-    chSysLockFromISR();  /// --- ENTER I-Locked state. DO NOT use LOG, printf, non I-Class functions or return ---
+     chSysLockFromISR();  /// --- ENTER I-Locked state. DO NOT use LOG, printf, non I-Class functions or return ---
 
     auto pak_uint8 = (uint8_t *) &pak;
 
@@ -225,7 +218,7 @@ void Vision::uart_rx_callback(UARTDriver *uartp) {
             break;
     }
 
-    chSysUnlockFromISR();  /// --- EXIT I-Locked state ---
+     chSysUnlockFromISR();  /// --- EXIT I-Locked state ---
 }
 
 void Vision::uart_err_callback(UARTDriver *uartp, uartflags_t e) {
