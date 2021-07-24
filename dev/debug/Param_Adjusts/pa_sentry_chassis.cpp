@@ -360,7 +360,7 @@ int main(void) {
     can1.start(HIGHPRIO - 1);
     Referee::init();
     SentryChassisIF::init(&can1);
-    SentryChassisSKD::sentryChassisThread.start(NORMALPRIO);
+    SentryChassisSKD::sentryChassisThread.start(NORMALPRIO, 0);
     chassisFeedbackThread.start(NORMALPRIO - 1);
 
     // See chconf.h for what this #define means.

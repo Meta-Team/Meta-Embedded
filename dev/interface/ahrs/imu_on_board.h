@@ -9,8 +9,6 @@
 #include "ahrs_abstract.h"
 #include "ahrs_math.hpp"
 
-#include "mpu6500_reg.h"
-
 #if defined(BOARD_RM_2018_A)
 #define MPU6500_SPI_DRIVER SPID5
 #define MPU6500_SPI_CS_PAD GPIOF
@@ -19,44 +17,25 @@
 #error "MPU6500 interface has not been defined for selected board"
 #endif
 
-// Enable rotation matrix to transform accel into Z direction. AHRS requires accel WITHOUT rotation.
-#define MPU6500_ENABLE_ACCEL_BIAS  FALSE
-
 /**
- * @name MPUOnBoard
+ * @name IMUOnBoard
  * @brief Interface to get on-board MPU6500 data
  * @usage 1. Call start() to enable MPU6500 driver and updating thread. You can call load_calibration_data() BEFORE
  *           to skip initial calibration and use external calibration data
  *        2. Make use of data from MPU6500, accel, etc.
  */
-class MPUOnBoard : virtual public AbstractMPU {
-
+class IMUOnBoard {
 public:
 
-    /* (From AbstractMPU)
-
-    (public)
-    Vector3D get_gyro();  // get data from gyroscope [deg/s]
-    Vector3D get_accel();  // get data from accelerometer [m/s^2]
-    time_msecs_t get_mpu_update_time();  // get last update time from system start [ms]
-
-    (protected)
-    Vector3D gyro;   // Data from gyroscope [deg/s]
-    Vector3D accel;  // Data from accelerometer [m/s^2]
-    time_msecs_t mpu_update_time = 0;  // Last update time from system start [ms]
-
-    */
-
     /**
-     * Start MPU6500 driver and the thread of data fetching
-     * @param prio  Thread priority (recommended to be high enough)
+     * Initialize MPU6500 and IST8310 driver
      */
-    void start(tprio_t prio);
+    void init();
 
     /**
      * Load external calibration data
      * @param gyro_bias_   Gyro bias value
-     * @note To skip initial calibration at start(), call this function BEFORE start()
+     * @note To skip initial calibration at init(), call this function BEFORE init()
      */
     void load_calibration_data(Vector3D gyro_bias_);
 
@@ -65,32 +44,39 @@ public:
      */
     float temperature = 0;
 
+    /**
+     * Whether IMU is ready.
+     * */
+    bool ready() const { return imu_startup_calibrated; };
 
-    MPUOnBoard() : updateThread(*this) {};
+    Vector3D get_gyro() const { return gyro; }
+    Vector3D get_accel() const { return accel; }
+    Vector3D get_magnet() const { return magnet; }
 
     /**
-     * Whether MPU6500 is ready.
-     * */
-    bool MPU6500ready();
+     * Update gyro, accel and magnet
+     * @note Should be called from NORMAL state (not in locks)
+     */
+    void update();
+
+    time_msecs_t imu_update_time = 0;   // last update time from system start [ms]
 
 private:
 
+    Vector3D gyro;    // data from gyroscope [deg/s]
+    Vector3D accel;   // data from accelerometer [m/s^2]
+    Vector3D magnet;  // magnet data [uT]
+
     Vector3D gyro_raw;   // raw (biased) data of gyro
-    Vector3D accel_raw;  // raw (not rotated) data from accel
 
     float gyro_psc;   // the coefficient converting the raw data to degree
     float accel_psc;  // the coefficient converting the raw data to m/s^2
 
-    static constexpr size_t RX_BUF_SIZE = 0x0E;
+    static constexpr size_t RX_BUF_SIZE = 6 /* gyro */ + 2 /* temperature */ + 6 /* accel */ + 7 /* ist8310*/;
     uint8_t rx_buf[RX_BUF_SIZE];
 
     Vector3D gyro_bias;        // averaged gyro value when "static"
     Vector3D temp_gyro_bias;   // temp sum of gyro for calibration
-
-#if MPU6500_ENABLE_ACCEL_BIAS
-    Matrix33 accel_rotation;   // a matrix to rotate accel
-    Vector3D temp_accel_bias;  // temp sum of accel for calibration
-#endif
 
     const float TEMPERATURE_BIAS = 0.0f;
 
@@ -101,22 +87,9 @@ private:
     unsigned static_measurement_count;
     // When static_measurement_count reaches BIAS_SAMPLE_COUNT, calibration is performed.
 
-    bool MPU6500_startup_calibrated;
+    bool imu_startup_calibrated;
 
     time_msecs_t last_calibration_time = 0;
-
-    void update();
-
-    class UpdateThread : public chibios_rt::BaseStaticThread<512> {
-    public:
-        explicit UpdateThread(MPUOnBoard &imu) : imu(imu) {}
-        long int thread_start_time = 0;
-    private:
-        static constexpr unsigned int THREAD_UPDATE_INTERVAL = 1;  // read interval 1ms (1kHz)
-        MPUOnBoard &imu;
-        void main() final;
-    } updateThread;
-
 
     /**
      * MPU6500_ACCEL_CONFIG_2, [2:0] bits
@@ -177,7 +150,7 @@ private:
         acc_dlpf_config_t _acc_dlpf_config;
     } mpu6500_config_t;
 
-    static constexpr int mpu6500_start_up_time = 5000; // [ms]
+    static constexpr int MPU6500_STARTUP_TIME = 5000; // [ms]
 
     static constexpr mpu6500_config_t CONFIG = {
             MPU6500_GYRO_SCALE_1000,  // Gyro full scale 1000 dps (degree per second)
@@ -185,8 +158,9 @@ private:
             MPU6500_DLPF_41HZ,       // Gyro digital low-pass filter 41Hz
             MPU6500_ADLPF_20HZ};  // Accel digital low-pass filter 20Hz
 
-    friend void cmd_echo_gyro_bias(BaseSequentialStream *chp, int argc, char *argv[]);
+    void init_mpu6500();
 
+    void init_ist8310();
 };
 
 #endif

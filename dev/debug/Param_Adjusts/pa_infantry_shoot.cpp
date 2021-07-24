@@ -188,7 +188,7 @@ int main(void) {
         LOG_WARN("Use default AHRS bias");
     }
     ahrs.load_calibration_data({-0.644649505f, -0.619945943f, 0.173617705f});
-    ahrs.start(ON_BOARD_AHRS_MATRIX_, THREAD_MPU_PRIO, THREAD_IST_PRIO, THREAD_AHRS_PRIO);
+    ahrs.start(ON_BOARD_AHRS_MATRIX_, THREAD_MPU_PRIO);
 
     GimbalIF::init(&can1, &can2, GIMBAL_MOTOR_CONFIG_, GIMBAL_YAW_FRONT_ANGLE_RAW, GIMBAL_PITCH_FRONT_ANGLE_RAW);
     chThdSleepMilliseconds(2000);  // wait for C610 to be online and friction wheel to reset

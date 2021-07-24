@@ -66,8 +66,7 @@ set(AHRS_SRC
         dev/interface/ahrs/ahrs_math.hpp
         dev/interface/ahrs/ahrs.cpp
         dev/interface/ahrs/ahrs_lib_middleware.c
-        dev/interface/ahrs/ist8310.cpp
-        dev/interface/ahrs/mpu6500.cpp)
+        dev/interface/ahrs/imu_on_board.cpp)
 
 set(INFANTRY_SHOOT_SRC
         dev/interface/gimbal_interface.cpp
@@ -302,28 +301,25 @@ add_executable(ut_remote_interpreter
 
 # MPU6500: include MP6500 interface and unit test.
 add_executable(ut_mpu6500
-        dev/interface/ahrs/mpu6500.cpp
+        dev/interface/ahrs/imu_on_board.cpp
         dev/debug/Unit_Tests/ut_mpu6500.cpp)
 
 # IST8310
 add_executable(ut_ist8310
-        dev/interface/ahrs/mpu6500.cpp
-        dev/interface/ahrs/ist8310.cpp
+        dev/interface/ahrs/imu_on_board.cpp
         dev/debug/Unit_Tests/ut_ist8310.cpp)
 
 # IMU: include IMU interface and unit test.
 add_executable(ut_imu
         dev/interface/ahrs/ahrs_math.hpp
-        dev/interface/ahrs/mpu6500.cpp
-        dev/interface/ahrs/ist8310.cpp
+        dev/interface/ahrs/imu_on_board.cpp
         dev/interface/ahrs/ahrs.cpp
         dev/debug/Unit_Tests/ut_ahrs.cpp)
 
 # AHRS
 add_executable(ut_ahrs
         dev/interface/ahrs/ahrs_math.hpp
-        dev/interface/ahrs/mpu6500.cpp
-        dev/interface/ahrs/ist8310.cpp
+        dev/interface/ahrs/imu_on_board.cpp
         dev/interface/ahrs/ahrs_lib_middleware.c
         dev/interface/ahrs/ahrs.cpp
         dev/debug/Unit_Tests/ut_ahrs.cpp)
@@ -496,8 +492,7 @@ add_executable(pa_sentry_chassis
 
 add_executable(ca_ahrs_infantry
         dev/interface/ahrs/ahrs_math.hpp
-        dev/interface/ahrs/mpu6500.cpp
-        dev/interface/ahrs/ist8310.cpp
+        dev/interface/ahrs/imu_on_board.cpp
         dev/interface/ahrs/ahrs_lib_middleware.c
         dev/interface/ahrs/ahrs.cpp
         dev/common/CRC16.cpp
@@ -509,8 +504,7 @@ target_compile_definitions(ca_ahrs_infantry PRIVATE INFANTRY)
 
 add_executable(ca_ahrs_hero
         dev/interface/ahrs/ahrs_math.hpp
-        dev/interface/ahrs/mpu6500.cpp
-        dev/interface/ahrs/ist8310.cpp
+        dev/interface/ahrs/imu_on_board.cpp
         dev/interface/ahrs/ahrs_lib_middleware.c
         dev/interface/ahrs/ahrs.cpp
         dev/common/CRC16.cpp

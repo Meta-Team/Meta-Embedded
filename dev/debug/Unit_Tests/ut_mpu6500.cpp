@@ -8,7 +8,7 @@
 #include "led.h"
 #include "debug/shell/shell.h"
 
-#include "interface/ahrs/mpu6500.h"
+#include "interface/ahrs/imu_on_board.h"
 using namespace chibios_rt;
 
 MPUOnBoard mpu6500;
@@ -17,7 +17,7 @@ class MPU6500FeedbackThread : public BaseStaticThread<1024> {
 protected:
     void main() final {
         setName("MPU6500");
-        mpu6500.start(HIGHPRIO - 2);
+        mpu6500.start(HIGHPRIO - 2, 0);
         while (!shouldTerminate()) {
             Shell::printf("w = (%.4f, %.4f, %.4f), a = (%.4f, %.4f, %.4f), temp = %.4f" SHELL_NEWLINE_STR,
                           mpu6500.gyro.x, mpu6500.gyro.y, mpu6500.gyro.z,

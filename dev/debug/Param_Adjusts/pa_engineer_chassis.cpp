@@ -179,7 +179,7 @@ int main(void) {
     can1.start(HIGHPRIO - 1);
 
     EngineerChassisIF::init(&can1);
-    EngineerChassisSKD::engineerChassisThread.start(NORMALPRIO);
+    EngineerChassisSKD::engineerChassisThread.start(NORMALPRIO, 0);
     chassisFeedbackThread.start(NORMALPRIO - 1);
 
     BuzzerSKD::play_sound(BuzzerSKD::sound_startup_intel, LOWPRIO);

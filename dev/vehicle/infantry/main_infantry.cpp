@@ -123,8 +123,8 @@ int main() {
         ahrs.load_calibration_data(MPU6500_STORED_GYRO_BIAS);
         LOG_WARN("Use default AHRS bias");
     }
-    ahrs.start(ON_BOARD_AHRS_MATRIX_, THREAD_MPU_PRIO, THREAD_IST_PRIO, THREAD_AHRS_PRIO);
-    while(!ahrs.AHRS_ready()) {
+    ahrs.start(ON_BOARD_AHRS_MATRIX_, THREAD_AHRS_PRIO);
+    while(!ahrs.ready()) {
         chThdSleepMilliseconds(5);
     }
     InspectorI::startup_check_mpu();  // check MPU6500 has signal. Block for 20 ms

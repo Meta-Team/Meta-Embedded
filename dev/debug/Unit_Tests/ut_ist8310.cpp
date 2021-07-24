@@ -8,7 +8,7 @@
 #include "led.h"
 #include "debug/shell/shell.h"
 
-#include "interface/ahrs/mpu6500.h"
+#include "interface/ahrs/imu_on_board.h"
 #include "interface/ahrs/ist8310.h"
 
 using namespace chibios_rt;
@@ -20,8 +20,8 @@ class IST8310FeedbackThread : public BaseStaticThread<1024> {
 protected:
     void main() final {
         setName("ist8310");
-        mpu6500.start(HIGHPRIO - 1);
-        ist8310.start(HIGHPRIO - 2);
+        mpu6500.start(HIGHPRIO - 1, 0);
+        ist8310.start(HIGHPRIO - 2, 0);
         while (!shouldTerminate()) {
             Shell::printf("%.4f, %.4f, %.4f" SHELL_NEWLINE_STR,
                           ist8310.magnet.x, ist8310.magnet.y, ist8310.magnet.z);

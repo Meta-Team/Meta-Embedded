@@ -189,7 +189,7 @@ int main(void) {
     EngineerElevatorIF::init(&can2);
 
     elevatorFeedbackThread.start(NORMALPRIO - 1);
-    EngineerElevatorSKD::engineerElevatorThread.start(NORMALPRIO);
+    EngineerElevatorSKD::engineerElevatorThread.start(NORMALPRIO, 0);
 
     chThdSleepMilliseconds(500);
     BuzzerSKD::play_sound(BuzzerSKD::sound_startup_intel, LOWPRIO);

@@ -455,7 +455,7 @@ int main(void) {
         LOG_WARN("Use default AHRS bias");
     }
     ahrs.load_calibration_data({-0.644649505f, -0.619945943f, 0.173617705f});
-    ahrs.start(ON_BOARD_AHRS_MATRIX_, THREAD_MPU_PRIO, THREAD_IST_PRIO, THREAD_AHRS_PRIO);
+    ahrs.start(ON_BOARD_AHRS_MATRIX_, THREAD_MPU_PRIO);
 
     GimbalIF::motor_can_config_t canConfig[6] = GIMBAL_MOTOR_CONFIG;
     GimbalIF::init(&can1, &can2,
