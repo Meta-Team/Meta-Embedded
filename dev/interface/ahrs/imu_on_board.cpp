@@ -54,9 +54,10 @@ void mpu6500_write_reg(uint8_t reg_addr, uint8_t value) {
 }
 
 
-void IMUOnBoard::init() {
+chibios_rt::ThreadReference IMUOnBoard::start(tprio_t prio) {
     init_mpu6500();
     init_ist8310();  // should be after initialization of MPU6500
+    return chibios_rt::BaseStaticThread<512>::start(prio);
 }
 
 void IMUOnBoard::init_mpu6500() {
@@ -264,4 +265,12 @@ void IMUOnBoard::update() {
 
     }
     chSysUnlock();  /// --- EXIT S-Locked state ---
+}
+
+void IMUOnBoard::main() {
+    setName("IMU");
+    while (!shouldTerminate()) {
+        update();
+        sleep(TIME_MS2I(UPDATE_THREAD_INTERVAL));
+    }
 }

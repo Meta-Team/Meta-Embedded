@@ -43,7 +43,7 @@ protected:
     void main() final {
         setName("AHRS");
 //        ahrs.load_calibration_data({0.682773649f, -0.682926177f, -0.257317185f});
-        ahrs.start(AHRS_MATRIX, HIGHPRIO - 2, HIGHPRIO - 3, HIGHPRIO - 1);
+        ahrs.start(AHRS_MATRIX, HIGHPRIO - 2);
         BuzzerSKD::init(LOWPRIO);
         BuzzerSKD::play_sound(BuzzerSKD::sound_startup);
         while (!shouldTerminate()) {

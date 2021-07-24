@@ -41,6 +41,6 @@
     "commands": [
         "fb_enable motor_id",
         "fb_disable motor_id",
-        "set_pid motor_id pid_id ki kp kd i_limit out_limit"
+        "set_pid motor_id pid_id kp ki kd i_limit out_limit"
     ]
 }

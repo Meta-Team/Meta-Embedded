@@ -26,9 +26,7 @@ public:
      * Get last update time from system start
      * @return Last update time from system start [ms]
      */
-    time_msecs_t get_mpu_update_time() const {
-        return mpu_update_time;
-    }
+    virtual time_msecs_t get_mpu_update_time() const = 0;
 
     /**
      * Get magnet data from IST
@@ -40,9 +38,7 @@ public:
      * Get last update time from system start
      * @return Last update time from system start [ms]
      */
-    time_msecs_t get_ist_update_time() const {
-        return ist_update_time;
-    }
+    virtual time_msecs_t get_ist_update_time() const  = 0;
 
     /**
      * Get board angle
@@ -55,15 +51,8 @@ public:
      * Get last update time from system start
      * @return Last update time from system start [ms]
      */
-    time_msecs_t get_ahrs_update_time() const {
-        return ahrs_update_time;
-    }
+    virtual time_msecs_t get_ahrs_update_time() const = 0;
 
-protected:
-
-    time_msecs_t mpu_update_time = 0;   // last update time from system start [ms]
-    time_msecs_t ist_update_time = 0;   // last update time from system start [ms]
-    time_msecs_t ahrs_update_time = 0;  // last update time from system start [ms]
 };
 
 #endif //META_INFANTRY_AHRS_ABSTRACT_H

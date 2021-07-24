@@ -24,13 +24,13 @@
  *           to skip initial calibration and use external calibration data
  *        2. Make use of data from MPU6500, accel, etc.
  */
-class IMUOnBoard {
+class IMUOnBoard : protected chibios_rt::BaseStaticThread<512> {
 public:
 
     /**
      * Initialize MPU6500 and IST8310 driver
      */
-    void init();
+    chibios_rt::ThreadReference start(tprio_t prio) override;
 
     /**
      * Load external calibration data
@@ -87,7 +87,7 @@ private:
     unsigned static_measurement_count;
     // When static_measurement_count reaches BIAS_SAMPLE_COUNT, calibration is performed.
 
-    bool imu_startup_calibrated;
+    bool imu_startup_calibrated = false;
 
     time_msecs_t last_calibration_time = 0;
 
@@ -161,6 +161,10 @@ private:
     void init_mpu6500();
 
     void init_ist8310();
+
+    void main() override;
+
+    static constexpr int UPDATE_THREAD_INTERVAL = 1;  // [ms]
 };
 
 #endif

@@ -41,7 +41,7 @@ public:
      * Get data from gyroscope (rotated with mpu_rotation_matrix)
      * @return Rotated gyro data from gyroscope [deg/s]
      */
-    Vector3D get_gyro() override { return gyro;  /* rotated */ }
+    Vector3D get_gyro() override { return gyro_deg;  /* rotated */ }
 
     /**
      * Get data from accelerometer (rotated with mpu_rotation_matrix)
@@ -67,19 +67,27 @@ public:
      */
     bool ready() { return imu.ready(); }
 
+    time_msecs_t get_ahrs_update_time() const override { return ahrs_update_time; }
+
+    time_msecs_t get_ist_update_time() const override { return imu.imu_update_time; }
+
+    time_msecs_t get_mpu_update_time() const override { return imu.imu_update_time; }
+
 private:
     
     IMUOnBoard imu;
 
     float q[4];
     Vector3D angle;  // board angle
+    time_msecs_t ahrs_update_time = 0;  // last update time from system start [ms]
 
     Matrix33 mpu_rotation_matrix;
 
     // Local storage (MPU rotated)
-    Vector3D gyro;     // angular speed [rad/s]
-    Vector3D accel;    // acceleration [m/s^2]
-    Vector3D magnet;   // magnetic field [uT]
+    Vector3D gyro_deg;  // angular speed [deg/s]
+    Vector3D gyro_rad;  // angular speed [rad/s]
+    Vector3D accel;     // acceleration [m/s^2]
+    Vector3D magnet;    // magnetic field [uT]
 
     void fetch_data();  // fetch data from IMU, should be called from NORMAL state (not in locks)
     void update();      // fetch data and update angles, should be called from NORMAL state (not in locks)
