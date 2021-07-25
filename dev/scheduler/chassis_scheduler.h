@@ -13,18 +13,12 @@
 #ifndef META_INFANTRY_CHASSIS_CONTROLLER_H
 #define META_INFANTRY_CHASSIS_CONTROLLER_H
 
-#include <logic/chassis_logic.h>
 #include "ch.hpp"
 
 #include "chassis_interface.h"
-#include "gimbal_interface.h"
-
 #include "gimbal_scheduler.h"
 
 #include "pid_controller.hpp"
-#include "math.h"
-
-#include "referee_UI_logic.h"
 
 /**
  * @name ChassisSKD
@@ -59,11 +53,12 @@ public:
      * @param wheel_tread             Distance between left and right wheels [mm]
      * @param wheel_circumference     Circumference of wheels [mm]
      * @param install_mode            Whether chassis motors are reversed with some mechanism
+     * @param gimbal_yaw_install
      * @param chassis_gimbal_offset   Distance between gimbal and chassis [mm, + for gimbal at "front"]
      * @param thread_prio             Priority of PID calculation thread
      */
     static void start(float wheel_base, float wheel_tread, float wheel_circumference, install_mode_t install_mode,
-                      float chassis_gimbal_offset, tprio_t thread_prio);
+                      GimbalSKD::install_direction_t gimbal_yaw_install, float chassis_gimbal_offset, tprio_t thread_prio);
 
     /**
      * Change parameters of PID controllers
@@ -71,13 +66,6 @@ public:
      * @param v2i_pid_params       Velocity to current parameters of every motor (shared parameters)
      */
     static void load_pid_params(pid_params_t theta2v_pid_params, pid_params_t v2i_pid_params);
-
-    /**
-     * hange parameters of PID controllers
-     * @param params
-     * @param is_theta2v
-     */
-    static void load_pid_params_by_type(PIDControllerBase::pid_params_t params, bool is_theta2v);
 
     /**
      * Set mode of this SKD
@@ -114,12 +102,6 @@ public:
     static float get_actual_theta();
 
     /**
-     * Get PID parameters.
-     * @return PID params
-     */
-    static pid_params_t echo_pid_params_by_type(bool is_theta2v);
-
-    /**
      * Get actual velocity involved in the PID calculation
      * @param motor_id Motor ID
      * @return Motor actual velocity
@@ -133,6 +115,9 @@ public:
       */
      static float get_target_velocity(motor_id_t motor_id) { return target_velocity[motor_id]; }
 
+    static void cmdFeedback(void *);
+    static const Shell::Command shellCommands[];
+
 private:
 
     // Local storage
@@ -140,6 +125,7 @@ private:
     static float target_vx;
     static float target_vy;
     static float target_theta;
+    static float actual_theta;
 
     static PIDController a2v_pid;               // for theta control
     static PIDController v2i_pid[MOTOR_COUNT];  // speed control for each motor
@@ -158,6 +144,7 @@ private:
     static float chassis_gimbal_offset_;  // distance between gimbal and chassis [mm, + for gimbal at "front"]
 
     static install_mode_t install_mode_;
+    static GimbalSKD::install_direction_t gimbal_yaw_install;
 
     // Helper function to convert chassis velocity to velocities of each wheel and perform PID calculation once
     static void velocity_decompose(float vx, float vy, float w);
@@ -170,6 +157,17 @@ private:
     };
 
     static SKDThread skd_thread;
+
+    static bool motor_enabled;
+    static DECL_SHELL_CMD(cmdInfo);
+    static DECL_SHELL_CMD(cmdEnableFeedback);
+    static DECL_SHELL_CMD(cmdDisableFeedback);
+    static DECL_SHELL_CMD(cmdPID);
+    static DECL_SHELL_CMD(cmdEnableMotor);
+    static DECL_SHELL_CMD(cmdDisableMotor);
+
+    static bool setFeedbackEnabled(int argc, char *argv[], bool enabled);
+    static bool setMotorEnabled(int argc, char *argv[], bool enabled);
 
 };
 

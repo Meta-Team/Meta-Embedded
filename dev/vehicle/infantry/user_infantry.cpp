@@ -28,8 +28,8 @@ float UserI::chassis_pc_ctrl_ratio = 0.5f;    // 50% when Ctrl is pressed
 float UserI::shoot_launch_left_count = 999;
 float UserI::shoot_launch_right_count = 5;
 
-float UserI::shoot_launch_speed = 4.0f;   //Feed rate
-float UserI::shoot_common_duty_cycle = 0.40;   //Init speed
+float UserI::shoot_feed_rate = 4.0f;   // [bullet/s]
+float UserI::shoot_fw_speed = 1200;    // [deg/s]
 
 
 /// Variables
@@ -162,7 +162,7 @@ void UserI::UserThread::main() {
                     if (Referee::power_heat_data.shooter_id1_17mm_cooling_heat <
                         (uint16_t) (Referee::game_robot_state.shooter_id1_17mm_cooling_limit * 0.75)) {
                         if (ShootLG::get_shooter_state() == ShootLG::STOP) {
-                            ShootLG::shoot(shoot_launch_left_count, shoot_launch_speed);
+                            ShootLG::shoot(shoot_launch_left_count, shoot_feed_rate);
                         }
                     } else {
                         ShootLG::stop();
@@ -171,7 +171,7 @@ void UserI::UserThread::main() {
                     if (Referee::power_heat_data.shooter_id1_17mm_cooling_heat <
                         Referee::game_robot_state.shooter_id1_17mm_cooling_limit - 0x0015) {
                         if (ShootLG::get_shooter_state() == ShootLG::STOP) {
-                            ShootLG::shoot(shoot_launch_right_count, shoot_launch_speed);
+                            ShootLG::shoot(shoot_launch_right_count, shoot_feed_rate);
                         }
                     } else {
                         ShootLG::stop();
@@ -182,7 +182,7 @@ void UserI::UserThread::main() {
                     }
                 }
 
-                ShootLG::set_friction_wheels(shoot_common_duty_cycle);
+                ShootLG::set_friction_wheels(shoot_fw_speed);
 
             } else if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_DOWN) {
 
@@ -194,7 +194,7 @@ void UserI::UserThread::main() {
                     if (Referee::power_heat_data.shooter_id1_17mm_cooling_heat <
                         (uint16_t) (Referee::game_robot_state.shooter_id1_17mm_cooling_limit * 0.75)) {
                         if (ShootLG::get_shooter_state() == ShootLG::STOP) {
-                            ShootLG::shoot(shoot_launch_left_count, shoot_launch_speed);
+                            ShootLG::shoot(shoot_launch_left_count, shoot_feed_rate);
                         }
                     } else {
                         ShootLG::stop();
@@ -208,7 +208,7 @@ void UserI::UserThread::main() {
                     }
                 }
 
-                ShootLG::set_friction_wheels(shoot_common_duty_cycle);
+                ShootLG::set_friction_wheels(shoot_fw_speed);
             } else if (Remote::rc.s1 == Remote::S_DOWN) {
 
                 /// PC control mode
@@ -218,19 +218,19 @@ void UserI::UserThread::main() {
 
                     // Read shoot limit
                     if (Referee::game_robot_state.shooter_id1_17mm_cooling_rate >= 40) {
-                        shoot_launch_speed = Referee::game_robot_state.shooter_id1_17mm_cooling_rate / 10 * 1.25;
+                        shoot_feed_rate = Referee::game_robot_state.shooter_id1_17mm_cooling_rate / 10 * 1.25;
                     } else {
-                        shoot_launch_speed = Referee::game_robot_state.shooter_id1_17mm_cooling_limit / 25;
+                        shoot_feed_rate = Referee::game_robot_state.shooter_id1_17mm_cooling_limit / 25;
                     }
 
                     if (ShootLG::get_friction_wheels_duty_cycle() == 0) {  // force start friction wheels
-                        ShootLG::set_friction_wheels(shoot_common_duty_cycle);
+                        ShootLG::set_friction_wheels(shoot_fw_speed);
                     }
 
                     if (Referee::power_heat_data.shooter_id1_17mm_cooling_heat <
                         (uint16_t) (Referee::game_robot_state.shooter_id1_17mm_cooling_limit * 0.75)) {
                         if (ShootLG::get_shooter_state() == ShootLG::STOP) {
-                            ShootLG::shoot(shoot_launch_left_count, shoot_launch_speed);
+                            ShootLG::shoot(shoot_launch_left_count, shoot_feed_rate);
                         }
                     }
 
@@ -380,7 +380,7 @@ void UserI::UserActionThread::main() {
                 if (ABS(ShootLG::get_friction_wheels_duty_cycle()) > 0) {
                     ShootLG::set_friction_wheels(0);
                 } else {
-                    ShootLG::set_friction_wheels(shoot_common_duty_cycle);
+                    ShootLG::set_friction_wheels(shoot_fw_speed);
                 }
             }
 

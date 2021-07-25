@@ -11,19 +11,22 @@
  */
 
 #include "chassis_scheduler.h"
+#include "gimbal_interface.h"
+#include "referee_UI_logic.h"
 
 ChassisSKD::mode_t ChassisSKD::mode = FORCED_RELAX_MODE;
 
-float ChassisSKD::target_vx;
-float ChassisSKD::target_vy;
-float ChassisSKD::target_theta;
+float ChassisSKD::target_vx = 0;
+float ChassisSKD::target_vy = 0;
+float ChassisSKD::target_theta = 0;
+float ChassisSKD::actual_theta = 0;
 
 PIDController ChassisSKD::a2v_pid;
 PIDController ChassisSKD::v2i_pid[MOTOR_COUNT];
 
-float ChassisSKD::target_w;
-float ChassisSKD::target_velocity[MOTOR_COUNT];
-int ChassisSKD::target_current[MOTOR_COUNT];
+float ChassisSKD::target_w = 0;
+float ChassisSKD::target_velocity[MOTOR_COUNT] = {0};
+int ChassisSKD::target_current[MOTOR_COUNT] = {0};
 
 float ChassisSKD::wheel_base_ = 0;
 float ChassisSKD::wheel_tread_ = 0;
@@ -32,17 +35,24 @@ float ChassisSKD::w_to_v_ratio_ = 0.0f;
 float ChassisSKD::v_to_wheel_angular_velocity_ = 0.0f;
 float ChassisSKD::chassis_gimbal_offset_ = 0.0f;
 
-ChassisSKD::install_mode_t ChassisSKD::install_mode_ = POSITIVE;
+ChassisSKD::install_mode_t ChassisSKD::install_mode_;
+GimbalSKD::install_direction_t ChassisSKD::gimbal_yaw_install;
 
 ChassisSKD::SKDThread ChassisSKD::skd_thread;
 
+bool ChassisSKD::motor_enabled = true;
+
+#ifndef PI
+#define PI 3.14159265358979f
+#endif
 
 void ChassisSKD::start(float wheel_base, float wheel_tread, float wheel_circumference, install_mode_t install_mode,
-                       float chassis_gimbal_offset, tprio_t thread_prio) {
+                       GimbalSKD::install_direction_t gimbal_yaw_install_, float chassis_gimbal_offset, tprio_t thread_prio) {
 
     wheel_base_ = wheel_base;
     wheel_tread_ = wheel_tread;
     wheel_circumference_ = wheel_circumference;
+    gimbal_yaw_install = gimbal_yaw_install_;
 
     /*
      * FIXME: in the following lines, it should be 180.0f instead of 360.0f. However, this revision will affect
@@ -62,25 +72,11 @@ void ChassisSKD::start(float wheel_base, float wheel_tread, float wheel_circumfe
     skd_thread.start(thread_prio);
 }
 
-PIDController::pid_params_t ChassisSKD::echo_pid_params_by_type(bool is_theta2v) {
-    return (is_theta2v) ? a2v_pid.get_parameters() : v2i_pid->get_parameters();
-}
-
 void ChassisSKD::load_pid_params(PIDControllerBase::pid_params_t theta2v_pid_params,
                                  PIDControllerBase::pid_params_t v2i_pid_params) {
     a2v_pid.change_parameters(theta2v_pid_params);
     for (int i = 0; i < MOTOR_COUNT; i++) {
         v2i_pid[i].change_parameters(v2i_pid_params);
-    }
-}
-
-void ChassisSKD::load_pid_params_by_type(PIDControllerBase::pid_params_t params, bool is_theta2v) {
-    if (is_theta2v) {
-        a2v_pid.change_parameters(params);
-    } else {
-        for (int i = 0; i < MOTOR_COUNT; i++) {
-            v2i_pid[i].change_parameters(params);
-        }
     }
 }
 
@@ -101,7 +97,7 @@ void ChassisSKD::set_dodge_target(float vx, float vy, float omega) {
 }
 
 float ChassisSKD::get_actual_theta() {
-    return GimbalIF::feedback[GimbalIF::YAW]->actual_angle * GIMBAL_YAW_INSTALL_DIRECTION;
+    return actual_theta;
 }
 
 float ChassisSKD::get_target_theta() {
@@ -140,24 +136,25 @@ void ChassisSKD::SKDThread::main() {
         {
             if ((mode == GIMBAL_COORDINATE_MODE) || (mode == ANGULAR_VELOCITY_DODGE_MODE)) {
 
-                float theta = get_actual_theta();
+                actual_theta = GimbalIF::feedback[GimbalIF::YAW]->actual_angle * (float) gimbal_yaw_install;
 
-                RefereeUILG::set_chassis_angle(theta/180.0f * M_PI);
+                RefereeUILG::set_chassis_angle(actual_theta / 180.0f * PI);
 
                 if (mode == GIMBAL_COORDINATE_MODE) {
-                    if (ABS(theta - target_theta) < THETA_DEAD_ZONE) {
+                    if (ABS(actual_theta - target_theta) < THETA_DEAD_ZONE) {
                         target_w = 0;
                     } else {
-                        target_w = a2v_pid.calc(theta, target_theta);
+                        target_w = a2v_pid.calc(actual_theta, target_theta);
                     }
                 }
 
-                velocity_decompose(target_vx * cosf(theta / 180.0f * M_PI) - target_vy * sinf(theta / 180.0f * M_PI)
-                                   - target_w / 180.0f * M_PI * chassis_gimbal_offset_,
+                velocity_decompose(
+                        target_vx * cosf(actual_theta / 180.0f * PI) - target_vy * sinf(actual_theta / 180.0f * PI)
+                        - target_w / 180.0f * PI * chassis_gimbal_offset_,
 
-                                   target_vx * sinf(theta / 180.0f * M_PI) + target_vy * cosf(theta / 180.0f * M_PI),
+                        target_vx * sinf(actual_theta / 180.0f * PI) + target_vy * cosf(actual_theta / 180.0f * PI),
 
-                                   target_w);
+                        target_w);
 
             } else if (mode == FORCED_RELAX_MODE) {
 
@@ -166,6 +163,9 @@ void ChassisSKD::SKDThread::main() {
                 }
 
             }
+
+            if (!motor_enabled) for (int &c : target_current) c = 0;
+
 
             // Send currents
             for (size_t i = 0; i < MOTOR_COUNT; i++) {
@@ -178,5 +178,103 @@ void ChassisSKD::SKDThread::main() {
         sleep(TIME_MS2I(SKD_THREAD_INTERVAL));
     }
 }
+
+const Shell::Command ChassisSKD::shellCommands[] = {
+        {"_c",               nullptr,                                              ChassisSKD::cmdInfo,            nullptr},
+        {"_c_enable_fb",     "Channel/All",                                        ChassisSKD::cmdEnableFeedback,  nullptr},
+        {"_c_disable_fb",    "Channel/All",                                        ChassisSKD::cmdDisableFeedback, nullptr},
+        {"_c_pid",           "Channel [kp ki kd i_limit out_limit]", ChassisSKD::cmdPID,             nullptr},
+        {"_c_enable_motor",  "All",                                                ChassisSKD::cmdEnableMotor,     nullptr},
+        {"_c_disable_motor", "All",                                                ChassisSKD::cmdDisableMotor,    nullptr},
+        {nullptr,            nullptr,                                              nullptr,                        nullptr}
+};
+
+DEF_SHELL_CMD_START(ChassisSKD::cmdInfo)
+    Shell::printf("_c:Gimbal" ENDL);
+    Shell::printf("_c/Front_Right:Velocity{Target,Actual},Current{Target,Actual}" ENDL);
+    Shell::printf("_c/Front_Left:Velocity{Target,Actual},Current{Target,Actual}" ENDL);
+    Shell::printf("_c/Back_Left:Velocity{Target,Actual},Current{Target,Actual}" ENDL);
+    Shell::printf("_c/Back_Right:Velocity{Target,Actual},Current{Target,Actual}" ENDL);
+    Shell::printf("_c/Theta:Angle{Target,Actual}" ENDL);
+    return true;
+DEF_SHELL_CMD_END
+
+static bool feedbackEnabled[ChassisSKD::MOTOR_COUNT + 1] = {false, false, false, false, false};
+
+void ChassisSKD::cmdFeedback(void *) {
+    for (int i = 0; i <= MOTOR_COUNT; i++) {
+        if (feedbackEnabled[i]) {
+            Shell::printf("_c%d %.2f %.2f %d %d" ENDL, i,
+                          ChassisIF::feedback[i]->actual_velocity, target_velocity[i],
+                          ChassisIF::feedback[i]->actual_current, *ChassisIF::target_current[i]);
+        }
+    }
+    if (feedbackEnabled[4]) {
+        Shell::printf("_c4 %.2f %.2f" ENDL, actual_theta, target_theta);
+    }
+}
+
+bool ChassisSKD::setFeedbackEnabled(int argc, char *argv[], bool enabled) {
+    if (argc != 1) return false;
+    if (argv[0][0] == 'A') {
+        for (bool &e : feedbackEnabled) e = enabled;
+        return true;
+    } else {
+        unsigned id = Shell::atoi(argv[0]);
+        if (id >= MOTOR_COUNT + 1) return false;
+        feedbackEnabled[id] = enabled;
+    }
+    return true;
+}
+
+DEF_SHELL_CMD_START(ChassisSKD::cmdEnableFeedback)
+    return setFeedbackEnabled(argc, argv, true);
+DEF_SHELL_CMD_END
+
+DEF_SHELL_CMD_START(ChassisSKD::cmdDisableFeedback)
+    return setFeedbackEnabled(argc, argv, false);
+DEF_SHELL_CMD_END
+
+bool ChassisSKD::setMotorEnabled(int argc, char **argv, bool enabled) {
+    if (argc != 1) return false;
+    if (argv[0][0] == 'A') {
+        motor_enabled = enabled;
+        return true;
+    } else {
+        return false;
+    }
+}
+
+DEF_SHELL_CMD_START(ChassisSKD::cmdEnableMotor)
+    return setMotorEnabled(argc, argv, true);
+DEF_SHELL_CMD_END
+
+DEF_SHELL_CMD_START(ChassisSKD::cmdDisableMotor)
+    return setMotorEnabled(argc, argv, false);
+DEF_SHELL_CMD_END
+
+DEF_SHELL_CMD_START(ChassisSKD::cmdPID)
+    if (argc < 1) return false;
+
+    unsigned id = Shell::atoi(argv[0]);
+    if (id >= MOTOR_COUNT + 1) return false;
+
+    PIDController *pid = id == MOTOR_COUNT + 1 ? &a2v_pid : &v2i_pid[id];
+    if (argc == 1) {
+        pid_params_t params = pid->get_parameters();
+        Shell::printf("_c_pid %u %.2f %.2f %.2f %.2f %.2f" SHELL_NEWLINE_STR,
+                      id, params.kp, params.ki, params.kd, params.i_limit, params.out_limit);
+    } else if (argc == 7) {
+        pid->change_parameters({Shell::atof(argv[2]),
+                                Shell::atof(argv[3]),
+                                Shell::atof(argv[4]),
+                                Shell::atof(argv[5]),
+                                Shell::atof(argv[6])});
+    } else {
+        return false;
+    }
+
+    return true;
+DEF_SHELL_CMD_END
 
 /** @} */

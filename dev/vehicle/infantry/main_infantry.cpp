@@ -133,6 +133,8 @@ int main() {
     }
     InspectorI::startup_check_mpu();  // check MPU6500 has signal. Block for 20 ms
     InspectorI::startup_check_ist();  // check IST8310 has signal. Block for 20 ms
+    Shell::addCommands(ahrs.shellCommands);
+    Shell::addFeedbackCallback(AHRSOnBoard::cmdFeedback, &ahrs);
     LED::led_on(DEV_BOARD_LED_AHRS);  // LED 3 on now
 
     /// Setup Remote
@@ -176,20 +178,22 @@ int main() {
     GimbalSKD::load_pid_params(GIMBAL_PID_YAW_A2V_PARAMS, GIMBAL_PID_YAW_V2I_PARAMS,
                                GIMBAL_PID_PITCH_A2V_PARAMS, GIMBAL_PID_PITCH_V2I_PARAMS,
                                {0, 0, 0, 0, 0}/* Not used */, {0, 0, 0, 0, 0}/* Not used */);
-    GimbalSKD::set_yaw_restriction(GIMBAL_RESTRICT_YAW_MIN_ANGLE, GIMBAL_RESTRICT_YAW_MAX_ANGLE,
-                                   GIMBAL_RESTRICT_YAW_VELOCITY);
     Shell::addCommands(GimbalSKD::shellCommands);
     Shell::addFeedbackCallback(GimbalSKD::cmdFeedback);
 
     ShootSKD::start(SHOOT_BULLET_INSTALL_DIRECTION, THREAD_SHOOT_SKD_PRIO);
     ShootSKD::load_pid_params(SHOOT_PID_BULLET_LOADER_A2V_PARAMS, SHOOT_PID_BULLET_LOADER_V2I_PARAMS,
                               SHOOT_PID_FW_LEFT_V2I_PARAMS, SHOOT_PID_FW_RIGHT_V2I_PARAMS);
+    Shell::addCommands(ShootSKD::shellCommands);
+    Shell::addFeedbackCallback(ShootSKD::cmdFeedback);
 #endif
 
 #if INFANTRY_CHASSIS_ENABLE
     ChassisSKD::start(CHASSIS_WHEEL_BASE, CHASSIS_WHEEL_TREAD, CHASSIS_WHEEL_CIRCUMFERENCE, ChassisSKD::POSITIVE,
-                      0, THREAD_CHASSIS_SKD_PRIO);
+                      GIMBAL_YAW_INSTALL_DIRECTION, 0, THREAD_CHASSIS_SKD_PRIO);
     ChassisSKD::load_pid_params(CHASSIS_FOLLOW_PID_THETA2V_PARAMS, CHASSIS_PID_V2I_PARAMS);
+    Shell::addCommands(ChassisSKD::shellCommands);
+    Shell::addFeedbackCallback(ChassisSKD::cmdFeedback);
 #endif
 
     /// Start LGs

@@ -78,9 +78,9 @@ public:
 
     /**
      * Set friction wheels duty cycle in LIMITED_SHOOTING_MODE or REVERSE_TURNING_MODE
-     * @param duty_cycle  Friction wheels duty cycle, from 0 to 1.0
+     * @param speed  [deg/s]
      */
-    static void set_friction_wheels(float duty_cycle);
+    static void set_friction_wheels(float speed);
 
     /**
      * Get friction wheels duty cycle

@@ -16,11 +16,13 @@
 ShootSKD::install_direction_t ShootSKD::install_position[3];
 
 ShootSKD::mode_t ShootSKD::mode = FORCED_RELAX_MODE;
-bool ShootSKD::is_test = false;
-bool ShootSKD::motor_enable[3] = {false, false, false};
+bool ShootSKD::motor_enable[3] = {true, true, true};
 
 float ShootSKD::target_angle = 0;
+float ShootSKD::actual_angle = 0;
+float ShootSKD::fw_target_speed = 0;
 float ShootSKD::target_velocity[3] = {0, 0, 0};
+float ShootSKD::actual_velocity[3] = {0, 0, 0};
 int ShootSKD::target_current[3] = {0, 0, 0};
 
 PIDController ShootSKD::v2i_pid[3];
@@ -30,8 +32,8 @@ ShootSKD::SKDThread ShootSKD::skd_thread;
 
 void ShootSKD::start(ShootSKD::install_direction_t loader_install_, tprio_t thread_prio) {
     install_position[0] = loader_install_;
-    install_position[1] = NEGATIVE;
-    install_position[2] = POSITIVE;
+    install_position[1] = POSITIVE;
+    install_position[2] = NEGATIVE;
 
     skd_thread.start(thread_prio);
 }
@@ -45,26 +47,6 @@ void ShootSKD::load_pid_params(pid_params_t loader_a2v_params,
     a2v_pid.change_parameters(loader_a2v_params);
     v2i_pid[1].change_parameters(fw_left_v2i_params);
     v2i_pid[2].change_parameters(fw_right_v2i_params);
-}
-
-void ShootSKD::load_pid_params_by_type(pid_params_t params, unsigned int motor_id, bool is_a2v) {
-    if (is_a2v) {
-        if (motor_id == 0)
-            a2v_pid.change_parameters(params);
-    } else {
-        v2i_pid[motor_id].change_parameters(params);
-    }
-}
-
-PIDController::pid_params_t ShootSKD::echo_pid_params_by_type(unsigned motor_id, bool is_a2v) {
-    if (is_a2v) {
-        if (motor_id == 0)
-            return a2v_pid.get_parameters();
-        else
-            return {0,0,0,0,0};
-    } else {
-        return v2i_pid[motor_id].get_parameters();
-    }
 }
 
 void ShootSKD::set_mode(ShootSKD::mode_t skd_mode) {
@@ -86,13 +68,14 @@ void ShootSKD::set_loader_target_velocity(float degree_per_second) {
     a2v_pid.clear_i_out();
 }
 
-void ShootSKD::set_friction_wheels(float duty_cycle) {
-    target_velocity[1] = -duty_cycle *3000.0f;
-    target_velocity[2] = target_velocity[1];
+void ShootSKD::set_friction_wheels(float speed) {
+    fw_target_speed = speed;
+    target_velocity[1] = speed * (float) install_position[1];
+    target_velocity[2] = speed * (float) install_position[2];
 }
 
-float ShootSKD::get_friction_wheels_duty_cycle() {
-    return target_velocity[2] / 3000.0f;
+float ShootSKD::get_friction_wheels_target_speed() {
+    return fw_target_speed;
 }
 
 float ShootSKD::get_target_velocity(uint32_t motor_id) {
@@ -100,11 +83,11 @@ float ShootSKD::get_target_velocity(uint32_t motor_id) {
 }
 
 int ShootSKD::get_target_current(uint32_t motor_id) {
-    return ShootSKD::target_current[motor_id];
+    return target_current[motor_id];
 }
 
 float ShootSKD::get_actual_velocity(uint32_t motor_id) {
-    return GimbalIF::feedback[motor_id + 3]->actual_velocity * float(install_position[motor_id]);
+    return actual_velocity[motor_id];
 }
 
 float ShootSKD::get_loader_target_angle() {
@@ -112,23 +95,11 @@ float ShootSKD::get_loader_target_angle() {
 }
 
 float ShootSKD::get_loader_accumulated_angle() {
-    return GimbalIF::feedback[GimbalIF::BULLET]->accumulated_angle() * float(install_position[0]);
+    return actual_angle;
 }
 
 void ShootSKD::reset_loader_accumulated_angle() {
     GimbalIF::feedback[GimbalIF::BULLET]->reset_front_angle();
-}
-
-void ShootSKD::set_test_status(bool test_status) {
-    is_test = test_status;
-}
-
-void ShootSKD::enable_motor(unsigned motor) {
-    motor_enable[motor] = true;
-}
-
-void ShootSKD::disable_motor(unsigned motor) {
-    motor_enable[motor] = false;
 }
 
 void ShootSKD::SKDThread::main() {
@@ -142,50 +113,148 @@ void ShootSKD::SKDThread::main() {
                 // PID calculation
 
                 // Bullet calculation
-                if (!is_test || motor_enable[0]) {
-                    target_velocity[0] = a2v_pid.calc(
-                            GimbalIF::feedback[GimbalIF::BULLET]->accumulated_angle() * float(install_position[0]),
-                            target_angle);
-                    target_current[0] = (int) v2i_pid[0].calc(
-                            GimbalIF::feedback[GimbalIF::BULLET]->actual_velocity * float(install_position[0]),
-                            target_velocity[0]);
-                }
+                actual_angle = GimbalIF::feedback[GimbalIF::BULLET]->accumulated_angle() * float(install_position[0]);
+                target_velocity[0] = a2v_pid.calc(actual_angle,target_angle);
+
+                actual_velocity[0] = GimbalIF::feedback[GimbalIF::BULLET]->actual_velocity * float(install_position[0]);
+                target_current[0] = (int) v2i_pid[0].calc(actual_velocity[0],target_velocity[0]);
+
                 // Fraction wheels calculation
-                if (!is_test || motor_enable[1]) {
-                    ShootSKD::target_current[1] = (int) v2i_pid[1].calc(
-                            GimbalIF::feedback[GimbalIF::FW_LEFT]->actual_velocity,
-                            target_velocity[1] * float(install_position[1]));
-                }
-                if (!is_test || motor_enable[2]) {
-                    ShootSKD::target_current[2] = (int) v2i_pid[2].calc(
-                            GimbalIF::feedback[GimbalIF::FW_RIGHT]->actual_velocity,
-                            target_velocity[2] * float(install_position[2]));
-                }
+                actual_velocity[1] = GimbalIF::feedback[FW_LEFT]->actual_velocity;
+                ShootSKD::target_current[1] = (int) v2i_pid[1].calc(actual_velocity[1],target_velocity[1]);
+
+                actual_velocity[2] = GimbalIF::feedback[FW_RIGHT]->actual_velocity;
+                ShootSKD::target_current[2] = (int) v2i_pid[2].calc(actual_velocity[2], target_velocity[2]);
 
             } else if (mode == FORCED_RELAX_MODE) {
+                
                 target_current[0] = 0;
 
-                target_current[1] = ABS_IN_RANGE(GimbalIF::feedback[GimbalBase::FW_LEFT]->actual_velocity, 100) ?
-                        0 : (int) v2i_pid[1].calc(GimbalIF::feedback[GimbalBase::FW_LEFT]->actual_velocity,0.0f);
+                target_current[1] = ABS_IN_RANGE(GimbalIF::feedback[FW_LEFT]->actual_velocity, 100) ?
+                                    0 : (int) v2i_pid[1].calc(GimbalIF::feedback[FW_LEFT]->actual_velocity, 0.0f);
 
-                target_current[2] = ABS_IN_RANGE(GimbalIF::feedback[GimbalBase::FW_RIGHT]->actual_velocity, 100) ?
-                                    0 : (int) v2i_pid[2].calc(GimbalIF::feedback[GimbalBase::FW_RIGHT]->actual_velocity,0.0f);
+                target_current[2] = ABS_IN_RANGE(GimbalIF::feedback[FW_RIGHT]->actual_velocity, 100) ?
+                                    0 : (int) v2i_pid[2].calc(GimbalIF::feedback[FW_RIGHT]->actual_velocity, 0.0f);
             }
 
-            if (is_test) {
-                for (int i = 0; i <= 2; i++) {
-                    target_current[i] = motor_enable[i] ? target_current[i] : 0;
-                }
+            for (int i = 0; i <= 2; i++) {
+                if (!motor_enable[i]) target_current[i] = 0;
             }
 
             *GimbalIF::target_current[GimbalIF::BULLET] = target_current[0] * install_position[0];
-            *GimbalIF::target_current[GimbalIF::FW_LEFT] = ShootSKD::target_current[1];
-            *GimbalIF::target_current[GimbalIF::FW_RIGHT] = ShootSKD::target_current[2];
+            *GimbalIF::target_current[GimbalIF::FW_LEFT] = target_current[1];
+            *GimbalIF::target_current[GimbalIF::FW_RIGHT] = target_current[2];
         }
         chSysUnlock();  /// --- EXIT S-Locked state ---
 
         sleep(TIME_MS2I(SKD_THREAD_INTERVAL));
     }
 }
+
+const Shell::Command ShootSKD::shellCommands[] = {
+        {"_s",               nullptr,                                              ShootSKD::cmdInfo,            nullptr},
+        {"_s_enable_fb",     "Channel/All",                                        ShootSKD::cmdEnableFeedback,  nullptr},
+        {"_s_disable_fb",    "Channel/All",                                        ShootSKD::cmdDisableFeedback, nullptr},
+        {"_s_pid",           "Channel A2V(0)/V2I(1) [kp ki kd i_limit out_limit]", ShootSKD::cmdPID,             nullptr},
+        {"_s_enable_motor",  "Channel/All",                                        ShootSKD::cmdEnableMotor,     nullptr},
+        {"_s_disable_motor", "Channel/All",                                        ShootSKD::cmdDisableMotor,    nullptr},
+        {nullptr,            nullptr,                                              nullptr,                       nullptr}
+};
+
+DEF_SHELL_CMD_START(ShootSKD::cmdInfo)
+    Shell::printf("_s:Shoot" ENDL);
+    Shell::printf("_s/Bullet:Angle{Target,Actual},Velocity{Target,Actual},Current{Target,Actual}" ENDL);
+    Shell::printf("_s/FW_Left:Velocity{Target,Actual},Current{Target,Actual}" ENDL);
+    Shell::printf("_s/FW_Right:Velocity{Target,Actual},Current{Target,Actual}" ENDL);
+    return true;
+DEF_SHELL_CMD_END
+
+static bool feedbackEnabled[3] = {false, false, false};
+
+void ShootSKD::cmdFeedback(void *) {
+    if (feedbackEnabled[0]) {
+        Shell::printf("_s0 %.2f %.2f %.2f %.2f %d %d" ENDL,
+                      actual_angle, target_angle,
+                      actual_velocity[0], target_velocity[0],
+                      GimbalIF::feedback[0]->actual_current, *GimbalIF::target_current[0]);
+    }
+    for (int i = 1; i < 3; i++) {
+        if (feedbackEnabled[i]) {
+            Shell::printf("_s%d %.2f %.2f %d %d" ENDL, i,
+                          actual_velocity[i], target_velocity[i],
+                          GimbalIF::feedback[i]->actual_current, *GimbalIF::target_current[i]);
+        }
+    }
+}
+
+bool ShootSKD::setFeedbackEnabled(int argc, char *argv[], bool enabled) {
+    if (argc != 1) return false;
+    if (argv[0][0] == 'A') {
+        for (bool &e : feedbackEnabled) e = enabled;
+        return true;
+    } else {
+        unsigned id = Shell::atoi(argv[0]);
+        if (id >= 3) return false;
+        feedbackEnabled[id] = enabled;
+    }
+    return true;
+}
+
+DEF_SHELL_CMD_START(ShootSKD::cmdEnableFeedback)
+    return setFeedbackEnabled(argc, argv, true);
+DEF_SHELL_CMD_END
+
+DEF_SHELL_CMD_START(ShootSKD::cmdDisableFeedback)
+    return setFeedbackEnabled(argc, argv, false);
+DEF_SHELL_CMD_END
+
+bool ShootSKD::setMotorEnabled(int argc, char **argv, bool enabled) {
+    if (argc != 1) return false;
+    if (argv[0][0] == 'A') {
+        for (bool &e : motor_enable) e = enabled;
+        return true;
+    } else {
+        unsigned id = Shell::atoi(argv[0]);
+        if (id >= 3) return false;
+        motor_enable[id] = enabled;
+        return true;
+    }
+}
+
+DEF_SHELL_CMD_START(ShootSKD::cmdEnableMotor)
+    return setMotorEnabled(argc, argv, true);
+DEF_SHELL_CMD_END
+
+DEF_SHELL_CMD_START(ShootSKD::cmdDisableMotor)
+    return setMotorEnabled(argc, argv, false);
+DEF_SHELL_CMD_END
+
+DEF_SHELL_CMD_START(ShootSKD::cmdPID)
+    if (argc < 2) return false;
+
+    unsigned id = Shell::atoi(argv[0]);
+    if (id >= 3) return false;
+
+    unsigned pidType = Shell::atoi(argv[1]);
+    if (pidType > 1) return false;
+    if (id != 0 && pidType == 0) return false;
+
+    PIDController *pid = pidType == 0 ? &a2v_pid : &v2i_pid[id];
+    if (argc == 2) {
+        pid_params_t params = pid->get_parameters();
+        Shell::printf("_s_pid %u %u %.2f %.2f %.2f %.2f %.2f" SHELL_NEWLINE_STR,
+                      id, pidType, params.kp, params.ki, params.kd, params.i_limit, params.out_limit);
+    } else if (argc == 7) {
+        pid->change_parameters({Shell::atof(argv[2]),
+                                Shell::atof(argv[3]),
+                                Shell::atof(argv[4]),
+                                Shell::atof(argv[5]),
+                                Shell::atof(argv[6])});
+    } else {
+        return false;
+    }
+
+    return true;
+DEF_SHELL_CMD_END
 
 /** @} */

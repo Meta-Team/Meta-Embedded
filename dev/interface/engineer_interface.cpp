@@ -26,7 +26,9 @@ void EngineerInterface::init( CANInterface *can1_interface,                     
 
             // Make the pointer to the "deadzone", which could be easily judged that the motor is invalid.
             feedback[i] = can1_->register_feedback_address(CANInterface::MAXIMUM_MOTOR_COUNT);
+            if (feedback[i] == nullptr) while(true) LOG_ERR("EngineerInterface: failed to register motor %d feedback", i);
             target_current[i] = can1_->register_target_current_address(CANInterface::MAXIMUM_MOTOR_COUNT);
+            if (target_current[i] == nullptr) while(true) LOG_ERR("EngineerInterface: failed to register motor %d target_current", i);
             continue;
         }
 
@@ -36,7 +38,9 @@ void EngineerInterface::init( CANInterface *can1_interface,                     
             // Link the feedback and target_current to can1's feedback
             can1_->set_motor_type(motor_can_config[i].motor_can_id, motor_can_config[i].motor_type);
             feedback[i] = can1_->register_feedback_address(motor_can_config[i].motor_can_id);
+            if (feedback[i] == nullptr) while(true) LOG_ERR("EngineerInterface: failed to register motor %d feedback", i);
             target_current[i] = can1_->register_target_current_address(motor_can_config[i].motor_can_id);
+            if (target_current[i] == nullptr) while(true) LOG_ERR("EngineerInterface: failed to register motor %d target_current", i);
             *target_current[i] = 0;
 
         } else if (motor_can_config[i].motor_can_channel == can_channel_2) {

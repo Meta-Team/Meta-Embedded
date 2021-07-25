@@ -37,8 +37,9 @@ typedef bool (*shellcmd_t)(BaseSequentialStream *chp, int argc, char *argv[]);
  */
 typedef struct {
     const char            *sc_name;           /**< @brief Command name.       */
-    shellcmd_t            sc_function;        /**< @brief Command function.   */
     const char            *sc_arguments;      /**< @brief Command argument    */
+    shellcmd_t            sc_function;        /**< @brief Command function.   */
+    void                  *sc_arg;            /**< @brief Command function.   */
 } ShellCommand;
 
 /**

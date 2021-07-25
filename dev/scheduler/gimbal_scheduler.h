@@ -89,22 +89,6 @@ public:
                                 pid_params_t sub_pitch_a2v_params, pid_params_t sub_pitch_v2i_params);
 
     /**
-     * Get PID parameters through motor id and pid type
-     * @param pid_params
-     * @param motor_id
-     * @param is_a2v
-     */
-    static void load_pid_params_by_type(pid_params_t pid_params, motor_id_t motor_id, bool is_a2v);
-
-    /**
-     * Get PID parameters through motor id and pid type
-     * @param motor_id
-     * @param is_a2v
-     * @return
-     */
-    static pid_params_t echo_pid_params_by_type(motor_id_t motor_id, bool is_a2v);
-
-    /**
      * Set mode of this SKD
      * @param skd_mode
      */
@@ -138,15 +122,6 @@ public:
      */
     static float get_target_velocity(motor_id_t motor);
 
-    //Todo: is set_yaw_restriction necessary?
-    /**
-     * Set yaw restriction angles
-     * @param yaw_min
-     * @param yaw_max
-     * @param restrict_velocity
-     */
-    static void set_yaw_restriction(float yaw_min, float yaw_max, float restrict_velocity);
-
     /**
     * Get actual angle involved in PID calculation in this SKD
     * @param motor   YAW or PITCH
@@ -168,8 +143,8 @@ public:
     */
     static float get_relative_angle(motor_id_t motor);
 
-    static void cmdFeedback();
-    static Shell::Command shellCommands[];
+    static void cmdFeedback(void *);
+    static const Shell::Command shellCommands[];
 
 private:
 
@@ -195,9 +170,6 @@ private:
     static float target_velocity[3];  // calculated target velocity, middle values
     static int target_current[3];     // local storage
 
-    static float yaw_restrict_angle[2];
-    static float yaw_restrict_velocity;
-
     static PIDController a2v_pid[3];
     static PIDController v2i_pid[3];
 
@@ -214,9 +186,13 @@ private:
 
     static DECL_SHELL_CMD(cmdInfo);
     static DECL_SHELL_CMD(cmdEnableFeedback);
+    static DECL_SHELL_CMD(cmdDisableFeedback);
     static DECL_SHELL_CMD(cmdPID);
     static DECL_SHELL_CMD(cmdEnableMotor);
+    static DECL_SHELL_CMD(cmdDisableMotor);
 
+    static bool setFeedbackEnabled(int argc, char *argv[], bool enabled);
+    static bool setMotorEnabled(int argc, char *argv[], bool enabled);
 };
 
 

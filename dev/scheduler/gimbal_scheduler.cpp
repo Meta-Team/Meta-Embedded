@@ -10,6 +10,7 @@
  * @{
  */
 
+#include <engineer_interface.h>
 #include "gimbal_scheduler.h"
 #include "math.h"
 
@@ -33,8 +34,6 @@ PIDController GimbalSKD::a2v_pid[3];
 PIDController GimbalSKD::v2i_pid[3];
 GimbalSKD::SKDThread GimbalSKD::skd_thread;
 AbstractAHRS *GimbalSKD::gimbal_ahrs = nullptr;
-float GimbalSKD::yaw_restrict_angle[2] = {-MAXFLOAT, MAXFLOAT};
-float GimbalSKD::yaw_restrict_velocity = 0;
 float GimbalSKD::actual_angle[3] = {0, 0, 0};
 float GimbalSKD::actual_velocity[3] = {0, 0, 0};
 
@@ -87,28 +86,6 @@ void GimbalSKD::load_pid_params(pid_params_t yaw_a2v_params, pid_params_t yaw_v2
 
     a2v_pid[SUB_PITCH].change_parameters(sub_pitch_a2v_params);
     v2i_pid[SUB_PITCH].change_parameters(sub_pitch_v2i_params);
-}
-
-void GimbalSKD::load_pid_params_by_type(pid_params_t pid_params, motor_id_t motor_id, bool is_a2v) {
-    if (motor_id > SUB_PITCH) {
-        return;
-    }
-    PIDController *p = is_a2v ? a2v_pid : v2i_pid;
-    p[motor_id].change_parameters(pid_params);
-}
-
-PIDController::pid_params_t GimbalSKD::echo_pid_params_by_type(motor_id_t motor_id, bool is_a2v) {
-    if (motor_id > SUB_PITCH) {
-        return {0, 0, 0, 0, 0};
-    }
-    PIDController *p = is_a2v ? a2v_pid : v2i_pid;
-    return p[motor_id].get_parameters();
-}
-
-void GimbalSKD::set_yaw_restriction(float yaw_min, float yaw_max, float restrict_velocity) {
-    yaw_restrict_angle[0] = yaw_min;
-    yaw_restrict_angle[1] = yaw_max;
-    yaw_restrict_velocity = restrict_velocity;
 }
 
 void GimbalSKD::set_mode(GimbalSKD::mode_t skd_mode) {
@@ -203,7 +180,6 @@ void GimbalSKD::SKDThread::main() {
                 target_current[PITCH] = (int) v2i_pid[PITCH].calc(actual_velocity[PITCH], target_velocity[PITCH]);
 
 
-
             } else if (mode == SENTRY_MODE) {
 
                 /// Yaw
@@ -230,7 +206,7 @@ void GimbalSKD::SKDThread::main() {
 
             }
 
-            for (int i = 0; i < MOTOR_COUNT; i++) {
+            for (int i = YAW; i <= SUB_PITCH; i++) {
                 if (!motor_enable[i]) target_current[i] = 0;
             }
 
@@ -255,12 +231,14 @@ float GimbalSKD::get_relative_angle(GimbalBase::motor_id_t motor) {
     return 0;
 }
 
-Shell::Command GimbalSKD::shellCommands[] = {
-        {"_g",              GimbalSKD::cmdInfo,           nullptr},
-        {"_g_enable_fb",    GimbalSKD::cmdEnableFeedback, "Motor Feedback_Enabled"},
-        {"_g_pid",          GimbalSKD::cmdPID,            "Motor A2V(0)/V2I(1) [kp ki kd i_limit out_limit]"},
-        {"_g_enable_motor", GimbalSKD::cmdEnableMotor,    "Motor Motor_Enabled"},
-        {nullptr,           nullptr,                      nullptr}
+const Shell::Command GimbalSKD::shellCommands[] = {
+        {"_g",               nullptr,                                              GimbalSKD::cmdInfo,            nullptr},
+        {"_g_enable_fb",     "Channel/All",                                        GimbalSKD::cmdEnableFeedback,  nullptr},
+        {"_g_disable_fb",    "Channel/All",                                        GimbalSKD::cmdDisableFeedback, nullptr},
+        {"_g_pid",           "Channel A2V(0)/V2I(1) [kp ki kd i_limit out_limit]", GimbalSKD::cmdPID,             nullptr},
+        {"_g_enable_motor",  "Channel/All",                                        GimbalSKD::cmdEnableMotor,     nullptr},
+        {"_g_disable_motor", "Channel/All",                                        GimbalSKD::cmdDisableMotor,    nullptr},
+        {nullptr,            nullptr,                                              nullptr,                       nullptr}
 };
 
 DEF_SHELL_CMD_START(GimbalSKD::cmdInfo)
@@ -271,10 +249,10 @@ DEF_SHELL_CMD_START(GimbalSKD::cmdInfo)
     return true;
 DEF_SHELL_CMD_END
 
-static bool feedbackEnabled[GimbalSKD::MOTOR_COUNT] = {false, false, false};
+static bool feedbackEnabled[3] = {false, false, false};
 
-void GimbalSKD::cmdFeedback() {
-    for (int i = 0; i < MOTOR_COUNT; i++) {
+void GimbalSKD::cmdFeedback(void *) {
+    for (int i = YAW; i <= SUB_PITCH; i++) {
         if (feedbackEnabled[i]) {
             Shell::printf("_g%d %.2f %.2f %.2f %.2f %d %d" ENDL, i,
                           actual_angle[i], target_angle[i],
@@ -284,37 +262,53 @@ void GimbalSKD::cmdFeedback() {
     }
 }
 
-DEF_SHELL_CMD_START(GimbalSKD::cmdEnableFeedback)
-    if (argc != 2) return false;
-
-    unsigned id = Shell::atoi(argv[0]);
-    if (id >= MOTOR_COUNT) return false;
-
-    unsigned enabled = Shell::atoi(argv[1]);
-    if (enabled > 1) return false;
-
-    feedbackEnabled[id] = enabled;
+bool GimbalSKD::setFeedbackEnabled(int argc, char *argv[], bool enabled) {
+    if (argc != 1) return false;
+    if (argv[0][0] == 'A') {
+        for (int id = YAW; id <= SUB_PITCH; id++) feedbackEnabled[id] = enabled;
+        return true;
+    } else {
+        unsigned id = Shell::atoi(argv[0]);
+        if (id > SUB_PITCH) return false;
+        feedbackEnabled[id] = enabled;
+    }
     return true;
+}
+
+DEF_SHELL_CMD_START(GimbalSKD::cmdEnableFeedback)
+    return setFeedbackEnabled(argc, argv, true);
 DEF_SHELL_CMD_END
 
+DEF_SHELL_CMD_START(GimbalSKD::cmdDisableFeedback)
+    return setFeedbackEnabled(argc, argv, false);
+DEF_SHELL_CMD_END
+
+bool GimbalSKD::setMotorEnabled(int argc, char **argv, bool enabled) {
+    if (argc != 1) return false;
+    if (argv[0][0] == 'A') {
+        for (int id = YAW; id <= SUB_PITCH; id++) motor_enable[id] = enabled;
+        return true;
+    } else {
+        unsigned id = Shell::atoi(argv[0]);
+        if (id > SUB_PITCH) return false;
+        motor_enable[id] = enabled;
+        return true;
+    }
+}
+
 DEF_SHELL_CMD_START(GimbalSKD::cmdEnableMotor)
-    if (argc != 2) return false;
+    return setMotorEnabled(argc, argv, true);
+DEF_SHELL_CMD_END
 
-    unsigned id = Shell::atoi(argv[0]);
-    if (id >= MOTOR_COUNT) return false;
-
-    unsigned enabled = Shell::atoi(argv[1]);
-    if (enabled > 1) return false;
-
-    motor_enable[id] = enabled;
-    return true;
+DEF_SHELL_CMD_START(GimbalSKD::cmdDisableMotor)
+    return setMotorEnabled(argc, argv, false);
 DEF_SHELL_CMD_END
 
 DEF_SHELL_CMD_START(GimbalSKD::cmdPID)
     if (argc < 2) return false;
 
     unsigned id = Shell::atoi(argv[0]);
-    if (id >= MOTOR_COUNT) return false;
+    if (id > SUB_PITCH) return false;
 
     unsigned pidType = Shell::atoi(argv[1]);
     if (pidType > 1) return false;
@@ -322,8 +316,8 @@ DEF_SHELL_CMD_START(GimbalSKD::cmdPID)
     PIDController *pid = pidType == 0 ? &a2v_pid[id] : &v2i_pid[id];
     if (argc == 2) {
         pid_params_t params = pid->get_parameters();
-        Shell::printf("%.2f %.2f %.2f %.2f %.2f" SHELL_NEWLINE_STR,
-                      params.kp, params.ki, params.kd, params.i_limit, params.out_limit);
+        Shell::printf("_g_pid %u %u %.2f %.2f %.2f %.2f %.2f" SHELL_NEWLINE_STR,
+                      id, pidType, params.kp, params.ki, params.kd, params.i_limit, params.out_limit);
     } else if (argc == 7) {
         pid->change_parameters({Shell::atof(argv[2]),
                                 Shell::atof(argv[3]),

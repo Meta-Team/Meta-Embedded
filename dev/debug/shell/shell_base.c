@@ -104,7 +104,14 @@ static bool cmdexec(const ShellCommand *scp, BaseSequentialStream *chp,
 
     while (scp->sc_name != NULL) {
         if (strcmp(scp->sc_name, name) == 0) {
-            if (!scp->sc_function(chp, argc, argv)) {
+            bool ret;
+            if (!scp->sc_arg) {
+                ret = scp->sc_function(chp, argc, argv);
+            } else {
+                // Here we just pass void* as BaseSequentialStream *, maybe fix this someday
+                ret = scp->sc_function(scp->sc_arg, argc, argv);
+            }
+            if (!ret) {
                 if (scp->sc_arguments) {
                     chprintf(chp, "Usage: %s %s" SHELL_NEWLINE_STR, scp->sc_name, scp->sc_arguments);
                 } else {

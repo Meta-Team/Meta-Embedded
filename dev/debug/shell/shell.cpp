@@ -16,7 +16,7 @@ using namespace chibios_rt;
 /**
  * Declaration for class variables
  */
-Shell::Command Shell::shellCommands[SHELL_MAX_COMMAND_COUNT + 1] = {{nullptr, nullptr, nullptr}};
+Shell::Command Shell::shellCommands[SHELL_MAX_COMMAND_COUNT + 1] = {{nullptr, nullptr, nullptr, nullptr}};
 bool Shell::enabled = false;
 MUTEX_DECL(Shell::printfMutex);
 #if (SHELL_USE_COMPLETION == TRUE)
@@ -81,15 +81,15 @@ void Shell::addCommands(const Shell::Command *commandList) {
         i++;
         commandList++;
     }
-    shellCommands[i] = {nullptr, nullptr, nullptr};
+    shellCommands[i] = {nullptr, nullptr, nullptr, nullptr};
 }
 
-void Shell::addFeedbackCallback(Shell::FeedbackCallback feedback) {
+void Shell::addFeedbackCallback(const FeedbackCallbackFunction &callback, void *callbackArg) {
     int i = 0;
-    while (i < SHELL_MAX_COMMAND_COUNT && feedbackThread.feedbacks[i] != nullptr) i++;
+    while (i < SHELL_MAX_COMMAND_COUNT && feedbackThread.feedbacks[i].callback != nullptr) i++;
     if (i < SHELL_MAX_COMMAND_COUNT) {
-        feedbackThread.feedbacks[i] = feedback;
-        feedbackThread.feedbacks[i + 1] = nullptr;
+        feedbackThread.feedbacks[i] = {callback, callbackArg};
+        feedbackThread.feedbacks[i + 1] = {nullptr, nullptr};
     }
 }
 
@@ -170,12 +170,25 @@ float Shell::atof(const char *s) {
     return rez * sign;
 }
 
+bool Shell::parseIDAndBool(int argc, char **argv, int maxID, int &id, bool &val) {
+    if (argc != 2) return false;
+
+    id = Shell::atoi(argv[0]);
+    if (id >= maxID) return false;
+
+    unsigned v = Shell::atoi(argv[1]);
+    if (v > 1) return false;
+    val = v;
+
+    return true;
+}
+
 void Shell::FeedbackThread::main() {
     setName("Feedback");
     while (!shouldTerminate()) {
-        for (auto &callback : feedbacks) {
-            if (callback == nullptr) break;
-            callback();
+        for (auto &f : feedbacks) {
+            if (f.callback == nullptr) break;
+            f.callback(f.callbackArg);
         }
         sleep(TIME_MS2I(FEEDBACK_INTERVAL));
     }

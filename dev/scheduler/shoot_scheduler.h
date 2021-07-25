@@ -73,10 +73,6 @@ public:
     static void load_pid_params(pid_params_t loader_a2v_params, pid_params_t loader_v2i_params,
                                 pid_params_t fw_left_v2i_params, pid_params_t fw_right_v2i_params);
 
-    static void load_pid_params_by_type(pid_params_t params, unsigned motor_id, bool is_a2v);
-
-    static pid_params_t echo_pid_params_by_type(unsigned motor_id, bool is_a2v);
-
     /**
      * Set mode of this SKD
      * @param skd_mode
@@ -103,9 +99,9 @@ public:
 
     /**
      * Set friction wheels duty cycle in LIMITED_SHOOTING_MODE or REVERSE_TURNING_MODE
-     * @param duty_cycle  Friction wheels duty cycle, from 0 to 1.0
+     * @param speed  [deg/s]
      */
-    static void set_friction_wheels(float duty_cycle);
+    static void set_friction_wheels(float speed);
 
 
     /** -------------------------------------- Functions to access GimbalIF -------------------------------------- */
@@ -114,7 +110,7 @@ public:
      * Get friction wheels duty cycle
      * @return Friction wheels duty cycle, from 0 to 1.0
      */
-    static float get_friction_wheels_duty_cycle();
+    static float get_friction_wheels_target_speed();
 
     static float get_target_velocity(uint32_t motor_id);
 
@@ -146,37 +142,22 @@ public:
      */
     static void reset_loader_accumulated_angle();
 
-    /*------------------------------------- Functions for Test Status -------------------------------------*/
-
-    /**
-     * Set the test status
-     * @param test_status
-     */
-    static void set_test_status(bool test_status);
-
-    /**
-     * Enable the motors
-     * @param motor
-     */
-    static void enable_motor(unsigned motor);
-
-    /**
-     * Disable the motors
-     * @param motor
-     */
-    static void disable_motor(unsigned motor);
+    static void cmdFeedback(void *);
+    static const Shell::Command shellCommands[];
 
 private:
 
     static install_direction_t install_position[3];
 
-    static bool is_test;
     static mode_t mode;
 
     static bool motor_enable[3];
 
     static float target_angle;
+    static float actual_angle;
+    static float fw_target_speed;
     static float target_velocity[3];
+    static float actual_velocity[3];
     static int target_current[3];
 
     static PIDController v2i_pid[3];
@@ -189,6 +170,16 @@ private:
     };
 
     static SKDThread skd_thread;
+
+    static DECL_SHELL_CMD(cmdInfo);
+    static DECL_SHELL_CMD(cmdEnableFeedback);
+    static DECL_SHELL_CMD(cmdDisableFeedback);
+    static DECL_SHELL_CMD(cmdPID);
+    static DECL_SHELL_CMD(cmdEnableMotor);
+    static DECL_SHELL_CMD(cmdDisableMotor);
+
+    static bool setFeedbackEnabled(int argc, char *argv[], bool enabled);
+    static bool setMotorEnabled(int argc, char *argv[], bool enabled);
 };
 
 #endif //META_INFANTRY_SHOOT_SCHEDULER_H

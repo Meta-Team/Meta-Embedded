@@ -224,24 +224,24 @@ const ShellCommand shell_local_commands[] = {
         {"exit", cmd_exit, NULL},
 #endif
 #if SHELL_CMD_INFO_ENABLED == TRUE
-        {"info", cmd_info, NULL},
+        {"info", NULL, cmd_info, NULL},
 #endif
 #if SHELL_CMD_ECHO_ENABLED == TRUE
-        {"echo", cmd_echo, NULL},
+        {"echo", NULL, cmd_echo, NULL},
 #endif
 #if SHELL_CMD_SYSTIME_ENABLED == TRUE
-        {"systime", cmd_systime, NULL},
+        {"systime", NULL, cmd_systime, NULL},
 #endif
 #if SHELL_CMD_MEM_ENABLED == TRUE
-        {"mem", cmd_mem, NULL},
+        {"mem", NULL, cmd_mem, NULL},
 #endif
 #if SHELL_CMD_THREADS_ENABLED == TRUE
-        {"threads", cmd_threads, NULL},
+        {"threads", NULL, cmd_threads, NULL},
 #endif
 #if SHELL_CMD_TEST_ENABLED == TRUE
-        {"test", cmd_test, NULL},
+        {"test", NULL, cmd_test, NULL},
 #endif
-        {NULL, NULL, NULL}
+        {NULL, NULL, NULL, NULL}
 };
 
 /** @} */

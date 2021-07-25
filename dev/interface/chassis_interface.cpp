@@ -37,14 +37,18 @@ void ChassisIF::init(CANInterface *can1_interface, CANInterface *can2_interface,
 
             // Link the feedback and target_current to can1's feedback
             feedback[i] = can1_->register_feedback_address(motor_can_config[i].motor_can_id, motor_can_config[i].motor_type);
+            if (feedback[i] == nullptr) while(true) LOG_ERR("ChassisIF: failed to register motor %d feedback", i);
             target_current[i] = can1_->register_target_current_address(motor_can_config[i].motor_can_id, motor_can_config[i].motor_type);
+            if (target_current[i] == nullptr) while(true) LOG_ERR("ChassisIF: failed to register motor %d target_current", i);
             *target_current[i] = 0;
 
         } else if (motor_can_config[i].motor_can_channel == can_channel_2) {
 
             // Link the feedback and target_current to can2's feedback
             feedback[i] = can2_->register_feedback_address(motor_can_config[i].motor_can_id, motor_can_config[i].motor_type);
+            if (feedback[i] == nullptr) while(true) LOG_ERR("ChassisIF: failed to register motor %d feedback", i);
             target_current[i] = can2_->register_target_current_address(motor_can_config[i].motor_can_id, motor_can_config[i].motor_type);
+            if (target_current[i] == nullptr) while(true) LOG_ERR("ChassisIF: failed to register motor %d target_current", i);
             *target_current[i] = 0;
 
         }

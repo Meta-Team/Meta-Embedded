@@ -50,12 +50,12 @@ int ShootLG::get_bullet_count() {
     return bullet_count;
 }
 
-void ShootLG::set_friction_wheels(float duty_cycle) {
-    ShootSKD::set_friction_wheels(duty_cycle);
+void ShootLG::set_friction_wheels(float speed) {
+    ShootSKD::set_friction_wheels(speed);
 }
 
 float ShootLG::get_friction_wheels_duty_cycle() {
-    return ShootSKD::get_friction_wheels_duty_cycle();
+    return ShootSKD::get_friction_wheels_target_speed();
 }
 
 ShootLG::shooter_state_t ShootLG::get_shooter_state() {

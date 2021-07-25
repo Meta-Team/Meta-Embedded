@@ -3,10 +3,10 @@
 
 #include "ch.hpp"
 #include "hal.h"
-
-#include "ahrs_math.hpp"
+#include "shell.h"
 
 #include "imu_on_board.h"
+#include "ahrs_math.hpp"
 #include "ahrs_lib.h"
 
 /**
@@ -31,9 +31,7 @@ public:
      * Start MPUOnBoard, ISTOnBoard and AHRS update thread
      * @note Should be called from NORMAL state (not in locks)
      * @param mpu_rotation_matrix  3x3 Matrix maps gyro and accel to desired coordinate system
-     * @param update_thread_prio   priority of MPU updating thread
-     * @param istPrio   priority of IST updating thread
-     * @param ahrsPrio  priority of AHRS updating thread
+     * @param update_thread_prio   priority of updating thread
      */
     void start(const Matrix33 mpu_rotation_matrix, tprio_t update_thread_prio);
 
@@ -73,8 +71,17 @@ public:
 
     time_msecs_t get_mpu_update_time() const override { return imu.imu_update_time; }
 
+    static void cmdFeedback(void *);
+
+    const Shell::Command shellCommands[4] = {
+            {"_a",            nullptr,       cmdInfo,            this},
+            {"_a_enable_fb",  "Channel/All", cmdEnableFeedback,  this},
+            {"_a_disable_fb", "Channel/All", cmdDisableFeedback, this},
+            {nullptr,         nullptr,       nullptr,            nullptr}
+    };
+
 private:
-    
+
     IMUOnBoard imu;
 
     float q[4];
@@ -95,6 +102,16 @@ private:
     void main() override;
 
     static constexpr int UPDATE_THREAD_INTERVAL = 1;  // [ms]
+
+    static DECL_SHELL_CMD(cmdInfo);
+
+    static DECL_SHELL_CMD(cmdEnableFeedback);
+
+    static DECL_SHELL_CMD(cmdDisableFeedback);
+
+    bool feedbackEnabled[4] = {false, false, false, false};
+
+    bool setFeedbackEnabled(int argc, char *argv[], bool enabled);
 
 };
 

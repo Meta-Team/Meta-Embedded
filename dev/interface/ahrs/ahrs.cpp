@@ -49,3 +49,53 @@ void AHRSOnBoard::main() {
         sleep(TIME_MS2I(UPDATE_THREAD_INTERVAL));
     }
 }
+
+DEF_SHELL_CMD_START(AHRSOnBoard::cmdInfo)
+    Shell::printf("_a:AHRS" ENDL);
+    Shell::printf("_a/Angle:X{Angle},Y{Angle},Z{Angle}" ENDL);
+    Shell::printf("_a/Gyro:X{Angle},Y{Angle},Z{Angle}" ENDL);
+    Shell::printf("_a/Accel:X{Angle},Y{Angle},Z{Angle}" ENDL);
+    Shell::printf("_a/Magnet:X{Angle},Y{Angle},Z{Angle}" ENDL);
+    return true;
+DEF_SHELL_CMD_END
+
+void AHRSOnBoard::cmdFeedback(void *arg) {
+    auto ahrs = reinterpret_cast<AHRSOnBoard *>(arg);
+    for (int i = 0; i < 4; i++) {
+        if (ahrs->feedbackEnabled[i]) {
+            Vector3D v;
+            switch (i) {
+                case 0: v = ahrs->get_angle();  break;
+                case 1: v = ahrs->get_gyro();   break;
+                case 2: v = ahrs->get_accel();  break;
+                case 3: v = ahrs->get_magnet(); break;
+            }
+            Shell::printf("_a%d %.2f %.2f %.2f" ENDL, i, v.x, v.y, v.z);
+        }
+    }
+}
+
+bool AHRSOnBoard::setFeedbackEnabled(int argc, char *argv[], bool enabled) {
+    if (argc != 1) return false;
+    if (argv[0][0] == 'A') {
+        for (bool &f : feedbackEnabled) f = enabled;
+        return true;
+    } else {
+        unsigned id = Shell::atoi(argv[0]);
+        if (id >= 4) return false;
+        feedbackEnabled[id] = enabled;
+    }
+    return true;
+}
+
+DEF_SHELL_CMD_START(AHRSOnBoard::cmdEnableFeedback)
+    auto ahrs = reinterpret_cast<AHRSOnBoard *>(chp);
+    ahrs->setFeedbackEnabled(argc, argv, true);
+    return true;
+DEF_SHELL_CMD_END
+
+DEF_SHELL_CMD_START(AHRSOnBoard::cmdDisableFeedback)
+    auto ahrs = reinterpret_cast<AHRSOnBoard *>(chp);
+    ahrs->setFeedbackEnabled(argc, argv, false);
+    return true;
+DEF_SHELL_CMD_END

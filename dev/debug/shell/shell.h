@@ -89,8 +89,9 @@ public:
      */
     struct Command {
         const char *name;
-        CommandCallback callback;
         const char *arguments;
+        CommandCallback callback;
+        void *callbackArg;
     };
 
     /**
@@ -102,13 +103,14 @@ public:
     /**
      * Callback function to echo feedback
      */
-    using FeedbackCallback = void (*)();
+    using FeedbackCallbackFunction = void (*)(void *);
 
     /**
      * Add feedback callback
-     * @param feedback   Feedback function callback
+     * @param callback     Feedback function callback
+     * @param callbackArg  Callback argument
      */
-    static void addFeedbackCallback(FeedbackCallback feedback);
+    static void addFeedbackCallback(const FeedbackCallbackFunction &callback, void *callbackArg = nullptr);
 
     /**
      * Print with format through shell
@@ -162,6 +164,18 @@ public:
      */
     static float atof(const char *s);
 
+    /**
+     * Parse an ID and a bool value from arguments.
+     * @param argc
+     * @param argv
+     * @param maxID
+     * @param id
+     * @param val
+     * @return Input valid or not
+     * @note   id and val may change even when parse fails
+     */
+    static bool parseIDAndBool(int argc, char *argv[], int maxID, int &id, bool &val);
+
 private:
 
     static bool enabled;  // whether the shell thread has started
@@ -176,7 +190,10 @@ private:
 
     class FeedbackThread : public chibios_rt::BaseStaticThread<512> {
     public:
-        FeedbackCallback feedbacks[SHELL_MAX_COMMAND_COUNT + 1] = {nullptr};
+        struct FeedbackCallback {
+            FeedbackCallbackFunction callback;
+            void *callbackArg;
+        } feedbacks[SHELL_MAX_COMMAND_COUNT + 1] = {{nullptr, nullptr}};
     private:
         void main() override;
         static constexpr unsigned FEEDBACK_INTERVAL = 20;  // [ms]

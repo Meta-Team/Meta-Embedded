@@ -81,7 +81,7 @@ DEF_SHELL_CMD_END
  * @note {NULL, NULL} is a marker of end of list and mustn't be removed.
  */
 Shell::Command shell_debug_commands[] = {
-    {"hello", cmd_hello, nullptr},
-    {"stats", cmd_show_thread_stats, nullptr},
-    {nullptr, nullptr, nullptr}
+    {"hello", nullptr, cmd_hello, nullptr},
+    {"stats", nullptr, cmd_show_thread_stats, nullptr},
+    {nullptr, nullptr, nullptr, nullptr}
 };

@@ -46,9 +46,8 @@ private:
     static float shoot_launch_left_count;
     static float shoot_launch_right_count;
 
-    static float shoot_launch_speed;
-
-    static float shoot_common_duty_cycle;
+    static float shoot_feed_rate;
+    static float shoot_fw_speed;
 
     /// Helpers
 
