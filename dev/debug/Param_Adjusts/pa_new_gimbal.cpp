@@ -315,7 +315,7 @@ private:
                     target_velocity = GimbalSKD::get_target_velocity((GimbalBase::motor_id_t) i);
                     Shell::printf("fb %s %.2f %.2f %.2f %.2f %d %d" SHELL_NEWLINE_STR,
                                   motor_name[i],
-                                  GimbalIF::feedback[i]->actual_angle, target_angle,
+                                  actual_angle, target_angle,
                                   actual_velocity, target_velocity,
                                   GimbalIF::feedback[i]->actual_current, *GimbalIF::target_current[i]);
                 }
