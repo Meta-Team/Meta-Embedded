@@ -23,8 +23,7 @@ float GimbalSKD::yaw_deceleration_ratio;
 float GimbalSKD::pitch_deceleration_ratio;
 float GimbalSKD::sub_pitch_deceleration_ratio;
 
-bool GimbalSKD::is_test = false;
-bool GimbalSKD::motor_enable[3] = {false, false, false};
+bool GimbalSKD::motor_enable[3] = {true, true, true};
 float GimbalSKD::target_angle[3] = {0, 0, 0};
 float GimbalSKD::target_velocity[3] = {0, 0, 0};
 int GimbalSKD::target_current[3] = {0, 0, 0};
@@ -41,7 +40,8 @@ float GimbalSKD::actual_velocity[3] = {0, 0, 0};
 
 void
 GimbalSKD::start(AbstractAHRS *gimbal_ahrs_, const Matrix33 ahrs_angle_rotation_, const Matrix33 ahrs_gyro_rotation_,
-                 install_direction_t yaw_install_, install_direction_t pitch_install_, install_direction_t sub_pitch_install_, tprio_t thread_prio,
+                 install_direction_t yaw_install_, install_direction_t pitch_install_,
+                 install_direction_t sub_pitch_install_, tprio_t thread_prio,
                  float yaw_deceleration_ratio_, float pitch_deceleration_ratio_, float sub_pitch_deceleration_ratio_) {
 
     gimbal_ahrs = gimbal_ahrs_;
@@ -99,7 +99,7 @@ void GimbalSKD::load_pid_params_by_type(pid_params_t pid_params, motor_id_t moto
 
 PIDController::pid_params_t GimbalSKD::echo_pid_params_by_type(motor_id_t motor_id, bool is_a2v) {
     if (motor_id > SUB_PITCH) {
-        return {0,0,0,0,0};
+        return {0, 0, 0, 0, 0};
     }
     PIDController *p = is_a2v ? a2v_pid : v2i_pid;
     return p[motor_id].get_parameters();
@@ -201,7 +201,8 @@ void GimbalSKD::SKDThread::main() {
 
                 actual_velocity[PITCH] = velocity[PITCH];
                 target_current[PITCH] = (int) v2i_pid[PITCH].calc(actual_velocity[PITCH], target_velocity[PITCH]);
-                //target_current[PITCH] = 0;
+
+
 
             } else if (mode == SENTRY_MODE) {
 
@@ -229,6 +230,10 @@ void GimbalSKD::SKDThread::main() {
 
             }
 
+            for (int i = 0; i < MOTOR_COUNT; i++) {
+                if (!motor_enable[i]) target_current[i] = 0;
+            }
+
             // Send currents
             *GimbalIF::target_current[YAW] = target_current[YAW] * yaw_install;
             *GimbalIF::target_current[PITCH] = target_current[PITCH] * pitch_install;
@@ -241,23 +246,6 @@ void GimbalSKD::SKDThread::main() {
     }
 }
 
-float GimbalSKD::get_accumulated_angle(motor_id_t motor) {
-    if (motor == YAW) {
-        if (mode == SENTRY_MODE) {
-            return GimbalIF::feedback[YAW]->accumulated_angle() * yaw_install / yaw_deceleration_ratio;
-        } else {
-            return accumulated_angle[YAW];
-        }
-    } else if (motor == PITCH) {
-        if (mode == SENTRY_MODE) {
-            return GimbalIF::feedback[PITCH]->accumulated_angle() * pitch_install / pitch_deceleration_ratio;
-        } else {
-            return (gimbal_ahrs->get_angle() * ahrs_angle_rotation).y;
-        }
-    }
-    return 0;
-}
-
 float GimbalSKD::get_relative_angle(GimbalBase::motor_id_t motor) {
     if (motor == YAW) {
         return GimbalIF::feedback[YAW]->accumulated_angle() * yaw_install / yaw_deceleration_ratio;
@@ -266,5 +254,87 @@ float GimbalSKD::get_relative_angle(GimbalBase::motor_id_t motor) {
     }
     return 0;
 }
+
+Shell::Command GimbalSKD::shellCommands[] = {
+        {"_g",              GimbalSKD::cmdInfo,           nullptr},
+        {"_g_enable_fb",    GimbalSKD::cmdEnableFeedback, "Motor Feedback_Enabled"},
+        {"_g_pid",          GimbalSKD::cmdPID,            "Motor A2V(0)/V2I(1) [kp ki kd i_limit out_limit]"},
+        {"_g_enable_motor", GimbalSKD::cmdEnableMotor,    "Motor Motor_Enabled"},
+        {nullptr,           nullptr,                      nullptr}
+};
+
+DEF_SHELL_CMD_START(GimbalSKD::cmdInfo)
+    Shell::printf("_g:Gimbal" ENDL);
+    Shell::printf("_g/Yaw:Angle{Target,Actual},Velocity{Target,Actual},Current{Target,Actual}" ENDL);
+    Shell::printf("_g/Pitch:Angle{Target,Actual},Velocity{Target,Actual},Current{Target,Actual}" ENDL);
+    Shell::printf("_g/Sub_Pitch:Angle{Target,Actual},Velocity{Target,Actual},Current{Target,Actual}" ENDL);
+    return true;
+DEF_SHELL_CMD_END
+
+static bool feedbackEnabled[GimbalSKD::MOTOR_COUNT] = {false, false, false};
+
+void GimbalSKD::cmdFeedback() {
+    for (int i = 0; i < MOTOR_COUNT; i++) {
+        if (feedbackEnabled[i]) {
+            Shell::printf("_g%d %.2f %.2f %.2f %.2f %d %d" ENDL, i,
+                          actual_angle[i], target_angle[i],
+                          actual_velocity[i], target_velocity[i],
+                          GimbalIF::feedback[i]->actual_current, *GimbalIF::target_current[i]);
+        }
+    }
+}
+
+DEF_SHELL_CMD_START(GimbalSKD::cmdEnableFeedback)
+    if (argc != 2) return false;
+
+    unsigned id = Shell::atoi(argv[0]);
+    if (id >= MOTOR_COUNT) return false;
+
+    unsigned enabled = Shell::atoi(argv[1]);
+    if (enabled > 1) return false;
+
+    feedbackEnabled[id] = enabled;
+    return true;
+DEF_SHELL_CMD_END
+
+DEF_SHELL_CMD_START(GimbalSKD::cmdEnableMotor)
+    if (argc != 2) return false;
+
+    unsigned id = Shell::atoi(argv[0]);
+    if (id >= MOTOR_COUNT) return false;
+
+    unsigned enabled = Shell::atoi(argv[1]);
+    if (enabled > 1) return false;
+
+    motor_enable[id] = enabled;
+    return true;
+DEF_SHELL_CMD_END
+
+DEF_SHELL_CMD_START(GimbalSKD::cmdPID)
+    if (argc < 2) return false;
+
+    unsigned id = Shell::atoi(argv[0]);
+    if (id >= MOTOR_COUNT) return false;
+
+    unsigned pidType = Shell::atoi(argv[1]);
+    if (pidType > 1) return false;
+
+    PIDController *pid = pidType == 0 ? &a2v_pid[id] : &v2i_pid[id];
+    if (argc == 2) {
+        pid_params_t params = pid->get_parameters();
+        Shell::printf("%.2f %.2f %.2f %.2f %.2f" SHELL_NEWLINE_STR,
+                      params.kp, params.ki, params.kd, params.i_limit, params.out_limit);
+    } else if (argc == 7) {
+        pid->change_parameters({Shell::atof(argv[2]),
+                                Shell::atof(argv[3]),
+                                Shell::atof(argv[4]),
+                                Shell::atof(argv[5]),
+                                Shell::atof(argv[6])});
+    } else {
+        return false;
+    }
+
+    return true;
+DEF_SHELL_CMD_END
 
 /** @} */

@@ -6,12 +6,6 @@
 #ifndef META_INFANTRY_VEHICLE_INFANTRY_H
 #define META_INFANTRY_VEHICLE_INFANTRY_H
 
-/// Module Enable
-#define INFANTRY_GIMBAL_ENABLE              TRUE
-#define INFANTRY_CHASSIS_ENABLE             TRUE
-#define INFANTRY_SUPER_CAPACITOR_ENABLE     TRUE
-#define INFANTRY_VISION_ENABLE              TRUE
-
 /// AHRS Configurations
 #define ON_BOARD_AHRS_MATRIX {{0.0f, -1.0f, 0.0f}, \
                               {1.0f, 0.0f, 0.0f}, \

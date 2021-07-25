@@ -104,7 +104,13 @@ static bool cmdexec(const ShellCommand *scp, BaseSequentialStream *chp,
 
     while (scp->sc_name != NULL) {
         if (strcmp(scp->sc_name, name) == 0) {
-            scp->sc_function(chp, argc, argv);
+            if (!scp->sc_function(chp, argc, argv)) {
+                if (scp->sc_arguments) {
+                    chprintf(chp, "Usage: %s %s" SHELL_NEWLINE_STR, scp->sc_name, scp->sc_arguments);
+                } else {
+                    chprintf(chp, "Usage: %s" SHELL_NEWLINE_STR, scp->sc_name);
+                }
+            }
             return false;
         }
         scp++;
@@ -386,7 +392,7 @@ THD_FUNCTION(shellThread, p) {
         if (cmd != NULL) {
             if (strcmp(cmd, "help") == 0) {
                 if (n > 0) {
-                    shellUsage(chp, "help");
+                    chprintf(chp, "Usage: help" SHELL_NEWLINE_STR);
                     continue;
                 }
                 chprintf(chp, "Commands: help ");

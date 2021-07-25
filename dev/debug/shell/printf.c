@@ -70,7 +70,7 @@ static char *ftoa(char *p, double num, unsigned long precision) {
 // Original printf from ChibiOS
 #include "chprintf_core.c"
 
-// Revised printf as I-Class function
+/// Revised printf as I-Class function
 
 // Rename functions
 #define chvprintf chvprintfI
@@ -95,3 +95,7 @@ static char *ftoa(char *p, double num, unsigned long precision) {
 
 // Updated chprintf
 #include "chprintf_core.c"
+
+#undef chvprintf
+#undef chprintf
+#undef chsnprintf

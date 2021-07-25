@@ -17,10 +17,7 @@
 #include "ch.hpp"
 #include "hal.h"
 
-#include "shell_base.h"
-#include "printf.h"
-
-#include "shell_dbg_cmd.h"
+#include "shellconf.h"
 
 #include "common_macro.h"
 
@@ -32,22 +29,35 @@
 #error "Shell has not been defined for selected board"
 #endif
 
-#define SHELL_ENABLE_ISR_FIFO FALSE
-#define SHELL_MAX_COMMAND_COUNT 20
-#define SHELL_RX_WORKAREA_SIZE 2048
-#define SHELL_ISR_TX_WORKAREA_SIZE 512
-#define SHELL_ISR_TX_BUF_SIZE 512
+#define SHELL_RX_WORK_AREA_SIZE 2048
 
 /*** Debug Macro ***/
 
+#define ENDL SHELL_NEWLINE_STR
+
 #define VA_ARGS(...) , ##__VA_ARGS__
 
+// Should be called from NORMAL state
 #define LOG(fmt, ...) Shell::printf("[%u] " fmt SHELL_NEWLINE_STR, SYSTIME VA_ARGS(__VA_ARGS__))
 #define LOG_USER(fmt, ...) Shell::printf("[%u] USER " fmt SHELL_NEWLINE_STR, SYSTIME VA_ARGS(__VA_ARGS__))
 #define LOG_ERR(fmt, ...) Shell::printf("[%u] ERR " fmt SHELL_NEWLINE_STR, SYSTIME VA_ARGS(__VA_ARGS__))
 #define LOG_WARN(fmt, ...) Shell::printf("[%u] WARN " fmt SHELL_NEWLINE_STR, SYSTIME VA_ARGS(__VA_ARGS__))
-#define DBPRINTF(fmt, ...) Shell::printf("%s:%d:%s(): " fmt SHELL_NEWLINE_STR, __FILE__, __LINE__, __func__ VA_ARGS(__VA_ARGS__))
+#define LOG_LOC(fmt, ...) Shell::printf("%s:%d:%s(): " fmt SHELL_NEWLINE_STR, __FILE__, __LINE__, __func__ VA_ARGS(__VA_ARGS__))
 
+// Should be called from I-Locked state
+#define LOG_I(fmt, ...) Shell::printfI("[%u] " fmt SHELL_NEWLINE_STR, SYSTIME VA_ARGS(__VA_ARGS__))
+#define LOG_ERR_I(fmt, ...) Shell::printfI("[%u] ERR " fmt SHELL_NEWLINE_STR, SYSTIME VA_ARGS(__VA_ARGS__))
+#define LOG_WARN_I(fmt, ...) Shell::printfI("[%u] WARN " fmt SHELL_NEWLINE_STR, SYSTIME VA_ARGS(__VA_ARGS__))
+
+#define DECL_SHELL_CMD(name)      bool name(BaseSequentialStream *, int argc, char *argv[])
+
+#define DEF_SHELL_CMD_START(name)                                   \
+    bool name(BaseSequentialStream *chp, int argc, char *argv[]) {  \
+        (void) chp;                                                 \
+        if (argc == 1 && argv[0][0] == '?') return false;
+
+#define DEF_SHELL_CMD_END                                           \
+    }
 
 /**
  * @name    Shell
@@ -58,45 +68,83 @@
  *             Call printf() and other helper function
  */
 class Shell {
-
 public:
-
-    static bool enabled;  // whether the shell thread has started
 
     /**
      * Start the shell thread
-     * @param prio   Priority
+     * @param prio   Thread priority
      * @return If the shell thread has already started, return false
      */
     static bool start(tprio_t prio);
 
     /**
-     * Add shell commands
-     * @param commandList   NULL-terminate command lsit
-     * @return If one or more commands can't be added because the maximum command count has been reached, return false
+     * Callback function pointer for Shell command
+     * @note same as the revised shellcmd_t in shell_base.h
      */
-    static bool addCommands(const ShellCommand *commandList);
+    using CommandCallback = bool (*)(BaseSequentialStream *chp, int argc, char *argv[]);
+
+    /**
+     * Shell command defintion
+     * @note same as the revised revised ShellCommand in shell_base.h
+     */
+    struct Command {
+        const char *name;
+        CommandCallback callback;
+        const char *arguments;
+    };
+
+    /**
+     * Add shell commands
+     * @param commandList   NULL-terminate command list
+     */
+    static void addCommands(const Command *commandList);
+
+    /**
+     * Callback function to echo feedback
+     */
+    using FeedbackCallback = void (*)();
+
+    /**
+     * Add feedback callback
+     * @param feedback   Feedback function callback
+     */
+    static void addFeedbackCallback(FeedbackCallback feedback);
 
     /**
      * Print with format through shell
      * @param fmt
      * @param ...
      * @return The number of bytes that has been printed
-     * @note API, can only be called from normal thread state
+     * @note API, can only be called from NORMAL thread state
      */
     static int printf(const char *fmt, ...);
 
-
-#if SHELL_ENABLE_ISR_FIFO
     /**
-     * Print with format printf through shell
+     * Print with format through shell inside I-Lock state
      * @param fmt
      * @param ...
-     * @return the number of bytes that has been printed
-     * @playing_note I-Class function, can only be called from I-Lock state (ISR critical section)
+     * @return The number of bytes that has been printed
+     * @note I-Class API, can only be called from I-Lock State
      */
     static int printfI(const char *fmt, ...);
-#endif
+
+    /**
+     * Format to string
+     * @param str   pointer to a buffer
+     * @param size  maximum size of the buffer
+     * @param fmt   formatting string
+     * @param ...
+     * @return The number of characters (excluding the terminating NUL byte) that would have been stored in @p str
+     *         if there was room.
+     */
+    static int snprintf(char *str, size_t size, const char *fmt, ...);
+
+    /**
+     * Print command usage
+     * @param message
+     * @note API, can only be called from NORMAL thread state
+     */
+    static void usage(const char *message);
 
     /**
      * Convert string to signed integer
@@ -116,40 +164,25 @@ public:
 
 private:
 
-    static ShellCommand shellCommands_[]; // Container for the shell commands
+    static bool enabled;  // whether the shell thread has started
 
-    /**
-     * Config of the shell.
-     * First parameter is the Serial port.
-     * Second parameter is the list of commands, provided in serial_shell_commands.hpp
-     * @note DO NOT put it as a temporary variable in the start() function
-     */
-    static ShellConfig shellConfig;
+    static mutex_t printfMutex;
 
-    /**
-     * Config of the serial port used by the shell.
-     * First parameter is the bitrate.
-     * Other three are for parity, stop bits, etc which we don't care.
-     */
-    static constexpr SerialConfig SHELL_SERIAL_CONFIG = {115200,
-                                                         0,
-                                                         USART_CR2_STOP1_BITS,
-                                                         0};
+    static Command shellCommands[]; // container for the shell commands
 
-    static char complection_[SHELL_MAX_COMMAND_COUNT][SHELL_MAX_LINE_LENGTH];
+#if (SHELL_USE_COMPLETION == TRUE)
+    static char completion[SHELL_MAX_COMMAND_COUNT][SHELL_MAX_LINE_LENGTH];
+#endif
 
-#if SHELL_ENABLE_ISR_FIFO
-
-    static uint8_t isrTxBuf_[SHELL_ISR_TX_BUF_SIZE];
-    static input_queue_t isrTxQueue_;
-
-    class ShellISRTxThread : public chibios_rt::BaseStaticThread<SHELL_ISR_TX_WORKAREA_SIZE> {
-        void main() final;
+    class FeedbackThread : public chibios_rt::BaseStaticThread<512> {
+    public:
+        FeedbackCallback feedbacks[SHELL_MAX_COMMAND_COUNT + 1] = {nullptr};
+    private:
+        void main() override;
+        static constexpr unsigned FEEDBACK_INTERVAL = 20;  // [ms]
     };
 
-    static ShellISRTxThread isrTxThread;
-
-#endif
+    static FeedbackThread feedbackThread;
 
 };
 

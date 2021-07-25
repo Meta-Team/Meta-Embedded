@@ -47,7 +47,7 @@ void RefereeUILG::init() {
 
 void RefereeUILG::revise_cap(float cap_volt) {
     if(WITHIN_RECENT_TIME(cap_update_time, 400)) return;
-    chsnprintf(cap_title, sizeof(cap_title), "CAP  VOLT  : %.1f", cap_volt);
+    Shell::snprintf(cap_title, sizeof(cap_title), "CAP  VOLT  : %.1f", cap_volt);
     RefereeUISKD::color_t title_color;
     if(cap_volt >15.0f) {
         title_color = RefereeUISKD::GREEN;
@@ -62,10 +62,10 @@ void RefereeUILG::toggle_top(bool top_stat) {
     if(WITHIN_RECENT_TIME(top_update_time, 400)) return;
     RefereeUISKD::color_t title_color;
     if(top_stat) {
-        chsnprintf(top_title, sizeof(top_title), "CASE STAT  : OPEN [R]");
+        Shell::snprintf(top_title, sizeof(top_title), "CASE STAT  : OPEN [R]");
         title_color = RefereeUISKD::GREEN;
     } else {
-        chsnprintf(top_title, sizeof(top_title), "CASE STAT  : CLOSE[R]");
+        Shell::snprintf(top_title, sizeof(top_title), "CASE STAT  : CLOSE[R]");
         title_color = RefereeUISKD::ACCENT_COLOR;
     }
     RefereeUISKD::revise_character(cap_name, cap_title, title_color);
@@ -76,10 +76,10 @@ void RefereeUILG::toggle_dodge(bool dodge_stat) {
     if(WITHIN_RECENT_TIME(dodge_update_time, 400)) return;
     RefereeUISKD::color_t title_color;
     if(dodge_stat) {
-        chsnprintf(dodge_title, sizeof(dodge_title),    "DODGE MODE : ON   [X]");
+        Shell::snprintf(dodge_title, sizeof(dodge_title),    "DODGE MODE : ON   [X]");
         title_color = RefereeUISKD::GREEN;
     } else {
-        chsnprintf(dodge_title, sizeof(dodge_title),    "DODGE MODE : OFF  [X]");
+        Shell::snprintf(dodge_title, sizeof(dodge_title),    "DODGE MODE : OFF  [X]");
         title_color = RefereeUISKD::ACCENT_COLOR;
     }
     RefereeUISKD::revise_character(dodge_name, dodge_title, title_color);
@@ -109,11 +109,11 @@ void RefereeUILG::set_main_enemy(RefereeUISKD::UI_point enemy_loc){
 
 void RefereeUILG::init_data_UI() {
     RefereeUISKD::remove_layer(1);
-    chsnprintf(cap_title, sizeof(cap_title),        "CAP  VOLT  : INIT", 0.0f);
+    Shell::snprintf(cap_title, sizeof(cap_title),        "CAP  VOLT  : INIT", 0.0f);
     RefereeUISKD::add_character(cap_name, {100, 540}, RefereeUISKD::GREEN, 1, 15, 2, cap_title);
-    chsnprintf(dodge_title, sizeof(dodge_title),    "DODGE MODE : OFF  [X]");
+    Shell::snprintf(dodge_title, sizeof(dodge_title),    "DODGE MODE : OFF  [X]");
     RefereeUISKD::add_character(dodge_name, {100, 570}, RefereeUISKD::ACCENT_COLOR, 1, 15, 2, dodge_title);
-    chsnprintf(top_title, sizeof(top_title),        "CASE STAT  : INIT [R]");
+    Shell::snprintf(top_title, sizeof(top_title),        "CASE STAT  : INIT [R]");
     RefereeUISKD::add_character(top_name, {100, 600}, RefereeUISKD::ACCENT_COLOR, 1, 15, 2, top_title);
 }
 

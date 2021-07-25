@@ -48,11 +48,12 @@ public:
     enum mode_t {
         FORCED_RELAX_MODE,   // zero force (but still taking control of GimbalIF)
         ABS_ANGLE_MODE,      // target_angle of yaw is relative to ground
-//        SENTRY_MODE,         //
+        SENTRY_MODE,         //
     }; // no support for RELATIVE_ANGLE_MODE
 
     enum install_direction_t {
         POSITIVE = 1,
+        NONE = 0,
         NEGATIVE = -1
     };
 
@@ -151,7 +152,7 @@ public:
     * @param motor   YAW or PITCH
     * @return Actual angle of GIMBAL
     */
-//    static float get_actual_angle(motor_id_t motor) { return actual_angle[motor]; }
+    static float get_actual_angle(motor_id_t motor) { return actual_angle[motor]; }
 
     /**
     * Get actual velocity involved in PID calculation in this SKD
@@ -167,25 +168,8 @@ public:
     */
     static float get_relative_angle(motor_id_t motor);
 
-    /*------------------------------------- Functions for Test Status -------------------------------------*/
-
-    /**
-     * Set the test status
-     * @param test_status
-     */
-    static void set_test_status(bool test_status);
-
-    /**
-     * Enable the motors
-     * @param motor
-     */
-    static void enable_motor(motor_id_t motor);
-
-    /**
-     * Disable the motors
-     * @param motor
-     */
-    static void disable_motor(motor_id_t motor);
+    static void cmdFeedback();
+    static Shell::Command shellCommands[];
 
 private:
 
@@ -200,7 +184,6 @@ private:
     static float sub_pitch_deceleration_ratio;
 
     // Local storage
-    static bool is_test;
     static mode_t mode;
 
     static bool motor_enable[3];
@@ -218,9 +201,8 @@ private:
     static PIDController a2v_pid[3];
     static PIDController v2i_pid[3];
 
-//    static float actual_angle[3];
+    static float actual_angle[3];
     static float actual_velocity[3];
-
 
     static constexpr unsigned int SKD_THREAD_INTERVAL = 1; // PID calculation interval [ms]
 
@@ -229,6 +211,12 @@ private:
     };
 
     static SKDThread skd_thread;
+
+    static DECL_SHELL_CMD(cmdInfo);
+    static DECL_SHELL_CMD(cmdEnableFeedback);
+    static DECL_SHELL_CMD(cmdPID);
+    static DECL_SHELL_CMD(cmdEnableMotor);
+
 };
 
 

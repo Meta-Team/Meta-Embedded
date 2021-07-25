@@ -51,16 +51,23 @@ include_directories(  # common include directories
         dev/scheduler
         dev/logic)
 
-set(COMMON_SRC  # common cpp sources, which are included to every tartget at post configuration below
+set(BASE_SRC  # common cpp sources, which are included to every target at post configuration below
+        dev/debug/shell/shell.cpp
         dev/debug/shell/shell_base.c
         dev/debug/shell/shell_base_cmd.c
-        dev/debug/shell/printf.c
-        dev/debug/shell/shell.cpp
         dev/debug/shell/shell_dbg_cmd.cpp
+        dev/debug/shell/printf.c
         dev/interface/led.cpp
         dev/interface/buzzer_interface.cpp
-        dev/scheduler/buzzer_scheduler.cpp
-        )
+        dev/scheduler/buzzer_scheduler.cpp)
+
+set(VEHICLE_COMMON_SRC
+        dev/module/pid_controller.hpp
+        dev/interface/can_interface.cpp
+        dev/interface/remote_interpreter.cpp
+        dev/common/CRC8.cpp
+        dev/common/CRC16.cpp
+        dev/interface/sd_card_interface.cpp)
 
 set(AHRS_SRC
         dev/interface/ahrs/ahrs_math.hpp
@@ -68,19 +75,8 @@ set(AHRS_SRC
         dev/interface/ahrs/ahrs_lib_middleware.c
         dev/interface/ahrs/imu_on_board.cpp)
 
-set(INFANTRY_SHOOT_SRC
-        dev/interface/gimbal_interface.cpp
-        dev/scheduler/gimbal_scheduler.cpp
-        dev/scheduler/shoot_scheduler.cpp
-        dev/logic/gimbal_logic.cpp
-        dev/logic/shoot_logic.cpp)
-
-set(HERO_SHOOT_SRC
-        dev/interface/gimbal_interface.cpp
-        dev/scheduler/gimbal_scheduler.cpp
-        dev/scheduler/shoot_scheduler.cpp
-        dev/logic/gimbal_logic.cpp
-        dev/logic/shoot_logic.cpp)
+set(AHRS_LIB
+        ${PROJECT_SOURCE_DIR}/dev/interface/ahrs/ahrs_lib.lib)
 
 set(CHASSIS_SRC
         dev/interface/chassis_interface.cpp
@@ -96,16 +92,6 @@ set(REFEREE_SRC
         dev/scheduler/referee_UI_update_scheduler.cpp
         dev/logic/referee_UI_logic.cpp)
 
-set(PA_CHASSIS_SRC
-        dev/module/pid_controller.hpp
-        dev/interface/can_interface.cpp
-        dev/interface/remote_interpreter.cpp
-        ${AHRS_SRC}
-        ${CHASSIS_SRC}
-        dev/debug/Unit_Tests/pa_chassis/pa_chassis.cpp
-        dev/debug/Unit_Tests/pa_chassis/inspector.cpp
-        dev/debug/Unit_Tests/pa_chassis/command.cpp)
-
 include_directories(dev/board/${BOARD_NAME})  # include board configs
 
 # Reuse ChibiOS object files (without linking) to avoid repeat compile
@@ -118,64 +104,85 @@ add_library(ChibiOS OBJECT ${CHIBIOS_XASM_SRC} ${CHIBIOS_C_SRC} ${CHIBIOS_CPP_SR
 # NOTICE: UPDATE README IF THE CONFIGURATIONS IS UPDATED
 
 # ========================== Robot's Control Programs ===========================
-set(INFANTRY
-        dev/module/pid_controller.hpp
-        dev/interface/can_interface.cpp
-        dev/interface/remote_interpreter.cpp
+set(INFANTRY_SRC
+        ${VEHICLE_COMMON_SRC}
         ${AHRS_SRC}
-        ${INFANTRY_SHOOT_SRC}
         ${CHASSIS_SRC}
         ${VISION_SRC}
         ${REFEREE_SRC}
-        dev/interface/vision.cpp
+
+        # Infantry gimbal
+        dev/interface/gimbal_interface.cpp
+        dev/scheduler/gimbal_scheduler.cpp
+        dev/logic/gimbal_logic.cpp
+
+        # Infantry shoot
+        dev/scheduler/shoot_scheduler.cpp
+        dev/logic/shoot_logic.cpp
+
+        # Infantry has super capacitor
         dev/interface/super_capacitor_port.cpp
-        dev/interface/sd_card_interface.cpp
-        dev/common/CRC8.cpp
-        dev/common/CRC16.cpp
+
+        # Main
         dev/vehicle/infantry/inspector_infantry.cpp
         dev/vehicle/infantry/user_infantry.cpp
-        dev/vehicle/infantry/main_infantry.cpp
-        dev/vehicle/infantry/settings_infantry.cpp)
+        dev/vehicle/infantry/main_infantry.cpp)
+
+set(INFANTRY_DEFS
+        INFANTRY
+        INFANTRY_GIMBAL_ENABLE=1
+        INFANTRY_CHASSIS_ENABLE=1
+        INFANTRY_SUPER_CAPACITOR_ENABLE=1
+        INFANTRY_VISION_ENABLE=1)
+
+set(INFANTRY_LIBS
+        ${AHRS_LIB})
 
 # Main Program -- Infantry #3
-add_executable(INFANTRY_THREE ${INFANTRY})
+add_executable(INFANTRY_THREE ${INFANTRY_SRC})
 target_include_directories(INFANTRY_THREE PRIVATE dev/vehicle/infantry)
-target_compile_definitions(INFANTRY_THREE PRIVATE INFANTRY INFANTRY_THREE)
-target_link_libraries(INFANTRY_THREE ${PROJECT_SOURCE_DIR}/dev/interface/ahrs/ahrs_lib.lib)
+target_compile_definitions(INFANTRY_THREE PRIVATE ${INFANTRY_DEFS} INFANTRY_THREE)
+target_link_libraries(INFANTRY_THREE ${INFANTRY_LIBS})
 
 # Main Program -- Infantry #4
-add_executable(INFANTRY_FOUR ${INFANTRY})
+add_executable(INFANTRY_FOUR ${INFANTRY_SRC})
 target_include_directories(INFANTRY_FOUR PRIVATE dev/vehicle/infantry)
-target_compile_definitions(INFANTRY_FOUR PRIVATE INFANTRY INFANTRY_FOUR)
-target_link_libraries(INFANTRY_FOUR ${PROJECT_SOURCE_DIR}/dev/interface/ahrs/ahrs_lib.lib)
+target_compile_definitions(INFANTRY_FOUR PRIVATE ${INFANTRY_DEFS} INFANTRY_FOUR)
+target_link_libraries(INFANTRY_FOUR ${INFANTRY_LIBS})
 
 # Main Program -- Infantry #5
-add_executable(INFANTRY_FIVE ${INFANTRY})
+add_executable(INFANTRY_FIVE ${INFANTRY_SRC})
 target_include_directories(INFANTRY_FIVE PRIVATE dev/vehicle/infantry)
-target_compile_definitions(INFANTRY_FIVE PRIVATE INFANTRY INFANTRY_FIVE)
-target_link_libraries(INFANTRY_FIVE ${PROJECT_SOURCE_DIR}/dev/interface/ahrs/ahrs_lib.lib)
+target_compile_definitions(INFANTRY_FIVE PRIVATE ${INFANTRY_DEFS} INFANTRY_FIVE)
+target_link_libraries(INFANTRY_FIVE ${INFANTRY_LIBS})
 
 # Main Program -- Hero
 add_executable(HERO
-        dev/module/pid_controller.hpp
-        dev/interface/can_interface.cpp
-        dev/interface/remote_interpreter.cpp
+        ${VEHICLE_COMMON_SRC}
         ${AHRS_SRC}
-        ${HERO_SHOOT_SRC}
         ${CHASSIS_SRC}
         ${VISION_SRC}
+        ${REFEREE_SRC}
+
+        # Hero gimbal
+        dev/interface/gimbal_interface.cpp
+        dev/scheduler/gimbal_scheduler.cpp
+        dev/logic/gimbal_logic.cpp
+
+        # Hero shoot
+        dev/scheduler/shoot_scheduler.cpp
+        dev/logic/shoot_logic.cpp
+
+        # Hero has super capacitor
         dev/interface/super_capacitor_port.cpp
-        dev/interface/referee_interface.cpp
-        dev/interface/sd_card_interface.cpp
-        dev/common/CRC8.cpp
-        dev/common/CRC16.cpp
+
+        # Main
         dev/vehicle/hero/inspector_hero.cpp
         dev/vehicle/hero/user_hero.cpp
-        dev/vehicle/hero/main_hero.cpp
-        dev/vehicle/hero/settings_hero.cpp)
+        dev/vehicle/hero/main_hero.cpp)
 target_include_directories(HERO PRIVATE dev/vehicle/hero)
 target_compile_definitions(HERO PRIVATE HERO)
-target_link_libraries(HERO ${PROJECT_SOURCE_DIR}/dev/interface/ahrs/ahrs_lib.lib)
+target_link_libraries(HERO ${AHRS_LIB})
 
 # Main Program -- Sentry
 add_executable(SENTRY
@@ -329,7 +336,7 @@ add_executable(ut_ahrs
         dev/interface/ahrs/ahrs_lib_middleware.c
         dev/interface/ahrs/ahrs.cpp
         dev/debug/Unit_Tests/ut_ahrs.cpp)
-target_link_libraries(ut_ahrs ${PROJECT_SOURCE_DIR}/dev/interface/ahrs/ahrs_lib.lib)
+target_link_libraries(ut_ahrs ${AHRS_LIB})
 
 # AHRSExt
 add_executable(ut_ahrs_ext
@@ -445,7 +452,7 @@ add_executable(pa_infantry_shoot
         dev/interface/ahrs/ahrs.cpp
         dev/debug/Param_Adjusts/pa_infantry_shoot.cpp)
 target_compile_definitions(pa_infantry_shoot PRIVATE SHELL_NO_ECHO_MODE)
-target_link_libraries(pa_infantry_shoot ${PROJECT_SOURCE_DIR}/dev/interface/ahrs/ahrs_lib.lib)
+target_link_libraries(pa_infantry_shoot ${AHRS_LIB})
 
 # Gimbal: include CANInterface, GimbalInterface, GimbalController, GimbalFeedbackThread and adjustment modules.
 add_executable(pa_gimbal
@@ -461,7 +468,7 @@ add_executable(pa_gimbal
         dev/interface/ahrs/ahrs.cpp
         dev/debug/Param_Adjusts/pa_gimbal.cpp)
 target_compile_definitions(pa_gimbal PRIVATE SHELL_NO_ECHO_MODE)
-target_link_libraries(pa_gimbal ${PROJECT_SOURCE_DIR}/dev/interface/ahrs/ahrs_lib.lib)
+target_link_libraries(pa_gimbal ${AHRS_LIB})
 
 add_executable(pa_new_gimbal
         dev/common/CRC16.cpp
@@ -476,7 +483,7 @@ add_executable(pa_new_gimbal
         dev/scheduler/buzzer_scheduler.cpp
         dev/interface/ahrs/ahrs.cpp
         dev/debug/Param_Adjusts/pa_new_gimbal.cpp)
-target_link_libraries(pa_new_gimbal ${PROJECT_SOURCE_DIR}/dev/interface/ahrs/ahrs_lib.lib)
+target_link_libraries(pa_new_gimbal ${AHRS_LIB})
 
 # Elevator: include CANInterface, ElevatorInterface, ElevatorController, and the unit test modules.
 add_executable(pa_elevator
@@ -519,7 +526,7 @@ add_executable(ca_ahrs_infantry
         dev/common/CRC16.cpp
         dev/interface/sd_card_interface.cpp
         dev/debug/Unit_Tests/ca_ahrs.cpp)
-target_link_libraries(ca_ahrs_infantry ${PROJECT_SOURCE_DIR}/dev/interface/ahrs/ahrs_lib.lib)
+target_link_libraries(ca_ahrs_infantry ${AHRS_LIB})
 target_include_directories(ca_ahrs_infantry PRIVATE dev/vehicle/infantry)
 target_compile_definitions(ca_ahrs_infantry PRIVATE INFANTRY)
 
@@ -531,7 +538,7 @@ add_executable(ca_ahrs_hero
         dev/common/CRC16.cpp
         dev/interface/sd_card_interface.cpp
         dev/debug/Unit_Tests/ca_ahrs.cpp)
-target_link_libraries(ca_ahrs_hero ${PROJECT_SOURCE_DIR}/dev/interface/ahrs/ahrs_lib.lib)
+target_link_libraries(ca_ahrs_hero ${AHRS_LIB})
 target_include_directories(ca_ahrs_hero PRIVATE dev/vehicle/hero)
 target_compile_definitions(ca_ahrs_hero PRIVATE HERO)
 
@@ -548,7 +555,7 @@ get_directory_property(TARGET_LIST BUILDSYSTEM_TARGETS)
 foreach (target ${TARGET_LIST})
     if (NOT ${target} STREQUAL "ChibiOS" AND NOT ${target} STREQUAL "CMSIS_DSP")  # OBJECT library doesn't have PRE_BUILD or POST_BUILD
         # Add ChibiOS files and common sources
-        target_sources(${target} PRIVATE $<TARGET_OBJECTS:ChibiOS> ${COMMON_SRC})
+        target_sources(${target} PRIVATE $<TARGET_OBJECTS:ChibiOS> ${BASE_SRC})
 
         # Link CMSIS DSP
         target_link_libraries(${target} CMSIS_DSP)

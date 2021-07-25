@@ -1,4 +1,4 @@
-# This file set sources of ChibiOS to ${CHIBIOS_XASM_SRC} ${CHIBIOS_C_SRC}, ${CHIBIOS_CPP_SRC}, and add correspoing
+# This file set sources of ChibiOS to ${CHIBIOS_XASM_SRC} ${CHIBIOS_C_SRC}, ${CHIBIOS_CPP_SRC}, and add corresponding
 #   directory to include_directories. Extract from Makefiles and .mk files from ChibiOS.
 
 # By liuzikai 2018-01-29

@@ -12,14 +12,11 @@ using namespace chibios_rt;
 /**
  * A demonstration of how to write a function for the shell.
  */
-static void cmd_hello(BaseSequentialStream *chp, int argc, char *argv[]) {
-    (void)argv;
-    if (argc > 0) {
-        shellUsage(chp, "hello");
-        return;
-    }
-    chprintf(chp, "Hello World from ChibiOS!" SHELL_NEWLINE_STR);
-}
+DEF_SHELL_CMD_START(cmd_hello)
+    if (argc > 0) return false;
+    Shell::printf("Hello World from ChibiOS!" ENDL);
+    return true;
+DEF_SHELL_CMD_END
 
 #define EMPTY_STACK_PATTERN 1431655765L //0x55555555
 
@@ -29,12 +26,8 @@ static void cmd_hello(BaseSequentialStream *chp, int argc, char *argv[]) {
  * @param argc
  * @param argv
  */
-static void cmd_show_thread_stats(BaseSequentialStream *chp, int argc, char *argv[]) {
-    (void)argv;
-    if (argc > 0) {
-        shellUsage(chp, "stats");
-        return;
-    }
+DEF_SHELL_CMD_START(cmd_show_thread_stats)
+    if (argc > 0) return false;
 
     Registry reg; // a class managing registered threads
     ThreadReference thd_ref = reg.firstThread();
@@ -48,7 +41,7 @@ static void cmd_show_thread_stats(BaseSequentialStream *chp, int argc, char *arg
     }
 
     // Print the header
-    chprintf(chp, "        thread name       best    average      worst    count   all  free stack" SHELL_NEWLINE_STR);
+    Shell::printf("        thread name       best    average      worst    count   all  free stack" ENDL);
 
     // Iterate threads again and show data.
     thd_ref = reg.firstThread();
@@ -72,23 +65,23 @@ static void cmd_show_thread_stats(BaseSequentialStream *chp, int argc, char *arg
 
         unsigned long free_stack = (p - stklimit_p) * sizeof(uint32_t);
 
-        chprintf(chp, "%19s %10lu %10lu %10lu %8lu  %3u%%  %10lu" SHELL_NEWLINE_STR,
+        Shell::printf("%19s %10lu %10lu %10lu %8lu  %3u%%  %10lu" ENDL,
                  thd->name, thd->stats.best, (unsigned long)(thd->stats.cumulative / thd->stats.n),
                  thd->stats.worst, thd->stats.n, (unsigned int)(100 * thd->stats.cumulative / sum),
                  free_stack);
 
         thd_ref = reg.nextThread(thd_ref);
     }
-
-}
+    return true;
+DEF_SHELL_CMD_END
 
 /**
  * List of available shell commands.
  * @note Must be at the bottom of file, otherwise it won't find the functions.
  * @note {NULL, NULL} is a marker of end of list and mustn't be removed.
  */
-ShellCommand shell_debug_commands[3] = {
-    {"hello", cmd_hello},
-    {"stats", cmd_show_thread_stats},
-    {nullptr, nullptr}
+Shell::Command shell_debug_commands[] = {
+    {"hello", cmd_hello, nullptr},
+    {"stats", cmd_show_thread_stats, nullptr},
+    {nullptr, nullptr, nullptr}
 };

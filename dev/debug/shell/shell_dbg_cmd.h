@@ -15,6 +15,6 @@
 #include "chprintf.h"
 
 // List of shell debug commands
-extern ShellCommand shell_debug_commands[];
+extern Shell::Command shell_debug_commands[];
 
 #endif

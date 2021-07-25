@@ -70,12 +70,11 @@ static void cmd_exit(BaseSequentialStream *chp, int argc, char *argv[]) {
 #endif
 
 #if (SHELL_CMD_INFO_ENABLED == TRUE) || defined(__DOXYGEN__)
-static void cmd_info(BaseSequentialStream *chp, int argc, char *argv[]) {
+static bool cmd_info(BaseSequentialStream *chp, int argc, char *argv[]) {
 
     (void)argv;
     if (argc > 0) {
-        shellUsage(chp, "info");
-        return;
+        return false;
     }
 
     chprintf(chp, "Kernel:       %s" SHELL_NEWLINE_STR, CH_KERNEL_VERSION);
@@ -100,6 +99,7 @@ static void cmd_info(BaseSequentialStream *chp, int argc, char *argv[]) {
     chprintf(chp, "Build time:   %s%s%s" SHELL_NEWLINE_STR, __DATE__, " - ", __TIME__);
 #endif
 #endif
+    return true;
 }
 #endif
 
@@ -116,43 +116,42 @@ static void cmd_echo(BaseSequentialStream *chp, int argc, char *argv[]) {
 #endif
 
 #if (SHELL_CMD_SYSTIME_ENABLED == TRUE) || defined(__DOXYGEN__)
-static void cmd_systime(BaseSequentialStream *chp, int argc, char *argv[]) {
+static bool cmd_systime(BaseSequentialStream *chp, int argc, char *argv[]) {
 
     (void)argv;
     if (argc > 0) {
-        shellUsage(chp, "systime");
-        return;
+        return false;
     }
     chprintf(chp, "%lu" SHELL_NEWLINE_STR, (unsigned long)chVTGetSystemTime());
+    return true;
 }
 #endif
 
 #if (SHELL_CMD_MEM_ENABLED == TRUE) || defined(__DOXYGEN__)
-static void cmd_mem(BaseSequentialStream *chp, int argc, char *argv[]) {
+static bool cmd_mem(BaseSequentialStream *chp, int argc, char *argv[]) {
     size_t n, total, largest;
 
     (void)argv;
     if (argc > 0) {
-        shellUsage(chp, "mem");
-        return;
+        return false;
     }
     n = chHeapStatus(NULL, &total, &largest);
     chprintf(chp, "core free memory : %u bytes" SHELL_NEWLINE_STR, chCoreGetStatusX());
     chprintf(chp, "heap fragments   : %u" SHELL_NEWLINE_STR, n);
     chprintf(chp, "heap free total  : %u bytes" SHELL_NEWLINE_STR, total);
     chprintf(chp, "heap free largest: %u bytes" SHELL_NEWLINE_STR, largest);
+    return true;
 }
 #endif
 
 #if (SHELL_CMD_THREADS_ENABLED == TRUE) || defined(__DOXYGEN__)
-static void cmd_threads(BaseSequentialStream *chp, int argc, char *argv[]) {
+static bool cmd_threads(BaseSequentialStream *chp, int argc, char *argv[]) {
     static const char *states[] = {CH_STATE_NAMES};
     thread_t *tp;
 
     (void)argv;
     if (argc > 0) {
-        shellUsage(chp, "threads");
-        return;
+        return false;
     }
     chprintf(chp, "stklimit    stack     addr refs prio     state         name\r\n" SHELL_NEWLINE_STR);
     tp = chRegFirstThread();
@@ -168,6 +167,7 @@ static void cmd_threads(BaseSequentialStream *chp, int argc, char *argv[]) {
                  tp->name == NULL ? "" : tp->name);
         tp = chRegNextThread(tp);
     } while (tp != NULL);
+    return true;
 }
 #endif
 
@@ -221,27 +221,27 @@ static void cmd_test(BaseSequentialStream *chp, int argc, char *argv[]) {
  */
 const ShellCommand shell_local_commands[] = {
 #if (SHELL_CMD_EXIT_ENABLED == TRUE) && !defined(_CHIBIOS_NIL_)
-        {"exit", cmd_exit},
+        {"exit", cmd_exit, NULL},
 #endif
 #if SHELL_CMD_INFO_ENABLED == TRUE
-        {"info", cmd_info},
+        {"info", cmd_info, NULL},
 #endif
 #if SHELL_CMD_ECHO_ENABLED == TRUE
-        {"echo", cmd_echo},
+        {"echo", cmd_echo, NULL},
 #endif
 #if SHELL_CMD_SYSTIME_ENABLED == TRUE
-        {"systime", cmd_systime},
+        {"systime", cmd_systime, NULL},
 #endif
 #if SHELL_CMD_MEM_ENABLED == TRUE
-        {"mem", cmd_mem},
+        {"mem", cmd_mem, NULL},
 #endif
 #if SHELL_CMD_THREADS_ENABLED == TRUE
-        {"threads", cmd_threads},
+        {"threads", cmd_threads, NULL},
 #endif
 #if SHELL_CMD_TEST_ENABLED == TRUE
-        {"test", cmd_test},
+        {"test", cmd_test, NULL},
 #endif
-        {NULL, NULL}
+        {NULL, NULL, NULL}
 };
 
 /** @} */

@@ -25,133 +25,12 @@
 #ifndef SHELL_BASE_H
 #define SHELL_BASE_H
 
-#if defined(SHELL_CONFIG_FILE)
 #include "shellconf.h"
-#endif
-
-/*===========================================================================*/
-/* Module constants.                                                         */
-/*===========================================================================*/
-
-/**
- * @brief   Shell History Constants
- */
-#define SHELL_HIST_DIR_BK           0
-#define SHELL_HIST_DIR_FW           1
-
-/*===========================================================================*/
-/* Module pre-compile time settings.                                         */
-/*===========================================================================*/
-
-/**
- * @brief   Do not echo input command
- * @author liuzikai
- */
-
-#if !defined(SHELL_NO_ECHO_MODE)
-#define SHELL_NO_ECHO_MODE                  FALSE
-#endif
-
-#if SHELL_NO_ECHO_MODE == TRUE
-
-#if defined(SHELL_USE_HISTORY)
-#undef SHELL_USE_HISTORY
-#endif
-#define SHELL_USE_HISTORY                   FALSE
-
-#if defined(SHELL_USE_COMPLETION)
-#undef SHELL_USE_COMPLETION
-#endif
-#define SHELL_USE_COMPLETION                FALSE
-
-#if defined(SHELL_PROMPT_STR)
-#undef SHELL_PROMPT_STR
-#endif
-#define SHELL_PROMPT_STR                    ""
-#endif
-
-/**
- * @brief   Shell maximum input line length.
- */
-#if !defined(SHELL_MAX_LINE_LENGTH) || defined(__DOXYGEN__)
-#define SHELL_MAX_LINE_LENGTH       128
-#endif
-
-/**
- * @brief   Shell maximum arguments per command.
- */
-#if !defined(SHELL_MAX_ARGUMENTS) || defined(__DOXYGEN__)
-#define SHELL_MAX_ARGUMENTS         4
-#endif
-
-/**
- * @brief   Shell maximum command history.
- */
-#if !defined(SHELL_MAX_HIST_BUFF) || defined(__DOXYGEN__)
-#define SHELL_MAX_HIST_BUFF         8 * SHELL_MAX_LINE_LENGTH
-#endif
-
-/**
- * @brief   Enable shell command history
- */
-#if !defined(SHELL_USE_HISTORY) || defined(__DOXYGEN__)
-#define SHELL_USE_HISTORY           FALSE
-#endif
-
-/**
- * @brief   Enable shell command completion
- */
-#if !defined(SHELL_USE_COMPLETION) || defined(__DOXYGEN__)
-#define SHELL_USE_COMPLETION        FALSE
-#endif
-
-/**
- * @brief   Shell Maximum Completions (Set to max commands with common prefix)
- */
-#if !defined(SHELL_MAX_COMPLETIONS) || defined(__DOXYGEN__)
-#define SHELL_MAX_COMPLETIONS       8
-#endif
-
-/**
- * @brief   Enable shell escape sequence processing
- */
-#if !defined(SHELL_USE_ESC_SEQ) || defined(__DOXYGEN__)
-#define SHELL_USE_ESC_SEQ           FALSE
-#endif
-
-/**
- * @brief   Prompt string
- */
-#if !defined(SHELL_PROMPT_STR) || defined(__DOXYGEN__)
- #define SHELL_PROMPT_STR            "ch> "
-#endif
-
-/**
- * @brief   Newline string
- */
-#if !defined(SHELL_NEWLINE_STR) || defined(__DOXYGEN__)
-#define SHELL_NEWLINE_STR            "\r\n"
-#endif
-
-/**
- * @brief   Welcome string
- */
-#if !defined(SHELL_WELCOME_STR) || defined(__DOXYGEN__)
-#define SHELL_WELCOME_STR            "> ChibiOS/RT Shell <"
-#endif
-
-/*===========================================================================*/
-/* Derived constants and error checks.                                       */
-/*===========================================================================*/
-
-/*===========================================================================*/
-/* Module data structures and types.                                         */
-/*===========================================================================*/
 
 /**
  * @brief   Command handler function type.
  */
-typedef void (*shellcmd_t)(BaseSequentialStream *chp, int argc, char *argv[]);
+typedef bool (*shellcmd_t)(BaseSequentialStream *chp, int argc, char *argv[]);
 
 /**
  * @brief   Custom command entry type.
@@ -159,6 +38,7 @@ typedef void (*shellcmd_t)(BaseSequentialStream *chp, int argc, char *argv[]);
 typedef struct {
     const char            *sc_name;           /**< @brief Command name.       */
     shellcmd_t            sc_function;        /**< @brief Command function.   */
+    const char            *sc_arguments;      /**< @brief Command argument    */
 } ShellCommand;
 
 /**
@@ -222,16 +102,6 @@ typedef struct {
  */
 #define _shell_clr_line(stream)   chprintf(stream, "\033[K")
 
-/**
- * @brief   Prints out usage message
- *
- * @param[in] stream    pointer to a @p BaseSequentialStream object
- * @param[in] message   pointer to message string
- *
- * @api
- */
-#define shellUsage(stream, message)                                         \
-  chprintf(stream, "Usage: %s" SHELL_NEWLINE_STR, message)
 
 /*===========================================================================*/
 /* External declarations.                                                    */

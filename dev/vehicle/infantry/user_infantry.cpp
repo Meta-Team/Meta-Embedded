@@ -355,10 +355,8 @@ void UserI::UserActionThread::main() {
 
             /// Chassis - Dodge Mode Switching
 
-            if (key_flag & (1U << Remote::KEY_X)) {
-            /// Chassis
 #if INFANTRY_CHASSIS_ENABLE
-            if (key_flag & (1U << chassis_dodge_switch)) {
+            if (key_flag & (1U << Remote::KEY_X)) {
                 if (ChassisLG::get_action() == ChassisLG::FOLLOW_MODE) {
                     ChassisLG::set_action(ChassisLG::DODGE_MODE);
                 } else if (ChassisLG::get_action() == ChassisLG::DODGE_MODE) {

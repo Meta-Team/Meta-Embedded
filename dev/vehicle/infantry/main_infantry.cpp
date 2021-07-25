@@ -33,8 +33,6 @@
 #include "inspector_infantry.h"
 #include "user_infantry.h"
 
-#include "settings_infantry.h"
-
 /// Vehicle Specific Configurations
 #if defined(INFANTRY_THREE)                                                 /** Infantry #3 **/
 #include "vehicle_infantry_three.h"
@@ -88,7 +86,6 @@ int main() {
 
     /// Setup Shell
     Shell::start(THREAD_SHELL_PRIO);
-    Shell::addCommands(mainProgramCommands);
     chThdSleepMilliseconds(50);  // wait for logo to print :)
 
     BuzzerSKD::init(THREAD_BUZZER_SKD_PRIO);
@@ -115,11 +112,8 @@ int main() {
 
     /// Setup Referee
     Referee::init(THREAD_REFEREE_SENDING_PRIO);
-    RefereeUISKD::init(THREAD_REFEREE_SKD_PRIO);
     RefereeUILG::init();
-
-    /// Start Feedback Thread
-    feedback_thread_start();
+    RefereeUISKD::init(THREAD_REFEREE_SKD_PRIO);
 
     /// Complete Period 1
     LED::green_on();  // LED Green on now
@@ -150,7 +144,7 @@ int main() {
     /// Setup GimbalIF (for Gimbal and Shoot)
 #if INFANTRY_GIMBAL_ENABLE
     GimbalIF::init(&can1, &can2, GIMBAL_MOTOR_CONFIG_, GIMBAL_YAW_FRONT_ANGLE_RAW, GIMBAL_PITCH_FRONT_ANGLE_RAW, 0/* Not used */);
-    chThdSleepMilliseconds(2000);  // wait for C610 to be online and friction wheel to reset
+    chThdSleepMilliseconds(1000);  // wait for C610 to be online and friction wheel to reset
     InspectorI::startup_check_gimbal_feedback(); // check gimbal motors has continuous feedback. Block for 20 ms
 #endif
     LED::led_on(DEV_BOARD_LED_GIMBAL);  // LED 5 on now
@@ -178,12 +172,14 @@ int main() {
 
     /// Start SKDs
     GimbalSKD::start(&ahrs, GIMBAL_ANGLE_INSTALLATION_MATRIX_, GIMBAL_GYRO_INSTALLATION_MATRIX_,
-                     GIMBAL_YAW_INSTALL_DIRECTION, GIMBAL_PITCH_INSTALL_DIRECTION, GimbalSKD::POSITIVE/* Not used */, THREAD_GIMBAL_SKD_PRIO);
+                     GIMBAL_YAW_INSTALL_DIRECTION, GIMBAL_PITCH_INSTALL_DIRECTION, GimbalSKD::NONE, THREAD_GIMBAL_SKD_PRIO);
     GimbalSKD::load_pid_params(GIMBAL_PID_YAW_A2V_PARAMS, GIMBAL_PID_YAW_V2I_PARAMS,
                                GIMBAL_PID_PITCH_A2V_PARAMS, GIMBAL_PID_PITCH_V2I_PARAMS,
                                {0, 0, 0, 0, 0}/* Not used */, {0, 0, 0, 0, 0}/* Not used */);
     GimbalSKD::set_yaw_restriction(GIMBAL_RESTRICT_YAW_MIN_ANGLE, GIMBAL_RESTRICT_YAW_MAX_ANGLE,
                                    GIMBAL_RESTRICT_YAW_VELOCITY);
+    Shell::addCommands(GimbalSKD::shellCommands);
+    Shell::addFeedbackCallback(GimbalSKD::cmdFeedback);
 
     ShootSKD::start(SHOOT_BULLET_INSTALL_DIRECTION, THREAD_SHOOT_SKD_PRIO);
     ShootSKD::load_pid_params(SHOOT_PID_BULLET_LOADER_A2V_PARAMS, SHOOT_PID_BULLET_LOADER_V2I_PARAMS,
