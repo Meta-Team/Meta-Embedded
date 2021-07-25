@@ -38,6 +38,8 @@ inline bool compensate_for_gravity(float &pitch, float dist, float bullet_speed,
     return true;
 }
 
+inline Vector3D ypdToXYZ(const Vector3D &ypd) {}
+
 }
 
 #endif //META_INFANTRY_TRAJECTORY_CALCULATOR_HPP

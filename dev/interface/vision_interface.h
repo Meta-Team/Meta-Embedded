@@ -78,9 +78,9 @@ private:
 
     // Latest armor position (without prediction and compensation)
     static PositionKalmanFilter armor_ypd[3];    // [deg, deg, mm] and velocity (divided by ms)
-    static constexpr float ARMOR_Q_POSITION[3] = {1E-9, 1E-9, 1E-6};
-    static constexpr float ARMOR_Q_VELOCITY[3] = {1E-4, 1E-6, 1E-2};
-    static constexpr float ARMOR_R_POSITION[3] = {0.3, 0.3, 200};
+    static constexpr float ARMOR_Q_POSITION[3] = {1E-2, 1E-2, 1E-6};
+    static constexpr float ARMOR_Q_VELOCITY[3] = {1E-4, 1E-6, 1E-3};
+    static constexpr float ARMOR_R_POSITION[3] = {0.09, 0.16, 1.6E5};
 
     // Prediction and compensation
     static bool can_reach_target;
