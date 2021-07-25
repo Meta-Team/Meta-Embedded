@@ -62,8 +62,8 @@ void ChassisSKD::start(float wheel_base, float wheel_tread, float wheel_circumfe
     skd_thread.start(thread_prio);
 }
 
-PIDController::pid_params_t ChassisSKD::echo_pid_params() {
-    return v2i_pid->get_parameters();
+PIDController::pid_params_t ChassisSKD::echo_pid_params_by_type(bool is_theta2v) {
+    return (is_theta2v) ? a2v_pid.get_parameters() : v2i_pid->get_parameters();
 }
 
 void ChassisSKD::load_pid_params(PIDControllerBase::pid_params_t theta2v_pid_params,
@@ -74,7 +74,7 @@ void ChassisSKD::load_pid_params(PIDControllerBase::pid_params_t theta2v_pid_par
     }
 }
 
-void ChassisSKD::load_pid_params_by_id(PIDControllerBase::pid_params_t params, bool is_theta2v) {
+void ChassisSKD::load_pid_params_by_type(PIDControllerBase::pid_params_t params, bool is_theta2v) {
     if (is_theta2v) {
         a2v_pid.change_parameters(params);
     } else {
@@ -102,6 +102,10 @@ void ChassisSKD::set_dodge_target(float vx, float vy, float omega) {
 
 float ChassisSKD::get_actual_theta() {
     return GimbalIF::feedback[GimbalIF::YAW]->actual_angle * GIMBAL_YAW_INSTALL_DIRECTION;
+}
+
+float ChassisSKD::get_target_theta() {
+    return target_theta;
 }
 
 void ChassisSKD::velocity_decompose(float vx, float vy, float w) {
@@ -137,6 +141,8 @@ void ChassisSKD::SKDThread::main() {
             if ((mode == GIMBAL_COORDINATE_MODE) || (mode == ANGULAR_VELOCITY_DODGE_MODE)) {
 
                 float theta = get_actual_theta();
+
+                RefereeUILG::set_chassis_angle(theta/180.0f * M_PI);
 
                 if (mode == GIMBAL_COORDINATE_MODE) {
                     if (ABS(theta - target_theta) < THETA_DEAD_ZONE) {

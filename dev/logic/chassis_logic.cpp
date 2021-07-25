@@ -138,6 +138,14 @@ void ChassisLG::CapacitorPowerSetThread::main() {
             SuperCapacitor::set_power((float)Referee::game_robot_state.chassis_power_limit * 0.9f);
         }
 
+        if(action == DODGE_MODE) {
+            RefereeUILG::toggle_dodge(true);
+        } else {
+            RefereeUILG::toggle_dodge(false);
+        }
+
+        RefereeUILG::revise_cap(SuperCapacitor::feedback->capacitor_voltage);
+
         sleep(TIME_MS2I(CAP_POWER_SET_INTERVAL));
     }
 }

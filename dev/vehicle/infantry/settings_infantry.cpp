@@ -107,7 +107,7 @@ using namespace chibios_rt;
 //    chprintf(chp, "!so" SHELL_NEWLINE_STR);
 //}
 
-#define MOTOR_COUNT  10
+#define MOTOR_COUNT  14
 #define THREAD_FEEDBACK_PRIO  (LOWPRIO + 6)
 unsigned const GIMBAL_FEEDBACK_INTERVAL = 25; // [ms]
 
@@ -116,6 +116,10 @@ bool feedback_enable[MOTOR_COUNT];
 const char *motor_name[MOTOR_COUNT] = {
         "yaw",
         "pitch",
+        "front_right",
+        "front_left",
+        "back_left",
+        "back_right",
         "ahrs",
         "gyro",
         "accel",
@@ -178,15 +182,46 @@ void cmd_set_pid(BaseSequentialStream *chp, int argc, char **argv) {
     }
     unsigned motor_id = Shell::atoi(argv[0]);
     unsigned pid_id = Shell::atoi(argv[1]);
-
+    PIDController::pid_params_t pid_param = {Shell::atof(argv[2]),
+                                             Shell::atof(argv[3]),
+                                             Shell::atof(argv[4]),
+                                             Shell::atof(argv[5]),
+                                             Shell::atof(argv[6])};
     if (motor_id < 2) {
-        GimbalSKD::load_pid_params_by_id({Shell::atof(argv[2]),
-                                          Shell::atof(argv[3]),
-                                          Shell::atof(argv[4]),
-                                          Shell::atof(argv[5]),
-                                          Shell::atof(argv[6])},
-                                         motor_id == 0,
-                                         pid_id == 1);
+#if INFANTRY_GIMBAL_ENABLE
+        GimbalSKD::load_pid_params_by_type(pid_param, (GimbalBase::motor_id_t) motor_id, pid_id == 0);
+#endif
+    } else if (motor_id >= 2 && motor_id < 6) {
+#if INFANTRY_CHASSIS_ENABLE
+        ChassisSKD::load_pid_params_by_type(pid_param, pid_id == 0);
+#endif
+    } else {
+        chprintf(chp, "Invalid motor ID %d" SHELL_NEWLINE_STR, motor_id);
+    }
+}
+
+void cmd_echo_param(BaseSequentialStream *chp, int argc, char *argv[]) {
+    (void) argv;
+    if (argc != 2) {
+        shellUsage(chp, "echo_pid motor_id pid_id(0: angle_to_v, 1: v_to_i)");
+        return;
+    }
+    unsigned motor_id = Shell::atoi(argv[0]);
+    unsigned pid_id = Shell::atoi(argv[1]);
+
+    if (motor_id < 6) {
+        PIDController::pid_params_t pid_param = {0,0,0,0,0};
+        if (motor_id < 2) {
+#if INFANTRY_GIMBAL_ENABLE
+            pid_param = GimbalSKD::echo_pid_params_by_type((GimbalBase::motor_id_t) motor_id, pid_id == 0);
+#endif
+        } else {
+#if INFANTRY_CHASSIS_ENABLE
+            pid_param = ChassisSKD::echo_pid_params_by_type(pid_id == 0);
+#endif
+        }
+        chprintf(chp, "ki: %.2f, kp: %.2f, kd: %.2f, i_limit: %.2f, out_limit: %.2f" SHELL_NEWLINE_STR,
+                 pid_param.ki, pid_param.kp, pid_param.kd, pid_param.i_limit, pid_param.out_limit);
     } else {
         chprintf(chp, "Invalid motor ID %d" SHELL_NEWLINE_STR, motor_id);
     }
@@ -204,8 +239,9 @@ void cmd_vision_bullet_speed(BaseSequentialStream *chp, int argc, char **argv) {
 
 // Shell commands to ...
 ShellCommand mainProgramCommands[] = {
-        {"fb_enable",           cmd_enable_feedback},
-        {"fb_disable",          cmd_disable_feedback},
+        {"fb_enable",  cmd_enable_feedback},
+        {"fb_disable", cmd_disable_feedback},
+        {"echo_param", cmd_echo_param},
         {"set_pid",             cmd_set_pid},
         {"vision_bullet_speed", cmd_vision_bullet_speed},
         {nullptr,               nullptr}
@@ -220,6 +256,7 @@ private:
         while (!shouldTerminate()) {
             float actual_angle, target_angle, actual_velocity, target_velocity;
 
+#if INFANTRY_GIMBAL_ENABLE
             // Gimbal
             for (int i = 0; i < 2; i++) {
                 if (feedback_enable[i]) {
@@ -234,20 +271,38 @@ private:
                                   GimbalIF::feedback[i]->actual_current, *GimbalIF::target_current[i]);
                 }
             }
+#endif
+
+#if INFANTRY_CHASSIS_ENABLE
+            // Chassis
+            for (int i = 2; i < 6; i++) {
+                if (feedback_enable[i]) {
+                    actual_angle = ChassisSKD::get_actual_theta();
+                    target_angle = ChassisSKD::get_target_theta();
+                    actual_velocity = ChassisSKD::get_actual_velocity((ChassisBase::motor_id_t) (i - 2));
+                    target_velocity = ChassisSKD::get_target_velocity((ChassisBase::motor_id_t) (i - 2));
+                    Shell::printf("fb %s %.2f %.2f %.2f %.2f %d %d" SHELL_NEWLINE_STR,
+                                  motor_name[i],
+                                  actual_angle, target_angle,
+                                  actual_velocity, target_velocity,
+                                  ChassisIF::feedback[i-2]->actual_current, *ChassisIF::target_current[i-2]);
+                }
+            }
+#endif
 
             // AHRS
-            if (feedback_enable[2])
+            if (feedback_enable[6])
                 Shell::printf("fb %s %.2f 0 %.2f 0 %.2f 0" SHELL_NEWLINE_STR,
-                              motor_name[2], ahrs.get_angle().x, ahrs.get_angle().y, ahrs.get_angle().z);
-            if (feedback_enable[3])
+                              motor_name[6], ahrs.get_angle().x, ahrs.get_angle().y, ahrs.get_angle().z);
+            if (feedback_enable[7])
                 Shell::printf("fb %s %.2f 0 %.2f 0 %.2f 0" SHELL_NEWLINE_STR,
-                              motor_name[3], ahrs.get_gyro().x, ahrs.get_gyro().y, ahrs.get_gyro().z);
-            if (feedback_enable[4])
+                              motor_name[7], ahrs.get_gyro().x, ahrs.get_gyro().y, ahrs.get_gyro().z);
+            if (feedback_enable[8])
                 Shell::printf("fb %s %.2f 0 %.2f 0 %.2f 0" SHELL_NEWLINE_STR,
-                              motor_name[4], ahrs.get_accel().x, ahrs.get_accel().y, ahrs.get_accel().z);
-            if (feedback_enable[5])
+                              motor_name[8], ahrs.get_accel().x, ahrs.get_accel().y, ahrs.get_accel().z);
+            if (feedback_enable[9])
                 Shell::printf("fb %s %.2f 0 %.2f 0 %.2f 0" SHELL_NEWLINE_STR,
-                              motor_name[5], ahrs.get_magnet().x, ahrs.get_magnet().y, ahrs.get_magnet().z);
+                              motor_name[9], ahrs.get_magnet().x, ahrs.get_magnet().y, ahrs.get_magnet().z);
 
             // Vision
             if (feedback_enable[6]) {

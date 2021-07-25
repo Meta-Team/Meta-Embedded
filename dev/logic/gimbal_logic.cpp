@@ -32,7 +32,7 @@ void GimbalLG::set_action(GimbalLG::action_t value) {
     } else if (action == ABS_ANGLE_MODE || action == AERIAL_MODE) {
         GimbalSKD::set_mode(GimbalSKD::ABS_ANGLE_MODE);
     } else if (action == SENTRY_MODE) {
-        GimbalSKD::set_mode(GimbalSKD::SENTRY_MODE);
+//        GimbalSKD::set_mode(GimbalSKD::SENTRY_MODE);
     } else if (action == VISION_MODE) {
         GimbalSKD::set_mode(GimbalSKD::ABS_ANGLE_MODE);
         // Variable action is checked in the vision thread
@@ -41,7 +41,7 @@ void GimbalLG::set_action(GimbalLG::action_t value) {
 
 void GimbalLG::set_target(float yaw_target_angle, float pitch_target_angle) {
     if (action != FORCED_RELAX_MODE && action != VISION_MODE) {
-        GimbalSKD::set_target_angle(yaw_target_angle, pitch_target_angle);
+        GimbalSKD::set_target_angle(yaw_target_angle, pitch_target_angle, 0);
     } else {
         LOG_ERR("GimbalLG - set_target(): invalid mode");
     }
@@ -79,7 +79,7 @@ void GimbalLG::VisionControlThread::main() {
             chSysUnlock();  /// --- EXIT S-Locked state ---
 
             if (can_reach_the_target) {
-                GimbalSKD::set_target_angle(yaw, pitch);
+                GimbalSKD::set_target_angle(yaw, pitch, 0);
             }  // otherwise, keep current target angles
         }
     }

@@ -25,8 +25,8 @@ void EngineerInterface::init( CANInterface *can1_interface,                     
            motor_can_config[i].motor_can_channel == none_can_channel) {
 
             // Make the pointer to the "deadzone", which could be easily judged that the motor is invalid.
-            feedback[i] = can1_->get_feedback_address(CANInterface::MAXIMUM_MOTOR_COUNT);
-            target_current[i] = can1_->get_target_current_address(CANInterface::MAXIMUM_MOTOR_COUNT);
+            feedback[i] = can1_->register_feedback_address(CANInterface::MAXIMUM_MOTOR_COUNT);
+            target_current[i] = can1_->register_target_current_address(CANInterface::MAXIMUM_MOTOR_COUNT);
             continue;
         }
 
@@ -35,16 +35,16 @@ void EngineerInterface::init( CANInterface *can1_interface,                     
 
             // Link the feedback and target_current to can1's feedback
             can1_->set_motor_type(motor_can_config[i].motor_can_id, motor_can_config[i].motor_type);
-            feedback[i] = can1_->get_feedback_address(motor_can_config[i].motor_can_id);
-            target_current[i] = can1_->get_target_current_address(motor_can_config[i].motor_can_id);
+            feedback[i] = can1_->register_feedback_address(motor_can_config[i].motor_can_id);
+            target_current[i] = can1_->register_target_current_address(motor_can_config[i].motor_can_id);
             *target_current[i] = 0;
 
         } else if (motor_can_config[i].motor_can_channel == can_channel_2) {
 
             // Link the feedback and target_current to can2's feedback
             can2_->set_motor_type(motor_can_config[i].motor_can_id, motor_can_config[i].motor_type);
-            feedback[i] = can2_->get_feedback_address(motor_can_config[i].motor_can_id);
-            target_current[i] = can2_->get_target_current_address(motor_can_config[i].motor_can_id);
+            feedback[i] = can2_->register_feedback_address(motor_can_config[i].motor_can_id);
+            target_current[i] = can2_->register_target_current_address(motor_can_config[i].motor_can_id);
             *target_current[i] = 0;
 
         }

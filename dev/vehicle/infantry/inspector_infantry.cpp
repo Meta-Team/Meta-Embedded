@@ -116,6 +116,10 @@ void InspectorI::startup_check_gimbal_feedback() {
                 t = SYSTIME;  // reset the counter
             }
         }
+        LOG("Gimbal Yaw: %u, %f, Pitch: %u, %f",
+            GimbalIF::feedback[GimbalIF::YAW]->last_angle_raw, GimbalIF::feedback[GimbalIF::YAW]->actual_angle,
+            GimbalIF::feedback[GimbalIF::PITCH]->last_angle_raw, GimbalIF::feedback[GimbalIF::PITCH]->actual_angle);
+
         if (not WITHIN_RECENT_TIME(GimbalIF::feedback[GimbalIF::YAW]->last_update_time, 5)) {
             // No feedback in last 5 ms (normal 1 ms)
             LOG_ERR("Startup - Gimbal Yaw offline.");
@@ -211,13 +215,17 @@ void InspectorI::InspectorThread::main() {
         if (remote_failure_) LED::led_off(DEV_BOARD_LED_REMOTE);
         else LED::led_on(DEV_BOARD_LED_REMOTE);
 
+#if INFANTRY_GIMBAL_ENABLE
         gimbal_failure_ = check_gimbal_failure();
         if (gimbal_failure_) LED::led_off(DEV_BOARD_LED_GIMBAL);
         else LED::led_on(DEV_BOARD_LED_GIMBAL);
+#endif
 
+#if INFANTRY_CHASSIS_ENABLE
         chassis_failure_ = check_chassis_failure();
         if (chassis_failure_) LED::led_off(DEV_BOARD_LED_CHASSIS);
         else LED::led_on(DEV_BOARD_LED_CHASSIS);
+#endif
 
         if (remote_failure_ || gimbal_failure_ || chassis_failure_) {
             if (!BuzzerSKD::alerting()) BuzzerSKD::alert_on();

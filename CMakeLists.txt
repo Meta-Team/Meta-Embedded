@@ -91,6 +91,11 @@ set(VISION_SRC
         dev/interface/vision_interface.cpp
         dev/scheduler/vision_scheduler.cpp)
 
+set(REFEREE_SRC
+        dev/interface/referee_interface.cpp
+        dev/scheduler/referee_UI_update_scheduler.cpp
+        dev/logic/referee_UI_logic.cpp)
+
 set(PA_CHASSIS_SRC
         dev/module/pid_controller.hpp
         dev/interface/can_interface.cpp
@@ -121,8 +126,9 @@ set(INFANTRY
         ${INFANTRY_SHOOT_SRC}
         ${CHASSIS_SRC}
         ${VISION_SRC}
+        ${REFEREE_SRC}
+        dev/interface/vision.cpp
         dev/interface/super_capacitor_port.cpp
-        dev/interface/referee_interface.cpp
         dev/interface/sd_card_interface.cpp
         dev/common/CRC8.cpp
         dev/common/CRC16.cpp
@@ -457,6 +463,21 @@ add_executable(pa_gimbal
 target_compile_definitions(pa_gimbal PRIVATE SHELL_NO_ECHO_MODE)
 target_link_libraries(pa_gimbal ${PROJECT_SOURCE_DIR}/dev/interface/ahrs/ahrs_lib.lib)
 
+add_executable(pa_new_gimbal
+        dev/common/CRC16.cpp
+        dev/interface/sd_card_interface.cpp
+        dev/interface/remote_interpreter.cpp
+        ${AHRS_SRC}
+        dev/interface/can_interface.cpp
+        dev/interface/gimbal_interface.cpp
+        dev/module/pid_controller.hpp
+        dev/scheduler/gimbal_scheduler.cpp
+        dev/scheduler/shoot_scheduler.cpp
+        dev/scheduler/buzzer_scheduler.cpp
+        dev/interface/ahrs/ahrs.cpp
+        dev/debug/Param_Adjusts/pa_new_gimbal.cpp)
+target_link_libraries(pa_new_gimbal ${PROJECT_SOURCE_DIR}/dev/interface/ahrs/ahrs_lib.lib)
+
 # Elevator: include CANInterface, ElevatorInterface, ElevatorController, and the unit test modules.
 add_executable(pa_elevator
         dev/interface/can_interface.cpp
@@ -516,14 +537,18 @@ target_compile_definitions(ca_ahrs_hero PRIVATE HERO)
 
 # ================================= Post Configurations for all targets =================================
 
+# Make all targets compile to this filename to allow upload script to work properly
+set(ELF_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/build)
+set(ELF_OUTPUT_NAME meta.elf)
+message("[Notice] All executables are built to ${ELF_OUTPUT_PATH}/${ELF_OUTPUT_NAME}")
+
 add_definitions(-DBUILD_TARGET_NAME="$<TARGET_PROPERTY:NAME>")
 
 get_directory_property(TARGET_LIST BUILDSYSTEM_TARGETS)
 foreach (target ${TARGET_LIST})
     if (NOT ${target} STREQUAL "ChibiOS" AND NOT ${target} STREQUAL "CMSIS_DSP")  # OBJECT library doesn't have PRE_BUILD or POST_BUILD
-
         # Add ChibiOS files and common sources
-        target_sources(${target} PRIVATE $<TARGET_OBJECTS:ChibiOS> $<TARGET_OBJECTS:CMSIS_DSP> ${COMMON_SRC})
+        target_sources(${target} PRIVATE $<TARGET_OBJECTS:ChibiOS> ${COMMON_SRC})
 
         # Link CMSIS DSP
         target_link_libraries(${target} CMSIS_DSP)
@@ -535,8 +560,13 @@ foreach (target ${TARGET_LIST})
         # Run size utility after link to show the size of elf file
         add_custom_command(TARGET ${target} POST_BUILD
                 COMMAND echo
-                COMMAND ${CMAKE_SIZE_UTILITY} "$<TARGET_FILE:${target}>"
+                COMMAND ${CMAKE_SIZE_UTILITY} ${ELF_OUTPUT_PATH}/${ELF_OUTPUT_NAME}
                 COMMAND echo)  # execute size utility to show size of executable file
+
+        # Set unique output file
+        set_target_properties(${target} PROPERTIES
+                RUNTIME_OUTPUT_DIRECTORY ${ELF_OUTPUT_PATH}
+                OUTPUT_NAME ${ELF_OUTPUT_NAME})  #
     endif ()
 endforeach (target)
 

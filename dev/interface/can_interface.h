@@ -61,7 +61,7 @@ public:
      */
     void start(tprio_t rx_thread_prio, tprio_t tx_thread_prio);
 
-    static constexpr unsigned MAXIMUM_MOTOR_COUNT = 8;
+    static constexpr unsigned MAXIMUM_MOTOR_COUNT = 11;
 
     enum motor_type_t {
         NONE_MOTOR,
@@ -78,6 +78,8 @@ public:
     public:
 
         motor_type_t type;
+
+        uint32_t sid;
 
         /**
          * Normalized angle
@@ -143,13 +145,6 @@ public:
     typedef void (*can_callback_func)(CANRxFrame const *rxmsg);
 
     /**
-     * Set certain motor's type
-     * @param id        Target motor's id
-     * @param           Motor's type (RM6623, M3508...)
-     */
-    void set_motor_type(unsigned id, motor_type_t motor_type_);
-
-    /**
      * Send a frame
      * @param txmsg   The frame to be sent to super capacitor
      * @return Whether the message has been sent successfully
@@ -160,20 +155,7 @@ public:
      * Get target current address
      * @param id    The motor id.
      */
-    int *get_target_current_address(unsigned id);
-
-    /**
-     * Set target current for motor
-     * @params id               The target motor's id (0-7)
-     * @params target_current   Target_current to set
-     */
-    void set_target_current(unsigned id, int target_current);
-
-    /**
-     * Echo certain motor's target_current.
-     * @param id        Motor's id
-     */
-    int echo_target_current(unsigned id);
+    int *register_target_current_address(unsigned id, motor_type_t motor_type);
 
     /**
      * Event source to broadcast CAN error message
@@ -184,7 +166,7 @@ public:
      * Get the address of a certain feedback.
      * @param id  The motor id.
      */
-    motor_feedback_t *get_feedback_address(unsigned id);
+    motor_feedback_t *register_feedback_address(unsigned id, motor_type_t motor_type);
 
     /**
      * Get the address of super capacitor feedback.
@@ -231,8 +213,12 @@ private:
         explicit CurrentSendThread(CANDriver *can_driver_) :
                 can_driver(can_driver_) {}
         CANDriver *can_driver;
-        motor_type_t motorType[8];
-        int target_current[MAXIMUM_MOTOR_COUNT + 1] = {0};
+        int x1ff_target_current[4 + 1];
+        motor_type_t x1ff_motorType[4 + 1];
+        int x200_target_current[4 + 1];
+        motor_type_t x200_motorType[4 + 1];
+        int x2ff_target_current[4 + 1];
+        motor_type_t x2ff_motorType[4 + 1];
         void cap_send(const CANTxFrame *txmsg);
     private:
         bool send_msg(const CANTxFrame *txmsg);

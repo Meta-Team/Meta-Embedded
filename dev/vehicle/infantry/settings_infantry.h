@@ -22,8 +22,9 @@
 //void shoot_set_config(BaseSequentialStream *chp, int argc, char *argv[]);
 
 void cmd_enable_feedback(BaseSequentialStream *chp, int argc, char *argv[]);
-void cmd_set_target_angle(BaseSequentialStream *chp, int argc, char *argv[]);
-void cmd_set_pid(BaseSequentialStream *chp, int argc, char **argv);
+void cmd_disable_feedback(BaseSequentialStream *chp, int argc, char *argv[]);
+void cmd_set_param(BaseSequentialStream *chp, int argc, char *argv[]);
+void cmd_echo_param(BaseSequentialStream *chp, int argc, char *argv[]);
 
 void feedback_thread_start();
 

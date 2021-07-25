@@ -59,26 +59,26 @@ public:
     /**
      * Start this scheduler.
      * @param loader_install_            Installation direction of loader
-     * @param plate_install_             Installation direction of plate
      * @param thread_prio                Priority of PID calculating thread
      */
-    static void start(install_direction_t loader_install_, install_direction_t plate_install_, tprio_t thread_prio);
+    static void start(install_direction_t loader_install_, tprio_t thread_prio);
 
     /**
-     * Set PID parameters of bullet loader, bullet plate and friction wheels.
+     * Set PID parameters of loader and fraction wheel
      * @param loader_a2v_params
      * @param loader_v2i_params
-     * @param plate_a2v_params
-     * @param plate_v2i_params
      * @param fw_left_v2i_params
      * @param fw_right_v2i_params
      */
     static void load_pid_params(pid_params_t loader_a2v_params, pid_params_t loader_v2i_params,
-                                pid_params_t plate_a2v_params, pid_params_t plate_v2i_params,
                                 pid_params_t fw_left_v2i_params, pid_params_t fw_right_v2i_params);
 
+    static void load_pid_params_by_type(pid_params_t params, unsigned motor_id, bool is_a2v);
+
+    static pid_params_t echo_pid_params_by_type(unsigned motor_id, bool is_a2v);
+
     /**
-     * Set mode of this SKD.
+     * Set mode of this SKD
      * @param skd_mode
      */
     static void set_mode(mode_t skd_mode);
@@ -96,22 +96,10 @@ public:
     static void set_loader_target_angle(float loader_target_angle);
 
     /**
-     * Set bullet plate target angle (related to shoot NUMBER ) in LIMITED_SHOOTING_MODE
-     * @param plate_target_angle   Bullet plate target ACCUMULATED angle [positive, degree]
-     */
-    static void set_plate_target_angle(float plate_target_angle);
-
-    /**
      * Set bullet loader target velocity (related to shoot SPEED) in LIMITED_SHOOTING_MODE
      * @param degree_per_second   Bullet loader target velocity [positive, degree/s]
      */
     static void set_loader_target_velocity(float degree_per_second);
-
-    /**
-     * Set bullet plate target velocity (related to shoot SPEED) in LIMITED_SHOOTING_MODE
-     * @param degree_per_second   Bullet plate target velocity [positive, degree/s]
-     */
-    static void set_plate_target_velocity(float degree_per_second);
 
     /**
      * Set friction wheels duty cycle in LIMITED_SHOOTING_MODE or REVERSE_TURNING_MODE
@@ -128,29 +116,19 @@ public:
      */
     static float get_friction_wheels_duty_cycle();
 
+    static float get_target_velocity(uint32_t motor_id);
+
     /**
      * Get bullet loader target current calculated in this SKD
      * @return Bullet loader target current [positive for normal shooting]
      */
-    static int get_loader_target_current();
-
-    /**
-     * Get bullet plate target current calculated in this SKD
-     * @return Bullet plate target current [positive for normal shooting]
-     */
-    static int get_plate_target_current();
+    static int get_target_current(uint32_t motor_id);
 
     /**
      * Get bullet loader actual velocity
      * @return Bullet loader actual velocity [positive for normal shooting]
      */
-    static float get_loader_actual_velocity();
-
-    /**
-     * Get bullet plate actual velocity
-     * @return Bullet plate actual velocity [positive for normal shooting]
-     */
-    static float get_plate_actual_velocity();
+    static float get_actual_velocity(uint32_t motor_id);
 
     /**
      * Get bullet loader target angle
@@ -164,33 +142,45 @@ public:
     static float get_loader_accumulated_angle();
 
     /**
-     * Get bullet plate accumulated angle
-     * @return Bullet plate accumulated angle [positive for normal shooting, degree]
-     */
-    static float get_plate_accumulated_angle();
-
-    /**
      * Reset accumulated angle of bullet loader to 0
      */
     static void reset_loader_accumulated_angle();
 
+    /*------------------------------------- Functions for Test Status -------------------------------------*/
+
     /**
-     * Reset accumulated angle of bullet plate to 0
+     * Set the test status
+     * @param test_status
      */
-    static void reset_plate_accumulated_angle();
+    static void set_test_status(bool test_status);
+
+    /**
+     * Enable the motors
+     * @param motor
+     */
+    static void enable_motor(unsigned motor);
+
+    /**
+     * Disable the motors
+     * @param motor
+     */
+    static void disable_motor(unsigned motor);
 
 private:
 
-    static install_direction_t install_position[4];
+    static install_direction_t install_position[3];
 
+    static bool is_test;
     static mode_t mode;
 
-    static float target_angle[2];
-    static float target_velocity[4];
-    static int target_current[4];
+    static bool motor_enable[3];
 
-    static PIDController v2i_pid[4];
-    static PIDController a2v_pid[2];
+    static float target_angle;
+    static float target_velocity[3];
+    static int target_current[3];
+
+    static PIDController v2i_pid[3];
+    static PIDController a2v_pid;
 
     static constexpr unsigned int SKD_THREAD_INTERVAL = 2; // PID calculation interval [ms]
 

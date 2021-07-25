@@ -55,6 +55,7 @@ void UserH::UserThread::main() {
     while (!shouldTerminate()) {
 
         /*** ---------------------------------- Gimbal --------------------------------- ***/
+#if HERO_GIMBAL_ENABLE
         if (!InspectorH::remote_failure() /*&& !InspectorI::chassis_failure()*/ && !InspectorH::gimbal_failure()) {
             if ((Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_UP) ||
                 (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_MIDDLE) ||
@@ -79,26 +80,12 @@ void UserH::UserThread::main() {
             } else if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_DOWN) {
 
                 /// Vision - Yaw + Pitch
+#if HERO_VISION_ENABLE
+                GimbalLG::set_action(GimbalLG::VISION_MODE);
 
-                GimbalLG::set_action(GimbalLG::ABS_ANGLE_MODE);
-
-                float yaw_va_target, pitch_va_target;
-                yaw_va_target = GimbalLG::get_relative_angle(GimbalBase::YAW);
-                pitch_va_target = GimbalLG::get_relative_angle(GimbalBase::PITCH);
-
-                float yaw_delta,pitch_delta;
-                yaw_delta = Vision::enemy_info.yaw_delta;
-                pitch_delta = Vision::enemy_info.pitch_delta;
-
-                static time_msecs_t last_one = Vision::last_update_time;
-                if (Vision::last_update_time - last_one < 500) { // TODO:: may not be safe enough
-                    if ((yaw_delta > 2.0f) || (yaw_delta < -2.0f)) yaw_va_target -= yaw_delta;
-                    if ((pitch_delta > 1.0f) || (pitch_delta < -1.0f)) pitch_va_target -= pitch_delta;
-                }
-                last_one = Vision::last_update_time;
-
-                GimbalLG::set_target(yaw_va_target, pitch_va_target);
-
+                if (Remote::rc.ch1 > 0.5) Vision::set_bullet_speed(Vision::get_bullet_speed() - 0.001f);
+                else if (Remote::rc.ch1 <= - 0.5) Vision::set_bullet_speed(Vision::get_bullet_speed() + 0.001f);
+#endif
             } else if (Remote::rc.s1 == Remote::S_DOWN) {
 
                 /// PC control mode
@@ -163,10 +150,10 @@ void UserH::UserThread::main() {
             /// Safe Mode
             GimbalLG::set_action(GimbalLG::FORCED_RELAX_MODE);
         }
-
+#endif
 
         /*** ---------------------------------- Shoot --------------------------------- ***/
-
+#if HERO_GIMBAL_ENABLE
         if (!InspectorH::remote_failure() /*&& !InspectorH::chassis_failure()*/ && !InspectorH::gimbal_failure()) {
             if ((Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_UP) ||
                 (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_MIDDLE)||
@@ -207,9 +194,9 @@ void UserH::UserThread::main() {
             ShootLG::stop();
             ShootLG::set_friction_wheels(0);
         }
-
+#endif
         /*** ---------------------------------- Chassis --------------------------------- ***/
-
+#if HERO_CHASSIS_ENABLE
         if (!InspectorH::remote_failure() && !InspectorH::chassis_failure() /*&& !InspectorH::gimbal_failure()*/) {
 
             if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_UP) {
@@ -278,7 +265,7 @@ void UserH::UserThread::main() {
             /// Safe Mode
             ChassisLG::set_action(ChassisLG::FORCED_RELAX_MODE);
         }
-
+#endif
 
         /// Final
         sleep(TIME_MS2I(USER_THREAD_INTERVAL));
@@ -315,6 +302,7 @@ void UserH::UserActionThread::main() {
             eventflags_t mouse_flag = chEvtGetAndClearFlags(&mouse_press_listener);
 
             /// Shoot
+#if HERO_GIMBAL_ENABLE
             if (ShootLG::get_friction_wheels_duty_cycle() == 0) {  // force start friction wheels
                 ShootLG::set_friction_wheels(shoot_common_duty_cycle);
             }
@@ -323,9 +311,12 @@ void UserH::UserActionThread::main() {
             } else if (mouse_flag & (1U << Remote::MOUSE_RIGHT)) {
                 ShootLG::shoot(shoot_launch_right_count, shoot_launch_speed);
             }
+#endif
         } else {  // releasing one while pressing another won't result in stopping
             if (events & MOUSE_RELEASE_EVENTMASK) {
+#if HERO_GIMBAL_ENABLE
                 ShootLG::stop();
+#endif
             }
         }
 
@@ -335,6 +326,7 @@ void UserH::UserActionThread::main() {
             eventflags_t key_flag = chEvtGetAndClearFlags(&key_press_listener);
 
             /// Chassis
+#if HERO_CHASSIS_ENABLE
             if (key_flag & (1U << chassis_dodge_switch)) {
                 if (ChassisLG::get_action() == ChassisLG::FOLLOW_MODE) {
                     ChassisLG::set_action(ChassisLG::DODGE_MODE);
@@ -342,7 +334,9 @@ void UserH::UserActionThread::main() {
                     ChassisLG::set_action(ChassisLG::FOLLOW_MODE);
                 }
             }
+#endif
 
+#if HERO_GIMBAL_ENABLE
             if (key_flag & (1U << Remote::KEY_Q)) {
                 gimbal_yaw_target_angle_ += 90.0f;
                 GimbalLG::set_target(gimbal_yaw_target_angle_, gimbal_pc_pitch_target_angle_);
@@ -350,7 +344,9 @@ void UserH::UserActionThread::main() {
                 gimbal_yaw_target_angle_ -= 90.0f;
                 GimbalLG::set_target(gimbal_yaw_target_angle_, gimbal_pc_pitch_target_angle_);
             }
+#endif
 
+#if HERO_GIMBAL_ENABLE
             /// Shoot
             if (key_flag & (1U << shoot_fw_switch)) {
                 if (ShootLG::get_friction_wheels_duty_cycle() > 0) {
@@ -367,6 +363,7 @@ void UserH::UserActionThread::main() {
             if (key_flag & (1U << Remote::KEY_F)) {
                 ShootLG::set_friction_wheels(0.5);
             }
+#endif
         }
 
         // If more event type is added, remember to modify chEvtWaitAny() above
@@ -391,11 +388,12 @@ void UserH::ClientDataSendingThread::main() {
 
         /// Super Capacitor
         // TODO: determine feedback interval
+#if HERO_SUPER_CAPACITOR_ENABLE
         if (WITHIN_RECENT_TIME(SuperCapacitor::last_feedback_time, 1000)) {
 //            Referee::set_client_number(USER_CLIENT_ACTUAL_POWER_NUM, SuperCapacitor::feedback.output_power);
             Referee::set_client_number(USER_CLIENT_SUPER_CAPACITOR_VOLTAGE_NUM,
-                                       SuperCapacitor::feedback.capacitor_voltage);
-            if (SuperCapacitor::feedback.capacitor_voltage > SUPER_CAPACITOR_WARNING_VOLTAGE) {
+                                       SuperCapacitor::feedback->capacitor_voltage);
+            if (SuperCapacitor::feedback->capacitor_voltage > SUPER_CAPACITOR_WARNING_VOLTAGE) {
                 super_capacitor_light_status_ = true;
             } else {
                 super_capacitor_light_status_ = not super_capacitor_light_status_;  // blink voltage light
@@ -406,7 +404,7 @@ void UserH::ClientDataSendingThread::main() {
             super_capacitor_light_status_ = false;
         }
         Referee::set_client_light(USER_CLIENT_SUPER_CAPACITOR_STATUS_LIGHT, super_capacitor_light_status_);
-
+#endif
         /// Send data
         Referee::request_to_send(Referee::CLIENT);
 

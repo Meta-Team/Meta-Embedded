@@ -51,8 +51,8 @@ static void cmd_echo_adress(BaseSequentialStream *chp, int argc, char *argv[]) {
         shellUsage(chp, "echo_adress id(motor id)");
         return;
     }
-    Shell::printf("%d" SHELL_NEWLINE_STR, can1.get_feedback_address(1));
-    Shell::printf("%d" SHELL_NEWLINE_STR, can2.get_feedback_address(1));
+    Shell::printf("%d" SHELL_NEWLINE_STR, can1.register_feedback_address(1));
+    Shell::printf("%d" SHELL_NEWLINE_STR, can2.register_feedback_address(1));
     chprintf(chp, "echo!" SHELL_NEWLINE_STR);
 }
 
@@ -69,9 +69,9 @@ static void cmd_echo_motor_ID(BaseSequentialStream *chp, int argc, char *argv[])
         return;
     }
     if (Shell::atoi(argv[0]) == 1) {
-        Shell::printf("%d" SHELL_NEWLINE_STR, can1.get_feedback_address(Shell::atoi(argv[1]))->type);
+        Shell::printf("%d" SHELL_NEWLINE_STR, can1.register_feedback_address(Shell::atoi(argv[1]))->type);
     } else if (Shell::atoi(argv[0]) == 2) {
-        Shell::printf("%d" SHELL_NEWLINE_STR, can2.get_feedback_address(Shell::atoi(argv[1]))->type);
+        Shell::printf("%d" SHELL_NEWLINE_STR, can2.register_feedback_address(Shell::atoi(argv[1]))->type);
     }
     chprintf(chp, "echoed!" SHELL_NEWLINE_STR);
 }

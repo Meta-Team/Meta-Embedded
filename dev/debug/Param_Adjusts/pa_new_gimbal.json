@@ -1,0 +1,58 @@
+{
+    "project": "Infantry",
+    "motor_config": [
+        {
+            "motor_id": 0,
+            "motor_name": "yaw"
+        },
+        {
+            "motor_id": 1,
+            "motor_name": "pitch"
+        },
+        {
+            "motor_id": 2,
+            "motor_name": "sub_pitch"
+        },
+        {
+            "motor_id": 3,
+            "motor_name": "bullet"
+        },
+        {
+            "motor_id": 4,
+            "motor_name": "fw_left"
+        },
+        {
+            "motor_id": 5,
+            "motor_name": "fw_right"
+        },
+        {
+            "motor_id": 6,
+            "motor_name": "ahrs"
+        },
+        {
+            "motor_id": 7,
+            "motor_name": "gyro"
+        },
+        {
+            "motor_id": 8,
+            "motor_name": "accel"
+        },
+        {
+            "motor_id": 9,
+            "motor_name": "magnet"
+        }
+    ],
+    "commands": [
+        "set_enable motor_id -> yaw pitch sub_pitch bullet fw_left fw_right",
+        "set_disable motor_id -> yaw pitch sub_pitch bullet fw_left fw_right",
+        "get_sid -> yaw pitch sub_pitch bullet fw_left fw_right",
+        "fb_enable motor_id",
+        "fb_disable motor_id",
+        "set_pid motor_id pid_id ki kp kd i_limit out_limit -> yaw pitch sub_pitch bullet fw_left fw_right",
+        "echo_pid motor_id pid_id -> yaw pitch sub_pitch bullet fw_left fw_right",
+        "set_target_angle motor_id angle -> yaw pitch sub_pitch bullet",
+        "echo_target_angle motor_id -> yaw pitch sub_pitch bullet",
+        "echo_actual_angle motor_id -> yaw pitch sub_pitch bullet",
+        "echo_raw_angle motor_id -> yaw pitch sub_pitch bullet"
+    ]
+}
