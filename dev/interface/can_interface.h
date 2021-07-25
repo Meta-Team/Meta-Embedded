@@ -27,9 +27,9 @@
 #error "CANInterface has not been defined for selected board"
 #endif
 
+#define CAN_INTERFACE_ENABLE_X2FF_FRAME              FALSE
 #define CAN_INTERFACE_ENABLE_ERROR_FEEDBACK_THREAD   TRUE
-#define CAN_INTERFACE_ENABLE_VELOCITY_DIFFERENTIAL   TRUE
-#define CAN_INTERFACE_THREAD_WORK_AREA_SIZE          1024  // also used in cpp, do not delete
+#define CAN_INTERFACE_ENABLE_VELOCITY_DIFFERENTIAL   FALSE
 
 /**
  * CAN interface to receive, distribute and send message
@@ -51,7 +51,7 @@ public:
 #if (CAN_INTERFACE_ENABLE_ERROR_FEEDBACK_THREAD == TRUE)
             , errorFeedbackThread(driver, last_error_time)
 #endif
-            , currentSendThread(driver), processFeedbackThread(driver)
+            , txThread(driver), rxThread(driver)
     {}
 
     /**
@@ -74,7 +74,6 @@ public:
     };
 
     struct motor_feedback_t {
-
     public:
 
         motor_type_t type;
@@ -140,11 +139,6 @@ public:
     };
 
     /**
-     * Type of callback function
-     */
-    typedef void (*can_callback_func)(CANRxFrame const *rxmsg);
-
-    /**
      * Send a frame
      * @param txmsg   The frame to be sent to super capacitor
      * @return Whether the message has been sent successfully
@@ -208,17 +202,19 @@ private:
 
 #endif
 
-    class CurrentSendThread : public chibios_rt::BaseStaticThread<512> {
+    class TxThread : public chibios_rt::BaseStaticThread<512> {
     public:
-        explicit CurrentSendThread(CANDriver *can_driver_) :
+        explicit TxThread(CANDriver *can_driver_) :
                 can_driver(can_driver_) {}
         CANDriver *can_driver;
         int x1ff_target_current[4 + 1];
         motor_type_t x1ff_motorType[4 + 1];
         int x200_target_current[4 + 1];
         motor_type_t x200_motorType[4 + 1];
+#if CAN_INTERFACE_ENABLE_X2FF_FRAME
         int x2ff_target_current[4 + 1];
         motor_type_t x2ff_motorType[4 + 1];
+#endif
         void cap_send(const CANTxFrame *txmsg);
     private:
         bool send_msg(const CANTxFrame *txmsg);
@@ -229,12 +225,11 @@ private:
         bool capMsgSent = true;
     };
 
-    CurrentSendThread currentSendThread;
+    TxThread txThread;
 
-    class ProcessFeedbackThread : public chibios_rt::BaseStaticThread<CAN_INTERFACE_THREAD_WORK_AREA_SIZE> {
+    class RxThread : public chibios_rt::BaseStaticThread<1024> {
     public:
-
-        explicit ProcessFeedbackThread(CANDriver *can_driver_) :
+        explicit RxThread(CANDriver *can_driver_) :
         can_driver(can_driver_) {}
         CANDriver *can_driver;
 
@@ -245,7 +240,7 @@ private:
         void main() final;
     };
 
-    ProcessFeedbackThread processFeedbackThread;
+    RxThread rxThread;
 
     CANConfig can_cfg = {
             CAN_MCR_ABOM | CAN_MCR_AWUM | CAN_MCR_TXFP,
