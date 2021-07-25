@@ -86,6 +86,11 @@ set(CHASSIS_SRC
         dev/scheduler/chassis_scheduler.cpp
         dev/logic/chassis_logic.cpp)
 
+set(REFEREE_SRC
+        dev/interface/referee_interface.cpp
+        dev/scheduler/referee_UI_update_scheduler.cpp
+        dev/logic/referee_UI_logic.cpp)
+
 set(PA_CHASSIS_SRC
         dev/module/pid_controller.hpp
         dev/interface/can_interface.cpp
@@ -115,9 +120,9 @@ set(INFANTRY
         ${AHRS_SRC}
         ${INFANTRY_SHOOT_SRC}
         ${CHASSIS_SRC}
+        ${REFEREE_SRC}
         dev/interface/vision.cpp
         dev/interface/super_capacitor_port.cpp
-        dev/interface/referee_interface.cpp
         dev/interface/sd_card_interface.cpp
         dev/common/CRC8.cpp
         dev/common/CRC16.cpp
@@ -466,6 +471,7 @@ target_link_libraries(pa_gimbal ${PROJECT_SOURCE_DIR}/dev/interface/ahrs/ahrs_li
 add_executable(pa_new_gimbal
         dev/common/CRC16.cpp
         dev/interface/sd_card_interface.cpp
+        dev/interface/remote_interpreter.cpp
         ${AHRS_SRC}
         dev/interface/can_interface.cpp
         dev/interface/gimbal_interface.cpp

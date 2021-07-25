@@ -142,6 +142,8 @@ void ChassisSKD::SKDThread::main() {
 
                 float theta = get_actual_theta();
 
+                RefereeUILG::set_chassis_angle(theta/180.0f * M_PI);
+
                 if (mode == GIMBAL_COORDINATE_MODE) {
                     if (ABS(theta - target_theta) < THETA_DEAD_ZONE) {
                         target_w = 0;
