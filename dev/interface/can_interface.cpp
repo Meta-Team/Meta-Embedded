@@ -193,7 +193,7 @@ void CANInterface::ProcessFeedbackThread::main() {
 
                 // Store new_actual_angle_raw for calculation of angle_movement next time
 //                fb->last_angle_raw = new_actual_angle_raw;
-                fb->last_angle_raw = 2021;
+                fb->last_angle_raw = new_actual_angle_raw;
                 /// If angle_movement is too extreme between two samples, we grant that it's caused by moving over the 0 (8192) point
                 if (angle_movement < -4096) angle_movement += 8192;
                 if (angle_movement > 4096) angle_movement -= 8192;
@@ -226,7 +226,7 @@ void CANInterface::ProcessFeedbackThread::main() {
                     case M3508:  // M3508 deceleration ratio = 3591/187
 
                         // raw -> degree with deceleration ratio
-                        fb->actual_angle += angle_movement * 0.002288436f; // 360 / 8192 / (3591/187)
+                        fb->actual_angle += (float) angle_movement * 0.002288436f; // 360 / 8192 / (3591/187)
 
                         // rpm -> degree/s with deceleration ratio
                         fb->actual_velocity =
@@ -265,7 +265,7 @@ void CANInterface::ProcessFeedbackThread::main() {
                         // raw -> degree
                         fb->actual_angle += angle_movement * 0.043945312f;  // * 360 / 8192
 
-                        fb->actual_velocity = 0;  // no velocity feedback available
+                        fb->actual_velocity = (angle_movement * 0.043945312f) / ((SYSTIME - fb->last_update_time) / 1000.0);  // no velocity feedback available
 
                         fb->actual_current = 0;  // no current feedback available
 

@@ -22,7 +22,7 @@
 
 #define GIMBAL_YAW_FRONT_ANGLE_RAW 0
 #define GIMBAL_PITCH_FRONT_ANGLE_RAW -200
-#define GIMBAL_SUB_PITCH_FRONT_ANGLE_RAW 0 //Todo: Measure the value
+#define GIMBAL_SUB_PITCH_FRONT_ANGLE_RAW 1495 //Todo: Measure the value
 
 
 #define LOADER_SHOOT_DEGREE_PER_BULLET 72.0f
@@ -43,8 +43,8 @@
 #define GIMBAL_YAW_CAN_ID         7
 #define GIMBAL_PITCH_CAN_ID       1
 #define GIMBAL_SUB_PITCH_CAN_ID   3
-#define GIMBAL_BULLET_CAN_ID      5
-#define GIMBAL_FW_LEFT_CAN_ID     7
+#define GIMBAL_BULLET_CAN_ID      6
+#define GIMBAL_FW_LEFT_CAN_ID     4
 #define GIMBAL_FW_RIGHT_CAN_ID    3
 
 #define GIMBAL_YAW_MOTOR_TYPE      (CANInterface::GM6020_HEROH)
