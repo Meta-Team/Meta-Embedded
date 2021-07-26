@@ -22,6 +22,7 @@
 #include "hal.h"
 #include "can_interface.h"
 #include "motor_interface.h"
+#include "sd_card_interface.h"
 
 /// Board Guard
 #if defined(BOARD_RM_2018_A)
@@ -86,6 +87,8 @@ public:
 #define GIMBAL_INTERFACE_BULLET_LOADER_MAX_CURRENT 5000
 #define GIMBAL_INTERFACE_BULLET_PLATE_MAX_CURRENT 5000
 #endif
+
+#define GIMBAL_YAW_FRONT_ANGLE_DATA_ID 0x0002
 
 class GimbalIF : public GimbalBase, public MotorIFBase {
 

@@ -52,14 +52,14 @@ void GimbalIF::init(CANInterface *can1_interface, CANInterface *can2_interface,
         if (motor_can_config[i].motor_can_channel == can_channel_1) {
 
             // Link the feedback and target_current to can1's feedback
-            feedback[i] = can1_->register_feedback_address(motor_can_config[i].motor_can_id, motor_can_config[i].motor_type);
+            feedback[i] = can1_->register_feedback_address(motor_can_config[i].motor_can_id, motor_can_config[i].motor_type, motor_can_config[i].deceleration_ratio);
             target_current[i] = can1_->register_target_current_address(motor_can_config[i].motor_can_id, motor_can_config[i].motor_type);
             *target_current[i] = 0;
 
         } else if (motor_can_config[i].motor_can_channel == can_channel_2) {
 
             // Link the feedback and target_current to can2's feedback
-            feedback[i] = can2_->register_feedback_address(motor_can_config[i].motor_can_id, motor_can_config[i].motor_type);
+            feedback[i] = can2_->register_feedback_address(motor_can_config[i].motor_can_id, motor_can_config[i].motor_type, motor_can_config[i].deceleration_ratio);
             target_current[i] = can2_->register_target_current_address(motor_can_config[i].motor_can_id, motor_can_config[i].motor_type);
             *target_current[i] = 0;
 
@@ -67,9 +67,11 @@ void GimbalIF::init(CANInterface *can1_interface, CANInterface *can2_interface,
 
         // Set front angle of yaw and pitch
         if (YAW == (motor_id_t) i) {
-#if !defined(HERO)
-            feedback[i]->last_angle_raw = yaw_front_angle_raw;
-#endif
+            uint16_t yaw_front_angle_from_sd;
+            if (SDCard::get_data(GIMBAL_YAW_FRONT_ANGLE_DATA_ID, &yaw_front_angle_from_sd, sizeof(yaw_front_angle_from_sd)) == SDCard::OK)
+                feedback[i]->last_angle_raw = yaw_front_angle_from_sd;
+            else
+                feedback[i]->last_angle_raw = yaw_front_angle_raw;
         } else if (PITCH == (motor_id_t) i) {
             feedback[i]->last_angle_raw = pitch_front_angle_raw;
         } else if (SUB_PITCH == (motor_id_t) i) {

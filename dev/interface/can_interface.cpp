@@ -91,7 +91,6 @@ int *CANInterface::register_target_current_address(unsigned int id, motor_type_t
                 tx_id = id - 1;
             }
             break;
-        case GM6020_HEROH:
         case GM6020:
             if (id <= 4 && id >= 1) {
                 p = currentSendThread.x1ff_target_current;
@@ -111,7 +110,7 @@ int *CANInterface::register_target_current_address(unsigned int id, motor_type_t
     return p + tx_id;
 }
 
-CANInterface::motor_feedback_t *CANInterface::register_feedback_address(unsigned id, motor_type_t motor_type) {
+CANInterface::motor_feedback_t *CANInterface::register_feedback_address(unsigned id, motor_type_t motor_type, float deceleration_ratio) {
     unsigned rx_id = MAXIMUM_MOTOR_COUNT;
     switch (motor_type) {
         case M3508:
@@ -122,7 +121,6 @@ CANInterface::motor_feedback_t *CANInterface::register_feedback_address(unsigned
             if (id <= 3 && id >= 1) rx_id = id + 4 - 1;
             break;
         case GM6020:
-        case GM6020_HEROH:
             if (id <= 7 && id >= 1) rx_id = id + 4 - 1;
             break;
         case NONE_MOTOR:
@@ -130,6 +128,7 @@ CANInterface::motor_feedback_t *CANInterface::register_feedback_address(unsigned
             break;
     }
     processFeedbackThread.feedback[rx_id].type = motor_type;
+    processFeedbackThread.feedback[rx_id].deceleration_ratio = deceleration_ratio;
     return &processFeedbackThread.feedback[rx_id];
 }
 
@@ -198,12 +197,12 @@ void CANInterface::ProcessFeedbackThread::main() {
                 if (angle_movement < -4096) angle_movement += 8192;
                 if (angle_movement > 4096) angle_movement -= 8192;
 
+                // raw -> degree
+                fb->actual_angle += (float) angle_movement * CAN_INTERFACE_RAW_TO_ANGLE_RATIO / fb->deceleration_ratio;
+
                 switch (fb->type) {
 
                     case RM6623:  // RM6623 deceleration ratio = 1
-
-                        // raw -> degree
-                        fb->actual_angle += angle_movement * 0.043945312f;  // * 360 / 8192
 
                         fb->actual_velocity = 0;  // no velocity feedback available
 
@@ -213,11 +212,7 @@ void CANInterface::ProcessFeedbackThread::main() {
 
                     case M2006:  // M2006 deceleration ratio = 36,
 
-                        // raw -> degree with deceleration ratio
-                        fb->actual_angle += angle_movement * 0.001220703f;  // * 360 / 8192 / 36
-
-                        // rpm -> degree/s with deceleration ratio
-                        fb->actual_velocity = ((int16_t) (rxmsg.data8[2] << 8 | rxmsg.data8[3])) * 0.166666667f;  // 360 / 60 / 36
+                        fb->actual_velocity = (float) ((int16_t) (rxmsg.data8[2] << 8 | rxmsg.data8[3])) * CAN_INTERFACE_RPM_TO_DPS / fb->deceleration_ratio;
 
                         fb->actual_current = 0;  // no current feedback available
 
@@ -225,12 +220,7 @@ void CANInterface::ProcessFeedbackThread::main() {
 
                     case M3508:  // M3508 deceleration ratio = 3591/187
 
-                        // raw -> degree with deceleration ratio
-                        fb->actual_angle += (float) angle_movement * 0.002288436f; // 360 / 8192 / (3591/187)
-
-                        // rpm -> degree/s with deceleration ratio
-                        fb->actual_velocity =
-                                ((int16_t) (rxmsg.data8[2] << 8 | rxmsg.data8[3])) * 0.312447786f;  // 360 / 60 / (3591/187)
+                        fb->actual_velocity = (float) ((int16_t) (rxmsg.data8[2] << 8 | rxmsg.data8[3])) * CAN_INTERFACE_RPM_TO_DPS / fb->deceleration_ratio;
 
                         fb->actual_current = (int16_t) (rxmsg.data8[4] << 8 | rxmsg.data8[5]);
 
@@ -238,32 +228,14 @@ void CANInterface::ProcessFeedbackThread::main() {
 
                     case GM6020:  // GM6020 deceleration ratio = 1
 
-                        // raw -> degree
-                        fb->actual_angle += ((float) angle_movement * 0.043945312f);  // * 360 / 8192
-
                         // rpm -> degree/s
-                        fb->actual_velocity = (float)((int16_t) (rxmsg.data8[2] << 8 | rxmsg.data8[3])) * 6.0f;  // 360 / 60
-
-                        fb->actual_current = (int16_t) (rxmsg.data8[4] << 8 | rxmsg.data8[5]);
-
-                        break;
-
-                    case GM6020_HEROH:
-
-                        // raw -> degree
-                        fb->actual_angle += ((float)angle_movement * 0.03515625f);  // * 360 / 8192 * deceleration ratio.
-
-                        // rpm -> degree/s
-                        fb->actual_velocity = (float)(int16_t)(rxmsg.data8[2] << 8 | rxmsg.data8[3]) * 6.0f * 0.8f;  // 360 / 60
+                        fb->actual_velocity = (float) ((int16_t) (rxmsg.data8[2] << 8 | rxmsg.data8[3])) * CAN_INTERFACE_RPM_TO_DPS;
 
                         fb->actual_current = (int16_t) (rxmsg.data8[4] << 8 | rxmsg.data8[5]);
 
                         break;
 
                     case GM3510:  // GM3510 deceleration ratio = 1
-
-                        // raw -> degree
-                        fb->actual_angle += angle_movement * 0.043945312f;  // * 360 / 8192
 
                         fb->actual_velocity = (angle_movement * 0.043945312f) / ((SYSTIME - fb->last_update_time) / 1000.0);  // no velocity feedback available
 

@@ -19,7 +19,7 @@
 #include "ch.hpp"
 #include "hal.h"
 #include "can_interface.h"
-
+#include "motor_interface.h"
 #include "common_macro.h"
 
 /**
@@ -55,21 +55,9 @@ public:
  * @note This module is designed to process feedback automatically, but not to send current automatically, to avoid
  *       unintended chassis movements.
  */
-class ChassisIF : public ChassisBase {
+class ChassisIF : public ChassisBase, public MotorIFBase{
 
 public:
-
-    enum motor_can_channel_t {
-        none_can_channel,
-        can_channel_1,
-        can_channel_2
-    };
-
-    struct motor_can_config_t {
-        motor_can_channel_t motor_can_channel;
-        unsigned motor_can_id;
-        CANInterface::motor_type_t motor_type;
-    };
 
     /**
      * Set CAN interface for receiving and sending

@@ -59,6 +59,14 @@ float GimbalLG::get_current_target_angle(GimbalBase::motor_id_t motor) {
     return GimbalSKD::get_target_angle(motor);
 }
 
+void GimbalLG::separate_pitch(float angle) {
+    if (angle < 0) angle = 0;
+    float sub_pitch_angle = GimbalSKD::get_target_angle(SUB_PITCH);
+    float pitch_angle = GimbalSKD::get_target_angle(PITCH);
+    float yaw_angle = GimbalSKD::get_target_angle(YAW);
+    GimbalSKD::set_target_angle(yaw_angle, pitch_angle + sub_pitch_angle + angle, - angle);
+}
+
 void GimbalLG::VisionControlThread::main() {
     setName("GimbalLG_Vision");
 

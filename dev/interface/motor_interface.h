@@ -17,6 +17,7 @@ public:
         motor_can_channel_t motor_can_channel;
         unsigned motor_can_id;
         CANInterface::motor_type_t motor_type;
+        float deceleration_ratio;
     };
 };
 

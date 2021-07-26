@@ -30,6 +30,8 @@
 #define CAN_INTERFACE_ENABLE_ERROR_FEEDBACK_THREAD   TRUE
 #define CAN_INTERFACE_ENABLE_VELOCITY_DIFFERENTIAL   TRUE
 #define CAN_INTERFACE_THREAD_WORK_AREA_SIZE          1024  // also used in cpp, do not delete
+#define CAN_INTERFACE_RAW_TO_ANGLE_RATIO             0.043945312f // 360 / 8192
+#define CAN_INTERFACE_RPM_TO_DPS                     6.f // 360 / 60, round per minute to degree per second
 
 /**
  * CAN interface to receive, distribute and send message
@@ -68,10 +70,15 @@ public:
         RM6623,
         M2006,
         GM6020,
-        GM6020_HEROH,
         GM3510,
         M3508
     };
+
+    static constexpr float NONE_MOTOR_DEFAULT_DECELERATION_RATIO = 1.f;
+    static constexpr float M2006_DEFAULT_DECELERATION_RATIO = 36.f;
+    static constexpr float M3508_DEFAULT_DECELERATION_RATIO = 19.203208556f; // 3591 / 187
+    static constexpr float GM6020_DEFAULT_DECELERATION_RATIO = 1.f;
+    static constexpr float GM3510_DEFAULT_DECELERATION_RATIO = 1.f;
 
     struct motor_feedback_t {
 
@@ -80,6 +87,8 @@ public:
         motor_type_t type;
 
         uint32_t sid;
+
+        float deceleration_ratio = 1.f;
 
         /**
          * Normalized angle
@@ -166,7 +175,7 @@ public:
      * Get the address of a certain feedback.
      * @param id  The motor id.
      */
-    motor_feedback_t *register_feedback_address(unsigned id, motor_type_t motor_type);
+    motor_feedback_t *register_feedback_address(unsigned id, motor_type_t motor_type, float deceleration_ratio);
 
     /**
      * Get the address of super capacitor feedback.

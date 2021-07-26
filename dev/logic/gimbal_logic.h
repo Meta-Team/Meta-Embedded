@@ -81,6 +81,12 @@ public:
      */
     static float get_current_target_angle(motor_id_t motor);
 
+    /**
+     * Separate the pitch from the sub-pitch with a specific angle.
+     * @param angle     The angle between sub-pitch and pitch, must be non-negative
+     */
+    static void separate_pitch(float angle);
+
 private:
 
     static action_t action;

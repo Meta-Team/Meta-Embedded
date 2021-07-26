@@ -36,14 +36,14 @@ void ChassisIF::init(CANInterface *can1_interface, CANInterface *can2_interface,
         if (motor_can_config[i].motor_can_channel == can_channel_1) {
 
             // Link the feedback and target_current to can1's feedback
-            feedback[i] = can1_->register_feedback_address(motor_can_config[i].motor_can_id, motor_can_config[i].motor_type);
+            feedback[i] = can1_->register_feedback_address(motor_can_config[i].motor_can_id, motor_can_config[i].motor_type, motor_can_config[i].deceleration_ratio);
             target_current[i] = can1_->register_target_current_address(motor_can_config[i].motor_can_id, motor_can_config[i].motor_type);
             *target_current[i] = 0;
 
         } else if (motor_can_config[i].motor_can_channel == can_channel_2) {
 
             // Link the feedback and target_current to can2's feedback
-            feedback[i] = can2_->register_feedback_address(motor_can_config[i].motor_can_id, motor_can_config[i].motor_type);
+            feedback[i] = can2_->register_feedback_address(motor_can_config[i].motor_can_id, motor_can_config[i].motor_type, motor_can_config[i].deceleration_ratio);
             target_current[i] = can2_->register_target_current_address(motor_can_config[i].motor_can_id, motor_can_config[i].motor_type);
             *target_current[i] = 0;
 
