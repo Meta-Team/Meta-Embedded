@@ -22,7 +22,6 @@
 #include "gimbal_scheduler.h"
 
 #include "pid_controller.hpp"
-#include "math.h"
 
 #include "referee_UI_logic.h"
 
@@ -173,6 +172,6 @@ private:
 
 };
 
-#endif //PROJECT_CHASSIS_CONTROLLER_H
+#endif //META_INFANTRY_CHASSIS_CONTROLLER_H
 
 /** @} */

@@ -237,7 +237,7 @@ void CANInterface::ProcessFeedbackThread::main() {
 
                     case GM3510:  // GM3510 deceleration ratio = 1
 
-                        fb->actual_velocity = (angle_movement * 0.043945312f) / ((SYSTIME - fb->last_update_time) / 1000.0);  // no velocity feedback available
+                        fb->actual_velocity = 0;  // no velocity feedback available
 
                         fb->actual_current = 0;  // no current feedback available
 

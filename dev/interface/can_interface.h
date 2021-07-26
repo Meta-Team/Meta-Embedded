@@ -74,11 +74,9 @@ public:
         M3508
     };
 
-    static constexpr float NONE_MOTOR_DEFAULT_DECELERATION_RATIO = 1.f;
-    static constexpr float M2006_DEFAULT_DECELERATION_RATIO = 36.f;
-    static constexpr float M3508_DEFAULT_DECELERATION_RATIO = 19.203208556f; // 3591 / 187
-    static constexpr float GM6020_DEFAULT_DECELERATION_RATIO = 1.f;
-    static constexpr float GM3510_DEFAULT_DECELERATION_RATIO = 1.f;
+    static constexpr float DEFAULT_DECELERATION_RATIO = 1.f;
+    static constexpr float M2006_WITH_DECELERATION_RATIO = 36.f;
+    static constexpr float M3508_WITH_DECELERATION_RATIO = 19.203208556f; // 3591 / 187
 
     struct motor_feedback_t {
 
