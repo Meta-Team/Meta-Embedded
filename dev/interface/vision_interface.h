@@ -9,6 +9,7 @@
 #include "hal.h"
 #include "low_pass_filter.hpp"
 #include "position_kalman_filter.hpp"
+#include "shell.h"
 
 class Vision {
 
@@ -66,6 +67,9 @@ public:
      */
     static time_msecs_t get_last_update_time_S() { return last_update_time; }
 
+    static void cmd_feedback(void *);
+    static const Shell::Command shell_commands[];
+
 public:
 
     /** Settings **/
@@ -120,6 +124,11 @@ private:
     static time_msecs_t last_update_time;        // [ms]
     static time_msecs_t last_update_time_delta;  // [ms]
 
+    /** User View **/
+    static float image_to_user_scale;
+    static int image_to_user_offset_x;
+    static int image_to_user_offset_y;
+
 private:
     enum vision_flag_t : uint8_t {
         NONE = 0,
@@ -128,11 +137,13 @@ private:
 
     __PACKED_STRUCT vision_command_t {
         uint8_t flag;
-        uint16_t time_stamp;               // [0.1ms]
-        int16_t yaw_delta;                 // yaw relative angle [deg] * 100
-        int16_t pitch_delta;               // pitch relative angle [deg] * 100
-        int16_t dist;                      // [mm]
-        int16_t avg_light_angle;           // [deg] * 100
+        uint16_t time_stamp;        // [0.1ms]
+        int16_t yaw_delta;          // yaw relative angle [deg] * 100
+        int16_t pitch_delta;        // pitch relative angle [deg] * 100
+        int16_t dist;               // [mm]
+        int16_t avg_light_angle;    // [deg] * 100
+        int16_t imageX;             // pixel
+        int16_t imageY;             // pixel
     };
 
     __PACKED_STRUCT package_t {
@@ -178,7 +189,9 @@ private:
 
     static void handle_vision_command(const vision_command_t &command);
 
-    friend class FeedbackThread;
+    static DECL_SHELL_CMD(cmdInfo);
+    static DECL_SHELL_CMD(cmdEnableFeedback);
+    static DECL_SHELL_CMD(cmd_user_view_setting);
 };
 
 

@@ -211,6 +211,8 @@ int main() {
 #if INFANTRY_VISION_ENABLE
     Vision::init(VISION_BASIC_CONTROL_DELAY);
     Vision::set_bullet_speed(VISION_DEFAULT_BULLET_SPEED);
+    Shell::addFeedbackCallback(Vision::cmd_feedback);
+    Shell::addCommands(Vision::shell_commands);
 #endif
 
     /// Start Inspector and User Threads

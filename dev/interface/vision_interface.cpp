@@ -10,6 +10,7 @@
 #include "led.h"
 #include "gimbal_scheduler.h"
 #include "trajectory_calculator.hpp"
+#include "referee_UI_logic.h"
 
 EVENTSOURCE_DECL(Vision::gimbal_updated_event);
 EVENTSOURCE_DECL(Vision::shoot_time_updated_event);
@@ -30,6 +31,10 @@ float Vision::latest_target_yaw = 0;
 float Vision::latest_target_pitch = 0;
 time_msecs_t Vision::expected_shoot_time = 0;
 int Vision::expected_shoot_after_periods = 0;
+float Vision::image_to_user_scale = 1;
+int Vision::image_to_user_offset_x = 200;
+int Vision::image_to_user_offset_y = 200;
+
 constexpr size_t Vision::DATA_SIZE[Vision::CMD_ID_COUNT];
 
 Vision::package_t Vision::pak;
@@ -149,6 +154,13 @@ void Vision::handle_vision_command(const vision_command_t &command) {
                 } else {
                     expected_shoot_time = 0;
                 }*/
+
+                // Update user view
+                {
+                    uint32_t x = image_to_user_offset_x + pak.command.imageX * image_to_user_scale;
+                    uint32_t y = image_to_user_offset_y + pak.command.imageX * image_to_user_scale;
+                    RefereeUILG::set_main_enemy({x, y});
+                }
             }
         }
     }
@@ -164,7 +176,7 @@ void Vision::handle_vision_command(const vision_command_t &command) {
 void Vision::uart_rx_callback(UARTDriver *uartp) {
     (void) uartp;
 
-     chSysLockFromISR();  /// --- ENTER I-Locked state. DO NOT use LOG, printf, non I-Class functions or return ---
+    chSysLockFromISR();  /// --- ENTER I-Locked state. DO NOT use LOG, printf, non I-Class functions or return ---
 
     auto pak_uint8 = (uint8_t *) &pak;
 
@@ -218,7 +230,7 @@ void Vision::uart_rx_callback(UARTDriver *uartp) {
             break;
     }
 
-     chSysUnlockFromISR();  /// --- EXIT I-Locked state ---
+    chSysUnlockFromISR();  /// --- EXIT I-Locked state ---
 }
 
 void Vision::uart_err_callback(UARTDriver *uartp, uartflags_t e) {
@@ -231,3 +243,56 @@ void Vision::uart_char_callback(UARTDriver *uartp, uint16_t c) {
     (void) uartp;
     (void) c;
 }
+
+const Shell::Command Vision::shell_commands[] = {
+        {"_v",           nullptr,                                  Vision::cmdInfo,               nullptr},
+        {"_v_enable_fb", "Channel/All Feedback{Disabled,Enabled}", Vision::cmdEnableFeedback,     nullptr},
+        {"_v_user_view", "[Scale] [X_Offset] [Y_Offset]",          Vision::cmd_user_view_setting, nullptr},
+        {nullptr,        nullptr,                                  nullptr,                       nullptr}
+};
+
+DEF_SHELL_CMD_START(Vision::cmdInfo)
+    Shell::printf("_v:Vision" ENDL);
+    Shell::printf("_v/Armor:X{Angle,Velocity} Y{Angle,Velocity} Z{Angle,Velocity}" ENDL);
+    return true;
+DEF_SHELL_CMD_END
+
+static bool feedbackEnabled[1] = {false};
+
+void Vision::cmd_feedback(void *) {
+
+    if (feedbackEnabled[0]) {
+        Shell::printf("_v0 %.2f %.2f %.2f %.2f %d %d" ENDL,
+                      armor_ypd[0].get_position(), armor_ypd[0].get_velocity() * 1000,
+                      armor_ypd[1].get_position(), armor_ypd[1].get_velocity() * 1000,
+                      armor_ypd[2].get_position(), armor_ypd[2].get_velocity() * 1000);
+    }
+
+}
+
+DEF_SHELL_CMD_START(Vision::cmdEnableFeedback)
+    int id;
+    bool enabled;
+    if (!Shell::parseIDAndBool(argc, argv, sizeof(feedbackEnabled) / sizeof(*feedbackEnabled), id, enabled))
+        return false;
+    if (id == -1) {
+        for (bool &e : feedbackEnabled) e = enabled;
+    } else {
+        feedbackEnabled[id] = enabled;
+    }
+    return true;
+DEF_SHELL_CMD_END
+
+DEF_SHELL_CMD_START(Vision::cmd_user_view_setting)
+    if (argc == 0) {
+        Shell::printf("_v_user_view %f %d %d" ENDL, image_to_user_scale, image_to_user_offset_x, image_to_user_offset_y);
+        return true;
+    } else if (argc == 3) {
+        image_to_user_scale = Shell::atof(argv[0]);
+        image_to_user_offset_x = Shell::atoi(argv[1]);
+        image_to_user_offset_y = Shell::atoi(argv[2]);
+        return true;
+    } else {
+        return false;
+    }
+DEF_SHELL_CMD_END
