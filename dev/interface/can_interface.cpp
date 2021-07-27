@@ -209,8 +209,7 @@ void CANInterface::RxThread::main() {
                         fb->actual_angle += angle_movement * 0.001220703f;  // * 360 / 8192 / 36
 
                         // rpm -> degree/s with deceleration ratio
-                        fb->actual_velocity =
-                                ((int16_t) (rxmsg.data8[2] << 8 | rxmsg.data8[3])) * 0.166666667f;  // 360 / 60 / 36
+                        fb->actual_velocity = ((int16_t) (rxmsg.data8[2] << 8 | rxmsg.data8[3])) * 0.166666667f;  // 360 / 60 / 36
 
                         fb->actual_current = 0;  // no current feedback available
 
@@ -223,8 +222,7 @@ void CANInterface::RxThread::main() {
 
                         // rpm -> degree/s with deceleration ratio
                         fb->actual_velocity =
-                                ((int16_t) (rxmsg.data8[2] << 8 | rxmsg.data8[3])) *
-                                0.312447786f;  // 360 / 60 / (3591/187)
+                                ((int16_t) (rxmsg.data8[2] << 8 | rxmsg.data8[3])) * 0.312447786f;  // 360 / 60 / (3591/187)
 
                         fb->actual_current = (int16_t) (rxmsg.data8[4] << 8 | rxmsg.data8[5]);
 
@@ -236,8 +234,7 @@ void CANInterface::RxThread::main() {
                         fb->actual_angle += ((float) angle_movement * 0.043945312f);  // * 360 / 8192
 
                         // rpm -> degree/s
-                        fb->actual_velocity =
-                                (float) ((int16_t) (rxmsg.data8[2] << 8 | rxmsg.data8[3])) * 6.0f;  // 360 / 60
+                        fb->actual_velocity = (float)((int16_t) (rxmsg.data8[2] << 8 | rxmsg.data8[3])) * 6.0f;  // 360 / 60
 
                         fb->actual_current = (int16_t) (rxmsg.data8[4] << 8 | rxmsg.data8[5]);
 
@@ -246,12 +243,10 @@ void CANInterface::RxThread::main() {
                     case GM6020_HEROH:
 
                         // raw -> degree
-                        fb->actual_angle += ((float) angle_movement *
-                                             0.03515625f);  // * 360 / 8192 * deceleration ratio.
+                        fb->actual_angle += ((float)angle_movement * 0.03515625f);  // * 360 / 8192 * deceleration ratio.
 
                         // rpm -> degree/s
-                        fb->actual_velocity =
-                                (float) (int16_t) (rxmsg.data8[2] << 8 | rxmsg.data8[3]) * 6.0f * 0.8f;  // 360 / 60
+                        fb->actual_velocity = (float)(int16_t)(rxmsg.data8[2] << 8 | rxmsg.data8[3]) * 6.0f * 0.8f;  // 360 / 60
 
                         fb->actual_current = (int16_t) (rxmsg.data8[4] << 8 | rxmsg.data8[5]);
 
@@ -351,15 +346,15 @@ void CANInterface::TxThread::main() {
 #endif
 
         for (int i = 0; i < 4; i++) {
-            x200_tx_frame.data8[i * 2] = (uint8_t) (-x200_target_current[i] >> 8);
-            x200_tx_frame.data8[i * 2 + 1] = (uint8_t) -x200_target_current[i];
+            x200_tx_frame.data8[i * 2] = (uint8_t) (x200_target_current[i] >> 8);
+            x200_tx_frame.data8[i * 2 + 1] = (uint8_t) x200_target_current[i];
 
-            x1ff_tx_frame.data8[i * 2] = (uint8_t) (-x1ff_target_current[i] >> 8);
-            x1ff_tx_frame.data8[i * 2 + 1] = (uint8_t) -x1ff_target_current[i];
+            x1ff_tx_frame.data8[i * 2] = (uint8_t) (x1ff_target_current[i] >> 8);
+            x1ff_tx_frame.data8[i * 2 + 1] = (uint8_t) x1ff_target_current[i];
 
 #if CAN_INTERFACE_ENABLE_X2FF_FRAME
-            x2ff_tx_frame.data8[i * 2] = (uint8_t) (-x2ff_target_current[i] >> 8);
-            x2ff_tx_frame.data8[i * 2 + 1] = (uint8_t) -x2ff_target_current [i];
+            x2ff_tx_frame.data8[i * 2] = (uint8_t) (x2ff_target_current[i] >> 8);
+            x2ff_tx_frame.data8[i * 2 + 1] = (uint8_t) x2ff_target_current [i];
 #endif
 
         }
