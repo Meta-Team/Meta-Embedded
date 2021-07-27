@@ -108,13 +108,13 @@ void RefereeUILG::set_main_enemy(RefereeUISKD::UI_point enemy_loc){
 }
 
 void RefereeUILG::init_data_UI() {
-    RefereeUISKD::remove_layer(1);
+    RefereeUISKD::remove_layer(3);
     Shell::snprintf(cap_title, sizeof(cap_title),        "CAP  VOLT  : INIT", 0.0f);
-    RefereeUISKD::add_character(cap_name, {100, 540}, RefereeUISKD::GREEN, 1, 15, 2, cap_title);
+    RefereeUISKD::add_character(cap_name, {100, 540}, RefereeUISKD::GREEN, 3, 15, 2, cap_title);
     Shell::snprintf(dodge_title, sizeof(dodge_title),    "DODGE MODE : OFF  [X]");
-    RefereeUISKD::add_character(dodge_name, {100, 570}, RefereeUISKD::ACCENT_COLOR, 1, 15, 2, dodge_title);
+    RefereeUISKD::add_character(dodge_name, {100, 570}, RefereeUISKD::ACCENT_COLOR, 3, 15, 2, dodge_title);
     Shell::snprintf(top_title, sizeof(top_title),        "CASE STAT  : INIT [R]");
-    RefereeUISKD::add_character(top_name, {100, 600}, RefereeUISKD::ACCENT_COLOR, 1, 15, 2, top_title);
+    RefereeUISKD::add_character(top_name, {100, 600}, RefereeUISKD::ACCENT_COLOR, 3, 15, 2, top_title);
 }
 
 void RefereeUILG::init_chassis_UI() {
@@ -130,7 +130,7 @@ void RefereeUILG::init_chassis_UI() {
 }
 
 void RefereeUILG::init_vision_UI() {
-    RefereeUISKD::remove_layer(3);
+    RefereeUISKD::remove_layer(1);
     RefereeUILG::main_enemy = {960, 540};
-    RefereeUISKD::add_circle(main_enemy_name, 3, RefereeUISKD::ACCENT_COLOR, main_enemy, 10, 10);
+    RefereeUISKD::add_circle(main_enemy_name, 1, RefereeUISKD::ACCENT_COLOR, main_enemy, 10, 10);
 }

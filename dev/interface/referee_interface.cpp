@@ -255,7 +255,6 @@ void Referee::DataSendingThread::main() {
             send_data_(Referee::CLIENT);
             sleep(TIME_MS2I(100)); // wait for 100ms, as the maximum sending interval is 10 Hz
         }
-        send_character:
         if(!client_character_sent) {
             client_custom_data.header.data_cmd_id = 0x0110;
             client_custom_data.ext_client_custom_character = client_character_buffer;
@@ -355,6 +354,7 @@ void Referee::remove_all() {
     graphic_buffer_index = 0;
     client_character_sent = true;
     invoke_ui_delete_all = true;
+    while(invoke_ui_delete_all) chThdSleepMilliseconds(10);
 }
 
 void Referee::remove_layer(uint32_t layer) {
@@ -362,4 +362,5 @@ void Referee::remove_layer(uint32_t layer) {
     if(client_character_buffer.grapic_data_struct.layer == layer) client_character_sent = true;
     invoke_ui_delete_layer = true;
     layer_deleting = layer;
+    while(invoke_ui_delete_layer) chThdSleepMilliseconds(10);
 }

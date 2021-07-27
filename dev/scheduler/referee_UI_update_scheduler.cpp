@@ -6,7 +6,7 @@
 #include "shell.h"
 
 int RefereeUISKD::label_count = 0;
-int RefereeUISKD::shape_count;
+int RefereeUISKD::shape_count = 0;
 
 Referee::ext_client_custom_character_t RefereeUISKD::labels[REFEREE_UI_MAX_LABEL_COUNT];
 Referee::graphic_data_struct_t RefereeUISKD::shapes[REFEREE_UI_MAX_SHAPE_COUNT];
@@ -74,7 +74,8 @@ void RefereeUISKD::add_circle(char *name, uint32_t layer, color_t color, UI_poin
     circle.radius = radius;
     circle.width = line_width;
 
-    RefereeUISKD::shapes[shape_count] = circle;
+    shapes[shape_count] = circle;
+    shape_state[shape_count] = REVISING;
     shape_count += 1;
 }
 

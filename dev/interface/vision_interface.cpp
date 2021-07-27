@@ -31,9 +31,9 @@ float Vision::latest_target_yaw = 0;
 float Vision::latest_target_pitch = 0;
 time_msecs_t Vision::expected_shoot_time = 0;
 int Vision::expected_shoot_after_periods = 0;
-float Vision::image_to_user_scale = 1;
-int Vision::image_to_user_offset_x = 200;
-int Vision::image_to_user_offset_y = 200;
+float Vision::image_to_user_scale = 0.59;
+int Vision::image_to_user_offset_x = 770;
+int Vision::image_to_user_offset_y = 400;
 
 constexpr size_t Vision::DATA_SIZE[Vision::CMD_ID_COUNT];
 
@@ -158,8 +158,8 @@ void Vision::handle_vision_command(const vision_command_t &command) {
                 // Update user view
                 {
                     uint32_t x = image_to_user_offset_x + pak.command.imageX * image_to_user_scale;
-                    uint32_t y = 1080 - (image_to_user_offset_y + pak.command.imageX * image_to_user_scale);
-//                    RefereeUILG::set_main_enemy({x, y});
+                    uint32_t y = 1080 - (image_to_user_offset_y + pak.command.imageY * image_to_user_scale);
+                    RefereeUILG::set_main_enemy({x, y});
                 }
             }
         }
