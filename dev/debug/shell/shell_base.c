@@ -99,7 +99,7 @@ static void list_commands(BaseSequentialStream *chp, const ShellCommand *scp) {
     }
 }
 
-static bool cmdexec(const ShellCommand *scp, BaseSequentialStream *chp,
+static bool cmdexec(ShellConfig *scfg, const ShellCommand *scp, BaseSequentialStream *chp,
                     char *name, int argc, char *argv[]) {
 
     while (scp->sc_name != NULL) {
@@ -113,9 +113,17 @@ static bool cmdexec(const ShellCommand *scp, BaseSequentialStream *chp,
             }
             if (!ret) {
                 if (scp->sc_arguments) {
-                    chprintf(chp, "Usage: %s %s" SHELL_NEWLINE_STR, scp->sc_name, scp->sc_arguments);
+                    chMtxLock(scfg->sc_mutex);
+                    {
+                        chprintf(chp, "Usage: %s %s" SHELL_NEWLINE_STR, scp->sc_name, scp->sc_arguments);
+                    }
+                    chMtxUnlock(scfg->sc_mutex);
                 } else {
-                    chprintf(chp, "Usage: %s" SHELL_NEWLINE_STR, scp->sc_name);
+                    chMtxLock(scfg->sc_mutex);
+                    {
+                        chprintf(chp, "Usage: %s?" SHELL_NEWLINE_STR, scp->sc_name);
+                    }
+                    chMtxUnlock(scfg->sc_mutex);
                 }
             }
             return false;
@@ -407,8 +415,8 @@ THD_FUNCTION(shellThread, p) {
                 if (scp != NULL)
                     list_commands(chp, scp);
                 chprintf(chp, SHELL_NEWLINE_STR);
-            } else if (cmdexec(shell_local_commands, chp, cmd, n, args) &&
-                       ((scp == NULL) || cmdexec(scp, chp, cmd, n, args))) {
+            } else if (cmdexec(scfg, shell_local_commands, chp, cmd, n, args) &&
+                       ((scp == NULL) || cmdexec(scfg, scp, chp, cmd, n, args))) {
                 chprintf(chp, "%s", cmd);
                 chprintf(chp, " ?" SHELL_NEWLINE_STR);
             }
@@ -549,7 +557,9 @@ bool shellGetLine(ShellConfig *scfg, char *line, unsigned size, ShellHistory *sh
             continue;
         }
         if (c == '\r') {
+#if SHELL_NO_ECHO_MODE == FALSE
             chprintf(chp, SHELL_NEWLINE_STR);
+#endif
 #if SHELL_USE_HISTORY == TRUE
             save_history(shp, line, p - line);
 #endif

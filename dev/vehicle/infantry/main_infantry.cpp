@@ -102,7 +102,7 @@ int main() {
     can1.start(THREAD_CAN1_RX_PRIO, THREAD_CAN1_TX_PRIO);
     can2.start(THREAD_CAN2_RX_PRIO, THREAD_CAN2_TX_PRIO);
     chThdSleepMilliseconds(5);
-    InspectorI::startup_check_can();  // check no persistent CAN Error. Block for 100 ms
+//    InspectorI::startup_check_can();  // check no persistent CAN Error. Block for 100 ms
     LED::led_on(DEV_BOARD_LED_CAN);  // LED 2 on now
 
     /// Setup SuperCapacitor Port
@@ -139,7 +139,7 @@ int main() {
 
     /// Setup Remote
     Remote::start();
-    InspectorI::startup_check_remote();  // check Remote has signal. Block for 50 ms
+//    InspectorI::startup_check_remote();  // check Remote has signal. Block for 50 ms
     LED::led_on(DEV_BOARD_LED_REMOTE);  // LED 4 on now
 
 
@@ -147,7 +147,7 @@ int main() {
 #if INFANTRY_GIMBAL_ENABLE
     GimbalIF::init(&can1, &can2, GIMBAL_MOTOR_CONFIG_, GIMBAL_YAW_FRONT_ANGLE_RAW, GIMBAL_PITCH_FRONT_ANGLE_RAW, 0/* Not used */);
     chThdSleepMilliseconds(1000);  // wait for C610 to be online and friction wheel to reset
-    InspectorI::startup_check_gimbal_feedback(); // check gimbal motors has continuous feedback. Block for 20 ms
+//    InspectorI::startup_check_gimbal_feedback(); // check gimbal motors has continuous feedback. Block for 20 ms
 #endif
     LED::led_on(DEV_BOARD_LED_GIMBAL);  // LED 5 on now
 
@@ -156,7 +156,7 @@ int main() {
 #if INFANTRY_CHASSIS_ENABLE
     ChassisIF::init(&can1, &can2 ,CHASSIS_MOTOR_CONFIG_);
     chThdSleepMilliseconds(10);
-    InspectorI::startup_check_chassis_feedback();  // check chassis motors has continuous feedback. Block for 20 ms
+//    InspectorI::startup_check_chassis_feedback();  // check chassis motors has continuous feedback. Block for 20 ms
 #endif
     LED::led_on(DEV_BOARD_LED_CHASSIS);  // LED 6 on now
 

@@ -168,13 +168,13 @@ public:
      * Parse an ID and a bool value from arguments.
      * @param argc
      * @param argv
-     * @param maxID
-     * @param id
+     * @param idCount
+     * @param id    [Out] -1 for all
      * @param val
-     * @return Input valid or not
-     * @note   id and val may change even when parse fails
+     * @return      Input valid or not
+     * @note        id and val may change even when parse fails
      */
-    static bool parseIDAndBool(int argc, char *argv[], int maxID, int &id, bool &val);
+    static bool parseIDAndBool(int argc, char *argv[], int idCount, int &id, bool &val);
 
 private:
 

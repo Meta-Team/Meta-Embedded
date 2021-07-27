@@ -232,20 +232,18 @@ float GimbalSKD::get_relative_angle(GimbalBase::motor_id_t motor) {
 }
 
 const Shell::Command GimbalSKD::shellCommands[] = {
-        {"_g",               nullptr,                                              GimbalSKD::cmdInfo,            nullptr},
-        {"_g_enable_fb",     "Channel/All",                                        GimbalSKD::cmdEnableFeedback,  nullptr},
-        {"_g_disable_fb",    "Channel/All",                                        GimbalSKD::cmdDisableFeedback, nullptr},
-        {"_g_pid",           "Channel A2V(0)/V2I(1) [kp ki kd i_limit out_limit]", GimbalSKD::cmdPID,             nullptr},
-        {"_g_enable_motor",  "Channel/All",                                        GimbalSKD::cmdEnableMotor,     nullptr},
-        {"_g_disable_motor", "Channel/All",                                        GimbalSKD::cmdDisableMotor,    nullptr},
-        {nullptr,            nullptr,                                              nullptr,                       nullptr}
+        {"_g",               nullptr,                                                     GimbalSKD::cmdInfo,           nullptr},
+        {"_g_enable_fb",     "Channel/All Feedback{Disabled,Enabled}",                    GimbalSKD::cmdEnableFeedback, nullptr},
+        {"_g_pid",           "Channel PID{A2V,V2I} [kp] [ki] [kd] [i_limit] [out_limit]", GimbalSKD::cmdPID,            nullptr},
+        {"_g_enable_motor",  "Channel/All Motor{Disabled,Enabled}",                       GimbalSKD::cmdEnableMotor,    nullptr},
+        {nullptr,            nullptr,                                                     nullptr,                      nullptr}
 };
 
 DEF_SHELL_CMD_START(GimbalSKD::cmdInfo)
     Shell::printf("_g:Gimbal" ENDL);
-    Shell::printf("_g/Yaw:Angle{Target,Actual},Velocity{Target,Actual},Current{Target,Actual}" ENDL);
-    Shell::printf("_g/Pitch:Angle{Target,Actual},Velocity{Target,Actual},Current{Target,Actual}" ENDL);
-    Shell::printf("_g/Sub_Pitch:Angle{Target,Actual},Velocity{Target,Actual},Current{Target,Actual}" ENDL);
+    Shell::printf("_g/Yaw:Angle{Target,Actual} Velocity{Target,Actual} Current{Target,Actual}" ENDL);
+    Shell::printf("_g/Pitch:Angle{Target,Actual} Velocity{Target,Actual} Current{Target,Actual}" ENDL);
+    Shell::printf("_g/Sub_Pitch:Angle{Target,Actual} Velocity{Target,Actual} Current{Target,Actual}" ENDL);
     return true;
 DEF_SHELL_CMD_END
 
@@ -262,46 +260,28 @@ void GimbalSKD::cmdFeedback(void *) {
     }
 }
 
-bool GimbalSKD::setFeedbackEnabled(int argc, char *argv[], bool enabled) {
-    if (argc != 1) return false;
-    if (argv[0][0] == 'A') {
-        for (int id = YAW; id <= SUB_PITCH; id++) feedbackEnabled[id] = enabled;
-        return true;
+DEF_SHELL_CMD_START(GimbalSKD::cmdEnableFeedback)
+    int id;
+    bool enabled;
+    if (!Shell::parseIDAndBool(argc, argv, 3, id, enabled)) return false;
+    if (id == -1) {
+        for (int i = YAW; i <= SUB_PITCH; i++) feedbackEnabled[i] = enabled;
     } else {
-        unsigned id = Shell::atoi(argv[0]);
-        if (id > SUB_PITCH) return false;
         feedbackEnabled[id] = enabled;
     }
     return true;
-}
-
-DEF_SHELL_CMD_START(GimbalSKD::cmdEnableFeedback)
-    return setFeedbackEnabled(argc, argv, true);
 DEF_SHELL_CMD_END
-
-DEF_SHELL_CMD_START(GimbalSKD::cmdDisableFeedback)
-    return setFeedbackEnabled(argc, argv, false);
-DEF_SHELL_CMD_END
-
-bool GimbalSKD::setMotorEnabled(int argc, char **argv, bool enabled) {
-    if (argc != 1) return false;
-    if (argv[0][0] == 'A') {
-        for (int id = YAW; id <= SUB_PITCH; id++) motor_enable[id] = enabled;
-        return true;
-    } else {
-        unsigned id = Shell::atoi(argv[0]);
-        if (id > SUB_PITCH) return false;
-        motor_enable[id] = enabled;
-        return true;
-    }
-}
 
 DEF_SHELL_CMD_START(GimbalSKD::cmdEnableMotor)
-    return setMotorEnabled(argc, argv, true);
-DEF_SHELL_CMD_END
-
-DEF_SHELL_CMD_START(GimbalSKD::cmdDisableMotor)
-    return setMotorEnabled(argc, argv, false);
+    int id;
+    bool enabled;
+    if (!Shell::parseIDAndBool(argc, argv, 3, id, enabled)) return false;
+    if (id == -1) {
+        for (int i = YAW; i <= SUB_PITCH; i++) motor_enable[i] = enabled;
+    } else {
+        motor_enable[id] = enabled;
+    }
+    return true;
 DEF_SHELL_CMD_END
 
 DEF_SHELL_CMD_START(GimbalSKD::cmdPID)

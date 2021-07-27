@@ -46,7 +46,8 @@ bool Shell::start(tprio_t prio) {
     // Configure shell
     shellConfig = ShellConfig{
             (BaseSequentialStream *) &SD6,
-            (ShellCommand *) shellCommands
+            (ShellCommand *) shellCommands,
+            &printfMutex,
 #if (SHELL_USE_HISTORY == TRUE)
             , new char[64],
             64
@@ -77,7 +78,9 @@ void Shell::addCommands(const Shell::Command *commandList) {
     while (i < SHELL_MAX_COMMAND_COUNT && shellCommands[i].name != nullptr) i++;
     while (i < SHELL_MAX_COMMAND_COUNT && commandList->name != nullptr) {
         shellCommands[i].name = commandList->name;
+        shellCommands[i].arguments = commandList->arguments;
         shellCommands[i].callback = commandList->callback;
+        shellCommands[i].callbackArg = commandList->callbackArg;
         i++;
         commandList++;
     }
@@ -170,11 +173,15 @@ float Shell::atof(const char *s) {
     return rez * sign;
 }
 
-bool Shell::parseIDAndBool(int argc, char **argv, int maxID, int &id, bool &val) {
+bool Shell::parseIDAndBool(int argc, char **argv, int idCount, int &id, bool &val) {
     if (argc != 2) return false;
 
-    id = Shell::atoi(argv[0]);
-    if (id >= maxID) return false;
+    if (argv[0][0] == 'A' && argv[0][1] == '\0') {
+        id = -1;
+    } else {
+        id = Shell::atoi(argv[0]);
+        if (id >= idCount) return false;
+    }
 
     unsigned v = Shell::atoi(argv[1]);
     if (v > 1) return false;

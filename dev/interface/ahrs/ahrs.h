@@ -73,11 +73,10 @@ public:
 
     static void cmdFeedback(void *);
 
-    const Shell::Command shellCommands[4] = {
-            {"_a",            nullptr,       cmdInfo,            this},
-            {"_a_enable_fb",  "Channel/All", cmdEnableFeedback,  this},
-            {"_a_disable_fb", "Channel/All", cmdDisableFeedback, this},
-            {nullptr,         nullptr,       nullptr,            nullptr}
+    const Shell::Command shellCommands[3] = {
+            {"_a",           nullptr,                                  cmdInfo,           this},
+            {"_a_enable_fb", "Channel/All Feedback{Disabled,Enabled}", cmdEnableFeedback, this},
+            {nullptr,        nullptr,                                  nullptr,           nullptr}
     };
 
 private:
@@ -107,11 +106,8 @@ private:
 
     static DECL_SHELL_CMD(cmdEnableFeedback);
 
-    static DECL_SHELL_CMD(cmdDisableFeedback);
 
     bool feedbackEnabled[4] = {false, false, false, false};
-
-    bool setFeedbackEnabled(int argc, char *argv[], bool enabled);
 
 };
 

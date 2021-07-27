@@ -114,20 +114,20 @@ void ShootSKD::SKDThread::main() {
 
                 // Bullet calculation
                 actual_angle = GimbalIF::feedback[GimbalIF::BULLET]->accumulated_angle() * float(install_position[0]);
-                target_velocity[0] = a2v_pid.calc(actual_angle,target_angle);
+                target_velocity[0] = a2v_pid.calc(actual_angle, target_angle);
 
                 actual_velocity[0] = GimbalIF::feedback[GimbalIF::BULLET]->actual_velocity * float(install_position[0]);
-                target_current[0] = (int) v2i_pid[0].calc(actual_velocity[0],target_velocity[0]);
+                target_current[0] = (int) v2i_pid[0].calc(actual_velocity[0], target_velocity[0]);
 
                 // Fraction wheels calculation
                 actual_velocity[1] = GimbalIF::feedback[FW_LEFT]->actual_velocity;
-                ShootSKD::target_current[1] = (int) v2i_pid[1].calc(actual_velocity[1],target_velocity[1]);
+                ShootSKD::target_current[1] = (int) v2i_pid[1].calc(actual_velocity[1], target_velocity[1]);
 
                 actual_velocity[2] = GimbalIF::feedback[FW_RIGHT]->actual_velocity;
                 ShootSKD::target_current[2] = (int) v2i_pid[2].calc(actual_velocity[2], target_velocity[2]);
 
             } else if (mode == FORCED_RELAX_MODE) {
-                
+
                 target_current[0] = 0;
 
                 target_current[1] = ABS_IN_RANGE(GimbalIF::feedback[FW_LEFT]->actual_velocity, 100) ?
@@ -152,20 +152,18 @@ void ShootSKD::SKDThread::main() {
 }
 
 const Shell::Command ShootSKD::shellCommands[] = {
-        {"_s",               nullptr,                                              ShootSKD::cmdInfo,            nullptr},
-        {"_s_enable_fb",     "Channel/All",                                        ShootSKD::cmdEnableFeedback,  nullptr},
-        {"_s_disable_fb",    "Channel/All",                                        ShootSKD::cmdDisableFeedback, nullptr},
-        {"_s_pid",           "Channel A2V(0)/V2I(1) [kp ki kd i_limit out_limit]", ShootSKD::cmdPID,             nullptr},
-        {"_s_enable_motor",  "Channel/All",                                        ShootSKD::cmdEnableMotor,     nullptr},
-        {"_s_disable_motor", "Channel/All",                                        ShootSKD::cmdDisableMotor,    nullptr},
-        {nullptr,            nullptr,                                              nullptr,                       nullptr}
+        {"_s",              nullptr,                                             ShootSKD::cmdInfo,           nullptr},
+        {"_s_enable_fb",    "Channel/All Feedback{Disabled,Enabled}",            ShootSKD::cmdEnableFeedback, nullptr},
+        {"_s_pid",          "Channel PID{A2V,V2I} [kp] [ki] [kd] [i_limit] [out_limit]", ShootSKD::cmdPID,            nullptr},
+        {"_s_enable_motor", "Channel/All Motor{Disabled,Enabled}",               ShootSKD::cmdEnableMotor,    nullptr},
+        {nullptr,           nullptr,                                             nullptr,                     nullptr}
 };
 
 DEF_SHELL_CMD_START(ShootSKD::cmdInfo)
     Shell::printf("_s:Shoot" ENDL);
-    Shell::printf("_s/Bullet:Angle{Target,Actual},Velocity{Target,Actual},Current{Target,Actual}" ENDL);
-    Shell::printf("_s/FW_Left:Velocity{Target,Actual},Current{Target,Actual}" ENDL);
-    Shell::printf("_s/FW_Right:Velocity{Target,Actual},Current{Target,Actual}" ENDL);
+    Shell::printf("_s/Bullet:Angle{Target,Actual} Velocity{Target,Actual} Current{Target,Actual}" ENDL);
+    Shell::printf("_s/FW_Left:Velocity{Target,Actual} Current{Target,Actual}" ENDL);
+    Shell::printf("_s/FW_Right:Velocity{Target,Actual} Current{Target,Actual}" ENDL);
     return true;
 DEF_SHELL_CMD_END
 
@@ -187,46 +185,29 @@ void ShootSKD::cmdFeedback(void *) {
     }
 }
 
-bool ShootSKD::setFeedbackEnabled(int argc, char *argv[], bool enabled) {
-    if (argc != 1) return false;
-    if (argv[0][0] == 'A') {
+DEF_SHELL_CMD_START(ShootSKD::cmdEnableFeedback)
+    int id;
+    bool enabled;
+    if (!Shell::parseIDAndBool(argc, argv, 3, id, enabled)) return false;
+    if (id == -1) {
         for (bool &e : feedbackEnabled) e = enabled;
-        return true;
     } else {
-        unsigned id = Shell::atoi(argv[0]);
-        if (id >= 3) return false;
         feedbackEnabled[id] = enabled;
     }
     return true;
-}
-
-DEF_SHELL_CMD_START(ShootSKD::cmdEnableFeedback)
-    return setFeedbackEnabled(argc, argv, true);
 DEF_SHELL_CMD_END
 
-DEF_SHELL_CMD_START(ShootSKD::cmdDisableFeedback)
-    return setFeedbackEnabled(argc, argv, false);
-DEF_SHELL_CMD_END
-
-bool ShootSKD::setMotorEnabled(int argc, char **argv, bool enabled) {
-    if (argc != 1) return false;
-    if (argv[0][0] == 'A') {
-        for (bool &e : motor_enable) e = enabled;
-        return true;
-    } else {
-        unsigned id = Shell::atoi(argv[0]);
-        if (id >= 3) return false;
-        motor_enable[id] = enabled;
-        return true;
-    }
-}
 
 DEF_SHELL_CMD_START(ShootSKD::cmdEnableMotor)
-    return setMotorEnabled(argc, argv, true);
-DEF_SHELL_CMD_END
-
-DEF_SHELL_CMD_START(ShootSKD::cmdDisableMotor)
-    return setMotorEnabled(argc, argv, false);
+    int id;
+    bool enabled;
+    if (!Shell::parseIDAndBool(argc, argv, 3, id, enabled)) return false;
+    if (id == -1) {
+        for (bool &e : motor_enable) e = enabled;
+    } else {
+        motor_enable[id] = enabled;
+    }
+    return true;
 DEF_SHELL_CMD_END
 
 DEF_SHELL_CMD_START(ShootSKD::cmdPID)

@@ -47,7 +47,8 @@ bool ChassisSKD::motor_enabled = true;
 #endif
 
 void ChassisSKD::start(float wheel_base, float wheel_tread, float wheel_circumference, install_mode_t install_mode,
-                       GimbalSKD::install_direction_t gimbal_yaw_install_, float chassis_gimbal_offset, tprio_t thread_prio) {
+                       GimbalSKD::install_direction_t gimbal_yaw_install_, float chassis_gimbal_offset,
+                       tprio_t thread_prio) {
 
     wheel_base_ = wheel_base;
     wheel_tread_ = wheel_tread;
@@ -180,21 +181,19 @@ void ChassisSKD::SKDThread::main() {
 }
 
 const Shell::Command ChassisSKD::shellCommands[] = {
-        {"_c",               nullptr,                                              ChassisSKD::cmdInfo,            nullptr},
-        {"_c_enable_fb",     "Channel/All",                                        ChassisSKD::cmdEnableFeedback,  nullptr},
-        {"_c_disable_fb",    "Channel/All",                                        ChassisSKD::cmdDisableFeedback, nullptr},
-        {"_c_pid",           "Channel [kp ki kd i_limit out_limit]", ChassisSKD::cmdPID,             nullptr},
-        {"_c_enable_motor",  "All",                                                ChassisSKD::cmdEnableMotor,     nullptr},
-        {"_c_disable_motor", "All",                                                ChassisSKD::cmdDisableMotor,    nullptr},
-        {nullptr,            nullptr,                                              nullptr,                        nullptr}
+        {"_c",              nullptr,                                        ChassisSKD::cmdInfo,           nullptr},
+        {"_c_enable_fb",    "Channel/All Feedback{Disabled,Enabled}",       ChassisSKD::cmdEnableFeedback, nullptr},
+        {"_c_pid",          "Channel [kp] [ki] [kd] [i_limit] [out_limit]", ChassisSKD::cmdPID,            nullptr},
+        {"_c_enable_motor", "All Motor{Disabled,Enabled}",                  ChassisSKD::cmdEnableMotor,    nullptr},
+        {nullptr,           nullptr,                                        nullptr,                       nullptr}
 };
 
 DEF_SHELL_CMD_START(ChassisSKD::cmdInfo)
     Shell::printf("_c:Gimbal" ENDL);
-    Shell::printf("_c/Front_Right:Velocity{Target,Actual},Current{Target,Actual}" ENDL);
-    Shell::printf("_c/Front_Left:Velocity{Target,Actual},Current{Target,Actual}" ENDL);
-    Shell::printf("_c/Back_Left:Velocity{Target,Actual},Current{Target,Actual}" ENDL);
-    Shell::printf("_c/Back_Right:Velocity{Target,Actual},Current{Target,Actual}" ENDL);
+    Shell::printf("_c/Front_Right:Velocity{Target,Actual} Current{Target,Actual}" ENDL);
+    Shell::printf("_c/Front_Left:Velocity{Target,Actual} Current{Target,Actual}" ENDL);
+    Shell::printf("_c/Back_Left:Velocity{Target,Actual} Current{Target,Actual}" ENDL);
+    Shell::printf("_c/Back_Right:Velocity{Target,Actual} Current{Target,Actual}" ENDL);
     Shell::printf("_c/Theta:Angle{Target,Actual}" ENDL);
     return true;
 DEF_SHELL_CMD_END
@@ -214,43 +213,28 @@ void ChassisSKD::cmdFeedback(void *) {
     }
 }
 
-bool ChassisSKD::setFeedbackEnabled(int argc, char *argv[], bool enabled) {
-    if (argc != 1) return false;
-    if (argv[0][0] == 'A') {
+DEF_SHELL_CMD_START(ChassisSKD::cmdEnableFeedback)
+    int id;
+    bool enabled;
+    if (!Shell::parseIDAndBool(argc, argv, 5, id, enabled)) return false;
+    if (id == -1) {
         for (bool &e : feedbackEnabled) e = enabled;
-        return true;
     } else {
-        unsigned id = Shell::atoi(argv[0]);
-        if (id >= MOTOR_COUNT + 1) return false;
         feedbackEnabled[id] = enabled;
     }
     return true;
-}
-
-DEF_SHELL_CMD_START(ChassisSKD::cmdEnableFeedback)
-    return setFeedbackEnabled(argc, argv, true);
 DEF_SHELL_CMD_END
 
-DEF_SHELL_CMD_START(ChassisSKD::cmdDisableFeedback)
-    return setFeedbackEnabled(argc, argv, false);
-DEF_SHELL_CMD_END
-
-bool ChassisSKD::setMotorEnabled(int argc, char **argv, bool enabled) {
-    if (argc != 1) return false;
-    if (argv[0][0] == 'A') {
+DEF_SHELL_CMD_START(ChassisSKD::cmdEnableMotor)
+    int id;
+    bool enabled;
+    if (!Shell::parseIDAndBool(argc, argv, 0, id, enabled)) return false;
+    if (id == -1) {
         motor_enabled = enabled;
         return true;
     } else {
         return false;
     }
-}
-
-DEF_SHELL_CMD_START(ChassisSKD::cmdEnableMotor)
-    return setMotorEnabled(argc, argv, true);
-DEF_SHELL_CMD_END
-
-DEF_SHELL_CMD_START(ChassisSKD::cmdDisableMotor)
-    return setMotorEnabled(argc, argv, false);
 DEF_SHELL_CMD_END
 
 DEF_SHELL_CMD_START(ChassisSKD::cmdPID)

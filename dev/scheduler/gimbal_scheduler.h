@@ -186,13 +186,9 @@ private:
 
     static DECL_SHELL_CMD(cmdInfo);
     static DECL_SHELL_CMD(cmdEnableFeedback);
-    static DECL_SHELL_CMD(cmdDisableFeedback);
     static DECL_SHELL_CMD(cmdPID);
     static DECL_SHELL_CMD(cmdEnableMotor);
-    static DECL_SHELL_CMD(cmdDisableMotor);
 
-    static bool setFeedbackEnabled(int argc, char *argv[], bool enabled);
-    static bool setMotorEnabled(int argc, char *argv[], bool enabled);
 };
 
 

@@ -303,13 +303,13 @@ void CANInterface::RxThread::main() {
 
 bool CANInterface::TxThread::send_msg(const CANTxFrame *txmsg) {
     if (canTransmitTimeout(can_driver, CAN_ANY_MAILBOX, txmsg, TIME_MS2I(TRANSMIT_TIMEOUT_MS)) != MSG_OK) {
-        if (can_driver == &CAND1) {
+        /*if (can_driver == &CAND1) {
             LOG_ERR("CAN1 TX timed out");
         } else if (can_driver == &CAND2) {
             LOG_ERR("CAN2 TX timed out");
         } else {
             LOG_ERR("CAN? TX timed out");
-        }
+        }*/
         return false;
     }
     return true;

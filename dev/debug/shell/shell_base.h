@@ -64,8 +64,9 @@ typedef struct {
 typedef struct {
     BaseSequentialStream  *sc_channel;        /**< @brief I/O channel associated
                                                  to the shell.              */
-    ShellCommand    *sc_commands;       /**< @brief Shell extra commands
+    ShellCommand          *sc_commands;       /**< @brief Shell extra commands
                                                  table.                     */
+    mutex_t               *sc_mutex;
 #if (SHELL_USE_HISTORY == TRUE) || defined(__DOXYGEN__)
     char                  *sc_histbuf;        /**< @brief Shell command history
                                                  buffer.                    */
