@@ -158,8 +158,8 @@ void Vision::handle_vision_command(const vision_command_t &command) {
                 // Update user view
                 {
                     uint32_t x = image_to_user_offset_x + pak.command.imageX * image_to_user_scale;
-                    uint32_t y = image_to_user_offset_y + pak.command.imageX * image_to_user_scale;
-                    RefereeUILG::set_main_enemy({x, y});
+                    uint32_t y = 1080 - (image_to_user_offset_y + pak.command.imageX * image_to_user_scale);
+//                    RefereeUILG::set_main_enemy({x, y});
                 }
             }
         }
