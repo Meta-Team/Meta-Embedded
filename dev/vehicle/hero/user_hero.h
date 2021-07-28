@@ -2,8 +2,8 @@
 // Created by liuzikai on 2019-06-25.
 //
 
-#ifndef META_HERO_USER_H
-#define META_HERO_USER_H
+#ifndef META_INFANTRY_USER_HERO_H
+#define META_INFANTRY_USER_HERO_H
 
 #include "ch.hpp"
 
@@ -34,27 +34,26 @@ private:
     static float gimbal_pitch_max_angle; //  up range for pitch [degree]
 
     /// Chassis Config
+    static float base_power;             // [w]
+    static float base_v_forward;        // [mm/s]
     static float chassis_v_left_right;  // [mm/s]
+    static float Base_left_right_power; // [w]
+    static  float Base_left_right;      // [mm/s]
     static float chassis_v_forward;     // [mm/s]
     static float chassis_v_backward;    // [mm/s]
 
     static float chassis_pc_shift_ratio;  // 150% when Shift is pressed
     static float chassis_pc_ctrl_ratio;    // 50% when Ctrl is pressed
 
-    static Remote::key_t chassis_dodge_switch;
-
-    /// Shoot Config
     static float shoot_launch_left_count;
     static float shoot_launch_right_count;
 
-    static float shoot_launch_speed;
+    static float shoot_feed_rate;
+    static float shoot_fw_speed[3];
 
-    static float shoot_common_duty_cycle;
-
-    static Remote::key_t shoot_fw_switch;
+    static bool mag_status;
 
     /// Helpers
-    static void set_user_client_speed_light_(int level);
 
     /// Runtime variables
 
@@ -114,4 +113,4 @@ private:
 };
 
 
-#endif //META_INFANTRY_HERO_H
+#endif //META_INFANTRY_USER_HERO_H

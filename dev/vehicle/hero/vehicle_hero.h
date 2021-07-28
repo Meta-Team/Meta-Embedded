@@ -7,6 +7,10 @@
 #ifndef META_INFANTRY_VEHICLE_INFANTRY_H
 #define META_INFANTRY_VEHICLE_INFANTRY_H
 
+#define HERO_GIMBAL_ENABLE  true
+#define HERO_CHASSIS_ENABLE false
+#define HERO_VISION_ENABLE  false
+
 
 /// AHRS Configurations
 #define ON_BOARD_AHRS_MATRIX {{0.0f, -1.0f, 0.0f}, \
@@ -275,6 +279,8 @@
 #define CHASSIS_BIASED_ANGLE 20
 
 /// Vision
+#define VISION_BASIC_CONTROL_DELAY      100   /* ms */
+#define VISION_DEFAULT_BULLET_SPEED     15.0f /* mm/ms = m/s */
 #define VISION_VELOCITY_UPDATE_FRACTION 1.0f
 #define VISION_PREDICT_FORWARD_AMOUNT   300
 
@@ -293,10 +299,12 @@
 #define THREAD_USER_ACTION_PRIO                    (NORMALPRIO - 1)
 #define THREAD_SHOOT_LG_VISION_PRIO                (NORMALPRIO - 1)
 #define THREAD_GIMBAL_LG_VISION_PRIO               (NORMALPRIO - 1)
+#define THREAD_GIMBAL_LG_SENTRY_PRIO               (NORMALPRIO - 1)
 #define THREAD_CHASSIS_LG_DODGE_PRIO               (NORMALPRIO - 2)
 #define THREAD_CHASSIS_POWER_SET_PRIO              (NORMALPRIO - 3)
 #define THREAD_SHOOT_LG_STUCK_DETECT_PRIO          (NORMALPRIO - 4)
 #define THREAD_REFEREE_SENDING_PRIO                (NORMALPRIO - 6)
+#define THREAD_REFEREE_SKD_PRIO                    (NORMALPRIO - 7)
 #define THREAD_SUPERCAP_INIT_PRIO                   (NORMALPRIO - 8)
 #define THREAD_INSPECTOR_PRIO                      (NORMALPRIO - 10)
 #define THREAD_INSPECTOR_REFEREE_PRIO              (NORMALPRIO - 11)

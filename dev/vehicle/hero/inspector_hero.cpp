@@ -14,7 +14,6 @@ bool InspectorH::chassis_failure_ = false;
 bool InspectorH::remote_failure_ = false;
 
 InspectorH::InspectorThread InspectorH::inspectorThread;
-InspectorH::RefereeInspectorThread InspectorH::refereeInspectorThread;
 
 void InspectorH::init(CANInterface *can1_, CANInterface *can2_, AbstractAHRS *ahrs_) {
     can1 = can1_;
@@ -22,15 +21,17 @@ void InspectorH::init(CANInterface *can1_, CANInterface *can2_, AbstractAHRS *ah
     ahrs = ahrs_;
 }
 
-void InspectorH::start_inspection(tprio_t thread_prio, tprio_t referee_inspector_prio) {
+void InspectorH::start_inspection(tprio_t thread_prio) {
     inspectorThread.start(thread_prio);
-    refereeInspectorThread.start(referee_inspector_prio);
 }
 
 void InspectorH::startup_check_can() {
     time_msecs_t t = SYSTIME;
     while (WITHIN_RECENT_TIME(t, 100)) {
-        if (WITHIN_RECENT_TIME(can1->last_error_time, 5) || WITHIN_RECENT_TIME(can2->last_error_time, 5)) {  // can error occurs
+        if (WITHIN_RECENT_TIME(can1->last_error_time, 5)) {  // can error occurs
+            t = SYSTIME;  // reset the counter
+        }
+        if (WITHIN_RECENT_TIME(can2->last_error_time, 5)) {  // can error occurs
             t = SYSTIME;  // reset the counter
         }
         chThdSleepMilliseconds(5);
@@ -40,7 +41,8 @@ void InspectorH::startup_check_can() {
 void InspectorH::startup_check_mpu() {
     time_msecs_t t = SYSTIME;
     while (WITHIN_RECENT_TIME(t, 20)) {
-        if (not WITHIN_RECENT_TIME(ahrs->get_mpu_update_time(), 5)) {  // No signal in last 5 ms (normal interval 1 ms for on-board MPU)
+        if (not WITHIN_RECENT_TIME(ahrs->get_mpu_update_time(), 5)) {
+            // No signal in last 5 ms (normal interval 1 ms for on-board MPU)
             t = SYSTIME;  // reset the counter
         }
         chThdSleepMilliseconds(5);
@@ -50,7 +52,8 @@ void InspectorH::startup_check_mpu() {
 void InspectorH::startup_check_ist() {
     time_msecs_t t = SYSTIME;
     while (WITHIN_RECENT_TIME(t, 20)) {
-        if (not WITHIN_RECENT_TIME(ahrs->get_ist_update_time(), 5)) {  // No signal in last 5 ms (normal interval 1 ms for on-board MPU)
+        if (not WITHIN_RECENT_TIME(ahrs->get_ist_update_time(), 5)) {
+            // No signal in last 5 ms (normal interval 1 ms for on-board MPU)
             t = SYSTIME;  // reset the counter
         }
         chThdSleepMilliseconds(5);
@@ -97,6 +100,24 @@ void InspectorH::startup_check_chassis_feedback() {
 void InspectorH::startup_check_gimbal_feedback() {
     time_msecs_t t = SYSTIME;
     while (WITHIN_RECENT_TIME(t, 20)) {
+        if(Referee::bullet_remaining.bullet_remaining_num_17mm > 0) {
+            if (not WITHIN_RECENT_TIME(GimbalIF::feedback[GimbalIF::FW_LEFT]->last_update_time, 5)) {
+                // No feedback in last 5 ms (normal 1 ms)
+                LOG_ERR("Startup - Gimbal FW_LEFT offline.");
+                t = SYSTIME;  // reset the counter
+            }
+            if (not WITHIN_RECENT_TIME(GimbalIF::feedback[GimbalIF::FW_RIGHT]->last_update_time, 5)) {
+                // No feedback in last 5 ms (normal 1 ms)
+                LOG_ERR("Startup - Gimbal FW_RIGHT offline.");
+                t = SYSTIME;  // reset the counter
+            }
+            if (not WITHIN_RECENT_TIME(GimbalIF::feedback[GimbalIF::BULLET]->last_update_time, 5)) {
+                // No feedback in last 5 ms (normal 1 ms)
+                LOG_ERR("Startup - Gimbal Bullet offline.");
+                t = SYSTIME;  // reset the counter
+            }
+        }
+
         if (not WITHIN_RECENT_TIME(GimbalIF::feedback[GimbalIF::YAW]->last_update_time, 5)) {
             // No feedback in last 5 ms (normal 1 ms)
             LOG_ERR("Startup - Gimbal Yaw offline.");
@@ -105,11 +126,6 @@ void InspectorH::startup_check_gimbal_feedback() {
         if (not WITHIN_RECENT_TIME(GimbalIF::feedback[GimbalIF::PITCH]->last_update_time, 5)) {
             // No feedback in last 5 ms (normal 1 ms)
             LOG_ERR("Startup - Gimbal Pitch offline.");
-            t = SYSTIME;  // reset the counter
-        }
-        if (not WITHIN_RECENT_TIME(GimbalIF::feedback[GimbalIF::BULLET]->last_update_time, 5)) {
-            // No feedback in last 5 ms (normal 1 ms)
-            LOG_ERR("Startup - Gimbal Bullet offline.");
             t = SYSTIME;  // reset the counter
         }
         chThdSleepMilliseconds(5);
@@ -130,12 +146,25 @@ bool InspectorH::remote_failure() {
 
 bool InspectorH::check_gimbal_failure() {
     bool ret = false;
-    for (unsigned i = 0 ; i < 6; i++) {
-        if (not WITHIN_RECENT_TIME(GimbalIF::feedback[i]->last_update_time, 20)) {
-            if (!gimbal_failure_) {  // avoid repeating printing
-                LOG_ERR("Gimbal motor %u offline", i);
+    if(Referee::bullet_remaining.bullet_remaining_num_17mm > 0) {
+        for (unsigned i = 0; i < 6; i++) {
+            if (not WITHIN_RECENT_TIME(GimbalIF::feedback[i]->last_update_time, 250) &&
+                                                GimbalIF::feedback[i]->type != CANInterface::NONE_MOTOR) {
+                if (!gimbal_failure_) {  // avoid repeating printing
+                    LOG_ERR("Gimbal motor %u offline (at %u)", i, GimbalIF::feedback[i]->last_update_time);
+                }
+                ret = true;
             }
-            ret = true;
+        }
+    } else {
+        for (unsigned i = 0; i < 2; i++) {
+            if (not WITHIN_RECENT_TIME(GimbalIF::feedback[i]->last_update_time, 250) &&
+                GimbalIF::feedback[i]->type != CANInterface::NONE_MOTOR) {
+                if (!gimbal_failure_) {  // avoid repeating printing
+                    LOG_ERR("Gimbal motor %u offline (since time %u)", i, GimbalIF::feedback[i]->last_update_time);
+                }
+                ret = true;
+            }
         }
     }
     return ret;
@@ -144,9 +173,11 @@ bool InspectorH::check_gimbal_failure() {
 bool InspectorH::check_chassis_failure() {
     bool ret = false;
     for (unsigned i = 0; i < ChassisIF::MOTOR_COUNT; i++) {
-        if (not WITHIN_RECENT_TIME(ChassisIF::feedback[i]->last_update_time, 20)) {
+        // Check feedback, if the feedback's type is NONE_MOTOR, it's not valid
+        if (not WITHIN_RECENT_TIME(ChassisIF::feedback[i]->last_update_time, 250) &&
+                                            ChassisIF::feedback[i]->type != CANInterface::NONE_MOTOR) {
             if (!chassis_failure_) {  // avoid repeating printing
-                LOG_ERR("Chassis motor %u offline", i);
+                LOG_ERR("Chassis motor %u offline (since time %u)", i, ChassisIF::feedback[i]->last_update_time);
             }
             ret = true;
         }
@@ -181,14 +212,17 @@ void InspectorH::InspectorThread::main() {
         remote_failure_ = (not WITHIN_RECENT_TIME(Remote::last_update_time, 30));
         if (remote_failure_) LED::led_off(DEV_BOARD_LED_REMOTE);
         else LED::led_on(DEV_BOARD_LED_REMOTE);
-
+#if HERO_GIMBAL_ENABLE
         gimbal_failure_ = check_gimbal_failure();
         if (gimbal_failure_) LED::led_off(DEV_BOARD_LED_GIMBAL);
         else LED::led_on(DEV_BOARD_LED_GIMBAL);
+#endif
 
+#if HERO_CHASSIS_ENABLE
         chassis_failure_ = check_chassis_failure();
         if (chassis_failure_) LED::led_off(DEV_BOARD_LED_CHASSIS);
         else LED::led_on(DEV_BOARD_LED_CHASSIS);
+#endif
 
         if (remote_failure_ || gimbal_failure_ || chassis_failure_) {
             if (!BuzzerSKD::alerting()) BuzzerSKD::alert_on();
@@ -197,22 +231,5 @@ void InspectorH::InspectorThread::main() {
         }
 
         sleep(TIME_MS2I(INSPECTOR_THREAD_INTERVAL));
-    }
-}
-
-void InspectorH::RefereeInspectorThread::main() {
-    setName("InspectorH_Referee");
-
-    chEvtRegisterMask(&Referee::data_received_event, &data_received_listener, DATA_RECEIVED_EVENTMASK);
-
-    while (!shouldTerminate()) {
-
-        chEvtWaitAny(DATA_RECEIVED_EVENTMASK);
-
-        eventflags_t flags = chEvtGetAndClearFlags(&data_received_listener);
-        (void) flags;
-
-        // Toggle Referee LED if any data is received
-        LED::led_toggle(DEV_BOARD_LED_REFEREE);
     }
 }
