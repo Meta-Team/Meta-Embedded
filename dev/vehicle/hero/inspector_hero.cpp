@@ -71,6 +71,7 @@ void InspectorH::startup_check_remote() {
 }
 
 void InspectorH::startup_check_chassis_feedback() {
+#if HERO_CHASSIS_ENABLE
     time_msecs_t t = SYSTIME;
     while (WITHIN_RECENT_TIME(t, 20)) {
         if (not WITHIN_RECENT_TIME(ChassisIF::feedback[ChassisIF::FR]->last_update_time, 5)) {
@@ -95,9 +96,11 @@ void InspectorH::startup_check_chassis_feedback() {
         }
         chThdSleepMilliseconds(5);
     }
+#endif
 }
 
 void InspectorH::startup_check_gimbal_feedback() {
+#if HERO_GIMBAL_ENABLE
     time_msecs_t t = SYSTIME;
     while (WITHIN_RECENT_TIME(t, 20)) {
         if(Referee::bullet_remaining.bullet_remaining_num_17mm > 0) {
@@ -130,6 +133,7 @@ void InspectorH::startup_check_gimbal_feedback() {
         }
         chThdSleepMilliseconds(5);
     }
+#endif
 }
 
 bool InspectorH::gimbal_failure() {
@@ -145,6 +149,7 @@ bool InspectorH::remote_failure() {
 }
 
 bool InspectorH::check_gimbal_failure() {
+#if HERO_GIMBAL_ENABLE
     bool ret = false;
     if(Referee::bullet_remaining.bullet_remaining_num_17mm > 0) {
         for (unsigned i = 0; i < 6; i++) {
@@ -157,7 +162,7 @@ bool InspectorH::check_gimbal_failure() {
             }
         }
     } else {
-        for (unsigned i = 0; i < 2; i++) {
+        for (unsigned i = 0; i < 3; i++) {
             if (not WITHIN_RECENT_TIME(GimbalIF::feedback[i]->last_update_time, 250) &&
                 GimbalIF::feedback[i]->type != CANInterface::NONE_MOTOR) {
                 if (!gimbal_failure_) {  // avoid repeating printing
@@ -168,9 +173,13 @@ bool InspectorH::check_gimbal_failure() {
         }
     }
     return ret;
+#else
+    return false;
+#endif
 }
 
 bool InspectorH::check_chassis_failure() {
+#if HERO_CHASSIS_ENABLE
     bool ret = false;
     for (unsigned i = 0; i < ChassisIF::MOTOR_COUNT; i++) {
         // Check feedback, if the feedback's type is NONE_MOTOR, it's not valid
@@ -183,6 +192,9 @@ bool InspectorH::check_chassis_failure() {
         }
     }
     return ret;
+#else
+    return false;
+#endif
 }
 
 bool InspectorH::check_remote_data_error() {

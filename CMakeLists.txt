@@ -423,10 +423,14 @@ add_executable(ut_sensors_sound
 add_executable(pa_hero_gimbal
         ${VEHICLE_COMMON_SRC}
         ${AHRS_SRC}
+        ${REFEREE_SRC}
 
         # Hero gimbal
         dev/interface/gimbal_interface.cpp
         dev/scheduler/gimbal_scheduler.cpp
+
+        # Hero has super capacitor
+        dev/interface/super_capacitor_port.cpp
 
         # Main
         dev/vehicle/hero/inspector_hero.cpp
@@ -436,7 +440,15 @@ add_executable(pa_hero_gimbal
         dev/debug/param_adjusts/pa_user_gimbal.cpp
         )
 target_include_directories(pa_hero_gimbal PRIVATE dev/vehicle/hero)
-target_compile_definitions(pa_hero_gimbal PRIVATE PARAM_ADJUST HERO)
+target_compile_definitions(pa_hero_gimbal PRIVATE
+        PARAM_ADJUST
+        PARAM_ADJUST_INCLUDE="debug/param_adjusts/pa_user_gimbal.h"
+        PARAM_ADJUST_CLASS=PAUserGimbal
+        HERO
+        HERO_GIMBAL_ENABLE=1
+        HERO_SHOOT_ENABLE=0
+        HERO_CHASSIS_ENABLE=0
+        HERO_VISION_ENABLE=0)
 target_link_libraries(pa_hero_gimbal ${AHRS_LIB})
 
 # Hero Shoot

@@ -77,7 +77,6 @@ void RefereeUILG::set_remaining_bullet_count(int remaining_bullet_count_) {
 }
 
 void RefereeUILG::update_bullet_case_line() {
-    RefereeUISKD::color_t title_color;
     if (bullet_case_opened) {
         Shell::snprintf(bullet_case_title, sizeof(bullet_case_title), "CASE [R]: OPEN  %3d", remaining_bullet_count);
         bullet_case_color = RefereeUISKD::ACCENT_COLOR;

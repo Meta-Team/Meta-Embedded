@@ -7,10 +7,6 @@
 #ifndef META_INFANTRY_VEHICLE_INFANTRY_H
 #define META_INFANTRY_VEHICLE_INFANTRY_H
 
-#define HERO_GIMBAL_ENABLE  true
-#define HERO_CHASSIS_ENABLE false
-#define HERO_VISION_ENABLE  false
-
 
 /// AHRS Configurations
 #define ON_BOARD_AHRS_MATRIX {{0.0f, -1.0f, 0.0f}, \

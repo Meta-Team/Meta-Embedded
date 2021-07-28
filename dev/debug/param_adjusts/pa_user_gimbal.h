@@ -8,14 +8,18 @@
 #include "gimbal_scheduler.h"
 #include "remote_interpreter.h"
 
-class PAUserGimbal : protected chibios_rt::BaseStaticThread<512> {
+class PAUserGimbal {
 public:
 
-    chibios_rt::ThreadReference start(tprio_t prio);
+    static void start(tprio_t prio);
 
 private:
 
-    void main() override;
+    class UserThread : public chibios_rt::BaseStaticThread<512>{
+        void main() override;
+    };
+
+    static UserThread user_thread;
 
 };
 

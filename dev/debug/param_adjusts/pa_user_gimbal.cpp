@@ -4,23 +4,24 @@
 
 #include "pa_user_gimbal.h"
 
+PAUserGimbal::UserThread PAUserGimbal::user_thread;
+
 static constexpr float MAX_VELOCITY[3] = {30, 10, 10};
 static constexpr float MAX_ANGLE[3] = {90, 30, 0};
 static constexpr float MIN_ANGLE[3] = {-90, -10, -30};
 
-
-chibios_rt::ThreadReference PAUserGimbal::start(tprio_t prio) {
-    return BaseStaticThread::start(prio);
+void PAUserGimbal::start(tprio_t prio) {
+    user_thread.start(prio);
 }
 
-void PAUserGimbal::main() {
+void PAUserGimbal::UserThread::main() {
     setName("PAUserGimbal");
     while (!shouldTerminate()) {
 
         if (Remote::rc.s1 == Remote::S_UP) {
             // Safety mode
             GimbalSKD::set_mode(GimbalSKD::FORCED_RELAX_MODE);
-            for (int i = 0; i < 3; i++) GimbalSKD::motor_enable[i] = false;
+            for (bool &e : GimbalSKD::motor_enable) e = false;
         } else {
             GimbalSKD::set_mode(GimbalSKD::ENABLED_MODE);
 

@@ -32,7 +32,12 @@
 #include "chassis_logic.h"
 
 #include "inspector_hero.h"
+
+#ifndef PARAM_ADJUST
 #include "user_hero.h"
+#else
+#include PARAM_ADJUST_INCLUDE
+#endif
 
 /// Vehicle Specific Configurations
 
@@ -172,7 +177,9 @@ int main() {
                                {0, 0, 0, 0, 0}/* Not used */, {0, 0, 0, 0, 0}/* Not used */);
     Shell::addCommands(GimbalSKD::shellCommands);
     Shell::addFeedbackCallback(GimbalSKD::cmdFeedback);
+#endif
 
+#if HERO_SHOOT_ENABLE
     ShootSKD::start(SHOOT_BULLET_INSTALL_DIRECTION, THREAD_SHOOT_SKD_PRIO);
     ShootSKD::load_pid_params(SHOOT_PID_BULLET_LOADER_A2V_PARAMS, SHOOT_PID_BULLET_LOADER_V2I_PARAMS,
                               SHOOT_PID_FW_LEFT_V2I_PARAMS, SHOOT_PID_FW_RIGHT_V2I_PARAMS);
@@ -189,8 +196,11 @@ int main() {
 #endif
 
     /// Start LGs
-#if HERO_GIMBAL_ENABLE
+#if HERO_GIMBAL_ENABLE && !defined(PARAM_ADJUST)
     GimbalLG::init(THREAD_GIMBAL_LG_VISION_PRIO, THREAD_GIMBAL_LG_SENTRY_PRIO);
+#endif
+
+#if HERO_SHOOT_ENABLE
     ShootLG::init(SHOOT_DEGREE_PER_BULLET, true, 10, THREAD_SHOOT_LG_STUCK_DETECT_PRIO, THREAD_SHOOT_BULLET_COUNTER_PRIO, THREAD_SHOOT_LG_VISION_PRIO);
 #endif
 
@@ -207,9 +217,13 @@ int main() {
     Shell::addCommands(Vision::shell_commands);
 #endif
 
+#ifndef PARAM_ADJUST
     /// Start Inspector and User Threads
     InspectorH::start_inspection(THREAD_INSPECTOR_PRIO);
     UserH::start(THREAD_USER_PRIO, THREAD_USER_ACTION_PRIO, THREAD_USER_CLIENT_DATA_SEND_PRIO);
+#else
+    PARAM_ADJUST_CLASS::start(THREAD_USER_PRIO);
+#endif
 
 
     /// Complete Period 2

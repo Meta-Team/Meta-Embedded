@@ -31,6 +31,7 @@ public:
     static void startup_check_mpu();
     static void startup_check_ist();
     static void startup_check_remote();
+
     static void startup_check_gimbal_feedback();
     static void startup_check_chassis_feedback();
 

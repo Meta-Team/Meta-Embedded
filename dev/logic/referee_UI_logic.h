@@ -32,6 +32,7 @@ private:
 
     static const char dodge_name[3];
     static char dodge_title[31];
+    static RefereeUISKD::color_t dodge_color;
     static unsigned long dodge_update_time;
 
     static const char chassis_indicator_1_name[3];
