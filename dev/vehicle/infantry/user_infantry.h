@@ -37,6 +37,8 @@ private:
     static float base_power;             // [w]
     static float base_v_forward;        // [mm/s]
     static float chassis_v_left_right;  // [mm/s]
+    static float Base_left_right_power; // [w]
+    static  float Base_left_right;      // [mm/s]
     static float chassis_v_forward;     // [mm/s]
     static float chassis_v_backward;    // [mm/s]
 
@@ -48,6 +50,8 @@ private:
 
     static float shoot_feed_rate;
     static float shoot_fw_speed;
+
+    static bool mag_status;
 
     /// Helpers
 

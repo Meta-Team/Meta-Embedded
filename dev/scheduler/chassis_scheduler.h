@@ -166,6 +166,6 @@ private:
 
 };
 
-#endif //PROJECT_CHASSIS_CONTROLLER_H
+#endif //META_INFANTRY_CHASSIS_CONTROLLER_H
 
 /** @} */

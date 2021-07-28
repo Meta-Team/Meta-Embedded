@@ -22,6 +22,7 @@
 #include "hal.h"
 #include "can_interface.h"
 #include "motor_interface.h"
+#include "sd_card_interface.h"
 
 /// Board Guard
 #if defined(BOARD_RM_2018_A)
@@ -120,11 +121,15 @@ public:
      */
     static void clip_gimbal_current();
 
+    static void store_yaw_front(uint16_t new_front_angle);
+
 
 private:
 
     static CANInterface *can1_;
     static CANInterface *can2_;
+
+    static constexpr uint16_t GIMBAL_YAW_FRONT_ANGLE_DATA_ID = 0x0002;
 
 #if GIMBAL_INTERFACE_ENABLE_VELOCITY_DIFFERENTIAL
     static constexpr int VELOCITY_SAMPLE_INTERVAL = 50;  // count of feedback for one sample of angular velocity

@@ -52,7 +52,8 @@ public:
     enum action_t {
         FORCED_RELAX_MODE,
         FOLLOW_MODE,
-        DODGE_MODE
+        DODGE_MODE,
+        SIMPLE_ROTATE
     };
 
     /**
@@ -73,6 +74,8 @@ public:
      * @param vy     Target velocity along the y axis (up) with respect to gimbal coordinate [mm/s]
      */
     static void set_target(float vx, float vy);
+
+    static void set_rotate_speed(float speed);
 
 private:
     static PIDController dodge_omega_power_pid;

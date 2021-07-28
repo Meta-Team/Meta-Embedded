@@ -106,9 +106,7 @@ int main() {
     LED::led_on(DEV_BOARD_LED_CAN);  // LED 2 on now
 
     /// Setup SuperCapacitor Port
-#if INFANTRY_SUPER_CAPACITOR_ENABLE
     SuperCapacitor::init(&can2, THREAD_SUPERCAP_INIT_PRIO);
-#endif
 
     /// Setup Referee
     Referee::init(THREAD_REFEREE_SENDING_PRIO);
@@ -144,20 +142,16 @@ int main() {
 
 
     /// Setup GimbalIF (for Gimbal and Shoot)
-#if INFANTRY_GIMBAL_ENABLE
     GimbalIF::init(&can1, &can2, GIMBAL_MOTOR_CONFIG_, GIMBAL_YAW_FRONT_ANGLE_RAW, GIMBAL_PITCH_FRONT_ANGLE_RAW, 0/* Not used */);
     chThdSleepMilliseconds(2000);  // wait for C610 to be online and friction wheel to reset
     InspectorI::startup_check_gimbal_feedback(); // check gimbal motors has continuous feedback. Block for 20 ms
-#endif
     LED::led_on(DEV_BOARD_LED_GIMBAL);  // LED 5 on now
 
 
     /// Setup ChassisIF
-#if INFANTRY_CHASSIS_ENABLE
     ChassisIF::init(&can1, &can2 ,CHASSIS_MOTOR_CONFIG_);
     chThdSleepMilliseconds(10);
     InspectorI::startup_check_chassis_feedback();  // check chassis motors has continuous feedback. Block for 20 ms
-#endif
     LED::led_on(DEV_BOARD_LED_CHASSIS);  // LED 6 on now
 
 
@@ -166,7 +160,6 @@ int main() {
 
     /*** ------------ Period 2. Calibration and Start Logic Control Thread ----------- ***/
 
-#if INFANTRY_GIMBAL_ENABLE
     /// Echo Gimbal Raws and Converted Angles
     LOG("Gimbal Yaw: %u, %f, Pitch: %u, %f",
         GimbalIF::feedback[GimbalIF::YAW]->last_angle_raw, GimbalIF::feedback[GimbalIF::YAW]->actual_angle,
@@ -186,34 +179,24 @@ int main() {
                               SHOOT_PID_FW_LEFT_V2I_PARAMS, SHOOT_PID_FW_RIGHT_V2I_PARAMS);
     Shell::addCommands(ShootSKD::shellCommands);
     Shell::addFeedbackCallback(ShootSKD::cmdFeedback);
-#endif
 
-#if INFANTRY_CHASSIS_ENABLE
     ChassisSKD::start(CHASSIS_WHEEL_BASE, CHASSIS_WHEEL_TREAD, CHASSIS_WHEEL_CIRCUMFERENCE, ChassisSKD::POSITIVE,
                       GIMBAL_YAW_INSTALL_DIRECTION, 0, THREAD_CHASSIS_SKD_PRIO);
     ChassisSKD::load_pid_params(CHASSIS_FOLLOW_PID_THETA2V_PARAMS, CHASSIS_PID_V2I_PARAMS);
     Shell::addCommands(ChassisSKD::shellCommands);
     Shell::addFeedbackCallback(ChassisSKD::cmdFeedback);
-#endif
 
     /// Start LGs
-#if INFANTRY_GIMBAL_ENABLE
     GimbalLG::init(THREAD_GIMBAL_LG_VISION_PRIO);
     ShootLG::init(SHOOT_DEGREE_PER_BULLET, THREAD_SHOOT_LG_STUCK_DETECT_PRIO, THREAD_SHOOT_BULLET_COUNTER_PRIO, THREAD_SHOOT_LG_VISION_PRIO);
-#endif
-
-#if INFANTRY_CHASSIS_ENABLE
     ChassisLG::init(THREAD_CHASSIS_LG_DODGE_PRIO, THREAD_CHASSIS_POWER_SET_PRIO, CHASSIS_DODGE_MODE_THETA, CHASSIS_BIASED_ANGLE, CHASSIS_LOGIC_DODGE_OMEGA2VOLT_PARAMS);
-#endif
 
     /// Setup VisionPort
     // Should be put after initialization of GimbalSKD
-#if INFANTRY_VISION_ENABLE
     Vision::init(VISION_BASIC_CONTROL_DELAY);
     Vision::set_bullet_speed(VISION_DEFAULT_BULLET_SPEED);
     Shell::addFeedbackCallback(Vision::cmd_feedback);
     Shell::addCommands(Vision::shell_commands);
-#endif
 
     /// Start Inspector and User Threads
     InspectorI::start_inspection(THREAD_INSPECTOR_PRIO);

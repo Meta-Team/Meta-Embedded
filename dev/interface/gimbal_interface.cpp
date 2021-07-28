@@ -52,7 +52,7 @@ void GimbalIF::init(CANInterface *can1_interface, CANInterface *can2_interface,
         if (motor_can_config[i].motor_can_channel == can_channel_1) {
 
             // Link the feedback and target_current to can1's feedback
-            feedback[i] = can1_->register_feedback_address(motor_can_config[i].motor_can_id, motor_can_config[i].motor_type);
+            feedback[i] = can1_->register_feedback_address(motor_can_config[i].motor_can_id, motor_can_config[i].motor_type, motor_can_config[i].deceleration_ratio);
             if (feedback[i] == nullptr) while(true) LOG_ERR("GimbalIF: failed to register motor %d feedback", i);
             target_current[i] = can1_->register_target_current_address(motor_can_config[i].motor_can_id, motor_can_config[i].motor_type);
             if (target_current[i] == nullptr) while(true) LOG_ERR("GimbalIF: failed to register motor %d target_current", i);
@@ -61,7 +61,7 @@ void GimbalIF::init(CANInterface *can1_interface, CANInterface *can2_interface,
         } else if (motor_can_config[i].motor_can_channel == can_channel_2) {
 
             // Link the feedback and target_current to can2's feedback
-            feedback[i] = can2_->register_feedback_address(motor_can_config[i].motor_can_id, motor_can_config[i].motor_type);
+            feedback[i] = can2_->register_feedback_address(motor_can_config[i].motor_can_id, motor_can_config[i].motor_type, motor_can_config[i].deceleration_ratio);
             if (feedback[i] == nullptr) while(true) LOG_ERR("GimbalIF: failed to register motor %d feedback", i);
             target_current[i] = can2_->register_target_current_address(motor_can_config[i].motor_can_id, motor_can_config[i].motor_type);
             if (target_current[i] == nullptr) while(true) LOG_ERR("GimbalIF: failed to register motor %d target_current", i);
@@ -71,9 +71,7 @@ void GimbalIF::init(CANInterface *can1_interface, CANInterface *can2_interface,
 
         // Set front angle of yaw and pitch
         if (YAW == (motor_id_t) i) {
-#if !defined(HERO)
             feedback[i]->last_angle_raw = yaw_front_angle_raw;
-#endif
         } else if (PITCH == (motor_id_t) i) {
             feedback[i]->last_angle_raw = pitch_front_angle_raw;
         } else if (SUB_PITCH == (motor_id_t) i) {
