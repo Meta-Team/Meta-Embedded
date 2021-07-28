@@ -44,12 +44,11 @@ void RefereeUILG::init() {
 }
 
 
-
 void RefereeUILG::revise_cap(float cap_volt) {
-    if(WITHIN_RECENT_TIME(cap_update_time, 400)) return;
+    if (WITHIN_RECENT_TIME(cap_update_time, 400)) return;
     Shell::snprintf(cap_title, sizeof(cap_title), "CAP  VOLT  : %.1f", cap_volt);
     RefereeUISKD::color_t title_color;
-    if(cap_volt >15.0f) {
+    if (cap_volt > 15.0f) {
         title_color = RefereeUISKD::GREEN;
     } else {
         title_color = RefereeUISKD::YELLOW;
@@ -59,9 +58,9 @@ void RefereeUILG::revise_cap(float cap_volt) {
 }
 
 void RefereeUILG::toggle_top(bool top_stat) {
-    if(WITHIN_RECENT_TIME(top_update_time, 400)) return;
+    if (WITHIN_RECENT_TIME(top_update_time, 400)) return;
     RefereeUISKD::color_t title_color;
-    if(top_stat) {
+    if (top_stat) {
         Shell::snprintf(top_title, sizeof(top_title), "CASE STAT  : OPEN [R]");
         title_color = RefereeUISKD::GREEN;
     } else {
@@ -73,13 +72,13 @@ void RefereeUILG::toggle_top(bool top_stat) {
 }
 
 void RefereeUILG::toggle_dodge(bool dodge_stat) {
-    if(WITHIN_RECENT_TIME(dodge_update_time, 400)) return;
+    if (WITHIN_RECENT_TIME(dodge_update_time, 400)) return;
     RefereeUISKD::color_t title_color;
-    if(dodge_stat) {
-        Shell::snprintf(dodge_title, sizeof(dodge_title),    "DODGE MODE : ON   [X]");
+    if (dodge_stat) {
+        Shell::snprintf(dodge_title, sizeof(dodge_title), "DODGE MODE : ON   [X]");
         title_color = RefereeUISKD::GREEN;
     } else {
-        Shell::snprintf(dodge_title, sizeof(dodge_title),    "DODGE MODE : OFF  [X]");
+        Shell::snprintf(dodge_title, sizeof(dodge_title), "DODGE MODE : OFF  [X]");
         title_color = RefereeUISKD::ACCENT_COLOR;
     }
     RefereeUISKD::revise_character(dodge_name, dodge_title, title_color);
@@ -87,13 +86,13 @@ void RefereeUILG::toggle_dodge(bool dodge_stat) {
 }
 
 void RefereeUILG::set_chassis_angle(float angle) {
-    if(WITHIN_RECENT_TIME(angle_update_time,25)) return;
-    double x_offset = 25.0f*sin(angle);
-    double y_offset = 25.0f*cos(angle);
-    chassis_1_start_point.x   = (uint32_t) (960.0f - x_offset);
-    chassis_1_end_point.x     = (uint32_t) (960.0f + x_offset);
-    chassis_1_start_point.y   = (uint32_t) (200.0f - y_offset);
-    chassis_1_end_point.y     = (uint32_t) (200.0f + y_offset);
+    if (WITHIN_RECENT_TIME(angle_update_time, 25)) return;
+    double x_offset = 25.0f * sin(angle);
+    double y_offset = 25.0f * cos(angle);
+    chassis_1_start_point.x = (uint32_t) (960.0f - x_offset);
+    chassis_1_end_point.x = (uint32_t) (960.0f + x_offset);
+    chassis_1_start_point.y = (uint32_t) (200.0f - y_offset);
+    chassis_1_end_point.y = (uint32_t) (200.0f + y_offset);
 //    chassis_2_end_point.x     = (uint32_t) (960.0f + 30.0f*sin(angle));
 //    chassis_2_end_point.y     = (uint32_t) (200.0f + 30.0f*cos(angle));
     RefereeUISKD::revise_line(chassis_indicator_1_name, chassis_1_start_point, chassis_1_end_point);
@@ -101,7 +100,7 @@ void RefereeUILG::set_chassis_angle(float angle) {
     angle_update_time = SYSTIME;
 }
 
-void RefereeUILG::set_main_enemy(RefereeUISKD::UI_point enemy_loc){
+void RefereeUILG::set_main_enemy(RefereeUISKD::UI_point enemy_loc) {
     main_enemy.x = enemy_loc.x;
     main_enemy.y = enemy_loc.y;
     RefereeUISKD::revise_shape_loc(main_enemy_name, main_enemy, RefereeUISKD::ACCENT_COLOR);
@@ -109,11 +108,11 @@ void RefereeUILG::set_main_enemy(RefereeUISKD::UI_point enemy_loc){
 
 void RefereeUILG::init_data_UI() {
     RefereeUISKD::remove_layer(3);
-    Shell::snprintf(cap_title, sizeof(cap_title),        "CAP  VOLT  : INIT", 0.0f);
+    Shell::snprintf(cap_title, sizeof(cap_title), "CAP  VOLT  : INIT", 0.0f);
     RefereeUISKD::add_character(cap_name, {100, 540}, RefereeUISKD::GREEN, 3, 15, 2, cap_title);
-    Shell::snprintf(dodge_title, sizeof(dodge_title),    "DODGE MODE : OFF  [X]");
+    Shell::snprintf(dodge_title, sizeof(dodge_title), "DODGE MODE : OFF  [X]");
     RefereeUISKD::add_character(dodge_name, {100, 570}, RefereeUISKD::ACCENT_COLOR, 3, 15, 2, dodge_title);
-    Shell::snprintf(top_title, sizeof(top_title),        "CASE STAT  : INIT [R]");
+    Shell::snprintf(top_title, sizeof(top_title), "CASE STAT  : INIT [R]");
     RefereeUISKD::add_character(top_name, {100, 600}, RefereeUISKD::ACCENT_COLOR, 3, 15, 2, top_title);
 }
 
@@ -124,7 +123,8 @@ void RefereeUILG::init_chassis_UI() {
     RefereeUISKD::add_line(gun_indicator_name, 2, RefereeUISKD::GREEN, gun_start_point, gun_end_point, 2);
     RefereeUILG::chassis_1_end_point = {960, 200 + 25};
     RefereeUILG::chassis_1_start_point = {960, 200 - 25};
-    RefereeUISKD::add_line(chassis_indicator_1_name, 2, RefereeUISKD::ACCENT_COLOR, chassis_1_start_point, chassis_1_end_point, 30);
+    RefereeUISKD::add_line(chassis_indicator_1_name, 2, RefereeUISKD::ACCENT_COLOR, chassis_1_start_point,
+                           chassis_1_end_point, 30);
 //    RefereeUILG::chassis_2_end_point = {960, 230};
 //    RefereeUISKD::add_line(chassis_indicator_2_name, 2, RefereeUISKD::ACCENT_COLOR, chassis_1_start_point, chassis_2_end_point, 20);
 }

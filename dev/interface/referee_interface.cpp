@@ -47,7 +47,7 @@ bool Referee::client_character_sent;
 
 #if REFEREE_USE_EVENTS
 // See macro EVENTSOURCE_DECL() for initialization style
-event_source_t Referee::data_received_event = {(event_listener_t *)(&Referee::data_received_event)};;
+event_source_t Referee::data_received_event = {(event_listener_t *) (&Referee::data_received_event)};;
 #endif
 
 /** Private Parameters **/
@@ -88,7 +88,7 @@ void Referee::uart_rx_callback(UARTDriver *uartp) {
 
     chSysLockFromISR();  /// --- ENTER I-Locked state. DO NOT use LOG, printf, non I-Class functions or return ---
 
-    uint8_t* pak_uint8 = (uint8_t *)&pak;
+    uint8_t *pak_uint8 = (uint8_t *) &pak;
 
     // Handle received data and transfer status properly
     switch (rx_status) {
@@ -121,7 +121,7 @@ void Referee::uart_rx_callback(UARTDriver *uartp) {
                             game_robot_state = pak.game_robot_state_;
                             int robot_id = game_robot_state.robot_id;
                             client_custom_data.header.send_ID = robot_id;
-                            client_custom_data.header.receiver_ID = (robot_id%100) + (robot_id / 100) * 0x064 + 0x100;
+                            client_custom_data.header.receiver_ID = (robot_id % 100) + (robot_id / 100) * 0x064 + 0x100;
                             robot_data_send.header.send_ID = robot_id;
                         } else game_robot_state = pak.game_robot_state_;
                         break;
@@ -204,7 +204,8 @@ void Referee::uart_rx_callback(UARTDriver *uartp) {
             uartStartReceiveI(uartp, FRAME_HEADER_SIZE - FRAME_SOF_SIZE, pak_uint8 + FRAME_SOF_SIZE);
             break;
         case WAIT_CMD_ID_DATA_TAIL:
-            uartStartReceiveI(uartp, CMD_ID_SIZE + pak.header.data_length + FRAME_TAIL_SIZE, pak_uint8 + FRAME_HEADER_SIZE);
+            uartStartReceiveI(uartp, CMD_ID_SIZE + pak.header.data_length + FRAME_TAIL_SIZE,
+                              pak_uint8 + FRAME_HEADER_SIZE);
             break;
     }
 
@@ -214,16 +215,21 @@ void Referee::uart_rx_callback(UARTDriver *uartp) {
 
 void Referee::DataSendingThread::main() {
     setName("RefereeSend");
+
     graphic_data_struct_t null_graphic;
-    char null_name[] = "N/A";
+    static const char null_name[] = "N/A";
     null_graphic.graphic_name[0] = (uint8_t) null_name[0];
     null_graphic.graphic_name[1] = (uint8_t) null_name[1];
     null_graphic.graphic_name[2] = (uint8_t) null_name[2];
     null_graphic.operate_type = 0;
+
     while (!shouldTerminate()) {
+
         /***Update UI Info***/
-        if(graphic_buffer_index != 0){
-            if(graphic_buffer_index == 1) { // 1 buffer used
+
+        if (graphic_buffer_index != 0) {
+
+            if (graphic_buffer_index == 1) {  // 1 buffer used
                 client_custom_data.header.data_cmd_id = 0x0101;
                 client_custom_data.ext_client_custom_graphic_single.grapic_data_ = graphic_data_buffer[0];
             } else if (graphic_buffer_index < 3) { // 2 buffer used
@@ -232,12 +238,12 @@ void Referee::DataSendingThread::main() {
                 client_custom_data.ext_client_custom_graphic_double.grapic_data_[1] = graphic_data_buffer[1];
             } else if (graphic_buffer_index < 6) { // 3 - 5 buffer used
                 client_custom_data.header.data_cmd_id = 0x0103;
-                int i = 0;
+                int i;
                 for (i = 0; i < graphic_buffer_index; i++) {
                     client_custom_data.ext_client_custom_graphic_five.grapic_data_[i] = graphic_data_buffer[i];
                 }
                 // zero padding
-                for (;i < 5; i++) {
+                for (; i < 5; i++) {
                     client_custom_data.ext_client_custom_graphic_seven.grapic_data_[i] = null_graphic;
                 }
             } else if (graphic_buffer_index < 8) { // 6 - 7 buffer full filled
@@ -247,7 +253,7 @@ void Referee::DataSendingThread::main() {
                     client_custom_data.ext_client_custom_graphic_seven.grapic_data_[i] = graphic_data_buffer[i];
                 }
                 // zero padding
-                for (;i < 7; i++) {
+                for (; i < 7; i++) {
                     client_custom_data.ext_client_custom_graphic_seven.grapic_data_[i] = null_graphic;
                 }
             }
@@ -255,14 +261,14 @@ void Referee::DataSendingThread::main() {
             send_data_(Referee::CLIENT);
             sleep(TIME_MS2I(100)); // wait for 100ms, as the maximum sending interval is 10 Hz
         }
-        if(!client_character_sent) {
+        if (!client_character_sent) {
             client_custom_data.header.data_cmd_id = 0x0110;
             client_custom_data.ext_client_custom_character = client_character_buffer;
             client_character_sent = true;
             send_data_(Referee::CLIENT);
             sleep(TIME_MS2I(100));
         }
-        if(invoke_ui_delete_layer) {
+        if (invoke_ui_delete_layer) {
             client_custom_data.header.data_cmd_id = 0x0100;
             client_custom_data.ext_client_custom_graphic_delete.operate_type = 1;
             client_custom_data.ext_client_custom_graphic_delete.layer = layer_deleting;
@@ -270,8 +276,8 @@ void Referee::DataSendingThread::main() {
             invoke_ui_delete_layer = false;
             sleep(TIME_MS2I(100));
         }
-        if(invoke_ui_delete_all) {
-            for(int i = 0; i < 9; i++) {
+        if (invoke_ui_delete_all) {
+            for (int i = 0; i < 9; i++) {
                 client_custom_data.header.data_cmd_id = 0x0100;
                 client_custom_data.ext_client_custom_graphic_delete.operate_type = 2;
                 client_custom_data.ext_client_custom_graphic_delete.layer = 0;
@@ -289,51 +295,51 @@ void Referee::send_data_(receiver_index_t receiver_id) {
         return;
     package_t tx_pak;
     size_t tx_pak_size = 0;
-    if (receiver_id == CLIENT){
+    if (receiver_id == CLIENT) {
         int client_custom_data_length = 0;
         switch (client_custom_data.header.data_cmd_id) {
             case 0x0101:
                 client_custom_data_length = sizeof(Referee::student_interactive_header_data_t)
-                        + sizeof (Referee::ext_client_custom_graphic_single_t);
+                                            + sizeof(Referee::ext_client_custom_graphic_single_t);
                 break;
             case 0x0102:
                 client_custom_data_length = sizeof(Referee::student_interactive_header_data_t)
-                                            + sizeof (Referee::ext_client_custom_graphic_double_t);
+                                            + sizeof(Referee::ext_client_custom_graphic_double_t);
                 break;
             case 0x0103:
                 client_custom_data_length = sizeof(Referee::student_interactive_header_data_t)
-                                            + sizeof (Referee::ext_client_custom_graphic_five_t);
+                                            + sizeof(Referee::ext_client_custom_graphic_five_t);
                 break;
             case 0x0104:
                 client_custom_data_length = sizeof(Referee::student_interactive_header_data_t)
-                                            + sizeof (Referee::ext_client_custom_graphic_seven_t);
+                                            + sizeof(Referee::ext_client_custom_graphic_seven_t);
                 break;
             case 0x0110:
                 client_custom_data_length = sizeof(Referee::student_interactive_header_data_t)
-                                            + sizeof (Referee::ext_client_custom_character_t);
+                                            + sizeof(Referee::ext_client_custom_character_t);
                 break;
             case 0x0100:
                 client_custom_data_length = sizeof(Referee::student_interactive_header_data_t)
-                                            + sizeof (Referee::ext_client_custom_graphic_delete_t);
+                                            + sizeof(Referee::ext_client_custom_graphic_delete_t);
                 break;
         }
         tx_pak.header.sof = 0xA5;
         tx_pak.header.data_length = client_custom_data_length;
         tx_pak.header.seq = tx_seq++;
-        append_crc8_check_sum((uint8_t *)&tx_pak, FRAME_HEADER_SIZE);
+        append_crc8_check_sum((uint8_t *) &tx_pak, FRAME_HEADER_SIZE);
         tx_pak.cmd_id = 0x0301;
 
         tx_pak.client_custom_data_ = client_custom_data;
         tx_pak_size = FRAME_HEADER_SIZE + CMD_ID_SIZE + client_custom_data_length + FRAME_TAIL_SIZE;
     }
-    append_crc16_check_sum((uint8_t *)&tx_pak, tx_pak_size);
+    append_crc16_check_sum((uint8_t *) &tx_pak, tx_pak_size);
     uartSendTimeout(UART_DRIVER, &tx_pak_size, &tx_pak, TIME_MS2I(20));
 }
 
 bool Referee::set_graphic(graphic_data_struct_t graphData) {
     if (graphic_buffer_index < 7) {
         graphic_data_buffer[graphic_buffer_index] = graphData;
-        graphic_buffer_index ++;
+        graphic_buffer_index++;
         return true;
     } else {
         return false;
@@ -341,7 +347,7 @@ bool Referee::set_graphic(graphic_data_struct_t graphData) {
 }
 
 bool Referee::set_title(ext_client_custom_character_t characterData) {
-    if(client_character_sent) {
+    if (client_character_sent) {
         client_character_sent = false;
         client_character_buffer = characterData;
         return true;
@@ -354,13 +360,13 @@ void Referee::remove_all() {
     graphic_buffer_index = 0;
     client_character_sent = true;
     invoke_ui_delete_all = true;
-    while(invoke_ui_delete_all) chThdSleepMilliseconds(10);
+    while (invoke_ui_delete_all) chThdSleepMilliseconds(10);
 }
 
 void Referee::remove_layer(uint32_t layer) {
     graphic_buffer_index = 0;
-    if(client_character_buffer.grapic_data_struct.layer == layer) client_character_sent = true;
+    if (client_character_buffer.grapic_data_struct.layer == layer) client_character_sent = true;
     invoke_ui_delete_layer = true;
     layer_deleting = layer;
-    while(invoke_ui_delete_layer) chThdSleepMilliseconds(10);
+    while (invoke_ui_delete_layer) chThdSleepMilliseconds(10);
 }
