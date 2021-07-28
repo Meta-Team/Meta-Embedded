@@ -30,7 +30,7 @@ static void cmd_get_fb(BaseSequentialStream *chp, int argc, char **argv) {
     Shell::printf("current:     %f" SHELL_NEWLINE_STR, SuperCapacitor::feedback->input_current);
     Shell::printf("capvolt:     %f" SHELL_NEWLINE_STR, SuperCapacitor::feedback->capacitor_voltage);
     Shell::printf("inputvolt:   %f" SHELL_NEWLINE_STR, SuperCapacitor::feedback->input_voltage);
-    Shell::printf("refPower:    %f" SHELL_NEWLINE_STR, (float) Referee::game_robot_state.chassis_power_limit);
+    Shell::printf("refPower:    %f" SHELL_NEWLINE_STR, (float) Referee::robot_state.chassis_power_limit);
 }
 
 static void cmd_set_power(BaseSequentialStream *chp, int argc, char **argv) {
