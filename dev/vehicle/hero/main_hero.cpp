@@ -18,12 +18,14 @@
 #include "sd_card_interface.h"
 #include "vision_interface.h"
 #include "super_capacitor_port.h"
+#include "referee_UI_update_scheduler.h"
+#include "referee_UI_logic.h"
 
 #include "gimbal_interface.h"
 #include "gimbal_scheduler.h"
 #include "shoot_scheduler.h"
 #include "gimbal_logic.h"
-#include "hero_shoot_logic.h"
+#include "shoot_logic.h"
 
 #include "chassis_interface.h"
 #include "chassis_scheduler.h"
@@ -32,16 +34,9 @@
 #include "inspector_hero.h"
 #include "user_hero.h"
 
-#include "settings_hero.h"
-
 /// Vehicle Specific Configurations
-#if defined(HERO)                                                 /** Hero **/
 
 #include "vehicle_hero.h"
-
-#else
-#error "main_hero.cpp is only designed for HERO."
-#endif
 
 /// Board Guard
 #if defined(BOARD_RM_2018_A)
@@ -55,11 +50,10 @@ CANInterface can2(&CAND2);
 AHRSOnBoard ahrs;
 
 /// Local Constants
-float UserH::gimbal_yaw_target_angle_ = 0;
-float UserH::gimbal_pc_pitch_target_angle_ = 0;
 static const Matrix33 ON_BOARD_AHRS_MATRIX_ = ON_BOARD_AHRS_MATRIX;
 static const Matrix33 GIMBAL_ANGLE_INSTALLATION_MATRIX_ = GIMBAL_ANGLE_INSTALLATION_MATRIX;
 static const Matrix33 GIMBAL_GYRO_INSTALLATION_MATRIX_ = GIMBAL_GYRO_INSTALLATION_MATRIX;
+
 static GimbalIF::motor_can_config_t GIMBAL_MOTOR_CONFIG_[GimbalIF::MOTOR_COUNT] = GIMBAL_MOTOR_CONFIG;
 static ChassisIF::motor_can_config_t CHASSIS_MOTOR_CONFIG_[ChassisIF::MOTOR_COUNT] = CHASSIS_MOTOR_CONFIG;
 
@@ -74,6 +68,10 @@ int main() {
     palSetPadMode(GPIOH, GPIOH_POWER1_CTRL, PAL_MODE_OUTPUT_PUSHPULL);
     palSetPad(GPIOH, GPIOH_POWER1_CTRL);
 
+    // Enable power of ultraviolet lights
+    palSetPadMode(GPIOH, GPIOH_POWER2_CTRL, PAL_MODE_OUTPUT_PUSHPULL);
+    palSetPad(GPIOH, GPIOH_POWER2_CTRL);
+
     /*** ---------------------- Period 1. Modules Setup and Self-Check ---------------------- ***/
 
     /// Preparation of Period 1
@@ -82,10 +80,10 @@ int main() {
 
     /// Setup Shell
     Shell::start(THREAD_SHELL_PRIO);
-    Shell::addCommands(mainProgramCommands);
     chThdSleepMilliseconds(50);  // wait for logo to print :)
 
     BuzzerSKD::init(THREAD_BUZZER_SKD_PRIO);
+
     /// Setup SDCard
     if (SDCard::init()) {
         SDCard::read_all();
@@ -101,11 +99,13 @@ int main() {
     InspectorH::startup_check_can();  // check no persistent CAN Error. Block for 100 ms
     LED::led_on(DEV_BOARD_LED_CAN);  // LED 2 on now
 
-    /// Start Feedback Thread
-    feedback_thread_start();
-
     /// Setup SuperCapacitor Port
     SuperCapacitor::init(&can2, THREAD_SUPERCAP_INIT_PRIO);
+
+    /// Setup Referee
+    Referee::init(THREAD_REFEREE_SENDING_PRIO);
+    RefereeUISKD::init(THREAD_REFEREE_SKD_PRIO);
+    RefereeUILG::reset();
 
     /// Complete Period 1
     LED::green_on();  // LED Green on now
@@ -119,10 +119,14 @@ int main() {
         ahrs.load_calibration_data(MPU6500_STORED_GYRO_BIAS);
         LOG_WARN("Use default AHRS bias");
     }
-    ahrs.start(ON_BOARD_AHRS_MATRIX_, THREAD_MPU_PRIO);
-    chThdSleepMilliseconds(5);
+    ahrs.start(ON_BOARD_AHRS_MATRIX_, THREAD_AHRS_PRIO);
+    while(!ahrs.ready()) {
+        chThdSleepMilliseconds(5);
+    }
     InspectorH::startup_check_mpu();  // check MPU6500 has signal. Block for 20 ms
     InspectorH::startup_check_ist();  // check IST8310 has signal. Block for 20 ms
+    Shell::addCommands(ahrs.shellCommands);
+    Shell::addFeedbackCallback(AHRSOnBoard::cmdFeedback, &ahrs);
     LED::led_on(DEV_BOARD_LED_AHRS);  // LED 3 on now
 
     /// Setup Remote
@@ -132,64 +136,81 @@ int main() {
 
 
     /// Setup GimbalIF (for Gimbal and Shoot)
-    GimbalIF::init(&can1, &can2, GIMBAL_MOTOR_CONFIG_, GIMBAL_YAW_FRONT_ANGLE_RAW, GIMBAL_PITCH_FRONT_ANGLE_RAW, GIMBAL_SUB_PITCH_FRONT_ANGLE_RAW);
+#if HERO_GIMBAL_ENABLE
+    GimbalIF::init(&can1, &can2, GIMBAL_MOTOR_CONFIG_, GIMBAL_YAW_FRONT_ANGLE_RAW, GIMBAL_PITCH_FRONT_ANGLE_RAW, GIMBAL_SUB_PITCH_FRONT_ANGLE_RAW, MotorIFBase::can_channel_1);
     chThdSleepMilliseconds(2000);  // wait for C610 to be online and friction wheel to reset
     InspectorH::startup_check_gimbal_feedback(); // check gimbal motors has continuous feedback. Block for 20 ms
+#endif
     LED::led_on(DEV_BOARD_LED_GIMBAL);  // LED 5 on now
 
 
     /// Setup ChassisIF
+#if HERO_CHASSIS_ENABLE
     ChassisIF::init(&can1, &can2, CHASSIS_MOTOR_CONFIG_);
     chThdSleepMilliseconds(10);
     InspectorH::startup_check_chassis_feedback();  // check chassis motors has continuous feedback. Block for 20 ms
+#endif
     LED::led_on(DEV_BOARD_LED_CHASSIS);  // LED 6 on now
 
 
     /// Setup Red Spot Laser
     palSetPad(GPIOG, GPIOG_RED_SPOT_LASER);  // enable the red spot laser
 
-    /// Setup Referee
-    Referee::init(THREAD_REFEREE_SENDING_PRIO);
-
-
     /*** ------------ Period 2. Calibration and Start Logic Control Thread ----------- ***/
 
     /// Echo Gimbal Raws and Converted Angles
+#if HERO_GIMBAL_ENABLE
     LOG("Gimbal Yaw: %u, %f, Pitch: %u, %f",
         GimbalIF::feedback[GimbalIF::YAW]->last_angle_raw, GimbalIF::feedback[GimbalIF::YAW]->actual_angle,
         GimbalIF::feedback[GimbalIF::PITCH]->last_angle_raw, GimbalIF::feedback[GimbalIF::PITCH]->actual_angle);
 
     /// Start SKDs
     GimbalSKD::start(&ahrs, GIMBAL_ANGLE_INSTALLATION_MATRIX_, GIMBAL_GYRO_INSTALLATION_MATRIX_,
-                     GIMBAL_YAW_INSTALL_DIRECTION, GIMBAL_PITCH_INSTALL_DIRECTION, GIMBAL_SUB_PITCH_INSTALL_DIRECTION, THREAD_GIMBAL_SKD_PRIO);
+                     GIMBAL_YAW_INSTALL_DIRECTION, GIMBAL_PITCH_INSTALL_DIRECTION, GimbalSKD::POSITIVE/* Not used */, THREAD_GIMBAL_SKD_PRIO, GimbalSKD::ABS_ANGLE_MODE);
     GimbalSKD::load_pid_params(GIMBAL_PID_YAW_A2V_PARAMS, GIMBAL_PID_YAW_V2I_PARAMS,
                                GIMBAL_PID_PITCH_A2V_PARAMS, GIMBAL_PID_PITCH_V2I_PARAMS,
-                               GIMBAL_PID_SUB_PITCH_A2V_PARAMS, GIMBAL_PID_SUB_PITCH_V2I_PARAMS);
-    GimbalSKD::set_yaw_restriction(GIMBAL_RESTRICT_YAW_MIN_ANGLE, GIMBAL_RESTRICT_YAW_MAX_ANGLE,
-                                   GIMBAL_RESTRICT_YAW_VELOCITY);
+                               {0, 0, 0, 0, 0}/* Not used */, {0, 0, 0, 0, 0}/* Not used */);
+    Shell::addCommands(GimbalSKD::shellCommands);
+    Shell::addFeedbackCallback(GimbalSKD::cmdFeedback);
 
     ShootSKD::start(SHOOT_BULLET_INSTALL_DIRECTION, THREAD_SHOOT_SKD_PRIO);
     ShootSKD::load_pid_params(SHOOT_PID_BULLET_LOADER_A2V_PARAMS, SHOOT_PID_BULLET_LOADER_V2I_PARAMS,
                               SHOOT_PID_FW_LEFT_V2I_PARAMS, SHOOT_PID_FW_RIGHT_V2I_PARAMS);
+    Shell::addCommands(ShootSKD::shellCommands);
+    Shell::addFeedbackCallback(ShootSKD::cmdFeedback);
+#endif
 
+#if HERO_CHASSIS_ENABLE
     ChassisSKD::start(CHASSIS_WHEEL_BASE, CHASSIS_WHEEL_TREAD, CHASSIS_WHEEL_CIRCUMFERENCE, ChassisSKD::POSITIVE,
-                      CHASSIS_GIMBAL_OFFSET, THREAD_CHASSIS_SKD_PRIO);
+                      GIMBAL_YAW_INSTALL_DIRECTION, 0, THREAD_CHASSIS_SKD_PRIO);
     ChassisSKD::load_pid_params(CHASSIS_FOLLOW_PID_THETA2V_PARAMS, CHASSIS_PID_V2I_PARAMS);
-    ChassisSKD::set_update_yaw_enable(true);
+    Shell::addCommands(ChassisSKD::shellCommands);
+    Shell::addFeedbackCallback(ChassisSKD::cmdFeedback);
+#endif
 
     /// Start LGs
-    GimbalLG::init(THREAD_GIMBAL_LG_VISION_PRIO);
-    ShootLG::init(SHOOT_DEGREE_PER_BULLET, THREAD_SHOOT_LG_STUCK_DETECT_PRIO, THREAD_SHOOT_BULLET_COUNTER_PRIO, THREAD_SHOOT_LG_VISION_PRIO);
-    ChassisLG::init(THREAD_CHASSIS_LG_DODGE_PRIO, THREAD_CHASSIS_POWER_SET_PRIO, CHASSIS_DODGE_MODE_THETA, CHASSIS_BIASED_ANGLE, CHASSIS_LOGIC_DODGE_OMEGA2VOLT_PARAMS);
+#if HERO_GIMBAL_ENABLE
+    GimbalLG::init(THREAD_GIMBAL_LG_VISION_PRIO, THREAD_GIMBAL_LG_SENTRY_PRIO);
+    ShootLG::init(SHOOT_DEGREE_PER_BULLET, true, 10, THREAD_SHOOT_LG_STUCK_DETECT_PRIO, THREAD_SHOOT_BULLET_COUNTER_PRIO, THREAD_SHOOT_LG_VISION_PRIO);
+#endif
 
+#if HERO_CHASSIS_ENABLE
+    ChassisLG::init(THREAD_CHASSIS_LG_DODGE_PRIO, THREAD_CHASSIS_POWER_SET_PRIO, CHASSIS_DODGE_MODE_THETA, CHASSIS_BIASED_ANGLE, CHASSIS_LOGIC_DODGE_OMEGA2VOLT_PARAMS);
+#endif
 
     /// Setup VisionPort
     // Should be put after initialization of GimbalSKD
-    Vision::init(VISION_VELOCITY_UPDATE_FRACTION, VISION_PREDICT_FORWARD_AMOUNT);
+#if HERO_GIMBAL_ENABLE && HERO_VISION_ENABLE
+    Vision::init(VISION_BASIC_CONTROL_DELAY);
+    Vision::set_bullet_speed(VISION_DEFAULT_BULLET_SPEED);
+    Shell::addFeedbackCallback(Vision::cmd_feedback);
+    Shell::addCommands(Vision::shell_commands);
+#endif
 
     /// Start Inspector and User Threads
-    InspectorH::start_inspection(THREAD_INSPECTOR_PRIO, THREAD_INSPECTOR_REFEREE_PRIO);
+    InspectorH::start_inspection(THREAD_INSPECTOR_PRIO);
     UserH::start(THREAD_USER_PRIO, THREAD_USER_ACTION_PRIO, THREAD_USER_CLIENT_DATA_SEND_PRIO);
+
 
     /// Complete Period 2
     BuzzerSKD::play_sound(BuzzerSKD::sound_startup_intel);  // Now play the startup sound

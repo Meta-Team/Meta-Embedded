@@ -60,8 +60,8 @@ void GimbalLG::separate_pitch() {
     float pitch = GimbalSKD::get_actual_angle(PITCH) + GimbalSKD::get_actual_angle(SUB_PITCH);
     float target_pitch = pitch;
     float flight_time;
-    Trajectory::compensate_for_gravity(target_pitch, *GimbalIF::lidar_dist, 10, flight_time);
-    GimbalSKD::separate_pitch(target_pitch - pitch);
+    bool ret = Trajectory::compensate_for_gravity(target_pitch, *GimbalIF::lidar_dist, 10, flight_time);
+    if (ret) GimbalSKD::separate_pitch(target_pitch - pitch);
 }
 
 void GimbalLG::VisionControlThread::main() {

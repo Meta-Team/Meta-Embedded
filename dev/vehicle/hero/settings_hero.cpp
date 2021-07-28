@@ -125,7 +125,6 @@ const char *motor_name[MOTOR_COUNT] = {
         "accel",
         "magnet",
         "vision_armor",
-        "vision_velocity",
         "vision_shoot",
         "vision_command"};
 
@@ -230,16 +229,6 @@ void cmd_vision_bullet_speed(BaseSequentialStream *chp, int argc, char **argv) {
     }
 }
 
-void cmd_vision_shoot_delay(BaseSequentialStream *chp, int argc, char **argv) {
-    if (argc == 0) {
-        chprintf(chp, "%f" SHELL_NEWLINE_STR, Vision::get_bullet_speed());
-    } else if (argc == 1) {
-        Vision::basic_shoot_delay = (Shell::atoi(argv[0]));
-    } else {
-        shellUsage(chp, "vision_shoot_delay [setting]");
-    }
-}
-
 // Shell commands to ...
 ShellCommand mainProgramCommands[] = {
         {"fb_enable",  cmd_enable_feedback},
@@ -247,7 +236,6 @@ ShellCommand mainProgramCommands[] = {
         {"echo_param", cmd_echo_param},
         {"set_pid",             cmd_set_pid},
         {"vision_bullet_speed", cmd_vision_bullet_speed},
-        {"vision_shoot_delay",  cmd_vision_shoot_delay},
         {nullptr,               nullptr}
 };
 
@@ -263,7 +251,7 @@ private:
             // Gimbal
             for (int i = 0; i < 2; i++) {
                 if (feedback_enable[i]) {
-                    actual_angle = GimbalSKD::get_accumulated_angle((GimbalBase::motor_id_t) i);
+                    actual_angle = GimbalSKD::get_actual_angle((GimbalBase::motor_id_t) i);
                     target_angle = GimbalSKD::get_target_angle((GimbalBase::motor_id_t) i);
                     actual_velocity = GimbalSKD::get_actual_velocity((GimbalBase::motor_id_t) i);
                     target_velocity = GimbalSKD::get_target_velocity((GimbalBase::motor_id_t) i);
@@ -306,32 +294,25 @@ private:
 
             // Vision
             if (feedback_enable[6]) {
-                Shell::printf("fb %s %.2f 0 %.2f 0 %.2f 0" SHELL_NEWLINE_STR, motor_name[6],
-                              Vision::target_armor_yaw.get(),
-                              Vision::target_armor_pitch.get(),
-                              Vision::target_armor_dist.get());
+                Shell::printf("fb %s %.2f %.2f %.2f %.2f %.2f %.2f" SHELL_NEWLINE_STR, motor_name[6],
+                              Vision::armor_ypd[0].get_position(), Vision::armor_ypd[0].get_velocity() * 1000,
+                              Vision::armor_ypd[1].get_position(), Vision::armor_ypd[1].get_velocity() * 1000,
+                              Vision::armor_ypd[2].get_position(), Vision::armor_ypd[2].get_velocity() * 1000);
             }
 
             if (feedback_enable[7]) {
-                Shell::printf("fb %s %.2f 0 %.2f 0 %.2f 0" SHELL_NEWLINE_STR, motor_name[7],
-                              Vision::velocity_calculator.yaw_velocity() * 1000,   // [deg/s]
-                              Vision::velocity_calculator.pitch_velocity() * 1000, // [deg/s]
-                              Vision::velocity_calculator.dist_velocity() * 1000); // [mm/s]
+                /*Shell::printf("fb %s %d %d %d %d %.2f %d" SHELL_NEWLINE_STR, motor_name[7],
+                              Vision::expected_shoot_after_periods * 10, // blue
+                              (int) Vision::pak.command.period,  // red
+                              Vision::bullet_flight_time,  // blue
+                              (int) Vision::pak.command.remaining_time_to_target, //red
+                              Vision::measured_shoot_delay.get(),  // blue
+                              (int) Vision::last_update_time_delta  // red
+                );*/
             }
 
             if (feedback_enable[8]) {
-                Shell::printf("fb %s %d %d %d %d %.2f %d" SHELL_NEWLINE_STR, motor_name[8],
-                              Vision::expected_shoot_after_periods * 10, // blue
-                              (int) Vision::pak.command.period,  // red
-                              Vision::flight_time_to_target,  // blue
-                              (int) Vision::pak.command.remainingTimeToTarget, //red
-                              Vision::measured_shoot_delay.get(),  // blue
-                              (int) Vision::last_update_delta  // red
-                );
-            }
-
-            if (feedback_enable[9]) {
-                Shell::printf("fb %s %.2f 0 %.2f 0 %.2f 0" SHELL_NEWLINE_STR, motor_name[9],
+                Shell::printf("fb %s %.2f 0 %.2f 0 %.2f 0" SHELL_NEWLINE_STR, motor_name[8],
                               Vision::pak.command.yaw_delta / 100.0f, // blue
                               Vision::pak.command.pitch_delta / 100.0f, // blue
                               Vision::pak.command.dist / 100.0f // blue
