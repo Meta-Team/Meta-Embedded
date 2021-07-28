@@ -99,9 +99,9 @@ public:
 
     /**
      * Set friction wheels duty cycle in LIMITED_SHOOTING_MODE or REVERSE_TURNING_MODE
-     * @param speed  [deg/s]
+     * @param velocity  [deg/s]
      */
-    static void set_friction_wheels(float speed);
+    static void set_friction_wheels(float velocity);
 
 
     /** -------------------------------------- Functions to access GimbalIF -------------------------------------- */
@@ -110,7 +110,7 @@ public:
      * Get friction wheels duty cycle
      * @return Friction wheels duty cycle, from 0 to 1.0
      */
-    static float get_friction_wheels_target_speed();
+    static float get_friction_wheels_target_velocity();
 
     static float get_target_velocity(uint32_t motor_id);
 
@@ -155,7 +155,7 @@ private:
 
     static float target_angle;
     static float actual_angle;
-    static float fw_target_speed;
+    static float fw_target_velocity;
     static float target_velocity[3];
     static float actual_velocity[3];
     static int target_current[3];

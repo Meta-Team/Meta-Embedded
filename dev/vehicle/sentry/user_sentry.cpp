@@ -131,15 +131,15 @@ void UserS::UserThread::main() {
         /*** ---------------------------------- Shoot --------------------------------- ***/
 
         if (!shoot_power_on){
-            if (Referee::game_robot_state.mains_power_shooter_output == 1){
-                float pre_duty = ShootLG::get_friction_wheels_duty_cycle();
-                ShootLG::set_friction_wheels(0);
+            if (Referee::robot_state.mains_power_shooter_output == 1){
+                float pre_duty = ShootLG::get_shoot_speed();
+                ShootLG::set_shoot_speed(0);
                 sleep(TIME_MS2I(2000));
-                ShootLG::set_friction_wheels(pre_duty);
+                ShootLG::set_shoot_speed(pre_duty);
                 LOG("POWER ON AGAIN");
             }
         }
-        shoot_power_on = (Referee::game_robot_state.mains_power_shooter_output == 1);
+        shoot_power_on = (Referee::robot_state.mains_power_shooter_output == 1);
 
         if (!InspectorS::remote_failure() /*&& !InspectorS::chassis_failure()*/ && !InspectorS::gimbal_failure()) {
             if ((Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_UP) ||
@@ -161,7 +161,7 @@ void UserS::UserThread::main() {
                     }
                 }
 
-                ShootLG::set_friction_wheels(shoot_common_duty_cycle);
+                ShootLG::set_shoot_speed(shoot_common_duty_cycle);
 
             } else if (Remote::rc.s1 == Remote::S_DOWN) {
 
@@ -180,13 +180,13 @@ void UserS::UserThread::main() {
             } else {
                 /// Safe Mode
                 ShootLG::stop();
-                ShootLG::set_friction_wheels(0);
+                ShootLG::set_shoot_speed(0);
             }
 
         } else {  // InspectorS::remote_failure() || InspectorS::chassis_failure() || InspectorS::gimbal_failure()
             /// Safe Mode
             ShootLG::stop();
-            ShootLG::set_friction_wheels(0);
+            ShootLG::set_shoot_speed(0);
         }
 
         /*** ---------------------------------- Chassis --------------------------------- ***/

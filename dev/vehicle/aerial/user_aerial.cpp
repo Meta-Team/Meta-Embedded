@@ -172,15 +172,15 @@ void UserA::UserThread::main() {
         /*** ---------------------------------- Shoot --------------------------------- ***/
 
         if (!shoot_power_on){
-            if (Referee::game_robot_state.mains_power_shooter_output == 1){
-                float pre_duty = ShootLG::get_friction_wheels_duty_cycle();
-                ShootLG::set_friction_wheels(0);
+            if (Referee::robot_state.mains_power_shooter_output == 1){
+                float pre_duty = ShootLG::get_shoot_speed();
+                ShootLG::set_shoot_speed(0);
                 sleep(TIME_MS2I(2000));
-                ShootLG::set_friction_wheels(pre_duty);
+                ShootLG::set_shoot_speed(pre_duty);
                 LOG("POWER ON AGAIN");
             }
         }
-        shoot_power_on = (Referee::game_robot_state.mains_power_shooter_output == 1);
+        shoot_power_on = (Referee::robot_state.mains_power_shooter_output == 1);
 
         if (!InspectorA::remote_failure() /*&& !InspectorI::chassis_failure()*/ && !InspectorA::gimbal_failure()) {
             if ((Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_UP) ||
@@ -204,11 +204,11 @@ void UserA::UserThread::main() {
                 }
 
                 if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_DOWN) {
-                    ShootLG::set_friction_wheels(shoot_debug_duty_cycle);
+                    ShootLG::set_shoot_speed(shoot_debug_duty_cycle);
                 } else if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_UP) {
-                    ShootLG::set_friction_wheels(shoot_full_power_duty_cycle);
+                    ShootLG::set_shoot_speed(shoot_full_power_duty_cycle);
                 } else {
-                    ShootLG::set_friction_wheels(shoot_common_duty_cycle);
+                    ShootLG::set_shoot_speed(shoot_common_duty_cycle);
                 }
 
 
@@ -221,13 +221,13 @@ void UserA::UserThread::main() {
             } else {
                 /// Safe Mode
                 ShootLG::stop();
-                ShootLG::set_friction_wheels(0);
+                ShootLG::set_shoot_speed(0);
             }
 
         } else {  // InspectorI::remote_failure() || InspectorI::chassis_failure() || InspectorI::gimbal_failure()
             /// Safe Mode
             ShootLG::stop();
-            ShootLG::set_friction_wheels(0);
+            ShootLG::set_shoot_speed(0);
         }
 
 
@@ -266,8 +266,8 @@ void UserA::UserActionThread::main() {
             eventflags_t mouse_flag = chEvtGetAndClearFlags(&mouse_press_listener);
 
             /// Shoot
-            if (ShootLG::get_friction_wheels_duty_cycle() == 0) {  // force start friction wheels
-                ShootLG::set_friction_wheels(shoot_common_duty_cycle);
+            if (ShootLG::get_shoot_speed() == 0) {  // force start friction wheels
+                ShootLG::set_shoot_speed(shoot_common_duty_cycle);
             }
             if (mouse_flag & (1U << Remote::MOUSE_LEFT)) {
                 ShootLG::shoot(shoot_launch_left_count, shoot_launch_speed);
@@ -297,10 +297,10 @@ void UserA::UserActionThread::main() {
 
             /// Shoot
             if (key_flag & (1U << shoot_fw_switch)) {
-                if (ShootLG::get_friction_wheels_duty_cycle() > 0) {
-                    ShootLG::set_friction_wheels(0);
+                if (ShootLG::get_shoot_speed() > 0) {
+                    ShootLG::set_shoot_speed(0);
                 } else {
-                    ShootLG::set_friction_wheels(shoot_common_duty_cycle);
+                    ShootLG::set_shoot_speed(shoot_common_duty_cycle);
                 }
             }
         }

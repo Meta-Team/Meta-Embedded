@@ -49,7 +49,7 @@ private:
     static float shoot_launch_right_count;
 
     static float shoot_feed_rate;
-    static float shoot_fw_speed;
+    static float shoot_fw_speed[3];
 
     static bool mag_status;
 

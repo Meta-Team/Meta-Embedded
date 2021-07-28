@@ -39,54 +39,57 @@ class ShootLG {
 
 public:
 
-    enum mode_t {
-        MANUAL_MODE,
-        VISION_AUTO_MODE
+    enum limit_mode_t {
+        UNLIMITED_MODE,      // the number of bullets and the feed rate is set by shoot()
+        VISION_LIMITED_MODE  // shoot up to the target set up shoot() if allowed by Vision
     };
 
-    static mode_t get_mode() { return mode; }
+    static limit_mode_t get_limit_mode() { return mode; }
 
-    static void set_mode(mode_t newMode) { mode = newMode; }
+    static void set_limit_mode(limit_mode_t new_mode) { mode = new_mode; }
 
     /**
      * Initialize this module
      * @param angle_per_bullet_            Angle for bullet loader to rotate to fill one bullet [degree]
+     * @param use_42mm_bullet
+     * @param fw_circumference             [mm]
      * @param stuck_detector_thread_prio   Thread priority for stuck detector thread
      * @param bullet_counter_thread_prio   Thread priority for bullet counter thread
      * @param vision_shooting_thread_prio  Thread priority for Vision automatic shooting thread
      */
-    static void init(float angle_per_bullet_, tprio_t stuck_detector_thread_prio, tprio_t bullet_counter_thread_prio,
+    static void init(float angle_per_bullet_, bool use_42mm_bullet, float fw_circumference,
+                     tprio_t stuck_detector_thread_prio, tprio_t bullet_counter_thread_prio,
                      tprio_t vision_shooting_thread_prio);
 
     /**
      * Add bullet to internal bullet counter
      * @param number_of_bullet   Number of bullets to added
      */
-    static void increment_bullet(int number_of_bullet);
+    static void increment_remaining_bullet(int number_of_bullet);
 
     /**
      * Set value of internal bullet counter
      * @param number_of_bullet   Value of bullets
      */
-    static void set_bullet_count(int number_of_bullet);
+    static void set_remaining_bullet_count(int number_of_bullet);
 
     /**
      * Return the value of internal bullet counter
      * @return Number of remaining bullet
      */
-    static int get_bullet_count();
+    static int get_remaining_bullet_count();
 
     /**
      * Set friction wheels duty cycle in LIMITED_SHOOTING_MODE or REVERSE_TURNING_MODE
-     * @param speed  [deg/s]
+     * @param speed  [mm/s]
      */
-    static void set_friction_wheels(float speed);
+    static void set_shoot_speed(float speed);
 
     /**
      * Get friction wheels duty cycle
-     * @return Friction wheels duty cycle, from 0 to 1.0
+     * @return Shoot speed [mm/s]
      */
-    static float get_friction_wheels_duty_cycle();
+    static float get_shoot_speed();
 
     enum shooter_state_t {
         STOP,
@@ -116,6 +119,8 @@ public:
      */
     static void force_stop();
 
+    static int get_bullet_count_to_heat_limit();
+
     /**
      * open mag cover
      */
@@ -128,19 +133,20 @@ public:
 
 private:
 
-    static mode_t mode;
-
+    static limit_mode_t mode;
     static float angle_per_bullet;
-
-    static int bullet_count;
-
-    static float shoot_target_number;
-
+    static int remaining_bullet_count;
+    static float target_bullet_count;
     static shooter_state_t shooter_state;
+
+    static bool use_42mm_bullet;
+    static float fw_mm_to_deg_ratio;
+    static constexpr int HEAT_PER_17MM_BULLET = 10;
+    static constexpr int HEAT_PER_42MM_BULLET = 100;
 
 
     /// Stuck Detector
-    class StuckNHeatDetectorThread : public chibios_rt::BaseStaticThread<512> {
+    class StuckDetectorThread : public chibios_rt::BaseStaticThread<512> {
     public:
 
         bool started = false;
@@ -163,7 +169,7 @@ private:
         void main() final;
     };
 
-    static StuckNHeatDetectorThread stuck_detector_thread;
+    static StuckDetectorThread stuck_detector_thread;
     static chibios_rt::ThreadReference stuck_detector_ref;
 
 

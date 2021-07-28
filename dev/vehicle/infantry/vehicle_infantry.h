@@ -93,7 +93,7 @@
 
 #define MPU6500_BIAS_DATA_ID 0x0001
 
-/// Gimbal and Shoot PID Parameters
+/// Gimbal PID Parameters
 #define GIMBAL_PID_YAW_A2V_KP 25.0f
 #define GIMBAL_PID_YAW_A2V_KI 0.0f
 #define GIMBAL_PID_YAW_A2V_KD 1600.00f
@@ -148,6 +148,10 @@
     {GIMBAL_PID_SUB_PITCH_V2I_KP, GIMBAL_PID_SUB_PITCH_V2I_KI, GIMBAL_PID_SUB_PITCH_V2I_KD, \
     GIMBAL_PID_SUB_PITCH_V2I_I_LIMIT, GIMBAL_PID_SUB_PITCH_V2I_OUT_LIMIT}
 
+/// Chassis Mechanism Parameters
+#define SHOOT_FW_CIRCUMFERENCE         15.0f  // [mm]
+
+/// Shoot PID Parameters
 #define SHOOT_PID_BULLET_LOADER_A2V_KP 20.0f  // a number large enough, see shoot speed note at ShootSKD
 #define SHOOT_PID_BULLET_LOADER_A2V_KI 0.0f
 #define SHOOT_PID_BULLET_LOADER_A2V_KD 0.0f

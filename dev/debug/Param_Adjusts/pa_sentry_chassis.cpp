@@ -37,7 +37,7 @@ private:
                 Shell::printf("!gy,%u,%.2f,%.2f,%.2f,%.2f,%f,%f" SHELL_NEWLINE_STR,
                               SYSTIME,
                               //SentryChassisIF::motor[SentryChassisIF::MOTOR_RIGHT].motor_present_position, SentryChassisIF::target_position,
-                              Referee::power_heat_data.chassis_power, SentryChassisIF::power_limit,
+                              Referee::power_heat.chassis_power, SentryChassisIF::power_limit,
                               SentryChassisIF::motor[SentryChassisIF::MOTOR_RIGHT].motor_present_velocity, SentryChassisIF::target_velocity,
                               //Referee::power_heat_data.chassis_power, 20
                               SentryChassisIF::motor[SentryChassisIF::MOTOR_LEFT].motor_present_position, SentryChassisIF::target_position);
@@ -46,7 +46,7 @@ private:
                 Shell::printf("!gp,%u,%.2f,%.2f,%.2f,%.2f,%f,%f" SHELL_NEWLINE_STR,
                               SYSTIME,
                               //SentryChassisIF::motor[SentryChassisIF::MOTOR_LEFT].motor_present_position, SentryChassisIF::target_position,
-                              Referee::power_heat_data.chassis_power, SentryChassisIF::power_limit,
+                              Referee::power_heat.chassis_power, SentryChassisIF::power_limit,
                               SentryChassisIF::motor[SentryChassisIF::MOTOR_LEFT].motor_present_velocity, SentryChassisIF::target_velocity,
                               //Referee::power_heat_data.chassis_power, 20
                               SentryChassisIF::motor[SentryChassisIF::MOTOR_LEFT].motor_present_position, SentryChassisIF::target_position);
@@ -107,10 +107,10 @@ void SChassisSKD::SentryChassisThread::main() {
         }
 
         if(printPower) {
-            LOG("chassis power: %.2f", Referee::power_heat_data.chassis_power);
-            LOG("chassis power_buffer: %u", Referee::power_heat_data.chassis_power_buffer);
-            LOG("chassis current: %u", Referee::power_heat_data.chassis_current);
-            LOG("chassis voltage: %u", Referee::power_heat_data.chassis_volt);
+            LOG("chassis power: %.2f", Referee::power_heat.chassis_power);
+            LOG("chassis power_buffer: %u", Referee::power_heat.chassis_power_buffer);
+            LOG("chassis current: %u", Referee::power_heat.chassis_current);
+            LOG("chassis voltage: %u", Referee::power_heat.chassis_volt);
         }
 
         SChassisIF::send_currents();

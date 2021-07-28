@@ -19,9 +19,9 @@ Referee::supply_projectile_action_t Referee::supply_projectile_action;
 Referee::supply_projectile_booking_t Referee::supply_projectile_booking;
 Referee::referee_warning_t Referee::referee_warning;
 Referee::ext_dart_remaining_time_t Referee::ext_dart_remaining_time;
-Referee::game_robot_state_t Referee::game_robot_state;
-Referee::power_heat_data_t Referee::power_heat_data;
-Referee::game_robot_pos_t Referee::game_robot_pos;
+Referee::game_robot_state_t Referee::robot_state;
+Referee::power_heat_data_t Referee::power_heat;
+Referee::game_robot_pos_t Referee::robot_pos;
 Referee::buff_musk_t Referee::buff_musk;
 Referee::aerial_robot_energy_t Referee::aerial_robot_energy;
 Referee::robot_hurt_t Referee::robot_hurt;
@@ -73,14 +73,14 @@ void Referee::init(tprio_t sending_thread_prio) {
 
     // Wait for starting byte
     rx_status = WAIT_STARTING_BYTE;
-    game_robot_state.robot_id = 0;
+    robot_state.robot_id = 0;
     uartStartReceive(UART_DRIVER, FRAME_SOF_SIZE, &pak);
 
     dataSendingThread.start(sending_thread_prio);
 }
 
 uint8_t Referee::get_self_id() {
-    return game_robot_state.robot_id;
+    return robot_state.robot_id;
 }
 
 void Referee::uart_rx_callback(UARTDriver *uartp) {
@@ -116,17 +116,17 @@ void Referee::uart_rx_callback(UARTDriver *uartp) {
                 switch (pak.cmd_id) {
 
                     case GAME_ROBOT_STATE_CMD_ID:
-                        if (game_robot_state.robot_id == 0) {
+                        if (robot_state.robot_id == 0) {
                             // If it is the first time that robot_state cmd is received, we need to initialize robot identity
-                            game_robot_state = pak.game_robot_state_;
-                            int robot_id = game_robot_state.robot_id;
+                            robot_state = pak.game_robot_state_;
+                            int robot_id = robot_state.robot_id;
                             client_custom_data.header.send_ID = robot_id;
                             client_custom_data.header.receiver_ID = (robot_id % 100) + (robot_id / 100) * 0x064 + 0x100;
                             robot_data_send.header.send_ID = robot_id;
-                        } else game_robot_state = pak.game_robot_state_;
+                        } else robot_state = pak.game_robot_state_;
                         break;
                     case POWER_HEAT_DATA_CMD_ID:
-                        power_heat_data = pak.power_heat_data_;
+                        power_heat = pak.power_heat_data_;
                         break;
                     case ROBOT_HURT_CMD_ID:
                         robot_hurt = pak.robot_hurt_;
@@ -156,7 +156,7 @@ void Referee::uart_rx_callback(UARTDriver *uartp) {
                         ext_dart_remaining_time = pak.ext_dart_remaining_time_;
                         break;
                     case GAME_ROBOT_POS_CMD_ID:
-                        game_robot_pos = pak.game_robot_pos_;
+                        robot_pos = pak.game_robot_pos_;
                         break;
                     case BUFF_MUSK_CMD_ID:
                         buff_musk = pak.buff_musk_;
@@ -319,7 +319,7 @@ void Referee::DataSendingThread::main() {
 }
 
 void Referee::send_data_(receiver_index_t receiver_id) {
-    if (game_robot_state.robot_id == 0)
+    if (robot_state.robot_id == 0)
         return;
     package_t tx_pak;
     size_t tx_pak_size = 0;

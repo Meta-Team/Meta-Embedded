@@ -106,7 +106,7 @@ CAN交互界面申明：
         if (*argv[0] == '1') {
             Shoot::set_friction_wheels(0.5);
         } else {
-            Shoot::set_friction_wheels(0);
+            Shoot::set_friction_wheels_speed(0);
         }
         Shoot::send_gimbal_currents();
     }
