@@ -20,15 +20,13 @@
 #include "ahrs_abstract.h"
 
 #include "pid_controller.hpp"
-#include "math.h"
-
 
 /**
  * @name GimbalSKD
  * @note SKD stands for "scheduler"
  * @brief Scheduler to control gimbal to meet the target, including a thread to invoke PID calculation in period.
  * @pre GimbalIF and ChassisIF have been initialized properly
- * @usage 1. start(), load_pid_params()
+ * @usage 1. start(), load_v2i_pid_params()
  *        2. set_mode() and set_target_angle() as needed
  *        3. Leave the rest of the work to this SKD
  * @note ABOUT COORDINATE
