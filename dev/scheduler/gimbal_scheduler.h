@@ -48,8 +48,8 @@ public:
     enum mode_t {
         FORCED_RELAX_MODE,   // zero force (but still taking control of GimbalIF)
         ABS_ANGLE_MODE,      // target_angle of yaw is relative to ground
-//        SENTRY_MODE,         //
-    }; // no support for RELATIVE_ANGLE_MODE
+        RELATIVE_ANGLE_MODE,         //
+    };
 
     enum install_direction_t {
         POSITIVE = 1,
@@ -65,14 +65,10 @@ public:
      * @param pitch_install_              Pitch motor install direction
      * @param sub_pitch_install_          Sub-pitch motor install direction
      * @param thread_prio                 Priority of PID calculating thread
-     * @param yaw_deceleration_ratio_     Deceleration ratio of yaw motor
-     * @param pitch_deceleration_ratio_   Deceleration ratio of pitch motor
-     * @param sub_pitch_deceleration_ratio_   Deceleration ratio of sub-pitch motor
      */
     static void
     start(AbstractAHRS *gimbal_ahrs_, const Matrix33 ahrs_angle_rotation_, const Matrix33 ahrs_gyro_rotation_,
-          install_direction_t yaw_install_, install_direction_t pitch_install_, install_direction_t sub_pitch_install_, tprio_t thread_prio,
-          float yaw_deceleration_ratio_ = 1, float pitch_deceleration_ratio_ = 1, float sub_pitch_deceleration_ratio_ = 1);
+          install_direction_t yaw_install_, install_direction_t pitch_install_, install_direction_t sub_pitch_install_, tprio_t thread_prio);
 
     /**
      * Set PID parameters of yaw, pitch and sub-pitch
@@ -202,13 +198,12 @@ private:
     static install_direction_t yaw_install;
     static install_direction_t pitch_install;
     static install_direction_t sub_pitch_install;
-    static float yaw_deceleration_ratio;
-    static float pitch_deceleration_ratio;
-    static float sub_pitch_deceleration_ratio;
 
     // Local storage
     static bool is_test;
     static mode_t mode;
+
+    static mode_t angle_mode;
 
     static bool motor_enable[3];
 
