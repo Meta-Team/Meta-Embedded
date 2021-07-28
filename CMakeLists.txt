@@ -420,6 +420,25 @@ add_executable(ut_sensors_sound
 
 # --------------------------------------- Param Adjusts ---------------------------------------
 
+add_executable(pa_hero_gimbal
+        ${VEHICLE_COMMON_SRC}
+        ${AHRS_SRC}
+
+        # Hero gimbal
+        dev/interface/gimbal_interface.cpp
+        dev/scheduler/gimbal_scheduler.cpp
+
+        # Main
+        dev/vehicle/hero/inspector_hero.cpp
+        dev/vehicle/hero/main_hero.cpp
+
+        # PAUser
+        dev/debug/param_adjusts/pa_user_gimbal.cpp
+        )
+target_include_directories(pa_hero_gimbal PRIVATE dev/vehicle/hero)
+target_compile_definitions(pa_hero_gimbal PRIVATE PARAM_ADJUST HERO)
+target_link_libraries(pa_hero_gimbal ${AHRS_LIB})
+
 # Hero Shoot
 add_executable(pa_hero_shoot
         dev/interface/can_interface.cpp

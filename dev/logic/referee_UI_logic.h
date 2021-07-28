@@ -15,7 +15,8 @@ class RefereeUILG {
 public:
     static void reset();
     static void revise_cap(float cap_volt);
-    static void toggle_top(bool top_stat);
+    static void set_bullet_case_state(bool bullet_case_opened);
+    static void set_remaining_bullet_count(int remaining_bullet_count_);
     static void toggle_dodge(bool dodge_stat);
     static void set_chassis_angle(float angle);
     static void set_main_enemy(RefereeUISKD::UI_point enemy_loc);
@@ -24,9 +25,10 @@ private:
     static char cap_title[31];
     static unsigned long cap_update_time;
 
-    static const char top_name[3];
-    static char top_title[31];
-    static unsigned long top_update_time;
+    static const char bullet_case_name[3];
+    static char bullet_case_title[31];
+    static RefereeUISKD::color_t bullet_case_color;
+    static unsigned long bullet_case_update_time;
 
     static const char dodge_name[3];
     static char dodge_title[31];
@@ -50,10 +52,14 @@ private:
     static RefereeUISKD::UI_point enemy_info[5];
     static RefereeUISKD::UI_point main_enemy;
 
+    static bool bullet_case_opened;
+    static int remaining_bullet_count;
+
     static void reset_data_UI();
     static void reset_chassis_UI();
     static void reset_vision_UI();
 
+    static void update_bullet_case_line();
 };
 
 

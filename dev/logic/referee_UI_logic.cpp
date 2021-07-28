@@ -10,12 +10,14 @@ const char RefereeUILG::cap_name[3] = {'c', 'a', 'p'};
 char RefereeUILG::cap_title[31];
 unsigned long RefereeUILG::cap_update_time;
 
-const char RefereeUILG::top_name[3] = {'t', 'o', 'p'};
-char RefereeUILG::top_title[31];
-unsigned long RefereeUILG::top_update_time;
+const char RefereeUILG::bullet_case_name[3] = {'t', 'o', 'p'};
+char RefereeUILG::bullet_case_title[31];
+RefereeUISKD::color_t RefereeUILG::bullet_case_color;
+unsigned long RefereeUILG::bullet_case_update_time;
 
 const char RefereeUILG::dodge_name[3] = {'d', 'g', 'e'};
 char RefereeUILG::dodge_title[31];
+RefereeUISKD::color_t RefereeUILG::dodge_color;
 unsigned long RefereeUILG::dodge_update_time;
 
 const char RefereeUILG::gun_indicator_name[3] = {'g', 'u', 'n'};
@@ -34,6 +36,9 @@ unsigned long RefereeUILG::angle_update_time;
 
 const char RefereeUILG::main_enemy_name[3] = {'e', 'n', 'm'};
 RefereeUISKD::UI_point RefereeUILG::main_enemy;
+
+bool RefereeUILG::bullet_case_opened = false;
+int RefereeUILG::remaining_bullet_count = 0;
 
 
 void RefereeUILG::reset() {
@@ -57,18 +62,30 @@ void RefereeUILG::revise_cap(float cap_volt) {
     cap_update_time = SYSTIME;
 }
 
-void RefereeUILG::toggle_top(bool top_stat) {
+void RefereeUILG::set_bullet_case_state(bool bullet_case_opened_) {
     // if (WITHIN_RECENT_TIME(top_update_time, 400)) return;
+    bullet_case_opened = bullet_case_opened_;
+    update_bullet_case_line();
+    RefereeUISKD::revise_character(bullet_case_name, bullet_case_title, bullet_case_color);
+}
+
+void RefereeUILG::set_remaining_bullet_count(int remaining_bullet_count_) {
+    // if (WITHIN_RECENT_TIME(top_update_time, 400)) return;
+    remaining_bullet_count = remaining_bullet_count_;
+    update_bullet_case_line();
+    RefereeUISKD::revise_character(bullet_case_name, bullet_case_title, bullet_case_color);
+}
+
+void RefereeUILG::update_bullet_case_line() {
     RefereeUISKD::color_t title_color;
-    if (top_stat) {
-        Shell::snprintf(top_title, sizeof(top_title), "CASE STAT  : OPEN [R]");
-        title_color = RefereeUISKD::GREEN;
+    if (bullet_case_opened) {
+        Shell::snprintf(bullet_case_title, sizeof(bullet_case_title), "CASE [R]: OPEN  %3d", remaining_bullet_count);
+        bullet_case_color = RefereeUISKD::ACCENT_COLOR;
     } else {
-        Shell::snprintf(top_title, sizeof(top_title), "CASE STAT  : CLOSE[R]");
-        title_color = RefereeUISKD::ACCENT_COLOR;
+        Shell::snprintf(bullet_case_title, sizeof(bullet_case_title), "CASE [R]: CLOSE %3d", remaining_bullet_count);
+        bullet_case_color = RefereeUISKD::GREEN;
     }
-    RefereeUISKD::revise_character(cap_name, cap_title, title_color);
-    top_update_time = SYSTIME;
+    bullet_case_update_time = SYSTIME;
 }
 
 void RefereeUILG::toggle_dodge(bool dodge_stat) {
@@ -107,13 +124,13 @@ void RefereeUILG::set_main_enemy(RefereeUISKD::UI_point enemy_loc) {
 }
 
 void RefereeUILG::reset_data_UI() {
-    RefereeUISKD::remove_layer(3);
-    Shell::snprintf(cap_title, sizeof(cap_title), "CAP  VOLT  : INIT", 0.0f);
-    RefereeUISKD::add_label(cap_name, {100, 540}, RefereeUISKD::GREEN, 3, 15, 2, cap_title);
-    Shell::snprintf(dodge_title, sizeof(dodge_title), "DODGE MODE : OFF  [X]");
-    RefereeUISKD::add_label(dodge_name, {100, 570}, RefereeUISKD::ACCENT_COLOR, 3, 15, 2, dodge_title);
-    Shell::snprintf(top_title, sizeof(top_title), "CASE STAT  : INIT [R]");
-    RefereeUISKD::add_label(top_name, {100, 600}, RefereeUISKD::ACCENT_COLOR, 3, 15, 2, top_title);
+    RefereeUISKD::remove_layer(1);
+    Shell::snprintf(cap_title, sizeof(cap_title), "CAP   : ?      ", 0.0f);
+    RefereeUISKD::add_label(cap_name, {100, 540}, RefereeUISKD::GREEN, 1, 15, 2, cap_title);
+    Shell::snprintf(dodge_title, sizeof(dodge_title), "DODGE [X]: ?    [X]");
+    RefereeUISKD::add_label(dodge_name, {100, 570}, RefereeUISKD::ACCENT_COLOR, 1, 15, 2, dodge_title);
+    update_bullet_case_line();
+    RefereeUISKD::add_label(bullet_case_name, {100, 600}, bullet_case_color, 1, 15, 2, bullet_case_title);
 }
 
 void RefereeUILG::reset_chassis_UI() {
@@ -130,7 +147,7 @@ void RefereeUILG::reset_chassis_UI() {
 }
 
 void RefereeUILG::reset_vision_UI() {
-    RefereeUISKD::remove_layer(1);
+    RefereeUISKD::remove_layer(3);
     RefereeUILG::main_enemy = {960, 540};
-    RefereeUISKD::add_circle(main_enemy_name, 1, RefereeUISKD::ACCENT_COLOR, main_enemy, 10, 10);
+    RefereeUISKD::add_circle(main_enemy_name, 3, RefereeUISKD::ACCENT_COLOR, main_enemy, 10, 10);
 }

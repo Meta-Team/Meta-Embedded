@@ -22,6 +22,9 @@ GimbalSKD::install_direction_t GimbalSKD::pitch_install;
 GimbalSKD::install_direction_t GimbalSKD::sub_pitch_install;
 
 bool GimbalSKD::motor_enable[3] = {true, true, true};
+#ifdef PARAM_ADJUST
+bool GimbalSKD::a2v_pid_enabled = true;
+#endif
 float GimbalSKD::target_angle[3] = {0, 0, 0};
 float GimbalSKD::target_velocity[3] = {0, 0, 0};
 int GimbalSKD::target_current[3] = {0, 0, 0};
@@ -96,7 +99,7 @@ void GimbalSKD::set_target_angle(float yaw_target_angle, float pitch_target_angl
 
 void GimbalSKD::separate_pitch(float angle) {
     if (angle < 0) angle = 0;
-    set_target_angle(target_angle[YAW], target_angle[PITCH] + target_angle[SUB_PITCH] + angle, - angle);
+    set_target_angle(target_angle[YAW], target_angle[PITCH] + target_angle[SUB_PITCH] + angle, -angle);
 }
 
 float GimbalSKD::get_target_angle(GimbalBase::motor_id_t motor) {
@@ -116,6 +119,7 @@ void GimbalSKD::SKDThread::main() {
 
             // Update angles
             if (angle_mode == ABS_ANGLE_MODE) {
+
                 // Fetch data from ahrs
                 Vector3D ahrs_angle = ahrs_angle_rotation * gimbal_ahrs->get_angle();
                 Vector3D ahrs_gyro = ahrs_gyro_rotation * gimbal_ahrs->get_gyro();
@@ -123,7 +127,8 @@ void GimbalSKD::SKDThread::main() {
                 // TODO: document calculations here
                 float angle[2] = {ahrs_angle.x, ahrs_angle.y};
                 float velocity[2] = {
-                        ahrs_gyro.x * cosf(ahrs_angle.y / 180.0f * M_PI) + ahrs_gyro.z * sinf(ahrs_angle.y / 180.0f * M_PI),
+                        ahrs_gyro.x * cosf(ahrs_angle.y / 180.0f * M_PI) +
+                        ahrs_gyro.z * sinf(ahrs_angle.y / 180.0f * M_PI),
                         ahrs_gyro.y};
 
 
@@ -165,19 +170,26 @@ void GimbalSKD::SKDThread::main() {
 
             // Update target current
             if (mode == FORCED_RELAX_MODE) {
+
                 target_current[YAW] = target_current[PITCH] = target_current[SUB_PITCH] = 0;
+
             } else {
-                /// Yaw
-                target_velocity[YAW] = a2v_pid[YAW].calc(accumulated_angle[YAW], target_angle[YAW]);
-                target_current[YAW] = (int) v2i_pid[YAW].calc(actual_velocity[YAW], target_velocity[YAW]);
 
-                /// Pitch
+#ifdef PARAM_ADJUST
+                if (a2v_pid_enabled) {
+#endif
+                    target_velocity[YAW] = a2v_pid[YAW].calc(accumulated_angle[YAW], target_angle[YAW]);
                     target_velocity[PITCH] = a2v_pid[PITCH].calc(last_angle[PITCH], target_angle[PITCH]);
-                    target_current[PITCH] = (int) v2i_pid[PITCH].calc(actual_velocity[PITCH], target_velocity[PITCH]);
+                    target_velocity[SUB_PITCH] = a2v_pid[SUB_PITCH].calc(accumulated_angle[SUB_PITCH],
+                                                                         target_angle[SUB_PITCH]);
+#ifdef PARAM_ADJUST
+                }
+#endif
 
-                /// Sub-pitch
-                    target_velocity[SUB_PITCH] = a2v_pid[SUB_PITCH].calc(accumulated_angle[SUB_PITCH], target_angle[SUB_PITCH]);
-                    target_current[SUB_PITCH] = (int) v2i_pid[SUB_PITCH].calc(actual_velocity[SUB_PITCH], target_velocity[SUB_PITCH]);
+                target_current[YAW] = (int) v2i_pid[YAW].calc(actual_velocity[YAW], target_velocity[YAW]);
+                target_current[PITCH] = (int) v2i_pid[PITCH].calc(actual_velocity[PITCH], target_velocity[PITCH]);
+                target_current[SUB_PITCH] = (int) v2i_pid[SUB_PITCH].calc(actual_velocity[SUB_PITCH],
+                                                                          target_velocity[SUB_PITCH]);
             }
 
             for (int i = YAW; i <= SUB_PITCH; i++) {
@@ -208,11 +220,11 @@ float GimbalSKD::get_relative_angle(GimbalBase::motor_id_t motor) {
 }
 
 const Shell::Command GimbalSKD::shellCommands[] = {
-        {"_g",               nullptr,                                                     GimbalSKD::cmdInfo,           nullptr},
-        {"_g_enable_fb",     "Channel/All Feedback{Disabled,Enabled}",                    GimbalSKD::cmdEnableFeedback, nullptr},
-        {"_g_pid",           "Channel PID{A2V,V2I} [kp] [ki] [kd] [i_limit] [out_limit]", GimbalSKD::cmdPID,            nullptr},
-        {"_g_enable_motor",  "Channel/All Motor{Disabled,Enabled}",                       GimbalSKD::cmdEnableMotor,    nullptr},
-        {nullptr,            nullptr,                                                     nullptr,                      nullptr}
+        {"_g",              nullptr,                                                     GimbalSKD::cmdInfo,           nullptr},
+        {"_g_enable_fb",    "Channel/All Feedback{Disabled,Enabled}",                    GimbalSKD::cmdEnableFeedback, nullptr},
+        {"_g_pid",          "Channel PID{A2V,V2I} [kp] [ki] [kd] [i_limit] [out_limit]", GimbalSKD::cmdPID,            nullptr},
+        {"_g_enable_motor", "Channel/All Motor{Disabled,Enabled}",                       GimbalSKD::cmdEnableMotor,    nullptr},
+        {nullptr,           nullptr,                                                     nullptr,                      nullptr}
 };
 
 DEF_SHELL_CMD_START(GimbalSKD::cmdInfo)

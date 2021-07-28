@@ -155,20 +155,16 @@ void UserI::UserThread::main() {
                 ShootLG::set_limit_mode(ShootLG::UNLIMITED_MODE);
 
                 if (Remote::rc.wheel > 0.5) {  // down
-                    if (Referee::power_heat.shooter_id1_17mm_cooling_heat <
-                        (uint16_t) (Referee::robot_state.shooter_id1_17mm_cooling_limit * 0.75)) {
-                        if (ShootLG::get_shooter_state() == ShootLG::STOP) {
-                            ShootLG::shoot(shoot_launch_left_count, shoot_feed_rate);
-                        }
+                    ShootLG::set_limit_mode(ShootLG::UNLIMITED_MODE);
+                    if (ShootLG::get_shooter_state() == ShootLG::STOP) {
+                        ShootLG::shoot(ShootLG::get_bullet_count_to_heat_limit(), shoot_feed_rate);
                     } else {
                         ShootLG::stop();
                     }
                 } else if (Remote::rc.wheel < -0.5) {  // up
-                    if (Referee::power_heat.shooter_id1_17mm_cooling_heat <
-                        Referee::robot_state.shooter_id1_17mm_cooling_limit - 0x0015) {
-                        if (ShootLG::get_shooter_state() == ShootLG::STOP) {
-                            ShootLG::shoot(shoot_launch_right_count, shoot_feed_rate);
-                        }
+                    ShootLG::set_limit_mode(ShootLG::UNLIMITED_MODE);
+                    if (ShootLG::get_shooter_state() == ShootLG::STOP) {
+                        ShootLG::shoot(999 /* unlimited */, shoot_feed_rate);
                     } else {
                         ShootLG::stop();
                     }
@@ -188,7 +184,6 @@ void UserI::UserThread::main() {
                     ShootLG::set_limit_mode(ShootLG::UNLIMITED_MODE);
                     if (ShootLG::get_shooter_state() == ShootLG::STOP) {
                         ShootLG::shoot(ShootLG::get_bullet_count_to_heat_limit(), shoot_feed_rate);
-
                     } else {
                         ShootLG::stop();
                     }
@@ -196,7 +191,6 @@ void UserI::UserThread::main() {
                     ShootLG::set_limit_mode(ShootLG::VISION_LIMITED_MODE);
                     if (ShootLG::get_shooter_state() == ShootLG::STOP) {
                         ShootLG::shoot(ShootLG::get_bullet_count_to_heat_limit(), shoot_feed_rate);
-
                     } else {
                         ShootLG::stop();
                     }

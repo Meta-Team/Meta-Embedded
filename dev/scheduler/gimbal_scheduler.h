@@ -168,6 +168,9 @@ private:
     static angle_mode_t angle_mode;
 
     static bool motor_enable[3];
+#ifdef PARAM_ADJUST
+    static bool a2v_pid_enabled;  // only allowed by PAUser
+#endif
 
     static float target_angle[3];  // angles of MOTORS (NOTICE: different from target_angle in set_target_angle())
     static float last_angle[3];  // last angle data of yaw and pitch from AHRS
@@ -194,6 +197,10 @@ private:
     static DECL_SHELL_CMD(cmdEnableFeedback);
     static DECL_SHELL_CMD(cmdPID);
     static DECL_SHELL_CMD(cmdEnableMotor);
+
+#ifdef PARAM_ADJUST
+    friend class PAUserGimbal;
+#endif
 
 };
 
