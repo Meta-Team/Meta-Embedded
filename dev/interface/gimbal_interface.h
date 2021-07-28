@@ -103,12 +103,14 @@ public:
 
     static void init(CANInterface *can1_interface, CANInterface *can2_interface,
                      motor_can_config_t motor_can_config[MOTOR_COUNT],
-                     uint16_t yaw_front_angle_raw, uint16_t pitch_front_angle_raw, uint16_t sub_pitch_front_angle_raw);
+                     uint16_t yaw_front_angle_raw, uint16_t pitch_front_angle_raw, uint16_t sub_pitch_front_angle_raw, motor_can_channel_t lidar_channel);
 
     /**
      * Motor feedback structure
      */
     static CANInterface::motor_feedback_t *feedback[MOTOR_COUNT];
+
+    static float *lidar_dist;
 
 
     /**
@@ -120,8 +122,6 @@ public:
      * Clip gimbal target currents (if enabled)
      */
     static void clip_gimbal_current();
-
-    static void store_yaw_front(uint16_t new_front_angle);
 
 
 private:

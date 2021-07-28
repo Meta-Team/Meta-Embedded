@@ -47,8 +47,12 @@ public:
 
     enum mode_t {
         FORCED_RELAX_MODE,   // zero force (but still taking control of GimbalIF)
-        ABS_ANGLE_MODE,      // target_angle of yaw is relative to ground
-        RELATIVE_ANGLE_MODE,         //
+        ENABLED_MODE
+    };
+
+    enum angle_mode_t {
+        ABS_ANGLE_MODE,
+        RELATIVE_ANGLE_MODE
     };
 
     enum install_direction_t {
@@ -69,7 +73,8 @@ public:
      */
     static void
     start(AbstractAHRS *gimbal_ahrs_, const Matrix33 ahrs_angle_rotation_, const Matrix33 ahrs_gyro_rotation_,
-          install_direction_t yaw_install_, install_direction_t pitch_install_, install_direction_t sub_pitch_install_, tprio_t thread_prio);
+          install_direction_t yaw_install_, install_direction_t pitch_install_, install_direction_t sub_pitch_install_, tprio_t thread_prio,
+          angle_mode_t angle_mode_);
 
     /**
      * Set PID parameters of yaw, pitch and sub-pitch
@@ -103,6 +108,12 @@ public:
      * @param sub_pitch_target_angle  GIMBAL sub-pitch target ACCUMULATED angle on pitch coordinate [degree]
      */
     static void set_target_angle(float yaw_target_angle, float pitch_target_angle, float sub_pitch_target_angle);
+
+    /**
+     * Separate the pitch from the sub-pitch with a specific angle.
+     * @param angle     The angle between sub-pitch and pitch, must be non-negative
+     */
+    static void separate_pitch(float angle);
 
     /**
      * Get current target angle data
@@ -154,7 +165,7 @@ private:
     // Local storage
     static mode_t mode;
 
-    static mode_t angle_mode;
+    static angle_mode_t angle_mode;
 
     static bool motor_enable[3];
 
