@@ -20,61 +20,76 @@
 #include "vision_interface.h"
 #include <cmath>
 
-ShootLG::mode_t ShootLG::mode = MANUAL_MODE;
+ShootLG::limit_mode_t ShootLG::mode = UNLIMITED_MODE;
 float ShootLG::angle_per_bullet = 0;
-int ShootLG::bullet_count = 0;
-float ShootLG::shoot_target_number = 0;
+int ShootLG::remaining_bullet_count = 0;
+float ShootLG::target_bullet_count = 0;
 ShootLG::shooter_state_t ShootLG::shooter_state = STOP;
-ShootLG::StuckNHeatDetectorThread ShootLG::stuck_detector_thread;
+bool ShootLG::use_42mm_bullet = false;
+float ShootLG::fw_mm_to_deg_ratio = 0;
+ShootLG::StuckDetectorThread ShootLG::stuck_detector_thread;
 chibios_rt::ThreadReference ShootLG::stuck_detector_ref;
 ShootLG::BulletCounterThread ShootLG::bullet_counter_thread;
 ShootLG::VisionShootThread ShootLG::vision_shoot_thread;
 
-void ShootLG::init(float angle_per_bullet_, tprio_t stuck_detector_thread_prio, tprio_t bullet_counter_thread_prio,
-                   tprio_t vision_shooting_thread_prio) {
+void ShootLG::init(float angle_per_bullet_, bool use_42mm_bullet_, float fw_circumference_,
+                   tprio_t stuck_detector_thread_prio,
+                   tprio_t bullet_counter_thread_prio, tprio_t vision_shooting_thread_prio) {
     angle_per_bullet = angle_per_bullet_;
+    use_42mm_bullet = use_42mm_bullet_;
+    fw_mm_to_deg_ratio = 360.0f / fw_circumference_;
     stuck_detector_ref = stuck_detector_thread.start(stuck_detector_thread_prio);
     bullet_counter_thread.start(bullet_counter_thread_prio);
     vision_shoot_thread.start(vision_shooting_thread_prio);
 }
 
-void ShootLG::increment_bullet(int number_of_bullet) {
-    bullet_count += number_of_bullet;
+void ShootLG::increment_remaining_bullet(int number_of_bullet) {
+    remaining_bullet_count += number_of_bullet;
 }
 
-void ShootLG::set_bullet_count(int number_of_bullet) {
-    bullet_count = number_of_bullet;
+void ShootLG::set_remaining_bullet_count(int number_of_bullet) {
+    remaining_bullet_count = number_of_bullet;
 }
 
-int ShootLG::get_bullet_count() {
-    return bullet_count;
+int ShootLG::get_remaining_bullet_count() {
+    return remaining_bullet_count;
 }
 
-void ShootLG::set_friction_wheels(float speed) {
-    ShootSKD::set_friction_wheels(speed);
+void ShootLG::set_shoot_speed(float speed) {
+    ShootSKD::set_friction_wheels(speed * fw_mm_to_deg_ratio);
 }
 
-float ShootLG::get_friction_wheels_duty_cycle() {
-    return ShootSKD::get_friction_wheels_target_speed();
+float ShootLG::get_shoot_speed() {
+    return ShootSKD::get_friction_wheels_target_velocity() / fw_mm_to_deg_ratio;
 }
 
 ShootLG::shooter_state_t ShootLG::get_shooter_state() {
     return shooter_state;
 }
 
+int ShootLG::get_bullet_count_to_heat_limit() {
+    if (!use_42mm_bullet) {
+        return (Referee::robot_state.shooter_id1_17mm_cooling_limit -
+                Referee::power_heat.shooter_id1_17mm_cooling_heat) / HEAT_PER_17MM_BULLET;
+    } else {
+        return (Referee::robot_state.shooter_id1_42mm_cooling_limit -
+                Referee::power_heat.shooter_id1_42mm_cooling_heat) / HEAT_PER_42MM_BULLET;
+    }
+}
+
 void ShootLG::shoot(float number_of_bullet, float number_per_second) {
-    if (mode != MANUAL_MODE) {
+    if (mode != UNLIMITED_MODE) {
         LOG_ERR("ShootLG: shoot() is called outside MANUAL_MODE");
         return;
     }
 
-    shoot_target_number = number_of_bullet;
+    target_bullet_count = number_of_bullet;
 
     shooter_state = SHOOTING;
     ShootSKD::reset_loader_accumulated_angle();
     ShootSKD::set_mode(ShootSKD::LIMITED_SHOOTING_MODE);
     ShootSKD::set_loader_target_velocity(number_per_second * angle_per_bullet);
-    ShootSKD::set_loader_target_angle(shoot_target_number * angle_per_bullet);
+    ShootSKD::set_loader_target_angle(target_bullet_count * angle_per_bullet);
     chSysLock();  /// --- ENTER S-Locked state. DO NOT use LOG, printf, non S/I-Class functions or return ---
     {
         if (!stuck_detector_thread.started) {
@@ -89,7 +104,7 @@ void ShootLG::shoot(float number_of_bullet, float number_per_second) {
 void ShootLG::stop() {
     chSysLock();  /// --- ENTER S-Locked state. DO NOT use LOG, printf, non S/I-Class functions or return ---
     {
-        bullet_count -= (int) roundf((float) ShootSKD::get_loader_accumulated_angle() / angle_per_bullet);
+        remaining_bullet_count -= (int) roundf((float) ShootSKD::get_loader_accumulated_angle() / angle_per_bullet);
     }
     chSysUnlock();  /// --- EXIT S-Locked state ---
     ShootSKD::reset_loader_accumulated_angle();
@@ -102,7 +117,7 @@ void ShootLG::force_stop() {
     stop();
 }
 
-void ShootLG::StuckNHeatDetectorThread::main() {
+void ShootLG::StuckDetectorThread::main() {
     setName("ShootLG_Stuck");
     while (!shouldTerminate()) {
 
@@ -135,7 +150,7 @@ void ShootLG::StuckNHeatDetectorThread::main() {
             LOG_WARN("Bullet loader stuck");
             ShootSKD::set_loader_target_angle(ShootSKD::get_loader_accumulated_angle() - STUCK_REVERSE_ANGLE);
             sleep(TIME_MS2I(STUCK_REVERSE_TIME));
-            ShootSKD::set_loader_target_angle(shoot_target_number * angle_per_bullet);  // recover original target
+            ShootSKD::set_loader_target_angle(target_bullet_count * angle_per_bullet);  // recover original target
             shooter_state = SHOOTING;
         }
 
@@ -165,7 +180,7 @@ void ShootLG::BulletCounterThread::main() {
 
             chSysLock();  /// --- ENTER S-Locked state. DO NOT use LOG, printf, non S/I-Class functions or return ---
             {
-                bullet_count += (int) (Referee::supply_projectile_action.supply_projectile_num);
+                remaining_bullet_count += (int) (Referee::supply_projectile_action.supply_projectile_num);
             }
             chSysUnlock();  /// --- EXIT S-Locked state ---
         }
@@ -183,7 +198,7 @@ void ShootLG::VisionShootThread::main() {
 
         chEvtWaitAny(VISION_UPDATED_EVENT_MASK);
 
-        if (mode == VISION_AUTO_MODE) {
+        if (mode == VISION_LIMITED_MODE) {
 
             time_msecs_t expected_shoot_time, command_issue_time;
             chSysLock();  /// --- ENTER S-Locked state. DO NOT use LOG, printf, non S/I-Class functions or return ---

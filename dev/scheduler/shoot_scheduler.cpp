@@ -20,7 +20,7 @@ bool ShootSKD::motor_enable[3] = {true, true, true};
 
 float ShootSKD::target_angle = 0;
 float ShootSKD::actual_angle = 0;
-float ShootSKD::fw_target_speed = 0;
+float ShootSKD::fw_target_velocity = 0;
 float ShootSKD::target_velocity[3] = {0, 0, 0};
 float ShootSKD::actual_velocity[3] = {0, 0, 0};
 int ShootSKD::target_current[3] = {0, 0, 0};
@@ -68,14 +68,14 @@ void ShootSKD::set_loader_target_velocity(float degree_per_second) {
     a2v_pid.clear_i_out();
 }
 
-void ShootSKD::set_friction_wheels(float speed) {
-    fw_target_speed = speed;
-    target_velocity[1] = speed * (float) install_position[1];
-    target_velocity[2] = speed * (float) install_position[2];
+void ShootSKD::set_friction_wheels(float velocity) {
+    fw_target_velocity = velocity;
+    target_velocity[1] = velocity * (float) install_position[1];
+    target_velocity[2] = velocity * (float) install_position[2];
 }
 
-float ShootSKD::get_friction_wheels_target_speed() {
-    return fw_target_speed;
+float ShootSKD::get_friction_wheels_target_velocity() {
+    return fw_target_velocity;
 }
 
 float ShootSKD::get_target_velocity(uint32_t motor_id) {

@@ -298,9 +298,9 @@ public:
     static supply_projectile_booking_t supply_projectile_booking;
     static referee_warning_t referee_warning;
     static ext_dart_remaining_time_t ext_dart_remaining_time;
-    static game_robot_state_t game_robot_state;
-    static power_heat_data_t power_heat_data;
-    static game_robot_pos_t game_robot_pos;
+    static game_robot_state_t robot_state;
+    static power_heat_data_t power_heat;
+    static game_robot_pos_t robot_pos;
     static buff_musk_t buff_musk;
     static aerial_robot_energy_t aerial_robot_energy;
     static robot_hurt_t robot_hurt;

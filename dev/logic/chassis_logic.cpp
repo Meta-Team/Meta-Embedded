@@ -134,11 +134,11 @@ void ChassisLG::CapacitorPowerSetThread::main() {
     setName("Cap_Setting");
     while (!shouldTerminate()) {
 
-        if((float)Referee::power_heat_data.chassis_power_buffer - Referee::power_heat_data.chassis_power*0.1 > 5.0){
+        if((float)Referee::power_heat.chassis_power_buffer - Referee::power_heat.chassis_power * 0.1 > 5.0){
             SuperCapacitor::set_power(95.0);
         }
         else{
-            SuperCapacitor::set_power((float)Referee::game_robot_state.chassis_power_limit * 0.9f);
+            SuperCapacitor::set_power((float)Referee::robot_state.chassis_power_limit * 0.9f);
         }
 
         if(action == DODGE_MODE) {

@@ -171,7 +171,7 @@ void UserH::UserThread::main() {
                     }
                 }
 
-                ShootLG::set_friction_wheels(shoot_common_duty_cycle);
+                ShootLG::set_shoot_speed(shoot_common_duty_cycle);
 
             } else if (Remote::rc.s1 == Remote::S_DOWN) {
 
@@ -182,13 +182,13 @@ void UserH::UserThread::main() {
             } else {
                 /// Safe Mode
                 ShootLG::force_stop();
-                ShootLG::set_friction_wheels(0);
+                ShootLG::set_shoot_speed(0);
             }
 
         } else {  // InspectorH::remote_failure() || InspectorH::chassis_failure() || InspectorH::gimbal_failure()
             /// Safe Mode
             ShootLG::stop();
-            ShootLG::set_friction_wheels(0);
+            ShootLG::set_shoot_speed(0);
         }
         /*** ---------------------------------- Chassis --------------------------------- ***/
         if (!InspectorH::remote_failure() && !InspectorH::chassis_failure() /*&& !InspectorH::gimbal_failure()*/) {
@@ -319,8 +319,8 @@ void UserH::UserActionThread::main() {
             eventflags_t mouse_flag = chEvtGetAndClearFlags(&mouse_press_listener);
 
             /// Shoot
-            if (ShootLG::get_friction_wheels_duty_cycle() == 0) {  // force start friction wheels
-                ShootLG::set_friction_wheels(shoot_common_duty_cycle);
+            if (ShootLG::get_shoot_speed() == 0) {  // force start friction wheels
+                ShootLG::set_shoot_speed(shoot_common_duty_cycle);
             }
             if (mouse_flag & (1U << Remote::MOUSE_LEFT)) {
                 ShootLG::shoot(shoot_launch_left_count, shoot_launch_speed);
@@ -357,19 +357,19 @@ void UserH::UserActionThread::main() {
 
             /// Shoot
             if (key_flag & (1U << shoot_fw_switch)) {
-                if (ShootLG::get_friction_wheels_duty_cycle() > 0) {
-                    ShootLG::set_friction_wheels(0);
+                if (ShootLG::get_shoot_speed() > 0) {
+                    ShootLG::set_shoot_speed(0);
                 } else {
-                    ShootLG::set_friction_wheels(shoot_common_duty_cycle);
+                    ShootLG::set_shoot_speed(shoot_common_duty_cycle);
                 }
             }
 
             // TODO: re-arrange variables
             if (key_flag & (1U << Remote::KEY_R)) {
-                ShootLG::set_friction_wheels(0.95);
+                ShootLG::set_shoot_speed(0.95);
             }
             if (key_flag & (1U << Remote::KEY_F)) {
-                ShootLG::set_friction_wheels(0.5);
+                ShootLG::set_shoot_speed(0.5);
             }
         }
 
