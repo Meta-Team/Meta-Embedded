@@ -22,7 +22,7 @@
 #define SIGN(n) (n == 0 ? 0 : (n > 0 ? 1 : -1))
 
 #define SYSTIME (TIME_I2MS(chVTGetSystemTimeX()))
-// X indicates that this function can be call in all conditions (Thread, ISR, and their critical sections)
+// VERTICAL indicates that this function can be call in all conditions (Thread, ISR, and their critical sections)
 
 #define WITHIN_RECENT_TIME(value, ms) ((int) SYSTIME - (int) (value) < (int) (ms))
 #define WITHIN_DURATION(now, value, ms) ((int) (now) - (int) (value) < (int) (ms))

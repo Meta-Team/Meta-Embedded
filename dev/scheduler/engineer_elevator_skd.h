@@ -12,6 +12,7 @@
 #include "engineer_elevator_interface.h"
 #include "pid_controller.hpp"
 
+#define ELEVATOR_CLOSE_LOOP_CONTROL TRUE
 
 /**
  * @note positive height - chassis lift up
@@ -26,10 +27,14 @@ public:
 
     static void set_target_movement(float target_location_);
 
-    static float get_current_height();
+    enum homing_direction_t {
+        VERTICAL,
+        HORIZONTAL
+    };
 
-    static float get_current_movement();
-
+#if ELEVATOR_CLOSE_LOOP_CONTROL
+    static void homing(homing_direction_t homing_direction_);
+#endif
 private:
 
     static enum operation_t {
@@ -37,6 +42,8 @@ private:
         BACKWARD,
         STOP
     } vertical_operation, horizontal_operation;
+    // For vertical, FORWARD means upward, BACKWARD means downward.
+    // For horizontal, the name conforms with the description.
 
     class SKDThread : public chibios_rt::BaseStaticThread<512> {
         static constexpr unsigned int SKD_THREAD_INTERVAL = 2; // PID calculation interval [ms]
@@ -46,11 +53,10 @@ private:
     static SKDThread skdThread;
 
     friend void cmd_elevator_echo_parameters(BaseSequentialStream *chp, int argc, char *argv[]);
+
     friend void cmd_elevator_set_target_velocities(BaseSequentialStream *chp, int argc, char *argv[]);
 
-    static float time_2_length_ratio;
-
-    static float current_height, target_height, current_location, target_location, stop_judge_threshold;
+    static float target_height, target_location, stop_judge_threshold;
 };
 
 

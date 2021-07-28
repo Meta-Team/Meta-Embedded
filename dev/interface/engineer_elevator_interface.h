@@ -28,11 +28,11 @@ class EngineerElevatorIF {
 
 public:
 
-    static void init();
+    static void init(float tick2length_ratio_);
 
     enum motor_id_t {
-        LIFT, // right motor, 0
-        PUSH, // left motor, 1
+        VERTICAL, // right motor, 0
+        HORIZONTAL, // left motor, 1
         MOTOR_COUNT
     };
 
@@ -42,7 +42,19 @@ public:
         STOP
     };
 
-    static void set_elevator(motor_id_t motor_id, motor_operation_t op_type);
+    static void set_elevator(motor_id_t motor_id, motor_operation_t type, float motor_speed);
+
+    static float get_current_vertical_location();
+
+    static float get_current_horizontal_location();
+
+private:
+
+    static PWMConfig ELEVATOR_PWM_CFG;
+
+    static float current_vertical_position, current_horizontal_position, tick2length_ratio;
+
+    static void PWM_Callback_Func(PWMDriver *pwmp);
 
 };
 

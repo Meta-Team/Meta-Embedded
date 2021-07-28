@@ -6,7 +6,7 @@
 
 float EngineerGimbalIF::target_angle[2];
 
-const PWMConfig FRICTION_WHEELS_PWM_CFG = {
+const PWMConfig ELEVATOR_PWM_CFG = {
         50000,   // frequency
         1000,    // period
         nullptr, // callback
@@ -33,7 +33,7 @@ void EngineerGimbalIF::set_target_angle(float yaw_angle_, float pitch_angle_) {
 }
 
 void EngineerGimbalIF::init() {
-    pwmStart(&PWMD8, &FRICTION_WHEELS_PWM_CFG);
+    pwmStart(&PWMD8, &ELEVATOR_PWM_CFG);
     set_target_angle(108.0f, 62.0f);
 }
 

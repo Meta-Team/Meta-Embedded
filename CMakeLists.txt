@@ -413,6 +413,12 @@ add_executable(ut_sensors_sound
         dev/debug/Unit_Tests/ut_sensors_sound.cpp
         )
 
+add_executable(ut_elevator
+        dev/debug/shell/shell.cpp
+        dev/interface/engineer_elevator_interface.cpp
+        dev/scheduler/engineer_elevator_skd.cpp
+        dev/debug/Unit_Tests/ut_engineer_elevator.cpp)
+
 # --------------------------------------- Param Adjusts ---------------------------------------
 
 # Hero Shoot
