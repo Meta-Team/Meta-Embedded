@@ -50,29 +50,29 @@ public:
 
     static void init(tprio_t SKDThreadPRIO);
 
-    static void add_character(char* name, UI_point start_p, color_t color, uint32_t layer, uint32_t size, uint32_t weight, char *string);
+    static bool add_label(const char* name, UI_point start_p, color_t color, uint32_t layer, uint32_t size, uint32_t weight, char *s);
 
-    static void add_circle(char name[3], uint32_t layer, color_t color, UI_point center, uint32_t radius, uint32_t line_width);
+    static bool add_circle(const char name[3], uint32_t layer, color_t color, UI_point center, uint32_t radius, uint32_t line_width);
 
-    static void add_line(char name[3], uint32_t layer, color_t color, UI_point start_p, UI_point end_p, uint32_t line_width);
+    static bool add_line(const char name[3], uint32_t layer, color_t color, UI_point start_p, UI_point end_p, uint32_t line_width);
 
-    static void add_rect(char name[3], uint32_t layer, color_t color, UI_point start_p, UI_point end_p, uint32_t line_width);
+    static bool add_rect(const char name[3], uint32_t layer, color_t color, UI_point start_p, UI_point end_p, uint32_t line_width);
 
-    static void add_float(char name[3], uint32_t layer, color_t color, UI_point start_p, uint32_t font_size, float data);
+    static bool add_float(char name[3], uint32_t layer, color_t color, UI_point start_p, uint32_t font_size, float data);
 
-    static void add_int(char name[3], uint32_t layer, color_t color, UI_point start_p, uint32_t font_size, int data);
+    static bool add_int(const char name[3], uint32_t layer, color_t color, UI_point start_p, uint32_t font_size, int data);
 
-    static void revise_character(char name[3], char *string, color_t color);
+    static bool revise_character(const char name[3], char *string, color_t color);
 
-    static void revise_shape_loc(char name[3], UI_point point, color_t color);
+    static bool revise_shape_loc(const char name[3], UI_point point, color_t color);
 
-    static void revise_line(char name[3], UI_point start_p, UI_point end_p);
+    static bool revise_line(const char name[3], UI_point start_p, UI_point end_p);
 
     static void remove_layer(uint32_t layer);
 
-    static void remove_shape(char name[3]);
+    static bool remove_shape(const char name[3]);
 
-    static void remove_chara(char name[3]);
+    static bool remove_label(const char *name);
 
     static void remove_all();
 
@@ -83,9 +83,8 @@ public:
 public:
 
     enum component_state_t{
-        WAITING,
-        REVISING,
-        FINISHED
+        FINISHED,
+        REVISING
     };
 
     static component_state_t shape_state[REFEREE_UI_MAX_SHAPE_COUNT];

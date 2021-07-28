@@ -110,8 +110,8 @@ int main() {
 
     /// Setup Referee
     Referee::init(THREAD_REFEREE_SENDING_PRIO);
-    RefereeUILG::init();
     RefereeUISKD::init(THREAD_REFEREE_SKD_PRIO);
+    RefereeUILG::reset();
 
     /// Complete Period 1
     LED::green_on();  // LED Green on now

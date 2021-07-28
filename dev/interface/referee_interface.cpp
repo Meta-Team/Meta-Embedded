@@ -225,68 +225,96 @@ void Referee::DataSendingThread::main() {
 
     while (!shouldTerminate()) {
 
-        /***Update UI Info***/
+        /*** Update UI Info ***/
+
+        bool data_sent = false;
 
         if (graphic_buffer_index != 0) {
 
-            if (graphic_buffer_index == 1) {  // 1 buffer used
-                client_custom_data.header.data_cmd_id = 0x0101;
-                client_custom_data.ext_client_custom_graphic_single.grapic_data_ = graphic_data_buffer[0];
-            } else if (graphic_buffer_index < 3) { // 2 buffer used
-                client_custom_data.header.data_cmd_id = 0x0102;
-                client_custom_data.ext_client_custom_graphic_double.grapic_data_[0] = graphic_data_buffer[0];
-                client_custom_data.ext_client_custom_graphic_double.grapic_data_[1] = graphic_data_buffer[1];
-            } else if (graphic_buffer_index < 6) { // 3 - 5 buffer used
-                client_custom_data.header.data_cmd_id = 0x0103;
-                int i;
-                for (i = 0; i < graphic_buffer_index; i++) {
-                    client_custom_data.ext_client_custom_graphic_five.grapic_data_[i] = graphic_data_buffer[i];
+            chSysLock();  /// --- ENTER S-Locked state. DO NOT use LOG, printf, non S/I-Class functions or return ---
+            {
+                if (graphic_buffer_index == 1) {   // 1 buffer used
+                    client_custom_data.header.data_cmd_id = 0x0101;
+                    client_custom_data.ext_client_custom_graphic_single.grapic_data_ = graphic_data_buffer[0];
+                } else if (graphic_buffer_index < 3) {  // 2 buffer used
+                    client_custom_data.header.data_cmd_id = 0x0102;
+                    client_custom_data.ext_client_custom_graphic_double.grapic_data_[0] = graphic_data_buffer[0];
+                    client_custom_data.ext_client_custom_graphic_double.grapic_data_[1] = graphic_data_buffer[1];
+                } else if (graphic_buffer_index < 6) {  // 3 - 5 buffer used
+                    client_custom_data.header.data_cmd_id = 0x0103;
+                    int i;
+                    for (i = 0; i < graphic_buffer_index; i++) {
+                        client_custom_data.ext_client_custom_graphic_five.grapic_data_[i] = graphic_data_buffer[i];
+                    }
+                    // Zero padding
+                    for (; i < 5; i++) {
+                        client_custom_data.ext_client_custom_graphic_seven.grapic_data_[i] = null_graphic;
+                    }
+                } else if (graphic_buffer_index < 8) { // 6 - 7 buffer full filled
+                    client_custom_data.header.data_cmd_id = 0x0104;
+                    int i;
+                    for (i = 0; i < graphic_buffer_index; i++) {
+                        client_custom_data.ext_client_custom_graphic_seven.grapic_data_[i] = graphic_data_buffer[i];
+                    }
+                    // Zero padding
+                    for (; i < 7; i++) {
+                        client_custom_data.ext_client_custom_graphic_seven.grapic_data_[i] = null_graphic;
+                    }
                 }
-                // zero padding
-                for (; i < 5; i++) {
-                    client_custom_data.ext_client_custom_graphic_seven.grapic_data_[i] = null_graphic;
-                }
-            } else if (graphic_buffer_index < 8) { // 6 - 7 buffer full filled
-                client_custom_data.header.data_cmd_id = 0x0104;
-                int i = 0;
-                for (i = 0; i < graphic_buffer_index; i++) {
-                    client_custom_data.ext_client_custom_graphic_seven.grapic_data_[i] = graphic_data_buffer[i];
-                }
-                // zero padding
-                for (; i < 7; i++) {
-                    client_custom_data.ext_client_custom_graphic_seven.grapic_data_[i] = null_graphic;
-                }
+                graphic_buffer_index = 0;  // clear the buffer index
             }
-            graphic_buffer_index = 0; // clear the buffer index
+            chSysUnlock();  /// --- EXIT S-Locked state ---
+
             send_data_(Referee::CLIENT);
+            data_sent = true;
             sleep(TIME_MS2I(100)); // wait for 100ms, as the maximum sending interval is 10 Hz
         }
+
         if (!client_character_sent) {
-            client_custom_data.header.data_cmd_id = 0x0110;
-            client_custom_data.ext_client_custom_character = client_character_buffer;
-            client_character_sent = true;
+            chSysLock();  /// --- ENTER S-Locked state. DO NOT use LOG, printf, non S/I-Class functions or return ---
+            {
+                client_custom_data.header.data_cmd_id = 0x0110;
+                client_custom_data.ext_client_custom_character = client_character_buffer;
+                client_character_sent = true;
+            }
+            chSysUnlock();  /// --- EXIT S-Locked state ---
+
             send_data_(Referee::CLIENT);
+            data_sent = true;
             sleep(TIME_MS2I(100));
         }
+
         if (invoke_ui_delete_layer) {
-            client_custom_data.header.data_cmd_id = 0x0100;
-            client_custom_data.ext_client_custom_graphic_delete.operate_type = 1;
-            client_custom_data.ext_client_custom_graphic_delete.layer = layer_deleting;
+            chSysLock();  /// --- ENTER S-Locked state. DO NOT use LOG, printf, non S/I-Class functions or return ---
+            {
+                client_custom_data.header.data_cmd_id = 0x0100;
+                client_custom_data.ext_client_custom_graphic_delete.operate_type = 1;
+                client_custom_data.ext_client_custom_graphic_delete.layer = layer_deleting;
+                invoke_ui_delete_layer = false;
+            }
+            chSysUnlock();  /// --- EXIT S-Locked state ---
+
             send_data_(Referee::CLIENT);
-            invoke_ui_delete_layer = false;
+            data_sent = true;
             sleep(TIME_MS2I(100));
         }
+
         if (invoke_ui_delete_all) {
-            for (int i = 0; i < 9; i++) {
+            chSysLock();  /// --- ENTER S-Locked state. DO NOT use LOG, printf, non S/I-Class functions or return ---
+            {
                 client_custom_data.header.data_cmd_id = 0x0100;
                 client_custom_data.ext_client_custom_graphic_delete.operate_type = 2;
                 client_custom_data.ext_client_custom_graphic_delete.layer = 0;
-                send_data_(Referee::CLIENT);
-                sleep(TIME_MS2I(100));
+                invoke_ui_delete_all = false;
             }
-            invoke_ui_delete_all = false;
+            chSysUnlock();  /// --- EXIT S-Locked state ---
+
+            send_data_(Referee::CLIENT);
+            data_sent = true;
+            sleep(TIME_MS2I(100));
         }
-        sleep(TIME_MS2I(10));
+
+        if (!data_sent) sleep(TIME_MS2I(10));
     }
 }
 
@@ -356,14 +384,14 @@ bool Referee::set_title(ext_client_custom_character_t characterData) {
     }
 }
 
-void Referee::remove_all() {
+void Referee::remove_all_blocking() {
     graphic_buffer_index = 0;
     client_character_sent = true;
     invoke_ui_delete_all = true;
     while (invoke_ui_delete_all) chThdSleepMilliseconds(10);
 }
 
-void Referee::remove_layer(uint32_t layer) {
+void Referee::remove_layer_blocking(uint32_t layer) {
     graphic_buffer_index = 0;
     if (client_character_buffer.grapic_data_struct.layer == layer) client_character_sent = true;
     invoke_ui_delete_layer = true;

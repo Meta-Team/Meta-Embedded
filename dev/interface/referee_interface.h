@@ -326,9 +326,9 @@ public:
 
     static bool set_title(ext_client_custom_character_t characterData);
 
-    static void remove_all();
+    static void remove_all_blocking();
 
-    static void remove_layer(uint32_t layer);
+    static void remove_layer_blocking(uint32_t layer);
 
 #if REFEREE_USE_EVENTS
 
