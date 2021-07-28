@@ -14,9 +14,11 @@
 
 GimbalLG::action_t GimbalLG::action = FORCED_RELAX_MODE;
 GimbalLG::VisionControlThread GimbalLG::vision_control_thread;
+GimbalLG::SentryControlThread GimbalLG::sentry_control_thread;
 
-void GimbalLG::init(tprio_t vision_control_thread_prio) {
+void GimbalLG::init(tprio_t vision_control_thread_prio, tprio_t sentry_control_thread_prio) {
     vision_control_thread.start(vision_control_thread_prio);
+    sentry_control_thread.start(sentry_control_thread_prio);
 }
 
 GimbalLG::action_t GimbalLG::get_action() {
@@ -29,13 +31,8 @@ void GimbalLG::set_action(GimbalLG::action_t value) {
     action = value;
     if (action == FORCED_RELAX_MODE) {
         GimbalSKD::set_mode(GimbalSKD::FORCED_RELAX_MODE);
-    } else if (action == ABS_ANGLE_MODE || action == AERIAL_MODE) {
-        GimbalSKD::set_mode(GimbalSKD::ABS_ANGLE_MODE);
-    } else if (action == SENTRY_MODE) {
-//        GimbalSKD::set_mode(GimbalSKD::SENTRY_MODE);
-    } else if (action == VISION_MODE) {
-        GimbalSKD::set_mode(GimbalSKD::ABS_ANGLE_MODE);
-        // Variable action is checked in the vision thread
+    } else {
+        GimbalSKD::set_mode(GimbalSKD::ENABLED_MODE);
     }
 }
 
@@ -59,12 +56,12 @@ float GimbalLG::get_current_target_angle(GimbalBase::motor_id_t motor) {
     return GimbalSKD::get_target_angle(motor);
 }
 
-void GimbalLG::separate_pitch(float angle) {
-    if (angle < 0) angle = 0;
-    float sub_pitch_angle = GimbalSKD::get_target_angle(SUB_PITCH);
-    float pitch_angle = GimbalSKD::get_target_angle(PITCH);
-    float yaw_angle = GimbalSKD::get_target_angle(YAW);
-    GimbalSKD::set_target_angle(yaw_angle, pitch_angle + sub_pitch_angle + angle, - angle);
+void GimbalLG::separate_pitch() {
+    float pitch = GimbalSKD::get_actual_angle(PITCH) + GimbalSKD::get_actual_angle(SUB_PITCH);
+    float target_pitch = pitch;
+    float flight_time;
+    Trajectory::compensate_for_gravity(target_pitch, *GimbalIF::lidar_dist, 10, flight_time);
+    GimbalSKD::separate_pitch(target_pitch - pitch);
 }
 
 void GimbalLG::VisionControlThread::main() {
@@ -90,6 +87,21 @@ void GimbalLG::VisionControlThread::main() {
                 GimbalSKD::set_target_angle(yaw, pitch, 0);
             }  // otherwise, keep current target angles
         }
+    }
+}
+
+void GimbalLG::SentryControlThread::main() {
+    setName("GimbalLG_Sentry");
+
+    while (!shouldTerminate()) {
+
+        if (action == SENTRY_MODE) {
+            float yaw = GimbalSKD::get_target_angle(YAW) + 0.05f;
+            time_ticket += 0.05f;
+            float pitch = sin(time_ticket / 180 * PI);
+            GimbalSKD::set_target_angle(yaw, pitch, 0);
+        }
+        sleep(TIME_MS2I(SENTRY_THREAD_INTERVAL));
     }
 }
 

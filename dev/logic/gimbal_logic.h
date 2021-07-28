@@ -15,6 +15,8 @@
 
 #include "gimbal_scheduler.h"
 #include "vision_interface.h"
+#include "math.h"
+#include "trajectory_calculator.hpp"
 
 /**
  * @name GimbalLG
@@ -31,7 +33,7 @@ public:
      * Initial GimbalLG
      * @param vision_control_thread_prio  Vision control thread priority
      */
-    static void init(tprio_t vision_control_thread_prio);
+    static void init(tprio_t vision_control_thread_prio, tprio_t sentry_control_thread_prio);
 
     enum action_t {
         FORCED_RELAX_MODE,
@@ -82,10 +84,9 @@ public:
     static float get_current_target_angle(motor_id_t motor);
 
     /**
-     * Separate the pitch from the sub-pitch with a specific angle.
-     * @param angle     The angle between sub-pitch and pitch, must be non-negative
+     * Separate the pitch from the sub-pitch according to the trajectory
      */
-    static void separate_pitch(float angle);
+    static void separate_pitch();
 
 private:
 
@@ -98,6 +99,15 @@ private:
     };
 
     static VisionControlThread vision_control_thread;
+
+    class SentryControlThread : public chibios_rt::BaseStaticThread<256> {
+        float time_ticket = 0;
+        void main() final;
+    };
+
+    static SentryControlThread sentry_control_thread;
+
+    static constexpr unsigned int SENTRY_THREAD_INTERVAL = 5; // [ms]
 
 };
 

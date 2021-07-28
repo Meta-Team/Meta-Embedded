@@ -19,13 +19,14 @@
 #include "common_macro.h"
 
 CANInterface::motor_feedback_t *GimbalIF::feedback[MOTOR_COUNT];
+float *GimbalIF::lidar_dist = nullptr;
 int *GimbalIF::target_current[MOTOR_COUNT];
 CANInterface *GimbalIF::can1_ = nullptr;
 CANInterface *GimbalIF::can2_ = nullptr;
 
 void GimbalIF::init(CANInterface *can1_interface, CANInterface *can2_interface,
                     motor_can_config_t motor_can_config[MOTOR_COUNT],
-                    uint16_t yaw_front_angle_raw, uint16_t pitch_front_angle_raw, uint16_t sub_pitch_front_angle_raw) {
+                    uint16_t yaw_front_angle_raw, uint16_t pitch_front_angle_raw, uint16_t sub_pitch_front_angle_raw, motor_can_channel_t lidar_channel) {
 
     // Get the CAN address.
     can1_ = can1_interface;
@@ -79,6 +80,9 @@ void GimbalIF::init(CANInterface *can1_interface, CANInterface *can2_interface,
         }
 
     }
+
+    if (lidar_channel == can_channel_1) lidar_dist = can1_->get_lidar_feedback_address();
+    else lidar_dist = can2_->get_lidar_feedback_address();
 
     chThdSleep(TIME_MS2I(500));
 
