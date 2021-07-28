@@ -53,7 +53,6 @@ public:
         FORCED_RELAX_MODE,
         FOLLOW_MODE,
         DODGE_MODE,
-        SIMPLE_ROTATE
     };
 
     /**

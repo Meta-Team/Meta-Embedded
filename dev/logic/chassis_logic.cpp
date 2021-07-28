@@ -66,10 +66,6 @@ void ChassisLG::set_action(ChassisLG::action_t value) {
             chSchWakeupS(dodgeThreadReference.getInner(), 0);
         }
         chSysUnlock();  /// --- EXIT S-Locked state ---
-    } else if (action == SIMPLE_ROTATE) {
-        ChassisSKD::load_pid_params(CHASSIS_FOLLOW_PID_THETA2V_PARAMS, CHASSIS_PID_V2I_PARAMS);
-        ChassisSKD::set_mode(ChassisSKD::SIMPLE_ROTATE);
-        ChassisSKD::set_dodge_target(0,0,0);
     }
     // Sending client data will be complete by higher level thread
 }

@@ -381,7 +381,6 @@ void UserI::UserActionThread::main() {
             if (key_flag & (1U << Remote::KEY_F)) {
                 ShootLG::set_friction_wheels(0.5);
             }
-#endif
         }
 
     }
