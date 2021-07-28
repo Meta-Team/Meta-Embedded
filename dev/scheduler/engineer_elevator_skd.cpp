@@ -5,100 +5,85 @@
 
 #include "engineer_elevator_skd.h"
 
-float EngineerElevatorSKD::target_height = 0;
-float EngineerElevatorSKD::target_velocity[4] = {0, 0, 0, 0};
-bool EngineerElevatorSKD::elevator_enabled = false;
-bool EngineerElevatorSKD::aided_motor_enabled = false;
-PIDController EngineerElevatorSKD::v2i_pid[4];
-PIDController EngineerElevatorSKD::a2v_pid[2];
-PIDController EngineerElevatorSKD::counter_balance_pid;
+float EngineerElevatorSKD::target_height = 0.0f;
+float EngineerElevatorSKD::time_2_length_ratio = 0.0f;
+float EngineerElevatorSKD::current_height = 0.0f;
+float EngineerElevatorSKD::stop_judge_threshold = 2.0f;
+
+EngineerElevatorSKD::operation_t EngineerElevatorSKD::vertical_operation;
+EngineerElevatorSKD::operation_t EngineerElevatorSKD::horizontal_operation;
 
 EngineerElevatorSKD::SKDThread EngineerElevatorSKD::skdThread;
 
-
-void EngineerElevatorSKD::start(tprio_t thread_prio) {
+void EngineerElevatorSKD::start(tprio_t thread_prio, float time_2_height_ratio_) {
     skdThread.start(thread_prio);
-}
-
-void EngineerElevatorSKD::elevator_enable(bool enable) {
-    elevator_enabled = enable;
-}
-
-void EngineerElevatorSKD::aided_motor_enable(bool enable) {
-    aided_motor_enabled = enable;
-}
-
-void EngineerElevatorSKD::load_pid_params(pid_id_t pid_id, PIDControllerBase::pid_params_t pid_params) {
-    switch (pid_id){
-        case ELEVATOR_A2V:
-            a2v_pid[0].change_parameters(pid_params);
-            a2v_pid[1].change_parameters(pid_params);
-            a2v_pid[0].clear_i_out();
-            a2v_pid[1].clear_i_out();
-            break;
-        case ELEVATOR_V2I:
-            v2i_pid[0].change_parameters(pid_params);
-            v2i_pid[1].change_parameters(pid_params);
-            v2i_pid[0].clear_i_out();
-            v2i_pid[1].clear_i_out();
-            break;
-        case AIDED_WHEEL_V2I:
-            v2i_pid[2].change_parameters(pid_params);
-            v2i_pid[3].change_parameters(pid_params);
-            v2i_pid[2].clear_i_out();
-            v2i_pid[3].clear_i_out();
-            break;
-        case BALANCE_PID:
-            counter_balance_pid.change_parameters(pid_params);
-            counter_balance_pid.clear_i_out();
-        default:
-            break;
-    }
-}
-
-void EngineerElevatorSKD::set_target_height(float new_height) {
-    target_height = - new_height;
-}
-
-void EngineerElevatorSKD::set_aided_motor_velocity(float target_velocity_) {
-    target_velocity[2] = target_velocity[3] = - target_velocity_;
+    time_2_length_ratio = time_2_height_ratio_;
 }
 
 float EngineerElevatorSKD::get_current_height() {
-    return EngineerElevatorIF::get_current_height();
+    return current_height;
+}
+
+
+
+void EngineerElevatorSKD::set_target_height(float target_height_) {
+    if (target_height_ > current_height) {
+        vertical_operation = FORWARD;
+        EngineerElevatorIF::set_elevator(EngineerElevatorIF::LIFT, EngineerElevatorIF::FORWARD);
+    } else if(target_height_ < current_height) {
+        vertical_operation = BACKWARD;
+        EngineerElevatorIF::set_elevator(EngineerElevatorIF::LIFT, EngineerElevatorIF::BACKWARD);
+    } else {
+        vertical_operation = STOP;
+        EngineerElevatorIF::set_elevator(EngineerElevatorIF::LIFT, EngineerElevatorIF::STOP);
+    }
+    target_height = target_height_;
+}
+
+void EngineerElevatorSKD::set_target_movement(float target_location_) {
+    target_location = target_location_;
+    if(target_location_ > current_location) {
+        horizontal_operation = FORWARD;
+        EngineerElevatorIF::set_elevator(EngineerElevatorIF::PUSH, EngineerElevatorIF::FORWARD);
+    } else if(target_location_ < current_location) {
+        horizontal_operation = BACKWARD;
+        EngineerElevatorIF::set_elevator(EngineerElevatorIF::PUSH, EngineerElevatorIF::BACKWARD);
+    } else {
+        horizontal_operation = STOP;
+        EngineerElevatorIF::set_elevator(EngineerElevatorIF::PUSH, EngineerElevatorIF::STOP);
+    }
+    target_location = target_location_;
+}
+
+float EngineerElevatorSKD::get_current_movement() {
+    return current_location;
 }
 
 void EngineerElevatorSKD::SKDThread::main() {
     setName("ElevatorSKD");
 
     while (!shouldTerminate()){
-
-        /// Elevator
-        if (elevator_enabled) {
-            float angle_0 = EngineerElevatorIF::elevatorMotor[0].present_angle;
-            float angle_1 = EngineerElevatorIF::elevatorMotor[1].present_angle;
-            target_velocity[0] = a2v_pid[0].calc(angle_0, target_height * ANGLE_HEIGHT_RATIO);
-            target_velocity[1] = a2v_pid[1].calc(angle_0, target_height * ANGLE_HEIGHT_RATIO) +
-                                 counter_balance_pid.calc(angle_1, angle_0);
-            EngineerElevatorIF::elevatorMotor[0].target_current = (int16_t) v2i_pid[0].calc(
-                    EngineerElevatorIF::elevatorMotor[0].actual_velocity, target_velocity[0]);
-            EngineerElevatorIF::elevatorMotor[1].target_current = (int16_t) v2i_pid[1].calc(
-                    EngineerElevatorIF::elevatorMotor[1].actual_velocity, target_velocity[1]);
-        } else{
-            EngineerElevatorIF::elevatorMotor[0].target_current = EngineerElevatorIF::elevatorMotor[1].target_current = 0;
+        /// Update motor data
+        if(vertical_operation == FORWARD) {
+            current_height += (SKD_THREAD_INTERVAL * time_2_length_ratio);
+        } else if (vertical_operation == BACKWARD) {
+            current_height -= (SKD_THREAD_INTERVAL * time_2_length_ratio);
+        }
+        if(horizontal_operation == FORWARD) {
+            current_location += (SKD_THREAD_INTERVAL * time_2_length_ratio);
+        } else if (horizontal_operation == BACKWARD) {
+            current_location -= (SKD_THREAD_INTERVAL * time_2_length_ratio);
         }
 
-        /// Aided motor
-        if (aided_motor_enabled) {
-            EngineerElevatorIF::aidedMotor[0].target_current = (int16_t ) v2i_pid[2].calc(EngineerElevatorIF::aidedMotor[0].actual_velocity, target_velocity[2]);
-            EngineerElevatorIF::aidedMotor[1].target_current = (int16_t ) v2i_pid[3].calc(EngineerElevatorIF::aidedMotor[1].actual_velocity, - target_velocity[3]);
-        } else {
-            EngineerElevatorIF::aidedMotor[0].target_current = EngineerElevatorIF::aidedMotor[1].target_current = 0;
+        /// Operation
+        if(ABS_IN_RANGE(target_height - current_height, stop_judge_threshold)) {
+            vertical_operation = STOP;
+            EngineerElevatorIF::set_elevator(EngineerElevatorIF::LIFT, EngineerElevatorIF::STOP);
         }
-
-        /// Apply changes
-        EngineerElevatorIF::send_currents();
-
+        if(ABS_IN_RANGE(target_location - current_location, stop_judge_threshold)) {
+            vertical_operation = STOP;
+            EngineerElevatorIF::set_elevator(EngineerElevatorIF::LIFT, EngineerElevatorIF::STOP);
+        }
         sleep(TIME_MS2I(SKD_THREAD_INTERVAL));
     }
 }

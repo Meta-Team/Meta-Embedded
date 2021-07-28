@@ -20,50 +20,23 @@ class EngineerElevatorSKD {
 
 public:
 
-    enum pid_id_t{
-        ELEVATOR_A2V,
-        ELEVATOR_V2I,
-        AIDED_WHEEL_V2I,
-        BALANCE_PID
-    };
+    static void start(tprio_t thread_prio, float time_2_height_ratio_);
 
-    static void start(tprio_t thread_prio);
+    static void set_target_height(float target_height_);
 
-    static void elevator_enable(bool enable);
-
-    static void aided_motor_enable(bool enable);
-
-    /**
-     * @param pid_id
-     * 0: elevator_a2v
-     * 1: elevator_v2i
-     * 2:  aided_v2i
-     * 3: balance_a2v
-     * @param pid_params
-     */
-    static void load_pid_params(pid_id_t pid_id, PIDControllerBase::pid_params_t pid_params);
-
-    static void set_target_height(float new_height);  // [cm], positive height - chassis lift up
+    static void set_target_movement(float target_location_);
 
     static float get_current_height();
 
-    static void set_aided_motor_velocity(float target_velocity_);
-
-    // TODO: make it private
-    static float target_height;
-    static float target_velocity[4];  // 0 and 1 for elevator motors, 2 and 3 for auxiliary motors
-
+    static float get_current_movement();
 
 private:
 
-    static bool elevator_enabled;
-    static bool aided_motor_enabled;
-
-
-
-    static PIDController v2i_pid[4];  // 0 and 1 for elevator motors, 2 and 3 for auxiliary motors
-    static PIDController a2v_pid[2];  // 0 and 1 for elevator motors
-    static PIDController counter_balance_pid;
+    static enum operation_t {
+        FORWARD,
+        BACKWARD,
+        STOP
+    } vertical_operation, horizontal_operation;
 
     class SKDThread : public chibios_rt::BaseStaticThread<512> {
         static constexpr unsigned int SKD_THREAD_INTERVAL = 2; // PID calculation interval [ms]
@@ -74,6 +47,10 @@ private:
 
     friend void cmd_elevator_echo_parameters(BaseSequentialStream *chp, int argc, char *argv[]);
     friend void cmd_elevator_set_target_velocities(BaseSequentialStream *chp, int argc, char *argv[]);
+
+    static float time_2_length_ratio;
+
+    static float current_height, target_height, current_location, target_location, stop_judge_threshold;
 };
 
 
