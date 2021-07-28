@@ -115,5 +115,9 @@ void GimbalIF::clip_gimbal_current() {
 
 }
 
+void GimbalIF::store_yaw_front(uint16_t new_front_angle) {
+    SDCard::write_data(GIMBAL_YAW_FRONT_ANGLE_DATA_ID, &new_front_angle, sizeof(uint16_t));
+}
+
 
 /** @} */

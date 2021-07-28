@@ -30,8 +30,6 @@
 #define CAN_INTERFACE_ENABLE_ERROR_FEEDBACK_THREAD   TRUE
 #define CAN_INTERFACE_ENABLE_VELOCITY_DIFFERENTIAL   TRUE
 #define CAN_INTERFACE_THREAD_WORK_AREA_SIZE          1024  // also used in cpp, do not delete
-#define CAN_INTERFACE_RAW_TO_ANGLE_RATIO             0.043945312f // 360 / 8192
-#define CAN_INTERFACE_RPM_TO_DPS                     6.f // 360 / 60, round per minute to degree per second
 
 /**
  * CAN interface to receive, distribute and send message
@@ -74,6 +72,8 @@ public:
         M3508
     };
 
+    static constexpr float CAN_INTERFACE_RAW_TO_ANGLE_RATIO = 0.043945312f; // 360 / 8192
+    static constexpr float CAN_INTERFACE_RPM_TO_DPS = 6.f; // 360 / 60, round per minute to degree per second
     static constexpr float DEFAULT_DECELERATION_RATIO = 1.f;
     static constexpr float M2006_WITH_DECELERATION_RATIO = 36.f;
     static constexpr float M3508_WITH_DECELERATION_RATIO = 19.203208556f; // 3591 / 187
@@ -87,6 +87,8 @@ public:
         uint32_t sid;
 
         float deceleration_ratio = 1.f;
+
+        int32_t accumulated_movement_raw = 0;
 
         /**
          * Normalized angle
@@ -107,12 +109,6 @@ public:
         int actual_current = 0;  // [mA]
 
         /**
-         * Number of round
-         * @note Viewing from TOP of 6623/2006 motor. Positive for CCW. Negative for CW.
-         */
-        int round_count = 0;
-
-        /**
          * Last update time (ms, from system start)
          */
         time_msecs_t last_update_time = 0;
@@ -127,6 +123,8 @@ public:
          * @return Accumulated angle since last reset_front_angle [degree, positive for CCW viewing from top]
          */
         float accumulated_angle();
+
+        uint16_t get_front_angle_raw();
 
         uint16_t last_angle_raw = 0;  // in the range of [0, 8191]
 

@@ -59,7 +59,6 @@ void ChassisLG::set_action(ChassisLG::action_t value) {
     } else if (action == DODGE_MODE) {
         ChassisSKD::load_pid_params(CHASSIS_CLIP_PID_THETA2V_PARAMS, CHASSIS_CLIP_PID_V2I_PARAMS);
         ChassisSKD::set_mode(ChassisSKD::ANGULAR_VELOCITY_DODGE_MODE);
-        target_theta = dodge_mode_max_omega_;
         // Resume the thread
         chSysLock();  /// --- ENTER S-Locked state. DO NOT use LOG, printf, non S/I-Class functions or return ---
         if (!dodgeModeSwitchThread.started) {
@@ -67,6 +66,10 @@ void ChassisLG::set_action(ChassisLG::action_t value) {
             chSchWakeupS(dodgeThreadReference.getInner(), 0);
         }
         chSysUnlock();  /// --- EXIT S-Locked state ---
+    } else if (action == SIMPLE_ROTATE) {
+        ChassisSKD::load_pid_params(CHASSIS_FOLLOW_PID_THETA2V_PARAMS, CHASSIS_PID_V2I_PARAMS);
+        ChassisSKD::set_mode(ChassisSKD::SIMPLE_ROTATE);
+        ChassisSKD::set_dodge_target(0,0,0);
     }
     // Sending client data will be complete by higher level thread
 }
@@ -87,6 +90,10 @@ void ChassisLG::apply_target() {
     } else if (action == DODGE_MODE) {
         ChassisSKD::set_dodge_target(target_vx, target_vy, target_omega);
     }
+}
+
+void ChassisLG::set_rotate_speed(float speed) {
+    ChassisSKD::set_dodge_target(0,0,speed);
 }
 
 void ChassisLG::DodgeModeSwitchThread::main() {

@@ -59,12 +59,18 @@ void CANInterface::start(tprio_t rx_thread_prio, tprio_t tx_thread_prio) {
 }
 
 float CANInterface::motor_feedback_t::accumulated_angle() {
-    return actual_angle + (float)round_count * 360.0f;
+    return (float) accumulated_movement_raw * CAN_INTERFACE_RAW_TO_ANGLE_RATIO / deceleration_ratio;
 }
 
 void CANInterface::motor_feedback_t::reset_front_angle() {
     actual_angle = 0.0f;
-    round_count = 0;
+    accumulated_movement_raw = 0;
+}
+
+uint16_t CANInterface::motor_feedback_t::get_front_angle_raw() {
+    int actual_angle_raw = (int) (actual_angle * deceleration_ratio / CAN_INTERFACE_RAW_TO_ANGLE_RATIO) % 8192;
+    if (actual_angle_raw < 0) actual_angle_raw += 8192;
+    return (last_angle_raw >= actual_angle_raw) ? (last_angle_raw - actual_angle_raw) : (last_angle_raw + 8192 - actual_angle_raw);
 }
 
 int *CANInterface::register_target_current_address(unsigned int id, motor_type_t motor_type) {
@@ -173,7 +179,7 @@ void CANInterface::ProcessFeedbackThread::main() {
         // Process every received message
         while (canReceive(can_driver, CAN_ANY_MAILBOX, &rxmsg, TIME_IMMEDIATE) == MSG_OK) {
 
-            if(rxmsg.SID != 0x211 && rxmsg.SID != 0x003) {
+            if(rxmsg.SID <= 0x20B && rxmsg.SID >= 0x201) {
                 uint16_t new_actual_angle_raw = (rxmsg.data8[0] << 8 | rxmsg.data8[1]);
 
                 // Check whether this new raw angle is valid
@@ -196,6 +202,8 @@ void CANInterface::ProcessFeedbackThread::main() {
                 /// If angle_movement is too extreme between two samples, we grant that it's caused by moving over the 0 (8192) point
                 if (angle_movement < -4096) angle_movement += 8192;
                 if (angle_movement > 4096) angle_movement -= 8192;
+
+                fb->accumulated_movement_raw += angle_movement;
 
                 // raw -> degree
                 fb->actual_angle += (float) angle_movement * CAN_INTERFACE_RAW_TO_ANGLE_RATIO / fb->deceleration_ratio;
@@ -251,11 +259,9 @@ void CANInterface::ProcessFeedbackThread::main() {
                 // If the actual_angle is greater than 180(-180) then it turns a round in CCW(CW) direction
                 if (fb->actual_angle >= 180.0f) {
                     fb->actual_angle -= 360.0f;
-                    fb->round_count++;
                 }
                 if (fb->actual_angle < -180.0f) {
                     fb->actual_angle += 360.0f;
-                    fb->round_count--;
                 }
 
                 fb->last_update_time = SYSTIME;

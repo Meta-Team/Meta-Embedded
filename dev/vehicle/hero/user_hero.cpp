@@ -246,6 +246,30 @@ void UserH::UserThread::main() {
                     target_vx *= chassis_pc_shift_ratio;
                     target_vy *= chassis_pc_shift_ratio;
                 }
+
+                if (Remote::key.f) {
+                    if (ChassisLG::get_action() != ChassisLG::SIMPLE_ROTATE) {
+                        ChassisLG::set_action(ChassisLG::SIMPLE_ROTATE);
+                    }
+                }
+                if (ChassisLG::get_action() == ChassisLG::SIMPLE_ROTATE) {
+                    if (Remote::key.q) {
+                        ChassisLG::set_action(ChassisLG::FOLLOW_MODE);
+                    } else {
+                        if (Remote::key.r) {
+                            ChassisLG::set_rotate_speed(30.f);
+                        } else if (Remote::key.e) {
+                            ChassisLG::set_rotate_speed(-30.f);
+                        } else {
+                            ChassisLG::set_rotate_speed(0);
+                        }
+
+                        if (Remote::key.c) {
+                            GimbalIF::store_yaw_front(GimbalIF::feedback[GimbalIF::YAW]->last_angle_raw);
+                            GimbalIF::feedback[GimbalIF::YAW]->reset_front_angle();
+                        }
+                    }
+                }
                 // No need to echo to user since it has been done above
 
                 ChassisLG::set_target(target_vx, target_vy);

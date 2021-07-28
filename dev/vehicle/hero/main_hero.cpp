@@ -175,6 +175,7 @@ int main() {
     ChassisSKD::start(CHASSIS_WHEEL_BASE, CHASSIS_WHEEL_TREAD, CHASSIS_WHEEL_CIRCUMFERENCE, ChassisSKD::POSITIVE,
                       CHASSIS_GIMBAL_OFFSET, THREAD_CHASSIS_SKD_PRIO);
     ChassisSKD::load_pid_params(CHASSIS_FOLLOW_PID_THETA2V_PARAMS, CHASSIS_PID_V2I_PARAMS);
+    ChassisSKD::set_update_yaw_enable(true);
 
     /// Start LGs
     GimbalLG::init(THREAD_GIMBAL_LG_VISION_PRIO);

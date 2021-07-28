@@ -18,7 +18,7 @@
 
 #include "chassis_interface.h"
 #include "gimbal_interface.h"
-
+#include "math.h"
 #include "gimbal_scheduler.h"
 
 #include "pid_controller.hpp"
@@ -49,7 +49,8 @@ public:
                                    // NO SUPPORT FOR CHASSIS COORDINATE
         GIMBAL_COORDINATE_MODE,    // targets use gimbal coordinates
 
-        ANGULAR_VELOCITY_DODGE_MODE  // input a constant angular velocity, to rotate.
+        ANGULAR_VELOCITY_DODGE_MODE,  // input a constant angular velocity, to rotate.
+        SIMPLE_ROTATE
     };
 
     /**
@@ -132,6 +133,8 @@ public:
       */
      static float get_target_velocity(motor_id_t motor_id) { return target_velocity[motor_id]; }
 
+     static void set_update_yaw_enable(bool is_update);
+
 private:
 
     // Local storage
@@ -139,6 +142,7 @@ private:
     static float target_vx;
     static float target_vy;
     static float target_theta;
+    static bool is_update_yaw;
 
     static PIDController a2v_pid;               // for theta control
     static PIDController v2i_pid[MOTOR_COUNT];  // speed control for each motor

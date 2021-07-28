@@ -19,90 +19,90 @@ using namespace chibios_rt;
 CANInterface can1(&CAND1);
 CANInterface can2(&CAND2);
 
-/**
- * @brief set enabled state of yaw and pitch motor
- * @param chp
- * @param argc
- * @param argv
- */
-static void cmd_set_motor_type(BaseSequentialStream *chp, int argc, char *argv[]) {
-    (void) argv;
-    if (argc != 3) {
-        shellUsage(chp, "set  (1/2)(can channel) (id)(motor id) (num)(1-4)");
-        return;
-    }
-    if (Shell::atoi(argv[0]) == 1) {
-        can1.set_motor_type(Shell::atoi(argv[1]), (CANInterface::motor_type_t) Shell::atoi(argv[2]));
-    } else if (Shell::atoi(argv[0]) == 2) {
-        can2.set_motor_type(Shell::atoi(argv[1]), (CANInterface::motor_type_t) Shell::atoi(argv[2]));
-    }
-    chprintf(chp, "set!" SHELL_NEWLINE_STR);
-}
+///**
+// * @brief set enabled state of yaw and pitch motor
+// * @param chp
+// * @param argc
+// * @param argv
+// */
+//static void cmd_set_motor_type(BaseSequentialStream *chp, int argc, char *argv[]) {
+//    (void) argv;
+//    if (argc != 3) {
+//        shellUsage(chp, "set  (1/2)(can channel) (id)(motor id) (num)(1-4)");
+//        return;
+//    }
+//    if (Shell::atoi(argv[0]) == 1) {
+//        can1.set_motor_type(Shell::atoi(argv[1]), (CANInterface::motor_type_t) Shell::atoi(argv[2]));
+//    } else if (Shell::atoi(argv[0]) == 2) {
+//        can2.set_motor_type(Shell::atoi(argv[1]), (CANInterface::motor_type_t) Shell::atoi(argv[2]));
+//    }
+//    chprintf(chp, "set!" SHELL_NEWLINE_STR);
+//}
 
-/**
- * @brief set enabled state of yaw and pitch motor
- * @param chp
- * @param argc
- * @param argv
- */
-static void cmd_echo_adress(BaseSequentialStream *chp, int argc, char *argv[]) {
-    (void) argv;
-    if(argc != 1) {
-        shellUsage(chp, "echo_adress id(motor id)");
-        return;
-    }
-    Shell::printf("%d" SHELL_NEWLINE_STR, can1.register_feedback_address(1));
-    Shell::printf("%d" SHELL_NEWLINE_STR, can2.register_feedback_address(1));
-    chprintf(chp, "echo!" SHELL_NEWLINE_STR);
-}
+///**
+// * @brief set enabled state of yaw and pitch motor
+// * @param chp
+// * @param argc
+// * @param argv
+// */
+//static void cmd_echo_adress(BaseSequentialStream *chp, int argc, char *argv[]) {
+//    (void) argv;
+//    if(argc != 1) {
+//        shellUsage(chp, "echo_adress id(motor id)");
+//        return;
+//    }
+//    Shell::printf("%d" SHELL_NEWLINE_STR, can1.register_feedback_address(1));
+//    Shell::printf("%d" SHELL_NEWLINE_STR, can2.register_feedback_address(1));
+//    chprintf(chp, "echo!" SHELL_NEWLINE_STR);
+//}
 
-/**
- * @brief set enabled state of yaw and pitch motor
- * @param chp
- * @param argc
- * @param argv
- */
-static void cmd_echo_motor_ID(BaseSequentialStream *chp, int argc, char *argv[]) {
-    (void) argv;
-    if (argc != 2) {
-        shellUsage(chp, "set (1/2)(can channel) (id)(motor id)");
-        return;
-    }
-    if (Shell::atoi(argv[0]) == 1) {
-        Shell::printf("%d" SHELL_NEWLINE_STR, can1.register_feedback_address(Shell::atoi(argv[1]))->type);
-    } else if (Shell::atoi(argv[0]) == 2) {
-        Shell::printf("%d" SHELL_NEWLINE_STR, can2.register_feedback_address(Shell::atoi(argv[1]))->type);
-    }
-    chprintf(chp, "echoed!" SHELL_NEWLINE_STR);
-}
+///**
+// * @brief set enabled state of yaw and pitch motor
+// * @param chp
+// * @param argc
+// * @param argv
+// */
+//static void cmd_echo_motor_ID(BaseSequentialStream *chp, int argc, char *argv[]) {
+//    (void) argv;
+//    if (argc != 2) {
+//        shellUsage(chp, "set (1/2)(can channel) (id)(motor id)");
+//        return;
+//    }
+//    if (Shell::atoi(argv[0]) == 1) {
+//        Shell::printf("%d" SHELL_NEWLINE_STR, can1.register_feedback_address(Shell::atoi(argv[1]))->type);
+//    } else if (Shell::atoi(argv[0]) == 2) {
+//        Shell::printf("%d" SHELL_NEWLINE_STR, can2.register_feedback_address(Shell::atoi(argv[1]))->type);
+//    }
+//    chprintf(chp, "echoed!" SHELL_NEWLINE_STR);
+//}
 
-static void cmd_set_current(BaseSequentialStream *chp, int argc, char *argv[]) {
-    (void) argv;
-    if (argc != 3) {
-        shellUsage(chp, "set  (1/2)(can channel) (id)(motor id) (current)(1-4)");
-        return;
-    }
-    if (Shell::atoi(argv[0]) == 1) {
-        can1.set_target_current(Shell::atoi(argv[1]), (CANInterface::motor_type_t) Shell::atoi(argv[2]));
-    } else if (Shell::atoi(argv[0]) == 2) {
-        can2.set_target_current(Shell::atoi(argv[1]), (CANInterface::motor_type_t) Shell::atoi(argv[2]));
-    }
-    chprintf(chp, "echoed!" SHELL_NEWLINE_STR);
-}
+//static void cmd_set_current(BaseSequentialStream *chp, int argc, char *argv[]) {
+//    (void) argv;
+//    if (argc != 3) {
+//        shellUsage(chp, "set  (1/2)(can channel) (id)(motor id) (current)(1-4)");
+//        return;
+//    }
+//    if (Shell::atoi(argv[0]) == 1) {
+//        can1.set_target_current(Shell::atoi(argv[1]), (CANInterface::motor_type_t) Shell::atoi(argv[2]));
+//    } else if (Shell::atoi(argv[0]) == 2) {
+//        can2.set_target_current(Shell::atoi(argv[1]), (CANInterface::motor_type_t) Shell::atoi(argv[2]));
+//    }
+//    chprintf(chp, "echoed!" SHELL_NEWLINE_STR);
+//}
 
-static void cmd_echo_current(BaseSequentialStream *chp, int argc, char *argv[]) {
-    (void) argv;
-    if (argc != 2) {
-        shellUsage(chp, "set (1/2)(can channel) (id)(motor id)");
-        return;
-    }
-    if (Shell::atoi(argv[0]) == 1) {
-        Shell::printf("%d" SHELL_NEWLINE_STR, can1.echo_target_current(Shell::atoi(argv[1])));
-    } else if (Shell::atoi(argv[0]) == 2) {
-        Shell::printf("%d" SHELL_NEWLINE_STR, can2.echo_target_current(Shell::atoi(argv[1])));
-    }
-    chprintf(chp, "echoed!" SHELL_NEWLINE_STR);
-}
+//static void cmd_echo_current(BaseSequentialStream *chp, int argc, char *argv[]) {
+//    (void) argv;
+//    if (argc != 2) {
+//        shellUsage(chp, "set (1/2)(can channel) (id)(motor id)");
+//        return;
+//    }
+//    if (Shell::atoi(argv[0]) == 1) {
+//        Shell::printf("%d" SHELL_NEWLINE_STR, can1.echo_target_current(Shell::atoi(argv[1])));
+//    } else if (Shell::atoi(argv[0]) == 2) {
+//        Shell::printf("%d" SHELL_NEWLINE_STR, can2.echo_target_current(Shell::atoi(argv[1])));
+//    }
+//    chprintf(chp, "echoed!" SHELL_NEWLINE_STR);
+//}
 
 static void cmd_echo_dist(BaseSequentialStream *chp, int argc, char *argv[]) {
     (void) argv;
@@ -116,11 +116,11 @@ static void cmd_echo_dist(BaseSequentialStream *chp, int argc, char *argv[]) {
 
 // Shell commands to ...
 ShellCommand templateShellCommands[] = {
-        {"set", cmd_set_motor_type},
-        {"echo_adress", cmd_echo_adress},
-        {"type", cmd_echo_motor_ID},
-        {"current", cmd_set_current},
-        {"echo_current", cmd_echo_current},
+//        {"set", cmd_set_motor_type},
+//        {"echo_adress", cmd_echo_adress},
+//        {"type", cmd_echo_motor_ID},
+//        {"current", cmd_set_current},
+//        {"echo_current", cmd_echo_current},
         {"dist", cmd_echo_dist},
         {nullptr,    nullptr}
 };

@@ -17,7 +17,7 @@ ChassisSKD::mode_t ChassisSKD::mode = FORCED_RELAX_MODE;
 float ChassisSKD::target_vx;
 float ChassisSKD::target_vy;
 float ChassisSKD::target_theta;
-
+bool ChassisSKD::is_update_yaw = false;
 PIDController ChassisSKD::a2v_pid;
 PIDController ChassisSKD::v2i_pid[MOTOR_COUNT];
 
@@ -82,6 +82,11 @@ void ChassisSKD::load_pid_params_by_type(PIDControllerBase::pid_params_t params,
 
 void ChassisSKD::set_mode(ChassisSKD::mode_t skd_mode) {
     mode = skd_mode;
+    // Update the front angle raw value in SDCard
+    if (is_update_yaw) {
+        uint16_t new_front_angle_raw = GimbalIF::feedback[GimbalIF::YAW]->get_front_angle_raw();
+        GimbalIF::store_yaw_front(new_front_angle_raw);
+    }
 }
 
 void ChassisSKD::set_target(float vx, float vy, float theta) {
@@ -128,13 +133,17 @@ float ChassisSKD::get_actual_velocity(ChassisBase::motor_id_t motor_id) {
     return ChassisIF::feedback[motor_id]->actual_velocity;
 }
 
+void ChassisSKD::set_update_yaw_enable(bool is_update) {
+    is_update_yaw = is_update;
+}
+
 void ChassisSKD::SKDThread::main() {
     setName("ChassisSKD");
     while (!shouldTerminate()) {
 
         chSysLock();  /// --- ENTER S-Locked state. DO NOT use LOG, printf, non S/I-Class functions or return ---
         {
-            if ((mode == GIMBAL_COORDINATE_MODE) || (mode == ANGULAR_VELOCITY_DODGE_MODE)) {
+            if ((mode == GIMBAL_COORDINATE_MODE) || (mode == ANGULAR_VELOCITY_DODGE_MODE) || (mode == SIMPLE_ROTATE)) {
 
                 float theta = get_actual_theta();
 
