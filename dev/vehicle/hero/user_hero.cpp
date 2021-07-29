@@ -72,30 +72,30 @@ void UserH::UserThread::main() {
 
             } else if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_DOWN) {
 
-                /// Vision - Change bullet speed with right vertical handle
-
-                /// Vision - Yaw + Pitch
-                GimbalLG::set_action(GimbalLG::VISION_MODE);
-
-                if (Remote::rc.ch1 > 0.5) VisionSKD::set_bullet_speed(VisionSKD::get_bullet_speed() - 0.001f);
-                else if (Remote::rc.ch1 <= -0.5) VisionSKD::set_bullet_speed(VisionSKD::get_bullet_speed() + 0.001f);
+//                /// Vision - Change bullet speed with right vertical handle
+//
+//                /// Vision - Yaw + Pitch
+//                GimbalLG::set_action(GimbalLG::VISION_MODE);
+//
+//                if (Remote::rc.ch1 > 0.5) VisionSKD::set_bullet_speed(VisionSKD::get_bullet_speed() - 0.001f);
+//                else if (Remote::rc.ch1 <= -0.5) VisionSKD::set_bullet_speed(VisionSKD::get_bullet_speed() + 0.001f);
 
             } else if (Remote::rc.s1 == Remote::S_DOWN) {
 
                 /// PC control mode
 
-                if (Remote::key.shift && Remote::key.v) {
-                    VisionSKD::set_bullet_speed(VisionSKD::get_bullet_speed() + 0.001f);
-                } else if (Remote::key.ctrl && Remote::key.v) {
-                    VisionSKD::set_bullet_speed(VisionSKD::get_bullet_speed() - 0.001f);
-                }
+//                if (Remote::key.shift && Remote::key.v) {
+//                    VisionSKD::set_bullet_speed(VisionSKD::get_bullet_speed() + 0.001f);
+//                } else if (Remote::key.ctrl && Remote::key.v) {
+//                    VisionSKD::set_bullet_speed(VisionSKD::get_bullet_speed() - 0.001f);
+//                }
 
                 if (Remote::mouse.press_right) {
 
-                    GimbalLG::set_action(GimbalLG::VISION_MODE);
-
-                    gimbal_yaw_target_angle_ = GimbalLG::get_actual_angle(GimbalLG::YAW);
-                    gimbal_pc_pitch_target_angle_ = GimbalLG::get_actual_angle(GimbalLG::PITCH);
+//                    GimbalLG::set_action(GimbalLG::VISION_MODE);
+//
+//                    gimbal_yaw_target_angle_ = GimbalLG::get_actual_angle(GimbalLG::YAW);
+//                    gimbal_pc_pitch_target_angle_ = GimbalLG::get_actual_angle(GimbalLG::PITCH);
 
                 } else {
 
@@ -183,30 +183,30 @@ void UserH::UserThread::main() {
 
             } else if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_DOWN) {
 
-                /// Remote - Vision
-
-                if (Remote::rc.wheel > 0.5) {  // down
-                    ShootLG::set_limit_mode(ShootLG::UNLIMITED_MODE);
-                    if (ShootLG::get_shooter_state() == ShootLG::STOP) {
-                        ShootLG::shoot(ShootLG::get_bullet_count_to_heat_limit(), shoot_feed_rate);
-                    } else {
-                        ShootLG::stop();
-                    }
-                } else if (Remote::rc.wheel < -0.5) {  // up
-                    ShootLG::set_limit_mode(ShootLG::VISION_LIMITED_MODE);
-                    if (ShootLG::get_shooter_state() == ShootLG::STOP) {
-                        ShootLG::shoot(ShootLG::get_bullet_count_to_heat_limit(), shoot_feed_rate);
-                    } else {
-                        ShootLG::stop();
-                    }
-                } else {
-                    ShootLG::set_limit_mode(ShootLG::UNLIMITED_MODE);
-                    if (ShootLG::get_shooter_state() != ShootLG::STOP) {
-                        ShootLG::stop();
-                    }
-                }
-
-                ShootLG::set_shoot_speed(shoot_fw_speed[1]);
+//                /// Remote - Vision
+//
+//                if (Remote::rc.wheel > 0.5) {  // down
+//                    ShootLG::set_limit_mode(ShootLG::UNLIMITED_MODE);
+//                    if (ShootLG::get_shooter_state() == ShootLG::STOP) {
+//                        ShootLG::shoot(ShootLG::get_bullet_count_to_heat_limit(), shoot_feed_rate);
+//                    } else {
+//                        ShootLG::stop();
+//                    }
+//                } else if (Remote::rc.wheel < -0.5) {  // up
+//                    ShootLG::set_limit_mode(ShootLG::VISION_LIMITED_MODE);
+//                    if (ShootLG::get_shooter_state() == ShootLG::STOP) {
+//                        ShootLG::shoot(ShootLG::get_bullet_count_to_heat_limit(), shoot_feed_rate);
+//                    } else {
+//                        ShootLG::stop();
+//                    }
+//                } else {
+//                    ShootLG::set_limit_mode(ShootLG::UNLIMITED_MODE);
+//                    if (ShootLG::get_shooter_state() != ShootLG::STOP) {
+//                        ShootLG::stop();
+//                    }
+//                }
+//
+//                ShootLG::set_shoot_speed(shoot_fw_speed[1]);
 
             } else if (Remote::rc.s1 == Remote::S_DOWN) {
 
@@ -215,7 +215,7 @@ void UserH::UserThread::main() {
                 if (Remote::mouse.press_left) {
 
                     if (Remote::mouse.press_right) {
-                        ShootLG::set_limit_mode(ShootLG::VISION_LIMITED_MODE);
+//                        ShootLG::set_limit_mode(ShootLG::VISION_LIMITED_MODE);
                     } else {
                         ShootLG::set_limit_mode(ShootLG::UNLIMITED_MODE);
                     }

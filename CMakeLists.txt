@@ -190,27 +190,27 @@ target_link_libraries(HERO ${AHRS_LIB})
 add_executable(SENTRY
         dev/interface/can_interface.cpp
         dev/interface/remote_interpreter.cpp
-        dev/interface/referee_interface.cpp
+#        dev/interface/referee_interface.cpp
         dev/interface/sd_card_interface.cpp
-        ${VISION_SRC}
-        dev/interface/ahrs/ahrs_ext.cpp
+#        ${VISION_SRC}
+#        ${AHRS_SRC}
         dev/common/CRC8.cpp
         dev/common/CRC16.cpp
 
-        dev/interface/sentry_chassis_interface.cpp
-        dev/scheduler/sentry_chassis_scheduler.cpp
-        dev/logic/sentry_chassis_logic.cpp
+        dev/interface/new_sentry_chassis_interface.cpp
+        dev/scheduler/new_sentry_chassis_scheduler.cpp
+        dev/logic/new_sentry_chassis_logic.cpp
 
-        dev/interface/gimbal_interface.cpp
-        dev/scheduler/gimbal_scheduler.cpp
-        dev/logic/gimbal_logic.cpp
+#        dev/interface/gimbal_interface.cpp
+#        dev/scheduler/gimbal_scheduler.cpp
+#        dev/logic/gimbal_logic.cpp
 
-        dev/scheduler/shoot_scheduler.cpp
-        dev/logic/shoot_logic.cpp
+#        dev/scheduler/shoot_scheduler.cpp
+#        dev/logic/shoot_logic.cpp
 
         dev/vehicle/sentry/main_sentry.cpp
-        dev/vehicle/sentry/inspector_sentry.cpp
-        dev/vehicle/sentry/settings_sentry.cpp
+#        dev/vehicle/sentry/inspector_sentry.cpp
+#        dev/vehicle/sentry/settings_sentry.cpp
         dev/vehicle/sentry/user_sentry.cpp
 
         )

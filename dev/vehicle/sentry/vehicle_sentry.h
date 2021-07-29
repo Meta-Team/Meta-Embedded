@@ -8,22 +8,44 @@
 
 
 /// Gimbal and Shoot Installation Configurations
-#define GIMBAL_YAW_MOTOR_TYPE     (GimbalIF::GM6020)
-#define GIMBAL_PITCH_MOTOR_TYPE   (GimbalIF::GM3510)
-#define SHOOT_BULLET_MOTOR_TYPE   (GimbalIF::M2006)
-#define SHOOT_PLATE_MOTOR_TYPE    (GimbalIF::NONE_MOTOR)
+//#define GIMBAL_YAW_MOTOR_TYPE     (GimbalIF::GM6020)
+//#define GIMBAL_PITCH_MOTOR_TYPE   (GimbalIF::GM3510)
+//#define SHOOT_BULLET_MOTOR_TYPE   (GimbalIF::M2006)
+//#define SHOOT_PLATE_MOTOR_TYPE    (GimbalIF::NONE_MOTOR)
+//
+//#define GIMBAL_YAW_CAN_CHANNEL    (GimbalIF::can_channel_2)
+//#define GIMBAL_PITCH_CAN_CHANNEL  (GimbalIF::can_channel_1)
+//#define GIMBAL_BULLET_CAN_CHANNEL (GimbalIF::can_channel_1)
+//#define GIMBAL_PLATE_CAN_CHANNEL  (GimbalIF::NONE)
+//
+//#define GIMBAL_YAW_INSTALL_DIRECTION      (GimbalSKD::NEGATIVE)
+//#define GIMBAL_YAW_DECELERATION_RATIO     1.0f
+//#define GIMBAL_PITCH_INSTALL_DIRECTION    (GimbalSKD::POSITIVE)
+//#define GIMBAL_PITCH_DECELERATION_RATIO   2.0f
+//#define SHOOT_BULLET_INSTALL_DIRECTION  (ShootSKD::POSITIVE)
+//#define SHOOT_DEGREE_PER_BULLET 40.0f  // rotation degree of bullet loader for each bullet
 
-#define GIMBAL_YAW_CAN_CHANNEL    (GimbalIF::can_channel_2)
-#define GIMBAL_PITCH_CAN_CHANNEL  (GimbalIF::can_channel_1)
-#define GIMBAL_BULLET_CAN_CHANNEL (GimbalIF::can_channel_1)
-#define GIMBAL_PLATE_CAN_CHANNEL  (GimbalIF::NONE)
 
-#define GIMBAL_YAW_INSTALL_DIRECTION      (GimbalSKD::NEGATIVE)
-#define GIMBAL_YAW_DECELERATION_RATIO     1.0f
-#define GIMBAL_PITCH_INSTALL_DIRECTION    (GimbalSKD::POSITIVE)
-#define GIMBAL_PITCH_DECELERATION_RATIO   2.0f
-#define SHOOT_BULLET_INSTALL_DIRECTION  (ShootSKD::POSITIVE)
-#define SHOOT_DEGREE_PER_BULLET 40.0f  // rotation degree of bullet loader for each bullet
+#define CHASSIS_R_CHANNEL      (ChassisIF::can_channel_1)
+#define CHASSIS_L_CHANNEL      (ChassisIF::can_channel_1)
+
+#define CHASSIS_R_CAN_ID      1
+#define CHASSIS_L_CAN_ID      3
+
+#define CHASSIS_R_MOTOR_TYPE  (CANInterface::M3508)
+#define CHASSIS_L_MOTOR_TYPE  (CANInterface::M3508)
+
+#define CHASSIS_R_MOTOR_DR  (CANInterface::M3508_WITH_DECELERATION_RATIO)
+#define CHASSIS_L_MOTOR_DR  (CANInterface::M3508_WITH_DECELERATION_RATIO)
+
+#define CHASSIS_MOTOR_CONFIG \
+{ {CHASSIS_R_CHANNEL, CHASSIS_R_CAN_ID, CHASSIS_R_MOTOR_TYPE, CHASSIS_R_MOTOR_DR}, \
+  {CHASSIS_L_CHANNEL, CHASSIS_L_CAN_ID, CHASSIS_L_MOTOR_TYPE, CHASSIS_L_MOTOR_DR} }
+
+/// AHRS Configurations
+#define ON_BOARD_AHRS_MATRIX {{0.0f, -1.0f, 0.0f}, \
+                              {1.0f, 0.0f, 0.0f}, \
+                              {0.0f, 0.0f, 1.0f}}
 
 #define GIMBAL_ANGLE_INSTALLATION_MATRIX {{1.0f, 0.0f, 0.0f}, \
                                           {0.0f, 0.0f, -1.0f}, \
@@ -148,27 +170,6 @@
 #define POM_PID_P2V_PARAMS \
     {SENTRY_CHASSIS_PID_P2V_KP, SENTRY_CHASSIS_PID_P2V_KI, SENTRY_CHASSIS_PID_P2V_KD, \
     SENTRY_CHASSIS_PID_P2V_I_LIMIT, 25.0f}
-
-/// Thread Priority List
-#define THREAD_CAN1_PRIO                    (HIGHPRIO - 1)
-#define THREAD_CAN2_PRIO                    (HIGHPRIO - 2)
-#define THREAD_MPU_PRIO                     (HIGHPRIO - 3)
-#define THREAD_IST_PRIO                     (HIGHPRIO - 4)
-#define THREAD_AHRS_PRIO                    (HIGHPRIO - 5)
-#define THREAD_GIMBAL_SKD_PRIO              (NORMALPRIO + 3)
-#define THREAD_CHASSIS_SKD_PRIO             (NORMALPRIO + 2)
-#define THREAD_SHOOT_SKD_PRIO               (NORMALPRIO + 1)
-#define THREAD_USER_PRIO                    (NORMALPRIO)
-#define THREAD_USER_ACTION_PRIO             (NORMALPRIO - 1)
-#define THREAD_CHASSIS_LG_DODGE_PRIO        (NORMALPRIO - 2)
-#define THREAD_SHOOT_LG_STUCK_DETECT_PRIO   (NORMALPRIO - 3)
-#define THREAD_GIMBAL_LG_VISION_PRIO        (NORMALPRIO - 4)
-#define THREAD_REFEREE_SENDING_PRIO         (NORMALPRIO - 5)
-#define THREAD_INSPECTOR_PRIO               (NORMALPRIO - 10)
-#define THREAD_SHOOT_BULLET_COUNTER_PRIO    (LOWPRIO + 7)
-#define THREAD_USER_CLIENT_DATA_SEND_PRIO   (LOWPRIO + 6)
-#define THREAD_SHELL_PRIO                   (LOWPRIO + 5)
-#define THREAD_BUZZER_SKD_PRIO              (LOWPRIO + 1)
 
 /// Dev Board LED Usage List
 #define DEV_BOARD_LED_SYSTEM_INIT 1
