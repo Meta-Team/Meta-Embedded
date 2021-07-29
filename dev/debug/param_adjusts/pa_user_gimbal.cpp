@@ -15,8 +15,6 @@
 #include "ahrs.h"
 #include "remote_interpreter.h"
 #include "sd_card_interface.h"
-#include "referee_UI_update_scheduler.h"
-#include "referee_UI_logic.h"
 
 #include "gimbal_interface.h"
 #include "gimbal_scheduler.h"
@@ -117,11 +115,6 @@ int main() {
     can2.start(THREAD_CAN2_RX_PRIO, THREAD_CAN2_TX_PRIO);
     chThdSleepMilliseconds(5);
     LED::led_on(DEV_BOARD_LED_CAN);  // LED 2 on now
-
-    /// Setup Referee
-    Referee::init(THREAD_REFEREE_SENDING_PRIO);
-    RefereeUISKD::init(THREAD_REFEREE_SKD_PRIO);
-    RefereeUILG::reset();
 
     /// Complete Period 1
     LED::green_on();  // LED Green on now

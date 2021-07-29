@@ -96,11 +96,6 @@ void GimbalSKD::set_target_angle(float yaw_target_angle, float pitch_target_angl
     target_angle[SUB_PITCH] = sub_pitch_target_angle;
 }
 
-void GimbalSKD::separate_pitch(float angle) {
-    if (angle < 0) angle = 0;
-    set_target_angle(target_angle[YAW], target_angle[PITCH] + target_angle[SUB_PITCH] + angle, -angle);
-}
-
 float GimbalSKD::get_target_angle(GimbalBase::motor_id_t motor) {
     return target_angle[motor];
 }

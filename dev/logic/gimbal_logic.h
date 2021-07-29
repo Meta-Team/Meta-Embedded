@@ -60,7 +60,7 @@ public:
      * @param yaw_target_angle    Yaw target ACCUMULATED angle on ground coordinate [degree]
      * @param pitch_target_angle  Pitch target ACCUMULATED angle on ground coordinate [degree]
      */
-    static void set_target(float yaw_target_angle, float pitch_target_angle);
+    static void set_target(float yaw_target_angle, float pitch_target_angle, float sub_pitch_target_angle);
 
     /**
      * Get actual angle maintained by GimbalSKD.
@@ -83,14 +83,17 @@ public:
      */
     static float get_current_target_angle(motor_id_t motor);
 
-    /**
-     * Separate the pitch from the sub-pitch according to the trajectory
-     */
     static void separate_pitch();
+
+    static void cal_separate_angle(float &target_pitch, float &target_sub_pitch);
+
+    static void cal_merge_pitch(float &target_pitch, float &target_sub_pitch);
 
 private:
 
     static action_t action;
+
+    static float sub_pitch_to_ground;
 
     class VisionControlThread : public chibios_rt::BaseStaticThread<256> {
         event_listener_t vision_listener;

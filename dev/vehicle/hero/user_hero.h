@@ -21,6 +21,11 @@ class UserH {
 
 public:
 
+    enum pitch_separate_mode_t {
+        IN_ACTIVE,
+        SEPARATED,
+        MERGED
+    };
     static void start(tprio_t user_thd_prio, tprio_t user_action_thd_prio, tprio_t client_data_sending_thd_prio);
 
 private:
@@ -59,6 +64,9 @@ private:
 
     static float gimbal_yaw_target_angle_;
     static float gimbal_pc_pitch_target_angle_;
+    static float gimbal_pc_sub_pitch_target_angle_;
+
+    static pitch_separate_mode_t pitch_separated;
 
     /// User Thread
     static constexpr unsigned USER_THREAD_INTERVAL = 7;  // [ms]

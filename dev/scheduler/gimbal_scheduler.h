@@ -105,15 +105,8 @@ public:
      * Set target angles
      * @param yaw_target_angle    GIMBAL yaw target ACCUMULATED angle on ground coordinate [degree]
      * @param pitch_target_angle  GIMBAL pitch target ACCUMULATED angle on ground coordinate [degree]
-     * @param sub_pitch_target_angle  GIMBAL sub-pitch target ACCUMULATED angle on pitch coordinate [degree]
      */
     static void set_target_angle(float yaw_target_angle, float pitch_target_angle, float sub_pitch_target_angle);
-
-    /**
-     * Separate the pitch from the sub-pitch with a specific angle.
-     * @param angle     The angle between sub-pitch and pitch, must be non-negative
-     */
-    static void separate_pitch(float angle);
 
     /**
      * Get current target angle data

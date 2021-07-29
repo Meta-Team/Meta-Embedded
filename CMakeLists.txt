@@ -423,7 +423,6 @@ add_executable(ut_sensors_sound
 add_executable(pa_hero_gimbal
         ${VEHICLE_COMMON_SRC}
         ${AHRS_SRC}
-        ${REFEREE_SRC}
 
         # Hero gimbal
         dev/interface/gimbal_interface.cpp
