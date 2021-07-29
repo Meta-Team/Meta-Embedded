@@ -261,13 +261,13 @@ void Referee::DataSendingThread::main() {
                         client_custom_data.ext_client_custom_graphic_seven.grapic_data_[i] = null_graphic;
                     }
                 }
-                graphic_buffer_index = 0;  // clear the buffer index
             }
             chSysUnlock();  /// --- EXIT S-Locked state ---
 
             send_data_(Referee::CLIENT);
+            graphic_buffer_index = 0;  // clear the buffer index
             data_sent = true;
-            sleep(TIME_MS2I(100)); // wait for 100ms, as the maximum sending interval is 10 Hz
+            sleep(TIME_MS2I(SEND_INTERVAL)); // wait for 100ms, as the maximum sending interval is 10 Hz
         }
 
         if (!client_character_sent) {
@@ -275,13 +275,13 @@ void Referee::DataSendingThread::main() {
             {
                 client_custom_data.header.data_cmd_id = 0x0110;
                 client_custom_data.ext_client_custom_character = client_character_buffer;
-                client_character_sent = true;
             }
             chSysUnlock();  /// --- EXIT S-Locked state ---
 
             send_data_(Referee::CLIENT);
+            client_character_sent = true;
             data_sent = true;
-            sleep(TIME_MS2I(100));
+            sleep(TIME_MS2I(SEND_INTERVAL));
         }
 
         if (invoke_ui_delete_layer) {
@@ -290,13 +290,13 @@ void Referee::DataSendingThread::main() {
                 client_custom_data.header.data_cmd_id = 0x0100;
                 client_custom_data.ext_client_custom_graphic_delete.operate_type = 1;
                 client_custom_data.ext_client_custom_graphic_delete.layer = layer_deleting;
-                invoke_ui_delete_layer = false;
             }
             chSysUnlock();  /// --- EXIT S-Locked state ---
 
             send_data_(Referee::CLIENT);
+            invoke_ui_delete_layer = false;
             data_sent = true;
-            sleep(TIME_MS2I(100));
+            sleep(TIME_MS2I(SEND_INTERVAL));
         }
 
         if (invoke_ui_delete_all) {
@@ -305,13 +305,13 @@ void Referee::DataSendingThread::main() {
                 client_custom_data.header.data_cmd_id = 0x0100;
                 client_custom_data.ext_client_custom_graphic_delete.operate_type = 2;
                 client_custom_data.ext_client_custom_graphic_delete.layer = 0;
-                invoke_ui_delete_all = false;
             }
             chSysUnlock();  /// --- EXIT S-Locked state ---
 
             send_data_(Referee::CLIENT);
+            invoke_ui_delete_all = false;
             data_sent = true;
-            sleep(TIME_MS2I(100));
+            sleep(TIME_MS2I(SEND_INTERVAL));
         }
 
         if (!data_sent) sleep(TIME_MS2I(10));
@@ -376,8 +376,8 @@ bool Referee::set_graphic(graphic_data_struct_t graphData) {
 
 bool Referee::set_title(ext_client_custom_character_t characterData) {
     if (client_character_sent) {
-        client_character_sent = false;
         client_character_buffer = characterData;
+        client_character_sent = false;
         return true;
     } else {
         return false;
@@ -385,20 +385,26 @@ bool Referee::set_title(ext_client_custom_character_t characterData) {
 }
 
 void Referee::remove_all_blocking() {
-    graphic_buffer_index = 0;
-    client_character_sent = true;
     invoke_ui_delete_all = true;
-
-    auto blocking_start_time = SYSTIME;  // set a timeout in case of problems
-    while (invoke_ui_delete_all && WITHIN_RECENT_TIME(blocking_start_time, 1000)) chThdSleepMilliseconds(10);
+    {
+        auto blocking_start_time = SYSTIME;  // set a timeout in case of problems
+        while (invoke_ui_delete_all && WITHIN_RECENT_TIME(blocking_start_time, 3000)) chThdSleepMilliseconds(10);
+    }
+    client_character_sent = true;
+    graphic_buffer_index = 0;
 }
 
 void Referee::remove_layer_blocking(uint32_t layer) {
+    {
+        auto blocking_start_time = SYSTIME;  // set a timeout in case of problems
+        while (invoke_ui_delete_layer && WITHIN_RECENT_TIME(blocking_start_time, 3000)) chThdSleepMilliseconds(10);
+    }
+    layer_deleting = layer;
+    invoke_ui_delete_layer = true;
+    {
+        auto blocking_start_time = SYSTIME;  // set a timeout in case of problems
+        while (invoke_ui_delete_layer && WITHIN_RECENT_TIME(blocking_start_time, 3000)) chThdSleepMilliseconds(10);
+    }
     graphic_buffer_index = 0;
     if (client_character_buffer.grapic_data_struct.layer == layer) client_character_sent = true;
-    invoke_ui_delete_layer = true;
-    layer_deleting = layer;
-
-    auto blocking_start_time = SYSTIME;  // set a timeout in case of problems
-    while (invoke_ui_delete_all && WITHIN_RECENT_TIME(blocking_start_time, 1000)) chThdSleepMilliseconds(10);
 }

@@ -352,7 +352,8 @@ private:
 
     static bool to_send_client;
 
-    class DataSendingThread : public chibios_rt::BaseStaticThread<512> {
+    class DataSendingThread : public chibios_rt::BaseStaticThread<1024> {
+        static constexpr unsigned SEND_INTERVAL = 100;
         void main() final;
     };
 

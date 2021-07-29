@@ -11,11 +11,11 @@ int RefereeUISKD::shape_count = 0;
 Referee::ext_client_custom_character_t RefereeUISKD::labels[REFEREE_UI_MAX_LABEL_COUNT];
 Referee::graphic_data_struct_t RefereeUISKD::shapes[REFEREE_UI_MAX_SHAPE_COUNT];
 unsigned long RefereeUISKD::shape_last_revision_time[REFEREE_UI_MAX_SHAPE_COUNT];
+unsigned long RefereeUISKD::label_last_revision_time[REFEREE_UI_MAX_LABEL_COUNT];
 RefereeUISKD::SKDThread RefereeUISKD::skdThread;
 
 RefereeUISKD::component_state_t RefereeUISKD::shape_state[REFEREE_UI_MAX_SHAPE_COUNT];
 RefereeUISKD::component_state_t RefereeUISKD::label_state[REFEREE_UI_MAX_LABEL_COUNT];
-unsigned long RefereeUISKD::label_last_revision_time[REFEREE_UI_MAX_LABEL_COUNT];
 
 void RefereeUISKD::init(tprio_t SKDThreadPRIO) {
     skdThread.start(SKDThreadPRIO);
@@ -30,7 +30,7 @@ bool RefereeUISKD::add_label(const char *name, ui_point_t start_p, color_t color
     if (char_length > 30) {
         char_length = 30;
     }
-    Referee::ext_client_custom_character_t label{};
+    Referee::ext_client_custom_character_t &label = labels[label_count];
     label.grapic_data_struct.graphic_name[0] = (uint8_t) name[0];
     label.grapic_data_struct.graphic_name[1] = (uint8_t) name[1];
     label.grapic_data_struct.graphic_name[2] = (uint8_t) name[2];
@@ -46,11 +46,10 @@ bool RefereeUISKD::add_label(const char *name, ui_point_t start_p, color_t color
     for (int i = 0; i < char_length; i++) {
         label.data[i] = (uint8_t) s[i];
     }
-    labels[label_count] = label;
-    label_state[shape_count] = REVISING;
+    label_state[label_count] = REVISING;
     label_count += 1;
-    // Shell::printf("interval: %d" SHELL_NEWLINE_STR, RefereeUISKD::label_count);
-    // chThdSleepMilliseconds(100);
+     Shell::printf("interval: %d" SHELL_NEWLINE_STR, RefereeUISKD::label_count);
+     chThdSleepMilliseconds(100);
     return true;
 }
 
@@ -59,27 +58,20 @@ bool RefereeUISKD::add_circle(const char *name, uint32_t layer, color_t color, u
     if (shape_count >= REFEREE_UI_MAX_SHAPE_COUNT) {
         return false;
     }
-    Referee::graphic_data_struct_t circle{};
+    Referee::graphic_data_struct_t &circle = shapes[shape_count];
     circle.graphic_name[0] = name[0];
     circle.graphic_name[1] = name[1];
     circle.graphic_name[2] = name[2];
-
     circle.operate_type = ADD_OP;
     circle.graphic_type = CIRCLE;
     circle.layer = layer;
-
     circle.color = color;
-
     circle.start_x = center.x;
     circle.start_y = center.y;
-
     circle.radius = radius;
     circle.width = line_width;
-
-    shapes[shape_count] = circle;
     shape_state[shape_count] = REVISING;
     shape_count += 1;
-
     return true;
 }
 
@@ -292,6 +284,7 @@ bool RefereeUISKD::revise_label(const char *name, char *string, color_t color) {
         if (labels[i].grapic_data_struct.graphic_name[0] == (uint8_t) name[0] &&
             labels[i].grapic_data_struct.graphic_name[1] == (uint8_t) name[1] &&
             labels[i].grapic_data_struct.graphic_name[2] == (uint8_t) name[2]) { // find object
+
             // if (WITHIN_RECENT_TIME(label_last_revision_time[i], 1000)) return;
             int char_length = strlen(string);
             if (char_length > 30) {
@@ -358,24 +351,32 @@ bool RefereeUISKD::revise_line(const char *name, ui_point_t start_p, ui_point_t 
 void RefereeUISKD::SKDThread::main() {
     setName("REF_UI_SKD");
     while (!shouldTerminate()) {
-        // Send data from buffer
-        for (int i = 0; i < shape_count; i++) {
-            if (shape_state[i] == FINISHED) {
-                shapes[i].operate_type = MODIFY_OP;
+        chSysLock();  /// --- ENTER S-Locked state. DO NOT use LOG, printf, non S/I-Class functions or return ---
+        {
+            // Send data from buffer
+            for (int i = 0; i < shape_count; i++) {
+                if (shape_state[i] != FINISHED) {
+                    if (Referee::set_graphic(shapes[i])) {
+                        shapes[i].operate_type = MODIFY_OP;
+                        shape_state[i] = FINISHED;
+                    } else {
+                        break;
+                    }
+                }
             }
-            while (shape_state[i] != FINISHED) {
-                shape_state[i] = Referee::set_graphic(shapes[i]) ? FINISHED : shape_state[i];
+            for (int i = 0; i < label_count; i++) {
+                if (label_state[i] != FINISHED) {
+                    if (Referee::set_title(labels[i])) {
+                        labels[i].grapic_data_struct.operate_type = MODIFY_OP;
+                        label_state[i] = FINISHED;
+                    } else {
+                        break;
+                    }
+                }
             }
         }
-        for (int i = 0; i < label_count; i++) {
-            if (label_state[i] == FINISHED) {
-                labels[i].grapic_data_struct.operate_type = MODIFY_OP;
-            }
-            while (label_state[i] != FINISHED) {
-                label_state[i] = Referee::set_title(labels[i]) ? FINISHED : label_state[i];
-            }
-        }
-        sleep(TIME_MS2I(10));
+        chSysUnlock();  /// --- EXIT S-Locked state ---
+        sleep(TIME_MS2I(100));
     }
 }
 

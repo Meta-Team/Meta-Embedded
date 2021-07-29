@@ -9,7 +9,7 @@
 
 EVENTSOURCE_DECL(VisionSKD::gimbal_updated_event);
 EVENTSOURCE_DECL(VisionSKD::shoot_time_updated_event);
-float VisionSKD::bullet_speed = 0;
+float VisionSKD::bullet_speed = 15;
 time_msecs_t VisionSKD::basic_gimbal_delay = 0;
 PositionKalmanFilter VisionSKD::armor_ypd[3];
 constexpr float VisionSKD::ARMOR_Q_POSITION[3];
@@ -131,7 +131,7 @@ void VisionSKD::CalculationThread::main() {
             // Issue new gimbal command
             latest_target_yaw = yaw;
             latest_target_pitch = pitch;
-            chEvtBroadcastI(&gimbal_updated_event);  // we are still in I-Lock state
+            chEvtBroadcast(&gimbal_updated_event);  // we are still in I-Lock state
 
             // Predict time to shoot
             /*if (command.flag & TOP_KILLER_TRIGGERED) {
@@ -157,7 +157,7 @@ void VisionSKD::CalculationThread::main() {
 
                 // Issue shoot command
                 expected_shoot_time = (time_msecs_t) shoot_time;
-                chEvtBroadcastI(&shoot_time_updated_event);  // we are still in I-Lock state
+                chEvtBroadcast(&shoot_time_updated_event);  // we are still in I-Lock state
 
             } else {
                 expected_shoot_time = 0;

@@ -174,13 +174,13 @@ void ShootSKD::cmdFeedback(void *) {
         Shell::printf("_s0 %.2f %.2f %.2f %.2f %d %d" ENDL,
                       actual_angle, target_angle,
                       actual_velocity[0], target_velocity[0],
-                      GimbalIF::feedback[0]->actual_current, *GimbalIF::target_current[0]);
+                      GimbalIF::feedback[3]->actual_current, *GimbalIF::target_current[3]);
     }
     for (int i = 1; i < 3; i++) {
         if (feedbackEnabled[i]) {
             Shell::printf("_s%d %.2f %.2f %d %d" ENDL, i,
                           actual_velocity[i], target_velocity[i],
-                          GimbalIF::feedback[i]->actual_current, *GimbalIF::target_current[i]);
+                          GimbalIF::feedback[3 + i]->actual_current, *GimbalIF::target_current[3 + i]);
         }
     }
 }

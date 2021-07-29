@@ -84,7 +84,7 @@ public:
 
     enum component_state_t{
         FINISHED,
-        REVISING
+        REVISING,
     };
 
     static component_state_t shape_state[REFEREE_UI_MAX_SHAPE_COUNT];

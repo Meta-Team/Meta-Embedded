@@ -35,9 +35,9 @@ public:
 
     void set_Q_position(float Q_position) { Q_data[0] = Q_position; }
 
-    float get_position() const { return x_prime_data[0]; }
+    float get_position() const { return x_data[0]; }
 
-    float get_velocity() const { return x_prime_data[1]; }
+    float get_velocity() const { return x_data[1]; }
 
     void predict(float time_delta) {
         F_data[1] = time_delta;
@@ -51,7 +51,7 @@ public:
     }
 
     void reload_position(float new_position) {
-        x_prime_data[0] = new_position;
+        x_data[0] = new_position;
         // Others not changed
     }
 

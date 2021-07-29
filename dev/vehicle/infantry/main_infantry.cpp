@@ -113,8 +113,6 @@ int main() {
 
     /// Setup Referee
     Referee::init(THREAD_REFEREE_SENDING_PRIO);
-    RefereeUISKD::init(THREAD_REFEREE_SKD_PRIO);
-    RefereeUILG::reset();
 
     /// Complete Period 1
     LED::green_on();  // LED Green on now
@@ -196,10 +194,13 @@ int main() {
 
     /// Setup Vision
     VisionIF::init();  // must be put after initialization of GimbalSKD
+    VisionSKD::set_bullet_speed(VISION_DEFAULT_BULLET_SPEED);  // should be set before start
     VisionSKD::start(VISION_BASIC_CONTROL_DELAY, THREAD_VISION_SKD_PRIO);
-    VisionSKD::set_bullet_speed(VISION_DEFAULT_BULLET_SPEED);
     Shell::addFeedbackCallback(VisionSKD::cmd_feedback);
     Shell::addCommands(VisionSKD::shell_commands);
+
+    RefereeUISKD::init(THREAD_REFEREE_SKD_PRIO);
+    RefereeUILG::start(THREAD_REFEREE_LD_PRIO);
 
     /// Start Inspector and User Threads
     InspectorI::start_inspection(THREAD_INSPECTOR_PRIO);
