@@ -43,30 +43,30 @@ public:
         WHITE
     };
 
-    struct UI_point {
+    struct ui_point_t {
         uint32_t x;
         uint32_t y;
     };
 
     static void init(tprio_t SKDThreadPRIO);
 
-    static bool add_label(const char* name, UI_point start_p, color_t color, uint32_t layer, uint32_t size, uint32_t weight, char *s);
+    static bool add_label(const char* name, ui_point_t start_p, color_t color, uint32_t layer, uint32_t size, uint32_t weight, char *s);
 
-    static bool add_circle(const char name[3], uint32_t layer, color_t color, UI_point center, uint32_t radius, uint32_t line_width);
+    static bool add_circle(const char name[3], uint32_t layer, color_t color, ui_point_t center, uint32_t radius, uint32_t line_width);
 
-    static bool add_line(const char name[3], uint32_t layer, color_t color, UI_point start_p, UI_point end_p, uint32_t line_width);
+    static bool add_line(const char name[3], uint32_t layer, color_t color, ui_point_t start_p, ui_point_t end_p, uint32_t line_width);
 
-    static bool add_rect(const char name[3], uint32_t layer, color_t color, UI_point start_p, UI_point end_p, uint32_t line_width);
+    static bool add_rect(const char name[3], uint32_t layer, color_t color, ui_point_t start_p, ui_point_t end_p, uint32_t line_width);
 
-    static bool add_float(char name[3], uint32_t layer, color_t color, UI_point start_p, uint32_t font_size, float data);
+    static bool add_float(char name[3], uint32_t layer, color_t color, ui_point_t start_p, uint32_t font_size, float data);
 
-    static bool add_int(const char name[3], uint32_t layer, color_t color, UI_point start_p, uint32_t font_size, int data);
+    static bool add_int(const char name[3], uint32_t layer, color_t color, ui_point_t start_p, uint32_t font_size, int data);
 
     static bool revise_character(const char name[3], char *string, color_t color);
 
-    static bool revise_shape_loc(const char name[3], UI_point point, color_t color);
+    static bool revise_shape_loc(const char name[3], ui_point_t point, color_t color);
 
-    static bool revise_line(const char name[3], UI_point start_p, UI_point end_p);
+    static bool revise_line(const char name[3], ui_point_t start_p, ui_point_t end_p);
 
     static void remove_layer(uint32_t layer);
 

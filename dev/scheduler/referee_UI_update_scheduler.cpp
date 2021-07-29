@@ -21,7 +21,7 @@ void RefereeUISKD::init(tprio_t SKDThreadPRIO) {
     skdThread.start(SKDThreadPRIO);
 }
 
-bool RefereeUISKD::add_label(const char *name, UI_point start_p, color_t color, uint32_t layer, uint32_t size,
+bool RefereeUISKD::add_label(const char *name, ui_point_t start_p, color_t color, uint32_t layer, uint32_t size,
                              uint32_t weight, char *s) {
     if (label_count >= REFEREE_UI_MAX_LABEL_COUNT) {
         return false;
@@ -54,7 +54,7 @@ bool RefereeUISKD::add_label(const char *name, UI_point start_p, color_t color, 
     return true;
 }
 
-bool RefereeUISKD::add_circle(const char *name, uint32_t layer, color_t color, UI_point center,
+bool RefereeUISKD::add_circle(const char *name, uint32_t layer, color_t color, ui_point_t center,
                               uint32_t radius, uint32_t line_width) {
     if (shape_count >= REFEREE_UI_MAX_SHAPE_COUNT) {
         return false;
@@ -83,7 +83,7 @@ bool RefereeUISKD::add_circle(const char *name, uint32_t layer, color_t color, U
     return true;
 }
 
-bool RefereeUISKD::add_rect(const char *name, uint32_t layer, color_t color, UI_point start_p, UI_point end_p,
+bool RefereeUISKD::add_rect(const char *name, uint32_t layer, color_t color, ui_point_t start_p, ui_point_t end_p,
                             uint32_t line_width) {
     if (shape_count >= REFEREE_UI_MAX_SHAPE_COUNT) {
         return false;
@@ -110,7 +110,7 @@ bool RefereeUISKD::add_rect(const char *name, uint32_t layer, color_t color, UI_
     return true;
 }
 
-bool RefereeUISKD::add_line(const char *name, uint32_t layer, color_t color, UI_point start_p, UI_point end_p,
+bool RefereeUISKD::add_line(const char *name, uint32_t layer, color_t color, ui_point_t start_p, ui_point_t end_p,
                             uint32_t line_width) {
     if (shape_count >= REFEREE_UI_MAX_SHAPE_COUNT) {
         return false;
@@ -136,7 +136,7 @@ bool RefereeUISKD::add_line(const char *name, uint32_t layer, color_t color, UI_
     return true;
 }
 
-bool RefereeUISKD::add_int(const char *name, uint32_t layer, color_t color, UI_point start_p,
+bool RefereeUISKD::add_int(const char *name, uint32_t layer, color_t color, ui_point_t start_p,
                            uint32_t font_size, int data) {
     if (shape_count >= REFEREE_UI_MAX_SHAPE_COUNT) {
         return false;
@@ -165,7 +165,7 @@ bool RefereeUISKD::add_int(const char *name, uint32_t layer, color_t color, UI_p
     return true;
 }
 
-bool RefereeUISKD::add_float(char *name, uint32_t layer, color_t color, UI_point start_p,
+bool RefereeUISKD::add_float(char *name, uint32_t layer, color_t color, ui_point_t start_p,
                              uint32_t font_size, float data) {
 
     if (shape_count >= REFEREE_UI_MAX_SHAPE_COUNT) {
@@ -311,7 +311,7 @@ bool RefereeUISKD::revise_character(const char *name, char *string, color_t colo
     return false;
 }
 
-bool RefereeUISKD::revise_shape_loc(const char *name, UI_point point, color_t color) {
+bool RefereeUISKD::revise_shape_loc(const char *name, ui_point_t point, color_t color) {
     for (int i = 0; i < shape_count; i++) {
         if (shapes[i].graphic_name[0] == (uint8_t) name[0] &&
             shapes[i].graphic_name[1] == (uint8_t) name[1] &&
@@ -336,7 +336,7 @@ bool RefereeUISKD::revise_shape_loc(const char *name, UI_point point, color_t co
     return false;
 }
 
-bool RefereeUISKD::revise_line(const char *name, UI_point start_p, UI_point end_p) {
+bool RefereeUISKD::revise_line(const char *name, ui_point_t start_p, ui_point_t end_p) {
     for (int i = 0; i < shape_count; i++) {
         if (shapes[i].graphic_name[0] == (uint8_t) name[0] &&
             shapes[i].graphic_name[1] == (uint8_t) name[1] &&

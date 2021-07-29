@@ -31,7 +31,8 @@ chibios_rt::ThreadReference ChassisLG::dodgeThreadReference;
 ChassisLG::CapacitorPowerSetThread ChassisLG::capacitorPowerSetThread;
 PIDController ChassisLG::dodge_omega_power_pid;
 
-void ChassisLG::init(tprio_t dodge_thread_prio_, tprio_t cap_power_set_thread_prio_, float dodge_mode_max_omega, float biased_angle, PIDController::pid_params_t omega_power_pid) {
+void ChassisLG::init(tprio_t dodge_thread_prio_, tprio_t cap_power_set_thread_prio_, float dodge_mode_max_omega,
+                     float biased_angle, PIDController::pid_params_t omega_power_pid) {
     dodge_thread_prio = dodge_thread_prio_;
     dodge_mode_max_omega_ = dodge_mode_max_omega;
     biased_angle_ = biased_angle;
@@ -89,7 +90,7 @@ void ChassisLG::apply_target() {
 }
 
 void ChassisLG::set_rotate_speed(float speed) {
-    ChassisSKD::set_dodge_target(0,0,speed);
+    ChassisSKD::set_dodge_target(0, 0, speed);
 }
 
 void ChassisLG::DodgeModeSwitchThread::main() {
@@ -97,15 +98,20 @@ void ChassisLG::DodgeModeSwitchThread::main() {
     setName("ChassisLG_Dodge");
     float doge = 0;
     float doge_rate = 0;
-    while(!shouldTerminate()) {
-        doge += 3.14/3.3;
+    while (!shouldTerminate()) {
+
+        doge += 3.14 / 3.3;
+
         chSysLock();  /// --- ENTER S-Locked state. DO NOT use LOG, printf, non S/I-Class functions or return ---
-        if (action != DODGE_MODE) {
-            started = false;
-            chSchGoSleepS(CH_STATE_SUSPENDED);
+        {
+            if (action != DODGE_MODE) {
+                started = false;
+                chSchGoSleepS(CH_STATE_SUSPENDED);
+            }
         }
         chSysUnlock();  /// --- EXIT S-Locked state ---
-        if(SuperCapacitor::feedback->capacitor_voltage != 0) {
+
+        if (SuperCapacitor::feedback->capacitor_voltage != 0) {
             doge_rate = sin(doge) + 1;
             float voltage_decrement = 20 - SuperCapacitor::feedback->capacitor_voltage;
             target_omega = (dodge_omega_power_pid.calc(voltage_decrement, doge_rate));
@@ -115,11 +121,12 @@ void ChassisLG::DodgeModeSwitchThread::main() {
             ///target_omega = (dodge_omega_power_pid.calc((float)Referee::power_heat_data.chassis_power, (float)Referee::game_robot_state.chassis_power_limit));
             VAL_CROP(target_omega, 720.0f, 0.0f);
         }
+
         /**
          * If next target_theta is too close to current theta (may due to gimbal rotation), do not switch target to
          * create large difference to avoid pause
          */
-        if (Remote::key.w || Remote::key.s || Remote::key.a || Remote::key.d ) {
+        if (Remote::key.w || Remote::key.s || Remote::key.a || Remote::key.d) {
             ChassisSKD::load_pid_params(CHASSIS_DODGE_PID_THETA2V_PARAMS, CHASSIS_PID_V2I_PARAMS);
         } else {
             ChassisSKD::load_pid_params(CHASSIS_CLIP_PID_THETA2V_PARAMS, CHASSIS_CLIP_PID_V2I_PARAMS);
@@ -134,20 +141,11 @@ void ChassisLG::CapacitorPowerSetThread::main() {
     setName("Cap_Setting");
     while (!shouldTerminate()) {
 
-        if((float)Referee::power_heat.chassis_power_buffer - Referee::power_heat.chassis_power * 0.1 > 5.0){
+        if ((float) Referee::power_heat.chassis_power_buffer - Referee::power_heat.chassis_power * 0.1 > 5.0) {
             SuperCapacitor::set_power(95.0);
-        }
-        else{
-            SuperCapacitor::set_power((float)Referee::robot_state.chassis_power_limit * 0.9f);
-        }
-
-        if(action == DODGE_MODE) {
-            RefereeUILG::toggle_dodge(true);
         } else {
-            RefereeUILG::toggle_dodge(false);
+            SuperCapacitor::set_power((float) Referee::robot_state.chassis_power_limit * 0.9f);
         }
-
-        RefereeUILG::revise_cap(SuperCapacitor::feedback->capacitor_voltage);
 
         sleep(TIME_MS2I(CAP_POWER_SET_INTERVAL));
     }

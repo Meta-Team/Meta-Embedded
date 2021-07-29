@@ -388,7 +388,9 @@ void Referee::remove_all_blocking() {
     graphic_buffer_index = 0;
     client_character_sent = true;
     invoke_ui_delete_all = true;
-    while (invoke_ui_delete_all) chThdSleepMilliseconds(10);
+
+    auto blocking_start_time = SYSTIME;  // set a timeout in case of problems
+    while (invoke_ui_delete_all && WITHIN_RECENT_TIME(blocking_start_time, 1000)) chThdSleepMilliseconds(10);
 }
 
 void Referee::remove_layer_blocking(uint32_t layer) {
@@ -396,5 +398,7 @@ void Referee::remove_layer_blocking(uint32_t layer) {
     if (client_character_buffer.grapic_data_struct.layer == layer) client_character_sent = true;
     invoke_ui_delete_layer = true;
     layer_deleting = layer;
-    while (invoke_ui_delete_layer) chThdSleepMilliseconds(10);
+
+    auto blocking_start_time = SYSTIME;  // set a timeout in case of problems
+    while (invoke_ui_delete_all && WITHIN_RECENT_TIME(blocking_start_time, 1000)) chThdSleepMilliseconds(10);
 }

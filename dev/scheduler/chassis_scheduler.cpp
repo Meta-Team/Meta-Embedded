@@ -42,10 +42,6 @@ ChassisSKD::SKDThread ChassisSKD::skd_thread;
 
 bool ChassisSKD::motor_enabled = true;
 
-#ifndef PI
-#define PI 3.14159265358979f
-#endif
-
 void ChassisSKD::start(float wheel_base, float wheel_tread, float wheel_circumference, install_mode_t install_mode,
                        GimbalSKD::install_direction_t gimbal_yaw_install_, float chassis_gimbal_offset,
                        tprio_t thread_prio) {
@@ -134,8 +130,6 @@ void ChassisSKD::SKDThread::main() {
             if ((mode == GIMBAL_COORDINATE_MODE) || (mode == ANGULAR_VELOCITY_DODGE_MODE)) {
 
                 actual_theta = GimbalIF::feedback[GimbalIF::YAW]->actual_angle * (float) gimbal_yaw_install;
-
-                RefereeUILG::set_chassis_angle(actual_theta / 180.0f * PI);
 
                 if (mode == GIMBAL_COORDINATE_MODE) {
                     if (ABS(actual_theta - target_theta) < THETA_DEAD_ZONE) {

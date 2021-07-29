@@ -14,7 +14,7 @@
 #define META_INFANTRY_GIMBAL_LOGIC_H
 
 #include "gimbal_scheduler.h"
-#include "vision_interface.h"
+#include "vision.h"
 #include "math.h"
 #include "trajectory_calculator.hpp"
 

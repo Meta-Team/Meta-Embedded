@@ -79,7 +79,7 @@ void GimbalLG::VisionControlThread::main() {
 
             chSysLock();  /// --- ENTER S-Locked state. DO NOT use LOG, printf, non S/I-Class functions or return ---
             {
-                can_reach_the_target = Vision::get_gimbal_target_angles_S(yaw, pitch);
+                can_reach_the_target = Vision::get_gimbal_target_angles(yaw, pitch);
             }
             chSysUnlock();  /// --- EXIT S-Locked state ---
 
