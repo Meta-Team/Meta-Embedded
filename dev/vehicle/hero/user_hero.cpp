@@ -107,7 +107,7 @@ void UserH::UserThread::main() {
                         GimbalLG::cal_separate_angle(gimbal_pc_pitch_target_angle_, gimbal_pc_sub_pitch_target_angle_);
                     } else if (pitch_separated == MERGED) {
                         GimbalLG::cal_merge_pitch(gimbal_pc_pitch_target_angle_, gimbal_pc_sub_pitch_target_angle_);
-                        if (GimbalLG::get_current_target_angle(GimbalBase::SUB_PITCH) < 0.5) {
+                        if (ABS_IN_RANGE(GimbalLG::get_current_target_angle(GimbalBase::SUB_PITCH), 0.5)) {
                             pitch_separated = IN_ACTIVE;
                             gimbal_pc_sub_pitch_target_angle_ = 0.0f;
                         }
