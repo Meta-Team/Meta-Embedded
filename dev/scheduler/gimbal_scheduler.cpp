@@ -34,7 +34,6 @@ PIDController GimbalSKD::a2v_pid[3];
 PIDController GimbalSKD::v2i_pid[3];
 GimbalSKD::SKDThread GimbalSKD::skd_thread;
 AbstractAHRS *GimbalSKD::gimbal_ahrs = nullptr;
-float GimbalSKD::actual_angle[3] = {0, 0, 0};
 float GimbalSKD::actual_velocity[3] = {0, 0, 0};
 
 void
@@ -144,14 +143,13 @@ void GimbalSKD::SKDThread::main() {
                  */
                 if (yaw_angle_movement < -200) yaw_angle_movement += 360;
                 if (yaw_angle_movement > 200) yaw_angle_movement -= 360;
-
-                // Use increment to calculate accumulated angles
                 accumulated_angle[YAW] += yaw_angle_movement;
                 actual_velocity[YAW] = velocity[0];
 
                 last_angle[PITCH] = angle[1];
                 accumulated_angle[PITCH] = angle[1];
                 actual_velocity[PITCH] = velocity[1];
+
             } else if (angle_mode == RELATIVE_ANGLE_MODE) {
 
                 // Fetch data from GimbalIF
@@ -179,7 +177,7 @@ void GimbalSKD::SKDThread::main() {
                 if (a2v_pid_enabled) {
 #endif
                     target_velocity[YAW] = a2v_pid[YAW].calc(accumulated_angle[YAW], target_angle[YAW]);
-                    target_velocity[PITCH] = a2v_pid[PITCH].calc(last_angle[PITCH], target_angle[PITCH]);
+                    target_velocity[PITCH] = a2v_pid[PITCH].calc(accumulated_angle[PITCH], target_angle[PITCH]);
                     target_velocity[SUB_PITCH] = a2v_pid[SUB_PITCH].calc(accumulated_angle[SUB_PITCH],
                                                                          target_angle[SUB_PITCH]);
 #ifdef PARAM_ADJUST
@@ -241,7 +239,7 @@ void GimbalSKD::cmdFeedback(void *) {
     for (int i = YAW; i <= SUB_PITCH; i++) {
         if (feedbackEnabled[i]) {
             Shell::printf("_g%d %.2f %.2f %.2f %.2f %d %d" ENDL, i,
-                          actual_angle[i], target_angle[i],
+                          accumulated_angle[i], target_angle[i],
                           actual_velocity[i], target_velocity[i],
                           GimbalIF::feedback[i]->actual_current, *GimbalIF::target_current[i]);
         }

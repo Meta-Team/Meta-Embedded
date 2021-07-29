@@ -5,6 +5,8 @@
 #ifndef META_INFANTRY_AHRS_MATH_HPP
 #define META_INFANTRY_AHRS_MATH_HPP
 
+#include <cmath>
+
 typedef float Matrix33[3][3];  // row-major: [row][column]
 
 class Vector3D {
@@ -55,6 +57,10 @@ public:
         return {y * b.z - z * b.y,
                 z * b.x - x * b.z,
                 x * b.y - y * b.x};
+    }
+
+    float norm() const {
+        return sqrtf(x * x + y * y + z * z);
     }
 
 };

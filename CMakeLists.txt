@@ -49,7 +49,8 @@ include_directories(  # common include directories
         dev/interface/ahrs
         dev/module
         dev/scheduler
-        dev/logic)
+        dev/logic
+        dev/vehicle)
 
 set(BASE_SRC  # common cpp sources, which are included to every target at post configuration below
         dev/debug/shell/shell.cpp
@@ -84,7 +85,8 @@ set(CHASSIS_SRC
         dev/logic/chassis_logic.cpp)
 
 set(VISION_SRC
-        dev/interface/vision.cpp
+        dev/interface/vision_interface.cpp
+        dev/scheduler/vision_scheduler.cpp
         )
 
 set(REFEREE_SRC

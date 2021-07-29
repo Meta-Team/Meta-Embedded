@@ -15,7 +15,6 @@
 #include "ahrs.h"
 #include "remote_interpreter.h"
 #include "sd_card_interface.h"
-#include "vision.h"
 #include "super_capacitor_port.h"
 #include "referee_UI_update_scheduler.h"
 #include "referee_UI_logic.h"
@@ -30,8 +29,12 @@
 #include "chassis_scheduler.h"
 #include "chassis_logic.h"
 
+#include "vision_interface.h"
+#include "vision_scheduler.h"
+
 #include "inspector_infantry.h"
 #include "user_infantry.h"
+#include "thread_priorities.h"
 
 /// Vehicle Specific Configurations
 #if defined(INFANTRY_THREE)                                                 /** Infantry #3 **/
@@ -191,16 +194,16 @@ int main() {
     ShootLG::init(SHOOT_DEGREE_PER_BULLET, true, 10, THREAD_SHOOT_LG_STUCK_DETECT_PRIO, THREAD_SHOOT_BULLET_COUNTER_PRIO, THREAD_SHOOT_LG_VISION_PRIO);
     ChassisLG::init(THREAD_CHASSIS_LG_DODGE_PRIO, THREAD_CHASSIS_POWER_SET_PRIO, CHASSIS_DODGE_MODE_THETA, CHASSIS_BIASED_ANGLE, CHASSIS_LOGIC_DODGE_OMEGA2VOLT_PARAMS);
 
-    /// Setup VisionPort
-    // Should be put after initialization of GimbalSKD
-    Vision::init(VISION_BASIC_CONTROL_DELAY);
-    Vision::set_bullet_speed(VISION_DEFAULT_BULLET_SPEED);
-    Shell::addFeedbackCallback(Vision::cmd_feedback);
-    Shell::addCommands(Vision::shell_commands);
+    /// Setup Vision
+    VisionIF::init();  // must be put after initialization of GimbalSKD
+    VisionSKD::start(VISION_BASIC_CONTROL_DELAY, THREAD_VISION_SKD_PRIO);
+    VisionSKD::set_bullet_speed(VISION_DEFAULT_BULLET_SPEED);
+    Shell::addFeedbackCallback(VisionSKD::cmd_feedback);
+    Shell::addCommands(VisionSKD::shell_commands);
 
     /// Start Inspector and User Threads
     InspectorI::start_inspection(THREAD_INSPECTOR_PRIO);
-    UserI::start(THREAD_USER_PRIO, THREAD_USER_ACTION_PRIO, THREAD_USER_CLIENT_DATA_SEND_PRIO);
+    UserI::start(THREAD_USER_PRIO, THREAD_USER_ACTION_PRIO);
 
 
     /// Complete Period 2

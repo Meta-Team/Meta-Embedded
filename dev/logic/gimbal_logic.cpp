@@ -11,6 +11,8 @@
  */
 
 #include "gimbal_logic.h"
+#include "vision_scheduler.h"
+#include "trajectory_calculator.hpp"
 
 GimbalLG::action_t GimbalLG::action = FORCED_RELAX_MODE;
 GimbalLG::VisionControlThread GimbalLG::vision_control_thread;
@@ -45,7 +47,7 @@ void GimbalLG::set_target(float yaw_target_angle, float pitch_target_angle) {
 }
 
 float GimbalLG::get_actual_angle(GimbalBase::motor_id_t motor) {
-    return GimbalSKD::get_actual_angle(motor);
+    return GimbalSKD::get_accumulated_angle(motor);
 }
 
 float GimbalLG::get_relative_angle(GimbalBase::motor_id_t motor) {
@@ -57,7 +59,7 @@ float GimbalLG::get_current_target_angle(GimbalBase::motor_id_t motor) {
 }
 
 void GimbalLG::separate_pitch() {
-    float pitch = GimbalSKD::get_actual_angle(PITCH) + GimbalSKD::get_actual_angle(SUB_PITCH);
+    float pitch = GimbalSKD::get_accumulated_angle(PITCH) + GimbalSKD::get_accumulated_angle(SUB_PITCH);
     float target_pitch = pitch;
     float flight_time;
     bool ret = Trajectory::compensate_for_gravity(target_pitch, *GimbalIF::lidar_dist, 10, flight_time);
@@ -67,7 +69,7 @@ void GimbalLG::separate_pitch() {
 void GimbalLG::VisionControlThread::main() {
     setName("GimbalLG_Vision");
 
-    chEvtRegisterMask(&Vision::gimbal_updated_event, &vision_listener, VISION_UPDATED_EVENT_MASK);
+    chEvtRegisterMask(&VisionSKD::gimbal_updated_event, &vision_listener, VISION_UPDATED_EVENT_MASK);
 
     while (!shouldTerminate()) {
 
@@ -79,11 +81,12 @@ void GimbalLG::VisionControlThread::main() {
 
             chSysLock();  /// --- ENTER S-Locked state. DO NOT use LOG, printf, non S/I-Class functions or return ---
             {
-                can_reach_the_target = Vision::get_gimbal_target_angles(yaw, pitch);
+                can_reach_the_target = VisionSKD::get_gimbal_target_angles(yaw, pitch);
             }
             chSysUnlock();  /// --- EXIT S-Locked state ---
 
             if (can_reach_the_target) {
+
                 GimbalSKD::set_target_angle(yaw, pitch, 0);
             }  // otherwise, keep current target angles
         }

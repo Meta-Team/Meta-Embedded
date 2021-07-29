@@ -285,7 +285,7 @@ void RefereeUISKD::echo_titles() {
     }
 }
 
-bool RefereeUISKD::revise_character(const char *name, char *string, color_t color) {
+bool RefereeUISKD::revise_label(const char *name, char *string, color_t color) {
 
     for (int i = 0; i < label_count; i++) {
 

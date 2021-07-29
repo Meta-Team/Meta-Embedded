@@ -17,7 +17,8 @@
 #include "shoot_scheduler.h"
 #include "referee_interface.h"
 #include "buzzer_scheduler.h"
-#include "vision.h"
+#include "vision_scheduler.h"
+#include "low_pass_filter.hpp"
 #include <cmath>
 
 ShootLG::limit_mode_t ShootLG::mode = UNLIMITED_MODE;
@@ -192,7 +193,7 @@ void ShootLG::VisionShootThread::main() {
 
     LowPassFilteredValue measuredShootDelay(0.8);
 
-    chEvtRegisterMask(&Vision::shoot_time_updated_event, &vision_listener, VISION_UPDATED_EVENT_MASK);
+    chEvtRegisterMask(&VisionSKD::shoot_time_updated_event, &vision_listener, VISION_UPDATED_EVENT_MASK);
 
     while (!shouldTerminate()) {
 
@@ -203,8 +204,8 @@ void ShootLG::VisionShootThread::main() {
             time_msecs_t expected_shoot_time, command_issue_time;
             chSysLock();  /// --- ENTER S-Locked state. DO NOT use LOG, printf, non S/I-Class functions or return ---
             {
-                expected_shoot_time = Vision::get_expected_shoot_time();
-                command_issue_time = Vision::get_last_update_time();
+                expected_shoot_time = VisionSKD::get_expected_shoot_time();
+                command_issue_time = VisionSKD::get_last_compute_time();  // FIXME: not correct
             }
             chSysUnlock();  /// --- EXIT S-Locked state ---
             int64_t time_delta = (int64_t) expected_shoot_time - (int64_t) (SYSTIME);

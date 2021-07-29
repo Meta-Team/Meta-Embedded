@@ -62,7 +62,7 @@ public:
 
     static bool add_int(const char name[3], uint32_t layer, color_t color, ui_point_t start_p, uint32_t font_size, int data);
 
-    static bool revise_character(const char name[3], char *string, color_t color);
+    static bool revise_label(const char *name, char *string, color_t color);
 
     static bool revise_shape_loc(const char name[3], ui_point_t point, color_t color);
 

@@ -130,11 +130,11 @@ public:
     static float get_target_velocity(motor_id_t motor);
 
     /**
-    * Get actual angle involved in PID calculation in this SKD
+    * Get accumulated angle involved in PID calculation in this SKD
     * @param motor   YAW or PITCH
     * @return Actual angle of GIMBAL
     */
-    static float get_actual_angle(motor_id_t motor) { return actual_angle[motor]; }
+    static float get_accumulated_angle(motor_id_t motor) { return accumulated_angle[motor]; }
 
     /**
     * Get actual velocity involved in PID calculation in this SKD
@@ -182,7 +182,6 @@ private:
     static PIDController a2v_pid[3];
     static PIDController v2i_pid[3];
 
-    static float actual_angle[3];
     static float actual_velocity[3];
 
     static constexpr unsigned int SKD_THREAD_INTERVAL = 1; // PID calculation interval [ms]

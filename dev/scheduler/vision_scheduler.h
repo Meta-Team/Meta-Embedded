@@ -1,26 +1,18 @@
 //
-// Created by Kerui Zhu on 7/4/2019.
+// Created by liuzikai on 7/29/21.
 //
 
-#ifndef META_INFANTRY_VISION_H
-#define META_INFANTRY_VISION_H
+#ifndef META_INFANTRY_VISION_SCHEDULER_H
+#define META_INFANTRY_VISION_SCHEDULER_H
 
-#include "ch.hpp"
-#include "hal.h"
 #include "low_pass_filter.hpp"
 #include "position_kalman_filter.hpp"
 #include "shell.h"
 
-class Vision {
-
+class VisionSKD {
 public:
 
-    /**
-     * Setup Vision module.
-     * @param basic_gimbal_delay     Fixed gimbal control delay [ms]
-     * @param basic_shoot_delay      Fixed shooter control delay [ms]
-     */
-    static void init(time_msecs_t basic_gimbal_delay);
+    static void start(time_msecs_t basic_gimbal_delay, tprio_t thread_prio);
 
     /**
      * Set bullet speed.
@@ -65,10 +57,10 @@ public:
     static event_source_t shoot_time_updated_event;
 
     /**
-     * Get last control command update time.
+     * Get last compute time.
      * @return
      */
-    static time_msecs_t get_last_update_time() { return last_update_time; }
+    static time_msecs_t get_last_compute_time() { return last_compute_time; }
 
     /**
      * Get enemy position on user view;
@@ -80,13 +72,11 @@ public:
     static void cmd_feedback(void *);
     static const Shell::Command shell_commands[];
 
-public:
+private:
 
     /** Settings **/
     static float bullet_speed;                // [mm/ms = m/s]
     static time_msecs_t basic_gimbal_delay;   // [ms]
-
-private:
 
     /** Armor and Control **/
 
@@ -119,23 +109,21 @@ private:
     static constexpr float TK_ROTATION_HOLD_TIME_THRESHOLD = 2000;  // [ms]
     static time_msecs_t tk_rotation_hold_start_time;
 
-    
+
     static time_msecs_t expected_shoot_time;          // [ms] for TopKiller, 0 for anytime
     static int expected_shoot_after_periods;
 
     /** Updates **/
 
-    // Gimbal angles at last vision command
-    static float last_gimbal_yaw;    // [deg]
-    static float last_gimbal_pitch;  // [deg]
-
     // Last vision command time
     static uint16_t last_frame_timestamp;        // [ms]
-    static time_msecs_t last_update_time;        // [ms]
-    static time_msecs_t last_update_time_delta;  // [ms]
     static time_msecs_t last_detected_time;
+    static time_msecs_t last_compute_time;
+    static time_msecs_t last_vision_command_time;
 
     static constexpr time_msecs_t DETECTION_LOSE_TIME = 1000;  // [ms]
+    static constexpr time_msecs_t POSITION_RELOAD_TIME = 1000;  // [ms]
+    static constexpr float SINGLE_ARMOR_2D_OFFSET_PER_FRAME = 500;  // [mm]
 
     /** User View **/
 
@@ -145,70 +133,17 @@ private:
     static uint32_t user_view_x;
     static uint32_t user_view_y;
 
-private:
-    enum vision_flag_t : uint8_t {
-        NONE = 0,
-        DETECTED = 1,
+    class CalculationThread : public chibios_rt::BaseStaticThread<1024> {
+        void main() override;
     };
 
-    __PACKED_STRUCT vision_command_t {
-        uint8_t flag;
-        uint16_t time_stamp;        // [0.1ms]
-        int16_t yaw_delta;          // yaw relative angle [deg] * 100
-        int16_t pitch_delta;        // pitch relative angle [deg] * 100
-        int16_t dist;               // [mm]
-        int16_t avg_light_angle;    // [deg] * 100
-        int16_t imageX;             // pixel
-        int16_t imageY;             // pixel
-    };
-
-    __PACKED_STRUCT package_t {
-        uint8_t sof;  // start of frame, 0xA5
-        uint8_t cmd_id;
-        union {  // union takes the maximal size of its elements
-            vision_command_t command;
-        };
-        uint8_t crc8;  // just for reference but not use (the offset of this is not correct)
-    };
-
-    enum cmd_id_t : uint8_t {
-        VISION_CONTROL_CMD_ID = 0,
-        CMD_ID_COUNT
-    };
-
-    static constexpr size_t DATA_SIZE[CMD_ID_COUNT] = {
-            sizeof(vision_command_t)
-    };
-
-    static package_t pak;
-
-    static void uart_rx_callback(UARTDriver *uartp);
-    static void uart_err_callback(UARTDriver *uartp, uartflags_t e);
-    static void uart_char_callback(UARTDriver *uartp, uint16_t c);
-
-    enum rx_status_t {
-        WAIT_STARTING_BYTE,  // receive bytes one by one, waiting for 0xA5
-        WAIT_CMD_ID,         // receive cmd_id
-        WAIT_DATA_TAIL       // receive data section and 1-byte CRC8 data
-    };
-
-    static rx_status_t rx_status;
-
-    friend void uartStart(UARTDriver *uartp, const UARTConfig *config);
-    friend void uartStartReceive(UARTDriver *uartp, size_t n, void *rxbuf);
-
-    // See cpp file for configs
-    static constexpr UARTDriver *UART_DRIVER = &UARTD8;
-    static const UARTConfig UART_CONFIG;
-
-private:
-
-    static void handle_vision_command(const vision_command_t &command);
+    static CalculationThread calculation_thread;
 
     static DECL_SHELL_CMD(cmdInfo);
     static DECL_SHELL_CMD(cmdEnableFeedback);
     static DECL_SHELL_CMD(cmd_user_view_setting);
+
 };
 
 
-#endif //META_INFANTRY_VISION_H
+#endif //META_INFANTRY_VISION_SCHEDULER_H
