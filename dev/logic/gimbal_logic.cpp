@@ -60,7 +60,7 @@ float GimbalLG::get_current_target_angle(GimbalBase::motor_id_t motor) {
 }
 
 void GimbalLG::separate_pitch() {
-    sub_pitch_to_ground = GimbalSKD::get_accumulated_angle(PITCH) - GimbalSKD::get_actual_angle(SUB_PITCH);
+    sub_pitch_to_ground = GimbalSKD::get_accumulated_angle(PITCH) - GimbalSKD::get_accumulated_angle(SUB_PITCH);
 }
 
 void GimbalLG::cal_separate_angle(float &target_pitch, float &target_sub_pitch) {

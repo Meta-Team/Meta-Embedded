@@ -68,7 +68,7 @@ void UserI::UserThread::main() {
                 // ch1 use up as positive direction, while GimbalLG also use up as positive direction
 
                 VAL_CROP(pitch_target, gimbal_pitch_max_angle, gimbal_pitch_min_angle);
-                GimbalLG::set_target(gimbal_yaw_target_angle_, pitch_target,0);
+                GimbalLG::set_target(gimbal_yaw_target_angle_, pitch_target, 0);
 
             } else if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_DOWN) {
 

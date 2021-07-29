@@ -1,6 +1,5 @@
 //
 // Created by liuzikai on 2019-01-27.
-// Edited by Qian Chen & Mo Kanya on 2019-07-05
 //
 
 /// Headers
@@ -16,7 +15,6 @@
 #include "ahrs.h"
 #include "remote_interpreter.h"
 #include "sd_card_interface.h"
-#include "vision_interface.h"
 #include "super_capacitor_port.h"
 #include "referee_UI_update_scheduler.h"
 #include "referee_UI_logic.h"
@@ -31,8 +29,10 @@
 #include "chassis_scheduler.h"
 #include "chassis_logic.h"
 
-#include "inspector_hero.h"
+#include "vision_interface.h"
+#include "vision_scheduler.h"
 
+#include "thread_priorities.h"
 #ifndef PARAM_ADJUST
 #include "user_hero.h"
 #else
@@ -167,7 +167,7 @@ int main() {
 
     /// Start SKDs
     GimbalSKD::start(&ahrs, GIMBAL_ANGLE_INSTALLATION_MATRIX_, GIMBAL_GYRO_INSTALLATION_MATRIX_,
-                     GIMBAL_YAW_INSTALL_DIRECTION, GIMBAL_PITCH_INSTALL_DIRECTION, GIMBAL_SUB_PITCH_INSTALL_DIRECTION, THREAD_GIMBAL_SKD_PRIO, GimbalSKD::RELATIVE_ANGLE_MODE);
+                     GIMBAL_YAW_INSTALL_DIRECTION, GIMBAL_PITCH_INSTALL_DIRECTION, GIMBAL_SUB_PITCH_INSTALL_DIRECTION, THREAD_GIMBAL_SKD_PRIO, GimbalSKD::ABS_ANGLE_MODE);
     GimbalSKD::load_pid_params(GIMBAL_PID_YAW_A2V_PARAMS, GIMBAL_PID_YAW_V2I_PARAMS,
                                GIMBAL_PID_PITCH_A2V_PARAMS, GIMBAL_PID_PITCH_V2I_PARAMS,
                                {0, 0, 0, 0, 0}/* Not used */, {0, 0, 0, 0, 0}/* Not used */);
@@ -191,16 +191,16 @@ int main() {
     ShootLG::init(SHOOT_DEGREE_PER_BULLET, true, 10, THREAD_SHOOT_LG_STUCK_DETECT_PRIO, THREAD_SHOOT_BULLET_COUNTER_PRIO, THREAD_SHOOT_LG_VISION_PRIO);
     ChassisLG::init(THREAD_CHASSIS_LG_DODGE_PRIO, THREAD_CHASSIS_POWER_SET_PRIO, CHASSIS_DODGE_MODE_THETA, CHASSIS_BIASED_ANGLE, CHASSIS_LOGIC_DODGE_OMEGA2VOLT_PARAMS);
 
-    /// Setup VisionPort
-    // Should be put after initialization of GimbalSKD
-    Vision::init(VISION_BASIC_CONTROL_DELAY);
-    Vision::set_bullet_speed(VISION_DEFAULT_BULLET_SPEED);
-    Shell::addFeedbackCallback(Vision::cmd_feedback);
-    Shell::addCommands(Vision::shell_commands);
+    /// Setup Vision
+    VisionIF::init();  // must be put after initialization of GimbalSKD
+    VisionSKD::start(VISION_BASIC_CONTROL_DELAY, THREAD_VISION_SKD_PRIO);
+    VisionSKD::set_bullet_speed(VISION_DEFAULT_BULLET_SPEED);
+    Shell::addFeedbackCallback(VisionSKD::cmd_feedback);
+    Shell::addCommands(VisionSKD::shell_commands);
 
     /// Start Inspector and User Threads
     InspectorH::start_inspection(THREAD_INSPECTOR_PRIO);
-    UserH::start(THREAD_USER_PRIO, THREAD_USER_ACTION_PRIO, THREAD_USER_CLIENT_DATA_SEND_PRIO);
+    UserH::start(THREAD_USER_PRIO, THREAD_USER_ACTION_PRIO);
 
 
     /// Complete Period 2
