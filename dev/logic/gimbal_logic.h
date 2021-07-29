@@ -28,9 +28,15 @@ public:
 
     /**
      * Initial GimbalLG
-     * @param vision_control_thread_prio  Vision control thread priority
+     * @param vision_control_thread_prio  Vision control thread priority (IDLEPRIO for disabled)
+     * @param sentry_control_thread_prio  Sentry control thread priority (IDLEPRIO for disabled)
+     * @param pitch_min_angle
+     * @param pitch_max_angle
+     * @param sub_pitch_min_angle
+     * @param sub_pitch_max_angle
      */
-    static void init(tprio_t vision_control_thread_prio, tprio_t sentry_control_thread_prio);
+    static void init(tprio_t vision_control_thread_prio, tprio_t sentry_control_thread_prio,
+                     float pitch_min_angle, float pitch_max_angle, float sub_pitch_min_angle, float sub_pitch_max_angle);
 
     enum action_t {
         FORCED_RELAX_MODE,
@@ -89,6 +95,10 @@ public:
 private:
 
     static action_t action;
+    static float pitch_min_angle;
+    static float pitch_max_angle;
+    static float sub_pitch_min_angle;
+    static float sub_pitch_max_angle;
 
     static float sub_pitch_to_ground;
 

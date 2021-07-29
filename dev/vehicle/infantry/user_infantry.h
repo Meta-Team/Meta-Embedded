@@ -31,8 +31,6 @@ private:
     static float gimbal_pc_yaw_sensitivity[];  // [Ctrl, Normal, Shift] [degree/s]
 
     static float gimbal_pc_pitch_sensitivity[];   // rotation speed when mouse moves fastest [degree/s]
-    static float gimbal_pitch_min_angle; // down range for pitch [degree]
-    static float gimbal_pitch_max_angle; //  up range for pitch [degree]
 
     /// Chassis Config
     static float base_power;             // [w]
@@ -45,9 +43,6 @@ private:
 
     static float chassis_pc_shift_ratio;  // 150% when Shift is pressed
     static float chassis_pc_ctrl_ratio;    // 50% when Ctrl is pressed
-
-    static float shoot_launch_left_count;
-    static float shoot_launch_right_count;
 
     static float shoot_feed_rate;
     static float shoot_fw_speed[3];

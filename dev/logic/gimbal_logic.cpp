@@ -18,10 +18,23 @@ GimbalLG::action_t GimbalLG::action = FORCED_RELAX_MODE;
 GimbalLG::VisionControlThread GimbalLG::vision_control_thread;
 GimbalLG::SentryControlThread GimbalLG::sentry_control_thread;
 float GimbalLG::sub_pitch_to_ground = 0;
+float GimbalLG::pitch_min_angle = 0;
+float GimbalLG::pitch_max_angle = 0;
+float GimbalLG::sub_pitch_min_angle = 0;
+float GimbalLG::sub_pitch_max_angle = 0;
 
-void GimbalLG::init(tprio_t vision_control_thread_prio, tprio_t sentry_control_thread_prio) {
-    vision_control_thread.start(vision_control_thread_prio);
-    sentry_control_thread.start(sentry_control_thread_prio);
+void GimbalLG::init(tprio_t vision_control_thread_prio, tprio_t sentry_control_thread_prio, float pitch_min_angle_,
+                    float pitch_max_angle_, float sub_pitch_min_angle_, float sub_pitch_max_angle_) {
+    if (vision_control_thread_prio != IDLEPRIO) {
+        vision_control_thread.start(vision_control_thread_prio);
+    }
+    if (sentry_control_thread_prio != IDLEPRIO) {
+        sentry_control_thread.start(sentry_control_thread_prio);
+    }
+    pitch_min_angle = pitch_min_angle_;
+    pitch_max_angle = pitch_max_angle_;
+    sub_pitch_min_angle = sub_pitch_min_angle_;
+    sub_pitch_max_angle = sub_pitch_max_angle_;
 }
 
 GimbalLG::action_t GimbalLG::get_action() {
@@ -99,7 +112,9 @@ void GimbalLG::VisionControlThread::main() {
 
             if (can_reach_the_target) {
 
-                GimbalSKD::set_target_angle(yaw, pitch, 0);
+                VAL_CROP(pitch, pitch_max_angle, pitch_min_angle);
+                GimbalSKD::set_target_angle(yaw, pitch);
+
             }  // otherwise, keep current target angles
         }
     }

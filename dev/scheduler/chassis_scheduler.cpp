@@ -180,11 +180,11 @@ const Shell::Command ChassisSKD::shellCommands[] = {
 
 DEF_SHELL_CMD_START(ChassisSKD::cmdInfo)
     Shell::printf("_c:Gimbal" ENDL);
-    Shell::printf("_c/Front_Right:Velocity{Target,Actual} Current{Target,Actual}" ENDL);
-    Shell::printf("_c/Front_Left:Velocity{Target,Actual} Current{Target,Actual}" ENDL);
-    Shell::printf("_c/Back_Left:Velocity{Target,Actual} Current{Target,Actual}" ENDL);
-    Shell::printf("_c/Back_Right:Velocity{Target,Actual} Current{Target,Actual}" ENDL);
-    Shell::printf("_c/Theta:Angle{Target,Actual}" ENDL);
+    Shell::printf("_c/Front_Right:Velocity{Actual,Target} Current{Actual,Target}" ENDL);
+    Shell::printf("_c/Front_Left:Velocity{Actual,Target} Current{Actual,Target}" ENDL);
+    Shell::printf("_c/Back_Left:Velocity{Actual,Target} Current{Actual,Target}" ENDL);
+    Shell::printf("_c/Back_Right:Velocity{Actual,Target} Current{Actual,Target}" ENDL);
+    Shell::printf("_c/Theta:Angle{Actual,Target}" ENDL);
     return true;
 DEF_SHELL_CMD_END
 

@@ -14,6 +14,9 @@
 
 /// Gimbal and Shoot Installation Configurations
 
+#define GIMBAL_PITCH_MIN_ANGLE  (-30)  // up range for pitch [degree]
+#define GIMBAL_PITCH_MAX_ANGLE  (10)  //  down range for pitch [degree]
+
 #define GIMBAL_YAW_CAN_CHANNEL      (GimbalIF::can_channel_2)
 #define GIMBAL_PITCH_CAN_CHANNEL    (GimbalIF::can_channel_1)
 #define GIMBAL_SUB_PITCH_CAN_CHANNEL (GimbalIF::none_can_channel)
@@ -39,8 +42,8 @@
 #define GIMBAL_PITCH_MOTOR_DR       (CANInterface::DEFAULT_DECELERATION_RATIO)
 #define GIMBAL_SUB_PITCH_MOTOR_DR   (CANInterface::DEFAULT_DECELERATION_RATIO)
 #define SHOOT_BULLET_MOTOR_DR       (CANInterface::M2006_WITH_DECELERATION_RATIO)
-#define GIMBAL_FW_LEFT_MOTOR_DR     (CANInterface::M3508_WITH_DECELERATION_RATIO)  // FIXME: FW don't have DECELERATION_RATIO
-#define GIMBAL_FW_RIGHT_MOTOR_DR    (CANInterface::M3508_WITH_DECELERATION_RATIO)
+#define GIMBAL_FW_LEFT_MOTOR_DR     (CANInterface::DEFAULT_DECELERATION_RATIO)  // FIXME: FW don't have DECELERATION_RATIO
+#define GIMBAL_FW_RIGHT_MOTOR_DR    (CANInterface::DEFAULT_DECELERATION_RATIO)
 
 #define GIMBAL_MOTOR_CONFIG \
 { {GIMBAL_YAW_CAN_CHANNEL,          GIMBAL_YAW_CAN_ID,          GIMBAL_YAW_MOTOR_TYPE,          GIMBAL_YAW_MOTOR_DR}, \
@@ -149,7 +152,7 @@
     GIMBAL_PID_SUB_PITCH_V2I_I_LIMIT, GIMBAL_PID_SUB_PITCH_V2I_OUT_LIMIT}
 
 /// Chassis Mechanism Parameters
-#define SHOOT_FW_CIRCUMFERENCE         188.4f  // [mm]
+#define SHOOT_FW_CIRCUMFERENCE         0.2355f  // [mm]
 
 /// Shoot PID Parameters
 #define SHOOT_PID_BULLET_LOADER_A2V_KP 20.0f  // a number large enough, see shoot speed note at ShootSKD
@@ -171,9 +174,9 @@
     SHOOT_PID_BULLET_LOADER_V2I_I_LIMIT, SHOOT_PID_BULLET_LOADER_V2I_OUT_LIMIT}
 
 //TODO: Need to revised to the newest pid params.
-#define SHOOT_PID_FW_LEFT_V2I_KP 26.0f
+#define SHOOT_PID_FW_LEFT_V2I_KP 8.0f
 #define SHOOT_PID_FW_LEFT_V2I_KI 0.1f
-#define SHOOT_PID_FW_LEFT_V2I_KD 0.02f
+#define SHOOT_PID_FW_LEFT_V2I_KD 0.03f
 #define SHOOT_PID_FW_LEFT_V2I_I_LIMIT 2000.0f
 #define SHOOT_PID_FW_LEFT_V2I_OUT_LIMIT 6000.0f
 #define SHOOT_PID_FW_LEFT_V2I_PARAMS \
@@ -257,7 +260,7 @@
 
 /// Vision
 #define VISION_BASIC_CONTROL_DELAY      100   /* ms */
-#define VISION_DEFAULT_BULLET_SPEED     15.0f /* mm/ms = m/s */
+#define VISION_DEFAULT_BULLET_SPEED     14.0f /* mm/ms = m/s */
 #define VISION_SHOOT_TOLERANCE          7   /* ms */
 
 /// Dev Board LED Usage List

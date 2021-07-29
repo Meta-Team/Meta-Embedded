@@ -222,9 +222,9 @@ const Shell::Command GimbalSKD::shellCommands[] = {
 
 DEF_SHELL_CMD_START(GimbalSKD::cmdInfo)
     Shell::printf("_g:Gimbal" ENDL);
-    Shell::printf("_g/Yaw:Angle{Target,Actual} Velocity{Target,Actual} Current{Target,Actual}" ENDL);
-    Shell::printf("_g/Pitch:Angle{Target,Actual} Velocity{Target,Actual} Current{Target,Actual}" ENDL);
-    Shell::printf("_g/Sub_Pitch:Angle{Target,Actual} Velocity{Target,Actual} Current{Target,Actual}" ENDL);
+    Shell::printf("_g/Yaw:Angle{Actual,Target} Velocity{Actual,Target} Current{Actual,Target}" ENDL);
+    Shell::printf("_g/Pitch:Angle{Actual,Target} Velocity{Actual,Target} Current{Actual,Target}" ENDL);
+    Shell::printf("_g/Sub_Pitch:Angle{Actual,Target} Velocity{Actual,Target} Current{Actual,Target}" ENDL);
     return true;
 DEF_SHELL_CMD_END
 

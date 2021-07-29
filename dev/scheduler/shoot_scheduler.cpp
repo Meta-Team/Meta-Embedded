@@ -130,10 +130,10 @@ void ShootSKD::SKDThread::main() {
 
                 target_current[0] = 0;
 
-                target_current[1] = ABS_IN_RANGE(GimbalIF::feedback[FW_LEFT]->actual_velocity, 100) ?
+                target_current[1] = ABS_IN_RANGE(GimbalIF::feedback[FW_LEFT]->actual_velocity, 500) ?
                                     0 : (int) v2i_pid[1].calc(GimbalIF::feedback[FW_LEFT]->actual_velocity, 0.0f);
 
-                target_current[2] = ABS_IN_RANGE(GimbalIF::feedback[FW_RIGHT]->actual_velocity, 100) ?
+                target_current[2] = ABS_IN_RANGE(GimbalIF::feedback[FW_RIGHT]->actual_velocity, 500) ?
                                     0 : (int) v2i_pid[2].calc(GimbalIF::feedback[FW_RIGHT]->actual_velocity, 0.0f);
             }
 
@@ -161,9 +161,9 @@ const Shell::Command ShootSKD::shellCommands[] = {
 
 DEF_SHELL_CMD_START(ShootSKD::cmdInfo)
     Shell::printf("_s:Shoot" ENDL);
-    Shell::printf("_s/Bullet:Angle{Target,Actual} Velocity{Target,Actual} Current{Target,Actual}" ENDL);
-    Shell::printf("_s/FW_Left:Velocity{Target,Actual} Current{Target,Actual}" ENDL);
-    Shell::printf("_s/FW_Right:Velocity{Target,Actual} Current{Target,Actual}" ENDL);
+    Shell::printf("_s/Bullet:Angle{Actual,Target} Velocity{Actual,Target} Current{Actual,Target}" ENDL);
+    Shell::printf("_s/FW_Left:Velocity{Actual,Target} Current{Actual,Target}" ENDL);
+    Shell::printf("_s/FW_Right:Velocity{Actual,Target} Current{Actual,Target}" ENDL);
     return true;
 DEF_SHELL_CMD_END
 

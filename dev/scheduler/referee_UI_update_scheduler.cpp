@@ -48,8 +48,8 @@ bool RefereeUISKD::add_label(const char *name, ui_point_t start_p, color_t color
     }
     label_state[label_count] = REVISING;
     label_count += 1;
-     Shell::printf("interval: %d" SHELL_NEWLINE_STR, RefereeUISKD::label_count);
-     chThdSleepMilliseconds(100);
+//     Shell::printf("interval: %d" SHELL_NEWLINE_STR, RefereeUISKD::label_count);
+     chThdSleepMilliseconds(200);
     return true;
 }
 

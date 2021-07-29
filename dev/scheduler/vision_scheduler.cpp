@@ -48,7 +48,7 @@ bool VisionSKD::is_detected() {
 }
 
 bool VisionSKD::get_gimbal_target_angles(float &yaw, float &pitch) {
-    if (WITHIN_RECENT_TIME(last_detected_time, 1000)) {
+    if (WITHIN_RECENT_TIME(last_detected_time, DETECTION_LOSE_TIME)) {
         if (!can_reach_target) {
             return false;
         } else {
@@ -74,99 +74,105 @@ void VisionSKD::CalculationThread::main() {
 
     while (!shouldTerminate()) {
 
-        bool new_command_received = false;
-        if (VisionIF::get_last_valid_update_time() != last_vision_command_time) {
-            last_vision_command_time = VisionIF::get_last_valid_update_time();
-            VisionIF::get_latest_valid_command(command, new_armor_yaw, new_armor_pitch);
-            new_command_received = true;
-        }
+        if (WITHIN_RECENT_TIME(VisionIF::get_last_valid_update_time(), 2000)) {
 
-        auto time_delta = (float) (SYSTIME - last_compute_time);
-
-        if (new_command_received) {
-
-            // Update Kalman filters with received command
-            Vector3D ypd = Vector3D{new_armor_yaw, new_armor_pitch, (float) command.dist};
-            Vector3D last_ypd = Vector3D{armor_ypd[0].get_position(),
-                                         armor_ypd[1].get_position(),
-                                         armor_ypd[2].get_position()};
-
-            if ((int16_t) (command.time_stamp - last_frame_timestamp) < (int16_t) POSITION_RELOAD_TIME &&
-                (ypd - last_ypd).norm() < SINGLE_ARMOR_2D_OFFSET_PER_FRAME) {
-                armor_ypd[0].predict_update(new_armor_yaw, time_delta);
-                armor_ypd[1].predict_update(new_armor_pitch, time_delta);
-                armor_ypd[2].predict_update(command.dist, time_delta);
-            } else {
-                armor_ypd[0].reload_position(ypd.x);
-                armor_ypd[1].reload_position(ypd.y);
-                armor_ypd[2].reload_position(ypd.z);
+            bool new_command_received = false;
+            if (VisionIF::get_last_valid_update_time() != last_vision_command_time) {
+                last_detected_time = last_vision_command_time = VisionIF::get_last_valid_update_time();
+                VisionIF::get_latest_valid_command(command, new_armor_yaw, new_armor_pitch);
+                new_command_received = true;
             }
-            last_compute_time = SYSTIME;
-            last_frame_timestamp = command.time_stamp;
 
-        } else {
+            auto time_delta = (float) (SYSTIME - last_compute_time);
 
-            // Update Kalman filters with only prediction
-            for (auto &filter : armor_ypd) filter.predict(time_delta);
+            if (new_command_received) {
 
-        }
+                // Update Kalman filters with received command
+                Vector3D ypd = Vector3D{new_armor_yaw, new_armor_pitch, (float) command.dist};
+                Vector3D last_ypd = Vector3D{armor_ypd[0].get_position(),
+                                             armor_ypd[1].get_position(),
+                                             armor_ypd[2].get_position()};
 
-
-        float yaw = armor_ypd[0].get_position();
-        float pitch = armor_ypd[1].get_position();
-        float dist = armor_ypd[2].get_position();
-
-        // Predict movement
-        {
-            float rough_flight_time = dist / bullet_speed;  // not accurate, but probably enough
-            float predict_forward_amount = (float) basic_gimbal_delay + rough_flight_time;
-            yaw += armor_ypd[0].get_velocity() * predict_forward_amount;
-        }
-
-        // Compensate for gravity
-        can_reach_target = Trajectory::compensate_for_gravity(pitch, dist, bullet_speed, bullet_flight_time);
-
-        if (can_reach_target) {
-
-            // Issue new gimbal command
-            latest_target_yaw = yaw;
-            latest_target_pitch = pitch;
-            chEvtBroadcast(&gimbal_updated_event);  // we are still in I-Lock state
-
-            // Predict time to shoot
-            /*if (command.flag & TOP_KILLER_TRIGGERED) {
-
-                // Calculate using time_msecs_t so that we don't need to care about wrap around
-                time_msecs_t shoot_time = last_update_time
-                                          + (time_msecs_t) command.remaining_time_to_target
-                                          - (time_msecs_t) flight_time_to_target
-                                          - (time_msecs_t) measured_shoot_delay.get();
-
-                // Compensate for one or more periods until we can catch up expected_shoot_time
-                expected_shoot_after_periods = 0;
-                while (true) {
-                    // Minus using time_msecs_t so that we don't need to care about wrap around
-                    auto time_delta = (int32_t) (shoot_time - now);  // compare by casting to signed
-                    if (time_delta < 0) {
-                        expected_shoot_after_periods++;
-                        shoot_time += command.period;
-                    } else {
-                        break;
-                    }
+                if ((int16_t) (command.time_stamp - last_frame_timestamp) < (int16_t) POSITION_RELOAD_TIME &&
+                    (ypd - last_ypd).norm() < SINGLE_ARMOR_2D_OFFSET_PER_FRAME) {
+                    armor_ypd[0].predict_update(new_armor_yaw, time_delta);
+                    armor_ypd[1].predict_update(new_armor_pitch, time_delta);
+                    armor_ypd[2].predict_update(command.dist, time_delta);
+                } else {
+                    armor_ypd[0].reload_position(ypd.x);
+                    armor_ypd[1].reload_position(ypd.y);
+                    armor_ypd[2].reload_position(ypd.z);
                 }
-
-                // Issue shoot command
-                expected_shoot_time = (time_msecs_t) shoot_time;
-                chEvtBroadcast(&shoot_time_updated_event);  // we are still in I-Lock state
+                last_compute_time = SYSTIME;
+                last_frame_timestamp = command.time_stamp;
 
             } else {
-                expected_shoot_time = 0;
-            }*/
 
-            // Update user view
+                // Update Kalman filters with only prediction
+//                for (auto &filter : armor_ypd) filter.predict(time_delta);
+
+                sleep(TIME_MS2I(2));
+                continue;
+
+            }
+
+
+            float yaw = armor_ypd[0].get_position();
+            float pitch = armor_ypd[1].get_position();
+            float dist = armor_ypd[2].get_position();
+
+            // Predict movement
             {
-                user_view_x = IMAGE_TO_USER_OFFSET_X + command.imageX * IMAGE_TO_USER_SCALE;
-                user_view_y = 1080 - (IMAGE_TO_USER_OFFSET_Y + command.imageY * IMAGE_TO_USER_SCALE);
+                float rough_flight_time = dist / bullet_speed;  // not accurate, but probably enough
+                float predict_forward_amount = (float) basic_gimbal_delay + rough_flight_time;
+                yaw += armor_ypd[0].get_velocity() * predict_forward_amount;
+            }
+
+            // Compensate for gravity
+            can_reach_target = Trajectory::compensate_for_gravity(pitch, dist, bullet_speed, bullet_flight_time);
+
+            if (can_reach_target) {
+
+                // Issue new gimbal command
+                latest_target_yaw = yaw;
+                latest_target_pitch = pitch;
+                chEvtBroadcast(&gimbal_updated_event);  // we are still in I-Lock state
+
+                // Predict time to shoot
+                /*if (command.flag & TOP_KILLER_TRIGGERED) {
+
+                    // Calculate using time_msecs_t so that we don't need to care about wrap around
+                    time_msecs_t shoot_time = last_update_time
+                                              + (time_msecs_t) command.remaining_time_to_target
+                                              - (time_msecs_t) flight_time_to_target
+                                              - (time_msecs_t) measured_shoot_delay.get();
+
+                    // Compensate for one or more periods until we can catch up expected_shoot_time
+                    expected_shoot_after_periods = 0;
+                    while (true) {
+                        // Minus using time_msecs_t so that we don't need to care about wrap around
+                        auto time_delta = (int32_t) (shoot_time - now);  // compare by casting to signed
+                        if (time_delta < 0) {
+                            expected_shoot_after_periods++;
+                            shoot_time += command.period;
+                        } else {
+                            break;
+                        }
+                    }
+
+                    // Issue shoot command
+                    expected_shoot_time = (time_msecs_t) shoot_time;
+                    chEvtBroadcast(&shoot_time_updated_event);  // we are still in I-Lock state
+
+                } else {
+                    expected_shoot_time = 0;
+                }*/
+
+                // Update user view
+                {
+                    user_view_x = IMAGE_TO_USER_OFFSET_X + command.imageX * IMAGE_TO_USER_SCALE;
+                    user_view_y = 1080 - (IMAGE_TO_USER_OFFSET_Y + command.imageY * IMAGE_TO_USER_SCALE);
+                }
             }
         }
 

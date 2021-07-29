@@ -52,7 +52,7 @@ public:
      * Initialize this module
      * @param angle_per_bullet_            Angle for bullet loader to rotate to fill one bullet [degree]
      * @param use_42mm_bullet
-     * @param fw_circumference             [mm]
+     * @param fw_circumference             [m]
      * @param stuck_detector_thread_prio   Thread priority for stuck detector thread
      * @param bullet_counter_thread_prio   Thread priority for bullet counter thread
      * @param vision_shooting_thread_prio  Thread priority for Vision automatic shooting thread
@@ -81,7 +81,7 @@ public:
 
     /**
      * Set friction wheels duty cycle in LIMITED_SHOOTING_MODE or REVERSE_TURNING_MODE
-     * @param speed  [mm/s]
+     * @param speed  [m/s]
      */
     static void set_shoot_speed(float speed);
 
@@ -140,7 +140,7 @@ private:
     static shooter_state_t shooter_state;
 
     static bool use_42mm_bullet;
-    static float fw_mm_to_deg_ratio;
+    static float fw_m_to_deg_ratio;
     static constexpr int HEAT_PER_17MM_BULLET = 10;
     static constexpr int HEAT_PER_42MM_BULLET = 100;
 

@@ -27,7 +27,7 @@ int ShootLG::remaining_bullet_count = 0;
 float ShootLG::target_bullet_count = 0;
 ShootLG::shooter_state_t ShootLG::shooter_state = STOP;
 bool ShootLG::use_42mm_bullet = false;
-float ShootLG::fw_mm_to_deg_ratio = 0;
+float ShootLG::fw_m_to_deg_ratio = 0;
 ShootLG::StuckDetectorThread ShootLG::stuck_detector_thread;
 chibios_rt::ThreadReference ShootLG::stuck_detector_ref;
 ShootLG::BulletCounterThread ShootLG::bullet_counter_thread;
@@ -38,7 +38,7 @@ void ShootLG::init(float angle_per_bullet_, bool use_42mm_bullet_, float fw_circ
                    tprio_t bullet_counter_thread_prio, tprio_t vision_shooting_thread_prio) {
     angle_per_bullet = angle_per_bullet_;
     use_42mm_bullet = use_42mm_bullet_;
-    fw_mm_to_deg_ratio = 360.0f / fw_circumference_;
+    fw_m_to_deg_ratio = 360.0f / fw_circumference_;
     stuck_detector_ref = stuck_detector_thread.start(stuck_detector_thread_prio);
     bullet_counter_thread.start(bullet_counter_thread_prio);
     vision_shoot_thread.start(vision_shooting_thread_prio);
@@ -57,11 +57,11 @@ int ShootLG::get_remaining_bullet_count() {
 }
 
 void ShootLG::set_shoot_speed(float speed) {
-    ShootSKD::set_friction_wheels(speed * fw_mm_to_deg_ratio);
+    ShootSKD::set_friction_wheels(speed * fw_m_to_deg_ratio);
 }
 
 float ShootLG::get_shoot_speed() {
-    return ShootSKD::get_friction_wheels_target_velocity() / fw_mm_to_deg_ratio;
+    return ShootSKD::get_friction_wheels_target_velocity() / fw_m_to_deg_ratio;
 }
 
 ShootLG::shooter_state_t ShootLG::get_shooter_state() {
@@ -201,7 +201,7 @@ void ShootLG::VisionShootThread::main() {
 
         if (mode == VISION_LIMITED_MODE) {
 
-            time_msecs_t expected_shoot_time, command_issue_time;
+            /*time_msecs_t expected_shoot_time, command_issue_time;
             chSysLock();  /// --- ENTER S-Locked state. DO NOT use LOG, printf, non S/I-Class functions or return ---
             {
                 expected_shoot_time = VisionSKD::get_expected_shoot_time();
@@ -242,7 +242,7 @@ void ShootLG::VisionShootThread::main() {
                 chSysUnlock();  /// --- EXIT S-Locked state ---
             } else {
                 //LOG_WARN("ShootLG_Vision: shoot delay not updated");
-            }
+            }*/
 
             // Wait for some time
             sleep(TIME_MS2I(WAIT_TIME_BETWEEN_SHOOTS));
