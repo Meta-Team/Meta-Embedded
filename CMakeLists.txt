@@ -233,6 +233,8 @@ target_compile_definitions(AERIAL PRIVATE AERIAL)
 
 # Main Program -- Engineer
 add_executable(ENGINEER
+
+        ${AHRS_SRC}
         dev/interface/can_interface.cpp
         dev/interface/remote_interpreter.cpp
         dev/interface/referee_interface.cpp
@@ -241,18 +243,13 @@ add_executable(ENGINEER
         dev/common/CRC16.cpp
 
         dev/interface/chassis_interface.cpp
-        dev/interface/dms_interface.cpp
         dev/scheduler/engineer_chassis_skd.cpp
-        dev/scheduler/robotic_arm_skd.cpp
-        dev/logic/engineer_elevator_logic.cpp
+        dev/logic/engineer_chassis_logic.cpp
+
         dev/vehicle/engineer/main_engineer.cpp
         dev/vehicle/engineer/user_engineer.cpp
         dev/vehicle/engineer/inspector_engineer.cpp
-        dev/vehicle/engineer/settings_engineer.cpp
-        dev/interface/air_tank_interface.cpp
-        dev/interface/air_tank_interface.h
-        dev/logic/robotic_arm_logic.cpp
-        dev/logic/robotic_arm_logic.h dev/interface/engineer_grab_mech_interface.cpp dev/interface/engineer_grab_mech_interface.h dev/scheduler/engineer_grab_skd.cpp dev/scheduler/engineer_grab_skd.h)
+        dev/vehicle/engineer/settings_engineer.cpp)
 target_include_directories(ENGINEER PRIVATE dev/vehicle/engineer)
 target_compile_definitions(ENGINEER PRIVATE ENGINEER)
 
@@ -272,7 +269,8 @@ add_executable(ut_engineer
         dev/debug/Unit_Tests/ut_engineer.cpp
         dev/scheduler/engineer_chassis_skd.cpp
         dev/logic/engineer_elevator_logic.cpp
-        dev/scheduler/robotic_arm_skd.cpp
+        dev/scheduler/engineer_elevator_skd.cpp
+        dev/interface/engineer_elevator_interface.cpp
         dev/interface/chassis_interface.cpp
         dev/interface/dms_interface.cpp
         dev/interface/referee_interface.cpp
@@ -342,23 +340,12 @@ add_executable(ut_elevator_interface
         dev/interface/can_interface.cpp
         dev/debug/Unit_Tests/ut_elevator_IF.cpp)
 
-# Engineer Gimbal Unit tests.
-add_executable(ut_engineer_gimbal
-        dev/interface/remote_interpreter.cpp
-        dev/debug/Unit_Tests/ut_engineer_gimbal.cpp)
-
 # Gimbal Interface
 add_executable(ut_gimbal_interface
         dev/interface/gimbal_interface.cpp
         dev/interface/can_interface.cpp
         dev/scheduler/buzzer_scheduler.cpp
         dev/debug/Unit_Tests/ut_gimbalIF.cpp)
-
-# Robotic Arm
-add_executable(ut_robotic_arm
-        dev/debug/Unit_Tests/ut_engineer_robotic_arm.cpp
-        dev/interface/can_interface.cpp
-        dev/scheduler/robotic_arm_skd.cpp)
 
 # Referee
 add_executable(ut_referee_interface
@@ -477,6 +464,8 @@ add_executable(pa_elevator
         dev/interface/can_interface.cpp
         dev/module/pid_controller.hpp
         dev/logic/engineer_elevator_logic.cpp
+        dev/scheduler/engineer_elevator_skd.cpp
+        dev/interface/engineer_elevator_interface.cpp
         dev/debug/Param_Adjusts/pa_engineer_elevator.cpp)
 
 add_executable(pa_engineer_chassis

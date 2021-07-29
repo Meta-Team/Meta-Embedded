@@ -51,63 +51,24 @@ void InspectorE::startup_check_remote() {
 void InspectorE::startup_check_chassis_feedback() {
     time_msecs_t t = SYSTIME;
     while (WITHIN_RECENT_TIME(t, 20)) {
-        if (not WITHIN_RECENT_TIME(ChassisIF::feedback[ChassisIF::FR].last_update_time, 5)) {
+        if (not WITHIN_RECENT_TIME(ChassisIF::feedback[ChassisIF::FR]->last_update_time, 5)) {
             // No feedback in last 5 ms (normal 1 ms)
             LOG_ERR("Startup - Chassis FR offline.");
             t = SYSTIME;  // reset the counter
         }
-        if (not WITHIN_RECENT_TIME(ChassisIF::feedback[ChassisIF::FL].last_update_time, 5)) {
+        if (not WITHIN_RECENT_TIME(ChassisIF::feedback[ChassisIF::FL]->last_update_time, 5)) {
             // No feedback in last 5 ms (normal 1 ms)
             LOG_ERR("Startup - Chassis FL offline.");
             t = SYSTIME;  // reset the counter
         }
-        if (not WITHIN_RECENT_TIME(ChassisIF::feedback[ChassisIF::BL].last_update_time, 5)) {
+        if (not WITHIN_RECENT_TIME(ChassisIF::feedback[ChassisIF::BL]->last_update_time, 5)) {
             // No feedback in last 5 ms (normal 1 ms)
             LOG_ERR("Startup - Chassis BL offline.");
             t = SYSTIME;  // reset the counter
         }
-        if (not WITHIN_RECENT_TIME(ChassisIF::feedback[ChassisIF::BR].last_update_time, 5)) {
+        if (not WITHIN_RECENT_TIME(ChassisIF::feedback[ChassisIF::BR]->last_update_time, 5)) {
             // No feedback in last 5 ms (normal 1 ms)
             LOG_ERR("Startup - Chassis BR offline.");
-            t = SYSTIME;  // reset the counter
-        }
-        chThdSleepMilliseconds(5);
-    }
-}
-
-void InspectorE::startup_check_elevator_feedback() {
-    time_msecs_t t = SYSTIME;
-    while (WITHIN_RECENT_TIME(t, 20)) {
-        if (not WITHIN_RECENT_TIME(EngineerElevatorIF::elevatorMotor[EngineerElevatorIF::R].last_update_time, 5)) {
-            // No feedback in last 5 ms (normal 1 ms)
-            LOG_ERR("Startup - Elevator R offline.");
-            t = SYSTIME;  // reset the counter
-        }
-        if (not WITHIN_RECENT_TIME(EngineerElevatorIF::elevatorMotor[EngineerElevatorIF::L].last_update_time, 5)) {
-            // No feedback in last 5 ms (normal 1 ms)
-            LOG_ERR("Startup - Elevator L offline.");
-            t = SYSTIME;  // reset the counter
-        }
-        if (not WITHIN_RECENT_TIME(EngineerElevatorIF::aidedMotor[EngineerElevatorIF::R].last_update_time, 5)) {
-            // No feedback in last 5 ms (normal 1 ms)
-            LOG_ERR("Startup - Aided R offline.");
-            t = SYSTIME;  // reset the counter
-        }
-        if (not WITHIN_RECENT_TIME(EngineerElevatorIF::aidedMotor[EngineerElevatorIF::L].last_update_time, 5)) {
-            // No feedback in last 5 ms (normal 1 ms)
-            LOG_ERR("Startup - Aided L offline.");
-            t = SYSTIME;  // reset the counter
-        }
-        chThdSleepMilliseconds(5);
-    }
-}
-
-void InspectorE::startup_check_robotic_arm_feedback() {
-    time_msecs_t t = SYSTIME;
-    while (WITHIN_RECENT_TIME(t, 20)) {
-        if (not WITHIN_RECENT_TIME(RoboticArmIF::motor_last_update_time, 5)) {
-            // No feedback in last 5 ms (normal 1 ms)
-            LOG_ERR("Startup - Robotic Arm motor offline.");
             t = SYSTIME;  // reset the counter
         }
         chThdSleepMilliseconds(5);
@@ -133,7 +94,7 @@ bool InspectorE::remote_failure() {
 bool InspectorE::check_chassis_failure() {
     bool ret = false;
     for (unsigned i = 0; i < ChassisIF::MOTOR_COUNT; i++) {
-        if (not WITHIN_RECENT_TIME(ChassisIF::feedback[i].last_update_time, 20)) {
+        if (not WITHIN_RECENT_TIME(ChassisIF::feedback[i]->last_update_time, 20)) {
             if (!chassis_failure_) {  // avoid repeating printing
                 LOG_ERR("Chassis motor %u offline", i);
             }
@@ -142,47 +103,6 @@ bool InspectorE::check_chassis_failure() {
     }
     return ret;
 }
-
-bool InspectorE::check_elevator_failure() {
-    bool ret = false;
-    if (not WITHIN_RECENT_TIME(EngineerElevatorIF::elevatorMotor[EngineerElevatorIF::R].last_update_time, 20)) {
-        if (!elevator_failure_) {  // avoid repeating printing
-            LOG_ERR("Elevator R offline.");
-        }
-        ret = true;
-    }
-    if (not WITHIN_RECENT_TIME(EngineerElevatorIF::elevatorMotor[EngineerElevatorIF::L].last_update_time, 20)) {
-        if (!elevator_failure_) {  // avoid repeating printing
-            LOG_ERR("Elevator L offline.");
-        }
-        ret = true;
-    }
-    if (not WITHIN_RECENT_TIME(EngineerElevatorIF::aidedMotor[EngineerElevatorIF::R].last_update_time, 20)) {
-        if (!elevator_failure_) {  // avoid repeating printing
-            LOG_ERR("Aided R offline.");
-        }
-        ret = true;
-    }
-    if (not WITHIN_RECENT_TIME(EngineerElevatorIF::aidedMotor[EngineerElevatorIF::L].last_update_time, 20)) {
-        if (!elevator_failure_) {  // avoid repeating printing
-            LOG_ERR("Aided L offline.");
-        }
-        ret = true;
-    }
-    return ret;
-}
-
-bool InspectorE::check_robotic_arm_failure() {
-    bool ret = false;
-    if (not WITHIN_RECENT_TIME(RoboticArmIF::motor_last_update_time, 20)) {
-        if (!robotic_arm_failure_) {  // avoid repeating printing
-            LOG_ERR("Robotic Arm motor offline.");
-        }
-        ret = true;
-    }
-    return ret;
-}
-
 
 bool InspectorE::check_remote_data_error() {
     bool ret = (!ABS_IN_RANGE(Remote::rc.ch0, 1.1) || !ABS_IN_RANGE(Remote::rc.ch1, 1.1) ||
@@ -216,15 +136,7 @@ void InspectorE::InspectorThread::main() {
         if (chassis_failure_) LED::led_off(DEV_BOARD_LED_CHASSIS);
         else LED::led_on(DEV_BOARD_LED_CHASSIS);
 
-        elevator_failure_ = check_elevator_failure();
-        if (elevator_failure_) LED::led_off(DEV_BOARD_LED_ELEVATOR);
-        else LED::led_on(DEV_BOARD_LED_ELEVATOR);
-
-        robotic_arm_failure_ = check_robotic_arm_failure();
-        if (robotic_arm_failure_) LED::led_off(DEV_BOARD_LED_ROBOTIC_ARM);
-        else LED::led_on(DEV_BOARD_LED_ROBOTIC_ARM);
-
-        if (remote_failure_ || chassis_failure_ || elevator_failure_ || robotic_arm_failure_) {
+        if (remote_failure_ || chassis_failure_) {
             if (!BuzzerSKD::alerting()) BuzzerSKD::alert_on();
         } else {
             if (BuzzerSKD::alerting()) BuzzerSKD::alert_off();

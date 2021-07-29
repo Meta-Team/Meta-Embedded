@@ -5,6 +5,47 @@
 #ifndef META_INFANTRY_VEHICLE_ENGINEER_H
 #define META_INFANTRY_VEHICLE_ENGINEER_H
 
+/// AHRS Configurations
+#define ON_BOARD_AHRS_MATRIX {{0.0f, -1.0f, 0.0f}, \
+                              {1.0f, 0.0f, 0.0f}, \
+                              {0.0f, 0.0f, 1.0f}}
+
+#define GIMBAL_ANGLE_INSTALLATION_MATRIX {{1.0f, 0.0f, 0.0f}, \
+                                          {0.0f, 1.0f, 0.0f}, \
+                                          {0.0f, 0.0f, -1.0f}}
+
+
+#define GIMBAL_GYRO_INSTALLATION_MATRIX {{0.0f,  1.0f, 0.0f}, \
+                                         {0.0f,  0.0f,  -1.0f}, \
+                                         {-1.0f, 0.0f,  0.0f}}
+
+#define CHASSIS_FR_CHANNEL      (ChassisIF::can_channel_2)
+#define CHASSIS_FL_CHANNEL      (ChassisIF::can_channel_2)
+#define CHASSIS_BL_CHANNEL      (ChassisIF::can_channel_2)
+#define CHASSIS_BR_CHANNEL      (ChassisIF::can_channel_2)
+
+#define CHASSIS_FR_CAN_ID      1
+#define CHASSIS_FL_CAN_ID      2
+#define CHASSIS_BL_CAN_ID      3
+#define CHASSIS_BR_CAN_ID      4
+
+#define CHASSIS_FR_MOTOR_TYPE  (CANInterface::M3508)
+#define CHASSIS_FL_MOTOR_TYPE  (CANInterface::M3508)
+#define CHASSIS_BL_MOTOR_TYPE  (CANInterface::M3508)
+#define CHASSIS_BR_MOTOR_TYPE  (CANInterface::M3508)
+
+#define CHASSIS_FR_MOTOR_DR  (CANInterface::M3508_WITH_DECELERATION_RATIO)
+#define CHASSIS_FL_MOTOR_DR  (CANInterface::M3508_WITH_DECELERATION_RATIO)
+#define CHASSIS_BL_MOTOR_DR  (CANInterface::M3508_WITH_DECELERATION_RATIO)
+#define CHASSIS_BR_MOTOR_DR  (CANInterface::M3508_WITH_DECELERATION_RATIO)
+
+#define CHASSIS_MOTOR_CONFIG \
+{ {CHASSIS_FR_CHANNEL, CHASSIS_FR_CAN_ID, CHASSIS_FR_MOTOR_TYPE, CHASSIS_FR_MOTOR_DR}, \
+  {CHASSIS_FL_CHANNEL, CHASSIS_FL_CAN_ID, CHASSIS_FL_MOTOR_TYPE, CHASSIS_FL_MOTOR_DR}, \
+  {CHASSIS_BL_CHANNEL, CHASSIS_BL_CAN_ID, CHASSIS_BL_MOTOR_TYPE, CHASSIS_BL_MOTOR_DR}, \
+  {CHASSIS_BR_CHANNEL, CHASSIS_BR_CAN_ID, CHASSIS_BR_MOTOR_TYPE, CHASSIS_BR_MOTOR_DR} }
+
+
 /// Mechanism Parameters
 #define CHASSIS_WHEEL_BASE  485.0f  // distance between front axle and the back axle, mm
 #define CHASSIS_WHEEL_TREAD 460.0f  // distance between left and right wheels, mm
@@ -38,6 +79,15 @@
 #define CHASSIS_PID_V2I_PARAMS \
     {CHASSIS_PID_V2I_KP, CHASSIS_PID_V2I_KI, CHASSIS_PID_V2I_KD, \
     CHASSIS_PID_V2I_I_LIMIT, CHASSIS_PID_V2I_OUT_LIMIT}
+
+#define CHASSIS_FOLLOW_PID_THETA2V_KP 15.0f
+#define CHASSIS_FOLLOW_PID_THETA2V_KI 0.00f
+#define CHASSIS_FOLLOW_PID_THETA2V_KD 10.0f
+#define CHASSIS_FOLLOW_PID_THETA2V_I_LIMIT 60.0f
+#define CHASSIS_FOLLOW_PID_THETA2V_OUT_LIMIT 540.0f
+#define CHASSIS_FOLLOW_PID_THETA2V_PARAMS \
+    {CHASSIS_FOLLOW_PID_THETA2V_KP, CHASSIS_FOLLOW_PID_THETA2V_KI, CHASSIS_FOLLOW_PID_THETA2V_KD, \
+    CHASSIS_FOLLOW_PID_THETA2V_I_LIMIT, CHASSIS_FOLLOW_PID_THETA2V_OUT_LIMIT}
 
 /// Elevator and Aided Motors PID Parameters
 #define ELEVATOR_PID_A2V_KP 3.0f
@@ -79,9 +129,15 @@
 
 /// Thread Priority List
 #define THREAD_CAN1_PRIO                    (HIGHPRIO - 1)
-#define THREAD_CAN2_PRIO                    (HIGHPRIO - 2)
+#define THREAD_CAN1_SEND_PRIO               (HIGHPRIO - 2)
+#define THREAD_CAN2_PRIO                    (HIGHPRIO - 3)
+#define THREAD_CAN2_SEND_PRIO               (HIGHPRIO - 4)
+#define THREAD_MPU_PRIO                     (HIGHPRIO - 5)
+#define THREAD_IST_PRIO                     (HIGHPRIO - 6)
+#define THREAD_AHRS_PRIO                    (HIGHPRIO - 7)
 #define THREAD_CHASSIS_SKD_PRIO             (NORMALPRIO + 3)
 #define THREAD_ELEVATOR_SKD_PRIO            (NORMALPRIO + 2)
+#define THREAD_CHASSIS_LG_PRIO              (NORMALPRIO + 4)
 #define THREAD_ROBOTIC_ARM_SKD_PRIO         (NORMALPRIO + 1)
 #define THREAD_USER_PRIO                    (NORMALPRIO)
 #define THREAD_USER_ACTION_PRIO             (NORMALPRIO - 1)

@@ -76,16 +76,16 @@ void EngineerChassisSKD::SKDThread::main() {
             // BR, -vx, -vy, -w
 
             target_velocity[FR] = (+target_vx - target_vy - target_w * w_to_v_ratio_) * v_to_wheel_angular_velocity_;
-            ChassisIF::target_current[FR] = (int16_t) pid[FR].calc(ChassisIF::feedback[FR].actual_velocity,
+            *ChassisIF::target_current[FR] = (int16_t) pid[FR].calc(ChassisIF::feedback[FR]->actual_velocity,
                                                                    target_velocity[FR]);
             target_velocity[FL] = (+target_vx + target_vy - target_w * w_to_v_ratio_) * v_to_wheel_angular_velocity_;
-            ChassisIF::target_current[FL] = (int16_t) pid[FL].calc(ChassisIF::feedback[FL].actual_velocity,
+            *ChassisIF::target_current[FL] = (int16_t) pid[FL].calc(ChassisIF::feedback[FL]->actual_velocity,
                                                                    target_velocity[FL]);
             target_velocity[BL] = (-target_vx + target_vy - target_w * w_to_v_ratio_) * v_to_wheel_angular_velocity_;
-            ChassisIF::target_current[BL] = (int16_t) pid[BL].calc(ChassisIF::feedback[BL].actual_velocity,
+            *ChassisIF::target_current[BL] = (int16_t) pid[BL].calc(ChassisIF::feedback[BL]->actual_velocity,
                                                                    target_velocity[BL]);
             target_velocity[BR] = (-target_vx - target_vy - target_w * w_to_v_ratio_) * v_to_wheel_angular_velocity_;
-            ChassisIF::target_current[BR] = (int16_t) pid[BR].calc(ChassisIF::feedback[BR].actual_velocity,
+            *ChassisIF::target_current[BR] = (int16_t) pid[BR].calc(ChassisIF::feedback[BR]->actual_velocity,
                                                                    target_velocity[BR]);
 
         } else {

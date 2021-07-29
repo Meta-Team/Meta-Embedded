@@ -18,14 +18,9 @@
 #include "sd_card_interface.h"
 
 #include "chassis_interface.h"
-#include "engineer_elevator_interface.h"
-#include "robotic_arm_interface.h"
 
 #include "engineer_chassis_skd.h"
-#include "engineer_elevator_skd.h"
-//#include "robotic_arm_skd.h"
-
-#include "engineer_elevator_logic.h"
+#include "engineer_chassis_logic.h"
 
 #include "inspector_engineer.h"
 #include "user_engineer.h"
@@ -41,6 +36,12 @@
 
 CANInterface can1(&CAND1);
 CANInterface can2(&CAND2);
+AHRSOnBoard ahrs;
+
+/// Local Constants
+static const Matrix33 ON_BOARD_AHRS_MATRIX_ = ON_BOARD_AHRS_MATRIX;
+static const Matrix33 GIMBAL_ANGLE_INSTALLATION_MATRIX_ = GIMBAL_ANGLE_INSTALLATION_MATRIX;
+static const Matrix33 GIMBAL_GYRO_INSTALLATION_MATRIX_ = GIMBAL_GYRO_INSTALLATION_MATRIX;
 
 int main() {
 
@@ -77,9 +78,15 @@ int main() {
 
     LED::led_on(DEV_BOARD_LED_SYSTEM_INIT);  // LED 1 on now
 
+    /// Setup On-Board AHRS
+    ahrs.start(ON_BOARD_AHRS_MATRIX_, THREAD_MPU_PRIO, THREAD_IST_PRIO, THREAD_AHRS_PRIO);
+    while(!ahrs.AHRS_ready()) {
+        chThdSleepMilliseconds(5);
+    }
+
     /// Setup CAN1 & CAN2
-    can1.start(THREAD_CAN1_PRIO);
-    can2.start(THREAD_CAN2_PRIO);
+    can1.start(THREAD_CAN1_PRIO, THREAD_CAN1_SEND_PRIO);
+    can2.start(THREAD_CAN2_PRIO, THREAD_CAN2_SEND_PRIO);
     chThdSleepMilliseconds(5);
     InspectorE::startup_check_can();  // check no persistent CAN Error. Block for 100 ms
     LED::led_on(DEV_BOARD_LED_CAN);  // LED 2 on now
@@ -89,32 +96,13 @@ int main() {
     InspectorE::startup_check_remote();  // check Remote has signal. Block for 50 ms
     LED::led_on(DEV_BOARD_LED_REMOTE);  // LED 3 on now
 
-    /// Setup GimbalIF
-    EngineerGimbalIF::init();
-
-    /// Setup RoboticArmIF
-    RoboticArmIF::init(&can2);
-    chThdSleepMicroseconds(10);
-    InspectorE::startup_check_robotic_arm_feedback();
-    LED::led_on(DEV_BOARD_LED_ROBOTIC_ARM);  // LED 4 on now
 
     /// Setup ElevatorIF
     float init_angle;
-    if (SDCard::get_data(ELEVATOR_ANGLE_DATA_ID, &init_angle, sizeof(init_angle)) == SDCard::OK) {
-        EngineerElevatorIF::init(&can2, init_angle);
-        LOG("using init angle in SDCard, init angle: %.2f", init_angle);
-    } else {
-        EngineerElevatorIF::init(&can2, 0);
-        LOG("present angle is set as 0");
-    }
-    chThdSleepMilliseconds(10);
-    // TODO: re-enable Inspector
-//    InspectorE::startup_check_elevator_feedback();  // check elevator motors has continuous feedback. Block for 20 ms
-    LED::led_on(DEV_BOARD_LED_ELEVATOR);  // LED 5 on now
-    EngineerElevatorSKD::set_target_height(ELEVATOR_ORIGIN_HEIGHT);
 
+    ChassisIF::motor_can_config_t CHASSIS_MOTOR_CONFIG_[] = CHASSIS_MOTOR_CONFIG;
     /// Setup ChassisIF
-    ChassisIF::init(&can1);
+    ChassisIF::init(&can1, &can2, CHASSIS_MOTOR_CONFIG_);
     chThdSleepMilliseconds(10);
     InspectorE::startup_check_chassis_feedback();  // check chassis motors has continuous feedback. Block for 20 ms
     LED::led_on(DEV_BOARD_LED_CHASSIS);  // LED 6 on now
@@ -128,19 +116,6 @@ int main() {
 
     /*** ------------ Period 2. Calibration and Start Logic Control Thread ----------- ***/
 
-    /// Start SKDs
-    EngineerChassisSKD::start(CHASSIS_WHEEL_BASE, CHASSIS_WHEEL_TREAD, CHASSIS_WHEEL_CIRCUMFERENCE, THREAD_CHASSIS_SKD_PRIO);
-    EngineerChassisSKD::load_pid_params(CHASSIS_PID_V2I_PARAMS);
-    EngineerElevatorSKD::start(THREAD_ELEVATOR_SKD_PRIO);
-    EngineerElevatorSKD::load_pid_params(EngineerElevatorSKD::ELEVATOR_A2V, ELEVATOR_PID_A2V_PARAMS);
-    EngineerElevatorSKD::load_pid_params(EngineerElevatorSKD::ELEVATOR_V2I, ELEVATOR_PID_V2I_PARAMS);
-    EngineerElevatorSKD::load_pid_params(EngineerElevatorSKD::AIDED_WHEEL_V2I, AIDED_MOTOR_PID_V2I_PARAMS);
-    EngineerElevatorSKD::load_pid_params(EngineerElevatorSKD::BALANCE_PID, {0, 0, 0, 0, 0});
-    RoboticArmSKD::start(THREAD_ROBOTIC_ARM_SKD_PRIO);
-
-    /// Start LGs
-    EngineerElevatorLG::init(THREAD_ELEVATOR_LG_PRIO);
-
     /// Start Inspector and User Threads
     InspectorE::start_inspection(THREAD_INSPECTOR_PRIO, THREAD_INSPECTOR_REFEREE_PRIO);
     UserE::start(THREAD_USER_PRIO, THREAD_USER_ACTION_PRIO, THREAD_USER_CLIENT_DATA_SEND_PRIO);
@@ -148,7 +123,8 @@ int main() {
     /// Complete Period 2
     BuzzerSKD::play_sound(BuzzerSKD::sound_startup_intel);  // Now play the startup sound
 
-
+    EngineerChassisSKD::start(CHASSIS_WHEEL_BASE, CHASSIS_WHEEL_TREAD, CHASSIS_WHEEL_CIRCUMFERENCE, THREAD_CHASSIS_SKD_PRIO);
+    EngineerChassisLG::start(&ahrs, GIMBAL_ANGLE_INSTALLATION_MATRIX_, GIMBAL_GYRO_INSTALLATION_MATRIX_, CHASSIS_FOLLOW_PID_THETA2V_PARAMS, THREAD_CHASSIS_LG_PRIO);
     /*** ------------------------ Period 3. End of main thread ----------------------- ***/
 
     // Entering empty loop with low priority

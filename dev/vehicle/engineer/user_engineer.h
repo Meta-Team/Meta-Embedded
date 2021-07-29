@@ -10,12 +10,9 @@
 
 #include "remote_interpreter.h"
 #include "referee_interface.h"
-#include "engineer_interface.h"
 
-#include "engineer_elevator_logic.h"
 #include "engineer_chassis_skd.h"
-#include "engineer_gimbal.h"
-#include "robotic_arm_skd.h"
+#include "engineer_chassis_logic.h"
 
 #include "inspector_engineer.h"
 
@@ -38,7 +35,6 @@ private:
     static float chassis_pc_ctrl_ratio;   // 20% when Ctrl is pressed
 
     /// Helpers
-    static void set_user_client_speed_light_(int level);
 
     /// Runtime variables
 

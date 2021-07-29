@@ -14,8 +14,6 @@
 #include "referee_interface.h"
 
 #include "chassis_interface.h"
-#include "engineer_elevator_interface.h"
-#include "robotic_arm_interface.h"
 
 #if defined(ENGINEER)
 #include "vehicle_engineer.h"
