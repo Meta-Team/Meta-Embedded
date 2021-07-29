@@ -7,6 +7,7 @@
 #include "CRC8.h"
 #include "shell.h"
 #include "string.h"
+#include "math.h"
 #include "led.h"
 #include "gimbal_scheduler.h"
 

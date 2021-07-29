@@ -233,7 +233,6 @@ target_compile_definitions(AERIAL PRIVATE AERIAL)
 
 # Main Program -- Engineer
 add_executable(ENGINEER
-
         ${AHRS_SRC}
         dev/interface/can_interface.cpp
         dev/interface/remote_interpreter.cpp
@@ -252,6 +251,7 @@ add_executable(ENGINEER
         dev/vehicle/engineer/settings_engineer.cpp)
 target_include_directories(ENGINEER PRIVATE dev/vehicle/engineer)
 target_compile_definitions(ENGINEER PRIVATE ENGINEER)
+target_link_libraries(ENGINEER ${PROJECT_SOURCE_DIR}/dev/interface/ahrs/ahrs_lib.lib)
 
 
 # ======================================= Unit Tests Programs =======================================
