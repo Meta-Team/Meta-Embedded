@@ -51,7 +51,6 @@ void UserH::UserThread::main() {
     while (!shouldTerminate()) {
 
         /*** ---------------------------------- Gimbal --------------------------------- ***/
-#if HERO_GIMBAL_ENABLE
         if (!InspectorH::remote_failure() /*&& !InspectorI::chassis_failure()*/ && !InspectorH::gimbal_failure()) {
             if ((Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_UP) ||
                 (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_MIDDLE)) {
@@ -77,12 +76,10 @@ void UserH::UserThread::main() {
                 /// Vision - Change bullet speed with right vertical handle
 
                 /// Vision - Yaw + Pitch
-#if HEROHERO_VISION_ENABLE
                 GimbalLG::set_action(GimbalLG::VISION_MODE);
 
                 if (Remote::rc.ch1 > 0.5) Vision::set_bullet_speed(Vision::get_bullet_speed() - 0.001f);
                 else if (Remote::rc.ch1 <= -0.5) Vision::set_bullet_speed(Vision::get_bullet_speed() + 0.001f);
-#endif
 
             } else if (Remote::rc.s1 == Remote::S_DOWN) {
 
@@ -247,10 +244,8 @@ void UserH::UserThread::main() {
             ShootLG::stop();
             ShootLG::set_shoot_speed(0);
         }
-#endif
 
         /*** ---------------------------------- Chassis --------------------------------- ***/
-#if HERO_CHASSIS_ENABLE
         if (!InspectorH::remote_failure() && !InspectorH::chassis_failure() /*&& !InspectorH::gimbal_failure()*/) {
 
             if ((Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_UP) ||
@@ -319,7 +314,6 @@ void UserH::UserThread::main() {
             /// Safe Mode
             ChassisLG::set_action(ChassisLG::FORCED_RELAX_MODE);
         }
-#endif
         /// Final
         sleep(TIME_MS2I(USER_THREAD_INTERVAL));
     }
@@ -350,7 +344,6 @@ void UserH::UserActionThread::main() {
             eventflags_t key_flag = chEvtGetAndClearFlags(&key_press_listener);
 
             /// Chassis - Dodge Mode Switching
-#if HERO_CHASSIS_ENABLE
             if (key_flag & (1U << Remote::KEY_X)) {
                 if (ChassisLG::get_action() == ChassisLG::FOLLOW_MODE) {
                     ChassisLG::set_action(ChassisLG::DODGE_MODE);
@@ -358,9 +351,8 @@ void UserH::UserActionThread::main() {
                     ChassisLG::set_action(ChassisLG::FOLLOW_MODE);
                 }
             }
-#endif
+
             /// Gimbal
-#if HERO_GIMBAL_ENABLE
             if (key_flag & (1U << Remote::KEY_Q)) {
                 gimbal_yaw_target_angle_ += 90.0f;
                 GimbalLG::set_target(gimbal_yaw_target_angle_, gimbal_pc_pitch_target_angle_);
@@ -383,9 +375,7 @@ void UserH::UserActionThread::main() {
                     }
                 }
             }
-#endif
         }
-
     }
 }
 

@@ -16,8 +16,8 @@
 //   Note: the program will echo the raw angles of yaw and pitch as the program starts
 
 #define GIMBAL_YAW_FRONT_ANGLE_RAW 0
-#define GIMBAL_PITCH_FRONT_ANGLE_RAW -200
-#define GIMBAL_SUB_PITCH_FRONT_ANGLE_RAW 1495 //Todo: Measure the value
+#define GIMBAL_PITCH_FRONT_ANGLE_RAW (-200)
+#define GIMBAL_SUB_PITCH_FRONT_ANGLE_RAW 3569
 
 
 #define LOADER_SHOOT_DEGREE_PER_BULLET 72.0f
@@ -35,21 +35,21 @@
 #define GIMBAL_FW_LEFT_CAN_CHANNEL  (GimbalIF::can_channel_1)
 #define GIMBAL_FW_RIGHT_CAN_CHANNEL (GimbalIF::can_channel_1)
 
-#define GIMBAL_YAW_CAN_ID         7
+#define GIMBAL_YAW_CAN_ID         1
 #define GIMBAL_PITCH_CAN_ID       1
-#define GIMBAL_SUB_PITCH_CAN_ID   3
+#define GIMBAL_SUB_PITCH_CAN_ID   1
 #define GIMBAL_BULLET_CAN_ID      6
 #define GIMBAL_FW_LEFT_CAN_ID     4
 #define GIMBAL_FW_RIGHT_CAN_ID    3
 
 #define GIMBAL_YAW_MOTOR_TYPE      (CANInterface::GM6020)
 #define GIMBAL_PITCH_MOTOR_TYPE    (CANInterface::GM6020)
-#define GIMBAL_SUB_PITCH_MOTOR_TYPE     (CANInterface::GM3510)
+#define GIMBAL_SUB_PITCH_MOTOR_TYPE     (CANInterface::M3508)
 #define SHOOT_BULLET_MOTOR_TYPE    (CANInterface::M3508)
 #define GIMBAL_FW_LEFT_MOTOR_TYPE  (CANInterface::M3508)
 #define GIMBAL_FW_RIGHT_MOTOR_TYPE (CANInterface::M3508)
 
-#define GIMBAL_YAW_MOTOR_DR         (1.25f)
+#define GIMBAL_YAW_MOTOR_DR         (CANInterface::DEFAULT_DECELERATION_RATIO)
 #define GIMBAL_PITCH_MOTOR_DR       (CANInterface::DEFAULT_DECELERATION_RATIO)
 #define GIMBAL_SUB_PITCH_MOTOR_DR   (CANInterface::DEFAULT_DECELERATION_RATIO)
 #define SHOOT_BULLET_MOTOR_DR       (CANInterface::M3508_WITH_DECELERATION_RATIO)
@@ -69,10 +69,10 @@
 #define CHASSIS_BL_CHANNEL      (ChassisIF::can_channel_2)
 #define CHASSIS_BR_CHANNEL      (ChassisIF::can_channel_2)
 
-#define CHASSIS_FR_CAN_ID      0
-#define CHASSIS_FL_CAN_ID      1
-#define CHASSIS_BL_CAN_ID      2
-#define CHASSIS_BR_CAN_ID      3
+#define CHASSIS_FR_CAN_ID      1
+#define CHASSIS_FL_CAN_ID      2
+#define CHASSIS_BL_CAN_ID      3
+#define CHASSIS_BR_CAN_ID      4
 
 #define CHASSIS_FR_MOTOR_TYPE  (CANInterface::M3508)
 #define CHASSIS_FL_MOTOR_TYPE  (CANInterface::M3508)
@@ -94,7 +94,7 @@
 
 #define GIMBAL_YAW_INSTALL_DIRECTION    (GimbalSKD::NEGATIVE)
 #define GIMBAL_PITCH_INSTALL_DIRECTION  (GimbalSKD::POSITIVE)
-#define GIMBAL_SUB_PITCH_INSTALL_DIRECTION (GimbalSKD::POSITIVE) // Todo: measure the real value
+#define GIMBAL_SUB_PITCH_INSTALL_DIRECTION (GimbalSKD::NEGATIVE)
 #define SHOOT_BULLET_INSTALL_DIRECTION  (ShootSKD::NEGATIVE)
 
 #define GIMBAL_ANGLE_INSTALLATION_MATRIX {{1.0f, 0.0f, 0.0f}, \
@@ -102,7 +102,7 @@
                                           {0.0f, 0.0f, -1.0f}}
 
 
-#define GIMBAL_GYRO_INSTALLATION_MATRIX {{0.0f,  -1.0f, 0.0f}, \
+#define GIMBAL_GYRO_INSTALLATION_MATRIX {{0.0f,  1.0f, 0.0f}, \
                                          {0.0f,  0.0f,  1.0f}, \
                                          {1.0f, 0.0f,  0.0f}}
 

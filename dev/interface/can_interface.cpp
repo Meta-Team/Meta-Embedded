@@ -67,12 +67,6 @@ void CANInterface::motor_feedback_t::reset_front_angle() {
     accumulated_movement_raw = 0;
 }
 
-uint16_t CANInterface::motor_feedback_t::get_front_angle_raw() {
-    int actual_angle_raw = (int) (actual_angle * deceleration_ratio / CAN_INTERFACE_RAW_TO_ANGLE_RATIO) % 8192;
-    if (actual_angle_raw < 0) actual_angle_raw += 8192;
-    return (last_angle_raw >= actual_angle_raw) ? (last_angle_raw - actual_angle_raw) : (last_angle_raw + 8192 - actual_angle_raw);
-}
-
 int *CANInterface::register_target_current_address(unsigned int id, motor_type_t motor_type) {
     unsigned tx_id = 4;
     int *p;
@@ -191,6 +185,8 @@ void CANInterface::RxThread::main() {
                 // pointer fb points to the corresponding motor feedback structure defined in the processFeedbackThread
                 motor_feedback_t *fb;
                 fb = &feedback[rxmsg.SID - 0x201];
+
+                if (fb->type == NONE_MOTOR) continue;
 
                 fb->sid = rxmsg.SID;
 

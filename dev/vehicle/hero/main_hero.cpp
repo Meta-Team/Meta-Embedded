@@ -141,20 +141,16 @@ int main() {
 
 
     /// Setup GimbalIF (for Gimbal and Shoot)
-#if HERO_GIMBAL_ENABLE
     GimbalIF::init(&can1, &can2, GIMBAL_MOTOR_CONFIG_, GIMBAL_YAW_FRONT_ANGLE_RAW, GIMBAL_PITCH_FRONT_ANGLE_RAW, GIMBAL_SUB_PITCH_FRONT_ANGLE_RAW, MotorIFBase::can_channel_1);
     chThdSleepMilliseconds(2000);  // wait for C610 to be online and friction wheel to reset
     InspectorH::startup_check_gimbal_feedback(); // check gimbal motors has continuous feedback. Block for 20 ms
-#endif
     LED::led_on(DEV_BOARD_LED_GIMBAL);  // LED 5 on now
 
 
     /// Setup ChassisIF
-#if HERO_CHASSIS_ENABLE
     ChassisIF::init(&can1, &can2, CHASSIS_MOTOR_CONFIG_);
     chThdSleepMilliseconds(10);
     InspectorH::startup_check_chassis_feedback();  // check chassis motors has continuous feedback. Block for 20 ms
-#endif
     LED::led_on(DEV_BOARD_LED_CHASSIS);  // LED 6 on now
 
 
@@ -164,66 +160,47 @@ int main() {
     /*** ------------ Period 2. Calibration and Start Logic Control Thread ----------- ***/
 
     /// Echo Gimbal Raws and Converted Angles
-#if HERO_GIMBAL_ENABLE
-    LOG("Gimbal Yaw: %u, %f, Pitch: %u, %f",
-        GimbalIF::feedback[GimbalIF::YAW]->last_angle_raw, GimbalIF::feedback[GimbalIF::YAW]->actual_angle,
-        GimbalIF::feedback[GimbalIF::PITCH]->last_angle_raw, GimbalIF::feedback[GimbalIF::PITCH]->actual_angle);
+    LOG("Gimbal Yaw: %u, %f, Pitch: %u, %f, Sub Pitch: %u, %f",
+        GimbalIF::feedback[GimbalIF::YAW]->last_angle_raw, GimbalIF::feedback[GimbalIF::YAW]->accumulated_angle(),
+        GimbalIF::feedback[GimbalIF::PITCH]->last_angle_raw, GimbalIF::feedback[GimbalIF::PITCH]->accumulated_angle(),
+        GimbalIF::feedback[GimbalIF::SUB_PITCH]->last_angle_raw, GimbalIF::feedback[GimbalIF::SUB_PITCH]->accumulated_angle());
 
     /// Start SKDs
     GimbalSKD::start(&ahrs, GIMBAL_ANGLE_INSTALLATION_MATRIX_, GIMBAL_GYRO_INSTALLATION_MATRIX_,
-                     GIMBAL_YAW_INSTALL_DIRECTION, GIMBAL_PITCH_INSTALL_DIRECTION, GimbalSKD::POSITIVE/* Not used */, THREAD_GIMBAL_SKD_PRIO, GimbalSKD::ABS_ANGLE_MODE);
+                     GIMBAL_YAW_INSTALL_DIRECTION, GIMBAL_PITCH_INSTALL_DIRECTION, GIMBAL_SUB_PITCH_INSTALL_DIRECTION, THREAD_GIMBAL_SKD_PRIO, GimbalSKD::RELATIVE_ANGLE_MODE);
     GimbalSKD::load_pid_params(GIMBAL_PID_YAW_A2V_PARAMS, GIMBAL_PID_YAW_V2I_PARAMS,
                                GIMBAL_PID_PITCH_A2V_PARAMS, GIMBAL_PID_PITCH_V2I_PARAMS,
                                {0, 0, 0, 0, 0}/* Not used */, {0, 0, 0, 0, 0}/* Not used */);
     Shell::addCommands(GimbalSKD::shellCommands);
     Shell::addFeedbackCallback(GimbalSKD::cmdFeedback);
-#endif
 
-#if HERO_SHOOT_ENABLE
     ShootSKD::start(SHOOT_BULLET_INSTALL_DIRECTION, THREAD_SHOOT_SKD_PRIO);
     ShootSKD::load_pid_params(SHOOT_PID_BULLET_LOADER_A2V_PARAMS, SHOOT_PID_BULLET_LOADER_V2I_PARAMS,
                               SHOOT_PID_FW_LEFT_V2I_PARAMS, SHOOT_PID_FW_RIGHT_V2I_PARAMS);
     Shell::addCommands(ShootSKD::shellCommands);
     Shell::addFeedbackCallback(ShootSKD::cmdFeedback);
-#endif
 
-#if HERO_CHASSIS_ENABLE
     ChassisSKD::start(CHASSIS_WHEEL_BASE, CHASSIS_WHEEL_TREAD, CHASSIS_WHEEL_CIRCUMFERENCE, ChassisSKD::POSITIVE,
                       GIMBAL_YAW_INSTALL_DIRECTION, 0, THREAD_CHASSIS_SKD_PRIO);
     ChassisSKD::load_pid_params(CHASSIS_FOLLOW_PID_THETA2V_PARAMS, CHASSIS_PID_V2I_PARAMS);
     Shell::addCommands(ChassisSKD::shellCommands);
     Shell::addFeedbackCallback(ChassisSKD::cmdFeedback);
-#endif
 
     /// Start LGs
-#if HERO_GIMBAL_ENABLE && !defined(PARAM_ADJUST)
     GimbalLG::init(THREAD_GIMBAL_LG_VISION_PRIO, THREAD_GIMBAL_LG_SENTRY_PRIO);
-#endif
-
-#if HERO_SHOOT_ENABLE
     ShootLG::init(SHOOT_DEGREE_PER_BULLET, true, 10, THREAD_SHOOT_LG_STUCK_DETECT_PRIO, THREAD_SHOOT_BULLET_COUNTER_PRIO, THREAD_SHOOT_LG_VISION_PRIO);
-#endif
-
-#if HERO_CHASSIS_ENABLE
     ChassisLG::init(THREAD_CHASSIS_LG_DODGE_PRIO, THREAD_CHASSIS_POWER_SET_PRIO, CHASSIS_DODGE_MODE_THETA, CHASSIS_BIASED_ANGLE, CHASSIS_LOGIC_DODGE_OMEGA2VOLT_PARAMS);
-#endif
 
     /// Setup VisionPort
     // Should be put after initialization of GimbalSKD
-#if HERO_GIMBAL_ENABLE && HERO_VISION_ENABLE
     Vision::init(VISION_BASIC_CONTROL_DELAY);
     Vision::set_bullet_speed(VISION_DEFAULT_BULLET_SPEED);
     Shell::addFeedbackCallback(Vision::cmd_feedback);
     Shell::addCommands(Vision::shell_commands);
-#endif
 
-#ifndef PARAM_ADJUST
     /// Start Inspector and User Threads
     InspectorH::start_inspection(THREAD_INSPECTOR_PRIO);
     UserH::start(THREAD_USER_PRIO, THREAD_USER_ACTION_PRIO, THREAD_USER_CLIENT_DATA_SEND_PRIO);
-#else
-    PARAM_ADJUST_CLASS::start(THREAD_USER_PRIO);
-#endif
 
 
     /// Complete Period 2

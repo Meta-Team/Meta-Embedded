@@ -123,8 +123,6 @@ public:
          */
         float accumulated_angle();
 
-        uint16_t get_front_angle_raw();
-
         uint16_t last_angle_raw = 0;  // in the range of [0, 8191]
 
 #if CAN_INTERFACE_ENABLE_VELOCITY_DIFFERENTIAL
