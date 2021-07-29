@@ -86,7 +86,7 @@ void UserS::UserThread::main() {
                 // ch1 use up as positive direction, while GimbalLG also use up as positive direction
 
 
-                GimbalLG::set_target(gimbal_yaw_target_angle_, gimbal_pitch_target_angle_);
+                GimbalLG::set_target(gimbal_yaw_target_angle_, gimbal_pitch_target_angle_, 0);
 
             } else if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_MIDDLE) {
 
@@ -105,7 +105,7 @@ void UserS::UserThread::main() {
                 VAL_CROP(gimbal_yaw_target_angle_, gimbal_yaw_max_angle, gimbal_yaw_min_angle);
                 VAL_CROP(gimbal_pitch_target_angle_, gimbal_pitch_max_angle, gimbal_pitch_min_angle);
 
-                GimbalLG::set_target(gimbal_yaw_target_angle_, gimbal_pitch_target_angle_);
+                GimbalLG::set_target(gimbal_yaw_target_angle_, gimbal_pitch_target_angle_, 0);
 
             } else if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_DOWN) {
 
@@ -327,7 +327,7 @@ void UserS::VitualUserThread::main() {
             fire = false;
         }
 
-        GimbalLG::set_target(gimbal_yaw_target_angle_, gimbal_pitch_target_angle_);
+        GimbalLG::set_target(gimbal_yaw_target_angle_, gimbal_pitch_target_angle_, 0);
 
         /*** ---------------------------------- Chassis --------------------------------- ***/
 

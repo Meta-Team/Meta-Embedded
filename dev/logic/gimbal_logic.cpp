@@ -17,6 +17,7 @@
 GimbalLG::action_t GimbalLG::action = FORCED_RELAX_MODE;
 GimbalLG::VisionControlThread GimbalLG::vision_control_thread;
 GimbalLG::SentryControlThread GimbalLG::sentry_control_thread;
+float GimbalLG::sub_pitch_to_ground = 0;
 
 void GimbalLG::init(tprio_t vision_control_thread_prio, tprio_t sentry_control_thread_prio) {
     vision_control_thread.start(vision_control_thread_prio);
@@ -38,9 +39,9 @@ void GimbalLG::set_action(GimbalLG::action_t value) {
     }
 }
 
-void GimbalLG::set_target(float yaw_target_angle, float pitch_target_angle) {
+void GimbalLG::set_target(float yaw_target_angle, float pitch_target_angle, float sub_pitch_target_angle) {
     if (action != FORCED_RELAX_MODE && action != VISION_MODE) {
-        GimbalSKD::set_target_angle(yaw_target_angle, pitch_target_angle, 0);
+        GimbalSKD::set_target_angle(yaw_target_angle, pitch_target_angle, sub_pitch_target_angle);
     } else {
         LOG_ERR("GimbalLG - set_target(): invalid mode");
     }
@@ -59,11 +60,22 @@ float GimbalLG::get_current_target_angle(GimbalBase::motor_id_t motor) {
 }
 
 void GimbalLG::separate_pitch() {
-    float pitch = GimbalSKD::get_accumulated_angle(PITCH) + GimbalSKD::get_accumulated_angle(SUB_PITCH);
-    float target_pitch = pitch;
+    sub_pitch_to_ground = GimbalSKD::get_accumulated_angle(PITCH) - GimbalSKD::get_actual_angle(SUB_PITCH);
+}
+
+void GimbalLG::cal_separate_angle(float &target_pitch, float &target_sub_pitch) {
+    float temp_target_pitch = sub_pitch_to_ground;
     float flight_time;
-    bool ret = Trajectory::compensate_for_gravity(target_pitch, *GimbalIF::lidar_dist, 10, flight_time);
-    if (ret) GimbalSKD::separate_pitch(target_pitch - pitch);
+    bool ret = Trajectory::compensate_for_gravity(temp_target_pitch, *GimbalIF::lidar_dist, 10, flight_time);
+    if (ret) {
+        target_pitch = temp_target_pitch;
+        target_sub_pitch = GimbalSKD::get_accumulated_angle(PITCH) - sub_pitch_to_ground;
+    }
+}
+
+void GimbalLG::cal_merge_pitch(float &target_pitch, float &target_sub_pitch) {
+    target_pitch = sub_pitch_to_ground;
+    target_sub_pitch = GimbalSKD::get_accumulated_angle(PITCH) - sub_pitch_to_ground;
 }
 
 void GimbalLG::VisionControlThread::main() {

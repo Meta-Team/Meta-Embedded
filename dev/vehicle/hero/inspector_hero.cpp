@@ -71,7 +71,6 @@ void InspectorH::startup_check_remote() {
 }
 
 void InspectorH::startup_check_chassis_feedback() {
-#if HERO_CHASSIS_ENABLE
     time_msecs_t t = SYSTIME;
     while (WITHIN_RECENT_TIME(t, 20)) {
         if (not WITHIN_RECENT_TIME(ChassisIF::feedback[ChassisIF::FR]->last_update_time, 5)) {
@@ -96,11 +95,9 @@ void InspectorH::startup_check_chassis_feedback() {
         }
         chThdSleepMilliseconds(5);
     }
-#endif
 }
 
 void InspectorH::startup_check_gimbal_feedback() {
-#if HERO_GIMBAL_ENABLE
     time_msecs_t t = SYSTIME;
     while (WITHIN_RECENT_TIME(t, 20)) {
         if(Referee::bullet_remaining.bullet_remaining_num_17mm > 0) {
@@ -131,9 +128,13 @@ void InspectorH::startup_check_gimbal_feedback() {
             LOG_ERR("Startup - Gimbal Pitch offline.");
             t = SYSTIME;  // reset the counter
         }
+        if (not WITHIN_RECENT_TIME(GimbalIF::feedback[GimbalIF::SUB_PITCH]->last_update_time, 5)) {
+            // No feedback in last 5 ms (normal 1 ms)
+            LOG_ERR("Startup - Gimbal SUB_Pitch offline.");
+            t = SYSTIME;  // reset the counter
+        }
         chThdSleepMilliseconds(5);
     }
-#endif
 }
 
 bool InspectorH::gimbal_failure() {
@@ -149,7 +150,6 @@ bool InspectorH::remote_failure() {
 }
 
 bool InspectorH::check_gimbal_failure() {
-#if HERO_GIMBAL_ENABLE
     bool ret = false;
     if(Referee::bullet_remaining.bullet_remaining_num_17mm > 0) {
         for (unsigned i = 0; i < 6; i++) {
@@ -173,13 +173,9 @@ bool InspectorH::check_gimbal_failure() {
         }
     }
     return ret;
-#else
-    return false;
-#endif
 }
 
 bool InspectorH::check_chassis_failure() {
-#if HERO_CHASSIS_ENABLE
     bool ret = false;
     for (unsigned i = 0; i < ChassisIF::MOTOR_COUNT; i++) {
         // Check feedback, if the feedback's type is NONE_MOTOR, it's not valid
@@ -192,9 +188,6 @@ bool InspectorH::check_chassis_failure() {
         }
     }
     return ret;
-#else
-    return false;
-#endif
 }
 
 bool InspectorH::check_remote_data_error() {
@@ -224,17 +217,13 @@ void InspectorH::InspectorThread::main() {
         remote_failure_ = (not WITHIN_RECENT_TIME(Remote::last_update_time, 30));
         if (remote_failure_) LED::led_off(DEV_BOARD_LED_REMOTE);
         else LED::led_on(DEV_BOARD_LED_REMOTE);
-#if HERO_GIMBAL_ENABLE
         gimbal_failure_ = check_gimbal_failure();
         if (gimbal_failure_) LED::led_off(DEV_BOARD_LED_GIMBAL);
         else LED::led_on(DEV_BOARD_LED_GIMBAL);
-#endif
 
-#if HERO_CHASSIS_ENABLE
         chassis_failure_ = check_chassis_failure();
         if (chassis_failure_) LED::led_off(DEV_BOARD_LED_CHASSIS);
         else LED::led_on(DEV_BOARD_LED_CHASSIS);
-#endif
 
         if (remote_failure_ || gimbal_failure_ || chassis_failure_) {
             if (!BuzzerSKD::alerting()) BuzzerSKD::alert_on();

@@ -110,12 +110,6 @@ public:
     static void set_target_angle(float yaw_target_angle, float pitch_target_angle, float sub_pitch_target_angle);
 
     /**
-     * Separate the pitch from the sub-pitch with a specific angle.
-     * @param angle     The angle between sub-pitch and pitch, must be non-negative
-     */
-    static void separate_pitch(float angle);
-
-    /**
      * Get current target angle data
      * @param motor   YAW or PITCH or SUB_PITCH
      * @return Current target angle of GIMBAL
@@ -198,7 +192,7 @@ private:
     static DECL_SHELL_CMD(cmdEnableMotor);
 
 #ifdef PARAM_ADJUST
-    friend class PAUserGimbal;
+    friend class PAUserGimbalThread;
 #endif
 
 };

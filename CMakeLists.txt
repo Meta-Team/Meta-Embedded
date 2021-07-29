@@ -425,18 +425,10 @@ add_executable(ut_sensors_sound
 add_executable(pa_hero_gimbal
         ${VEHICLE_COMMON_SRC}
         ${AHRS_SRC}
-        ${REFEREE_SRC}
 
         # Hero gimbal
         dev/interface/gimbal_interface.cpp
         dev/scheduler/gimbal_scheduler.cpp
-
-        # Hero has super capacitor
-        dev/interface/super_capacitor_port.cpp
-
-        # Main
-        dev/vehicle/hero/inspector_hero.cpp
-        dev/vehicle/hero/main_hero.cpp
 
         # PAUser
         dev/debug/param_adjusts/pa_user_gimbal.cpp
@@ -457,7 +449,7 @@ target_link_libraries(pa_hero_gimbal ${AHRS_LIB})
 add_executable(pa_hero_shoot
         dev/interface/can_interface.cpp
         dev/interface/gimbal_interface.cpp
-        dev/debug/Param_Adjusts/pa_hero_shoot.cpp)
+        dev/debug/param_adjusts/pa_hero_shoot.cpp)
 target_compile_definitions(pa_hero_shoot PUBLIC HERO)
 
 # Chassis
@@ -467,7 +459,7 @@ add_executable(pa_chassis
         dev/scheduler/chassis_scheduler.cpp
         dev/interface/gimbal_interface.cpp
         dev/scheduler/gimbal_scheduler.cpp
-        dev/debug/Param_Adjusts/pa_chassis.cpp)
+        dev/debug/param_adjusts/pa_chassis.cpp)
 target_compile_definitions(pa_chassis PUBLIC INFANTRY)
 
 # Shoot: include CANInterface, GimbalIF, GimbalController, GimbalFeedbackThread and adjustment modules.
@@ -483,7 +475,7 @@ add_executable(pa_infantry_shoot
         dev/scheduler/shoot_scheduler.cpp
         dev/scheduler/buzzer_scheduler.cpp
         dev/interface/ahrs/ahrs.cpp
-        dev/debug/Param_Adjusts/pa_infantry_shoot.cpp)
+        dev/debug/param_adjusts/pa_infantry_shoot.cpp)
 target_compile_definitions(pa_infantry_shoot PRIVATE SHELL_NO_ECHO_MODE)
 target_link_libraries(pa_infantry_shoot ${AHRS_LIB})
 
@@ -500,7 +492,7 @@ add_executable(pa_gimbal
         dev/scheduler/buzzer_scheduler.cpp
         dev/interface/remote_interpreter.cpp
         dev/interface/ahrs/ahrs.cpp
-        dev/debug/Param_Adjusts/pa_gimbal.cpp)
+        dev/debug/param_adjusts/pa_gimbal.cpp)
 target_compile_definitions(pa_gimbal PRIVATE SHELL_NO_ECHO_MODE)
 target_link_libraries(pa_gimbal ${AHRS_LIB})
 
@@ -516,7 +508,7 @@ add_executable(pa_new_gimbal
         dev/scheduler/shoot_scheduler.cpp
         dev/scheduler/buzzer_scheduler.cpp
         dev/interface/ahrs/ahrs.cpp
-        dev/debug/Param_Adjusts/pa_new_gimbal.cpp)
+        dev/debug/param_adjusts/pa_new_gimbal.cpp)
 target_link_libraries(pa_new_gimbal ${AHRS_LIB})
 
 # Elevator: include CANInterface, ElevatorInterface, ElevatorController, and the unit test modules.
@@ -526,17 +518,17 @@ add_executable(pa_elevator
         dev/logic/engineer_elevator_logic.cpp
         dev/scheduler/engineer_elevator_skd.cpp
         dev/interface/engineer_elevator_interface.cpp
-        dev/debug/Param_Adjusts/pa_engineer_elevator.cpp)
+        dev/debug/param_adjusts/pa_engineer_elevator.cpp)
 
 add_executable(pa_engineer_chassis
         dev/interface/can_interface.cpp
         dev/module/pid_controller.hpp
         dev/scheduler/engineer_chassis_skd.cpp
-        dev/debug/Param_Adjusts/pa_engineer_chassis.cpp)
+        dev/debug/param_adjusts/pa_engineer_chassis.cpp)
 
 # Adjust Params of Skywalker-20A for friction wheels
 add_executable(pa_skywalker
-        dev/debug/Param_Adjusts/pa_skywalker.cpp
+        dev/debug/param_adjusts/pa_skywalker.cpp
         dev/interface/remote_interpreter.cpp
         dev/scheduler/buzzer_scheduler.cpp)
 
@@ -547,7 +539,7 @@ add_executable(pa_sentry_chassis
         dev/module/pid_controller.hpp
         dev/interface/sentry_chassis_interface.cpp
         dev/scheduler/sentry_chassis_scheduler.cpp
-        dev/debug/Param_Adjusts/pa_sentry_chassis.cpp
+        dev/debug/param_adjusts/pa_sentry_chassis.cpp
         dev/interface/referee_interface.cpp
         dev/common/CRC8.cpp
         dev/common/CRC16.cpp)
