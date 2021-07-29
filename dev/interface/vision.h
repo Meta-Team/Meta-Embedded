@@ -2,8 +2,8 @@
 // Created by Kerui Zhu on 7/4/2019.
 //
 
-#ifndef META_INFANTRY_VISION_INTERFACE_H
-#define META_INFANTRY_VISION_INTERFACE_H
+#ifndef META_INFANTRY_VISION_H
+#define META_INFANTRY_VISION_H
 
 #include "ch.hpp"
 #include "hal.h"
@@ -35,20 +35,24 @@ public:
     static float get_bullet_speed() { return bullet_speed; }
 
     /**
+     * Get whether an enemy is detected.
+     * @return
+     */
+    static bool is_detected();
+
+    /**
      * Get gimbal target angles.
-     * @note Should be called inside S-Lock to prevent changes from the interrupt.
      * @param yaw    [Out] Gimbal target yaw if return true
      * @param pitch  [Out] Gimbal target pitch if return true
      * @return Whether the target can be reached
      */
-    static bool get_gimbal_target_angles_S(float &yaw, float &pitch);
+    static bool get_gimbal_target_angles(float &yaw, float &pitch);
 
     /**
      * Get the time point that we should shoot in the TopKiller mode
-     * @note Should be called inside S-Lock to prevent changes from the interrupt.
      * @return
      */
-    static time_msecs_t get_expected_shoot_time_S() { return expected_shoot_time; }
+    static time_msecs_t get_expected_shoot_time() { return expected_shoot_time; }
 
     /**
      * Received updated gimbal target.
@@ -62,10 +66,16 @@ public:
 
     /**
      * Get last control command update time.
-     * @note Should be called inside S-Lock to prevent changes from the interrupt.
      * @return
      */
-    static time_msecs_t get_last_update_time_S() { return last_update_time; }
+    static time_msecs_t get_last_update_time() { return last_update_time; }
+
+    /**
+     * Get enemy position on user view;
+     * @param x
+     * @param y
+     */
+    static void get_user_view_points(uint32_t &x, uint32_t &y);
 
     static void cmd_feedback(void *);
     static const Shell::Command shell_commands[];
@@ -123,11 +133,17 @@ private:
     static uint16_t last_frame_timestamp;        // [ms]
     static time_msecs_t last_update_time;        // [ms]
     static time_msecs_t last_update_time_delta;  // [ms]
+    static time_msecs_t last_detected_time;
+
+    static constexpr time_msecs_t DETECTION_LOSE_TIME = 1000;  // [ms]
 
     /** User View **/
-    static float image_to_user_scale;
-    static int image_to_user_offset_x;
-    static int image_to_user_offset_y;
+
+    static float IMAGE_TO_USER_SCALE;
+    static int IMAGE_TO_USER_OFFSET_X;
+    static int IMAGE_TO_USER_OFFSET_Y;
+    static uint32_t user_view_x;
+    static uint32_t user_view_y;
 
 private:
     enum vision_flag_t : uint8_t {
@@ -195,4 +211,4 @@ private:
 };
 
 
-#endif //META_INFANTRY_VISION_INTERFACE_H
+#endif //META_INFANTRY_VISION_H

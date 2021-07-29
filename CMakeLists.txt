@@ -84,8 +84,8 @@ set(CHASSIS_SRC
         dev/logic/chassis_logic.cpp)
 
 set(VISION_SRC
-        dev/interface/vision_interface.cpp
-        dev/scheduler/vision_scheduler.cpp)
+        dev/interface/vision.cpp
+        )
 
 set(REFEREE_SRC
         dev/interface/referee_interface.cpp

@@ -17,7 +17,7 @@
 #include "shoot_scheduler.h"
 #include "referee_interface.h"
 #include "buzzer_scheduler.h"
-#include "vision_interface.h"
+#include "vision.h"
 #include <cmath>
 
 ShootLG::limit_mode_t ShootLG::mode = UNLIMITED_MODE;
@@ -203,8 +203,8 @@ void ShootLG::VisionShootThread::main() {
             time_msecs_t expected_shoot_time, command_issue_time;
             chSysLock();  /// --- ENTER S-Locked state. DO NOT use LOG, printf, non S/I-Class functions or return ---
             {
-                expected_shoot_time = Vision::get_expected_shoot_time_S();
-                command_issue_time = Vision::get_last_update_time_S();
+                expected_shoot_time = Vision::get_expected_shoot_time();
+                command_issue_time = Vision::get_last_update_time();
             }
             chSysUnlock();  /// --- EXIT S-Locked state ---
             int64_t time_delta = (int64_t) expected_shoot_time - (int64_t) (SYSTIME);

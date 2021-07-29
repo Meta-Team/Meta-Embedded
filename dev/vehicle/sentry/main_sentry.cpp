@@ -15,7 +15,7 @@
 #include "ahrs_ext.h"
 #include "remote_interpreter.h"
 #include "sd_card_interface.h"
-#include "vision_interface.h"
+#include "vision.h"
 
 #include "gimbal_interface.h"
 #include "gimbal_scheduler.h"

@@ -28,4 +28,8 @@
 #define WITHIN_DURATION(now, value, ms) ((int) (now) - (int) (value) < (int) (ms))
 // Convert to int is needed to avoid thread switch during execution of this statement which results in negative unsigned
 
+#ifndef PI
+#define PI 3.14159265358979f
+#endif
+
 #endif //META_INFANTRY_COMMON_MACRO_H

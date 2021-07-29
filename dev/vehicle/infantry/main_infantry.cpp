@@ -15,7 +15,7 @@
 #include "ahrs.h"
 #include "remote_interpreter.h"
 #include "sd_card_interface.h"
-#include "vision_interface.h"
+#include "vision.h"
 #include "super_capacitor_port.h"
 #include "referee_UI_update_scheduler.h"
 #include "referee_UI_logic.h"

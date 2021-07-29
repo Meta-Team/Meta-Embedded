@@ -2,7 +2,7 @@
 // Created by Kerui Zhu on 7/4/2019.
 //
 
-#include "vision_interface.h"
+#include "vision.h"
 #include "CRC16.h"
 #include "CRC8.h"
 #include "shell.h"
@@ -25,15 +25,18 @@ float Vision::last_gimbal_pitch = 0;
 uint16_t Vision::last_frame_timestamp = 0;
 time_msecs_t Vision::last_update_time = 0;
 time_msecs_t Vision::last_update_time_delta = 0;
+time_msecs_t Vision::last_detected_time = 0;
 bool Vision::can_reach_target = false;
 float Vision::bullet_flight_time = 0;
 float Vision::latest_target_yaw = 0;
 float Vision::latest_target_pitch = 0;
 time_msecs_t Vision::expected_shoot_time = 0;
 int Vision::expected_shoot_after_periods = 0;
-float Vision::image_to_user_scale = 0.59;
-int Vision::image_to_user_offset_x = 770;
-int Vision::image_to_user_offset_y = 400;
+float Vision::IMAGE_TO_USER_SCALE = 0.59;
+int Vision::IMAGE_TO_USER_OFFSET_X = 770;
+int Vision::IMAGE_TO_USER_OFFSET_Y = 400;
+uint32_t Vision::user_view_x = 0;
+uint32_t Vision::user_view_y = 0;
 
 constexpr size_t Vision::DATA_SIZE[Vision::CMD_ID_COUNT];
 
@@ -70,7 +73,11 @@ void Vision::init(time_msecs_t basic_gimbal_delay_) {
     uartStartReceive(UART_DRIVER, sizeof(uint8_t), &pak);
 }
 
-bool Vision::get_gimbal_target_angles_S(float &yaw, float &pitch) {
+bool Vision::is_detected() {
+    return WITHIN_RECENT_TIME(last_detected_time, DETECTION_LOSE_TIME);
+}
+
+bool Vision::get_gimbal_target_angles(float &yaw, float &pitch) {
     if (WITHIN_RECENT_TIME(last_update_time, 1000)) {
         if (!can_reach_target) {
             return false;
@@ -84,14 +91,21 @@ bool Vision::get_gimbal_target_angles_S(float &yaw, float &pitch) {
     }
 }
 
+void Vision::get_user_view_points(uint32_t &x, uint32_t &y) {
+    x = user_view_x;
+    y = user_view_y;
+}
+
 void Vision::handle_vision_command(const vision_command_t &command) {
     /// This function is called in I-Locked state. DO NOT use LOG, printf, non I-Class functions.
 
     time_msecs_t now = SYSTIME;
 
-    if (command.flag & DETECTED) {
+    if (WITHIN_DURATION(now, last_update_time, 200)) {  // otherwise, last_gimbal_yaw/pitch is not valid
 
-        if (WITHIN_DURATION(now, last_update_time, 200)) {
+        if (command.flag & DETECTED) {
+
+            last_detected_time = now;
 
             // Compute absolute angles
             float new_armor_yaw = ((float) command.yaw_delta / 100.0f) + last_gimbal_yaw;
@@ -157,9 +171,8 @@ void Vision::handle_vision_command(const vision_command_t &command) {
 
                 // Update user view
                 {
-                    uint32_t x = image_to_user_offset_x + pak.command.imageX * image_to_user_scale;
-                    uint32_t y = 1080 - (image_to_user_offset_y + pak.command.imageY * image_to_user_scale);
-                    RefereeUILG::set_main_enemy({x, y});
+                    user_view_x = IMAGE_TO_USER_OFFSET_X + pak.command.imageX * IMAGE_TO_USER_SCALE;
+                    user_view_y = 1080 - (IMAGE_TO_USER_OFFSET_Y + pak.command.imageY * IMAGE_TO_USER_SCALE);
                 }
             }
         }
@@ -285,12 +298,13 @@ DEF_SHELL_CMD_END
 
 DEF_SHELL_CMD_START(Vision::cmd_user_view_setting)
     if (argc == 0) {
-        Shell::printf("_v_user_view %f %d %d" ENDL, image_to_user_scale, image_to_user_offset_x, image_to_user_offset_y);
+        Shell::printf("_v_user_view %f %d %d" ENDL, IMAGE_TO_USER_SCALE, IMAGE_TO_USER_OFFSET_X,
+                      IMAGE_TO_USER_OFFSET_Y);
         return true;
     } else if (argc == 3) {
-        image_to_user_scale = Shell::atof(argv[0]);
-        image_to_user_offset_x = Shell::atoi(argv[1]);
-        image_to_user_offset_y = Shell::atoi(argv[2]);
+        IMAGE_TO_USER_SCALE = Shell::atof(argv[0]);
+        IMAGE_TO_USER_OFFSET_X = Shell::atoi(argv[1]);
+        IMAGE_TO_USER_OFFSET_Y = Shell::atoi(argv[2]);
         return true;
     } else {
         return false;
