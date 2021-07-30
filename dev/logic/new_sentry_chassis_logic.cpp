@@ -22,7 +22,7 @@ void SChassisLG::set_mode(mode_t mode) {
         SChassisSKD::set_mode(SChassisSKD::ENABLED);
     }else if (mode_ == SHUTTLE_MODE) {
         SChassisSKD::set_mode(SChassisSKD::ENABLED);
-        SChassisSKD::set_target(110.f);
+        SChassisSKD::set_target(60.f);
     }
 }
 
@@ -39,10 +39,10 @@ void SChassisLG::DirectionSwitchThread::main() {
     while (!shouldTerminate()) {
         if (mode_ != FORCED_RELAX_MODE) {
             if (mode_ == SHUTTLE_MODE) {
-                if (SChassisSKD::get_location(SChassisBase::R) > 100) {
-                    target_dest = -110.f;
-                } else if (SChassisSKD::get_location(SChassisBase::R) < -100) {
-                    target_dest = 110.f;
+                if (SChassisSKD::get_location(SChassisBase::R) > 50) {
+                    target_dest = -60.f;
+                } else if (SChassisSKD::get_location(SChassisBase::R) < -50) {
+                    target_dest = 60.f;
                 }
             }
             SChassisSKD::set_target(target_dest);

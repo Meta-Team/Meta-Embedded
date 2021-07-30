@@ -545,10 +545,7 @@ add_executable(pa_sentry_chassis
         dev/common/CRC16.cpp)
 
 add_executable(ca_ahrs_infantry
-        dev/interface/ahrs/ahrs_math.hpp
-        dev/interface/ahrs/imu_on_board.cpp
-        dev/interface/ahrs/ahrs_lib_middleware.c
-        dev/interface/ahrs/ahrs.cpp
+        ${AHRS_SRC}
         dev/common/CRC16.cpp
         dev/interface/sd_card_interface.cpp
         dev/debug/Unit_Tests/ca_ahrs.cpp)
@@ -557,10 +554,7 @@ target_include_directories(ca_ahrs_infantry PRIVATE dev/vehicle/infantry)
 target_compile_definitions(ca_ahrs_infantry PRIVATE INFANTRY)
 
 add_executable(ca_ahrs_hero
-        dev/interface/ahrs/ahrs_math.hpp
-        dev/interface/ahrs/imu_on_board.cpp
-        dev/interface/ahrs/ahrs_lib_middleware.c
-        dev/interface/ahrs/ahrs.cpp
+        ${AHRS_SRC}
         dev/common/CRC16.cpp
         dev/interface/sd_card_interface.cpp
         dev/debug/Unit_Tests/ca_ahrs.cpp)

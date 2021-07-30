@@ -217,6 +217,7 @@ const Shell::Command GimbalSKD::shellCommands[] = {
         {"_g_enable_fb",    "Channel/All Feedback{Disabled,Enabled}",                    GimbalSKD::cmdEnableFeedback, nullptr},
         {"_g_pid",          "Channel PID{A2V,V2I} [kp] [ki] [kd] [i_limit] [out_limit]", GimbalSKD::cmdPID,            nullptr},
         {"_g_enable_motor", "Channel/All Motor{Disabled,Enabled}",                       GimbalSKD::cmdEnableMotor,    nullptr},
+        {"_g_echo_raw",     "Channel",                                                   GimbalSKD::cmdEchoRaw,        nullptr},
         {nullptr,           nullptr,                                                     nullptr,                      nullptr}
 };
 
@@ -289,6 +290,14 @@ DEF_SHELL_CMD_START(GimbalSKD::cmdPID)
         return false;
     }
 
+    return true;
+DEF_SHELL_CMD_END
+
+DEF_SHELL_CMD_START(GimbalSKD::cmdEchoRaw)
+    if (argc != 1) return false;
+    unsigned id = Shell::atoi(argv[0]);
+    if (id >= MOTOR_COUNT) return false;
+    Shell::printf("%d" ENDL, GimbalIF::feedback[id]->last_angle_raw);
     return true;
 DEF_SHELL_CMD_END
 
