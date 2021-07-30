@@ -225,8 +225,14 @@ void UserS::UserThread::main() {
 
         if (Remote::rc.s1 == Remote::S_UP) {
             SChassisLG::set_mode(SChassisLG::FORCED_RELAX_MODE);
+        } else if (Remote::rc.s1 == Remote::S_MIDDLE) {
+            SChassisLG::set_mode(SChassisLG::MANUAL_MODE);
         } else {
             SChassisLG::set_mode(SChassisLG::SHUTTLE_MODE);
+        }
+
+        if (SChassisLG::get_mode() == SChassisLG::MANUAL_MODE) {
+            SChassisLG::set_dest(SChassisLG::get_dest() + Remote::rc.ch0 * .3f);
         }
 
         /// Final

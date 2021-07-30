@@ -35,7 +35,7 @@
 #define GIMBAL_FW_LEFT_CAN_CHANNEL  (GimbalIF::can_channel_1)
 #define GIMBAL_FW_RIGHT_CAN_CHANNEL (GimbalIF::can_channel_1)
 
-#define GIMBAL_YAW_CAN_ID         1
+#define GIMBAL_YAW_CAN_ID         4
 #define GIMBAL_PITCH_CAN_ID       1
 #define GIMBAL_SUB_PITCH_CAN_ID   1
 #define GIMBAL_BULLET_CAN_ID      6

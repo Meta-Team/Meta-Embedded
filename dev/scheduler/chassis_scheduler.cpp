@@ -129,13 +129,14 @@ void ChassisSKD::SKDThread::main() {
         {
             if ((mode == GIMBAL_COORDINATE_MODE) || (mode == ANGULAR_VELOCITY_DODGE_MODE)) {
 
-                actual_theta = GimbalIF::feedback[GimbalIF::YAW]->actual_angle * (float) gimbal_yaw_install;
+//                actual_theta = GimbalIF::feedback[GimbalIF::YAW]->actual_angle * (float) gimbal_yaw_install;
+                actual_theta = 0;
 
                 if (mode == GIMBAL_COORDINATE_MODE) {
                     if (ABS(actual_theta - target_theta) < THETA_DEAD_ZONE) {
                         target_w = 0;
                     } else {
-                        target_w = a2v_pid.calc(actual_theta, target_theta);
+                        target_w = 0;
                     }
                 }
 

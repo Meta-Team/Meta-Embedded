@@ -25,7 +25,7 @@ public:
 
     static void set_target(float target_location);
 
-    static float get_location(motor_id_t id) { return accumulated_angle[id]; };
+    static float get_location(motor_id_t id) { return accumulated_displacement[id]; };
 
     static void cmdFeedback(void *);
     static const Shell::Command shellCommands[];
@@ -34,7 +34,7 @@ private:
 
     static mode_t mode;
     static float target_location_;
-    static float accumulated_angle[MOTOR_COUNT];
+    static float accumulated_displacement[MOTOR_COUNT];
     static float actual_velocity[MOTOR_COUNT];
     static float target_velocity[MOTOR_COUNT];
     static int target_current[MOTOR_COUNT];
@@ -54,6 +54,8 @@ private:
     static DECL_SHELL_CMD(cmdEnableFeedback);
     static DECL_SHELL_CMD(cmdPID);
     static DECL_SHELL_CMD(cmdEnableMotor);
+
+    static float constexpr DISPLACEMENT_PER_ROUND = 17.28f;
 };
 
 

@@ -18,9 +18,11 @@ void SChassisLG::set_mode(mode_t mode) {
     mode_ = mode;
     if (mode_ == FORCED_RELAX_MODE) {
         SChassisSKD::set_mode(SChassisSKD::FORCED_RELAX_MODE);
-    } else {
+    } else if (mode_ == MANUAL_MODE) {
         SChassisSKD::set_mode(SChassisSKD::ENABLED);
-        SChassisSKD::set_target(2000.f);
+    }else if (mode_ == SHUTTLE_MODE) {
+        SChassisSKD::set_mode(SChassisSKD::ENABLED);
+        SChassisSKD::set_target(110.f);
     }
 }
 
@@ -28,16 +30,24 @@ void SChassisLG::set_dest(float dest) {
     target_dest = dest;
 }
 
+float SChassisLG::get_dest() {
+    return target_dest;
+}
+
 void SChassisLG::DirectionSwitchThread::main() {
     setName("SChassisLGDirectionSwitch");
     while (!shouldTerminate()) {
-        if (mode_ == SHUTTLE_MODE) {
-            if (SChassisSKD::get_location(SChassisBase::R) > 1900) {
-                SChassisSKD::set_target(-2000.f);
-            } else if (SChassisSKD::get_location(SChassisBase::R) < -1900) {
-                SChassisSKD::set_target(2000.f);
+        if (mode_ != FORCED_RELAX_MODE) {
+            if (mode_ == SHUTTLE_MODE) {
+                if (SChassisSKD::get_location(SChassisBase::R) > 100) {
+                    target_dest = -110.f;
+                } else if (SChassisSKD::get_location(SChassisBase::R) < -100) {
+                    target_dest = 110.f;
+                }
             }
+            SChassisSKD::set_target(target_dest);
         }
+
         sleep(TIME_MS2I(DIRECTION_INSPECTION_INTERVAL));
     }
 }

@@ -6,7 +6,7 @@
 
 SChassisSKD::mode_t SChassisSKD::mode;
 float SChassisSKD::target_location_ = 0;
-float SChassisSKD::accumulated_angle[MOTOR_COUNT] = {0,0};
+float SChassisSKD::accumulated_displacement[MOTOR_COUNT] = {0, 0};
 float SChassisSKD::actual_velocity[MOTOR_COUNT] = {0,0};
 float SChassisSKD::target_velocity[MOTOR_COUNT] = {0,0};
 int SChassisSKD::target_current[MOTOR_COUNT] = {0};
@@ -39,16 +39,16 @@ void SChassisSKD::set_target(float target_location) {
 void SChassisSKD::SKDThread::main() {
     setName("SChassisSKD");
     while (!shouldTerminate()) {
-        accumulated_angle[R] = SChassisIF::feedback[R]->accumulated_angle();
-        accumulated_angle[L] = SChassisIF::feedback[L]->accumulated_angle();
-        actual_velocity[R] = SChassisIF::feedback[R]->actual_velocity;
-        actual_velocity[L] = SChassisIF::feedback[L]->actual_velocity;
+        accumulated_displacement[R] = SChassisIF::feedback[R]->accumulated_angle() / 360.f * DISPLACEMENT_PER_ROUND;
+        accumulated_displacement[L] = SChassisIF::feedback[L]->accumulated_angle() / 360.f * DISPLACEMENT_PER_ROUND;
+        actual_velocity[R] = SChassisIF::feedback[R]->actual_velocity / 360.f * DISPLACEMENT_PER_ROUND;
+        actual_velocity[L] = SChassisIF::feedback[L]->actual_velocity / 360.f * DISPLACEMENT_PER_ROUND;
 
         if (mode == FORCED_RELAX_MODE) {
             target_current[R] = target_current[L] = 0;
         } else {
-            target_velocity[R] = a2v_pid[R].calc(accumulated_angle[R], target_location_);
-            target_velocity[L] = a2v_pid[L].calc(accumulated_angle[L], target_location_);
+            target_velocity[R] = a2v_pid[R].calc(accumulated_displacement[R], target_location_);
+            target_velocity[L] = a2v_pid[L].calc(accumulated_displacement[L], target_location_);
             target_current[R] = (int)v2i_pid[R].calc(actual_velocity[R], target_velocity[R]);
             target_current[L] = (int)v2i_pid[L].calc(actual_velocity[L], target_velocity[L]);
         }
@@ -81,8 +81,8 @@ void SChassisSKD::cmdFeedback(void *) {
     for (int i = 0; i <= MOTOR_COUNT; i++) {
         if (feedbackEnabled[i]) {
             Shell::printf("_c%d %.2f %.2f %.2f %.2f %d %d" ENDL, i,
-                          SChassisIF::feedback[i]->accumulated_angle(), target_location_,
-                          SChassisIF::feedback[i]->actual_velocity, target_velocity[i],
+                          accumulated_displacement[i], target_location_,
+                          actual_velocity[i], target_velocity[i],
                           SChassisIF::feedback[i]->actual_current, *SChassisIF::target_current[i]);
         }
     }

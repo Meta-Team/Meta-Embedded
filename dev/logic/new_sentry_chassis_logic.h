@@ -16,12 +16,17 @@ public:
 
     enum mode_t {
         FORCED_RELAX_MODE,
+        MANUAL_MODE,
         SHUTTLE_MODE
     };
 
     static void set_mode(mode_t mode);
 
+    static mode_t get_mode() { return mode_; };
+
     static void set_dest(float dest);
+
+    static float get_dest();
 
 private:
 
