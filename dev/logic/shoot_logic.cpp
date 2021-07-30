@@ -27,18 +27,15 @@ int ShootLG::remaining_bullet_count = 0;
 float ShootLG::target_bullet_count = 0;
 ShootLG::shooter_state_t ShootLG::shooter_state = STOP;
 bool ShootLG::use_42mm_bullet = false;
-float ShootLG::fw_m_to_deg_ratio = 0;
 ShootLG::StuckDetectorThread ShootLG::stuck_detector_thread;
 chibios_rt::ThreadReference ShootLG::stuck_detector_ref;
 ShootLG::BulletCounterThread ShootLG::bullet_counter_thread;
 ShootLG::VisionShootThread ShootLG::vision_shoot_thread;
 
-void ShootLG::init(float angle_per_bullet_, bool use_42mm_bullet_, float fw_circumference_,
-                   tprio_t stuck_detector_thread_prio,
+void ShootLG::init(float angle_per_bullet_, bool use_42mm_bullet_, tprio_t stuck_detector_thread_prio,
                    tprio_t bullet_counter_thread_prio, tprio_t vision_shooting_thread_prio) {
     angle_per_bullet = angle_per_bullet_;
     use_42mm_bullet = use_42mm_bullet_;
-    fw_m_to_deg_ratio = 360.0f / fw_circumference_;
     stuck_detector_ref = stuck_detector_thread.start(stuck_detector_thread_prio);
     bullet_counter_thread.start(bullet_counter_thread_prio);
     vision_shoot_thread.start(vision_shooting_thread_prio);
@@ -57,11 +54,11 @@ int ShootLG::get_remaining_bullet_count() {
 }
 
 void ShootLG::set_shoot_speed(float speed) {
-    ShootSKD::set_friction_wheels(speed * fw_m_to_deg_ratio);
+    ShootSKD::set_friction_wheels(speed);
 }
 
 float ShootLG::get_shoot_speed() {
-    return ShootSKD::get_friction_wheels_target_velocity() / fw_m_to_deg_ratio;
+    return ShootSKD::get_friction_wheels_target_velocity();
 }
 
 ShootLG::shooter_state_t ShootLG::get_shooter_state() {

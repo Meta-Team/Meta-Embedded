@@ -130,10 +130,10 @@ void ShootSKD::SKDThread::main() {
 
                 target_current[0] = 0;
 
-                target_current[1] = ABS_IN_RANGE(GimbalIF::feedback[FW_LEFT]->actual_velocity, 500) ?
+                target_current[1] = ABS_IN_RANGE(GimbalIF::feedback[FW_LEFT]->actual_velocity, 100) ?
                                     0 : (int) v2i_pid[1].calc(GimbalIF::feedback[FW_LEFT]->actual_velocity, 0.0f);
 
-                target_current[2] = ABS_IN_RANGE(GimbalIF::feedback[FW_RIGHT]->actual_velocity, 500) ?
+                target_current[2] = ABS_IN_RANGE(GimbalIF::feedback[FW_RIGHT]->actual_velocity, 100) ?
                                     0 : (int) v2i_pid[2].calc(GimbalIF::feedback[FW_RIGHT]->actual_velocity, 0.0f);
             }
 

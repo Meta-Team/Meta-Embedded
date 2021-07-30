@@ -67,6 +67,7 @@ void VisionIF::handle_vision_command(const vision_command_t &command) {
         if (command.flag & DETECTED) {
 
             // Compute absolute angles
+            latest_valid_command = command;
             latest_armor_yaw = ((float) command.yaw_delta / 100.0f) + last_gimbal_yaw;
             latest_armor_pitch = ((float) command.pitch_delta / 100.0f) + last_gimbal_pitch;
 

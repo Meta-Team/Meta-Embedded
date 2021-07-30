@@ -61,7 +61,7 @@ private:
     static char vision_title[64];
     static int vision_displayed_bullet_speed;  // [mm/s]
 
-    static float cap_volt;
+    static int cap_volt;  // [0.1V]
     static bool bullet_case_opened;
     static bool dodge_mode_enabled;
     static int remaining_bullet_count;

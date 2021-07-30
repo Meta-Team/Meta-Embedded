@@ -58,11 +58,11 @@ GimbalSKD::start(AbstractAHRS *gimbal_ahrs_, const Matrix33 ahrs_angle_rotation_
     Vector3D ahrs_angle = ahrs_angle_rotation * gimbal_ahrs->get_angle();
 
     if (angle_mode == ABS_ANGLE_MODE) {
-        last_angle[YAW] = GimbalIF::feedback[YAW]->accumulated_angle() * yaw_install;
-        last_angle[PITCH] = GimbalIF::feedback[PITCH]->accumulated_angle() * pitch_install;
-    } else {
         last_angle[YAW] = ahrs_angle.x;
         last_angle[PITCH] = ahrs_angle.y;
+    } else {
+        last_angle[YAW] = GimbalIF::feedback[YAW]->accumulated_angle() * yaw_install;
+        last_angle[PITCH] = GimbalIF::feedback[PITCH]->accumulated_angle() * pitch_install;
     }
     last_angle[SUB_PITCH] = GimbalIF::feedback[SUB_PITCH]->actual_angle;
 
