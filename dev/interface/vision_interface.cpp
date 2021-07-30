@@ -9,6 +9,8 @@
 #include "led.h"
 #include "gimbal_scheduler.h"
 
+EVENTSOURCE_DECL(VisionIF::command_received_event);
+
 VisionIF::vision_command_t VisionIF::latest_valid_command;
 float VisionIF::latest_armor_yaw = 0;
 float VisionIF::latest_armor_pitch = 0;
@@ -70,6 +72,8 @@ void VisionIF::handle_vision_command(const vision_command_t &command) {
 
             last_valid_update_time_delta = now - last_valid_update_time;
             last_valid_update_time = now;
+
+            chEvtBroadcastI(&command_received_event);  // we are still in I-Lock state
         }
     }
 

@@ -24,7 +24,9 @@ class KalmanFilter {
 public:
 
     arm_matrix_instance_f32 x;
+    arm_matrix_instance_f32 x_prime;
     arm_matrix_instance_f32 P;
+    arm_matrix_instance_f32 P_prime;
     arm_matrix_instance_f32 F;
     arm_matrix_instance_f32 Q;
     arm_matrix_instance_f32 H;
@@ -34,7 +36,9 @@ public:
     arm_matrix_instance_f32 z;
 
     float32_t x_data[N];
+    float32_t x_prime_data[N];
     float32_t P_data[N * N];
+    float32_t P_prime_data[N * N];
     float32_t F_data[N * N];
     float32_t Q_data[N * N];
     float32_t H_data[M * N];
@@ -50,7 +54,6 @@ public:
 
 private:
     arm_matrix_instance_f32 auxA_N_1;
-    arm_matrix_instance_f32 auxB_N_1;
     arm_matrix_instance_f32 auxA_M_1;
     arm_matrix_instance_f32 auxB_M_1;
     arm_matrix_instance_f32 auxA_N_N;
@@ -63,7 +66,6 @@ private:
     arm_matrix_instance_f32 auxC_M_M;
     arm_matrix_instance_f32 auxD_M_M;
     float32_t auxA_N_1_data[N];
-    float32_t auxB_N_1_data[N];
     float32_t auxA_M_1_data[M];
     float32_t auxB_M_1_data[M];
     float32_t auxA_N_N_data[N * N];
@@ -82,7 +84,9 @@ public:
         reset();
 
         arm_mat_init_f32(&x, N, 1, x_data);
+        arm_mat_init_f32(&x_prime, N, 1, x_prime_data);
         arm_mat_init_f32(&P, N, N, P_data);
+        arm_mat_init_f32(&P_prime, N, N, P_prime_data); //
         arm_mat_init_f32(&F, N, N, F_data);
         arm_mat_init_f32(&Q, N, N, Q_data);
         arm_mat_init_f32(&H, M, N, H_data);  // rows: same as z, cols: same as x_prime
@@ -92,7 +96,6 @@ public:
         arm_mat_init_f32(&z, M, 1, z_data);
 
         arm_mat_init_f32(&auxA_N_1, N, 1, auxA_N_1_data);
-        arm_mat_init_f32(&auxB_N_1, N, 1, auxB_N_1_data);
         arm_mat_init_f32(&auxA_M_1, M, 1, auxA_M_1_data);
         arm_mat_init_f32(&auxB_M_1, M, 1, auxB_M_1_data);
         arm_mat_init_f32(&auxA_N_N, N, N, auxA_N_N_data);
@@ -106,25 +109,23 @@ public:
         arm_mat_init_f32(&auxD_M_M, M, M, auxD_M_M_data);
     }
 
-    void predict() {/** Prediction Step */
+    void update() {
 
-        // x = F * x
-        arm_mat_copy(&x, &auxA_N_1);
-        arm_mat_mult_f32(&F, &auxA_N_1, &x);
+        /** Prediction Step */
+
+        // x = F * x'
+        arm_mat_mult_f32(&F, &x_prime, &x);
         // TODO: + B * u
 
-        // P = F * P * F^T + Q
-        arm_mat_mult_f32(&F, &P, &auxA_N_N);
+        // P = F * P' * F^T + Q
+        arm_mat_mult_f32(&F, &P_prime, &auxA_N_N);
         arm_mat_trans_f32(&F, &auxB_N_N);
         arm_mat_mult_f32(&auxA_N_N, &auxB_N_N, &auxC_N_N);
         arm_mat_add_f32(&auxC_N_N, &Q, &P);
-    }
 
-private:
-    void update() {
         /** Update Step */
 
-        // K' = P * H^T / (H * P * H^T + R);
+        // K' = P * H^T / (H * P' * H^T + R);
         arm_mat_mult_f32(&P, &H_T, &auxA_N_M);
         arm_mat_mult_f32(&H, &P, &auxB_M_N);
         arm_mat_mult_f32(&auxB_M_N, &H_T, &auxC_M_M);
@@ -133,29 +134,23 @@ private:
         arm_mat_inverse_f32(&auxD_M_M, &auxC_M_M);
         arm_mat_mult_f32(&auxA_N_M, &auxC_M_M, &K_prime);
 
-        // x = x + K' * (z - (H * x))
+        // x' = x + K' * (z - (H * x))
         arm_mat_mult_f32(&H, &x, &auxA_M_1);
         arm_mat_sub_f32(&z, &auxA_M_1, &auxB_M_1);
         arm_mat_mult_f32(&K_prime, &auxB_M_1, &auxA_N_1);
-        arm_mat_copy(&x, &auxB_N_1);
-        arm_mat_add_f32(&auxB_N_1, &auxA_N_1, &x);
+        arm_mat_add_f32(&x, &auxA_N_1, &x_prime);
 
-        // P = P - K' * H * P
+        // P' = P - K' * H * P
         arm_mat_mult_f32(&K_prime, &H, &auxB_N_N);
         arm_mat_mult_f32(&auxB_N_N, &P, &auxC_N_N);
-        arm_mat_copy(&P, &auxA_N_N);
-        arm_mat_sub_f32(&auxA_N_N, &auxC_N_N, &P);
-    }
-
-public:
-    void predict_update() {
-        predict();
-        update();
+        arm_mat_sub_f32(&P, &auxC_N_N, &P_prime);
     }
 
     void reset() {
         memset(x_data, 0, sizeof(x_data));
+        memset(x_prime_data, 0, sizeof(x_prime_data));
         memset(P_data, 0, sizeof(P_data));
+        memset(P_prime_data, 0, sizeof(P_prime_data));
         memset(F_data, 0, sizeof(F_data));
         memset(Q_data, 0, sizeof(Q_data));
         memset(H_data, 0, sizeof(H_data));

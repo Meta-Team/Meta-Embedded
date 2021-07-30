@@ -143,7 +143,7 @@ int main() {
 
 
     /// Setup GimbalIF (for Gimbal and Shoot)
-    GimbalIF::init(&can1, &can2, GIMBAL_MOTOR_CONFIG_, GIMBAL_YAW_FRONT_ANGLE_RAW, GIMBAL_PITCH_FRONT_ANGLE_RAW, GIMBAL_SUB_PITCH_FRONT_ANGLE_RAW, MotorIFBase::can_channel_1);
+    GimbalIF::init(&can1, &can2, GIMBAL_MOTOR_CONFIG_, GIMBAL_YAW_FRONT_ANGLE_RAW, GIMBAL_PITCH_FRONT_ANGLE_RAW, 0 /* not used */, MotorIFBase::none_can_channel /* not used */);
     chThdSleepMilliseconds(2000);  // wait for C610 to be online and friction wheel to reset
     InspectorI::startup_check_gimbal_feedback(); // check gimbal motors has continuous feedback. Block for 20 ms
     LED::led_on(DEV_BOARD_LED_GIMBAL);  // LED 5 on now
@@ -194,11 +194,10 @@ int main() {
     ChassisLG::init(THREAD_CHASSIS_LG_DODGE_PRIO, THREAD_CHASSIS_POWER_SET_PRIO, CHASSIS_DODGE_MODE_THETA, CHASSIS_BIASED_ANGLE, CHASSIS_LOGIC_DODGE_OMEGA2VOLT_PARAMS);
 
     /// Setup Vision
-    VisionIF::init();  // must be put after initialization of GimbalSKD
-    VisionSKD::set_bullet_speed(VISION_DEFAULT_BULLET_SPEED);  // should be set before start
-    VisionSKD::start(VISION_BASIC_CONTROL_DELAY, THREAD_VISION_SKD_PRIO);
-    Shell::addFeedbackCallback(VisionSKD::cmd_feedback);
-    Shell::addCommands(VisionSKD::shell_commands);
+    VisionIF::init();
+    Vision::start(VISION_BASIC_CONTROL_DELAY, THREAD_VISION_SKD_PRIO);
+    Shell::addFeedbackCallback(Vision::cmd_feedback);
+    Shell::addCommands(Vision::shell_commands);
 
     RefereeUISKD::init(THREAD_REFEREE_SKD_PRIO);
     RefereeUILG::start(THREAD_REFEREE_LD_PRIO);

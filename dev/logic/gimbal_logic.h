@@ -63,7 +63,7 @@ public:
      * @param yaw_target_angle    Yaw target ACCUMULATED angle on ground coordinate [degree]
      * @param pitch_target_angle  Pitch target ACCUMULATED angle on ground coordinate [degree]
      */
-    static void set_target(float yaw_target_angle, float pitch_target_angle, float sub_pitch_target_angle);
+    static void set_target(float yaw_target_angle, float pitch_target_angle, float sub_pitch_target_angle = 0);
 
     /**
      * Get actual angle maintained by GimbalSKD.
@@ -95,16 +95,15 @@ public:
 private:
 
     static action_t action;
-    static float pitch_min_angle;
-    static float pitch_max_angle;
-    static float sub_pitch_min_angle;
-    static float sub_pitch_max_angle;
+    static float PITCH_MIN_ANGLE;
+    static float PITCH_MAX_ANGLE;
+    static float SUB_PITCH_MIN_ANGLE;
+    static float SUB_PITCH_MAX_ANGLE;
 
     static float sub_pitch_to_ground;
 
     class VisionControlThread : public chibios_rt::BaseStaticThread<256> {
         event_listener_t vision_listener;
-        static constexpr eventmask_t VISION_UPDATED_EVENT_MASK = EVENT_MASK(0);
         void main() final;
     };
 
@@ -112,12 +111,11 @@ private:
 
     class SentryControlThread : public chibios_rt::BaseStaticThread<256> {
         float time_ticket = 0;
+        static constexpr unsigned int SENTRY_THREAD_INTERVAL = 5; // [ms]
         void main() final;
     };
 
     static SentryControlThread sentry_control_thread;
-
-    static constexpr unsigned int SENTRY_THREAD_INTERVAL = 5; // [ms]
 
 };
 

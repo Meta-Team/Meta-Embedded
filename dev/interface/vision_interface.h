@@ -29,6 +29,11 @@ public:
         int16_t imageY;             // pixel
     };
 
+    /**
+     * Received updated gimbal target.
+     */
+    static event_source_t command_received_event;
+
     static time_msecs_t get_last_valid_update_time() { return last_valid_update_time; }
 
     static void get_latest_valid_command(vision_command_t &command, float &absolute_yaw, float &absolute_pitch);

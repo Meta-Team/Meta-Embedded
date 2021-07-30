@@ -211,10 +211,10 @@ void RefereeUILG::DataFetchThread::main() {
             set_bullet_case_state(true);  // TODO
             set_remaining_bullet_count(ShootLG::get_remaining_bullet_count());
             set_chassis_angle(ChassisSKD::get_actual_theta() / 180.0f * PI);
-            set_vision_bullet_speed(VisionSKD::get_bullet_speed());
+            set_vision_bullet_speed(Vision::get_bullet_speed());
             {
                 uint32_t x = 9999, y = 9999;  // out side the screen to hide
-                if (VisionSKD::is_detected()) VisionSKD::get_user_view_points(x, y);
+                if (Vision::is_detected()) Vision::get_user_view_points(x, y);
                 set_main_enemy({x, y});
             }
         }

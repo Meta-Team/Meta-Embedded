@@ -11,7 +11,6 @@
 //   Note: the program will echo the raw angles of yaw and pitch as the program starts
 #define GIMBAL_YAW_FRONT_ANGLE_RAW 3337
 #define GIMBAL_PITCH_FRONT_ANGLE_RAW 7256  // of no use now
-#define GIMBAL_SUB_PITCH_FRONT_ANGLE_RAW 0 //Todo: Measure the value
 
 #define MPU6500_STORED_GYRO_BIAS {1.111804723f, -0.881306171f, 0.140071436f}
 

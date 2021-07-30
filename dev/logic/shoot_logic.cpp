@@ -193,7 +193,7 @@ void ShootLG::VisionShootThread::main() {
 
     LowPassFilteredValue measuredShootDelay(0.8);
 
-    chEvtRegisterMask(&VisionSKD::shoot_time_updated_event, &vision_listener, VISION_UPDATED_EVENT_MASK);
+    chEvtRegisterMask(&Vision::shoot_time_updated_event, &vision_listener, VISION_UPDATED_EVENT_MASK);
 
     while (!shouldTerminate()) {
 

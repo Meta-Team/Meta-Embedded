@@ -9,7 +9,7 @@
 #include "position_kalman_filter.hpp"
 #include "shell.h"
 
-class VisionSKD {
+class Vision {
 public:
 
     static void start(time_msecs_t basic_gimbal_delay, tprio_t thread_prio);
@@ -134,6 +134,7 @@ private:
     static uint32_t user_view_y;
 
     class CalculationThread : public chibios_rt::BaseStaticThread<1024> {
+        event_listener command_listener;
         void main() override;
     };
 

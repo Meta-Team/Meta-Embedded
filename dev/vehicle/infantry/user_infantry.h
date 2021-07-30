@@ -59,7 +59,7 @@ private:
     /// User Thread
     static constexpr unsigned USER_THREAD_INTERVAL = 7;  // [ms]
     class UserThread : public chibios_rt::BaseStaticThread<512> {
-        void main() final;
+        void main() override;
     };
 
     static UserThread userThread;
@@ -67,24 +67,8 @@ private:
 
     /// User Action Thread
     class UserActionThread : public chibios_rt::BaseStaticThread<512> {
-
-        /// Runtime variables
-        event_listener_t s_change_listener;
-        static constexpr eventmask_t S_CHANGE_EVENTMASK = (1U << 0U);
-
-        event_listener_t mouse_press_listener;
-        static constexpr eventmask_t MOUSE_PRESS_EVENTMASK = (1U << 1U);
-
-        event_listener_t mouse_release_listener;
-        static constexpr eventmask_t MOUSE_RELEASE_EVENTMASK = (1U << 2U);
-
         event_listener_t key_press_listener;
-        static constexpr eventmask_t KEY_PRESS_EVENTMASK = (1U << 3U);
-
-        event_listener_t key_release_listener;
-        static constexpr eventmask_t KEY_RELEASE_EVENTMASK = (1U << 4U);
-
-        void main() final;
+        void main() override;
     };
 
     static UserActionThread userActionThread;
