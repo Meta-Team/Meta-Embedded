@@ -41,35 +41,7 @@ public:
  * ***/
     static void load_a2v_pid_params(pid_params_t *pidParams);
 
-    /***
-     * @brief Set target velocity for translation belt.
-     * @param targetVelocity_ the target velocity for belt.
-     * ***/
-     static void set_belt_target_velocity(float targetVelocity_);
-
-     /**
-      * @brief Let the hand rotate to highest angle.
-      * @brief which could send the ore mine to the belt.
-      */
-     static void invoke_rising();
-
-     /**
-      * @brief Let the hand rotate to lower angle.
-      * @brief which could grab the ore mine.
-      */
-     static void invoke_lowering();
-
-     /**
-      * @brief Let the hand rotate down and then relax.
-      * @brief initial state. when it reached to its target angle, hand's current will be set to 0.
-      */
-     static void invoke_relaxing();
-
-     /**
-      * @brief Get the current status of grabber.
-      * @return Current state of grabber.
-      */
-     static int echo_status();
+     static void set_angle(float target_angle_);
 
      /**
       *

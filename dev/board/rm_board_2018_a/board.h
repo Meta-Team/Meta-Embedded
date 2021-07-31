@@ -878,8 +878,8 @@
 /*
  * GPIOF setup:
  *
- * PF0  - PIN0                      (input floating).
- * PF1  - PIN1                      (input floating).
+ * PF0  - PIN0                      (output floating).
+ * PF1  - PIN1                      (output floating).
  * PF2  - PIN2                      (input floating).
  * PF3  - PIN3                      (input floating).
  * PF4  - PIN4                      (input floating).

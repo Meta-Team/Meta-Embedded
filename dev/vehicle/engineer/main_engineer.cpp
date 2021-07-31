@@ -18,6 +18,10 @@
 #include "sd_card_interface.h"
 
 #include "chassis_interface.h"
+#include "engineer_elevator_interface.h"
+#include "engineer_elevator_skd.h"
+#include "engineer_grab_mech_interface.h"
+#include "engineer_grab_skd.h"
 
 #include "engineer_chassis_skd.h"
 #include "engineer_chassis_logic.h"
@@ -42,6 +46,22 @@ AHRSOnBoard ahrs;
 static const Matrix33 ON_BOARD_AHRS_MATRIX_ = ON_BOARD_AHRS_MATRIX;
 static const Matrix33 GIMBAL_ANGLE_INSTALLATION_MATRIX_ = GIMBAL_ANGLE_INSTALLATION_MATRIX;
 static const Matrix33 GIMBAL_GYRO_INSTALLATION_MATRIX_ = GIMBAL_GYRO_INSTALLATION_MATRIX;
+
+PIDController::pid_params_t a2vPIDParameter[EngGrabMechBase::MOTOR_COUNT] = {SHOOT_PID_BULLET_LOADER_A2V_PARAMS,
+                                                                             SHOOT_PID_BULLET_LOADER_A2V_PARAMS,
+                                                                             SHOOT_PID_BULLET_LOADER_A2V_PARAMS};
+
+PIDController::pid_params_t v2iPIDParameter[EngGrabMechBase::MOTOR_COUNT] = {{120, 2, 0, 12000, 12000},
+                                                                             SHOOT_PID_BULLET_LOADER_V2I_PARAMS,
+                                                                             SHOOT_PID_BULLET_LOADER_V2I_PARAMS};
+
+EngGrabMechIF::motor_can_config_t CANCONFIG[3] = {  {MotorIFBase::can_channel_1, 3, CANInterface::M3508, CANInterface::M3508_WITH_DECELERATION_RATIO},
+                                                    {MotorIFBase::can_channel_1, 2, CANInterface::M2006, CANInterface::M2006_WITH_DECELERATION_RATIO},
+                                                    {MotorIFBase::can_channel_1, 4, CANInterface::M2006, CANInterface::M2006_WITH_DECELERATION_RATIO}};
+
+EngineerGrabSKD::install_direction direct[3] = {EngineerGrabSKD::install_direction::POSITIVE,
+                                                EngineerGrabSKD::install_direction::NEGATIVE,
+                                                EngineerGrabSKD::install_direction::POSITIVE};
 
 int main() {
 
@@ -96,10 +116,13 @@ int main() {
     InspectorE::startup_check_remote();  // check Remote has signal. Block for 50 ms
     LED::led_on(DEV_BOARD_LED_REMOTE);  // LED 3 on now
 
+    EngGrabMechIF::init(&can1, &can2, CANCONFIG);
+    EngineerElevatorIF::init();
+    LED::led_on(DEV_BOARD_LED_ELEVATOR);
 
     /// Setup ElevatorIF
     float init_angle;
-
+    //EngineerElevatorSKD::start(THREAD_ELEVATOR_SKD_PRIO, 1.0f);
     ChassisIF::motor_can_config_t CHASSIS_MOTOR_CONFIG_[] = CHASSIS_MOTOR_CONFIG;
     /// Setup ChassisIF
     ChassisIF::init(&can1, &can2, CHASSIS_MOTOR_CONFIG_);
@@ -112,7 +135,9 @@ int main() {
 
     /// Complete Period 1
     LED::green_on();  // LED Green on now
-
+    EngineerGrabSKD::start(THREAD_ROBOTIC_ARM_SKD_PRIO, direct);
+    EngineerGrabSKD::load_a2v_pid_params(a2vPIDParameter);
+    EngineerGrabSKD::load_v2i_pid_params(v2iPIDParameter);
 
     /*** ------------ Period 2. Calibration and Start Logic Control Thread ----------- ***/
 
@@ -123,7 +148,10 @@ int main() {
     /// Complete Period 2
     BuzzerSKD::play_sound(BuzzerSKD::sound_startup_intel);  // Now play the startup sound
 
+    //EngineerElevatorSKD::start(THREAD_ELEVATOR_SKD_PRIO, 1.0f);
+
     EngineerChassisSKD::start(CHASSIS_WHEEL_BASE, CHASSIS_WHEEL_TREAD, CHASSIS_WHEEL_CIRCUMFERENCE, THREAD_CHASSIS_SKD_PRIO);
+    EngineerChassisSKD::load_pid_params(CHASSIS_PID_V2I_PARAMS);
     EngineerChassisLG::start(&ahrs, GIMBAL_ANGLE_INSTALLATION_MATRIX_, GIMBAL_GYRO_INSTALLATION_MATRIX_, CHASSIS_FOLLOW_PID_THETA2V_PARAMS, THREAD_CHASSIS_LG_PRIO);
     /*** ------------------------ Period 3. End of main thread ----------------------- ***/
 

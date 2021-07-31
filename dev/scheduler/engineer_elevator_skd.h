@@ -38,10 +38,10 @@ public:
 private:
 
     static enum operation_t {
-        FORWARD,
-        BACKWARD,
+        UPWARD,
+        DOWNWARD,
         STOP
-    } vertical_operation, horizontal_operation;
+    } operation;
     // For vertical, FORWARD means upward, BACKWARD means downward.
     // For horizontal, the name conforms with the description.
 
@@ -56,7 +56,7 @@ private:
 
     friend void cmd_elevator_set_target_velocities(BaseSequentialStream *chp, int argc, char *argv[]);
 
-    static float target_height, target_location, stop_judge_threshold;
+    static float target_height, stop_judge_threshold, time_2_length_ratio, current_height;
 };
 
 

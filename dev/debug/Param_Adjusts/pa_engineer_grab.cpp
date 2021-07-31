@@ -18,15 +18,11 @@ using namespace chibios_rt;
 CANInterface can1(&CAND1);
 CANInterface can2(&CAND2);
 
-PIDController::pid_params_t a2vPIDParameter[EngGrabMechBase::MOTOR_COUNT] = {{0,0,0,0,0},
-                                                                             {0,0,0,0,0},
-                                                                             SHOOT_PID_BULLET_LOADER_A2V_PARAMS,
+PIDController::pid_params_t a2vPIDParameter[EngGrabMechBase::MOTOR_COUNT] = {SHOOT_PID_BULLET_LOADER_A2V_PARAMS,
                                                                              SHOOT_PID_BULLET_LOADER_A2V_PARAMS,
                                                                              SHOOT_PID_BULLET_LOADER_A2V_PARAMS};
 
-PIDController::pid_params_t v2iPIDParameter[EngGrabMechBase::MOTOR_COUNT] = {SHOOT_PID_BULLET_LOADER_V2I_PARAMS,
-                                                                             SHOOT_PID_BULLET_LOADER_V2I_PARAMS,
-                                                                             {60, 2, 0, 12000, 12000},
+PIDController::pid_params_t v2iPIDParameter[EngGrabMechBase::MOTOR_COUNT] = {{60, 2, 0, 12000, 12000},
                                                                              SHOOT_PID_BULLET_LOADER_V2I_PARAMS,
                                                                              SHOOT_PID_BULLET_LOADER_V2I_PARAMS};
 
@@ -195,16 +191,12 @@ int main(void) {
     can2.start(NORMALPRIO+4, NORMALPRIO+5);
     Shell::start(HIGHPRIO);
     Shell::addCommands(templateShellCommands);
-    EngGrabMechIF::motor_can_config_t CANCONFIG[5] = {  {EngGrabMechIF::can_channel_1, 0, CANInterface::M2006},
-                                                        {EngGrabMechIF::can_channel_1, 1, CANInterface::M2006},
-                                                        {EngGrabMechIF::can_channel_1, 2, CANInterface::M3508},
+    EngGrabMechIF::motor_can_config_t CANCONFIG[5] = {  {EngGrabMechIF::can_channel_1, 2, CANInterface::M3508},
                                                         {EngGrabMechIF::can_channel_1, 3, CANInterface::M2006},
                                                         {EngGrabMechIF::can_channel_1, 4, CANInterface::M2006}};
     EngGrabMechIF::init(&can1, &can2, CANCONFIG);
     controlThread.start(NORMALPRIO + 1);
-    EngineerGrabSKD::install_direction direct[5] = {EngineerGrabSKD::install_direction::NEGATIVE,
-                                                    EngineerGrabSKD::install_direction::POSITIVE,
-                                                    EngineerGrabSKD::install_direction::POSITIVE,
+    EngineerGrabSKD::install_direction direct[5] = {EngineerGrabSKD::install_direction::POSITIVE,
                                                     EngineerGrabSKD::install_direction::NEGATIVE,
                                                     EngineerGrabSKD::install_direction::POSITIVE};
 //    PIDController::pid_params_t pidParams[4] = {SHOOT_PID_BULLET_LOADER_V2I_PARAMS, SHOOT_PID_BULLET_LOADER_V2I_PARAMS,

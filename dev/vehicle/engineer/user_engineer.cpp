@@ -5,7 +5,7 @@
 #include "user_engineer.h"
 
 /// Chassis Config
-float UserE::chassis_v_left_right = 600.0f;  // [mm/s]
+float UserE::chassis_v_left_right = 800.0f;  // [mm/s]
 float UserE::chassis_v_forward = 1000.0f;     // [mm/s]
 float UserE::chassis_v_backward = 1000.0f;    // [mm/s]
 float UserE::chassis_w = 90.0f;    // [degree/s]
@@ -19,6 +19,9 @@ float UserE::gimbal_pc_pitch_target_angle_ = 0;
 UserE::UserThread UserE::userThread;
 UserE::UserActionThread UserE::userActionThread;
 UserE::ClientDataSendingThread UserE::clientDataSendingThread;
+
+float grab_target_angle = 0.0f;
+bool grabber_holded = false;
 
 void UserE::start(tprio_t user_thd_prio, tprio_t user_action_thd_prio, tprio_t client_data_sending_thd_prio) {
     userThread.start(user_thd_prio);
@@ -49,22 +52,59 @@ void UserE::UserThread::main() {
     float gimbal_yaw_target_angle_ = 0.0f;
     float gimbal_rc_yaw_max_speed = 180.0f;
     while (!shouldTerminate()) {
-        EngineerChassisSKD::enable(false);
 
         /// Sensors and Switches Test
-        if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_UP) {
-            EngineerChassisSKD::enable(true);
-            gimbal_yaw_target_angle_ +=
-                    -Remote::rc.ch0 * (gimbal_rc_yaw_max_speed * USER_THREAD_INTERVAL / 1000.0f);
-            EngineerChassisLG::set_target(
-                    Remote::rc.ch2 * chassis_v_left_right,  // Both use right as positive direction
-                    (Remote::rc.ch3 > 0 ?
-                     Remote::rc.ch3 * 1000 :
-                     Remote::rc.ch3 * 800), gimbal_yaw_target_angle_);
+        if (Remote::rc.s1 == Remote::S_MIDDLE) {
+            if(Remote::rc.s2 == Remote::S_UP) {
+                EngineerChassisLG::set_mode(EngineerChassisLG::NORMAL_MODE);
+                EngineerChassisSKD::set_velocity(Remote::rc.ch2 * chassis_v_left_right,  // Both use right as positive direction
+                                                 (Remote::rc.ch3 > 0 ?
+                                                  Remote::rc.ch3 * 2000 :
+                                                  Remote::rc.ch3 * 1600), -Remote::rc.ch0 * gimbal_rc_yaw_max_speed * USER_THREAD_INTERVAL / 25);
+                if(Remote::rc.ch1 >= 0.5) {
+                    //EngineerElevatorIF::set_elevator(EngineerElevatorIF::UP, 1000);
+                    EngineerElevatorIF::set_elevator(EngineerElevatorIF::UP, 600);
+                } else if (Remote::rc.ch1 <= (-0.5)) {
+                    EngineerElevatorIF::set_elevator(EngineerElevatorIF::DOWN, 600);
+                    //EngineerElevatorSKD::set_target_height(000.0f);
+                } else {
+                    EngineerElevatorIF::set_elevator(EngineerElevatorIF::STOP, 0);
+                }
+            } else if(Remote::rc.s2 == Remote::S_MIDDLE) {
+                EngineerChassisLG::set_mode(EngineerChassisLG::NORMAL_MODE);
+                EngineerChassisSKD::set_velocity(Remote::rc.ch2 * chassis_v_left_right,  // Both use right as positive direction
+                                                 (Remote::rc.ch3 > 0 ?
+                                                  Remote::rc.ch3 * 2000 :
+                                                  Remote::rc.ch3 * 1600), -Remote::rc.ch0 * gimbal_rc_yaw_max_speed * USER_THREAD_INTERVAL / 25);
+                grab_target_angle += Remote::rc.ch1*0.1f;
+                VAL_CROP(grab_target_angle, 90.0f, -90.0f);
+                EngineerGrabSKD::set_angle(grab_target_angle);
+            } else if(Remote::rc.s2 == Remote::S_DOWN) {
+                if(Remote::rc.ch0 > 0.5) {
+                    palWritePad(GPIOH, GPIOH_POWER1_CTRL, PAL_HIGH);
+                } else {
+                    palWritePad(GPIOH, GPIOH_POWER1_CTRL, PAL_LOW);
+                }
+                if(Remote::rc.ch1 > 0.5) {
+                    palWritePad(GPIOH, GPIOH_POWER2_CTRL, PAL_HIGH);
+                } else {
+                    palWritePad(GPIOH, GPIOH_POWER2_CTRL, PAL_LOW);
+                }
+                if(Remote::rc.ch2 > 0.5) {
+                    palWritePad(GPIOH, GPIOH_POWER3_CTRL, PAL_HIGH);
+                } else {
+                    palWritePad(GPIOH, GPIOH_POWER3_CTRL, PAL_LOW);
+                }
+                if(Remote::rc.ch3 > 0.5) {
+                    palWritePad(GPIOH, GPIOH_POWER4_CTRL, PAL_HIGH);
+                } else {
+                    palWritePad(GPIOH, GPIOH_POWER4_CTRL, PAL_LOW);
+                }
+            }
+
             // ch0 use right as positive direction, while GimbalLG use CCW (left) as positive direction
         } else if (Remote::rc.s1 == Remote::S_DOWN) {
-
-            EngineerChassisSKD::enable(true);
+            EngineerChassisLG::set_mode(EngineerChassisLG::NORMAL_MODE);
                 /**
                  * PC Key Table:
                  * ------------------------------------------------------------
@@ -90,36 +130,35 @@ void UserE::UserThread::main() {
                 } else if (Remote::key.s) target_vy = -chassis_v_backward;
                 else target_vy = 0;
 
-                if (Remote::key.a) target_vx = chassis_v_left_right;
-                else if (Remote::key.d) target_vx = -chassis_v_left_right;
+                if (Remote::key.a) target_vx = -chassis_v_left_right;
+                else if (Remote::key.d) target_vx = chassis_v_left_right;
                 else target_vx = 0;
 
             float yaw_sensitivity, pitch_sensitivity;
-            yaw_sensitivity = 100000;
+            yaw_sensitivity = 5000000;
             // Referee client data will be sent by ClientDataSendingThread
 
             float yaw_delta = -Remote::mouse.x * (yaw_sensitivity * USER_THREAD_INTERVAL / 1000.0f);
 
-            VAL_CROP(yaw_delta, 1.5, -1.5);
+            VAL_CROP(yaw_delta, 50, -50);
 
-            gimbal_pc_yaw_target_angle_ += yaw_delta;
+//            gimbal_pc_yaw_target_angle_ += yaw_delta;
 
             if (Remote::key.ctrl) {
                 target_vx *= chassis_pc_ctrl_ratio;
                 target_vy *= chassis_pc_ctrl_ratio;
-
             } else if (Remote::key.shift) {
                 target_vx *= chassis_pc_shift_ratio;
                 target_vy *= chassis_pc_shift_ratio;
-
             } else {
                 // Normal speed, 2 lights from right
             }
-            EngineerChassisLG::set_target(target_vx, target_vy, gimbal_pc_yaw_target_angle_);
+            EngineerChassisSKD::set_velocity(target_vx, target_vy, yaw_delta);
+
 
         } else {
             /// Safe mode
-            EngineerChassisSKD::enable(false);
+            EngineerChassisLG::set_mode(EngineerChassisLG::FORCE_RELAX_MODE);
         }
 
         /// Final
@@ -149,8 +188,16 @@ void UserE::UserActionThread::main() {
 
             eventflags_t key_flag = chEvtGetAndClearFlags(&key_press_listener);
 
-            if (key_flag & (1U << Remote::KEY_Z)) {
-                //RoboticArmSKD::change_extend();
+            if (key_flag & (1U << Remote::KEY_G)) {
+                if(Remote::rc.s2 == Remote::S_MIDDLE) {
+                    if(!grabber_holded) {
+                        EngineerGrabSKD::hold();
+                        grabber_holded = true;
+                    } else {
+                        EngineerGrabSKD::release();
+                        grabber_holded = false;
+                    }
+                }
             }
         }
 

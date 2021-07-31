@@ -238,12 +238,16 @@ add_executable(ENGINEER
         dev/interface/remote_interpreter.cpp
         dev/interface/referee_interface.cpp
         dev/interface/sd_card_interface.cpp
+        dev/interface/engineer_elevator_interface.cpp
         dev/common/CRC8.cpp
         dev/common/CRC16.cpp
+        dev/interface/engineer_grab_mech_interface.cpp
 
         dev/interface/chassis_interface.cpp
         dev/scheduler/engineer_chassis_skd.cpp
         dev/logic/engineer_chassis_logic.cpp
+        dev/scheduler/engineer_elevator_skd.cpp
+        dev/scheduler/engineer_grab_skd.cpp
 
         dev/vehicle/engineer/main_engineer.cpp
         dev/vehicle/engineer/user_engineer.cpp

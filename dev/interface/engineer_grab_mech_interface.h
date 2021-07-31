@@ -7,6 +7,7 @@
 
 #include "hal.h"
 #include "can_interface.h"
+#include "motor_interface.h"
 
 /// Board Guard
 #if defined(BOARD_RM_2018_A)
@@ -18,26 +19,18 @@
 class EngGrabMechBase {
 public:
     enum motor_id_t {
-        BELT_L = 0,
-        BELT_R = 1,
-        ROTATION_HAND = 2,
-        GRABER_L = 3,
-        GRABER_R = 4,
-        MOTOR_COUNT = 5
+        ROTATION_HAND = 0,
+        GRABER_L = 1,
+        GRABER_R = 2,
+        MOTOR_COUNT = 3
     };
 };
-class EngGrabMechIF: public EngGrabMechBase{
+class EngGrabMechIF: public EngGrabMechBase, public MotorIFBase{
 public:
     enum motor_can_channel_t {
         none_can_channel,
         can_channel_1,
         can_channel_2
-    };
-
-    struct motor_can_config_t {
-        motor_can_channel_t motor_can_channel;
-        unsigned motor_can_id;
-        CANInterface::motor_type_t motor_type;
     };
 
     static void init( CANInterface *can1_interface, CANInterface *can2_interface,

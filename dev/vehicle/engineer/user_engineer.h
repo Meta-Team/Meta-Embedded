@@ -14,6 +14,9 @@
 #include "engineer_chassis_skd.h"
 #include "engineer_chassis_logic.h"
 
+#include "engineer_elevator_skd.h"
+#include "engineer_grab_skd.h"
+
 #include "inspector_engineer.h"
 
 

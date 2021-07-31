@@ -39,6 +39,11 @@ void EngineerChassisLG::set_target(float target_vx_, float target_vy_, float ang
 
 void EngineerChassisLG::set_mode(mode_t mode_) {
     mode = mode_;
+    if(mode == FORCE_RELAX_MODE) {
+        EngineerChassisSKD::enable(false);
+    } else {
+        EngineerChassisSKD::enable(true);
+    }
 }
 
 void EngineerChassisLG::LogicThread::main() {
@@ -52,23 +57,17 @@ void EngineerChassisLG::LogicThread::main() {
             ahrs_gyro.x * cosf(ahrs_angle.y / 180.0f * M_PI) + ahrs_gyro.z * sinf(ahrs_angle.y / 180.0f * M_PI),
             ahrs_gyro.y};
 
-
     float yaw_angle_movement = angle[0] - last_yaw_angle;
     last_yaw_angle = angle[0];
 
-    if (yaw_angle_movement < -200) yaw_angle_movement += 360;
-    if (yaw_angle_movement > 200) yaw_angle_movement -= 360;
+    if (yaw_angle_movement < -200.0f) yaw_angle_movement += 360;
+    if (yaw_angle_movement > 200.0f) yaw_angle_movement -= 360;
 
     // Use increment to calculate accumulated angles
     accumulate_yaw_angle += yaw_angle_movement;
     actual_yaw_velocity = velocity[0];
 
-    if(mode == FORCE_RELAX_MODE) {
-        EngineerChassisSKD::enable(false);
-    } else if(mode == NORMAL_MODE){
-        EngineerChassisSKD::enable(true);
-        YAW_PID.calc(actual_yaw_velocity, target_angle);
-        EngineerChassisSKD::set_velocity(target_vx, target_vy, YAW_PID.calc(actual_yaw_velocity, target_angle));
-    }
+    EngineerChassisSKD::set_velocity(target_vx, target_vy, YAW_PID.calc(accumulate_yaw_angle, target_angle));
+
     sleep(TIME_MS2I(5));
 }
