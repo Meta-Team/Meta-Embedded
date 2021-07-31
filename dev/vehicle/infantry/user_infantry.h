@@ -55,6 +55,7 @@ private:
 
     static float gimbal_yaw_target_angle_;
     static float gimbal_pc_pitch_target_angle_;
+    static bool ignore_shoot_constraints;
 
     /// User Thread
     static constexpr unsigned USER_THREAD_INTERVAL = 7;  // [ms]

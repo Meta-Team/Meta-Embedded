@@ -4,6 +4,19 @@
 
 #include "user_infantry.h"
 
+// FIXME: change as input parameter from main()
+
+/// Vehicle Specific Configurations
+#if defined(INFANTRY_THREE)                                                 /** Infantry #3 **/
+#include "vehicle_infantry_three.h"
+#elif defined(INFANTRY_FOUR)                                                /** Infantry #4 **/
+#include "vehicle_infantry_four.h"
+#elif defined(INFANTRY_FIVE)                                                /** Infantry #5 **/
+#include "vehicle_infantry_five.h"
+#else
+#error "File main_infantry.cpp should only be used for Infantry #3, #4, #5."
+#endif
+
 
 /// Gimbal Config
 float UserI::gimbal_rc_yaw_max_speed = 180;  // [degree/s]
@@ -14,20 +27,21 @@ float UserI::gimbal_pc_pitch_sensitivity[3] = {20000, 50000, 60000};   // [Slow,
 /// Chassis Config
 float UserI::base_power = 40.0f;
 float UserI::base_v_forward = 1500.0f;
-float UserI::chassis_v_left_right = 1000.0f;   // [mm/s]
+float UserI::chassis_v_left_right = 1500.0f;   // [mm/s]
 float UserI::chassis_v_forward = 1500.0f;     // [mm/s]
 float UserI::chassis_v_backward = 1500.0f;    // [mm/s]
 
-float UserI::chassis_pc_shift_ratio = 1.5f;  // 150% when Shift is pressed
+float UserI::chassis_pc_shift_ratio = 1.8f;  // 180% when Shift is pressed
 float UserI::chassis_pc_ctrl_ratio = 0.5f;    // 50% when Ctrl is pressed
 
 float UserI::shoot_feed_rate = 5.0f;   // [bullet/s]
-float UserI::shoot_fw_speed[3] = {1200, 1200, 1200};  // [Slow, Normal, Fast] [deg/s]
+float UserI::shoot_fw_speed[3] = {SHOOT_FW_SPEED, SHOOT_FW_SPEED, SHOOT_FW_SPEED};  // [Slow, Normal, Fast] [deg/s]
 
 
 /// Variables
 float UserI::gimbal_yaw_target_angle_ = 0;
 float UserI::gimbal_pc_pitch_target_angle_ = 0;
+bool UserI::ignore_shoot_constraints = false;
 UserI::UserThread UserI::userThread;
 UserI::UserActionThread UserI::userActionThread;
 
@@ -83,7 +97,7 @@ void UserI::UserThread::main() {
                     Vision::set_bullet_speed(Vision::get_bullet_speed() - 0.001f);
                 }
 
-                if (Remote::mouse.press_right) {
+                if (Remote::mouse.press_right && Vision::is_detected()) {
 
                     GimbalLG::set_action(GimbalLG::VISION_MODE);
 
@@ -147,16 +161,12 @@ void UserI::UserThread::main() {
                 if (Remote::rc.wheel > 0.5) {  // down
                     ShootLG::set_limit_mode(ShootLG::UNLIMITED_MODE);
                     if (ShootLG::get_shooter_state() == ShootLG::STOP) {
-                        ShootLG::shoot(ShootLG::get_bullet_count_to_heat_limit(), shoot_feed_rate);
-                    } else {
-                        ShootLG::stop();
+                        ShootLG::shoot(ignore_shoot_constraints ? 999 : ShootLG::get_bullet_count_to_heat_limit(), shoot_feed_rate);
                     }
                 } else if (Remote::rc.wheel < -0.5) {  // up
                     ShootLG::set_limit_mode(ShootLG::UNLIMITED_MODE);
                     if (ShootLG::get_shooter_state() == ShootLG::STOP) {
                         ShootLG::shoot(999 /* unlimited */, shoot_feed_rate);
-                    } else {
-                        ShootLG::stop();
                     }
                 } else {
                     if (ShootLG::get_shooter_state() != ShootLG::STOP) {
@@ -173,16 +183,14 @@ void UserI::UserThread::main() {
                 if (Remote::rc.wheel > 0.5) {  // down
                     ShootLG::set_limit_mode(ShootLG::UNLIMITED_MODE);
                     if (ShootLG::get_shooter_state() == ShootLG::STOP) {
-                        ShootLG::shoot(ShootLG::get_bullet_count_to_heat_limit(), shoot_feed_rate);
-                    } else {
-                        ShootLG::stop();
+                        ShootLG::shoot(ignore_shoot_constraints ? 999 : ShootLG::get_bullet_count_to_heat_limit(),
+                                       shoot_feed_rate);
                     }
                 } else if (Remote::rc.wheel < -0.5) {  // up
                     ShootLG::set_limit_mode(ShootLG::VISION_LIMITED_MODE);
                     if (ShootLG::get_shooter_state() == ShootLG::STOP) {
-                        ShootLG::shoot(ShootLG::get_bullet_count_to_heat_limit(), shoot_feed_rate);
-                    } else {
-                        ShootLG::stop();
+                        ShootLG::shoot(ignore_shoot_constraints ? 999 : ShootLG::get_bullet_count_to_heat_limit(),
+                                       shoot_feed_rate);
                     }
                 } else {
                     ShootLG::set_limit_mode(ShootLG::UNLIMITED_MODE);
@@ -199,18 +207,27 @@ void UserI::UserThread::main() {
 
                 if (Remote::mouse.press_left) {
 
-                    if (Remote::mouse.press_right) {
+                    // Read shoot limit
+                    if (Referee::robot_state.shooter_id1_17mm_cooling_rate >= 40) {
+                        shoot_feed_rate = Referee::robot_state.shooter_id1_17mm_cooling_rate / 10 * 1.25;
+                    } else {
+                        shoot_feed_rate = Referee::robot_state.shooter_id1_17mm_cooling_limit / 25;
+                    }
+
+                    /*if (!ignore_shoot_constraints && Remote::mouse.press_right) {
                         ShootLG::set_limit_mode(ShootLG::VISION_LIMITED_MODE);
                     } else {
                         ShootLG::set_limit_mode(ShootLG::UNLIMITED_MODE);
-                    }
+                    }*/
+                    ShootLG::set_limit_mode(ShootLG::UNLIMITED_MODE);
 
                     if (ShootLG::get_shoot_speed() == 0) {  // force start friction wheels
                         ShootLG::set_shoot_speed(shoot_fw_speed[1]);
                     }
 
                     if (ShootLG::get_shooter_state() == ShootLG::STOP) {  // set target once
-                        ShootLG::shoot(ShootLG::get_bullet_count_to_heat_limit(), shoot_feed_rate);
+                        ShootLG::shoot(ignore_shoot_constraints ? 999 : ShootLG::get_bullet_count_to_heat_limit(),
+                                       shoot_feed_rate);
                     }
 
                 } else {
@@ -337,8 +354,13 @@ void UserI::UserActionThread::main() {
         }
 
         if (key_flag & (1U << Remote::KEY_X)) {
-            // X: chassis dodge mode
-            ChassisLG::set_action(ChassisLG::DODGE_MODE);
+            if (Remote::key.ctrl && Remote::key.shift) {
+                // Ctrl + Shift + X: ignore shoot constraints
+                ignore_shoot_constraints = true;
+            } else {
+                // X: chassis dodge mode
+                ChassisLG::set_action(ChassisLG::DODGE_MODE);
+            }
         }
 
         if (key_flag & (1U << Remote::KEY_Q)) {

@@ -129,20 +129,20 @@ void Vision::CalculationThread::main() {
 
             // Predict time to shoot
             {
-                /*if (command.flag & TOP_KILLER_TRIGGERED) {
+                if (command.flag & VisionIF::TOP_KILLER_TRIGGERED) {
 
                     // Calculate using time_msecs_t so that we don't need to care about wrap around
-                    time_msecs_t shoot_time = last_update_time
+                    time_msecs_t shoot_time = VisionIF::get_last_valid_update_time()
                                               + (time_msecs_t) command.remaining_time_to_target
-                                              - (time_msecs_t) flight_time_to_target
-                                              - (time_msecs_t) measured_shoot_delay.get();
+                                              - (time_msecs_t) bullet_flight_time
+                                              - (time_msecs_t) 100;  // FIXME:
 
                     // Compensate for one or more periods until we can catch up expected_shoot_time
                     expected_shoot_after_periods = 0;
                     while (true) {
                         // Minus using time_msecs_t so that we don't need to care about wrap around
-                        auto time_delta = (int32_t) (shoot_time - now);  // compare by casting to signed
-                        if (time_delta < 0) {
+                        auto shoot_time_delta = (int32_t) (shoot_time - SYSTIME);  // compare by casting to signed
+                        if (time_delta <= 0) {
                             expected_shoot_after_periods++;
                             shoot_time += command.period;
                         } else {
@@ -152,11 +152,14 @@ void Vision::CalculationThread::main() {
 
                     // Issue shoot command
                     expected_shoot_time = (time_msecs_t) shoot_time;
-                    chEvtBroadcastI(&shoot_time_updated_event);  // we are still in I-Lock state
+                    chEvtBroadcast(&shoot_time_updated_event);
 
                 } else {
-                    expected_shoot_time = 0;
-                }*/
+                    if (expected_shoot_time != 0) {
+                        expected_shoot_time = 0;
+                        chEvtBroadcast(&shoot_time_updated_event);
+                    }
+                }
             }
 
             // Update user view
@@ -165,7 +168,6 @@ void Vision::CalculationThread::main() {
                 user_view_y = 1080 - (IMAGE_TO_USER_OFFSET_Y + command.imageY * IMAGE_TO_USER_SCALE);
             }
         }
-
     }
 }
 

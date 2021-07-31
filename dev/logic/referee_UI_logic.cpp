@@ -77,7 +77,7 @@ void RefereeUILG::set_cap_volt(float cap_volt_) {
 }
 
 void RefereeUILG::update_cap_volt_line() {
-    Shell::snprintf(cap_title, sizeof(cap_title), "CAP      : %.1f", cap_volt / 10.0f);
+    Shell::snprintf(cap_title, sizeof(cap_title), "CAP   : %.1f", cap_volt / 10.0f);
     if (cap_volt > 15.0f) {
         cap_volt_line_color = RefereeUISKD::GREEN;
     } else {
@@ -104,10 +104,10 @@ void RefereeUILG::set_remaining_bullet_count(int remaining_bullet_count_) {
 
 void RefereeUILG::update_bullet_case_line() {
     if (bullet_case_opened) {
-        Shell::snprintf(bullet_case_title, sizeof(bullet_case_title), "CASE  [R]: OPEN  %3d", remaining_bullet_count);
+        Shell::snprintf(bullet_case_title, sizeof(bullet_case_title), "BULLET: %-3d", remaining_bullet_count);
         bullet_case_color = RefereeUISKD::ACCENT_COLOR;
     } else {
-        Shell::snprintf(bullet_case_title, sizeof(bullet_case_title), "CASE  [R]: CLOSE %3d", remaining_bullet_count);
+        Shell::snprintf(bullet_case_title, sizeof(bullet_case_title), "BULLET: %-3d", remaining_bullet_count);
         bullet_case_color = RefereeUISKD::GREEN;
     }
     bullet_case_update_time = SYSTIME;
@@ -123,10 +123,10 @@ void RefereeUILG::set_dodge_state(bool dodge_mode_enabled_) {
 
 void RefereeUILG::update_dodge_line() {
     if (dodge_mode_enabled) {
-        Shell::snprintf(dodge_title, sizeof(dodge_title), "DODGE [X]: ON");
+        Shell::snprintf(dodge_title, sizeof(dodge_title), "DODGE : ON");
         dodge_line_color = RefereeUISKD::GREEN;
     } else {
-        Shell::snprintf(dodge_title, sizeof(dodge_title), "DODGE [X]: OFF");
+        Shell::snprintf(dodge_title, sizeof(dodge_title), "DODGE : OFF");
         dodge_line_color = RefereeUISKD::ACCENT_COLOR;
     }
     dodge_update_time = SYSTIME;
@@ -157,7 +157,7 @@ void RefereeUILG::set_main_enemy(RefereeUISKD::ui_point_t enemy_loc) {
     if (main_enemy.x == enemy_loc.x && main_enemy.y == enemy_loc.y) return;
     main_enemy.x = enemy_loc.x;
     main_enemy.y = enemy_loc.y;
-    RefereeUISKD::revise_shape_loc(main_enemy_name, main_enemy, RefereeUISKD::ACCENT_COLOR);
+    RefereeUISKD::revise_shape_loc(main_enemy_name, main_enemy, RefereeUISKD::YELLOW);
 }
 
 void RefereeUILG::set_vision_bullet_speed(float speed) {
@@ -168,7 +168,7 @@ void RefereeUILG::set_vision_bullet_speed(float speed) {
 }
 
 void RefereeUILG::update_vision_line() {
-    Shell::snprintf(vision_title, sizeof(vision_title), "VIS   [V]: %d", vision_displayed_bullet_speed);
+    Shell::snprintf(vision_title, sizeof(vision_title), "VIS   : %d", vision_displayed_bullet_speed);
 }
 
 void RefereeUILG::reset_data_UI() {
@@ -180,8 +180,8 @@ void RefereeUILG::reset_data_UI() {
     RefereeUISKD::add_label(cap_name, {50, 570}, cap_volt_line_color, 1, 15, 2, cap_title);
     update_dodge_line();
     RefereeUISKD::add_label(dodge_name, {50, 600}, dodge_line_color, 1, 15, 2, dodge_title);
-    update_bullet_case_line();
-    RefereeUISKD::add_label(bullet_case_name, {50, 630}, bullet_case_color, 1, 15, 2, bullet_case_title);
+//    update_bullet_case_line();
+//    RefereeUISKD::add_label(bullet_case_name, {50, 630}, bullet_case_color, 1, 15, 2, bullet_case_title);
 
 }
 
@@ -202,7 +202,7 @@ void RefereeUILG::reset_vision_UI() {
     //RefereeUISKD::remove_layer(3);
     chThdSleepMilliseconds(1000);
     RefereeUILG::main_enemy = {9999, 9999};
-    RefereeUISKD::add_circle(main_enemy_name, 3, RefereeUISKD::ORANGE, main_enemy, 5, 10);
+    RefereeUISKD::add_circle(main_enemy_name, 3, RefereeUISKD::YELLOW, main_enemy, 5, 10);
 }
 
 void RefereeUILG::DataFetchThread::main() {
@@ -210,8 +210,8 @@ void RefereeUILG::DataFetchThread::main() {
     while (!shouldTerminate()) {
         set_cap_volt(SuperCapacitor::feedback->capacitor_voltage);
         set_dodge_state(ChassisLG::get_action() == ChassisLG::DODGE_MODE);
-        set_bullet_case_state(true);  // TODO
-        set_remaining_bullet_count(ShootLG::get_remaining_bullet_count());
+//        set_bullet_case_state(false);  // TODO
+//        set_remaining_bullet_count(ShootLG::get_remaining_bullet_count());
         set_chassis_angle(ChassisSKD::get_actual_theta() / 180.0f * PI);
         set_vision_bullet_speed(Vision::get_bullet_speed());
         {

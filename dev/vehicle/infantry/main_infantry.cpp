@@ -145,14 +145,16 @@ int main() {
     /// Setup GimbalIF (for Gimbal and Shoot)
     GimbalIF::init(&can1, &can2, GIMBAL_MOTOR_CONFIG_, GIMBAL_YAW_FRONT_ANGLE_RAW, GIMBAL_PITCH_FRONT_ANGLE_RAW, 0 /* not used */, MotorIFBase::none_can_channel /* not used */);
     chThdSleepMilliseconds(2000);  // wait for C610 to be online and friction wheel to reset
-    InspectorI::startup_check_gimbal_feedback(); // check gimbal motors has continuous feedback. Block for 20 ms
+    // FIXME: revert for development
+    // InspectorI::startup_check_gimbal_feedback(); // check gimbal motors has continuous feedback. Block for 20 ms
     LED::led_on(DEV_BOARD_LED_GIMBAL);  // LED 5 on now
 
 
     /// Setup ChassisIF
     ChassisIF::init(&can1, &can2, CHASSIS_MOTOR_CONFIG_);
     chThdSleepMilliseconds(10);
-    InspectorI::startup_check_chassis_feedback();  // check chassis motors has continuous feedback. Block for 20 ms
+    // FIXME: revert for development
+    // InspectorI::startup_check_chassis_feedback();  // check chassis motors has continuous feedback. Block for 20 ms
     LED::led_on(DEV_BOARD_LED_CHASSIS);  // LED 6 on now
 
 
@@ -203,7 +205,8 @@ int main() {
     RefereeUILG::start(THREAD_REFEREE_LD_PRIO);
 
     /// Start Inspector and User Threads
-    InspectorI::start_inspection(THREAD_INSPECTOR_PRIO);
+    // FIXME: revert for development
+    // InspectorI::start_inspection(THREAD_INSPECTOR_PRIO);
     UserI::start(THREAD_USER_PRIO, THREAD_USER_ACTION_PRIO);
 
 

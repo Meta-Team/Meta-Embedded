@@ -121,7 +121,7 @@ private:
     static time_msecs_t last_compute_time;
     static time_msecs_t last_vision_command_time;
 
-    static constexpr time_msecs_t DETECTION_LOSE_TIME = 1000;  // [ms]
+    static constexpr time_msecs_t DETECTION_LOSE_TIME = 500;  // [ms]
     static constexpr time_msecs_t POSITION_RELOAD_TIME = 1000;  // [ms]
     static constexpr float SINGLE_ARMOR_2D_OFFSET_PER_FRAME = 500;  // [mm]
 
