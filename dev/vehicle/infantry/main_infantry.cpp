@@ -205,8 +205,7 @@ int main() {
     RefereeUILG::start(THREAD_REFEREE_LD_PRIO);
 
     /// Start Inspector and User Threads
-    // FIXME: revert for development
-    // InspectorI::start_inspection(THREAD_INSPECTOR_PRIO);
+    InspectorI::start_inspection(THREAD_INSPECTOR_PRIO);
     UserI::start(THREAD_USER_PRIO, THREAD_USER_ACTION_PRIO);
 
 
