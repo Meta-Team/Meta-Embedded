@@ -208,11 +208,11 @@ void UserI::UserThread::main() {
                 if (Remote::mouse.press_left) {
 
                     // Read shoot limit
-                    if (Referee::robot_state.shooter_id1_17mm_cooling_rate >= 40) {
+                    /*if (Referee::robot_state.shooter_id1_17mm_cooling_rate >= 40) {
                         shoot_feed_rate = Referee::robot_state.shooter_id1_17mm_cooling_rate / 10 * 1.25;
                     } else {
                         shoot_feed_rate = Referee::robot_state.shooter_id1_17mm_cooling_limit / 25;
-                    }
+                    }*/
 
                     /*if (!ignore_shoot_constraints && Remote::mouse.press_right) {
                         ShootLG::set_limit_mode(ShootLG::VISION_LIMITED_MODE);

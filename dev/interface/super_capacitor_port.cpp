@@ -32,13 +32,13 @@ void SuperCapacitor::SuperCapacitorInitThread::main() {
     int start_time = SYSTIME;
     while(!shouldTerminate()) {
         chSysLock();  /// --- ENTER S-Locked state. DO NOT use LOG, printf, non S/I-Class functions or return ---
-        if (feedback->output_power == 45.0f && !set_timeout) {
+        if (feedback->output_power == 55.0f && !set_timeout) {
             chSchGoSleepS(CH_STATE_SUSPENDED);
         }
         chSysUnlock();  /// --- EXIT S-Locked state ---
 
         if(SYSTIME - start_time > 3000) set_timeout = true;
-        SuperCapacitor::set_power(45.0f);
+        SuperCapacitor::set_power(55.0f);
         sleep(TIME_MS2I(INIT_THREAD_INTERVAL));
     }
 }
