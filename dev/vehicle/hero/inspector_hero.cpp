@@ -118,11 +118,11 @@ void InspectorH::startup_check_gimbal_feedback() {
             }
         }
 
-        if (not WITHIN_RECENT_TIME(GimbalIF::feedback[GimbalIF::YAW]->last_update_time, 5)) {
-            // No feedback in last 5 ms (normal 1 ms)
-            LOG_ERR("Startup - Gimbal Yaw offline.");
-            t = SYSTIME;  // reset the counter
-        }
+//        if (not WITHIN_RECENT_TIME(GimbalIF::feedback[GimbalIF::YAW]->last_update_time, 5)) {
+//            // No feedback in last 5 ms (normal 1 ms)
+//            LOG_ERR("Startup - Gimbal Yaw offline.");
+//            t = SYSTIME;  // reset the counter
+//        }
         if (not WITHIN_RECENT_TIME(GimbalIF::feedback[GimbalIF::PITCH]->last_update_time, 5)) {
             // No feedback in last 5 ms (normal 1 ms)
             LOG_ERR("Startup - Gimbal Pitch offline.");

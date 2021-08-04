@@ -179,7 +179,7 @@ const Shell::Command ChassisSKD::shellCommands[] = {
 };
 
 DEF_SHELL_CMD_START(ChassisSKD::cmdInfo)
-    Shell::printf("_c:Gimbal" ENDL);
+    Shell::printf("_c:Chassis" ENDL);
     Shell::printf("_c/Front_Right:Velocity{Actual,Target} Current{Actual,Target}" ENDL);
     Shell::printf("_c/Front_Left:Velocity{Actual,Target} Current{Actual,Target}" ENDL);
     Shell::printf("_c/Back_Left:Velocity{Actual,Target} Current{Actual,Target}" ENDL);

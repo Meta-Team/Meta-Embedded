@@ -106,8 +106,9 @@ private:
 
     static DECL_SHELL_CMD(cmdEnableFeedback);
 
-
     bool feedbackEnabled[4] = {false, false, false, false};
+
+    friend class AHRSCalibrationThread;
 
 };
 

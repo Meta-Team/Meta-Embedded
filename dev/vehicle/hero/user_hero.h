@@ -14,6 +14,7 @@
 #include "gimbal_logic.h"
 #include "shoot_logic.h"
 #include "chassis_logic.h"
+#include "vision_scheduler.h"
 
 #include "inspector_hero.h"
 
@@ -26,7 +27,7 @@ public:
         SEPARATED,
         MERGED
     };
-    static void start(tprio_t user_thd_prio, tprio_t user_action_thd_prio, tprio_t client_data_sending_thd_prio);
+    static void start(tprio_t user_thd_prio, tprio_t user_action_thd_prio);
 
 private:
 
@@ -100,15 +101,6 @@ private:
     };
 
     static UserActionThread userActionThread;
-
-    /// Referee Client Data Sending Thread
-    static constexpr unsigned CLIENT_DATA_SENDING_THREAD_INTERVAL = 100;  // [ms]
-
-    class ClientDataSendingThread : public chibios_rt::BaseStaticThread<512> {
-        void main() final;
-    };
-
-    static ClientDataSendingThread clientDataSendingThread;
 
     /// Friend Configure Functions
     friend void gimbal_get_config(BaseSequentialStream *chp, int argc, char *argv[]);

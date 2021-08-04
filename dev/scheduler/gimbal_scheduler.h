@@ -190,6 +190,7 @@ private:
     static DECL_SHELL_CMD(cmdEnableFeedback);
     static DECL_SHELL_CMD(cmdPID);
     static DECL_SHELL_CMD(cmdEnableMotor);
+    static DECL_SHELL_CMD(cmdEchoRaw);
 
 #ifdef PARAM_ADJUST
     friend class PAUserGimbalThread;
