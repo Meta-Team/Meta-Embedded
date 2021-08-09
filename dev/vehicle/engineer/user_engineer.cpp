@@ -59,8 +59,8 @@ void UserE::UserThread::main() {
                 EngineerChassisLG::set_mode(EngineerChassisLG::NORMAL_MODE);
                 EngineerChassisSKD::set_velocity(Remote::rc.ch2 * chassis_v_left_right,  // Both use right as positive direction
                                                  (Remote::rc.ch3 > 0 ?
-                                                  Remote::rc.ch3 * 2000 :
-                                                  Remote::rc.ch3 * 1600), -Remote::rc.ch0 * gimbal_rc_yaw_max_speed * USER_THREAD_INTERVAL / 25);
+                                                  Remote::rc.ch3 * 3000 :
+                                                  Remote::rc.ch3 * 1600), -Remote::rc.ch0 * gimbal_rc_yaw_max_speed * USER_THREAD_INTERVAL / 12);
                 if(Remote::rc.ch1 >= 0.5) {
                     //EngineerElevatorIF::set_elevator(EngineerElevatorIF::UP, 1000);
                     EngineerElevatorIF::set_elevator(EngineerElevatorIF::UP, 600);
@@ -74,9 +74,9 @@ void UserE::UserThread::main() {
                 EngineerChassisLG::set_mode(EngineerChassisLG::NORMAL_MODE);
                 EngineerChassisSKD::set_velocity(Remote::rc.ch2 * chassis_v_left_right,  // Both use right as positive direction
                                                  (Remote::rc.ch3 > 0 ?
-                                                  Remote::rc.ch3 * 2000 :
-                                                  Remote::rc.ch3 * 1600), -Remote::rc.ch0 * gimbal_rc_yaw_max_speed * USER_THREAD_INTERVAL / 25);
-                grab_target_angle += Remote::rc.ch1*0.1f;
+                                                  Remote::rc.ch3 * 3000 :
+                                                  Remote::rc.ch3 * 1600), -Remote::rc.ch0 * gimbal_rc_yaw_max_speed * USER_THREAD_INTERVAL / 12);
+                grab_target_angle += Remote::rc.ch1*1.0f;
                 VAL_CROP(grab_target_angle, 90.0f, -90.0f);
                 EngineerGrabSKD::set_angle(grab_target_angle);
             } else if(Remote::rc.s2 == Remote::S_DOWN) {

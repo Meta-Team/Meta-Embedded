@@ -37,12 +37,12 @@ void EngineerElevatorIF::set_elevator(motor_operation_t type, float freq) {
         // Enable Signal, change the direction of motor.
         if(type == UP) {
             //LED::led_on(4);
-            palWritePad(GPIOF, GPIOF_PIN0, PAL_HIGH);
-            palWritePad(GPIOF, GPIOF_PIN1, PAL_LOW);
-        } else if (type == DOWN) {
-            //LED::led_off(4);
             palWritePad(GPIOF, GPIOF_PIN0, PAL_LOW);
             palWritePad(GPIOF, GPIOF_PIN1, PAL_HIGH);
+        } else if (type == DOWN) {
+            //LED::led_off(4);
+            palWritePad(GPIOF, GPIOF_PIN0, PAL_HIGH);
+            palWritePad(GPIOF, GPIOF_PIN1, PAL_LOW);
         }
 
     } else {
