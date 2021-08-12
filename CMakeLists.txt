@@ -287,13 +287,13 @@ target_compile_definitions(ENGINEER PRIVATE ENGINEER)
 
 # --------------------------------------- Unit Tests ---------------------------------------
 add_executable(ut_shoot
-        dev/debug/Unit_Tests/ut_shoot.cpp
+        dev/debug/unit_tests/ut_shoot.cpp
         dev/interface/can_interface.cpp
         dev/module/pid_controller.hpp
         dev/interface/remote_interpreter.cpp)
 
 add_executable(ut_engineer
-        dev/debug/Unit_Tests/ut_engineer.cpp
+        dev/debug/unit_tests/ut_engineer.cpp
         dev/scheduler/engineer_chassis_skd.cpp
         dev/logic/engineer_elevator_logic.cpp
         dev/scheduler/engineer_elevator_skd.cpp
@@ -308,29 +308,29 @@ add_executable(ut_engineer
 # Blink
 add_executable(ut_blink
         dev/module/button_monitor.cpp
-        dev/debug/Unit_Tests/ut_led.cpp)
+        dev/debug/unit_tests/ut_led.cpp)
 
 # Remote Interpreter: include remote_interpreter sources and the unit test modules.
 add_executable(ut_remote_interpreter
         dev/interface/remote_interpreter.cpp
-        dev/debug/Unit_Tests/ut_remoteIF.cpp)
+        dev/debug/unit_tests/ut_remoteIF.cpp)
 
 # MPU6500: include MP6500 interface and unit test.
 add_executable(ut_mpu6500
         dev/interface/ahrs/imu_on_board.cpp
-        dev/debug/Unit_Tests/ut_mpu6500.cpp)
+        dev/debug/unit_tests/ut_mpu6500.cpp)
 
 # IST8310
 add_executable(ut_ist8310
         dev/interface/ahrs/imu_on_board.cpp
-        dev/debug/Unit_Tests/ut_ist8310.cpp)
+        dev/debug/unit_tests/ut_ist8310.cpp)
 
 # IMU: include IMU interface and unit test.
 add_executable(ut_imu
         dev/interface/ahrs/ahrs_math.hpp
         dev/interface/ahrs/imu_on_board.cpp
         dev/interface/ahrs/ahrs.cpp
-        dev/debug/Unit_Tests/ut_ahrs.cpp)
+        dev/debug/unit_tests/ut_ahrs.cpp)
 
 # AHRS
 add_executable(ut_ahrs
@@ -338,20 +338,20 @@ add_executable(ut_ahrs
         dev/interface/ahrs/imu_on_board.cpp
         dev/interface/ahrs/ahrs_lib_middleware.c
         dev/interface/ahrs/ahrs.cpp
-        dev/debug/Unit_Tests/ut_ahrs.cpp)
+        dev/debug/unit_tests/ut_ahrs.cpp)
 target_link_libraries(ut_ahrs ${AHRS_LIB})
 
 # AHRSExt
 add_executable(ut_ahrs_ext
         dev/interface/can_interface.cpp
         dev/interface/ahrs/ahrs_ext.cpp
-        dev/debug/Unit_Tests/ut_ahrs_ext.cpp)
+        dev/debug/unit_tests/ut_ahrs_ext.cpp)
 
 # BuzzerSKD: inlcude BuzzerSKD interface and unit test.
 add_executable(ut_buzzer
         dev/interface/buzzer_interface.cpp
         dev/scheduler/buzzer_scheduler.cpp
-        dev/debug/Unit_Tests/ut_buzzer.cpp)
+        dev/debug/unit_tests/ut_buzzer.cpp)
 
 # CAN Interface: include CANInterface
 add_executable(ut_can
@@ -359,29 +359,29 @@ add_executable(ut_can
         dev/interface/buzzer_interface.cpp
         dev/debug/shell/shell.cpp
         dev/interface/led.cpp
-        dev/debug/Unit_Tests/ut_can_interface.cpp)
+        dev/debug/unit_tests/ut_can_interface.cpp)
 
 # Elevator Interface: include CANInterface, ElevatorInterface, and the unit test modules.
 add_executable(ut_elevator_interface
         dev/interface/can_interface.cpp
-        dev/debug/Unit_Tests/ut_elevator_IF.cpp)
+        dev/debug/unit_tests/ut_elevator_IF.cpp)
 
 # Engineer Gimbal Unit tests.
 add_executable(ut_engineer_gimbal
         dev/interface/engineer_gimbal.cpp
         dev/interface/remote_interpreter.cpp
-        dev/debug/Unit_Tests/ut_engineer_gimbal.cpp)
+        dev/debug/unit_tests/ut_engineer_gimbal.cpp)
 
 # Gimbal Interface
 add_executable(ut_gimbal_interface
         dev/interface/gimbal_interface.cpp
         dev/interface/can_interface.cpp
         dev/scheduler/buzzer_scheduler.cpp
-        dev/debug/Unit_Tests/ut_gimbalIF.cpp)
+        dev/debug/unit_tests/ut_gimbalIF.cpp)
 
 # Robotic Arm
 add_executable(ut_robotic_arm
-        dev/debug/Unit_Tests/ut_engineer_robotic_arm.cpp
+        dev/debug/unit_tests/ut_engineer_robotic_arm.cpp
         dev/interface/can_interface.cpp
         dev/interface/robotic_arm_interface.cpp
         dev/scheduler/robotic_arm_skd.cpp)
@@ -395,18 +395,18 @@ add_executable(ut_referee_interface
         dev/common/CRC8.cpp
         dev/common/CRC16.cpp
         dev/interface/referee_interface.cpp
-        dev/debug/Unit_Tests/ut_refereeIF.cpp)
+        dev/debug/unit_tests/ut_refereeIF.cpp)
 
 add_executable(ut_sd_card
         dev/interface/sd_card_interface.cpp
         dev/common/CRC16.cpp
-        dev/debug/Unit_Tests/ut_sd_card.cpp)
+        dev/debug/unit_tests/ut_sd_card.cpp)
 
 add_executable(ut_super_capacitor
         dev/interface/super_capacitor_port.cpp
         dev/interface/can_interface.cpp
         dev/debug/shell/shell.cpp
-        dev/debug/Unit_Tests/ut_super_capacitance.cpp
+        dev/debug/unit_tests/ut_super_capacitance.cpp
         dev/scheduler/buzzer_scheduler.cpp
         dev/interface/led.cpp
         dev/interface/referee_interface.cpp
@@ -414,11 +414,11 @@ add_executable(ut_super_capacitor
         dev/common/CRC16.cpp)
 
 add_executable(ut_adc
-        dev/debug/Unit_Tests/ut_adc.cpp
+        dev/debug/unit_tests/ut_adc.cpp
         dev/interface/dms_interface.cpp)
 
 add_executable(ut_sensors_sound
-        dev/debug/Unit_Tests/ut_sensors_sound.cpp
+        dev/debug/unit_tests/ut_sensors_sound.cpp
         )
 
 # --------------------------------------- Param Adjusts ---------------------------------------
@@ -549,7 +549,7 @@ add_executable(ca_ahrs_infantry
         ${AHRS_SRC}
         dev/common/CRC16.cpp
         dev/interface/sd_card_interface.cpp
-        dev/debug/Unit_Tests/ca_ahrs.cpp)
+        dev/debug/unit_tests/ca_ahrs.cpp)
 target_link_libraries(ca_ahrs_infantry ${AHRS_LIB})
 target_include_directories(ca_ahrs_infantry PRIVATE dev/vehicle/infantry)
 target_compile_definitions(ca_ahrs_infantry PRIVATE INFANTRY)
@@ -558,7 +558,7 @@ add_executable(ca_ahrs_hero
         ${AHRS_SRC}
         dev/common/CRC16.cpp
         dev/interface/sd_card_interface.cpp
-        dev/debug/Unit_Tests/ca_ahrs.cpp)
+        dev/debug/unit_tests/ca_ahrs.cpp)
 target_link_libraries(ca_ahrs_hero ${AHRS_LIB})
 target_include_directories(ca_ahrs_hero PRIVATE dev/vehicle/hero)
 target_compile_definitions(ca_ahrs_hero PRIVATE HERO)
