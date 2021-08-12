@@ -216,7 +216,7 @@ void Shell::FeedbackThread::main() {
     setName("Feedback");
     while (!shouldTerminate()) {
         for (auto &f : feedbacks) {
-            if (f.callback == nullptr) break;
+            if (f.callback == nullptr) continue;
             f.callback(f.callbackArg);
         }
         sleep(TIME_MS2I(FEEDBACK_INTERVAL));
