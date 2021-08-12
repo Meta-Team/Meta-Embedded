@@ -1,4 +1,4 @@
 [submodule "Meta-Remote"]
-	path = Meta-Remote
+	path = remote
 	url = git@github.com:Meta-Team/Meta-Remote.git
 	branch = master
