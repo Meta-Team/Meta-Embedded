@@ -3,7 +3,7 @@ file(GLOB MATRIX_FP32_FILES "dsp/src/MatrixFunctions/*f32.c")
 file(GLOB FAST_MATH_FP32_FILES "dsp/src/FastMathFunctions/*f32.c")
 add_library(CMSIS_DSP OBJECT ${COMMON_FILES} ${MATRIX_FP32_FILES} ${FAST_MATH_FP32_FILES})
 target_include_directories(CMSIS_DSP PUBLIC
-        ${CMAKE_CURRENT_SOURCE_DIR}/dsp/include)
+        dsp/include)
 target_compile_definitions(CMSIS_DSP PUBLIC
         ARM_MATH_CM4
         ARM_MATH_MATRIX_CHECK

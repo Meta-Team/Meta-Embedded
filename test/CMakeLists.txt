@@ -1,5 +1,3 @@
-enable_testing()
-
 set(TEST_FRAMEWORK gtest_main)
 include(GoogleTest)
 

@@ -11,6 +11,7 @@ else ()
 endif()
 
 project(Meta_Embedded ASM C CXX)
+enable_testing()  # should be in the top-level CMakeLists.txt
 
 if (DEFINED BOARD_NAME)
     include(config/compile_options.cmake)
@@ -27,6 +28,7 @@ endif ()
 add_subdirectory(lib)
 add_subdirectory(test)
 
+if (DEFINED BOARD_NAME)
 include_directories(  # common include directories
         dev
         dev/common
@@ -546,6 +548,7 @@ add_executable(ca_ahrs_hero
 target_link_libraries(ca_ahrs_hero ${AHRS_LIB})
 target_include_directories(ca_ahrs_hero PRIVATE dev/vehicle/hero)
 target_compile_definitions(ca_ahrs_hero PRIVATE HERO)
+endif()
 
 # ================================= Post Configurations for all targets =================================
 
