@@ -1,34 +1,32 @@
 cmake_minimum_required(VERSION 3.10)
 
-set(CMAKE_CXX_STANDARD 11)
-
-set(VERBOSE OFF)
-set(CMAKE_VERBOSE_MAKEFILE OFF)  # Enable this if you want to see verbose log
+set(VERBOSE OFF)                 # enable to see verbose log when running cmake
+set(CMAKE_VERBOSE_MAKEFILE OFF)  # enable to see verbose log when running make (build)
 
 if (NOT DEFINED BOARD_NAME)
     message("CMake is configured for development environment")
 else ()
-    message("CMake is configured for dev board \"${BOARD_NAME}\".")
+    message("CMake is configured for target device \"${BOARD_NAME}\".")
     include(config/toolchain.cmake)
 endif()
 
 project(Meta_Embedded ASM C CXX)
+set(CMAKE_CXX_STANDARD 11)
+
 enable_testing()  # should be in the top-level CMakeLists.txt
 
 if (DEFINED BOARD_NAME)
     include(config/compile_options.cmake)
-    include(os/ch.cmake)  # add files and directories from ChibiOS
-    # Reuse ChibiOS object files (without linking) to avoid repeat compile
-    # They are included to every target at post configuration below
-    add_library(ChibiOS OBJECT ${CHIBIOS_XASM_SRC} ${CHIBIOS_C_SRC} ${CHIBIOS_CPP_SRC} dev/board/${BOARD_NAME}/board.c)
-    include_directories(dev/board/${BOARD_NAME})  # include board configs
-
+    add_subdirectory(os)
 endif ()
-# =========== Common Files and Targets Configurations ===========
-
 
 add_subdirectory(lib)
 add_subdirectory(test)
+
+# =========== TODO: Legacy Code for Target Device ===========
+
+
+
 
 if (DEFINED BOARD_NAME)
 include_directories(  # common include directories
@@ -566,10 +564,10 @@ if (DEFINED BOARD_NAME)
     foreach (target ${TARGET_LIST})
         if (NOT ${target} STREQUAL "ChibiOS" AND NOT ${target} STREQUAL "CMSIS_DSP")  # OBJECT library doesn't have PRE_BUILD or POST_BUILD
             # Add ChibiOS files and common sources
-            target_sources(${target} PRIVATE $<TARGET_OBJECTS:ChibiOS> ${BASE_SRC})
+            target_sources(${target} PRIVATE ${BASE_SRC})
 
             # Link CMSIS DSP
-            target_link_libraries(${target} CMSIS_DSP)
+            target_link_libraries(${target} CMSIS_DSP ChibiOS)
 
             # Echo target dev board before link
             add_custom_command(TARGET ${target} PRE_BUILD
