@@ -11,7 +11,7 @@
  */
 
 #include "gimbal_scheduler.h"
-#include "math.h"
+#include "cmath"
 
 Matrix33 GimbalSKD::ahrs_angle_rotation;
 Matrix33 GimbalSKD::ahrs_gyro_rotation;
@@ -121,8 +121,8 @@ void GimbalSKD::SKDThread::main() {
                 // TODO: document calculations here
                 float angle[2] = {ahrs_angle.x, ahrs_angle.y};
                 float velocity[2] = {
-                        ahrs_gyro.x * cosf(ahrs_angle.y / 180.0f * M_PI) +
-                        ahrs_gyro.z * sinf(ahrs_angle.y / 180.0f * M_PI),
+                        ahrs_gyro.x * cosf(ahrs_angle.y / 180.0f * PI) +
+                        ahrs_gyro.z * sinf(ahrs_angle.y / 180.0f * PI),
                         ahrs_gyro.y};
 
 
