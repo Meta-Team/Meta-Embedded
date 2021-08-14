@@ -1,7 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
 
-project(Meta_Embedded ASM C CXX)
-
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_VERBOSE_MAKEFILE OFF)  # Enable this if you want to see verbose log
 
@@ -10,6 +8,11 @@ if (NOT DEFINED BOARD_NAME)
 else ()
     message("CMake is configured for dev board \"${BOARD_NAME}\".")
     include(config/toolchain.cmake)
+endif()
+
+project(Meta_Embedded ASM C CXX)
+
+if (DEFINED BOARD_NAME)
     include(config/compile_options.cmake)
     include(os/ch.cmake)  # add files and directories from ChibiOS
     # Reuse ChibiOS object files (without linking) to avoid repeat compile
@@ -18,11 +21,11 @@ else ()
     include_directories(dev/board/${BOARD_NAME})  # include board configs
 
 endif ()
-
 # =========== Common Files and Targets Configurations ===========
 
 
 add_subdirectory(lib)
+add_subdirectory(test)
 
 include_directories(  # common include directories
         dev

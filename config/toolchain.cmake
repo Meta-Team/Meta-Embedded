@@ -8,6 +8,8 @@ set(CMAKE_SYSTEM_PROCESSOR arm)
 
 # ---------- Toolchain Configurations ----------
 
+set(CMAKE_CROSSCOMPILING TRUE)
+
 # The following lines set the toolchain. Setting toolchain in CLion preference is also valid.
 
 set(TOOLCHAIN_PREFIX arm-none-eabi-)
