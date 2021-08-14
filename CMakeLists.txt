@@ -7,7 +7,7 @@ if (NOT DEFINED BOARD_NAME)
     message("CMake is configured for development environment")
 else ()
     message("CMake is configured for target device \"${BOARD_NAME}\".")
-    include(config/toolchain.cmake)
+    include(config/cross_compile_toolchain.cmake)
 endif()
 
 project(Meta_Embedded ASM C CXX)
@@ -16,7 +16,7 @@ set(CMAKE_CXX_STANDARD 11)
 enable_testing()  # should be in the top-level CMakeLists.txt
 
 if (DEFINED BOARD_NAME)
-    include(config/compile_options.cmake)
+    include(config/cross_compile_options.cmake)
     add_subdirectory(os)
 endif ()
 
