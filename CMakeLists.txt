@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.10)
 
 set(CMAKE_CXX_STANDARD 11)
+
+set(VERBOSE OFF)
 set(CMAKE_VERBOSE_MAKEFILE OFF)  # Enable this if you want to see verbose log
 
 if (NOT DEFINED BOARD_NAME)
