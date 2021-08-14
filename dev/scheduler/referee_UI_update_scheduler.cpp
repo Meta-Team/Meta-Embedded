@@ -101,7 +101,7 @@ bool RefereeUISKD::add_rect(const char *name, uint32_t layer, color_t color, ui_
 
     chMtxLock(&buffer_mutex);
     {
-        Referee::graphic_data_struct_t rect = shapes[shape_count];
+        Referee::graphic_data_struct_t &rect = shapes[shape_count];
         rect.graphic_name[0] = name[0];
         rect.graphic_name[1] = name[1];
         rect.graphic_name[2] = name[2];
@@ -131,7 +131,7 @@ bool RefereeUISKD::add_line(const char *name, uint32_t layer, color_t color, ui_
 
     chMtxLock(&buffer_mutex);
     {
-        Referee::graphic_data_struct_t line = shapes[shape_count];
+        Referee::graphic_data_struct_t &line = shapes[shape_count];
         line.operate_type = ADD_OP;
         line.graphic_name[0] = name[0];
         line.graphic_name[1] = name[1];
@@ -161,7 +161,7 @@ bool RefereeUISKD::add_int(const char *name, uint32_t layer, color_t color, ui_p
 
     chMtxLock(&buffer_mutex);
     {
-        Referee::graphic_data_struct_t label_int = shapes[shape_count];
+        Referee::graphic_data_struct_t &label_int = shapes[shape_count];
         label_int.operate_type = ADD_OP;
         label_int.graphic_name[0] = name[0];
         label_int.graphic_name[1] = name[1];
