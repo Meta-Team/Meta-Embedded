@@ -142,7 +142,7 @@ void Vision::CalculationThread::main() {
                     while (true) {
                         // Minus using time_msecs_t so that we don't need to care about wrap around
                         auto shoot_time_delta = (int32_t) (shoot_time - SYSTIME);  // compare by casting to signed
-                        if (time_delta <= 0) {
+                        if (shoot_time_delta <= 0) {
                             expected_shoot_after_periods++;
                             shoot_time += command.period;
                         } else {
