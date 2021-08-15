@@ -5,9 +5,11 @@ set(CMAKE_VERBOSE_MAKEFILE OFF)  # enable to see verbose log when running make (
 
 if (NOT DEFINED BOARD_NAME)
     message("CMake is configured for development environment")
+    include_directories(config/board/rm_board_2018_a)  # default
 else ()
     message("CMake is configured for target device \"${BOARD_NAME}\".")
-    include(config/cross_compile_toolchain.cmake)
+    include(config/cross_compile_toolchain.cmake)  # should be before project()
+    include_directories(config/board/${BOARD_NAME})
 endif()
 
 project(Meta_Embedded ASM C CXX)
@@ -16,12 +18,13 @@ set(CMAKE_CXX_STANDARD 11)
 enable_testing()  # should be in the top-level CMakeLists.txt
 
 if (DEFINED BOARD_NAME)
-    include(config/cross_compile_options.cmake)
+    include(config/cross_compile_options.cmake)  # should be after project()
     add_subdirectory(os)
 endif ()
 
 add_subdirectory(lib)
 add_subdirectory(test)
+include_directories(config)
 
 # =========== TODO: Legacy Code for Target Device ===========
 
@@ -50,6 +53,10 @@ set(BASE_SRC  # common cpp sources, which are included to every target at post c
         dev/interface/led.cpp
         dev/interface/buzzer_interface.cpp
         dev/scheduler/buzzer_scheduler.cpp)
+
+if (DEFINED BOARD_NAME)
+    set(BASE_SRC ${BASE_SRC} config/board/${BOARD_NAME}/board.c)
+endif ()
 
 set(VEHICLE_COMMON_SRC
         dev/module/pid_controller.hpp
