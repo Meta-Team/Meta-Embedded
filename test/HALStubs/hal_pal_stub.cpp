@@ -2,7 +2,7 @@
 // Created by liuzikai on 8/15/21.
 //
 
-#include <gtest/gtest.h>
+#include <stdexcept>
 #include "hal_pal_stub.h"
 
 uint32_t gpioImage[GPIO_COUNT] = {0};

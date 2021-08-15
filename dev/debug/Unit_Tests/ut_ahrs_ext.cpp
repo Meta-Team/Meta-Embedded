@@ -5,7 +5,7 @@
 #include "ch.hpp"
 #include "hal.h"
 
-#include "led.h"
+#include "LED.h"
 #include "shell.h"
 
 #include "ahrs_ext.h"
@@ -71,7 +71,7 @@ int main(void) {
     Shell::start(NORMALPRIO - 10);
     Shell::addCommands(ahrsShellCommands);
     BuzzerSKD::init(LOWPRIO);
-    LED::all_off();
+    LED::allOffX();
 
     can1.start(HIGHPRIO);
     can2.start(HIGHPRIO - 1);

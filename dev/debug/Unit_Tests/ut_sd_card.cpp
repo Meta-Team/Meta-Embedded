@@ -9,7 +9,7 @@
 #include "ch.hpp"
 #include "hal.h"
 
-#include "led.h"
+#include "LED.h"
 #include "shell.h"
 
 #include "sd_card_interface.h"

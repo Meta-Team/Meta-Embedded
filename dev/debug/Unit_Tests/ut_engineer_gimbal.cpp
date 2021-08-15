@@ -4,7 +4,7 @@
 
 #include "ch.hpp"
 #include "hal.h"
-#include "led.h"
+#include "LED.h"
 #include "shell.h"
 #include "buzzer_scheduler.h"
 #include "engineer_gimbal.h"
@@ -60,8 +60,8 @@ int main(void) {
     halInit();
     chibios_rt::System::init();
 
-    LED::green_off();
-    LED::red_off();
+    LED::greenOffX();
+    LED::redOffX();
 
     /** Debug Setup **/
     Shell::start(HIGHPRIO);
@@ -76,7 +76,7 @@ int main(void) {
     /*** Parameters Set up***/
     EngineerGimbalIF::init();
 
-    LED::green_on();
+    LED::greenOnX();
     /** Start Logic Control Thread **/
     chThdSleepMilliseconds(500);
     engineerGimbalThread.start(HIGHPRIO - 1);

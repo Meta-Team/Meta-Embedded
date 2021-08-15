@@ -53,14 +53,14 @@ void UserE::UserThread::main() {
         /// Sensors and Switches Test
         if (Remote::rc.s1 == Remote::S_UP && Remote::rc.s2 == Remote::S_DOWN) {
             if (palReadPad(FF_SWITCH_PAD, FFL_SWITCH_PIN_ID) == SWITCH_TOUCH_PAL_STATUS) {
-                LED::red_toggle();
+                LED::redToggleX();
                 LOG("LEFT SWITCH ON!");
             }
             if (palReadPad(FF_SWITCH_PAD, FFR_SWITCH_PIN_ID) == SWITCH_TOUCH_PAL_STATUS) {
-                LED::red_toggle();
+                LED::redToggleX();
                 LOG("RIGHT  SWITCH ON!");
             }
-            else { LED::red_off(); }
+            else { LED::redOffX(); }
         }
 
 

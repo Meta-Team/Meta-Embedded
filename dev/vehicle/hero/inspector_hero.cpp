@@ -215,15 +215,15 @@ void InspectorH::InspectorThread::main() {
         }
 
         remote_failure_ = (not WITHIN_RECENT_TIME(Remote::last_update_time, 30));
-        if (remote_failure_) LED::led_off(DEV_BOARD_LED_REMOTE);
-        else LED::led_on(DEV_BOARD_LED_REMOTE);
+        if (remote_failure_) LED::numberOffX(DEV_BOARD_LED_REMOTE);
+        else LED::numberOnX(DEV_BOARD_LED_REMOTE);
         gimbal_failure_ = check_gimbal_failure();
-        if (gimbal_failure_) LED::led_off(DEV_BOARD_LED_GIMBAL);
-        else LED::led_on(DEV_BOARD_LED_GIMBAL);
+        if (gimbal_failure_) LED::numberOffX(DEV_BOARD_LED_GIMBAL);
+        else LED::numberOnX(DEV_BOARD_LED_GIMBAL);
 
         chassis_failure_ = check_chassis_failure();
-        if (chassis_failure_) LED::led_off(DEV_BOARD_LED_CHASSIS);
-        else LED::led_on(DEV_BOARD_LED_CHASSIS);
+        if (chassis_failure_) LED::numberOffX(DEV_BOARD_LED_CHASSIS);
+        else LED::numberOnX(DEV_BOARD_LED_CHASSIS);
 
         if (remote_failure_ || gimbal_failure_ || chassis_failure_) {
             if (!BuzzerSKD::alerting()) BuzzerSKD::alert_on();

@@ -5,7 +5,7 @@
 #include "ch.hpp"
 #include "hal.h"
 
-#include "led.h"
+#include "LED.h"
 #include "debug/shell/shell.h"
 #include "can_interface.h"
 #include "elevator_interface.h"
@@ -85,7 +85,7 @@ protected:
 int main(void) {
     halInit();
     System::init();
-    LED::green_off();
+    LED::greenOffX();
 
     // Start ChibiOS shell at high priority,
     // so even if a thread stucks, we still have access to shell.

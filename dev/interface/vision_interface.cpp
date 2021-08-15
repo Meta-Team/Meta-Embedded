@@ -6,7 +6,7 @@
 #include "CRC16.h"
 #include "CRC8.h"
 #include "shell.h"
-#include "led.h"
+#include "LED.h"
 #include "gimbal_scheduler.h"
 
 EVENTSOURCE_DECL(VisionIF::command_received_event);
@@ -115,7 +115,7 @@ void VisionIF::uart_rx_callback(UARTDriver *uartp) {
                             handle_vision_command(pak.command);
 
                             // Indicate receiving
-                            LED::green_toggle();
+                            LED::greenToggleX();
                             break;
                         }
                     }
@@ -142,7 +142,7 @@ void VisionIF::uart_rx_callback(UARTDriver *uartp) {
 void VisionIF::uart_err_callback(UARTDriver *uartp, uartflags_t e) {
     (void) uartp;
     (void) e;
-    LED::red_toggle();
+    LED::redToggleX();
 }
 
 void VisionIF::uart_char_callback(UARTDriver *uartp, uint16_t c) {

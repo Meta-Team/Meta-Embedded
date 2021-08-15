@@ -317,7 +317,7 @@ Shell指令集（所有通过窗口发送的指令名和相对应的函数名都
 
         halInit();
         System::init();
-        LED::all_off();
+        LED::allOffX();
         Shell::start(HIGHPRIO);
         Shell::addCommands(gimbalCotrollerCommands);
 

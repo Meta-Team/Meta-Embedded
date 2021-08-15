@@ -7,7 +7,7 @@
  */
 #include "ch.hpp"
 #include "hal.h"
-#include "led.h"
+#include "LED.h"
 #include "serial_shell.h"
 #include "can_interface.h"
 #include "common_macro.h"
@@ -179,7 +179,7 @@ int main(void) {
 
     halInit();
     System::init();
-    LED::all_off();
+    LED::allOffX();
     Shell::start(HIGHPRIO);
     Shell::addCommands(elevatorCotrollerCommands);
 

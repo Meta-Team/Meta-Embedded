@@ -11,7 +11,7 @@
 #include "ch.hpp"
 #include "hal.h"
 
-#include "led.h"
+#include "LED.h"
 #include "shell.h"
 
 #include "can_interface.h"
@@ -345,7 +345,7 @@ int main(void) {
 
     halInit();
     System::init();
-    LED::all_off();
+    LED::allOffX();
     Shell::start(HIGHPRIO);
     Shell::addCommands(shootCotrollerCommands);
 

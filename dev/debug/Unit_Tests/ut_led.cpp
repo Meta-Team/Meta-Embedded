@@ -6,7 +6,7 @@
 #include "hal.h"
 
 #include "button_monitor.h"
-#include "led.h"
+#include "LED.h"
 #include "debug/shell/shell.h"
 
 using namespace chibios_rt;
@@ -38,21 +38,21 @@ private:
         while (!shouldTerminate()) {
             sleep(TIME_MS2I(100));
             if (button->pressed) {
-                LED::red_on();
+                LED::redOnX();
                 sleep(TIME_MS2I((1 + button->counter % 3) * 100));
-                LED::red_off();
+                LED::redOffX();
                 sleep(TIME_MS2I((1 + button->counter % 3) * 100));
             } else {
-                LED::green_on();
+                LED::greenOnX();
                 sleep(TIME_MS2I((1 + button->counter % 3) * 100));
-                LED::green_off();
+                LED::greenOffX();
                 sleep(TIME_MS2I((1 + button->counter % 3) * 100));
             }
 #if defined(BOARD_RM_2018_A)
-            LED::led_off(led_i);
+            LED::numberOffX(led_i);
             led_i++;
             if (led_i > 8) led_i = 1;
-            LED::led_on(led_i);
+            LED::numberOnX(led_i);
 #endif
         }
     }

@@ -170,7 +170,7 @@ void ShootLG::BulletCounterThread::main() {
         eventflags_t flags = chEvtGetAndClearFlags(&data_received_listener);
 
         // Toggle Referee LED if any data is received
-        LED::led_toggle(DEV_BOARD_LED_REFEREE);
+        LED::numberToggleX(DEV_BOARD_LED_REFEREE);
 
         // Add bullets
         if (flags == Referee::SUPPLY_PROJECTILE_ACTION_CMD_ID &&

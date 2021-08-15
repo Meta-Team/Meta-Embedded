@@ -5,7 +5,7 @@
 #include "ch.hpp"
 #include "hal.h"
 
-#include "led.h"
+#include "LED.h"
 #include "debug/shell/shell.h"
 #include "buzzer_scheduler.h"
 
@@ -76,7 +76,7 @@ ShellCommand buzzerShellCommands[] = {
 int main(void) {
     halInit();
     System::init();
-    LED::led_on(1);
+    LED::numberOnX(1);
     // Start ChibiOS shell at high priority,
     // so even if a thread stucks, we still have access to shell.
 

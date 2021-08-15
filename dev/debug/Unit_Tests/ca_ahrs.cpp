@@ -5,7 +5,7 @@
 #include "ch.hpp"
 #include "hal.h"
 
-#include "led.h"
+#include "LED.h"
 #include "buzzer_scheduler.h"
 #include "shell.h"
 
@@ -89,7 +89,7 @@ static const Matrix33 ON_BOARD_AHRS_MATRIX_ = ON_BOARD_AHRS_MATRIX;
 int main(void) {
     halInit();
     chibios_rt::System::init();
-    LED::all_off();
+    LED::allOffX();
     BuzzerSKD::init(LOWPRIO-1);
 
     // Start ChibiOS shell at high priority, so even if a thread stucks, we still have access to shell.

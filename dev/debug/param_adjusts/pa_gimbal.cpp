@@ -9,7 +9,7 @@
 #include "ch.hpp"
 #include "hal.h"
 
-#include "led.h"
+#include "LED.h"
 #include "debug/shell/shell.h"
 
 #include "can_interface.h"
@@ -211,13 +211,13 @@ private:
             if(Remote::rc.s1==Remote::S_UP) {
                 ShootSKD::set_mag_cover(0.0f, GimbalIF::MG995_RIGHT);
                 ShootSKD::set_mag_cover(180.0f, GimbalIF::MG995_LEFT);
-                LED::led_on(5);
-                LED::green_off();
+                LED::numberOnX(5);
+                LED::greenOffX();
             } else if(Remote::rc.s1==Remote::S_DOWN){
                 ShootSKD::set_mag_cover(180.0f, GimbalIF::MG995_RIGHT);
                 ShootSKD::set_mag_cover(0.0f, GimbalIF::MG995_LEFT);
-                LED::led_off(5);
-                LED::green_on();
+                LED::numberOffX(5);
+                LED::greenOnX();
             }
             if (enable_yaw_feedback) {
                 Shell::printf("!gy,%u,%.2f,%.2f,%.2f,%.2f,%d,%d" SHELL_NEWLINE_STR,
@@ -448,14 +448,14 @@ int main(void) {
 
     halInit();
     System::init();
-    LED::all_off();
+    LED::allOffX();
     Shell::start(HIGHPRIO-5);
     Shell::addCommands(gimbalCotrollerCommands);
     chThdSleepMilliseconds(400);
 //    can1.start(HIGHPRIO - 6, HIGHPRIO - 7);
 //    can2.start(HIGHPRIO - 8, HIGHPRIO - 9);
 //
-    LED::led_on(1);
+    LED::numberOnX(1);
     BuzzerSKD::init(LOWPRIO +1);
 //
 //    /// Setup On-Board AHRS
@@ -470,15 +470,15 @@ int main(void) {
 //    ahrs.load_calibration_data({-0.644649505f, -0.619945943f, 0.173617705f});
 //    ahrs.start(ON_BOARD_AHRS_MATRIX_, THREAD_MPU_PRIO, THREAD_IST_PRIO, THREAD_AHRS_PRIO);
     Remote::start();
-    LED::led_on(2);
+    LED::numberOnX(2);
     GimbalIF::motor_can_config_t canConfig[6] = GIMBAL_MOTOR_CONFIG;
     GimbalIF::init(&can1, &can2,
                    canConfig,
                    GIMBAL_YAW_FRONT_ANGLE_RAW, GIMBAL_PITCH_FRONT_ANGLE_RAW);
-    LED::led_on(3);
+    LED::numberOnX(3);
     gimbalFeedbackThread.start(NORMALPRIO - 1);
     gimbalThread.start(NORMALPRIO);
-    LED::led_on(4);
+    LED::numberOnX(4);
     BuzzerSKD::play_sound(BuzzerSKD::sound_kong_fu_FC);
 
     chThdSleepMilliseconds(1000);

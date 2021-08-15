@@ -7,7 +7,7 @@
 
 #include <cstdint>
 
-enum GPIO {
+enum GPIO : unsigned {
     GPIOA = 0,
     GPIOB,
     GPIOC,

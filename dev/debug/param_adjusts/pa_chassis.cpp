@@ -5,7 +5,7 @@
 #include "ch.hpp"
 #include "hal.h"
 
-#include "led.h"
+#include "LED.h"
 #include "debug/shell/shell.h"
 #include "chassis_interface.h"
 #include "pid_controller.hpp"
@@ -155,9 +155,9 @@ private:
             // An LED that indicate the system status. (flash when the program is not mad)
             if(SYSTIME > timeTrig) {
                 if(ison) {
-                    LED::led_off(2);
+                    LED::numberOffX(2);
                 } else {
-                    LED::led_on(2);
+                    LED::numberOnX(2);
                 }
                 timeTrig+=1000;
                 ison = !ison;
@@ -200,7 +200,7 @@ int main(void) {
     ChassisIF::motor_can_config_t CHASSIS_MOTOR_CONFIG_[ChassisIF::MOTOR_COUNT] = CHASSIS_MOTOR_CONFIG;
     ChassisIF::init(&can1, &can2, CHASSIS_MOTOR_CONFIG_);
 
-    LED::led_on(1);
+    LED::numberOnX(1);
     chassisPidThread.start(NORMALPRIO);
 
     // See chconf.h for what this #define means.

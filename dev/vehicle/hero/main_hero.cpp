@@ -6,7 +6,7 @@
 #include "ch.hpp"
 #include "hal.h"
 
-#include "led.h"
+#include "LED.h"
 #include "buzzer_scheduler.h"
 #include "common_macro.h"
 
@@ -81,7 +81,7 @@ int main() {
 
     /// Preparation of Period 1
     InspectorH::init(&can1, &can2, &ahrs);
-    LED::all_off();
+    LED::allOffX();
 
     /// Setup Shell
     Shell::start(THREAD_SHELL_PRIO);
@@ -92,17 +92,17 @@ int main() {
     /// Setup SDCard
     if (SDCard::init()) {
         SDCard::read_all();
-        LED::led_on(DEV_BOARD_LED_SD_CARD);  // LED 8 on if SD card inserted
+        LED::numberOnX(DEV_BOARD_LED_SD_CARD);  // LED 8 on if SD card inserted
     }
 
-    LED::led_on(DEV_BOARD_LED_SYSTEM_INIT);  // LED 1 on now
+    LED::numberOnX(DEV_BOARD_LED_SYSTEM_INIT);  // LED 1 on now
 
     /// Setup CAN1 & CAN2
     can1.start(THREAD_CAN1_RX_PRIO, THREAD_CAN1_TX_PRIO);
     can2.start(THREAD_CAN2_RX_PRIO, THREAD_CAN2_TX_PRIO);
     chThdSleepMilliseconds(5);
     InspectorH::startup_check_can();  // check no persistent CAN Error. Block for 100 ms
-    LED::led_on(DEV_BOARD_LED_CAN);  // LED 2 on now
+    LED::numberOnX(DEV_BOARD_LED_CAN);  // LED 2 on now
 
     /// Setup SuperCapacitor Port
     SuperCapacitor::init(&can2, THREAD_SUPERCAP_INIT_PRIO);
@@ -113,7 +113,7 @@ int main() {
     RefereeUILG::reset();
 
     /// Complete Period 1
-    LED::green_on();  // LED Green on now
+    LED::greenOnX();  // LED Green on now
 
     /// Setup On-Board AHRS
     Vector3D ahrs_bias;
@@ -132,26 +132,26 @@ int main() {
     InspectorH::startup_check_ist();  // check IST8310 has signal. Block for 20 ms
     Shell::addCommands(ahrs.shellCommands);
     Shell::addFeedbackCallback(AHRSOnBoard::cmdFeedback, &ahrs);
-    LED::led_on(DEV_BOARD_LED_AHRS);  // LED 3 on now
+    LED::numberOnX(DEV_BOARD_LED_AHRS);  // LED 3 on now
 
     /// Setup Remote
     Remote::start();
     InspectorH::startup_check_remote();  // check Remote has signal. Block for 50 ms
-    LED::led_on(DEV_BOARD_LED_REMOTE);  // LED 4 on now
+    LED::numberOnX(DEV_BOARD_LED_REMOTE);  // LED 4 on now
 
 
     /// Setup GimbalIF (for Gimbal and Shoot)
     GimbalIF::init(&can1, &can2, GIMBAL_MOTOR_CONFIG_, GIMBAL_YAW_FRONT_ANGLE_RAW, GIMBAL_PITCH_FRONT_ANGLE_RAW, GIMBAL_SUB_PITCH_FRONT_ANGLE_RAW, MotorIFBase::can_channel_1);
     chThdSleepMilliseconds(2000);  // wait for C610 to be online and friction wheel to reset
     InspectorH::startup_check_gimbal_feedback(); // check gimbal motors has continuous feedback. Block for 20 ms
-    LED::led_on(DEV_BOARD_LED_GIMBAL);  // LED 5 on now
+    LED::numberOnX(DEV_BOARD_LED_GIMBAL);  // LED 5 on now
 
 
     /// Setup ChassisIF
     ChassisIF::init(&can1, &can2, CHASSIS_MOTOR_CONFIG_);
     chThdSleepMilliseconds(10);
     InspectorH::startup_check_chassis_feedback();  // check chassis motors has continuous feedback. Block for 20 ms
-    LED::led_on(DEV_BOARD_LED_CHASSIS);  // LED 6 on now
+    LED::numberOnX(DEV_BOARD_LED_CHASSIS);  // LED 6 on now
 
 
     /// Setup Red Spot Laser

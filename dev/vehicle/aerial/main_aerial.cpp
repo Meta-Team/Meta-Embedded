@@ -6,7 +6,7 @@
 #include "ch.hpp"
 #include "hal.h"
 
-#include "led.h"
+#include "LED.h"
 #include "buzzer_scheduler.h"
 #include "common_macro.h"
 
@@ -58,7 +58,7 @@ int main() {
 
     /// Preparation of Period 1
     InspectorA::init(&can1, &can2, &ahrsExt);
-    LED::all_off();
+    LED::allOffX();
 
     /// Setup Shell
     Shell::start(THREAD_SHELL_PRIO);
@@ -70,17 +70,17 @@ int main() {
     /// Setup SDCard
     if (SDCard::init()) {
         SDCard::read_all();
-        LED::led_on(DEV_BOARD_LED_SD_CARD);  // LED 8 on if SD card inserted
+        LED::numberOnX(DEV_BOARD_LED_SD_CARD);  // LED 8 on if SD card inserted
     }
 
-    LED::led_on(DEV_BOARD_LED_SYSTEM_INIT);  // LED 1 on now
+    LED::numberOnX(DEV_BOARD_LED_SYSTEM_INIT);  // LED 1 on now
 
     /// Setup CAN1
     can1.start(THREAD_CAN1_PRIO);
     can2.start(THREAD_CAN2_PRIO);
     chThdSleepMilliseconds(5);
     InspectorA::startup_check_can();  // check no persistent CAN Error. Block for 100 ms
-    LED::led_on(DEV_BOARD_LED_CAN);  // LED 2 on now
+    LED::numberOnX(DEV_BOARD_LED_CAN);  // LED 2 on now
 
     /// Setup AHRS_EXT
     Vector3D ahrs_bias;
@@ -95,12 +95,12 @@ int main() {
     chThdSleepMilliseconds(5);
     InspectorA::startup_check_mpu();  // check MPU6500 has signal. Block for 20 ms
     InspectorA::startup_check_ist();  // check IST8310 has signal. Block for 20 ms
-    LED::led_on(DEV_BOARD_LED_AHRS);  // LED 3 on now
+    LED::numberOnX(DEV_BOARD_LED_AHRS);  // LED 3 on now
 
     /// Setup Remote
     Remote::start();
     InspectorA::startup_check_remote();  // check Remote has signal. Block for 50 ms
-    LED::led_on(DEV_BOARD_LED_REMOTE);  // LED 4 on now
+    LED::numberOnX(DEV_BOARD_LED_REMOTE);  // LED 4 on now
 
 
     /// Setup GimbalIF (for Gimbal and Shoot)
@@ -109,7 +109,7 @@ int main() {
                    GIMBAL_YAW_CAN_CHANNEL, GIMBAL_PITCH_CAN_CHANNEL, GIMBAL_BULLET_CAN_CHANNEL, GIMBAL_PLATE_CAN_CHANNEL);
     chThdSleepMilliseconds(1000); // wait for friction wheel to reset
     InspectorA::startup_check_gimbal_feedback(); // check gimbal motors has continuous feedback. Block for 20 ms
-    LED::led_on(DEV_BOARD_LED_GIMBAL);  // LED 5 on now
+    LED::numberOnX(DEV_BOARD_LED_GIMBAL);  // LED 5 on now
 
 
     /// Setup Red Spot Laser
@@ -122,7 +122,7 @@ int main() {
     Vision::init();
 
     /// Complete Period 1
-    LED::green_on();  // LED Green on now
+    LED::greenOnX();  // LED Green on now
 
 
     /*** ------------ Period 2. Calibration and Start Logic Control Thread ----------- ***/

@@ -5,7 +5,7 @@
 
 #include "ch.hpp"
 #include "hal.h"
-#include "led.h"
+#include "LED.h"
 #include "serial_shell.h"
 #include "can_interface.h"
 #include "common_macro.h"
@@ -169,8 +169,8 @@ int main(void) {
     Shell::start(HIGHPRIO);
     Shell::addCommands(roboticArmCommands);
 
-    LED::red_off();
-    LED::green_off();
+    LED::redOffX();
+    LED::greenOffX();
 
     can1.start(HIGHPRIO - 1);
     can2.start(HIGHPRIO - 2);
@@ -179,7 +179,7 @@ int main(void) {
 
     while (palReadPad(STARTUP_BUTTON_PAD, STARTUP_BUTTON_PIN_ID) != STARTUP_BUTTON_PRESS_PAL_STATUS) {
         // Wait for the button to be pressed
-        LED::green_toggle();
+        LED::greenToggleX();
         chThdSleepMilliseconds(300);
     }
 

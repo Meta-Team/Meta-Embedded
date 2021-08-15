@@ -5,7 +5,7 @@
 #include "ch.hpp"
 #include "hal.h"
 
-#include "led.h"
+#include "LED.h"
 #include "debug/shell/shell.h"
 #include "can_interface.h"
 #include "pid_controller.hpp"
@@ -68,9 +68,9 @@ private:
         while (!shouldTerminate()) {
             target_speed = Remote::rc.ch3 * max_speed;
             if (ABS_IN_RANGE(Remote::rc.ch3, 0.2)) {
-                LED::green_on();
+                LED::greenOnX();
             } else {
-                LED::green_off();
+                LED::greenOffX();
             }
             if(Remote::rc.s1 == Remote::S_MIDDLE) {
                 *FW_L_CURRENT = 0;

@@ -5,7 +5,7 @@
 
 #include "ch.hpp"
 #include "hal.h"
-#include "led.h"
+#include "LED.h"
 #include "debug/shell/shell.h"
 #include "common_macro.h"
 #include "buzzer_scheduler.h"
@@ -41,8 +41,8 @@ int main(void) {
     Shell::addCommands(sensorsCommands);
 
     BuzzerSKD::init(NORMALPRIO-1);
-    LED::red_off();
-    LED::green_off();
+    LED::redOffX();
+    LED::greenOffX();
     palClearPad(GPIOH, GPIOH_POWER4_CTRL);
 
     feedbackThread.start(NORMALPRIO);

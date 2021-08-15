@@ -5,7 +5,7 @@
 #include "ch.hpp"
 #include "hal.h"
 
-#include "led.h"
+#include "LED.h"
 #include "debug/shell/shell.h"
 
 #include "can_interface.h"
@@ -471,7 +471,7 @@ int main(void) {
     /*** ---------------------- Period 1. Modules Setup and Self-Check ---------------------- ***/
 
     /// Preparation of Period 1
-    LED::all_off();
+    LED::allOffX();
 
     /// Setup Shell
     Shell::start(THREAD_SHELL_PRIO);
@@ -482,7 +482,7 @@ int main(void) {
     /// Setup SDCard
     if (SDCard::init()) {
         SDCard::read_all();
-        LED::led_on(DEV_BOARD_LED_SD_CARD);  // LED 8 on if SD card inserted
+        LED::numberOnX(DEV_BOARD_LED_SD_CARD);  // LED 8 on if SD card inserted
     }
 
     /// Setup CAN1 & CAN2

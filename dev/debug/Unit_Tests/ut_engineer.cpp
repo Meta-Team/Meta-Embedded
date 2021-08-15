@@ -6,7 +6,7 @@
 #include "ch.hpp"
 #include "hal.h"
 
-#include "led.h"
+#include "LED.h"
 #include "shell.h"
 #include "can_interface.h"
 #include "common_macro.h"
@@ -339,8 +339,8 @@ ShellCommand chassisCommands[] = {
 int main(){
     halInit();
     chibios_rt::System::init();
-    //LED::green_off();
-    LED::red_off();
+    //LED::greenOffX();
+    LED::redOffX();
 
     Shell::start(HIGHPRIO);
     Shell::addCommands(chassisCommands);

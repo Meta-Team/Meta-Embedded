@@ -9,7 +9,7 @@
 #include "ch.hpp"
 #include "hal.h"
 
-#include "led.h"
+#include "LED.h"
 #include "debug/shell/shell.h"
 #include "remote_interpreter.h"
 #include "buzzer_scheduler.h"
@@ -58,15 +58,15 @@ private:
                                      PWM_PERCENTAGE_TO_WIDTH(FRICTION_WHEEL_PWM_DRIVER, 0 * 500 + 500));
                     pwmEnableChannel(FRICTION_WHEEL_PWM_DRIVER, FW_LEFT,
                                      PWM_PERCENTAGE_TO_WIDTH(FRICTION_WHEEL_PWM_DRIVER, 0 * 500 + 500));
-                    LED::red_on();
-                    LED::green_off();
+                LED::redOnX();
+                LED::greenOffX();
             } else if (Remote::rc.s1 == Remote::S_UP) {
                 pwmEnableChannel(FRICTION_WHEEL_PWM_DRIVER, FW_RIGHT,
                                  PWM_PERCENTAGE_TO_WIDTH(FRICTION_WHEEL_PWM_DRIVER, 1 * 500 + 500));
                 pwmEnableChannel(FRICTION_WHEEL_PWM_DRIVER, FW_LEFT,
                                  PWM_PERCENTAGE_TO_WIDTH(FRICTION_WHEEL_PWM_DRIVER, 1 * 500 + 500));
-                LED::green_on();
-                LED::red_off();
+                LED::greenOnX();
+                LED::redOffX();
 
             }
 

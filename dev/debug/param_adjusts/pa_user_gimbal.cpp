@@ -6,7 +6,7 @@
 #include "ch.hpp"
 #include "hal.h"
 
-#include "led.h"
+#include "LED.h"
 #include "buzzer_scheduler.h"
 #include "common_macro.h"
 
@@ -95,7 +95,7 @@ int main() {
     /*** ---------------------- Period 1. Modules Setup and Self-Check ---------------------- ***/
 
     /// Preparation of Period 1
-    LED::all_off();
+    LED::allOffX();
 
     /// Setup Shell
     Shell::start(THREAD_SHELL_PRIO);
@@ -106,19 +106,19 @@ int main() {
     /// Setup SDCard
     if (SDCard::init()) {
         SDCard::read_all();
-        LED::led_on(DEV_BOARD_LED_SD_CARD);  // LED 8 on if SD card inserted
+        LED::numberOnX(DEV_BOARD_LED_SD_CARD);  // LED 8 on if SD card inserted
     }
 
-    LED::led_on(DEV_BOARD_LED_SYSTEM_INIT);  // LED 1 on now
+    LED::numberOnX(DEV_BOARD_LED_SYSTEM_INIT);  // LED 1 on now
 
     /// Setup CAN1 & CAN2
     can1.start(THREAD_CAN1_RX_PRIO, THREAD_CAN1_TX_PRIO);
     can2.start(THREAD_CAN2_RX_PRIO, THREAD_CAN2_TX_PRIO);
     chThdSleepMilliseconds(5);
-    LED::led_on(DEV_BOARD_LED_CAN);  // LED 2 on now
+    LED::numberOnX(DEV_BOARD_LED_CAN);  // LED 2 on now
 
     /// Complete Period 1
-    LED::green_on();  // LED Green on now
+    LED::greenOnX();  // LED Green on now
 
     /// Setup On-Board AHRS
     Vector3D ahrs_bias;
@@ -135,17 +135,17 @@ int main() {
     }
     Shell::addCommands(ahrs.shellCommands);
     Shell::addFeedbackCallback(AHRSOnBoard::cmdFeedback, &ahrs);
-    LED::led_on(DEV_BOARD_LED_AHRS);  // LED 3 on now
+    LED::numberOnX(DEV_BOARD_LED_AHRS);  // LED 3 on now
 
     /// Setup Remote
     Remote::start();
-    LED::led_on(DEV_BOARD_LED_REMOTE);  // LED 4 on now
+    LED::numberOnX(DEV_BOARD_LED_REMOTE);  // LED 4 on now
 
 
     /// Setup GimbalIF (for Gimbal and Shoot)
     GimbalIF::init(&can1, &can2, GIMBAL_MOTOR_CONFIG_, GIMBAL_YAW_FRONT_ANGLE_RAW, GIMBAL_PITCH_FRONT_ANGLE_RAW, GIMBAL_SUB_PITCH_FRONT_ANGLE_RAW, MotorIFBase::can_channel_1);
     chThdSleepMilliseconds(2000);  // wait for C610 to be online and friction wheel to reset
-    LED::led_on(DEV_BOARD_LED_GIMBAL);  // LED 5 on now
+    LED::numberOnX(DEV_BOARD_LED_GIMBAL);  // LED 5 on now
 
 
     /// Setup Red Spot Laser

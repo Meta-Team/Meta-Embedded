@@ -5,7 +5,7 @@
 
 #include "ch.hpp"
 #include "hal.h"
-#include "led.h"
+#include "LED.h"
 #include "serial_shell.h"
 #include "can_interface.h"
 #include "common_macro.h"
@@ -183,7 +183,7 @@ int main(void) {
     chassisFeedbackThread.start(NORMALPRIO - 1);
 
     BuzzerSKD::play_sound(BuzzerSKD::sound_startup_intel, LOWPRIO);
-    LED::green_on();
+    LED::greenOnX();
 
     // See chconf.h for what this #define means.
 #if CH_CFG_NO_IDLE_THREAD

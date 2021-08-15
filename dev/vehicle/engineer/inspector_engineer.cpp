@@ -209,20 +209,20 @@ void InspectorE::InspectorThread::main() {
         }
 
         remote_failure_ = (not WITHIN_RECENT_TIME(Remote::last_update_time, 30));
-        if (remote_failure_) LED::led_off(DEV_BOARD_LED_REMOTE);
-        else LED::led_on(DEV_BOARD_LED_REMOTE);
+        if (remote_failure_) LED::numberOffX(DEV_BOARD_LED_REMOTE);
+        else LED::numberOnX(DEV_BOARD_LED_REMOTE);
 
         chassis_failure_ = check_chassis_failure();
-        if (chassis_failure_) LED::led_off(DEV_BOARD_LED_CHASSIS);
-        else LED::led_on(DEV_BOARD_LED_CHASSIS);
+        if (chassis_failure_) LED::numberOffX(DEV_BOARD_LED_CHASSIS);
+        else LED::numberOnX(DEV_BOARD_LED_CHASSIS);
 
         elevator_failure_ = check_elevator_failure();
-        if (elevator_failure_) LED::led_off(DEV_BOARD_LED_ELEVATOR);
-        else LED::led_on(DEV_BOARD_LED_ELEVATOR);
+        if (elevator_failure_) LED::numberOffX(DEV_BOARD_LED_ELEVATOR);
+        else LED::numberOnX(DEV_BOARD_LED_ELEVATOR);
 
         robotic_arm_failure_ = check_robotic_arm_failure();
-        if (robotic_arm_failure_) LED::led_off(DEV_BOARD_LED_ROBOTIC_ARM);
-        else LED::led_on(DEV_BOARD_LED_ROBOTIC_ARM);
+        if (robotic_arm_failure_) LED::numberOffX(DEV_BOARD_LED_ROBOTIC_ARM);
+        else LED::numberOnX(DEV_BOARD_LED_ROBOTIC_ARM);
 
         if (remote_failure_ || chassis_failure_ || elevator_failure_ || robotic_arm_failure_) {
             if (!BuzzerSKD::alerting()) BuzzerSKD::alert_on();
@@ -247,6 +247,6 @@ void InspectorE::RefereeInspectorThread::main() {
         (void) flags;
 
         // Toggle Referee LED if any data is received
-        LED::led_toggle(DEV_BOARD_LED_REFEREE);
+        LED::numberToggleX(DEV_BOARD_LED_REFEREE);
     }
 }

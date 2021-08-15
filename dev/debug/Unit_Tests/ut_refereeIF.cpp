@@ -6,7 +6,7 @@
 #include "ch.hpp"
 #include "hal.h"
 
-#include "led.h"
+#include "LED.h"
 #include "shell.h"
 #include "referee_interface.h"
 
@@ -157,7 +157,7 @@ ShellCommand templateShellCommands[] = {
 int main() {
     halInit();
     System::init();
-    LED::all_off();
+    LED::allOffX();
 
     Shell::addCommands(templateShellCommands);
     // Start ChibiOS shell at high priority, so even if a thread stucks, we still have access to shell.

@@ -7,7 +7,7 @@
 #include "ch.hpp"
 #include "hal.h"
 
-#include "led.h"
+#include "LED.h"
 #include "buzzer_scheduler.h"
 #include "common_macro.h"
 
@@ -60,7 +60,7 @@ int main() {
 
     /// Preparation of Period 1
     InspectorE::init(&can1, &can2);
-    LED::all_off();
+    LED::allOffX();
 
     /// Setup Shell
     Shell::start(THREAD_SHELL_PRIO);
@@ -72,22 +72,22 @@ int main() {
     /// Setup SDCard
     if (SDCard::init()) {
         SDCard::read_all();
-        LED::led_on(DEV_BOARD_LED_SD_CARD);  // LED 8 on if SD card inserted
+        LED::numberOnX(DEV_BOARD_LED_SD_CARD);  // LED 8 on if SD card inserted
     }
 
-    LED::led_on(DEV_BOARD_LED_SYSTEM_INIT);  // LED 1 on now
+    LED::numberOnX(DEV_BOARD_LED_SYSTEM_INIT);  // LED 1 on now
 
     /// Setup CAN1 & CAN2
     can1.start(THREAD_CAN1_PRIO);
     can2.start(THREAD_CAN2_PRIO);
     chThdSleepMilliseconds(5);
     InspectorE::startup_check_can();  // check no persistent CAN Error. Block for 100 ms
-    LED::led_on(DEV_BOARD_LED_CAN);  // LED 2 on now
+    LED::numberOnX(DEV_BOARD_LED_CAN);  // LED 2 on now
 
     /// Setup Remote
     Remote::start();
     InspectorE::startup_check_remote();  // check Remote has signal. Block for 50 ms
-    LED::led_on(DEV_BOARD_LED_REMOTE);  // LED 3 on now
+    LED::numberOnX(DEV_BOARD_LED_REMOTE);  // LED 3 on now
 
     /// Setup GimbalIF
     EngineerGimbalIF::init();
@@ -96,7 +96,7 @@ int main() {
     RoboticArmIF::init(&can2);
     chThdSleepMicroseconds(10);
     InspectorE::startup_check_robotic_arm_feedback();
-    LED::led_on(DEV_BOARD_LED_ROBOTIC_ARM);  // LED 4 on now
+    LED::numberOnX(DEV_BOARD_LED_ROBOTIC_ARM);  // LED 4 on now
 
     /// Setup ElevatorIF
     float init_angle;
@@ -110,20 +110,20 @@ int main() {
     chThdSleepMilliseconds(10);
     // TODO: re-enable Inspector
 //    InspectorE::startup_check_elevator_feedback();  // check elevator motors has continuous feedback. Block for 20 ms
-    LED::led_on(DEV_BOARD_LED_ELEVATOR);  // LED 5 on now
+    LED::numberOnX(DEV_BOARD_LED_ELEVATOR);  // LED 5 on now
     EngineerElevatorSKD::set_target_height(ELEVATOR_ORIGIN_HEIGHT);
 
     /// Setup ChassisIF
     ChassisIF::init(&can1);
     chThdSleepMilliseconds(10);
     InspectorE::startup_check_chassis_feedback();  // check chassis motors has continuous feedback. Block for 20 ms
-    LED::led_on(DEV_BOARD_LED_CHASSIS);  // LED 6 on now
+    LED::numberOnX(DEV_BOARD_LED_CHASSIS);  // LED 6 on now
 
     /// Setup Referee
     Referee::init(THREAD_REFEREE_SENDING_PRIO);
 
     /// Complete Period 1
-    LED::green_on();  // LED Green on now
+    LED::greenOnX();  // LED Green on now
 
 
     /*** ------------ Period 2. Calibration and Start Logic Control Thread ----------- ***/

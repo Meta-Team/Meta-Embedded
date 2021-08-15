@@ -9,7 +9,7 @@
 #include "ch.hpp"
 #include "hal.h"
 
-#include "led.h"
+#include "LED.h"
 #include "debug/shell/shell.h"
 #include "can_interface.h"
 #include "scheduler/buzzer_scheduler.h"

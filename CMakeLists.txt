@@ -17,6 +17,8 @@ set(CMAKE_CXX_STANDARD 11)
 
 enable_testing()  # should be in the top-level CMakeLists.txt
 
+include_directories(config)  # needed by all targets
+
 if (DEFINED BOARD_NAME)
     include(config/cross_compile_options.cmake)  # should be after project()
     add_subdirectory(os)
@@ -24,7 +26,8 @@ endif ()
 
 add_subdirectory(lib)
 add_subdirectory(test)
-include_directories(config)
+
+include_directories(include)
 
 # =========== TODO: Legacy Code for Target Device ===========
 
@@ -50,7 +53,8 @@ set(BASE_SRC  # common cpp sources, which are included to every target at post c
         dev/debug/shell/shell_base_cmd.c
         dev/debug/shell/shell_dbg_cmd.cpp
         dev/debug/shell/printf.c
-        dev/interface/led.cpp
+        src/LED.cpp
+        src/HaltHandler.cpp
         dev/interface/buzzer_interface.cpp
         dev/scheduler/buzzer_scheduler.cpp)
 
@@ -351,7 +355,6 @@ add_executable(ut_can
         dev/interface/can_interface.cpp
         dev/interface/buzzer_interface.cpp
         dev/debug/shell/shell.cpp
-        dev/interface/led.cpp
         dev/debug/unit_tests/ut_can_interface.cpp)
 
 # Elevator Interface: include CANInterface, ElevatorInterface, and the unit test modules.
@@ -401,7 +404,6 @@ add_executable(ut_super_capacitor
         dev/debug/shell/shell.cpp
         dev/debug/unit_tests/ut_super_capacitance.cpp
         dev/scheduler/buzzer_scheduler.cpp
-        dev/interface/led.cpp
         dev/interface/referee_interface.cpp
         dev/common/CRC8.cpp
         dev/common/CRC16.cpp)

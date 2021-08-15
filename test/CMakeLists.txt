@@ -46,9 +46,11 @@ include_directories(../include)
 if (NOT DEFINED BOARD_NAME)
     add_library(HALStubs
             HALStubs/hal_pal_stub.cpp)
-    target_link_libraries(HALStubs
-            gtest_main)
+    target_include_directories(HALStubs
+            PUBLIC HALStubs)
     add_unit_test(HALStubs/hal_pal_stub_test.cpp HAL)
 endif ()
 
 add_unit_test(HelloTest.cpp ON_TARGET)
+add_unit_test(LEDTest.cpp HAL ON_TARGET
+        ../src/LED.cpp)

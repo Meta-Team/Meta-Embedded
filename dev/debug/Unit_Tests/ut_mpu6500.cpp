@@ -5,7 +5,7 @@
 #include "ch.hpp"
 #include "hal.h"
 
-#include "led.h"
+#include "LED.h"
 #include "debug/shell/shell.h"
 
 #include "interface/ahrs/imu_on_board.h"
@@ -34,8 +34,8 @@ int main(void) {
 
     // Start ChibiOS shell at high priority, so even if a thread stucks, we still have access to shell.
     Shell::start(HIGHPRIO);
-    LED::green_off();
-    LED::red_off();
+    LED::greenOffX();
+    LED::redOffX();
 
     feedbackThread.start(NORMALPRIO);
 

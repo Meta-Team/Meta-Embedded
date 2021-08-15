@@ -11,7 +11,7 @@
  * @{
  */
 
-#include "led.h"
+#include "LED.h"
 #include "buzzer_scheduler.h"
 
 extern "C" {
@@ -22,8 +22,8 @@ extern "C" {
 void set_led_when_halt(void) {
 
     /// Turn on red LED when halt
-    LED_PAD_ON(GPIOF, GPIOE_LED_RED);    // LED_RED_ON
-    LED_PAD_OFF(GPIOF, GPIOF_LED_GREEN); // LED_GREEN_OFF
+    SET_LED_ON(LED_RED_GPIO_PORT, LED_RED_GPIO_PAD);      // LED_RED_ON
+    SET_LED_OFF(LED_GREEN_GPIO_PORT, LED_GREEN_GPIO_PAD); // LED_GREEN_OFF
 
 
 
