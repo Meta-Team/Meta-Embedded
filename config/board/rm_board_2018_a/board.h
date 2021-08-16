@@ -1344,17 +1344,16 @@
                                      PIN_AFIO_AF(GPIOI_PIN15, 0U))
 
 #define LED_ON_STATE                (0U)
-#define LED_ALL_OFF_MASK            (0xFFFFFFFFU)
 #define SET_LED_ON(port, pad)       palClearPad(port, pad)
 #define SET_LED_OFF(port, pad)      palSetPad(port, pad)
 #define LED_GREEN_GPIO_PORT         GPIOF
 #define LED_GREEN_GPIO_PAD          GPIOF_LED_GREEN
 #define LED_RED_GPIO_PORT           GPIOE
 #define LED_RED_GPIO_PAD            GPIOE_LED_RED
-#define LED_NUMBERED_GPIO_PORT      GPIOG
-#define LED_NUMBERED_GPIO_PAD(n)    (n)
-#define LED_NUMBERED_MIN            (1)
-#define LED_NUMBERED_MAX            (8)
+#define NUMBERED_LED_GPIO_PORT      GPIOG
+#define NUMBERED_LED_GPIO_PAD(n)    (n)
+#define NUMBERED_LED_MIN            (1)
+#define NUMBERED_LED_MAX            (8)
 
 /*===========================================================================*/
 /* External declarations.                                                    */

@@ -6,37 +6,37 @@
 #include "hal_pal_stub.h"
 
 TEST(HALPALStub, gpioImageClearAtSetup) {
-    for (const auto &image : gpioImage) {
+    for (const auto &image : gpioPortImage) {
         EXPECT_EQ(image, 0);
     }
 }
 
 TEST(HALPALStub, palSetPadWorks) {
-    gpioImage[GPIOA] = 0;
+    gpioPortImage[GPIOA] = 0;
     palSetPad(GPIOA, 0);
-    EXPECT_EQ(gpioImage[GPIOA], 0x00000001);
+    EXPECT_EQ(gpioPortImage[GPIOA], 0x0001);
 
-    gpioImage[GPIOK] = 0x88888888;
+    gpioPortImage[GPIOK] = 0x8888;
     palSetPad(GPIOK, 4);
-    EXPECT_EQ(gpioImage[GPIOK], 0x88888898);
+    EXPECT_EQ(gpioPortImage[GPIOK], 0x8898);
 }
 
 TEST(HALPALStub, palClearPadWorks) {
-    gpioImage[GPIOB] = 0xFFFFFFFF;
-    palClearPad(GPIOB, 31);
-    EXPECT_EQ(gpioImage[GPIOB], 0x7FFFFFFF);
+    gpioPortImage[GPIOB] = 0xFFFF;
+    palClearPad(GPIOB, 15);
+    EXPECT_EQ(gpioPortImage[GPIOB], 0x7FFF);
 
     palClearPad(GPIOB, 0);
-    EXPECT_EQ(gpioImage[GPIOB], 0x7FFFFFFE);
+    EXPECT_EQ(gpioPortImage[GPIOB], 0x7FFE);
 }
 
 TEST(HALPALStub, palTogglePadWorks) {
-    gpioImage[GPIOA] = 0;
+    gpioPortImage[GPIOA] = 0;
     palTogglePad(GPIOA, 0);
-    EXPECT_EQ(gpioImage[GPIOA], 0x00000001);
+    EXPECT_EQ(gpioPortImage[GPIOA], 0x0001);
 
     palTogglePad(GPIOA, 0);
-    EXPECT_EQ(gpioImage[GPIOA], 0x00000000);
+    EXPECT_EQ(gpioPortImage[GPIOA], 0x0000);
 }
 
 class SharedTest :

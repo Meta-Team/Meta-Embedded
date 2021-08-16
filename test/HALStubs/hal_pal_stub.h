@@ -22,12 +22,12 @@ enum GPIO : unsigned {
     GPIO_COUNT
 };
 
-using stm32_gpio_t = uint32_t;
-
 void palSetPad(unsigned port, unsigned pad);
 void palClearPad(unsigned port, unsigned pad);
 void palTogglePad(unsigned port, unsigned pad);
 
-extern uint32_t gpioImage[GPIO_COUNT];
+using PortImageType = uint16_t;
+
+extern PortImageType gpioPortImage[GPIO_COUNT];
 
 #endif //META_EMBEDDED_HAL_PAL_H

@@ -32,28 +32,28 @@ void greenToggleX() {
 }
 
 static inline bool numberIsOutOfBound(int number) {
-    return (number < LED_NUMBERED_MIN || number > LED_NUMBERED_MAX);
+    return (number < NUMBERED_LED_MIN || number > NUMBERED_LED_MAX);
 }
 
 void numberOnX(int number) {
     if (numberIsOutOfBound(number)) return;
-    SET_LED_ON(LED_NUMBERED_GPIO_PORT, LED_NUMBERED_GPIO_PAD(number));
+    SET_LED_ON(NUMBERED_LED_GPIO_PORT, NUMBERED_LED_GPIO_PAD(number));
 }
 
 void numberOffX(int number) {
     if (numberIsOutOfBound(number)) return;
-    SET_LED_OFF(LED_NUMBERED_GPIO_PORT, LED_NUMBERED_GPIO_PAD(number));
+    SET_LED_OFF(NUMBERED_LED_GPIO_PORT, NUMBERED_LED_GPIO_PAD(number));
 }
 
 void numberToggleX(int number) {
     if (numberIsOutOfBound(number)) return;
-    palTogglePad(LED_NUMBERED_GPIO_PORT, LED_NUMBERED_GPIO_PAD(number));
+    palTogglePad(NUMBERED_LED_GPIO_PORT, NUMBERED_LED_GPIO_PAD(number));
 }
 
 void allOffX() {
     redOffX();
     greenOffX();
-    for (int i = LED_NUMBERED_MIN; i <= LED_NUMBERED_MAX; i++) numberOffX(i);
+    for (int i = NUMBERED_LED_MIN; i <= NUMBERED_LED_MAX; i++) numberOffX(i);
 }
 
 }

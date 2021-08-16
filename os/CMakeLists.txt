@@ -185,4 +185,4 @@ set(CHIBIOS_INCLUDE_DIRS ${CHIBIOS_INCLUDE_DIRS}
 
 # Reuse ChibiOS object files to avoid repeat compile (not linked since the program is not yet completed)
 add_library(ChibiOS OBJECT ${CHIBIOS_XASM_SRC} ${CHIBIOS_C_SRC} ${CHIBIOS_CPP_SRC})
-target_include_directories(ChibiOS PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CHIBIOS_INCLUDE_DIRS})
+target_include_directories(ChibiOS PUBLIC ${CHIBIOS_INCLUDE_DIRS})

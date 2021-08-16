@@ -41,7 +41,7 @@ function(add_unit_test)
     endif ()
 endfunction()
 
-include_directories(../include)
+include_directories(${PROJECT_SOURCE_DIR}/include)
 
 if (NOT DEFINED BOARD_NAME)
     add_library(HALStubs
@@ -53,4 +53,4 @@ endif ()
 
 add_unit_test(HelloTest.cpp ON_TARGET)
 add_unit_test(LEDTest.cpp HAL ON_TARGET
-        ../src/LED.cpp)
+        ${PROJECT_SOURCE_DIR}/src/LED.cpp)
