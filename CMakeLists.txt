@@ -66,8 +66,6 @@ set(VEHICLE_COMMON_SRC
         dev/module/pid_controller.hpp
         dev/interface/can_interface.cpp
         dev/interface/remote_interpreter.cpp
-        dev/common/CRC8.cpp
-        dev/common/CRC16.cpp
         dev/interface/sd_card_interface.cpp)
 
 set(AHRS_SRC
@@ -95,7 +93,9 @@ set(REFEREE_SRC
         dev/scheduler/referee_UI_update_scheduler.cpp
         dev/logic/referee_UI_logic.cpp)
 
-
+set(VEHICLE_COMMON_LIBS
+        ${AHRS_LIB}
+        CRC)
 
 
 
@@ -136,7 +136,7 @@ set(INFANTRY_DEFS
         INFANTRY_VISION_ENABLE=1)
 
 set(INFANTRY_LIBS
-        ${AHRS_LIB})
+        ${VEHICLE_COMMON_LIBS})
 
 # Main Program -- Infantry #3
 add_executable(INFANTRY_THREE ${INFANTRY_SRC})
@@ -192,8 +192,6 @@ add_executable(SENTRY
         dev/interface/sd_card_interface.cpp
         #        ${VISION_SRC}
         #        ${AHRS_SRC}
-        dev/common/CRC8.cpp
-        dev/common/CRC16.cpp
 
         dev/interface/new_sentry_chassis_interface.cpp
         dev/scheduler/new_sentry_chassis_scheduler.cpp
@@ -227,8 +225,6 @@ add_executable(AERIAL
         dev/logic/gimbal_logic.cpp
 
         dev/interface/referee_interface.cpp
-        dev/common/CRC8.cpp
-        dev/common/CRC16.cpp
         ${VISION_SRC}
 
         dev/interface/ahrs/ahrs_ext.cpp
@@ -250,8 +246,6 @@ add_executable(ENGINEER
         dev/interface/remote_interpreter.cpp
         dev/interface/referee_interface.cpp
         dev/interface/sd_card_interface.cpp
-        dev/common/CRC8.cpp
-        dev/common/CRC16.cpp
 
         dev/interface/chassis_interface.cpp
         dev/interface/dms_interface.cpp
@@ -388,15 +382,14 @@ add_executable(ut_auto_robotic_arm
 
 # Referee
 add_executable(ut_referee_interface
-        dev/common/CRC8.cpp
-        dev/common/CRC16.cpp
         dev/interface/referee_interface.cpp
         dev/debug/unit_tests/ut_refereeIF.cpp)
+target_link_libraries(ut_referee_interface CRC)
 
 add_executable(ut_sd_card
         dev/interface/sd_card_interface.cpp
-        dev/common/CRC16.cpp
         dev/debug/unit_tests/ut_sd_card.cpp)
+target_link_libraries(ut_sd_card CRC)
 
 add_executable(ut_super_capacitor
         dev/interface/super_capacitor_port.cpp
@@ -404,9 +397,8 @@ add_executable(ut_super_capacitor
         dev/debug/shell/shell.cpp
         dev/debug/unit_tests/ut_super_capacitance.cpp
         dev/scheduler/buzzer_scheduler.cpp
-        dev/interface/referee_interface.cpp
-        dev/common/CRC8.cpp
-        dev/common/CRC16.cpp)
+        dev/interface/referee_interface.cpp)
+target_link_libraries(ut_super_capacitor CRC)
 
 add_executable(ut_adc
         dev/debug/unit_tests/ut_adc.cpp
@@ -460,7 +452,6 @@ target_compile_definitions(pa_chassis PUBLIC INFANTRY)
 
 # Shoot: include CANInterface, GimbalIF, GimbalController, GimbalFeedbackThread and adjustment modules.
 add_executable(pa_infantry_shoot
-        dev/common/CRC16.cpp
         dev/interface/sd_card_interface.cpp
         dev/interface/remote_interpreter.cpp
         ${AHRS_SRC}
@@ -473,11 +464,10 @@ add_executable(pa_infantry_shoot
         dev/interface/ahrs/ahrs.cpp
         dev/debug/param_adjusts/pa_infantry_shoot.cpp)
 target_compile_definitions(pa_infantry_shoot PRIVATE SHELL_NO_ECHO_MODE)
-target_link_libraries(pa_infantry_shoot ${AHRS_LIB})
+target_link_libraries(pa_infantry_shoot ${AHRS_LIB} CRC)
 
 # Gimbal: include CANInterface, GimbalInterface, GimbalController, GimbalFeedbackThread and adjustment modules.
 add_executable(pa_gimbal
-        dev/common/CRC16.cpp
         dev/interface/sd_card_interface.cpp
         ${AHRS_SRC}
         dev/interface/can_interface.cpp
@@ -490,10 +480,9 @@ add_executable(pa_gimbal
         dev/interface/ahrs/ahrs.cpp
         dev/debug/param_adjusts/pa_gimbal.cpp)
 target_compile_definitions(pa_gimbal PRIVATE SHELL_NO_ECHO_MODE)
-target_link_libraries(pa_gimbal ${AHRS_LIB})
+target_link_libraries(pa_gimbal ${AHRS_LIB} CRC)
 
 add_executable(pa_new_gimbal
-        dev/common/CRC16.cpp
         dev/interface/sd_card_interface.cpp
         dev/interface/remote_interpreter.cpp
         ${AHRS_SRC}
@@ -505,7 +494,7 @@ add_executable(pa_new_gimbal
         dev/scheduler/buzzer_scheduler.cpp
         dev/interface/ahrs/ahrs.cpp
         dev/debug/param_adjusts/pa_new_gimbal.cpp)
-target_link_libraries(pa_new_gimbal ${AHRS_LIB})
+target_link_libraries(pa_new_gimbal ${AHRS_LIB} CRC)
 
 # Elevator: include CANInterface, ElevatorInterface, ElevatorController, and the unit test modules.
 add_executable(pa_elevator
@@ -536,25 +525,22 @@ add_executable(pa_sentry_chassis
         dev/interface/sentry_chassis_interface.cpp
         dev/scheduler/sentry_chassis_scheduler.cpp
         dev/debug/param_adjusts/pa_sentry_chassis.cpp
-        dev/interface/referee_interface.cpp
-        dev/common/CRC8.cpp
-        dev/common/CRC16.cpp)
+        dev/interface/referee_interface.cpp)
+target_link_libraries(pa_sentry_chassis CRC)
 
 add_executable(ca_ahrs_infantry
         ${AHRS_SRC}
-        dev/common/CRC16.cpp
         dev/interface/sd_card_interface.cpp
         dev/debug/unit_tests/ca_ahrs.cpp)
-target_link_libraries(ca_ahrs_infantry ${AHRS_LIB})
+target_link_libraries(ca_ahrs_infantry ${AHRS_LIB} CRC)
 target_include_directories(ca_ahrs_infantry PRIVATE dev/vehicle/infantry)
 target_compile_definitions(ca_ahrs_infantry PRIVATE INFANTRY)
 
 add_executable(ca_ahrs_hero
         ${AHRS_SRC}
-        dev/common/CRC16.cpp
         dev/interface/sd_card_interface.cpp
         dev/debug/unit_tests/ca_ahrs.cpp)
-target_link_libraries(ca_ahrs_hero ${AHRS_LIB})
+target_link_libraries(ca_ahrs_hero ${AHRS_LIB} CRC)
 target_include_directories(ca_ahrs_hero PRIVATE dev/vehicle/hero)
 target_compile_definitions(ca_ahrs_hero PRIVATE HERO)
 endif()

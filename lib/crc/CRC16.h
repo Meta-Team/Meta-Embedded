@@ -5,11 +5,11 @@
 #ifndef META_INFANTRY_CRC16_H
 #define META_INFANTRY_CRC16_H
 
-#include "ch.hpp"
+#include <cstdint>
 
 uint16_t get_crc16_check_sum(uint8_t *pchMessage, uint32_t dwLength);
 
-uint32_t verify_crc16_check_sum(uint8_t *pchMessage, uint32_t dwLength);
+bool verify_crc16_check_sum(uint8_t *pchMessage, uint32_t dwLength);
 
 void append_crc16_check_sum(uint8_t *pchMessage, uint32_t dwLength);
 
