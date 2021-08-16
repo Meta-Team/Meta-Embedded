@@ -1,4 +1,7 @@
-# Meta Team - Infantry 2021
+Meta-Embedded
+=============
+
+![CMake Badge](https://github.com/Meta-Team/Meta-Infantry/actions/workflows/cmake.yaml/badge.svg)
 
 => 请务必阅读 [Project Wiki](https://github.com/Meta-Team/Meta-Infantry/wiki) :smiley:
 
