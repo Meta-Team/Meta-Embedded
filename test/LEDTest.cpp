@@ -2,7 +2,7 @@
 // Created by liuzikai on 8/15/21.
 //
 
-#include <gtest/gtest.h>
+#include <CppUTest/TestHarness.h>
 #include "LED.h"
 #include "hal.h"
 
@@ -14,9 +14,10 @@ static constexpr PortImageType LED_ALL_OFF_MASK = -1;
 static constexpr PortImageType LED_ALL_ON_MASK = 0;
 #endif
 
+TEST_GROUP(LED) {};
 
 void expectGPIOImageChange(unsigned port, unsigned pad, PortImageType init) {
-    EXPECT_EQ(gpioPortImage[port] ^ init, (1U << pad));
+    CHECK_EQUAL(gpioPortImage[port] ^ init, (1U << pad));
 }
 
 void testGPIOChangesCorrectly(unsigned port, unsigned pad, PortImageType init, const std::function<void()> &f) {
@@ -30,7 +31,7 @@ void testGPIOToggleCorrectly(unsigned port, unsigned pad, PortImageType init, co
     f();
     expectGPIOImageChange(port, pad, init);
     f();
-    EXPECT_EQ(gpioPortImage[port], init);
+    CHECK_EQUAL(gpioPortImage[port], init);
 }
 
 void testGPIOChangesCorrectly(unsigned port, unsigned pad, PortImageType init, const std::function<void(int)> &f, int i) {
@@ -44,7 +45,7 @@ void testGPIOToggleCorrectly(unsigned port, unsigned pad, PortImageType init, co
     f(i);
     expectGPIOImageChange(port, pad, init);
     f(i);
-    EXPECT_EQ(gpioPortImage[port], init);
+    CHECK_EQUAL(gpioPortImage[port], init);
 }
 
 TEST(LED, TurnOnRed) {
@@ -95,7 +96,7 @@ TEST(LED, ToggleNumber) {
 void testOutOfBoundNumberHasNoEffect(PortImageType init, const std::function<void(int)> &f, int i) {
     gpioPortImage[NUMBERED_LED_GPIO_PORT] = init;
     f(i);
-    EXPECT_EQ(gpioPortImage[NUMBERED_LED_GPIO_PORT], init);
+    CHECK_EQUAL(gpioPortImage[NUMBERED_LED_GPIO_PORT], init);
 }
 
 TEST(LED, TurnOnOutOfBoundNumberHasNoEffect) {
@@ -118,10 +119,10 @@ TEST(LED, ToggleOutOfBoundNumberHasNoEffect) {
 TEST(LED, TurnAllOff) {
     gpioPortImage[LED_RED_GPIO_PORT] = gpioPortImage[LED_GREEN_GPIO_PORT] = gpioPortImage[NUMBERED_LED_GPIO_PORT] = LED_ALL_ON_MASK;
     LED::allOffX();
-    EXPECT_EQ(gpioPortImage[LED_RED_GPIO_PORT] & (1U << LED_RED_GPIO_PAD), LED_OFF_STATE << LED_RED_GPIO_PAD);
-    EXPECT_EQ(gpioPortImage[LED_GREEN_GPIO_PORT] & (1U << LED_GREEN_GPIO_PAD), LED_OFF_STATE << LED_GREEN_GPIO_PAD);
+    CHECK_EQUAL(gpioPortImage[LED_RED_GPIO_PORT] & (1U << LED_RED_GPIO_PAD), LED_OFF_STATE << LED_RED_GPIO_PAD);
+    CHECK_EQUAL(gpioPortImage[LED_GREEN_GPIO_PORT] & (1U << LED_GREEN_GPIO_PAD), LED_OFF_STATE << LED_GREEN_GPIO_PAD);
     for (int i = NUMBERED_LED_MIN; i <= NUMBERED_LED_MAX; i++) {
-        EXPECT_EQ(gpioPortImage[NUMBERED_LED_GPIO_PORT] & (1U << NUMBERED_LED_GPIO_PAD(i)),
+        CHECK_EQUAL(gpioPortImage[NUMBERED_LED_GPIO_PORT] & (1U << NUMBERED_LED_GPIO_PAD(i)),
                   LED_OFF_STATE << NUMBERED_LED_GPIO_PAD(i));
     }
 }

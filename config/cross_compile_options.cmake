@@ -18,18 +18,16 @@ set(OPT_FLAGS "${OPT_FLAGS} -mfloat-abi=hard -mfpu=fpv4-sp-d16")
 set(LD_OPT_FLAGS ",--gc-sections,--defsym=__process_stack_size__=0x800,--defsym=__main_stack_size__=0x800")
 
 # Flags for C sources only
-set(C_OPT_FLAGS "-D_POSIX_C_SOURCE=200809L")
-# NOTICE: -D_POSIX_C_SOURCE=200809L to enable POSIX for GoogleTest
+set(C_OPT_FLAGS "")
 
 # Flags for CPP sources only
-set(CPP_OPT_FLAGS "-D_POSIX_C_SOURCE=200809L -std=gnu++11 -fno-exceptions -fno-rtti")
+set(CPP_OPT_FLAGS "-std=gnu++11 -fno-exceptions -fno-rtti")
 
 # Warning flags for C sources only
-set(C_WARN_FLAGS "-Wall -Wextra -Wstrict-prototypes")
-# NOTICE: exclude -Wundef for GoogleTest
+set(C_WARN_FLAGS "-Wall -Wextra -Wundef -Wstrict-prototypes")
 
 # Warning flags for CPP sources only
-set(CPP_WARN_FLAGS "-Wall -Wextra")
+set(CPP_WARN_FLAGS "-Wall -Wextra -Wundef")
 
 # Defintions for C and CPP sources
 set(DEFS "-DCORTEX_USE_FPU=TRUE -DSHELL_CONFIG_FILE")

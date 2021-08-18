@@ -7,6 +7,9 @@
 
 #include <cstdint>
 
+#define PAL_LOW                         0U
+#define PAL_HIGH                        1U
+
 enum GPIO : unsigned {
     GPIOA = 0,
     GPIOB,

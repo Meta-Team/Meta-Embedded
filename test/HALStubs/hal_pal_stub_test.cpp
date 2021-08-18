@@ -2,8 +2,10 @@
 // Created by liuzikai on 8/15/21.
 //
 
-#include <gtest/gtest.h>
+#include <CppUTest/TestHarness.h>
 #include "hal_pal_stub.h"
+
+TEST_GROUP(HALPALStub) {};
 
 TEST(HALPALStub, gpioImageClearAtSetup) {
     for (const auto &image : gpioPortImage) {

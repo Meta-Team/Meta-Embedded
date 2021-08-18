@@ -2,6 +2,6 @@
 	path = remote
 	url = git@github.com:Meta-Team/Meta-Remote.git
 	branch = master
-[submodule "lib/gtest"]
-	path = lib/gtest
-	url = https://github.com/google/googletest.git
+[submodule "lib/cpputest"]
+	path = lib/cpputest
+	url = https://github.com/cpputest/cpputest.git

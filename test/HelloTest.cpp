@@ -2,9 +2,11 @@
 // Created by liuzikai on 8/14/21.
 //
 
-#include <gtest/gtest.h>
+#include <CppUTest/TestHarness.h>
+
+TEST_GROUP(HelloTest) {};
 
 TEST(HelloTest, BasicAssertions) {
-    EXPECT_STRNE("hello", "world");
-    EXPECT_EQ(7 * 6, 42);
+    STRCMP_EQUAL("hello", "hello");
+    CHECK_EQUAL(7 * 6, 42);
 }
