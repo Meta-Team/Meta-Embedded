@@ -1,20 +1,34 @@
-#include(gtest.cmake)
-include(cpputest.cmake)
+if (NOT DEFINED BOARD_NAME)
+    set(TEST_COVERAGE_ENABLED TRUE)
+endif ()
 
+include(cpputest.cmake)  # set ${TEST_FRAMEWORK}, ${TEST_MAIN_TARGET} and add_unit_test_to_test_framework()
+
+if (TEST_COVERAGE_ENABLED)
+    # The following two options works for both gcc and clang
+    add_compile_options("--coverage")
+    add_link_options("--coverage")
+
+    include(${PROJECT_SOURCE_DIR}/config/CodeCoverage.cmake)
+endif ()
+
+
+# Add a unit test with one or more source files. The filename (extension removed) is used as the name of the test.
+# add_unit_test(MainTestFile.cpp
+#               OtherSourceFile.cpp
+#               ALSO_ON_TARGET         # enable this test for the target board (BOARD_NAME defined)
+#               WITH_HAL               # link against HAL (on target) or MockHAL (on development)
+#)
 function(add_unit_test)
-    # Add a unit test with one or more source files
-    # Arguments: list of src files, where the basename of the first file is used as the name of the test
-    # Option: ON_TARGET (OFF by default) - compile the test on the target device
-
     if (${ARGC} LESS 1)
         message(FATAL_ERROR "Usage: add_unit_test(<src> [<more src>...]), where the test is named as <src> (without .cpp)")
     endif ()
 
-    set(options ON_TARGET WITH_HAL)
-    cmake_parse_arguments(TEST "${options}" "" "" ${ARGN})
-    set(src_list ${TEST_UNPARSED_ARGUMENTS})
+    set(options ALSO_ON_TARGET WITH_HAL)
+    cmake_parse_arguments(Test "${options}" "" "" ${ARGN})
+    set(src_list ${Test_UNPARSED_ARGUMENTS})
 
-    if (DEFINED BOARD_NAME AND NOT TEST_ON_TARGET)
+    if (DEFINED BOARD_NAME AND NOT Test_ALSO_ON_TARGET)
         if (VERBOSE)
             string(REPLACE ";" ", " src_list_output "${src_list}")
             message("Unit test ${test_name} is not added for target device")
@@ -34,23 +48,38 @@ function(add_unit_test)
         message("Unit test ${test_name}: ${src_list_output}")
     endif ()
 
-    if (TEST_WITH_HAL)
+    if (Test_WITH_HAL)
         if (DEFINED BOARD_NAME)
             # TODO: [liuzikai] link real HAL?
         else ()
-            target_link_libraries(${test_name} HALStubs)
+            target_link_libraries(${test_name} MockHAL)
         endif ()
     endif ()
 endfunction()
 
-include_directories(${PROJECT_SOURCE_DIR}/include)
-
 if (NOT DEFINED BOARD_NAME)
-    add_library(HALStubs HALStubs/hal_pal_stub.cpp)
-    target_include_directories(HALStubs PUBLIC HALStubs)
-#    add_unit_test(HALStubs/hal_pal_stub_test.cpp WITH_HAL)
+    add_subdirectory(MockHAL)
 endif ()
 
-add_unit_test(HelloTest.cpp ON_TARGET)
-add_unit_test(LEDTest.cpp WITH_HAL ON_TARGET
-        ${PROJECT_SOURCE_DIR}/src/LED.cpp)
+include_directories(${PROJECT_SOURCE_DIR}/include)
+
+add_unit_test(HelloTest.cpp
+        ALSO_ON_TARGET)
+add_unit_test(LEDTest.cpp
+        ${PROJECT_SOURCE_DIR}/src/LED.cpp
+        WITH_HAL ALSO_ON_TARGET)
+
+
+if (TEST_COVERAGE_ENABLED)
+    setup_target_for_coverage_gcovr_html(
+            NAME ctest_coverage
+            EXECUTABLE ctest -j ${PROCESSOR_COUNT}
+            DEPENDENCIES ${TEST_MAIN_TARGET}
+            EXCLUDE "${PROJECT_SOURCE_DIR}/lib/*"
+    )
+    add_custom_target(clean_gcda
+            COMMAND find ${PROJECT_BINARY_DIR} -name "*.gcda" -delete
+            COMMENT "Removing original .gcda files..."
+            )
+    add_dependencies(ctest_coverage clean_gcda)
+endif ()

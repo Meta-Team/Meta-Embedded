@@ -3,126 +3,102 @@
 //
 
 #include <CppUTest/TestHarness.h>
+#include <CppUTestExt/MockSupport.h>
 #include "LED.h"
 #include "hal.h"
 
-#if LED_ON_STATE == 1U
-static constexpr PortImageType LED_ALL_OFF_MASK = 0;
-static constexpr PortImageType LED_ALL_ON_MASK = -1;
-#else
-static constexpr PortImageType LED_ALL_OFF_MASK = -1;
-static constexpr PortImageType LED_ALL_ON_MASK = 0;
-#endif
+TEST_GROUP(LED) {
+};
 
-TEST_GROUP(LED) {};
+#define STR_VALUE(arg)      #arg
+#define FUNCTION_NAME(name) STR_VALUE(name)
 
-void expectGPIOImageChange(unsigned port, unsigned pad, PortImageType init) {
-    CHECK_EQUAL(gpioPortImage[port] ^ init, (1U << pad));
+static void testGPIOFunctionCall(const char *funcName, int port, int pad, void (*func)()) {
+    mock().expectOneCall(funcName)
+            .withIntParameter("port", port)
+            .withIntParameter("pad", pad);
+    func();
 }
 
-void testGPIOChangesCorrectly(unsigned port, unsigned pad, PortImageType init, const std::function<void()> &f) {
-    gpioPortImage[port] = init;
-    f();
-    expectGPIOImageChange(port, pad, init);
-}
-
-void testGPIOToggleCorrectly(unsigned port, unsigned pad, PortImageType init, const std::function<void()> &f) {
-    gpioPortImage[port] = init;
-    f();
-    expectGPIOImageChange(port, pad, init);
-    f();
-    CHECK_EQUAL(gpioPortImage[port], init);
-}
-
-void testGPIOChangesCorrectly(unsigned port, unsigned pad, PortImageType init, const std::function<void(int)> &f, int i) {
-    gpioPortImage[port] = init;
-    f(i);
-    expectGPIOImageChange(port, pad, init);
-}
-
-void testGPIOToggleCorrectly(unsigned port, unsigned pad, PortImageType init, const std::function<void(int)> &f, int i) {
-    gpioPortImage[port] = init;
-    f(i);
-    expectGPIOImageChange(port, pad, init);
-    f(i);
-    CHECK_EQUAL(gpioPortImage[port], init);
+static void testGPIOFunctionCall(const char *funcName, int port, int pad, void (*func)(int), int i) {
+    mock().expectOneCall(funcName)
+            .withIntParameter("port", port)
+            .withIntParameter("pad", pad);
+    func(i);
 }
 
 TEST(LED, TurnOnRed) {
-    testGPIOChangesCorrectly(LED_RED_GPIO_PORT, LED_RED_GPIO_PAD, LED_ALL_OFF_MASK, LED::redOnX);
+    testGPIOFunctionCall(FUNCTION_NAME(SET_LED_ON), LED_RED_GPIO_PORT, LED_RED_GPIO_PAD, LED::redOnX);
 }
 
 TEST(LED, TurnOffRed) {
-    testGPIOChangesCorrectly(LED_RED_GPIO_PORT, LED_RED_GPIO_PAD, LED_ALL_ON_MASK, LED::redOffX);
+    testGPIOFunctionCall(FUNCTION_NAME(SET_LED_OFF), LED_RED_GPIO_PORT, LED_RED_GPIO_PAD, LED::redOffX);
 }
 
 TEST(LED, ToggleRed) {
-    testGPIOToggleCorrectly(LED_RED_GPIO_PORT, LED_RED_GPIO_PAD, LED_ALL_OFF_MASK, LED::redToggleX);
-    testGPIOToggleCorrectly(LED_RED_GPIO_PORT, LED_RED_GPIO_PAD, LED_ALL_ON_MASK, LED::redToggleX);
+    testGPIOFunctionCall("palTogglePad", LED_RED_GPIO_PORT, LED_RED_GPIO_PAD, LED::redToggleX);
 }
 
 TEST(LED, TurnOnGreen) {
-    testGPIOChangesCorrectly(LED_GREEN_GPIO_PORT, LED_GREEN_GPIO_PAD, LED_ALL_OFF_MASK, LED::greenOnX);
+    testGPIOFunctionCall(FUNCTION_NAME(SET_LED_ON), LED_GREEN_GPIO_PORT, LED_GREEN_GPIO_PAD, LED::greenOnX);
 }
 
 TEST(LED, TurnOffGreen) {
-    testGPIOChangesCorrectly(LED_GREEN_GPIO_PORT, LED_GREEN_GPIO_PAD, LED_ALL_ON_MASK, LED::greenOffX);
+    testGPIOFunctionCall(FUNCTION_NAME(SET_LED_OFF), LED_GREEN_GPIO_PORT, LED_GREEN_GPIO_PAD, LED::greenOffX);
 }
 
 TEST(LED, ToggleGreen) {
-    testGPIOToggleCorrectly(LED_GREEN_GPIO_PORT, LED_GREEN_GPIO_PAD, LED_ALL_OFF_MASK, LED::greenToggleX);
-    testGPIOToggleCorrectly(LED_GREEN_GPIO_PORT, LED_GREEN_GPIO_PAD, LED_ALL_ON_MASK, LED::greenToggleX);
+    testGPIOFunctionCall("palTogglePad", LED_GREEN_GPIO_PORT, LED_GREEN_GPIO_PAD, LED::greenToggleX);
 }
 
 TEST(LED, TurnOnNumber) {
     for (int i = NUMBERED_LED_MIN; i <= NUMBERED_LED_MAX; i++) {
-        testGPIOChangesCorrectly(NUMBERED_LED_GPIO_PORT, NUMBERED_LED_GPIO_PAD(i), LED_ALL_OFF_MASK, LED::numberOnX, i);
+        testGPIOFunctionCall(FUNCTION_NAME(SET_LED_ON), NUMBERED_LED_GPIO_PORT, NUMBERED_LED_GPIO_PAD(i),
+                             LED::numberOnX, i);
     }
 }
 
 TEST(LED, TurnOffNumber) {
     for (int i = NUMBERED_LED_MIN; i <= NUMBERED_LED_MAX; i++) {
-        testGPIOChangesCorrectly(NUMBERED_LED_GPIO_PORT, NUMBERED_LED_GPIO_PAD(i), LED_ALL_ON_MASK, LED::numberOffX, i);
+        testGPIOFunctionCall(FUNCTION_NAME(SET_LED_OFF), NUMBERED_LED_GPIO_PORT, NUMBERED_LED_GPIO_PAD(i),
+                             LED::numberOffX, i);
     }
 }
 
 TEST(LED, ToggleNumber) {
     for (int i = NUMBERED_LED_MIN; i <= NUMBERED_LED_MAX; i++) {
-        testGPIOToggleCorrectly(NUMBERED_LED_GPIO_PORT, NUMBERED_LED_GPIO_PAD(i), LED_ALL_ON_MASK, LED::numberToggleX,
-                                i);
+        testGPIOFunctionCall("palTogglePad", NUMBERED_LED_GPIO_PORT, NUMBERED_LED_GPIO_PAD(i), LED::numberToggleX, i);
     }
-}
-
-void testOutOfBoundNumberHasNoEffect(PortImageType init, const std::function<void(int)> &f, int i) {
-    gpioPortImage[NUMBERED_LED_GPIO_PORT] = init;
-    f(i);
-    CHECK_EQUAL(gpioPortImage[NUMBERED_LED_GPIO_PORT], init);
 }
 
 TEST(LED, TurnOnOutOfBoundNumberHasNoEffect) {
-    testOutOfBoundNumberHasNoEffect(LED_ALL_OFF_MASK, LED::numberOnX, NUMBERED_LED_MIN - 1);
-    testOutOfBoundNumberHasNoEffect(LED_ALL_OFF_MASK, LED::numberOnX, NUMBERED_LED_MAX + 1);
+    LED::numberOnX(NUMBERED_LED_MIN - 1);
+    LED::numberOnX(NUMBERED_LED_MAX + 1);
+    // Mock plug-in inserts expectation assertion automatically, same for below
 }
 
 TEST(LED, TurnOffOutOfBoundNumberHasNoEffect) {
-    testOutOfBoundNumberHasNoEffect(LED_ALL_ON_MASK, LED::numberOffX, NUMBERED_LED_MIN - 1);
-    testOutOfBoundNumberHasNoEffect(LED_ALL_ON_MASK, LED::numberOffX, NUMBERED_LED_MAX + 1);
+    LED::numberOffX(NUMBERED_LED_MIN - 1);
+    LED::numberOffX(NUMBERED_LED_MAX + 1);
 }
 
 TEST(LED, ToggleOutOfBoundNumberHasNoEffect) {
-    testOutOfBoundNumberHasNoEffect(LED_ALL_ON_MASK, LED::numberToggleX, NUMBERED_LED_MIN - 1);
-    testOutOfBoundNumberHasNoEffect(LED_ALL_OFF_MASK, LED::numberToggleX, NUMBERED_LED_MAX + 1);
+    LED::numberToggleX(NUMBERED_LED_MIN - 1);
+    LED::numberToggleX(NUMBERED_LED_MAX + 1);
 }
 
-#define LED_OFF_STATE (!LED_ON_STATE)
-
 TEST(LED, TurnAllOff) {
-    gpioPortImage[LED_RED_GPIO_PORT] = gpioPortImage[LED_GREEN_GPIO_PORT] = gpioPortImage[NUMBERED_LED_GPIO_PORT] = LED_ALL_ON_MASK;
-    LED::allOffX();
-    CHECK_EQUAL(gpioPortImage[LED_RED_GPIO_PORT] & (1U << LED_RED_GPIO_PAD), LED_OFF_STATE << LED_RED_GPIO_PAD);
-    CHECK_EQUAL(gpioPortImage[LED_GREEN_GPIO_PORT] & (1U << LED_GREEN_GPIO_PAD), LED_OFF_STATE << LED_GREEN_GPIO_PAD);
+    // We don't use mock().strictOrder();
+    mock().expectOneCall(FUNCTION_NAME(SET_LED_OFF))
+            .withIntParameter("port", LED_RED_GPIO_PORT)
+            .withIntParameter("pad", LED_RED_GPIO_PAD);
+    mock().expectOneCall(FUNCTION_NAME(SET_LED_OFF))
+            .withIntParameter("port", LED_GREEN_GPIO_PORT)
+            .withIntParameter("pad", LED_GREEN_GPIO_PAD);
     for (int i = NUMBERED_LED_MIN; i <= NUMBERED_LED_MAX; i++) {
-        CHECK_EQUAL(gpioPortImage[NUMBERED_LED_GPIO_PORT] & (1U << NUMBERED_LED_GPIO_PAD(i)),
-                  LED_OFF_STATE << NUMBERED_LED_GPIO_PAD(i));
+        mock().expectOneCall(FUNCTION_NAME(SET_LED_OFF))
+                .withIntParameter("port", NUMBERED_LED_GPIO_PORT)
+                .withIntParameter("pad", NUMBERED_LED_GPIO_PAD(i));
     }
+    LED::allOffX();
 }

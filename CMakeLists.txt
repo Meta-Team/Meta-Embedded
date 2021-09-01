@@ -3,16 +3,20 @@ cmake_minimum_required(VERSION 3.10)
 set(VERBOSE OFF)                 # enable to see verbose log when running cmake
 set(CMAKE_VERBOSE_MAKEFILE OFF)  # enable to see verbose log when running make (build)
 
-if (NOT DEFINED BOARD_NAME)
-    message("CMake is configured for development environment")
-    include_directories(config/board/rm_board_2018_a)  # default
-else ()
+if (DEFINED BOARD_NAME)
     message("CMake is configured for target device \"${BOARD_NAME}\".")
     include(config/cross_compile_toolchain.cmake)  # should be before project()
     include_directories(config/board/${BOARD_NAME})
+else ()
+    message("CMake is configured for development environment")
+    include_directories(config/board/rm_board_2018_a)  # default
 endif()
 
-project(Meta_Embedded ASM C CXX)
+if (DEFINED BOARD_NAME)
+    project(Meta_Embedded ASM C CXX)
+else()
+    project(Meta_Embedded C CXX)  # on the development machine, we don't need ASM (it makes CodeCoverage.cmake fails)
+endif()
 set(CMAKE_CXX_STANDARD 11)
 
 enable_testing()  # should be in the top-level CMakeLists.txt

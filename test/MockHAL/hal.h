@@ -6,6 +6,6 @@
 #define META_EMBEDDED_HAL_H
 
 #include "board.h"
-#include "hal_pal_stub.h"
+#include "mock_hal_pal.h"
 
 #endif //META_EMBEDDED_HAL_H

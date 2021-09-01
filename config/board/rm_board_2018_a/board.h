@@ -1344,8 +1344,8 @@
                                      PIN_AFIO_AF(GPIOI_PIN15, 0U))
 
 #define LED_ON_STATE                (0U)
-#define SET_LED_ON(port, pad)       palClearPad(port, pad)
-#define SET_LED_OFF(port, pad)      palSetPad(port, pad)
+#define SET_LED_ON                  palClearPad
+#define SET_LED_OFF                 palSetPad
 #define LED_GREEN_GPIO_PORT         GPIOF
 #define LED_GREEN_GPIO_PAD          GPIOF_LED_GREEN
 #define LED_RED_GPIO_PORT           GPIOE
