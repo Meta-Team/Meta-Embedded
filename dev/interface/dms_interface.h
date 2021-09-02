@@ -10,7 +10,7 @@
 #include "hal.h"
 #include "common_macro.h"
 
-#include "LED.h"
+#include "led.h"
 #include "shell.h"
 #include "buzzer_scheduler.h"
 

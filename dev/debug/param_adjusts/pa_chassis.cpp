@@ -5,7 +5,7 @@
 #include "ch.hpp"
 #include "hal.h"
 
-#include "LED.h"
+#include "led.h"
 #include "debug/shell/shell.h"
 #include "chassis_interface.h"
 #include "pid_controller.hpp"

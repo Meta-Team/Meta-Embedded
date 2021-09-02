@@ -8,7 +8,7 @@
 #include "ch.hpp"
 #include "hal.h"
 
-#include "LED.h"
+#include "led.h"
 #include "debug/shell/shell.h"
 #include "remote_interpreter.h"
 

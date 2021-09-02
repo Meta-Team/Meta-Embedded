@@ -4,7 +4,7 @@
 
 #include <CppUTest/TestHarness.h>
 #include <CppUTestExt/MockSupport.h>
-#include "LED.h"
+#include "led.h"
 #include "hal.h"
 
 TEST_GROUP(LED) {

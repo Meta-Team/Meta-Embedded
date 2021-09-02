@@ -6,7 +6,7 @@
 #define META_INFANTRY_USER_INFANTRY_H
 
 #include "ch.hpp"
-#include "LED.h"
+#include "led.h"
 
 #include "remote_interpreter.h"
 #include "referee_interface.h"

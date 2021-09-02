@@ -11,7 +11,7 @@
  * @{
  */
 
-#include "LED.h"
+#include "led.h"
 #include "buzzer_scheduler.h"
 
 extern "C" {

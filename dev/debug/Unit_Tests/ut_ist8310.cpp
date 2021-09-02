@@ -5,7 +5,7 @@
 #include "ch.hpp"
 #include "hal.h"
 
-#include "LED.h"
+#include "led.h"
 #include "debug/shell/shell.h"
 
 #include "interface/ahrs/imu_on_board.h"

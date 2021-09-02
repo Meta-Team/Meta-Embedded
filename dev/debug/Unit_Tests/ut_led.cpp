@@ -6,7 +6,7 @@
 #include "hal.h"
 
 #include "button_monitor.h"
-#include "LED.h"
+#include "led.h"
 #include "debug/shell/shell.h"
 
 using namespace chibios_rt;

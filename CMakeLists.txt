@@ -29,17 +29,8 @@ if (DEFINED BOARD_NAME)
 endif ()
 
 add_subdirectory(lib)
-add_subdirectory(test)
 
-include_directories(include)
-
-# =========== TODO: Legacy Code for Target Device ===========
-
-
-
-
-if (DEFINED BOARD_NAME)
-include_directories(  # common include directories
+include_directories(  # common include directories (also for test)
         dev
         dev/common
         dev/debug
@@ -51,14 +42,19 @@ include_directories(  # common include directories
         dev/logic
         dev/vehicle)
 
+add_subdirectory(test)
+
+# =========== TODO: Legacy Code for Target Device ===========
+
+if (DEFINED BOARD_NAME)
 set(BASE_SRC  # common cpp sources, which are included to every target at post configuration below
         dev/debug/shell/shell.cpp
         dev/debug/shell/shell_base.c
         dev/debug/shell/shell_base_cmd.c
         dev/debug/shell/shell_dbg_cmd.cpp
         dev/debug/shell/printf.c
-        src/LED.cpp
-        src/HaltHandler.cpp
+        dev/interface/led.cpp
+        dev/debug/halt_handler.cpp
         dev/interface/buzzer_interface.cpp
         dev/scheduler/buzzer_scheduler.cpp)
 

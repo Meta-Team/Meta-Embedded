@@ -4,7 +4,7 @@
 
 #include "ch.hpp"
 #include "hal.h"
-#include "LED.h"
+#include "led.h"
 #include "shell.h"
 #include "buzzer_scheduler.h"
 #include "engineer_gimbal.h"

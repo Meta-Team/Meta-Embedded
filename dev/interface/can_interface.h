@@ -16,7 +16,7 @@
 #include "ch.hpp"
 #include "hal.h"
 
-#include "LED.h"
+#include "led.h"
 #include "shell.h"
 
 #if defined(BOARD_RM_2018_A)

@@ -4,7 +4,7 @@
 
 #include "referee_interface.h"
 
-#include "LED.h"
+#include "led.h"
 #include "shell.h"
 
 #include "CRC16.h"

@@ -6,7 +6,7 @@
 #include "CRC16.h"
 #include "CRC8.h"
 #include "shell.h"
-#include "LED.h"
+#include "led.h"
 #include "gimbal_scheduler.h"
 
 EVENTSOURCE_DECL(VisionIF::command_received_event);

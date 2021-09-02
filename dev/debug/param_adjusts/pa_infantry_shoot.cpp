@@ -14,7 +14,7 @@
 
 #include "remote_interpreter.h"
 
-#include "LED.h"
+#include "led.h"
 #include "debug/shell/shell.h"
 #include "interface/gimbal_interface.h"
 #include "module/pid_controller.hpp"

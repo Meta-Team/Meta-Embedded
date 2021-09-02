@@ -66,7 +66,7 @@ include_directories(${PROJECT_SOURCE_DIR}/include)
 add_unit_test(HelloTest.cpp
         ALSO_ON_TARGET)
 add_unit_test(LEDTest.cpp
-        ${PROJECT_SOURCE_DIR}/src/LED.cpp
+        ${PROJECT_SOURCE_DIR}/dev/interface/led.cpp
         WITH_HAL ALSO_ON_TARGET)
 
 
