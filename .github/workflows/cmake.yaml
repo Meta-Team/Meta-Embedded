@@ -44,7 +44,7 @@ jobs:
       - name: Run CTest and Calculate Coverage
         working-directory: ${{github.workspace}}/build
         run: |
-          make ctests_coverage
+          make ctest_coverage
 
       - name: Upload Coverage to Coveralls
         uses: coverallsapp/github-action@master
