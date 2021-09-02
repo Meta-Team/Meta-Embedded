@@ -71,15 +71,10 @@ add_unit_test(LEDTest.cpp
 
 
 if (TEST_COVERAGE_ENABLED)
-    setup_target_for_coverage_gcovr_html(
+    setup_target_for_coverage_lcov(
             NAME ctest_coverage
             EXECUTABLE ctest -j ${PROCESSOR_COUNT}
             DEPENDENCIES ${TEST_MAIN_TARGET}
             EXCLUDE "${PROJECT_SOURCE_DIR}/lib/*"
     )
-    add_custom_target(clean_gcda
-            COMMAND find ${PROJECT_BINARY_DIR} -name "*.gcda" -delete
-            COMMENT "Removing original .gcda files..."
-            )
-    add_dependencies(ctest_coverage clean_gcda)
 endif ()
