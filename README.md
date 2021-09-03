@@ -3,6 +3,8 @@ Meta-Embedded
 
 ![CMake Badge](https://github.com/Meta-Team/Meta-Infantry/actions/workflows/cmake.yaml/badge.svg)
 
+(Incomplete) [![Coverage Status](https://coveralls.io/repos/github/Meta-Team/Meta-Infantry/badge.svg?branch=future)](https://coveralls.io/github/Meta-Team/Meta-Infantry?branch=future)
+
 => 请务必阅读 [Project Wiki](https://github.com/Meta-Team/Meta-Infantry/wiki) :smiley:
 
 ZJU-UIUC Meta 战队 RoboMaster 嵌入式程序工程，基于 ChibiOS 操作系统，使用 C 和 C++。

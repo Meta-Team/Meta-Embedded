@@ -17,7 +17,7 @@ endif ()
 # add_unit_test(MainTestFile.cpp
 #               OtherSourceFile.cpp
 #               ALSO_ON_TARGET         # enable this test for the target board (BOARD_NAME defined)
-#               WITH_HAL               # link against HAL (on target) or MockHAL (on development)
+#               WITH_HAL               # link against HAL (on target) or mock_hal (on development)
 #)
 function(add_unit_test)
     if (${ARGC} LESS 1)
@@ -39,7 +39,7 @@ function(add_unit_test)
     list(GET src_list 0 main_src)
     get_filename_component(test_name "${main_src}" NAME_WE)
 
-    add_executable(${test_name} ${src_list} TestRunner.cpp)
+    add_executable(${test_name} ${src_list} test_runner.cpp)
     target_include_directories(${test_name} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})   # prioritize testing headers
     add_unit_test_to_test_framework(${test_name})
 
@@ -58,14 +58,14 @@ function(add_unit_test)
 endfunction()
 
 if (NOT DEFINED BOARD_NAME)
-    add_subdirectory(MockHAL)
+    add_subdirectory(mock_hal)
 endif ()
 
 include_directories(${PROJECT_SOURCE_DIR}/include)
 
-add_unit_test(HelloTest.cpp
+add_unit_test(hello_test.cpp
         ALSO_ON_TARGET)
-add_unit_test(LEDTest.cpp
+add_unit_test(led_test.cpp
         ${PROJECT_SOURCE_DIR}/dev/interface/led.cpp
         WITH_HAL ALSO_ON_TARGET)
 
