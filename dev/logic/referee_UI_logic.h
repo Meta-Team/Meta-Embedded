@@ -25,17 +25,17 @@ private:
     static void set_vision_bullet_speed(float speed);
 
     static const char cap_name[3];
-    static char cap_title[31];
+    static char cap_title[64];
     static RefereeUISKD::color_t cap_volt_line_color;
     static unsigned long cap_update_time;
 
     static const char bullet_case_name[3];
-    static char bullet_case_title[31];
+    static char bullet_case_title[64];
     static RefereeUISKD::color_t bullet_case_color;
     static unsigned long bullet_case_update_time;
 
     static const char dodge_name[3];
-    static char dodge_title[31];
+    static char dodge_title[64];
     static RefereeUISKD::color_t dodge_line_color;
     static unsigned long dodge_update_time;
 
@@ -58,10 +58,10 @@ private:
     static RefereeUISKD::color_t main_enemy_line_color;
 
     static const char vision_name[3];
-    static char vision_title[31];
+    static char vision_title[64];
     static int vision_displayed_bullet_speed;  // [mm/s]
 
-    static float cap_volt;
+    static int cap_volt;  // [0.1V]
     static bool bullet_case_opened;
     static bool dodge_mode_enabled;
     static int remaining_bullet_count;
@@ -77,7 +77,7 @@ private:
     static void update_vision_line();
     static void update_chassis_shape();
 
-    class DataFetchThread: public chibios_rt::BaseStaticThread<256> {
+    class DataFetchThread: public chibios_rt::BaseStaticThread<1024> {
         void main() override;
     };
 

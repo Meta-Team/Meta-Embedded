@@ -25,20 +25,18 @@ ShootLG::limit_mode_t ShootLG::mode = UNLIMITED_MODE;
 float ShootLG::angle_per_bullet = 0;
 int ShootLG::remaining_bullet_count = 0;
 float ShootLG::target_bullet_count = 0;
+float ShootLG::target_bullet_loader_velocity = 0;
 ShootLG::shooter_state_t ShootLG::shooter_state = STOP;
 bool ShootLG::use_42mm_bullet = false;
-float ShootLG::fw_mm_to_deg_ratio = 0;
 ShootLG::StuckDetectorThread ShootLG::stuck_detector_thread;
 chibios_rt::ThreadReference ShootLG::stuck_detector_ref;
 ShootLG::BulletCounterThread ShootLG::bullet_counter_thread;
 ShootLG::VisionShootThread ShootLG::vision_shoot_thread;
 
-void ShootLG::init(float angle_per_bullet_, bool use_42mm_bullet_, float fw_circumference_,
-                   tprio_t stuck_detector_thread_prio,
+void ShootLG::init(float angle_per_bullet_, bool use_42mm_bullet_, tprio_t stuck_detector_thread_prio,
                    tprio_t bullet_counter_thread_prio, tprio_t vision_shooting_thread_prio) {
     angle_per_bullet = angle_per_bullet_;
     use_42mm_bullet = use_42mm_bullet_;
-    fw_mm_to_deg_ratio = 1.0f;
     stuck_detector_ref = stuck_detector_thread.start(stuck_detector_thread_prio);
     bullet_counter_thread.start(bullet_counter_thread_prio);
     vision_shoot_thread.start(vision_shooting_thread_prio);
@@ -57,11 +55,11 @@ int ShootLG::get_remaining_bullet_count() {
 }
 
 void ShootLG::set_shoot_speed(float speed) {
-    ShootSKD::set_friction_wheels(speed * fw_mm_to_deg_ratio);
+    ShootSKD::set_friction_wheels(speed);
 }
 
 float ShootLG::get_shoot_speed() {
-    return ShootSKD::get_friction_wheels_target_velocity() / fw_mm_to_deg_ratio;
+    return ShootSKD::get_friction_wheels_target_velocity();
 }
 
 ShootLG::shooter_state_t ShootLG::get_shooter_state() {
@@ -85,11 +83,12 @@ void ShootLG::shoot(float number_of_bullet, float number_per_second) {
     }
 
     target_bullet_count = number_of_bullet;
+    target_bullet_loader_velocity = number_per_second * angle_per_bullet;
 
     shooter_state = SHOOTING;
     ShootSKD::reset_loader_accumulated_angle();
     ShootSKD::set_mode(ShootSKD::LIMITED_SHOOTING_MODE);
-    ShootSKD::set_loader_target_velocity(number_per_second * angle_per_bullet);
+    ShootSKD::set_loader_target_velocity(target_bullet_loader_velocity);
     ShootSKD::set_loader_target_angle(target_bullet_count * angle_per_bullet);
     chSysLock();  /// --- ENTER S-Locked state. DO NOT use LOG, printf, non S/I-Class functions or return ---
     {
@@ -191,62 +190,36 @@ void ShootLG::BulletCounterThread::main() {
 void ShootLG::VisionShootThread::main() {
     setName("ShootLG_Vision");
 
-    LowPassFilteredValue measuredShootDelay(0.8);
-
-    chEvtRegisterMask(&VisionSKD::shoot_time_updated_event, &vision_listener, VISION_UPDATED_EVENT_MASK);
+    chEvtRegisterMask(&Vision::shoot_time_updated_event, &vision_listener, EVENT_MASK(0));
 
     while (!shouldTerminate()) {
-
-        chEvtWaitAny(VISION_UPDATED_EVENT_MASK);
+        chEvtWaitAny(ALL_EVENTS);
 
         if (mode == VISION_LIMITED_MODE) {
 
-            time_msecs_t expected_shoot_time, command_issue_time;
+            time_msecs_t expected_shoot_time;
             chSysLock();  /// --- ENTER S-Locked state. DO NOT use LOG, printf, non S/I-Class functions or return ---
             {
-                expected_shoot_time = VisionSKD::get_expected_shoot_time();
-                command_issue_time = VisionSKD::get_last_compute_time();  // FIXME: not correct
+                expected_shoot_time = Vision::get_expected_shoot_time();
             }
             chSysUnlock();  /// --- EXIT S-Locked state ---
-            int64_t time_delta = (int64_t) expected_shoot_time - (int64_t) (SYSTIME);
 
-            if (time_delta > 0) {
-                // TODO: circular wait
-                sleep(TIME_MS2I(time_delta));  // wait for the remaining time
-            }
+            if (expected_shoot_time == 0) {
 
-            float target_angle = SHOOT_BULLET_COUNT * angle_per_bullet;
+                ShootSKD::set_loader_target_velocity(target_bullet_loader_velocity);
 
-            // Shoot
-            ShootSKD::set_mode(ShootSKD::LIMITED_SHOOTING_MODE);
-            ShootSKD::reset_loader_accumulated_angle();
-            ShootSKD::set_loader_target_velocity(SHOOT_BULLET_SPEED * angle_per_bullet);
-            ShootSKD::set_loader_target_angle(target_angle);
-
-            // Wait for ShootSKD to achieve the target
-            while (ShootSKD::get_mode() == ShootSKD::LIMITED_SHOOTING_MODE &&
-                   ShootSKD::get_loader_target_angle() == target_angle &&
-                   target_angle - ShootSKD::get_loader_accumulated_angle() < 0.5 * angle_per_bullet) {
-
-                sleep(TIME_MS2I(5));
-            }
-
-            // Update measured shoot delay
-            if (ShootSKD::get_mode() == ShootSKD::LIMITED_SHOOTING_MODE &&
-                ShootSKD::get_loader_target_angle() == target_angle) {  // make sure there is no interference
-
-                chSysLock();  /// --- ENTER S-Locked state. DO NOT use LOG, printf, non S/I-Class functions or return ---
-                {
-                    measuredShootDelay.update(SYSTIME - command_issue_time);
-                }
-                chSysUnlock();  /// --- EXIT S-Locked state ---
             } else {
-                //LOG_WARN("ShootLG_Vision: shoot delay not updated");
+
+                int64_t time_delta = (int64_t) expected_shoot_time - (int64_t) (SYSTIME);
+                if (time_delta > 0) {
+                    ShootSKD::set_loader_target_velocity(0);               // stop shooting
+                    sleep(TIME_MS2I(time_delta));                                   // wait
+                    ShootSKD::set_loader_target_velocity(target_bullet_loader_velocity);    // restore shooting
+                }
+
+                // Wait for some time
+                sleep(TIME_MS2I(WAIT_TIME_BETWEEN_SHOOTS));
             }
-
-            // Wait for some time
-            sleep(TIME_MS2I(WAIT_TIME_BETWEEN_SHOOTS));
-
         }  // otherwise, discard the event
     }
 }

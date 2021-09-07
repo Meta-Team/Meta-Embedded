@@ -10,6 +10,7 @@
 #include "shell_base.h"
 #include "printf.h"
 #include "shell_dbg_cmd.h"
+#include <memstreams.h>
 
 using namespace chibios_rt;
 
@@ -124,14 +125,35 @@ int Shell::printfI(const char *fmt, ...) {
 }
 
 int Shell::snprintf(char *str, size_t size, const char *fmt, ...) {
-    va_list ap;
-    int ret;
+    // Copy and paste from ChibiOS, as ... argument cannot be passed as another ..., but va_list
 
+    va_list ap;
+    MemoryStream ms;
+    BaseSequentialStream *chp;
+    size_t size_wo_nul;
+    int retval;
+
+    if (size > 0)
+        size_wo_nul = size - 1;
+    else
+        size_wo_nul = 0;
+
+    /* Memory stream object to be used as a string writer, reserving one
+       byte for the final zero.*/
+    msObjectInit(&ms, (uint8_t *) str, size_wo_nul, 0);
+
+    /* Performing the print operation using the common code.*/
+    chp = (BaseSequentialStream *) (void *) &ms;
     va_start(ap, fmt);
-    ret = chsnprintf(str, size, fmt, ap);
+    retval = chvprintf(chp, fmt, ap);
     va_end(ap);
 
-    return ret;
+    /* Terminate with a zero, unless size==0.*/
+    if (ms.eos < size)
+        str[ms.eos] = 0;
+
+    /* Return number of bytes that would have been written.*/
+    return retval;
 }
 
 void Shell::usage(const char *message) {

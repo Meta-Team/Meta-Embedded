@@ -87,6 +87,7 @@ set(CHASSIS_SRC
 set(VISION_SRC
         dev/interface/vision_interface.cpp
         dev/scheduler/vision_scheduler.cpp
+#        dev/interface/vision.cpp
         )
 
 set(REFEREE_SRC

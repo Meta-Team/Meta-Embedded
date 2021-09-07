@@ -107,7 +107,7 @@ public:
      * @param pitch_target_angle  GIMBAL pitch target ACCUMULATED angle on ground coordinate [degree]
      * @param sub_pitch_target_angle  GIMBAL sub-pitch target ACCUMULATED angle on pitch coordinate [degree]
      */
-    static void set_target_angle(float yaw_target_angle, float pitch_target_angle, float sub_pitch_target_angle);
+    static void set_target_angle(float yaw_target_angle, float pitch_target_angle, float sub_pitch_target_angle = 0);
 
     /**
      * Get current target angle data

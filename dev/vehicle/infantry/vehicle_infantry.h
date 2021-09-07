@@ -14,6 +14,9 @@
 
 /// Gimbal and Shoot Installation Configurations
 
+#define GIMBAL_PITCH_MIN_ANGLE  (-30)  // up range for pitch [degree]
+#define GIMBAL_PITCH_MAX_ANGLE  (10)  //  down range for pitch [degree]
+
 #define GIMBAL_YAW_CAN_CHANNEL      (GimbalIF::can_channel_2)
 #define GIMBAL_PITCH_CAN_CHANNEL    (GimbalIF::can_channel_1)
 #define GIMBAL_SUB_PITCH_CAN_CHANNEL (GimbalIF::none_can_channel)
@@ -39,8 +42,8 @@
 #define GIMBAL_PITCH_MOTOR_DR       (CANInterface::DEFAULT_DECELERATION_RATIO)
 #define GIMBAL_SUB_PITCH_MOTOR_DR   (CANInterface::DEFAULT_DECELERATION_RATIO)
 #define SHOOT_BULLET_MOTOR_DR       (CANInterface::M2006_WITH_DECELERATION_RATIO)
-#define GIMBAL_FW_LEFT_MOTOR_DR     (CANInterface::DEFAULT_DECELERATION_RATIO)
-#define GIMBAL_FW_RIGHT_MOTOR_DR    (CANInterface::DEFAULT_DECELERATION_RATIO)
+#define GIMBAL_FW_LEFT_MOTOR_DR     (CANInterface::M3508_WITH_DECELERATION_RATIO)  // FIXME: FW don't have DECELERATION_RATIO
+#define GIMBAL_FW_RIGHT_MOTOR_DR    (CANInterface::M3508_WITH_DECELERATION_RATIO)
 
 #define GIMBAL_MOTOR_CONFIG \
 { {GIMBAL_YAW_CAN_CHANNEL,          GIMBAL_YAW_CAN_ID,          GIMBAL_YAW_MOTOR_TYPE,          GIMBAL_YAW_MOTOR_DR}, \
@@ -147,9 +150,6 @@
 #define GIMBAL_PID_SUB_PITCH_V2I_PARAMS \
     {GIMBAL_PID_SUB_PITCH_V2I_KP, GIMBAL_PID_SUB_PITCH_V2I_KI, GIMBAL_PID_SUB_PITCH_V2I_KD, \
     GIMBAL_PID_SUB_PITCH_V2I_I_LIMIT, GIMBAL_PID_SUB_PITCH_V2I_OUT_LIMIT}
-
-/// Chassis Mechanism Parameters
-#define SHOOT_FW_CIRCUMFERENCE         15.0f  // [mm]
 
 /// Shoot PID Parameters
 #define SHOOT_PID_BULLET_LOADER_A2V_KP 20.0f  // a number large enough, see shoot speed note at ShootSKD

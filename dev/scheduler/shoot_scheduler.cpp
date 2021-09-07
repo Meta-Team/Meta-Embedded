@@ -160,27 +160,28 @@ const Shell::Command ShootSKD::shellCommands[] = {
 
 DEF_SHELL_CMD_START(ShootSKD::cmdInfo)
     Shell::printf("_s:Shoot" ENDL);
-    Shell::printf("_s/Bullet:Angle{Target,Actual} Velocity{Target,Actual} Current{Target,Actual}" ENDL);
-    Shell::printf("_s/FW_Left:Velocity{Target,Actual} Current{Target,Actual}" ENDL);
-    Shell::printf("_s/FW_Right:Velocity{Target,Actual} Current{Target,Actual}" ENDL);
+    Shell::printf("_s/Bullet:Angle{Actual,Target} Velocity{Actual,Target} Current{Actual,Target}" ENDL);
+    Shell::printf("_s/FW_Left:Velocity{Actual,Target} Current{Actual,Target}" ENDL);
+    Shell::printf("_s/FW_Right:Velocity{Actual,Target} Current{Actual,Target}" ENDL);
     return true;
 DEF_SHELL_CMD_END
 
 static bool feedbackEnabled[3] = {false, false, false};
 
 void ShootSKD::cmdFeedback(void *) {
-    if (feedbackEnabled[0]) Shell::printf("_s0 %.2f %.2f %.2f %.2f %d %d" ENDL,
-                                          actual_angle, target_angle,
-                                          actual_velocity[0], target_velocity[0],
-                                          GimbalIF::feedback[BULLET]->actual_current, *GimbalIF::target_current[BULLET]);
-
-    if (feedbackEnabled[1]) Shell::printf("_s1 %.2f %.2f %d %d" ENDL,
-                                          actual_velocity[1], target_velocity[1],
-                                          GimbalIF::feedback[FW_LEFT]->actual_current, *GimbalIF::target_current[FW_LEFT]);
-
-    if (feedbackEnabled[2]) Shell::printf("_s2 %.2f %.2f %d %d" ENDL,
-                                          actual_velocity[2], target_velocity[2],
-                                          GimbalIF::feedback[FW_RIGHT]->actual_current, *GimbalIF::target_current[FW_RIGHT]);
+    if (feedbackEnabled[0]) {
+        Shell::printf("_s0 %.2f %.2f %.2f %.2f %d %d" ENDL,
+                      actual_angle, target_angle,
+                      actual_velocity[0], target_velocity[0],
+                      GimbalIF::feedback[3]->actual_current, *GimbalIF::target_current[3]);
+    }
+    for (int i = 1; i < 3; i++) {
+        if (feedbackEnabled[i]) {
+            Shell::printf("_s%d %.2f %.2f %d %d" ENDL, i,
+                          actual_velocity[i], target_velocity[i],
+                          GimbalIF::feedback[3 + i]->actual_current, *GimbalIF::target_current[3 + i]);
+        }
+    }
 }
 
 DEF_SHELL_CMD_START(ShootSKD::cmdEnableFeedback)

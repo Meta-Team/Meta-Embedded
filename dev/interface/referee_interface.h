@@ -46,8 +46,8 @@ public:
 
     static constexpr uint16_t GAME_STATE_CMD_ID = 0x0001;
     __PACKED_STRUCT game_state_t {
-        uint8_t game_type : 4;
-        uint8_t game_progress : 4;
+        uint8_t game_type: 4;
+        uint8_t game_progress: 4;
         uint16_t stage_remain_time;
         uint64_t SyncTimeStamp;
     };
@@ -74,22 +74,23 @@ public:
         uint16_t blue_5_robot_HP;
         uint16_t blue_7_robot_HP;
         uint16_t blue_outpost_HP;
-        uint16_t blue_base_HP; };
+        uint16_t blue_base_HP;
+    };
 
-    static constexpr uint16_t  GAME_ROBOT_ICRA_CMD_ID = 0x0005;
+    static constexpr uint16_t GAME_ROBOT_ICRA_CMD_ID = 0x0005;
     __PACKED_STRUCT icra_data_t {
-        uint8_t F1_zone_status:1;
-        uint8_t F1_zone_buff_debuff_status:3;
-        uint8_t F2_zone_status:1;
-        uint8_t F2_zone_buff_debuff_status:3;
-        uint8_t F3_zone_status:1;
-        uint8_t F3_zone_buff_debuff_status:3;
-        uint8_t F4_zone_status:1;
-        uint8_t F4_zone_buff_debuff_status:3;
-        uint8_t F5_zone_status:1;
-        uint8_t F5_zone_buff_debuff_status:3;
-        uint8_t F6_zone_status:1;
-        uint8_t F6_zone_buff_debuff_status:3;
+        uint8_t F1_zone_status: 1;
+        uint8_t F1_zone_buff_debuff_status: 3;
+        uint8_t F2_zone_status: 1;
+        uint8_t F2_zone_buff_debuff_status: 3;
+        uint8_t F3_zone_status: 1;
+        uint8_t F3_zone_buff_debuff_status: 3;
+        uint8_t F4_zone_status: 1;
+        uint8_t F4_zone_buff_debuff_status: 3;
+        uint8_t F5_zone_status: 1;
+        uint8_t F5_zone_buff_debuff_status: 3;
+        uint8_t F6_zone_status: 1;
+        uint8_t F6_zone_buff_debuff_status: 3;
         uint16_t red1_bullet_left;
         uint16_t red2_bullet_left;
         uint16_t blue1_bullet_left;
@@ -130,23 +131,23 @@ public:
 
     static constexpr uint16_t GAME_ROBOT_STATE_CMD_ID = 0x0201;
     __PACKED_STRUCT game_robot_state_t {
-            uint8_t robot_id;
-            uint8_t robot_level;
-            uint16_t remain_HP;
-            uint16_t max_HP;
-            uint16_t shooter_id1_17mm_cooling_rate;
-            uint16_t shooter_id1_17mm_cooling_limit;
-            uint16_t shooter_id1_17mm_speed_limit;
-            uint16_t shooter_id2_17mm_cooling_rate;
-            uint16_t shooter_id2_17mm_cooling_limit;
-            uint16_t shooter_id2_17mm_speed_limit;
-            uint16_t shooter_id1_42mm_cooling_rate;
-            uint16_t shooter_id1_42mm_cooling_limit;
-            uint16_t shooter_id1_42mm_speed_limit;
-            uint16_t chassis_power_limit;
-            uint8_t mains_power_gimbal_output : 1;
-            uint8_t mains_power_chassis_output : 1;
-            uint8_t mains_power_shooter_output : 1;
+        uint8_t robot_id;
+        uint8_t robot_level;
+        uint16_t remain_HP;
+        uint16_t max_HP;
+        uint16_t shooter_id1_17mm_cooling_rate;
+        uint16_t shooter_id1_17mm_cooling_limit;
+        uint16_t shooter_id1_17mm_speed_limit;
+        uint16_t shooter_id2_17mm_cooling_rate;
+        uint16_t shooter_id2_17mm_cooling_limit;
+        uint16_t shooter_id2_17mm_speed_limit;
+        uint16_t shooter_id1_42mm_cooling_rate;
+        uint16_t shooter_id1_42mm_cooling_limit;
+        uint16_t shooter_id1_42mm_speed_limit;
+        uint16_t chassis_power_limit;
+        uint8_t mains_power_gimbal_output: 1;
+        uint8_t mains_power_chassis_output: 1;
+        uint8_t mains_power_shooter_output: 1;
     };
 
     static constexpr uint16_t POWER_HEAT_DATA_CMD_ID = 0x0202;
@@ -180,8 +181,8 @@ public:
 
     static constexpr uint16_t ROBOT_HURT_CMD_ID = 0x0206;
     __PACKED_STRUCT robot_hurt_t {
-        uint8_t armor_id : 4;
-        uint8_t hurt_type : 4;
+        uint8_t armor_id: 4;
+        uint8_t hurt_type: 4;
     };
 
     static constexpr uint16_t SHOOT_DATA_CMD_ID = 0x0207;
@@ -229,18 +230,18 @@ public:
 
     __PACKED_STRUCT graphic_data_struct_t {
         uint8_t graphic_name[3];
-        uint32_t operate_type:3;
-        uint32_t graphic_type:3;
-        uint32_t layer:4;
-        uint32_t color:4;
-        uint32_t start_angle:9;
-        uint32_t end_angle:9;
-        uint32_t width:10;
-        uint32_t start_x:11;
-        uint32_t start_y:11;
-        uint32_t radius:10;
-        uint32_t end_x:11;
-        uint32_t end_y:11;
+        uint32_t operate_type: 3;
+        uint32_t graphic_type: 3;
+        uint32_t layer: 4;
+        uint32_t color: 4;
+        uint32_t start_angle: 9;
+        uint32_t end_angle: 9;
+        uint32_t width: 10;
+        uint32_t start_x: 11;
+        uint32_t start_y: 11;
+        uint32_t radius: 10;
+        uint32_t end_x: 11;
+        uint32_t end_y: 11;
     };
 
     __PACKED_STRUCT ext_client_custom_graphic_single_t {
@@ -266,7 +267,7 @@ public:
 
     __PACKED_STRUCT client_custom_data_t {
         student_interactive_header_data_t header;
-        union{
+        union {
             ext_client_custom_graphic_delete_t ext_client_custom_graphic_delete;
             ext_client_custom_graphic_single_t ext_client_custom_graphic_single;
             ext_client_custom_graphic_double_t ext_client_custom_graphic_double;
@@ -276,13 +277,13 @@ public:
         };
     };
 
-    __PACKED_STRUCT aerial_to_sentry_t{
-        uint8_t direction_mask : 4;
+    __PACKED_STRUCT aerial_to_sentry_t {
+        uint8_t direction_mask: 4;
     };
 
     __PACKED_STRUCT robot_interactive_data_t {
         student_interactive_header_data_t header;
-        union{
+        union {
             aerial_to_sentry_t aerial_to_sentry_;
         };
     };
@@ -314,7 +315,7 @@ public:
     /**
      * Start referee interface
      */
-    static void init(tprio_t sending_thread_prio);
+    static void init();
 
     /**
      * Get current robotic ID
@@ -322,13 +323,17 @@ public:
      */
     static uint8_t get_self_id();
 
-    static bool set_graphic(graphic_data_struct_t graphData);
+    static bool add_tx_graphic(const graphic_data_struct_t &graph_data);
 
-    static bool set_title(ext_client_custom_character_t characterData);
+    static void set_tx_data_for_deleting_all();
 
-    static void remove_all_blocking();
+    static void set_tx_data_for_deleting_layer(uint32_t layer);
 
-    static void remove_layer_blocking(uint32_t layer);
+    static void set_tx_data_for_label(const ext_client_custom_character_t &character_data);
+
+    static void set_tx_data_for_graphics();
+
+    static void send_tx_data();
 
 #if REFEREE_USE_EVENTS
 
@@ -341,6 +346,9 @@ public:
 
 private:
 
+    static int graphic_buffer_index;
+    static graphic_data_struct_t graphic_data_buffer[7];
+
     static client_custom_data_t client_custom_data;
 
     /**
@@ -349,14 +357,6 @@ private:
      * @param data_cmd_id   Command ID in data section, only available when sending data to other robots
      */
     static void send_data_(receiver_index_t receiver_id);
-
-    static bool to_send_client;
-
-    class DataSendingThread : public chibios_rt::BaseStaticThread<512> {
-        void main() final;
-    };
-
-    static DataSendingThread dataSendingThread;
 
     enum rx_status_t {
         WAIT_STARTING_BYTE,  // receive bytes one by one, waiting for 0xA5
@@ -400,7 +400,7 @@ private:
             robot_interactive_data_t robot_interactive_data_;
             client_custom_data_t client_custom_data_;
         };
-        uint16_t tail;
+        uint16_t tail;  // offset is not correct since union takes the maximal size of its elements, do not use directly
     } pak;
 
     static constexpr size_t FRAME_HEADER_SIZE = 5;
@@ -417,16 +417,6 @@ private:
     // See cpp file for configs
     static constexpr UARTDriver *UART_DRIVER = &UARTD7;
     static const UARTConfig UART_CONFIG;
-
-    static int graphic_buffer_index;
-    static graphic_data_struct_t graphic_data_buffer[7];
-    static bool client_character_sent;
-    static ext_client_custom_character_t client_character_buffer;
-
-    static bool invoke_ui_delete_all;
-    static bool invoke_ui_delete_layer;
-
-    static uint32_t layer_deleting;
 };
 
 

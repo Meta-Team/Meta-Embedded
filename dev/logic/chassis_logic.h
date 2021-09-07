@@ -74,8 +74,6 @@ public:
      */
     static void set_target(float vx, float vy);
 
-    static void set_rotate_speed(float speed);
-
 private:
     static PIDController dodge_omega_power_pid;
 

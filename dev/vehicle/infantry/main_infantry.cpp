@@ -112,9 +112,7 @@ int main() {
     SuperCapacitor::init(&can2, THREAD_SUPERCAP_INIT_PRIO);
 
     /// Setup Referee
-    Referee::init(THREAD_REFEREE_SENDING_PRIO);
-    RefereeUISKD::init(THREAD_REFEREE_SKD_PRIO);
-    RefereeUILG::reset();
+    Referee::init();
 
     /// Complete Period 1
     LED::green_on();  // LED Green on now
@@ -145,16 +143,18 @@ int main() {
 
 
     /// Setup GimbalIF (for Gimbal and Shoot)
-    GimbalIF::init(&can1, &can2, GIMBAL_MOTOR_CONFIG_, GIMBAL_YAW_FRONT_ANGLE_RAW, GIMBAL_PITCH_FRONT_ANGLE_RAW, GIMBAL_SUB_PITCH_FRONT_ANGLE_RAW, MotorIFBase::can_channel_1);
+    GimbalIF::init(&can1, &can2, GIMBAL_MOTOR_CONFIG_, GIMBAL_YAW_FRONT_ANGLE_RAW, GIMBAL_PITCH_FRONT_ANGLE_RAW, 0 /* not used */, MotorIFBase::none_can_channel /* not used */);
     chThdSleepMilliseconds(2000);  // wait for C610 to be online and friction wheel to reset
-    InspectorI::startup_check_gimbal_feedback(); // check gimbal motors has continuous feedback. Block for 20 ms
+    // FIXME: revert for development
+    // InspectorI::startup_check_gimbal_feedback(); // check gimbal motors has continuous feedback. Block for 20 ms
     LED::led_on(DEV_BOARD_LED_GIMBAL);  // LED 5 on now
 
 
     /// Setup ChassisIF
     ChassisIF::init(&can1, &can2, CHASSIS_MOTOR_CONFIG_);
     chThdSleepMilliseconds(10);
-    InspectorI::startup_check_chassis_feedback();  // check chassis motors has continuous feedback. Block for 20 ms
+    // FIXME: revert for development
+    // InspectorI::startup_check_chassis_feedback();  // check chassis motors has continuous feedback. Block for 20 ms
     LED::led_on(DEV_BOARD_LED_CHASSIS);  // LED 6 on now
 
 
@@ -190,16 +190,19 @@ int main() {
     Shell::addFeedbackCallback(ChassisSKD::cmdFeedback);
 
     /// Start LGs
-    GimbalLG::init(THREAD_GIMBAL_LG_VISION_PRIO, THREAD_GIMBAL_LG_SENTRY_PRIO);
-    ShootLG::init(SHOOT_DEGREE_PER_BULLET, true, 10, THREAD_SHOOT_LG_STUCK_DETECT_PRIO, THREAD_SHOOT_BULLET_COUNTER_PRIO, THREAD_SHOOT_LG_VISION_PRIO);
+    GimbalLG::init(THREAD_GIMBAL_LG_VISION_PRIO, IDLEPRIO /* not used */, GIMBAL_PITCH_MIN_ANGLE,
+                   GIMBAL_PITCH_MAX_ANGLE, 0, 0);
+    ShootLG::init(SHOOT_DEGREE_PER_BULLET, false, THREAD_SHOOT_LG_STUCK_DETECT_PRIO, THREAD_SHOOT_BULLET_COUNTER_PRIO, THREAD_SHOOT_LG_VISION_PRIO);
     ChassisLG::init(THREAD_CHASSIS_LG_DODGE_PRIO, THREAD_CHASSIS_POWER_SET_PRIO, CHASSIS_DODGE_MODE_THETA, CHASSIS_BIASED_ANGLE, CHASSIS_LOGIC_DODGE_OMEGA2VOLT_PARAMS);
 
     /// Setup Vision
-    VisionIF::init();  // must be put after initialization of GimbalSKD
-    VisionSKD::start(VISION_BASIC_CONTROL_DELAY, THREAD_VISION_SKD_PRIO);
-    VisionSKD::set_bullet_speed(VISION_DEFAULT_BULLET_SPEED);
-    Shell::addFeedbackCallback(VisionSKD::cmd_feedback);
-    Shell::addCommands(VisionSKD::shell_commands);
+    VisionIF::init();
+    Vision::start(VISION_BASIC_CONTROL_DELAY, THREAD_VISION_SKD_PRIO);
+    Shell::addFeedbackCallback(Vision::cmd_feedback);
+    Shell::addCommands(Vision::shell_commands);
+
+    RefereeUISKD::init(THREAD_REFEREE_SKD_PRIO);
+    RefereeUILG::start(THREAD_REFEREE_LD_PRIO);
 
     /// Start Inspector and User Threads
     InspectorI::start_inspection(THREAD_INSPECTOR_PRIO);

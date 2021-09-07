@@ -16,6 +16,7 @@ public:
     enum vision_flag_t : uint8_t {
         NONE = 0,
         DETECTED = 1,
+        TOP_KILLER_TRIGGERED,
     };
 
     __PACKED_STRUCT vision_command_t {
@@ -27,7 +28,14 @@ public:
         int16_t avg_light_angle;    // [deg] * 100
         int16_t imageX;             // pixel
         int16_t imageY;             // pixel
+        int16_t remaining_time_to_target;  // [ms]
+        int16_t period;                 // [ms]
     };
+
+    /**
+     * Received updated gimbal target.
+     */
+    static event_source_t command_received_event;
 
     static time_msecs_t get_last_valid_update_time() { return last_valid_update_time; }
 

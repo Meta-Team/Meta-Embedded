@@ -70,10 +70,6 @@ public:
 
     static void remove_layer(uint32_t layer);
 
-    static bool remove_shape(const char name[3]);
-
-    static bool remove_label(const char *name);
-
     static void remove_all();
 
     static void echo_shapes();
@@ -84,7 +80,7 @@ public:
 
     enum component_state_t{
         FINISHED,
-        REVISING
+        REVISING,
     };
 
     static component_state_t shape_state[REFEREE_UI_MAX_SHAPE_COUNT];
@@ -96,14 +92,27 @@ public:
     static Referee::ext_client_custom_character_t labels[REFEREE_UI_MAX_LABEL_COUNT];
     static long unsigned label_last_revision_time[REFEREE_UI_MAX_LABEL_COUNT];
     static int label_count;
+
+    static mutex_t buffer_mutex;
+
     static int strlen(char *s);
 
     class SKDThread : public chibios_rt::BaseStaticThread<512> {
     private:
-        int SKD_THREAD_INTERVAL = 100;
+        static constexpr unsigned SEND_INTERVAL = 110;
         void main() final;
     };
     static SKDThread skdThread;
+
+    static bool invoke_ui_delete_all;
+
+    static bool invoke_ui_delete_layer;
+    static uint32_t layer_deleting;
+
+    static bool send_deleting_all_if_requested();
+    static bool send_deleting_layer_if_requested();
+    static bool send_graphics_updates_if_requested();
+    static bool send_label_update_if_requested();
 };
 
 

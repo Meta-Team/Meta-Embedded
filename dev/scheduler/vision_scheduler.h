@@ -9,7 +9,7 @@
 #include "position_kalman_filter.hpp"
 #include "shell.h"
 
-class VisionSKD {
+class Vision {
 public:
 
     static void start(time_msecs_t basic_gimbal_delay, tprio_t thread_prio);
@@ -121,7 +121,7 @@ private:
     static time_msecs_t last_compute_time;
     static time_msecs_t last_vision_command_time;
 
-    static constexpr time_msecs_t DETECTION_LOSE_TIME = 1000;  // [ms]
+    static constexpr time_msecs_t DETECTION_LOSE_TIME = 500;  // [ms]
     static constexpr time_msecs_t POSITION_RELOAD_TIME = 1000;  // [ms]
     static constexpr float SINGLE_ARMOR_2D_OFFSET_PER_FRAME = 500;  // [mm]
 
@@ -134,6 +134,7 @@ private:
     static uint32_t user_view_y;
 
     class CalculationThread : public chibios_rt::BaseStaticThread<1024> {
+        event_listener command_listener;
         void main() override;
     };
 
