@@ -10,8 +10,8 @@ float UserH::gimbal_rc_yaw_max_speed = 60;  // [degree/s]
 float UserH::gimbal_pc_yaw_sensitivity[3] = {50000, 100000, 150000};  // [Slow, Normal, Fast] [degree/s]
 
 float UserH::gimbal_pc_pitch_sensitivity[3] = {20000, 50000, 60000};   // [Slow, Normal, Fast] [degree/s]
-float UserH::gimbal_pitch_min_angle = -25; // down range for pitch [degree]
-float UserH::gimbal_pitch_max_angle = 5; //  up range for pitch [degree]
+float UserH::gimbal_pitch_min_angle = -12; // down range for pitch [degree]
+float UserH::gimbal_pitch_max_angle = 18; //  up range for pitch [degree]
 
 /// Chassis Config
 float UserH::base_power = 40.0f;
@@ -29,7 +29,7 @@ float UserH::shoot_launch_left_count = 5;
 float UserH::shoot_launch_right_count = 999;
 
 float UserH::shoot_feed_rate = 5.0f;   // [bullet/s]
-float UserH::shoot_fw_speed[3] = {750, 1200, 2000};  // [Slow, Normal, Fast] [deg/s]
+float UserH::shoot_fw_speed[3] = {1000, 1500, 2000};  // [Slow, Normal, Fast] [deg/s]
 
 
 /// Variables
@@ -163,15 +163,11 @@ void UserH::UserThread::main() {
                     ShootLG::set_limit_mode(ShootLG::UNLIMITED_MODE);
                     if (ShootLG::get_shooter_state() == ShootLG::STOP) {
                         ShootLG::shoot(ShootLG::get_bullet_count_to_heat_limit(), shoot_feed_rate);
-                    } else {
-                        ShootLG::stop();
                     }
                 } else if (Remote::rc.wheel < -0.5) {  // up
                     ShootLG::set_limit_mode(ShootLG::UNLIMITED_MODE);
                     if (ShootLG::get_shooter_state() == ShootLG::STOP) {
                         ShootLG::shoot(999 /* unlimited */, shoot_feed_rate);
-                    } else {
-                        ShootLG::stop();
                     }
                 } else {
                     if (ShootLG::get_shooter_state() != ShootLG::STOP) {

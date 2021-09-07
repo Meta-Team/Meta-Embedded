@@ -57,7 +57,7 @@ GimbalSKD::start(AbstractAHRS *gimbal_ahrs_, const Matrix33 ahrs_angle_rotation_
     // Initialize last_angle, to use current pointing direction as startup direction
     Vector3D ahrs_angle = ahrs_angle_rotation * gimbal_ahrs->get_angle();
 
-    if (angle_mode == ABS_ANGLE_MODE) {
+    if (angle_mode == RELATIVE_ANGLE_MODE) {
         last_angle[YAW] = GimbalIF::feedback[YAW]->accumulated_angle() * yaw_install;
         last_angle[PITCH] = GimbalIF::feedback[PITCH]->accumulated_angle() * pitch_install;
     } else {
@@ -191,8 +191,10 @@ void GimbalSKD::SKDThread::main() {
 
             // Send currents
             *GimbalIF::target_current[YAW] = target_current[YAW] * yaw_install;
-            *GimbalIF::target_current[PITCH] = target_current[PITCH] * pitch_install;
-            *GimbalIF::target_current[SUB_PITCH] = target_current[SUB_PITCH] * sub_pitch_install;
+//            *GimbalIF::target_current[PITCH] = target_current[PITCH] * pitch_install;
+//            *GimbalIF::target_current[SUB_PITCH] = target_current[SUB_PITCH] * sub_pitch_install;
+            *GimbalIF::target_current[PITCH] = 0;
+            *GimbalIF::target_current[SUB_PITCH] = 0;
             GimbalIF::clip_gimbal_current();
         }
         chSysUnlock();  /// --- EXIT S-Locked state ---

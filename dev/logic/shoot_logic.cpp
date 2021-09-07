@@ -38,7 +38,7 @@ void ShootLG::init(float angle_per_bullet_, bool use_42mm_bullet_, float fw_circ
                    tprio_t bullet_counter_thread_prio, tprio_t vision_shooting_thread_prio) {
     angle_per_bullet = angle_per_bullet_;
     use_42mm_bullet = use_42mm_bullet_;
-    fw_mm_to_deg_ratio = 360.0f / fw_circumference_;
+    fw_mm_to_deg_ratio = 1.0f;
     stuck_detector_ref = stuck_detector_thread.start(stuck_detector_thread_prio);
     bullet_counter_thread.start(bullet_counter_thread_prio);
     vision_shoot_thread.start(vision_shooting_thread_prio);

@@ -108,23 +108,22 @@ void ShootSKD::SKDThread::main() {
 
         chSysLock();  /// --- ENTER S-Locked state. DO NOT use LOG, printf, non S/I-Class functions or return ---
         {
+            actual_angle = GimbalIF::feedback[BULLET]->accumulated_angle() * float(install_position[0]);
+            actual_velocity[0] = GimbalIF::feedback[BULLET]->actual_velocity * float(install_position[0]);
+            actual_velocity[1] = GimbalIF::feedback[FW_LEFT]->actual_velocity;
+            actual_velocity[2] = GimbalIF::feedback[FW_RIGHT]->actual_velocity;
+
             if (mode == LIMITED_SHOOTING_MODE) {
 
                 // PID calculation
 
                 // Bullet calculation
-                actual_angle = GimbalIF::feedback[GimbalIF::BULLET]->accumulated_angle() * float(install_position[0]);
                 target_velocity[0] = a2v_pid.calc(actual_angle, target_angle);
-
-                actual_velocity[0] = GimbalIF::feedback[GimbalIF::BULLET]->actual_velocity * float(install_position[0]);
                 target_current[0] = (int) v2i_pid[0].calc(actual_velocity[0], target_velocity[0]);
 
                 // Fraction wheels calculation
-                actual_velocity[1] = GimbalIF::feedback[FW_LEFT]->actual_velocity;
-                ShootSKD::target_current[1] = (int) v2i_pid[1].calc(actual_velocity[1], target_velocity[1]);
-
-                actual_velocity[2] = GimbalIF::feedback[FW_RIGHT]->actual_velocity;
-                ShootSKD::target_current[2] = (int) v2i_pid[2].calc(actual_velocity[2], target_velocity[2]);
+                target_current[1] = (int) v2i_pid[1].calc(actual_velocity[1], target_velocity[1]);
+                target_current[2] = (int) v2i_pid[2].calc(actual_velocity[2], target_velocity[2]);
 
             } else if (mode == FORCED_RELAX_MODE) {
 
@@ -170,19 +169,18 @@ DEF_SHELL_CMD_END
 static bool feedbackEnabled[3] = {false, false, false};
 
 void ShootSKD::cmdFeedback(void *) {
-    if (feedbackEnabled[0]) {
-        Shell::printf("_s0 %.2f %.2f %.2f %.2f %d %d" ENDL,
-                      actual_angle, target_angle,
-                      actual_velocity[0], target_velocity[0],
-                      GimbalIF::feedback[0]->actual_current, *GimbalIF::target_current[0]);
-    }
-    for (int i = 1; i < 3; i++) {
-        if (feedbackEnabled[i]) {
-            Shell::printf("_s%d %.2f %.2f %d %d" ENDL, i,
-                          actual_velocity[i], target_velocity[i],
-                          GimbalIF::feedback[i]->actual_current, *GimbalIF::target_current[i]);
-        }
-    }
+    if (feedbackEnabled[0]) Shell::printf("_s0 %.2f %.2f %.2f %.2f %d %d" ENDL,
+                                          actual_angle, target_angle,
+                                          actual_velocity[0], target_velocity[0],
+                                          GimbalIF::feedback[BULLET]->actual_current, *GimbalIF::target_current[BULLET]);
+
+    if (feedbackEnabled[1]) Shell::printf("_s1 %.2f %.2f %d %d" ENDL,
+                                          actual_velocity[1], target_velocity[1],
+                                          GimbalIF::feedback[FW_LEFT]->actual_current, *GimbalIF::target_current[FW_LEFT]);
+
+    if (feedbackEnabled[2]) Shell::printf("_s2 %.2f %.2f %d %d" ENDL,
+                                          actual_velocity[2], target_velocity[2],
+                                          GimbalIF::feedback[FW_RIGHT]->actual_current, *GimbalIF::target_current[FW_RIGHT]);
 }
 
 DEF_SHELL_CMD_START(ShootSKD::cmdEnableFeedback)

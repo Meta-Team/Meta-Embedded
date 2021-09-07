@@ -127,9 +127,10 @@ void ChassisSKD::SKDThread::main() {
 
         chSysLock();  /// --- ENTER S-Locked state. DO NOT use LOG, printf, non S/I-Class functions or return ---
         {
-            if ((mode == GIMBAL_COORDINATE_MODE) || (mode == ANGULAR_VELOCITY_DODGE_MODE)) {
 
-                actual_theta = GimbalIF::feedback[GimbalIF::YAW]->actual_angle * (float) gimbal_yaw_install;
+            actual_theta = GimbalIF::feedback[GimbalIF::YAW]->actual_angle * (float) gimbal_yaw_install;
+
+            if ((mode == GIMBAL_COORDINATE_MODE) || (mode == ANGULAR_VELOCITY_DODGE_MODE)) {
 
                 if (mode == GIMBAL_COORDINATE_MODE) {
                     if (ABS(actual_theta - target_theta) < THETA_DEAD_ZONE) {

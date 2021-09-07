@@ -80,7 +80,7 @@ int main() {
     /*** ---------------------- Period 1. Modules Setup and Self-Check ---------------------- ***/
 
     /// Preparation of Period 1
-    InspectorH::init(&can1, &can2, &ahrs);
+//    InspectorH::init(&can1, &can2, &ahrs);
     LED::all_off();
 
     /// Setup Shell
@@ -101,7 +101,7 @@ int main() {
     can1.start(THREAD_CAN1_RX_PRIO, THREAD_CAN1_TX_PRIO);
     can2.start(THREAD_CAN2_RX_PRIO, THREAD_CAN2_TX_PRIO);
     chThdSleepMilliseconds(5);
-    InspectorH::startup_check_can();  // check no persistent CAN Error. Block for 100 ms
+//    InspectorH::startup_check_can();  // check no persistent CAN Error. Block for 100 ms
     LED::led_on(DEV_BOARD_LED_CAN);  // LED 2 on now
 
     /// Setup SuperCapacitor Port
@@ -128,29 +128,29 @@ int main() {
     while(!ahrs.ready()) {
         chThdSleepMilliseconds(5);
     }
-    InspectorH::startup_check_mpu();  // check MPU6500 has signal. Block for 20 ms
-    InspectorH::startup_check_ist();  // check IST8310 has signal. Block for 20 ms
+//    InspectorH::startup_check_mpu();  // check MPU6500 has signal. Block for 20 ms
+//    InspectorH::startup_check_ist();  // check IST8310 has signal. Block for 20 ms
     Shell::addCommands(ahrs.shellCommands);
     Shell::addFeedbackCallback(AHRSOnBoard::cmdFeedback, &ahrs);
     LED::led_on(DEV_BOARD_LED_AHRS);  // LED 3 on now
 
     /// Setup Remote
     Remote::start();
-    InspectorH::startup_check_remote();  // check Remote has signal. Block for 50 ms
+//    InspectorH::startup_check_remote();  // check Remote has signal. Block for 50 ms
     LED::led_on(DEV_BOARD_LED_REMOTE);  // LED 4 on now
 
 
     /// Setup GimbalIF (for Gimbal and Shoot)
     GimbalIF::init(&can1, &can2, GIMBAL_MOTOR_CONFIG_, GIMBAL_YAW_FRONT_ANGLE_RAW, GIMBAL_PITCH_FRONT_ANGLE_RAW, GIMBAL_SUB_PITCH_FRONT_ANGLE_RAW, MotorIFBase::can_channel_1);
     chThdSleepMilliseconds(2000);  // wait for C610 to be online and friction wheel to reset
-    InspectorH::startup_check_gimbal_feedback(); // check gimbal motors has continuous feedback. Block for 20 ms
+//    InspectorH::startup_check_gimbal_feedback(); // check gimbal motors has continuous feedback. Block for 20 ms
     LED::led_on(DEV_BOARD_LED_GIMBAL);  // LED 5 on now
 
 
     /// Setup ChassisIF
     ChassisIF::init(&can1, &can2, CHASSIS_MOTOR_CONFIG_);
     chThdSleepMilliseconds(10);
-    InspectorH::startup_check_chassis_feedback();  // check chassis motors has continuous feedback. Block for 20 ms
+//    InspectorH::startup_check_chassis_feedback();  // check chassis motors has continuous feedback. Block for 20 ms
     LED::led_on(DEV_BOARD_LED_CHASSIS);  // LED 6 on now
 
 
@@ -199,7 +199,7 @@ int main() {
 //    Shell::addCommands(VisionSKD::shell_commands);
 
     /// Start Inspector and User Threads
-    InspectorH::start_inspection(THREAD_INSPECTOR_PRIO);
+//    InspectorH::start_inspection(THREAD_INSPECTOR_PRIO);
     UserH::start(THREAD_USER_PRIO, THREAD_USER_ACTION_PRIO);
 
 

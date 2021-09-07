@@ -59,9 +59,9 @@ private:
     void main() final {
         setName("mpu6500_ca");
         while (!shouldTerminate()) {
-            if (last_bias != ahrs.imu.gyro_bias) {
+//            if (last_bias != ahrs.imu.gyro_bias) {
 
-                LOG("New bias (%f, %f, %f)", ahrs.imu.gyro_bias.x, ahrs.imu.gyro_bias.y, ahrs.imu.gyro_bias.z);
+                Shell::printf("New bias (%f, %f, %f)", ahrs.imu.gyro_bias.x, ahrs.imu.gyro_bias.y, ahrs.imu.gyro_bias.z);
 
                 bias_sum = bias_sum + ahrs.imu.gyro_bias;
                 bias_count++;
@@ -72,7 +72,7 @@ private:
                 LOG("SDCard::write_data() = %d" SHELL_NEWLINE_STR, SDCard::write_data(MPU6500_BIAS_DATA_ID, &avg_bias, sizeof(avg_bias)));
 
                 last_bias = ahrs.imu.gyro_bias;
-            }
+//            }
             sleep(TIME_MS2I(100));
         }
     }
