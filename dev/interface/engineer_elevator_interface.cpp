@@ -23,8 +23,12 @@ void EngineerElevatorIF::init() {
     //pwmEnableChannel(&PWMD8, 0, PWM_PERCENTAGE_TO_WIDTH(&PWMD8, 500));
 }
 
-void EngineerElevatorIF::set_elevator(motor_operation_t type, float freq) {
-    if(type != STOP && freq > 0.0f) {
+void EngineerElevatorIF::set_elevator(float motor_speed) {
+
+    if(motor_speed == 0) {
+        pwmDisableChannel(&PWMD8, 0);
+        pwmDisableChannel(&PWMD8, 1);
+    } else {
         if(!pwmIsChannelEnabledI(&PWMD8, 0)) {
             pwmEnableChannel(&PWMD8, 0, PWM_PERCENTAGE_TO_WIDTH(&PWMD8, 500));
             /// Duty cycle: 50.00%
@@ -32,21 +36,13 @@ void EngineerElevatorIF::set_elevator(motor_operation_t type, float freq) {
         if(!pwmIsChannelEnabledI(&PWMD8, 1)) {
             pwmEnableChannel(&PWMD8, 1, PWM_PERCENTAGE_TO_WIDTH(&PWMD8, 500));
         }
-        pwmChangePeriod(&PWMD8, (int)(100000 / (unsigned long) freq));
-        // TODO:: This pin should be revised based on the pin documentation of RM board 2018 A.
-        // Enable Signal, change the direction of motor.
-        if(type == UP) {
-            //LED::led_on(4);
+        pwmChangePeriod(&PWMD8, (int)(100000 / (unsigned long) ABS(motor_speed)));
+        if (motor_speed > 0) {
             palWritePad(GPIOF, GPIOF_PIN0, PAL_LOW);
             palWritePad(GPIOF, GPIOF_PIN1, PAL_HIGH);
-        } else if (type == DOWN) {
-            //LED::led_off(4);
+        } else {
             palWritePad(GPIOF, GPIOF_PIN0, PAL_HIGH);
             palWritePad(GPIOF, GPIOF_PIN1, PAL_LOW);
         }
-
-    } else {
-        pwmDisableChannel(&PWMD8, 0);
-        pwmDisableChannel(&PWMD8, 1);
     }
 }

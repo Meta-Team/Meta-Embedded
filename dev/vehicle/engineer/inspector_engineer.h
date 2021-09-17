@@ -14,6 +14,7 @@
 #include "referee_interface.h"
 
 #include "chassis_interface.h"
+#include "engineer_grab_mech_interface.h"
 
 #if defined(ENGINEER)
 #include "vehicle_engineer.h"
@@ -25,19 +26,56 @@ class InspectorE {
 
 public:
 
+    /**
+     * @brief initiate Inspector, assign can interfaces for inspector
+     * @param can1_ can address for CAN1
+     * @param can2_ can address for CAN2
+     */
     static void init(CANInterface *can1_, CANInterface *can2_);
 
+    /**
+     * @brief initiate inspection thread, assign thread priority
+     * @param referee_inspector_prio priority for referee inspector
+     * @param thread_prio priority for inspector thread priority
+     */
     static void start_inspection(tprio_t thread_prio, tprio_t referee_inspector_prio);
 
+    /**
+     * @brief check can on startup, ensure can working properly.
+     */
     static void startup_check_can();
+
+    /**
+     * @brief check remote on startup, ensure remote working properly.
+     */
     static void startup_check_remote();
+
+    /**
+     * @brief check if board can receive can signals from chassis.
+     */
     static void startup_check_chassis_feedback();
-    static void startup_check_elevator_feedback();
+
+    /**
+     * @brief check if board can receive can signals from robotic arm.
+     */
     static void startup_check_robotic_arm_feedback();
 
+    /**
+     * @brief check if chassis has motor offline.
+     * @return whether chassis has motor offline.
+     */
     static bool chassis_failure();
-    static bool elevator_failure();
+
+    /**
+      * @brief check if robotic arm has motor offline.
+      * @return whether robotic arm has motor offline.
+      */
     static bool robotic_arm_failure();
+
+    /**
+     * @brief check if remote controller is offline.
+     * @return whether remtoe controller is offline.
+     */
     static bool remote_failure();
 
 private:
@@ -46,12 +84,10 @@ private:
     static CANInterface *can2;
 
     static bool chassis_failure_;
-    static bool elevator_failure_;
     static bool robotic_arm_failure_;
     static bool remote_failure_;
 
     static bool check_chassis_failure();
-    static bool check_elevator_failure();
     static bool check_robotic_arm_failure();
     static bool check_remote_data_error();
 

@@ -12,7 +12,7 @@
 #include "engineer_elevator_interface.h"
 #include "pid_controller.hpp"
 
-#define ELEVATOR_CLOSE_LOOP_CONTROL TRUE
+#define ELEVATOR_CLOSE_LOOP_CONTROL FALSE
 
 /**
  * @note positive height - chassis lift up
@@ -24,8 +24,6 @@ public:
     static void start(tprio_t thread_prio, float time_2_height_ratio_);
 
     static void set_target_height(float target_height_);
-
-    static void set_target_movement(float target_location_);
 
     enum homing_direction_t {
         VERTICAL,

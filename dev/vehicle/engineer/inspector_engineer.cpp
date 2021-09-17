@@ -8,7 +8,6 @@ CANInterface *InspectorE::can1 = nullptr;
 CANInterface *InspectorE::can2 = nullptr;
 
 bool InspectorE::chassis_failure_ = false;
-bool InspectorE::elevator_failure_ = false;
 bool InspectorE::robotic_arm_failure_ = false;
 bool InspectorE::remote_failure_ = false;
 
@@ -79,10 +78,6 @@ bool InspectorE::chassis_failure() {
     return chassis_failure_;
 }
 
-bool InspectorE::elevator_failure() {
-    return elevator_failure_;
-}
-
 bool InspectorE::robotic_arm_failure() {
     return robotic_arm_failure_;
 }
@@ -115,6 +110,33 @@ bool InspectorE::check_remote_data_error() {
 
 }
 
+void InspectorE::startup_check_robotic_arm_feedback() {
+    bool ret = false;
+    for (unsigned  i = 0; i < EngGrabMechIF::MOTOR_COUNT; i++) {
+        if (not WITHIN_RECENT_TIME(EngGrabMechIF::feedback[i]->last_update_time, 20)
+            &&EngGrabMechIF::feedback[i]->type == CANInterface::NONE_MOTOR) {
+            if (!robotic_arm_failure_) {  // avoid repeating printing
+                LOG_ERR("Chassis motor %u offline", i);
+            }
+            ret = true;
+        }
+    }
+}
+
+bool InspectorE::check_robotic_arm_failure() {
+    bool ret = false;
+    for (unsigned i = 0; i < EngGrabMechIF::MOTOR_COUNT; i++) {
+        if (not WITHIN_RECENT_TIME(EngGrabMechIF::feedback[i]->last_update_time, 20)
+            &&EngGrabMechIF::feedback[i]->type == CANInterface::NONE_MOTOR) {
+            if (!robotic_arm_failure_) {  // avoid repeating printing
+                LOG_ERR("Chassis motor %u offline", i);
+            }
+            ret = true;
+        }
+    }
+    return ret;
+}
+
 void InspectorE::InspectorThread::main() {
     setName("InspectorE");
     while (!shouldTerminate()) {
@@ -136,7 +158,11 @@ void InspectorE::InspectorThread::main() {
         if (chassis_failure_) LED::led_off(DEV_BOARD_LED_CHASSIS);
         else LED::led_on(DEV_BOARD_LED_CHASSIS);
 
-        if (remote_failure_ || chassis_failure_) {
+        robotic_arm_failure_ = check_robotic_arm_failure();
+        if (robotic_arm_failure_) LED::led_off(DEV_BOARD_LED_ROBOTIC_ARM);
+        else LED::led_on(DEV_BOARD_LED_ROBOTIC_ARM);
+
+        if (remote_failure_ || chassis_failure_ || robotic_arm_failure_) {
             if (!BuzzerSKD::alerting()) BuzzerSKD::alert_on();
         } else {
             if (BuzzerSKD::alerting()) BuzzerSKD::alert_off();

@@ -63,12 +63,12 @@ void UserE::UserThread::main() {
                                                   Remote::rc.ch3 * 1600), -Remote::rc.ch0 * gimbal_rc_yaw_max_speed * USER_THREAD_INTERVAL / 12);
                 if(Remote::rc.ch1 >= 0.5) {
                     //EngineerElevatorIF::set_elevator(EngineerElevatorIF::UP, 1000);
-                    EngineerElevatorIF::set_elevator(EngineerElevatorIF::UP, 600);
+                    EngineerElevatorIF::set_elevator(600);
                 } else if (Remote::rc.ch1 <= (-0.5)) {
-                    EngineerElevatorIF::set_elevator(EngineerElevatorIF::DOWN, 600);
+                    EngineerElevatorIF::set_elevator(600);
                     //EngineerElevatorSKD::set_target_height(000.0f);
                 } else {
-                    EngineerElevatorIF::set_elevator(EngineerElevatorIF::STOP, 0);
+                    EngineerElevatorIF::set_elevator(0);
                 }
             } else if(Remote::rc.s2 == Remote::S_MIDDLE) {
                 EngineerChassisLG::set_mode(EngineerChassisLG::NORMAL_MODE);

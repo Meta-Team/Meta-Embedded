@@ -20,13 +20,13 @@ void EngineerElevatorSKD::start(tprio_t thread_prio, float time_2_height_ratio_)
 void EngineerElevatorSKD::set_target_height(float target_height_) {
     if (target_height_ > current_height) {
         operation = UPWARD;
-        EngineerElevatorIF::set_elevator(EngineerElevatorIF::UP, 1000);
+        EngineerElevatorIF::set_elevator(1000);
     } else if(target_height_ < current_height) {
         operation = DOWNWARD;
-        EngineerElevatorIF::set_elevator(EngineerElevatorIF::DOWN, 1000);
+        EngineerElevatorIF::set_elevator(1000);
     } else {
         operation = STOP;
-        EngineerElevatorIF::set_elevator(EngineerElevatorIF::STOP, 0);
+        EngineerElevatorIF::set_elevator(0);
     }
     target_height = target_height_;
 }
@@ -56,7 +56,7 @@ void EngineerElevatorSKD::SKDThread::main() {
         /// Operation
         if(ABS_IN_RANGE(target_height - current_height, stop_judge_threshold)) {
             operation = STOP;
-            EngineerElevatorIF::set_elevator(EngineerElevatorIF::STOP, 0);
+            EngineerElevatorIF::set_elevator(0);
         }
 
         sleep(TIME_MS2I(SKD_THREAD_INTERVAL));

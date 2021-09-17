@@ -28,6 +28,9 @@ class EngineerElevatorIF {
 
 public:
 
+    /**
+     * @brief initiate the Elevator interface. Start the PWM channel.
+     */
     static void init();
 
     enum motor_operation_t {
@@ -36,7 +39,12 @@ public:
         STOP
     };
 
-    static void set_elevator(motor_operation_t type, float motor_speed);
+    /**
+     * @brief Set the elevator operation type. The motor_speed is actually the frequency of PWM,
+     *        which stands for a tick for stepper motor.
+     * @param motor_speed The speed of motor. Given a positive value would let elevator rise.
+     */
+    static void set_elevator(float motor_speed);
 
 private:
 
