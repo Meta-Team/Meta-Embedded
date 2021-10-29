@@ -11,7 +11,7 @@
 
 #include "led.h"
 #include "debug/shell/shell.h"
-#include "can_interface.h"
+#include "interface/can/can_interface.h"
 #include "scheduler/buzzer_scheduler.h"
 #include "interface/gimbal_interface.h"
 // Other headers here

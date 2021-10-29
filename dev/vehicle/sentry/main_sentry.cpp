@@ -11,7 +11,7 @@
 #include "common_macro.h"
 
 #include "shell.h"
-#include "can_interface.h"
+#include "interface/can/can_interface.h"
 #include "ahrs_ext.h"
 #include "remote_interpreter.h"
 #include "sd_card_interface.h"

@@ -6,7 +6,7 @@
 
 #include "debug/shell/shell.h"
 #include "super_capacitor_port.h"
-#include "can_interface.h"
+#include "interface/can/can_interface.h"
 #include "buzzer_scheduler.h"
 #include "referee_interface.h"
 

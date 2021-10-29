@@ -7,7 +7,7 @@
 
 #include "led.h"
 #include "debug/shell/shell.h"
-#include "can_interface.h"
+#include "interface/can/can_interface.h"
 #include "elevator_interface.h"
 
 using namespace chibios_rt;

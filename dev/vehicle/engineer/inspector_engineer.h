@@ -9,7 +9,7 @@
 
 #include "buzzer_scheduler.h"
 
-#include "can_interface.h"
+#include "interface/can/can_interface.h"
 #include "remote_interpreter.h"
 #include "referee_interface.h"
 

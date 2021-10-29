@@ -8,7 +8,7 @@
 
 #include "led.h"
 #include "shell.h"
-#include "can_interface.h"
+#include "interface/can/can_interface.h"
 #include "common_macro.h"
 
 #include "chassis_interface.h"

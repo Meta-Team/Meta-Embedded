@@ -7,7 +7,7 @@
 
 #include "led.h"
 #include "debug/shell/shell.h"
-#include "can_interface.h"
+#include "interface/can/can_interface.h"
 #include "pid_controller.hpp"
 #include "vehicle/infantry/vehicle_infantry.h"
 #include "remote_interpreter.h"
