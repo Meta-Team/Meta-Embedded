@@ -186,89 +186,16 @@ target_include_directories(HERO PRIVATE dev/vehicle/hero)
 target_compile_definitions(HERO PRIVATE HERO)
 target_link_libraries(HERO ${AHRS_LIB})
 
+add_executable(HAPTIC_DEVICE
+        ${VEHICLE_COMMON_SRC}
+        ${AHRS_SRC}
+
+        dev/scheduler/haptic_scheduler.cpp
+        )
+
 # Main Program -- Sentry
-add_executable(SENTRY
-        dev/interface/can/can_interface.cpp
-        dev/interface/remote_interpreter.cpp
-        dev/interface/referee_interface.cpp
-        dev/interface/sd_card_interface.cpp
-        ${VISION_SRC}
-        dev/interface/ahrs/ahrs_ext.cpp
-        dev/common/CRC8.cpp
-        dev/common/CRC16.cpp
-
-        dev/scheduler/sentry_chassis_scheduler.cpp
-        dev/logic/sentry_chassis_logic.cpp
-
-        dev/scheduler/gimbal_scheduler.cpp
-        dev/logic/gimbal_logic.cpp
-
-        dev/scheduler/shoot_scheduler.cpp
-        dev/logic/shoot_logic.cpp
-
-        dev/vehicle/sentry/main_sentry.cpp
-        dev/vehicle/sentry/inspector_sentry.cpp
-        dev/vehicle/sentry/settings_sentry.cpp
-        dev/vehicle/sentry/user_sentry.cpp
-
-        )
-target_include_directories(SENTRY PRIVATE dev/vehicle/sentry)
-target_compile_definitions(SENTRY PRIVATE SENTRY)
-
-#Main Program -- Aerial
-add_executable(AERIAL
-        dev/module/pid_controller.hpp
-        dev/interface/can/can_interface.cpp
-        dev/interface/remote_interpreter.cpp
-        dev/interface/sd_card_interface.cpp
-
-        dev/scheduler/gimbal_scheduler.cpp
-        dev/logic/gimbal_logic.cpp
-
-        dev/interface/referee_interface.cpp
-        dev/common/CRC8.cpp
-        dev/common/CRC16.cpp
-        ${VISION_SRC}
-
-        dev/interface/ahrs/ahrs_ext.cpp
-
-        dev/scheduler/shoot_scheduler.cpp
-        dev/logic/shoot_logic.cpp
-
-        dev/vehicle/aerial/main_aerial.cpp
-        dev/vehicle/aerial/user_aerial.cpp
-        dev/vehicle/aerial/inspector_aerial.cpp
-        dev/vehicle/aerial/settings_aerial.cpp
-        )
-target_include_directories(AERIAL PRIVATE dev/vehicle/aerial)
-target_compile_definitions(AERIAL PRIVATE AERIAL)
 
 # Main Program -- Engineer
-add_executable(ENGINEER
-        dev/interface/can/can_interface.cpp
-        dev/interface/remote_interpreter.cpp
-        dev/interface/referee_interface.cpp
-        dev/interface/sd_card_interface.cpp
-        dev/common/CRC8.cpp
-        dev/common/CRC16.cpp
-
-        dev/interface/dms_interface.cpp
-        dev/scheduler/engineer_chassis_skd.cpp
-        dev/scheduler/engineer_elevator_skd.cpp
-        dev/scheduler/robotic_arm_skd.cpp
-        dev/logic/engineer_elevator_logic.cpp
-        dev/vehicle/engineer/main_engineer.cpp
-        dev/vehicle/engineer/user_engineer.cpp
-        dev/vehicle/engineer/inspector_engineer.cpp
-        dev/vehicle/engineer/settings_engineer.cpp
-        dev/interface/air_tank_interface.cpp
-        dev/interface/air_tank_interface.h
-        dev/scheduler/engineer_rescue_skd.cpp
-        dev/scheduler/engineer_rescue_skd.h
-        dev/logic/robotic_arm_logic.cpp
-        dev/logic/robotic_arm_logic.h)
-target_include_directories(ENGINEER PRIVATE dev/vehicle/engineer)
-target_compile_definitions(ENGINEER PRIVATE ENGINEER)
 
 
 # ======================================= Unit Tests Programs =======================================
