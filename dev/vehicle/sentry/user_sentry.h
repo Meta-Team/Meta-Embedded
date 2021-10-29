@@ -8,15 +8,15 @@
 #include "ch.hpp"
 
 #include "remote_interpreter.h"
-#include "referee_interface.h"
-#include "super_capacitor_port.h"
-
-#include "gimbal_logic.h"
-#include "shoot_logic.h"
-#include "sentry_chassis_logic.h"
-
-#include "inspector_sentry.h"
-#include "vision_interface.h"
+//#include "referee_interface.h"
+//#include "super_capacitor_port.h"
+//
+//#include "gimbal_logic.h"
+//#include "shoot_logic.h"
+#include "new_sentry_chassis_logic.h"
+//
+//#include "inspector_sentry.h"
+//#include "vision_interface.h"
 
 class UserS {
 
@@ -78,34 +78,34 @@ private:
     };
 
     static UserThread userThread;
-
-    class VitualUserThread : public chibios_rt::BaseStaticThread<2048> {
-    public:
-
-        enum vitual_user_mode_t{
-            CRUISING_ONLY_MODE,
-            FINAL_AUTO_MODE
-        };
-
-        void set_v_user_mode(vitual_user_mode_t mode);
-
-        bool started = false;
-
-    private:
-        bool enemy_spotted = false;
-        vitual_user_mode_t v_user_mode = FINAL_AUTO_MODE;
-        float yaw_terminal = gimbal_yaw_max_angle, pitch_terminal = gimbal_pitch_max_angle;
-        static constexpr unsigned AUTO_CONTROL_INTERVAL = 5;
-        static constexpr float GIMBAL_YAW_TARGET_FAST_TRIGGER = 10.0f;
-        static constexpr float GIMBAL_PITCH_TARGET_FAST_TRIGGER = 5.0f;
-        static constexpr float GIMBAL_YAW_SHOOT_TRIGGER_ANGLE = 30.0f;
-        static constexpr float GIMBAL_PIT_SHOOT_TRIGGER_ANGLE = 10.0f;
-
-        void main() final;
-    };
-
-    static VitualUserThread vitualUserThread;
-    static chibios_rt::ThreadReference vitualUserThreadReference;
+//
+//    class VitualUserThread : public chibios_rt::BaseStaticThread<2048> {
+//    public:
+//
+//        enum vitual_user_mode_t{
+//            CRUISING_ONLY_MODE,
+//            FINAL_AUTO_MODE
+//        };
+//
+//        void set_v_user_mode(vitual_user_mode_t mode);
+//
+//        bool started = false;
+//
+//    private:
+//        bool enemy_spotted = false;
+//        vitual_user_mode_t v_user_mode = FINAL_AUTO_MODE;
+//        float yaw_terminal = gimbal_yaw_max_angle, pitch_terminal = gimbal_pitch_max_angle;
+//        static constexpr unsigned AUTO_CONTROL_INTERVAL = 5;
+//        static constexpr float GIMBAL_YAW_TARGET_FAST_TRIGGER = 10.0f;
+//        static constexpr float GIMBAL_PITCH_TARGET_FAST_TRIGGER = 5.0f;
+//        static constexpr float GIMBAL_YAW_SHOOT_TRIGGER_ANGLE = 30.0f;
+//        static constexpr float GIMBAL_PIT_SHOOT_TRIGGER_ANGLE = 10.0f;
+//
+//        void main() final;
+//    };
+//
+//    static VitualUserThread vitualUserThread;
+//    static chibios_rt::ThreadReference vitualUserThreadReference;
 
 
     /// Friend Configure Functions

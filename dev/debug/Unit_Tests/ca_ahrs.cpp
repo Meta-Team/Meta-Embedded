@@ -26,30 +26,32 @@ int bias_count = 0;
 
 Vector3D last_bias;
 
-static void cmd_erase(BaseSequentialStream *chp, int argc, char *argv[]) {
+static bool cmd_erase(BaseSequentialStream *chp, int argc, char *argv[]) {
     (void) argv;
     if (argc != 0) {
-        shellUsage(chp, "erase");
-        return;
+        Shell::usage("erase");
+        return false;
     }
     last_bias = bias_sum = Vector3D();
     bias_count = 0;
-    chprintf(chp, "SDCard::erase() = %d" SHELL_NEWLINE_STR, SDCard::erase());
+    Shell::printf("SDCard::erase() = %d" SHELL_NEWLINE_STR, SDCard::erase());
+    return true;
 }
 
-static void cmd_sd_echo(BaseSequentialStream *chp, int argc, char *argv[]) {
+static bool cmd_sd_echo(BaseSequentialStream *chp, int argc, char *argv[]) {
     (void) argv;
     if (argc != 0) {
-        shellUsage(chp, "sd_echo");
-        return;
+        Shell::usage("sd_echo");
+        return false;
     }
-    chprintf(chp, "SDCard::read_all() = %d" SHELL_NEWLINE_STR, SDCard::read_all());
+    Shell::printf("SDCard::read_all() = %d" SHELL_NEWLINE_STR, SDCard::read_all());
 
     Vector3D bias;
-    chprintf(chp, "SDCard::get_data() = %d" SHELL_NEWLINE_STR, SDCard::get_data(MPU6500_BIAS_DATA_ID, &bias, sizeof(bias)));
-    chprintf(chp, "bias.x = %f" SHELL_NEWLINE_STR, bias.x);
-    chprintf(chp, "bias.y = %f" SHELL_NEWLINE_STR, bias.y);
-    chprintf(chp, "bias.z = %f" SHELL_NEWLINE_STR, bias.z);
+    Shell::printf("SDCard::get_data() = %d" SHELL_NEWLINE_STR, SDCard::get_data(MPU6500_BIAS_DATA_ID, &bias, sizeof(bias)));
+    Shell::printf("bias.x = %f" SHELL_NEWLINE_STR, bias.x);
+    Shell::printf("bias.y = %f" SHELL_NEWLINE_STR, bias.y);
+    Shell::printf("bias.z = %f" SHELL_NEWLINE_STR, bias.z);
+    return true;
 }
 
 class AHRSCalibrationThread : public chibios_rt::BaseStaticThread <512> {
@@ -57,11 +59,11 @@ private:
     void main() final {
         setName("mpu6500_ca");
         while (!shouldTerminate()) {
-            if (last_bias != ahrs.gyro_bias) {
+//            if (last_bias != ahrs.imu.gyro_bias) {
 
-                LOG("New bias (%f, %f, %f)", ahrs.gyro_bias.x, ahrs.gyro_bias.y, ahrs.gyro_bias.z);
+                Shell::printf("New bias (%f, %f, %f)", ahrs.imu.gyro_bias.x, ahrs.imu.gyro_bias.y, ahrs.imu.gyro_bias.z);
 
-                bias_sum = bias_sum + ahrs.gyro_bias;
+                bias_sum = bias_sum + ahrs.imu.gyro_bias;
                 bias_count++;
 
                 Vector3D avg_bias = bias_sum / bias_count;
@@ -69,16 +71,16 @@ private:
 
                 LOG("SDCard::write_data() = %d" SHELL_NEWLINE_STR, SDCard::write_data(MPU6500_BIAS_DATA_ID, &avg_bias, sizeof(avg_bias)));
 
-                last_bias = ahrs.gyro_bias;
-            }
+                last_bias = ahrs.imu.gyro_bias;
+//            }
             sleep(TIME_MS2I(100));
         }
     }
 } ahrsCalibrationThread;
 
-ShellCommand sdCommands[] = {
-        {"erase", cmd_erase},
-        {"sd_echo", cmd_sd_echo},
+Shell::Command sdCommands[] = {
+        {"erase", nullptr, cmd_erase, nullptr},
+        {"sd_echo", nullptr, cmd_sd_echo, nullptr},
         {nullptr,    nullptr}
 };
 

@@ -22,6 +22,7 @@
 /// Vehicle Specific Configurations
 
 #include "vehicle_hero.h"
+#include "thread_priorities.h"
 
 /// Board Guard
 #if defined(BOARD_RM_2018_A)

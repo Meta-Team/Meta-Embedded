@@ -32,18 +32,8 @@ Referee::dart_client_t Referee::dart_client;
 Referee::client_custom_data_t Referee::client_custom_data;
 Referee::robot_interactive_data_t Referee::robot_data_send;
 
-bool Referee::to_send_client = false;
-bool Referee::invoke_ui_delete_all = false;
-bool Referee::invoke_ui_delete_layer = false;
-uint32_t Referee::layer_deleting = 0;
-
-Referee::DataSendingThread Referee::dataSendingThread;
-
 Referee::graphic_data_struct_t Referee::graphic_data_buffer[7];
 int Referee::graphic_buffer_index = 0;
-
-Referee::ext_client_custom_character_t Referee::client_character_buffer;
-bool Referee::client_character_sent;
 
 #if REFEREE_USE_EVENTS
 // See macro EVENTSOURCE_DECL() for initialization style
@@ -67,7 +57,7 @@ const UARTConfig Referee::UART_CONFIG = {
         0,
 };
 
-void Referee::init(tprio_t sending_thread_prio) {
+void Referee::init() {
     // Start uart driver
     uartStart(UART_DRIVER, &UART_CONFIG);
 
@@ -75,8 +65,6 @@ void Referee::init(tprio_t sending_thread_prio) {
     rx_status = WAIT_STARTING_BYTE;
     robot_state.robot_id = 0;
     uartStartReceive(UART_DRIVER, FRAME_SOF_SIZE, &pak);
-
-    dataSendingThread.start(sending_thread_prio);
 }
 
 uint8_t Referee::get_self_id() {
@@ -213,114 +201,72 @@ void Referee::uart_rx_callback(UARTDriver *uartp) {
 
 }
 
-void Referee::DataSendingThread::main() {
-    setName("RefereeSend");
+void Referee::set_tx_data_for_graphics() {
+    if (graphic_buffer_index != 0) {
 
-    graphic_data_struct_t null_graphic;
-    static const char null_name[] = "N/A";
-    null_graphic.graphic_name[0] = (uint8_t) null_name[0];
-    null_graphic.graphic_name[1] = (uint8_t) null_name[1];
-    null_graphic.graphic_name[2] = (uint8_t) null_name[2];
-    null_graphic.operate_type = 0;
-
-    while (!shouldTerminate()) {
-
-        /*** Update UI Info ***/
-
-        bool data_sent = false;
-
-        if (graphic_buffer_index != 0) {
-
-            chSysLock();  /// --- ENTER S-Locked state. DO NOT use LOG, printf, non S/I-Class functions or return ---
-            {
-                if (graphic_buffer_index == 1) {   // 1 buffer used
-                    client_custom_data.header.data_cmd_id = 0x0101;
-                    client_custom_data.ext_client_custom_graphic_single.grapic_data_ = graphic_data_buffer[0];
-                } else if (graphic_buffer_index < 3) {  // 2 buffer used
-                    client_custom_data.header.data_cmd_id = 0x0102;
-                    client_custom_data.ext_client_custom_graphic_double.grapic_data_[0] = graphic_data_buffer[0];
-                    client_custom_data.ext_client_custom_graphic_double.grapic_data_[1] = graphic_data_buffer[1];
-                } else if (graphic_buffer_index < 6) {  // 3 - 5 buffer used
-                    client_custom_data.header.data_cmd_id = 0x0103;
-                    int i;
-                    for (i = 0; i < graphic_buffer_index; i++) {
-                        client_custom_data.ext_client_custom_graphic_five.grapic_data_[i] = graphic_data_buffer[i];
-                    }
-                    // Zero padding
-                    for (; i < 5; i++) {
-                        client_custom_data.ext_client_custom_graphic_seven.grapic_data_[i] = null_graphic;
-                    }
-                } else if (graphic_buffer_index < 8) { // 6 - 7 buffer full filled
-                    client_custom_data.header.data_cmd_id = 0x0104;
-                    int i;
-                    for (i = 0; i < graphic_buffer_index; i++) {
-                        client_custom_data.ext_client_custom_graphic_seven.grapic_data_[i] = graphic_data_buffer[i];
-                    }
-                    // Zero padding
-                    for (; i < 7; i++) {
-                        client_custom_data.ext_client_custom_graphic_seven.grapic_data_[i] = null_graphic;
-                    }
-                }
+        if (graphic_buffer_index == 1) {   // 1 buffer used
+            client_custom_data.header.data_cmd_id = 0x0101;
+            client_custom_data.ext_client_custom_graphic_single.grapic_data_ = graphic_data_buffer[0];
+        } else if (graphic_buffer_index < 3) {  // 2 buffer used
+            client_custom_data.header.data_cmd_id = 0x0102;
+            client_custom_data.ext_client_custom_graphic_double.grapic_data_[0] = graphic_data_buffer[0];
+            client_custom_data.ext_client_custom_graphic_double.grapic_data_[1] = graphic_data_buffer[1];
+        } else if (graphic_buffer_index < 6) {  // 3 - 5 buffer used
+            client_custom_data.header.data_cmd_id = 0x0103;
+            int i;
+            for (i = 0; i < graphic_buffer_index; i++) {
+                client_custom_data.ext_client_custom_graphic_five.grapic_data_[i] = graphic_data_buffer[i];
             }
-            chSysUnlock();  /// --- EXIT S-Locked state ---
+            // Zero padding
+            for (; i < 5; i++) {
+                client_custom_data.ext_client_custom_graphic_seven.grapic_data_[i].graphic_name[0] = 'N';
+                client_custom_data.ext_client_custom_graphic_seven.grapic_data_[i].graphic_name[1] = '/';
+                client_custom_data.ext_client_custom_graphic_seven.grapic_data_[i].graphic_name[2] = 'A';
+                client_custom_data.ext_client_custom_graphic_seven.grapic_data_[i].operate_type = 0;
+            }
 
-            send_data_(Referee::CLIENT);
-            graphic_buffer_index = 0;  // clear the buffer index
-            data_sent = true;
-            sleep(TIME_MS2I(SEND_INTERVAL)); // wait for 100ms, as the maximum sending interval is 10 Hz
+        } else if (graphic_buffer_index < 8) { // 6 - 7 buffer full filled
+            client_custom_data.header.data_cmd_id = 0x0104;
+            int i;
+            for (i = 0; i < graphic_buffer_index; i++) {
+                client_custom_data.ext_client_custom_graphic_seven.grapic_data_[i] = graphic_data_buffer[i];
+            }
+            // Zero padding
+            for (; i < 7; i++) {
+                client_custom_data.ext_client_custom_graphic_seven.grapic_data_[i].graphic_name[0] = 'N';
+                client_custom_data.ext_client_custom_graphic_seven.grapic_data_[i].graphic_name[1] = '/';
+                client_custom_data.ext_client_custom_graphic_seven.grapic_data_[i].graphic_name[2] = 'A';
+                client_custom_data.ext_client_custom_graphic_seven.grapic_data_[i].operate_type = 0;
+            }
         }
 
-        if (!client_character_sent) {
-            chSysLock();  /// --- ENTER S-Locked state. DO NOT use LOG, printf, non S/I-Class functions or return ---
-            {
-                client_custom_data.header.data_cmd_id = 0x0110;
-                client_custom_data.ext_client_custom_character = client_character_buffer;
-            }
-            chSysUnlock();  /// --- EXIT S-Locked state ---
-
-            send_data_(Referee::CLIENT);
-            client_character_sent = true;
-            data_sent = true;
-            sleep(TIME_MS2I(SEND_INTERVAL));
-        }
-
-        if (invoke_ui_delete_layer) {
-            chSysLock();  /// --- ENTER S-Locked state. DO NOT use LOG, printf, non S/I-Class functions or return ---
-            {
-                client_custom_data.header.data_cmd_id = 0x0100;
-                client_custom_data.ext_client_custom_graphic_delete.operate_type = 1;
-                client_custom_data.ext_client_custom_graphic_delete.layer = layer_deleting;
-            }
-            chSysUnlock();  /// --- EXIT S-Locked state ---
-
-            send_data_(Referee::CLIENT);
-            invoke_ui_delete_layer = false;
-            data_sent = true;
-            sleep(TIME_MS2I(SEND_INTERVAL));
-        }
-
-        if (invoke_ui_delete_all) {
-            chSysLock();  /// --- ENTER S-Locked state. DO NOT use LOG, printf, non S/I-Class functions or return ---
-            {
-                client_custom_data.header.data_cmd_id = 0x0100;
-                client_custom_data.ext_client_custom_graphic_delete.operate_type = 2;
-                client_custom_data.ext_client_custom_graphic_delete.layer = 0;
-            }
-            chSysUnlock();  /// --- EXIT S-Locked state ---
-
-            send_data_(Referee::CLIENT);
-            invoke_ui_delete_all = false;
-            data_sent = true;
-            sleep(TIME_MS2I(SEND_INTERVAL));
-        }
-
-        if (!data_sent) sleep(TIME_MS2I(10));
     }
 }
 
+void Referee::set_tx_data_for_label(const ext_client_custom_character_t &character_data) {
+    client_custom_data.header.data_cmd_id = 0x0110;
+    client_custom_data.ext_client_custom_character = character_data;
+}
+
+void Referee::set_tx_data_for_deleting_layer(uint32_t layer) {
+    client_custom_data.header.data_cmd_id = 0x0100;
+    client_custom_data.ext_client_custom_graphic_delete.operate_type = 1;
+    client_custom_data.ext_client_custom_graphic_delete.layer = layer;
+}
+
+void Referee::set_tx_data_for_deleting_all() {
+    client_custom_data.header.data_cmd_id = 0x0100;
+    client_custom_data.ext_client_custom_graphic_delete.operate_type = 2;
+    client_custom_data.ext_client_custom_graphic_delete.layer = 0;
+}
+
+void Referee::send_tx_data() {
+    send_data_(Referee::CLIENT);
+    graphic_buffer_index = 0;
+}
+
 void Referee::send_data_(receiver_index_t receiver_id) {
-    if (robot_state.robot_id == 0)
-        return;
+    if (robot_state.robot_id == 0) return;
     package_t tx_pak;
     size_t tx_pak_size = 0;
     if (receiver_id == CLIENT) {
@@ -361,50 +307,15 @@ void Referee::send_data_(receiver_index_t receiver_id) {
         tx_pak_size = FRAME_HEADER_SIZE + CMD_ID_SIZE + client_custom_data_length + FRAME_TAIL_SIZE;
     }
     append_crc16_check_sum((uint8_t *) &tx_pak, tx_pak_size);
-    uartSendTimeout(UART_DRIVER, &tx_pak_size, &tx_pak, TIME_MS2I(20));
+    uartSendTimeout(UART_DRIVER, &tx_pak_size, &tx_pak, TIME_MS2I(30));
 }
 
-bool Referee::set_graphic(graphic_data_struct_t graphData) {
+bool Referee::add_tx_graphic(const graphic_data_struct_t &graph_data) {
     if (graphic_buffer_index < 7) {
-        graphic_data_buffer[graphic_buffer_index] = graphData;
+        graphic_data_buffer[graphic_buffer_index] = graph_data;
         graphic_buffer_index++;
         return true;
     } else {
         return false;
     }
-}
-
-bool Referee::set_title(ext_client_custom_character_t characterData) {
-    if (client_character_sent) {
-        client_character_buffer = characterData;
-        client_character_sent = false;
-        return true;
-    } else {
-        return false;
-    }
-}
-
-void Referee::remove_all_blocking() {
-    invoke_ui_delete_all = true;
-    {
-        auto blocking_start_time = SYSTIME;  // set a timeout in case of problems
-        while (invoke_ui_delete_all && WITHIN_RECENT_TIME(blocking_start_time, 3000)) chThdSleepMilliseconds(10);
-    }
-    client_character_sent = true;
-    graphic_buffer_index = 0;
-}
-
-void Referee::remove_layer_blocking(uint32_t layer) {
-    {
-        auto blocking_start_time = SYSTIME;  // set a timeout in case of problems
-        while (invoke_ui_delete_layer && WITHIN_RECENT_TIME(blocking_start_time, 3000)) chThdSleepMilliseconds(10);
-    }
-    layer_deleting = layer;
-    invoke_ui_delete_layer = true;
-    {
-        auto blocking_start_time = SYSTIME;  // set a timeout in case of problems
-        while (invoke_ui_delete_layer && WITHIN_RECENT_TIME(blocking_start_time, 3000)) chThdSleepMilliseconds(10);
-    }
-    graphic_buffer_index = 0;
-    if (client_character_buffer.grapic_data_struct.layer == layer) client_character_sent = true;
 }

@@ -10,8 +10,8 @@ float UserH::gimbal_rc_yaw_max_speed = 60;  // [degree/s]
 float UserH::gimbal_pc_yaw_sensitivity[3] = {50000, 100000, 150000};  // [Slow, Normal, Fast] [degree/s]
 
 float UserH::gimbal_pc_pitch_sensitivity[3] = {20000, 50000, 60000};   // [Slow, Normal, Fast] [degree/s]
-float UserH::gimbal_pitch_min_angle = -25; // down range for pitch [degree]
-float UserH::gimbal_pitch_max_angle = 5; //  up range for pitch [degree]
+float UserH::gimbal_pitch_min_angle = -12; // down range for pitch [degree]
+float UserH::gimbal_pitch_max_angle = 18; //  up range for pitch [degree]
 
 /// Chassis Config
 float UserH::base_power = 40.0f;
@@ -29,7 +29,7 @@ float UserH::shoot_launch_left_count = 5;
 float UserH::shoot_launch_right_count = 999;
 
 float UserH::shoot_feed_rate = 5.0f;   // [bullet/s]
-float UserH::shoot_fw_speed[3] = {750, 1200, 2000};  // [Slow, Normal, Fast] [deg/s]
+float UserH::shoot_fw_speed[3] = {1000, 1500, 2000};  // [Slow, Normal, Fast] [deg/s]
 
 
 /// Variables
@@ -39,13 +39,10 @@ float UserH::gimbal_pc_sub_pitch_target_angle_ = 0.0f;
 UserH::pitch_separate_mode_t UserH::pitch_separated = IN_ACTIVE;
 UserH::UserThread UserH::userThread;
 UserH::UserActionThread UserH::userActionThread;
-UserH::ClientDataSendingThread UserH::clientDataSendingThread;
 
-void UserH::start(tprio_t user_thd_prio, tprio_t user_action_thd_prio, tprio_t client_data_sending_thd_prio) {
+void UserH::start(tprio_t user_thd_prio, tprio_t user_action_thd_prio) {
     userThread.start(user_thd_prio);
     userActionThread.start(user_action_thd_prio);
-    clientDataSendingThread.start(client_data_sending_thd_prio);
-
 }
 
 void UserH::UserThread::main() {
@@ -75,30 +72,30 @@ void UserH::UserThread::main() {
 
             } else if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_DOWN) {
 
-                /// Vision - Change bullet speed with right vertical handle
-
-                /// Vision - Yaw + Pitch
-                GimbalLG::set_action(GimbalLG::VISION_MODE);
-
-                if (Remote::rc.ch1 > 0.5) Vision::set_bullet_speed(Vision::get_bullet_speed() - 0.001f);
-                else if (Remote::rc.ch1 <= -0.5) Vision::set_bullet_speed(Vision::get_bullet_speed() + 0.001f);
+//                /// Vision - Change bullet speed with right vertical handle
+//
+//                /// Vision - Yaw + Pitch
+//                GimbalLG::set_action(GimbalLG::VISION_MODE);
+//
+//                if (Remote::rc.ch1 > 0.5) VisionSKD::set_bullet_speed(VisionSKD::get_bullet_speed() - 0.001f);
+//                else if (Remote::rc.ch1 <= -0.5) VisionSKD::set_bullet_speed(VisionSKD::get_bullet_speed() + 0.001f);
 
             } else if (Remote::rc.s1 == Remote::S_DOWN) {
 
                 /// PC control mode
 
+//                if (Remote::key.shift && Remote::key.v) {
+//                    VisionSKD::set_bullet_speed(VisionSKD::get_bullet_speed() + 0.001f);
+//                } else if (Remote::key.ctrl && Remote::key.v) {
+//                    VisionSKD::set_bullet_speed(VisionSKD::get_bullet_speed() - 0.001f);
+//                }
+
                 if (Remote::mouse.press_right) {
 
-                    GimbalLG::set_action(GimbalLG::VISION_MODE);
-
-                    if (Remote::key.f) {
-                        Vision::set_bullet_speed(Vision::get_bullet_speed() - 0.001f);
-                    } else if (Remote::key.v) {
-                        Vision::set_bullet_speed(Vision::get_bullet_speed() + 0.001f);
-                    }
-
-                    gimbal_yaw_target_angle_ = GimbalLG::get_actual_angle(GimbalLG::YAW);
-                    gimbal_pc_pitch_target_angle_ = GimbalLG::get_actual_angle(GimbalLG::PITCH);
+//                    GimbalLG::set_action(GimbalLG::VISION_MODE);
+//
+//                    gimbal_yaw_target_angle_ = GimbalLG::get_actual_angle(GimbalLG::YAW);
+//                    gimbal_pc_pitch_target_angle_ = GimbalLG::get_actual_angle(GimbalLG::PITCH);
 
                 } else {
 
@@ -163,22 +160,14 @@ void UserH::UserThread::main() {
                 ShootLG::set_limit_mode(ShootLG::UNLIMITED_MODE);
 
                 if (Remote::rc.wheel > 0.5) {  // down
-                    if (Referee::power_heat.shooter_id1_17mm_cooling_heat <
-                        (uint16_t) (Referee::robot_state.shooter_id1_17mm_cooling_limit * 0.75)) {
-                        if (ShootLG::get_shooter_state() == ShootLG::STOP) {
-                            ShootLG::shoot(shoot_launch_left_count, shoot_feed_rate);
-                        }
-                    } else {
-                        ShootLG::stop();
+                    ShootLG::set_limit_mode(ShootLG::UNLIMITED_MODE);
+                    if (ShootLG::get_shooter_state() == ShootLG::STOP) {
+                        ShootLG::shoot(ShootLG::get_bullet_count_to_heat_limit(), shoot_feed_rate);
                     }
                 } else if (Remote::rc.wheel < -0.5) {  // up
-                    if (Referee::power_heat.shooter_id1_17mm_cooling_heat <
-                        Referee::robot_state.shooter_id1_17mm_cooling_limit - 0x0015) {
-                        if (ShootLG::get_shooter_state() == ShootLG::STOP) {
-                            ShootLG::shoot(shoot_launch_right_count, shoot_feed_rate);
-                        }
-                    } else {
-                        ShootLG::stop();
+                    ShootLG::set_limit_mode(ShootLG::UNLIMITED_MODE);
+                    if (ShootLG::get_shooter_state() == ShootLG::STOP) {
+                        ShootLG::shoot(999 /* unlimited */, shoot_feed_rate);
                     }
                 } else {
                     if (ShootLG::get_shooter_state() != ShootLG::STOP) {
@@ -190,32 +179,30 @@ void UserH::UserThread::main() {
 
             } else if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_DOWN) {
 
-                /// Remote - Vision
-
-                if (Remote::rc.wheel > 0.5) {  // down
-                    ShootLG::set_limit_mode(ShootLG::UNLIMITED_MODE);
-                    if (ShootLG::get_shooter_state() == ShootLG::STOP) {
-                        ShootLG::shoot(ShootLG::get_bullet_count_to_heat_limit(), shoot_feed_rate);
-
-                    } else {
-                        ShootLG::stop();
-                    }
-                } else if (Remote::rc.wheel < -0.5) {  // up
-                    ShootLG::set_limit_mode(ShootLG::VISION_LIMITED_MODE);
-                    if (ShootLG::get_shooter_state() == ShootLG::STOP) {
-                        ShootLG::shoot(ShootLG::get_bullet_count_to_heat_limit(), shoot_feed_rate);
-
-                    } else {
-                        ShootLG::stop();
-                    }
-                } else {
-                    ShootLG::set_limit_mode(ShootLG::UNLIMITED_MODE);
-                    if (ShootLG::get_shooter_state() != ShootLG::STOP) {
-                        ShootLG::stop();
-                    }
-                }
-
-                ShootLG::set_shoot_speed(shoot_fw_speed[1]);
+//                /// Remote - Vision
+//
+//                if (Remote::rc.wheel > 0.5) {  // down
+//                    ShootLG::set_limit_mode(ShootLG::UNLIMITED_MODE);
+//                    if (ShootLG::get_shooter_state() == ShootLG::STOP) {
+//                        ShootLG::shoot(ShootLG::get_bullet_count_to_heat_limit(), shoot_feed_rate);
+//                    } else {
+//                        ShootLG::stop();
+//                    }
+//                } else if (Remote::rc.wheel < -0.5) {  // up
+//                    ShootLG::set_limit_mode(ShootLG::VISION_LIMITED_MODE);
+//                    if (ShootLG::get_shooter_state() == ShootLG::STOP) {
+//                        ShootLG::shoot(ShootLG::get_bullet_count_to_heat_limit(), shoot_feed_rate);
+//                    } else {
+//                        ShootLG::stop();
+//                    }
+//                } else {
+//                    ShootLG::set_limit_mode(ShootLG::UNLIMITED_MODE);
+//                    if (ShootLG::get_shooter_state() != ShootLG::STOP) {
+//                        ShootLG::stop();
+//                    }
+//                }
+//
+//                ShootLG::set_shoot_speed(shoot_fw_speed[1]);
 
             } else if (Remote::rc.s1 == Remote::S_DOWN) {
 
@@ -224,7 +211,7 @@ void UserH::UserThread::main() {
                 if (Remote::mouse.press_left) {
 
                     if (Remote::mouse.press_right) {
-                        ShootLG::set_limit_mode(ShootLG::VISION_LIMITED_MODE);
+//                        ShootLG::set_limit_mode(ShootLG::VISION_LIMITED_MODE);
                     } else {
                         ShootLG::set_limit_mode(ShootLG::UNLIMITED_MODE);
                     }
@@ -382,7 +369,9 @@ void UserH::UserActionThread::main() {
 
             /// Shoot
             if (key_flag & (1U << Remote::KEY_Z)) {
-                if (Remote::key.ctrl) {
+                if (Remote::key.ctrl && Remote::key.shift) {
+                    RefereeUILG::reset();
+                } else if (Remote::key.ctrl) {
                     ShootLG::set_shoot_speed(shoot_fw_speed[0]);
                 } else if (Remote::key.shift) {
                     ShootLG::set_shoot_speed(shoot_fw_speed[2]);
@@ -394,28 +383,8 @@ void UserH::UserActionThread::main() {
                     }
                 }
             }
-        }
-    }
-}
-
-void UserH::ClientDataSendingThread::main() {
-    setName("User_Client");
-
-    bool super_capacitor_light_status_ = false;
-
-    while (!shouldTerminate()) {
-
-        /// Shoot
-        // 17mm shooter heat
-
-        /// Super Capacitor
-        // TODO: determine feedback interval
-        if (WITHIN_RECENT_TIME(SuperCapacitor::last_feedback_time, 1000)) {
-
-        } else {
 
         }
 
-        sleep(TIME_MS2I(CLIENT_DATA_SENDING_THREAD_INTERVAL));
     }
 }

@@ -165,6 +165,8 @@ private:
     void main() override;
 
     static constexpr int UPDATE_THREAD_INTERVAL = 1;  // [ms]
+
+    friend class AHRSCalibrationThread;
 };
 
 #endif

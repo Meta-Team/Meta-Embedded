@@ -100,7 +100,7 @@ void InspectorH::startup_check_chassis_feedback() {
 void InspectorH::startup_check_gimbal_feedback() {
     time_msecs_t t = SYSTIME;
     while (WITHIN_RECENT_TIME(t, 20)) {
-        if(Referee::bullet_remaining.bullet_remaining_num_17mm > 0) {
+//        if(Referee::bullet_remaining.bullet_remaining_num_17mm > 0) {
             if (not WITHIN_RECENT_TIME(GimbalIF::feedback[GimbalIF::FW_LEFT]->last_update_time, 5)) {
                 // No feedback in last 5 ms (normal 1 ms)
                 LOG_ERR("Startup - Gimbal FW_LEFT offline.");
@@ -116,13 +116,13 @@ void InspectorH::startup_check_gimbal_feedback() {
                 LOG_ERR("Startup - Gimbal Bullet offline.");
                 t = SYSTIME;  // reset the counter
             }
-        }
+//        }
 
-        if (not WITHIN_RECENT_TIME(GimbalIF::feedback[GimbalIF::YAW]->last_update_time, 5)) {
-            // No feedback in last 5 ms (normal 1 ms)
-            LOG_ERR("Startup - Gimbal Yaw offline.");
-            t = SYSTIME;  // reset the counter
-        }
+//        if (not WITHIN_RECENT_TIME(GimbalIF::feedback[GimbalIF::YAW]->last_update_time, 5)) {
+//            // No feedback in last 5 ms (normal 1 ms)
+//            LOG_ERR("Startup - Gimbal Yaw offline.");
+//            t = SYSTIME;  // reset the counter
+//        }
         if (not WITHIN_RECENT_TIME(GimbalIF::feedback[GimbalIF::PITCH]->last_update_time, 5)) {
             // No feedback in last 5 ms (normal 1 ms)
             LOG_ERR("Startup - Gimbal Pitch offline.");
@@ -151,7 +151,7 @@ bool InspectorH::remote_failure() {
 
 bool InspectorH::check_gimbal_failure() {
     bool ret = false;
-    if(Referee::bullet_remaining.bullet_remaining_num_17mm > 0) {
+//    if(Referee::bullet_remaining.bullet_remaining_num_17mm > 0) {
         for (unsigned i = 0; i < 6; i++) {
             if (not WITHIN_RECENT_TIME(GimbalIF::feedback[i]->last_update_time, 250) &&
                                                 GimbalIF::feedback[i]->type != CANInterface::NONE_MOTOR) {
@@ -161,17 +161,17 @@ bool InspectorH::check_gimbal_failure() {
                 ret = true;
             }
         }
-    } else {
-        for (unsigned i = 0; i < 3; i++) {
-            if (not WITHIN_RECENT_TIME(GimbalIF::feedback[i]->last_update_time, 250) &&
-                GimbalIF::feedback[i]->type != CANInterface::NONE_MOTOR) {
-                if (!gimbal_failure_) {  // avoid repeating printing
-                    LOG_ERR("Gimbal motor %u offline (since time %u)", i, GimbalIF::feedback[i]->last_update_time);
-                }
-                ret = true;
-            }
-        }
-    }
+//    } else {
+//        for (unsigned i = 0; i < 3; i++) {
+//            if (not WITHIN_RECENT_TIME(GimbalIF::feedback[i]->last_update_time, 250) &&
+//                GimbalIF::feedback[i]->type != CANInterface::NONE_MOTOR) {
+//                if (!gimbal_failure_) {  // avoid repeating printing
+//                    LOG_ERR("Gimbal motor %u offline (since time %u)", i, GimbalIF::feedback[i]->last_update_time);
+//                }
+//                ret = true;
+//            }
+//        }
+//    }
     return ret;
 }
 

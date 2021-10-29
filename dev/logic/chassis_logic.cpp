@@ -89,18 +89,10 @@ void ChassisLG::apply_target() {
     }
 }
 
-void ChassisLG::set_rotate_speed(float speed) {
-    ChassisSKD::set_dodge_target(0, 0, speed);
-}
-
 void ChassisLG::DodgeModeSwitchThread::main() {
 
     setName("ChassisLG_Dodge");
-    float doge = 0;
-    float doge_rate = 0;
     while (!shouldTerminate()) {
-
-        doge += 3.14 / 3.3;
 
         chSysLock();  /// --- ENTER S-Locked state. DO NOT use LOG, printf, non S/I-Class functions or return ---
         {
@@ -112,9 +104,8 @@ void ChassisLG::DodgeModeSwitchThread::main() {
         chSysUnlock();  /// --- EXIT S-Locked state ---
 
         if (SuperCapacitor::feedback->capacitor_voltage != 0) {
-            doge_rate = sin(doge) + 1;
             float voltage_decrement = 20 - SuperCapacitor::feedback->capacitor_voltage;
-            target_omega = (dodge_omega_power_pid.calc(voltage_decrement, doge_rate));
+            target_omega = (dodge_omega_power_pid.calc(voltage_decrement, 2));
             VAL_CROP(target_omega, 720.0f, 0.0f);
         } else {
             target_omega = 360;

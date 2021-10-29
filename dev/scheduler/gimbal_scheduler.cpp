@@ -58,11 +58,11 @@ GimbalSKD::start(AbstractAHRS *gimbal_ahrs_, const Matrix33 ahrs_angle_rotation_
     Vector3D ahrs_angle = ahrs_angle_rotation * gimbal_ahrs->get_angle();
 
     if (angle_mode == ABS_ANGLE_MODE) {
-        last_angle[YAW] = GimbalIF::feedback[YAW]->accumulated_angle() * yaw_install;
-        last_angle[PITCH] = GimbalIF::feedback[PITCH]->accumulated_angle() * pitch_install;
-    } else {
         last_angle[YAW] = ahrs_angle.x;
         last_angle[PITCH] = ahrs_angle.y;
+    } else {
+        last_angle[YAW] = GimbalIF::feedback[YAW]->accumulated_angle() * yaw_install;
+        last_angle[PITCH] = GimbalIF::feedback[PITCH]->accumulated_angle() * pitch_install;
     }
     last_angle[SUB_PITCH] = GimbalIF::feedback[SUB_PITCH]->actual_angle;
 
@@ -217,14 +217,15 @@ const Shell::Command GimbalSKD::shellCommands[] = {
         {"_g_enable_fb",    "Channel/All Feedback{Disabled,Enabled}",                    GimbalSKD::cmdEnableFeedback, nullptr},
         {"_g_pid",          "Channel PID{A2V,V2I} [kp] [ki] [kd] [i_limit] [out_limit]", GimbalSKD::cmdPID,            nullptr},
         {"_g_enable_motor", "Channel/All Motor{Disabled,Enabled}",                       GimbalSKD::cmdEnableMotor,    nullptr},
+        {"_g_echo_raw",     "Channel",                                                   GimbalSKD::cmdEchoRaw,        nullptr},
         {nullptr,           nullptr,                                                     nullptr,                      nullptr}
 };
 
 DEF_SHELL_CMD_START(GimbalSKD::cmdInfo)
     Shell::printf("_g:Gimbal" ENDL);
-    Shell::printf("_g/Yaw:Angle{Target,Actual} Velocity{Target,Actual} Current{Target,Actual}" ENDL);
-    Shell::printf("_g/Pitch:Angle{Target,Actual} Velocity{Target,Actual} Current{Target,Actual}" ENDL);
-    Shell::printf("_g/Sub_Pitch:Angle{Target,Actual} Velocity{Target,Actual} Current{Target,Actual}" ENDL);
+    Shell::printf("_g/Yaw:Angle{Actual,Target} Velocity{Actual,Target} Current{Actual,Target}" ENDL);
+    Shell::printf("_g/Pitch:Angle{Actual,Target} Velocity{Actual,Target} Current{Actual,Target}" ENDL);
+    Shell::printf("_g/Sub_Pitch:Angle{Actual,Target} Velocity{Actual,Target} Current{Actual,Target}" ENDL);
     return true;
 DEF_SHELL_CMD_END
 
@@ -289,6 +290,14 @@ DEF_SHELL_CMD_START(GimbalSKD::cmdPID)
         return false;
     }
 
+    return true;
+DEF_SHELL_CMD_END
+
+DEF_SHELL_CMD_START(GimbalSKD::cmdEchoRaw)
+    if (argc != 1) return false;
+    unsigned id = Shell::atoi(argv[0]);
+    if (id >= MOTOR_COUNT) return false;
+    Shell::printf("%d" ENDL, GimbalIF::feedback[id]->last_angle_raw);
     return true;
 DEF_SHELL_CMD_END
 

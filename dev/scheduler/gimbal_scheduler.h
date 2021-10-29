@@ -107,7 +107,7 @@ public:
      * @param pitch_target_angle  GIMBAL pitch target ACCUMULATED angle on ground coordinate [degree]
      * @param sub_pitch_target_angle  GIMBAL sub-pitch target ACCUMULATED angle on pitch coordinate [degree]
      */
-    static void set_target_angle(float yaw_target_angle, float pitch_target_angle, float sub_pitch_target_angle);
+    static void set_target_angle(float yaw_target_angle, float pitch_target_angle, float sub_pitch_target_angle = 0);
 
     /**
      * Get current target angle data
@@ -190,6 +190,7 @@ private:
     static DECL_SHELL_CMD(cmdEnableFeedback);
     static DECL_SHELL_CMD(cmdPID);
     static DECL_SHELL_CMD(cmdEnableMotor);
+    static DECL_SHELL_CMD(cmdEchoRaw);
 
 #ifdef PARAM_ADJUST
     friend class PAUserGimbalThread;
