@@ -44,7 +44,7 @@ void can_motor_interface::init(CANInterface *can1_, CANInterface *can2_) {
         }
         can_SID_field_count = 0;
         // Search and Record field for can1.
-        for (int i = 0; i < 0x211-0x200; i++) {
+        for (int i = 0; i < 0x20B-0x200; i++) {
             // Detect for SID lower bound.
             if(i == 0 && mapping_SID2ID[can_channel][i]!=MOTOR_COUNT){                // Boundary condition
                 can_SID_field_list[can_SID_field_count][0] = i + 0x201;
@@ -52,7 +52,7 @@ void can_motor_interface::init(CANInterface *can1_, CANInterface *can2_) {
                 can_SID_field_list[can_SID_field_count][0] = i + 0x201;
             }
             // Detect for SID upper bound.
-            if(i == (0x211-0x200-1) && mapping_SID2ID[can_channel][i]!=MOTOR_COUNT) { // Boundary condition
+            if(i == (0x20B-0x200-1) && mapping_SID2ID[can_channel][i]!=MOTOR_COUNT) { // Boundary condition
                 can_SID_field_list[can_SID_field_count][1] = i + 0x201;
                 can_SID_field_count++;//Count value need to be used for later.
             } else if(mapping_SID2ID[can_channel][i]!=MOTOR_COUNT && mapping_SID2ID[can_channel][i+1]==MOTOR_COUNT) {
@@ -119,7 +119,7 @@ void can_motor_interface::set_current(motor_id_t motor_id, int target_current) {
         int start_id = (motor_SID-0x205)*2;
         txmsg[mapping_ID2SID[motor_id].can_channel][1].data8[start_id] = (uint8_t)target_current >> 8;
         txmsg[mapping_ID2SID[motor_id].can_channel][1].data8[start_id] = (uint8_t)target_current;
-    } else if (motor_SID < 0x212) {
+    } else if (motor_SID < 0x20B) {
         int start_id = (motor_SID-0x209)*2;
         txmsg[mapping_ID2SID[motor_id].can_channel][2].data8[start_id] = (uint8_t)target_current >> 8;
         txmsg[mapping_ID2SID[motor_id].can_channel][2].data8[start_id] = (uint8_t)target_current;

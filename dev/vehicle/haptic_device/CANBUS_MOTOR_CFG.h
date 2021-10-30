@@ -6,14 +6,25 @@
 #define META_INFANTRY_CANBUS_MOTOR_CFG_H
 
 #include "can_motor_feedback.h"
+#include "pid_controller.hpp"
 
 class CANBUS_MOTOR_CFG {
 public:
     enum motor_id_t {
         YAW,
+        PITCH,
+        BULLET,
+        CHASSIS_FL,
+        CHASSIS_FR,
+        CHASSIS_BR,
+        CHASSIS_BL,
         MOTOR_COUNT
     };
     static CANMotorBase CANMotorProfile[motor_id_t::MOTOR_COUNT];
+
+    // Parameters for double loop PID control.
+    static PIDController::pid_params_t a2vParams[motor_id_t::MOTOR_COUNT];
+    static PIDController::pid_params_t v2iParams[motor_id_t::MOTOR_COUNT];
 };
 
 

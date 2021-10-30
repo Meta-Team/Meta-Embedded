@@ -13,7 +13,8 @@ using namespace chibios_rt;
 class haptic_scheduler {
 public:
     static void start(tprio_t SKD_PRIO);
-    static PIDController pidController[can_motor_interface::MOTOR_COUNT];
+    static PIDController a2vController[can_motor_interface::MOTOR_COUNT];
+    static PIDController v2iController[can_motor_interface::MOTOR_COUNT];
 private:
     class skdThread : public BaseStaticThread<512> {
         void main() final;

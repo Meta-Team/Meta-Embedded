@@ -70,8 +70,8 @@ public:
 
     /**
      * @brief The function send the stored txmsg.
-     * @param can_channel_  (can_channel_1/can_channel_2)   The can channel to post.
-     * @param SID           (0x200/0x1FF/0x2FF)             The identifier of the CAN Tx Frame.
+     * @param can_channel_  [can_channel_1/can_channel_2]   The can channel to post.
+     * @param SID           [0x200/0x1FF/0x2FF]             The identifier of the CAN Tx Frame.
      * */
      static bool post_target_current(CANMotorBase::can_channel_t can_channel_, uint32_t SID);
 

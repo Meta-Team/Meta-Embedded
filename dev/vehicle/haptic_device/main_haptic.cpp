@@ -112,17 +112,8 @@ int main() {
 
     /*** ------------ Period 2. Calibration and Start Logic Control Thread ----------- ***/
 
-    /// Echo Gimbal Raws and Converted Angles
-//    LOG("Gimbal Yaw: %u, %f, Pitch: %u, %f",
-//        GimbalIF::feedback[GimbalIF::YAW]->last_angle_raw, GimbalIF::feedback[GimbalIF::YAW]->actual_angle,
-//        GimbalIF::feedback[GimbalIF::PITCH]->last_angle_raw, GimbalIF::feedback[GimbalIF::PITCH]->actual_angle);
-
     /// Start SKDs
     haptic_scheduler::start(THREAD_GIMBAL_SKD_PRIO);
-
-    /// Start Inspector and User Threads
-//    InspectorI::start_inspection(THREAD_INSPECTOR_PRIO);
-
 
     /// Complete Period 2
 //    BuzzerSKD::play_sound(BuzzerSKD::sound_nyan_cat);  // Now play the startup sound
