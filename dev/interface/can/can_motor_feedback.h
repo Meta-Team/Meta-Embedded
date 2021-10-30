@@ -5,7 +5,7 @@
 #ifndef META_INFANTRY_CAN_MOTOR_FEEDBACK_H
 #define META_INFANTRY_CAN_MOTOR_FEEDBACK_H
 
-#include "drivers/can_interface.h"
+#include "can_interface.h"
 
 struct CANMotorBase {
     enum can_channel_t{

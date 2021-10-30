@@ -2,48 +2,54 @@
 // Created by Qian Chen on 10/29/21.
 //
 
-#ifndef META_INFANTRY_MOTOR_INTERFACE_H
-#define META_INFANTRY_MOTOR_INTERFACE_H
+#ifndef META_INFANTRY_CAN_MOTOR_INTERFACE_H
+#define META_INFANTRY_CAN_MOTOR_INTERFACE_H
 
 #include "can_interface.h"
 #include "can_motor_feedback.h"
 
+#if defined(HAPTIC_DVC)
+#include "CANBUS_MOTOR_CFG.h"
+#endif
+
 // TODO: Moved motor enumerator to a individual file and include it.
-struct motor_enumerator {
-    enum motor_id_t {
-        YAW,
-        PITCH,
-        MOTOR_COUNT
-    };
-};
 
 /**
  * @author Chen Qian
  * @brief  Universal Interface for CAN motors.
+ * @usage
  * @code
- * 1.   Include motor enumerator.
+ * 1.   Create and include motor CANBUS_MOTOR_CFG class.
  * 2.   Initialized the class by calling init() method.
  * 3.a. Set current to the motor on certain CAN BUS.
  * 3.b. Also can read feedback by accessing motor_feedback.
  * *Notice: Either set motor current or get access to motor feedback should use the
  *          logical index (YAW, PITCH).
+ * @endcode
+ * @details 1. CANBUS_MOTOR_CFG class structure:
+ * @code
+ * class CANBUS_MOTOR_CFG{
+ *     enum             motor_id_t {...,..., MOTOR_COUNT};
+ *     CANMotorBase     CANMotorProfile[MOTOR_COUNT];}
+ * @endcode
+ *
+ * @details 2. Single CAN motor profile structure:
+ * @code
+ * CANMotorBase {[CANMotorProfile::can_channel_t] can_channel,
+ *               [int] CAN_SID,
+ *               [CANMotorBase::motor_type_t] motor_type,
+ *               [int] initial_encoder_angle}
+ * @endcode
  * */
 
-class motor_interface : public motor_enumerator{
+class can_motor_interface : public CANBUS_MOTOR_CFG {
 public:
     /**
      * @brief Initialize the haptic arm interface.
      * @param can1_             The can1 channel to use.
      * @param can2_             The can2 channel to use.
-     * @param CANMotorProfile_  The motor profile array based on the base enumerator. The length must equal to MOTOR_COUNT.
-     * @details                 Single CAN motor profile structure:\n
-     * @code
-     * { [CANMotorProfile::can_channel_t] can_channel,
-     *   [int] CAN_SID,
-     *   [CANMotorBase::motor_type_t] motor_type,
-     *   [int] initial_encoder_angle}
      * */
-    static void init(CANInterface *can1_, CANInterface *can2_, CANMotorBase CANMotorProfile_[]);
+    static void init(CANInterface *can1_, CANInterface *can2_);
 
     /**
      * @brief Motors that will be liked with logical motor id.
@@ -118,5 +124,4 @@ private:
     static CANInterface *can[2];
 };
 
-
-#endif //META_INFANTRY_MOTOR_INTERFACE_H
+#endif //META_INFANTRY_CAN_MOTOR_INTERFACE_H

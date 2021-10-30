@@ -5,9 +5,9 @@
 #ifndef META_INFANTRY_HAPTIC_SCHEDULER_H
 #define META_INFANTRY_HAPTIC_SCHEDULER_H
 
+#include "can_motor_interface.h"
 
 class haptic_scheduler {
-
 };
 
 
