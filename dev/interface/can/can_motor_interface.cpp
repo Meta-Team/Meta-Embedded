@@ -101,12 +101,12 @@ void can_motor_interface::init(CANInterface *can1_, CANInterface *can2_) {
 
 void can_motor_interface::can1_callback_func(CANRxFrame const *rxmsg) {
     // As the can callback SID range are performed by program, no need to check the SID.
-    motor_feedback[mapping_SID2ID[0][(int)rxmsg->SID - 0x200]].process_feedback(rxmsg);
+    motor_feedback[mapping_SID2ID[0][(int)rxmsg->SID - 0x201]].process_feedback(rxmsg);
 }
 
 void can_motor_interface::can2_callback_func(CANRxFrame const *rxmsg) {
     // As the can callback SID range are performed by program, no need to check the SID.
-    motor_feedback[mapping_SID2ID[0][(int)rxmsg->SID - 0x200]].process_feedback(rxmsg);
+    motor_feedback[mapping_SID2ID[1][(int)rxmsg->SID - 0x201]].process_feedback(rxmsg);
 }
 
 void can_motor_interface::set_current(motor_id_t motor_id, int target_current) {

@@ -6,17 +6,19 @@
 #define META_INFANTRY_HAPTIC_SCHEDULER_H
 
 #include "can_motor_interface.h"
+#include "pid_controller.hpp"
 
 using namespace chibios_rt;
 
 class haptic_scheduler {
 public:
-    void start(tprio_t SKD_PRIO);
-
+    static void start(tprio_t SKD_PRIO);
+    static PIDController pidController[can_motor_interface::MOTOR_COUNT];
 private:
-    class skdThread : BaseStaticThread<512> {
+    class skdThread : public BaseStaticThread<512> {
         void main() final;
     };
+    static skdThread SKDThread;
 };
 
 

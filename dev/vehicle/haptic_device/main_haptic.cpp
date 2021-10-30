@@ -23,6 +23,7 @@
 #include "DEBUG_CHECK.h"
 #include "can_motor_interface.h"
 #include "Inspector.h"
+#include "haptic_scheduler.h"
 
 #else
 #error "File main_infantry.cpp should only be used for Infantry #3, #4, #5."
@@ -70,16 +71,14 @@ int main() {
 
     BuzzerSKD::init(THREAD_BUZZER_SKD_PRIO);
 
-    /// Setup SDCard
-
     LED::led_on(DEV_BOARD_LED_SYSTEM_INIT);  // LED 1 on now
 
     /// Setup CAN1 & CAN2
     can1.start(THREAD_CAN1_RX_PRIO);
     can2.start(THREAD_CAN2_RX_PRIO);
     chThdSleepMilliseconds(5);
-    //Inspector::startup_check_can();  // check no persistent CAN Error. Block for 100 ms
     LED::led_on(DEV_BOARD_LED_CAN);  // LED 2 on now
+    //Inspector::startup_check_can();  // check no persistent CAN Error. Block for 100 ms
 
     /// Complete Period 1
     LED::green_on();  // LED Green on now
@@ -100,15 +99,13 @@ int main() {
     Shell::addFeedbackCallback(AHRSOnBoard::cmdFeedback, &ahrs);
     LED::led_on(DEV_BOARD_LED_AHRS);  // LED 3 on now
 
-
     /// Setup MOTOR
     can_motor_interface::init(&can1, &can2);
-    chThdSleepMilliseconds(2000);
+    chThdSleepMilliseconds(1000);
     // FIXME: revert for development
 
     Inspector::startup_check_motor(); // check gimbal motors has continuous feedback. Block for 20 ms
-    LED::led_on(DEV_BOARD_LED_GIMBAL);  // LED 5 on now
-
+    LED::led_on(DEV_BOARD_LED_GIMBAL);  // LED 4 on now
 
     /// Setup Red Spot Laser
     palSetPad(GPIOG, GPIOG_RED_SPOT_LASER);  // enable the red spot laser
@@ -121,15 +118,15 @@ int main() {
 //        GimbalIF::feedback[GimbalIF::PITCH]->last_angle_raw, GimbalIF::feedback[GimbalIF::PITCH]->actual_angle);
 
     /// Start SKDs
-
+    haptic_scheduler::start(THREAD_GIMBAL_SKD_PRIO);
 
     /// Start Inspector and User Threads
 //    InspectorI::start_inspection(THREAD_INSPECTOR_PRIO);
 
 
     /// Complete Period 2
-    BuzzerSKD::play_sound(BuzzerSKD::sound_startup_intel);  // Now play the startup sound
-
+//    BuzzerSKD::play_sound(BuzzerSKD::sound_nyan_cat);  // Now play the startup sound
+    LED::led_on(DEV_BOARD_LED_CHASSIS);  // LED 5 on now
 
     /*** ------------------------ Period 3. End of main thread ----------------------- ***/
 

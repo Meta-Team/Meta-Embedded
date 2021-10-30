@@ -12,7 +12,6 @@ void Inspector::startup_check_motor() {
                 // No feedback in last 5 ms (normal 1 ms)
                 LOG_ERR("Startup - Motor offline.");
                 t = SYSTIME;  // reset the counter
-                LED::led_on(7);
             }
         }
     }
