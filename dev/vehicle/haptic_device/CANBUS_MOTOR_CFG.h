@@ -12,12 +12,6 @@ class CANBUS_MOTOR_CFG {
 public:
     enum motor_id_t {
         YAW,
-        PITCH,
-        BULLET,
-        CHASSIS_FL,
-        CHASSIS_FR,
-        CHASSIS_BR,
-        CHASSIS_BL,
         MOTOR_COUNT
     };
     static CANMotorBase CANMotorProfile[motor_id_t::MOTOR_COUNT];
