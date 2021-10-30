@@ -60,7 +60,6 @@ void can_motor_interface::init(CANInterface *can1_, CANInterface *can2_) {
                 can_SID_field_count++;//After detect the lower bound, move to next.
             }
         }
-
         // Arrange the field.
         for (int i = 0; i < can_SID_field_count; i++) {
             int max_len_field[2] = {can_SID_field_list[i][0], can_SID_field_list[i][1]};
@@ -75,7 +74,6 @@ void can_motor_interface::init(CANInterface *can1_, CANInterface *can2_) {
                 }
             }
         }
-
         // Register the field by length of the field.
         for (int i = 0; i < can_SID_field_count; i++) {
             switch (can_channel) {

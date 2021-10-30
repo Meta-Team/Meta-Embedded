@@ -191,6 +191,7 @@ add_executable(HAPTIC_DVC
         ${AHRS_SRC}
         dev/scheduler/haptic_scheduler.cpp
         dev/vehicle/haptic_device/CANBUS_MOTOR_CFG.cpp
+        dev/vehicle/haptic_device/Inspector.cpp
         dev/vehicle/haptic_device/main_haptic.cpp)
 target_include_directories(HAPTIC_DVC PRIVATE dev/vehicle/haptic_device)
 target_compile_definitions(HAPTIC_DVC PRIVATE HAPTIC_DVC)

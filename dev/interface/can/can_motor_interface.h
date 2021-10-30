@@ -8,11 +8,7 @@
 #include "can_interface.h"
 #include "can_motor_feedback.h"
 
-#if defined(HAPTIC_DVC)
 #include "CANBUS_MOTOR_CFG.h"
-#endif
-
-// TODO: Moved motor enumerator to a individual file and include it.
 
 /**
  * @author Chen Qian

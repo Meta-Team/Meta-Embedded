@@ -22,6 +22,8 @@
 #include "CANBUS_MOTOR_CFG.h"
 #include "DEBUG_CHECK.h"
 #include "can_motor_interface.h"
+#include "Inspector.h"
+
 #else
 #error "File main_infantry.cpp should only be used for Infantry #3, #4, #5."
 #endif
@@ -104,7 +106,7 @@ int main() {
     chThdSleepMilliseconds(2000);
     // FIXME: revert for development
 
-    // Inspector::startup_check_gimbal_feedback(); // check gimbal motors has continuous feedback. Block for 20 ms
+    Inspector::startup_check_motor(); // check gimbal motors has continuous feedback. Block for 20 ms
     LED::led_on(DEV_BOARD_LED_GIMBAL);  // LED 5 on now
 
 

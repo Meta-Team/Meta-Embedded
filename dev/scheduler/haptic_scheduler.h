@@ -7,7 +7,16 @@
 
 #include "can_motor_interface.h"
 
+using namespace chibios_rt;
+
 class haptic_scheduler {
+public:
+    void start(tprio_t SKD_PRIO);
+
+private:
+    class skdThread : BaseStaticThread<512> {
+        void main() final;
+    };
 };
 
 
