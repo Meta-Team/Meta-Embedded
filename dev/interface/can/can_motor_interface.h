@@ -2,48 +2,55 @@
 // Created by Qian Chen on 10/29/21.
 //
 
-#ifndef META_INFANTRY_MOTOR_INTERFACE_H
-#define META_INFANTRY_MOTOR_INTERFACE_H
+#ifndef META_INFANTRY_CAN_MOTOR_INTERFACE_H
+#define META_INFANTRY_CAN_MOTOR_INTERFACE_H
 
 #include "can_interface.h"
 #include "can_motor_feedback.h"
 
-// TODO: Moved motor enumerator to a individual file and include it.
-struct motor_enumerator {
-    enum motor_id_t {
-        YAW,
-        PITCH,
-        MOTOR_COUNT
-    };
-};
+#include "CANBUS_MOTOR_CFG.h"
 
 /**
  * @author Chen Qian
  * @brief  Universal Interface for CAN motors.
+ * @usage
  * @code
- * 1.   Include motor enumerator.
+ * 1.   Create and include motor CANBUS_MOTOR_CFG class.
  * 2.   Initialized the class by calling init() method.
  * 3.a. Set current to the motor on certain CAN BUS.
  * 3.b. Also can read feedback by accessing motor_feedback.
+ * 3.c. After set current, publish the data on CAN-BUS by post_target_current() method.
  * *Notice: Either set motor current or get access to motor feedback should use the
  *          logical index (YAW, PITCH).
+ * @endcode
+ * @details 1. CANBUS_MOTOR_CFG class structure:
+ * @code
+ * class CANBUS_MOTOR_CFG{
+ *     enum             motor_id_t {...,..., MOTOR_COUNT};
+ *     CANMotorBase     CANMotorProfile[MOTOR_COUNT];}
+ * @endcode
+ *
+ * @details 2. Single CAN motor profile structure:
+ * @code
+ * CANMotorBase {[CANMotorProfile::can_channel_t] can_channel,
+ *               [int] CAN_SID,
+ *               [CANMotorBase::motor_type_t] motor_type,
+ *               [int] initial_encoder_angle}
+ * @endcode
  * */
 
-class motor_interface : public motor_enumerator{
+class can_motor_interface : public CANBUS_MOTOR_CFG {
+    /********************************************//**
+     *        Public Contribution and Methods
+     ***********************************************/
 public:
+
     /**
      * @brief Initialize the haptic arm interface.
      * @param can1_             The can1 channel to use.
      * @param can2_             The can2 channel to use.
-     * @param CANMotorProfile_  The motor profile array based on the base enumerator. The length must equal to MOTOR_COUNT.
-     * @details                 Single CAN motor profile structure:\n
-     * @code
-     * { [CANMotorProfile::can_channel_t] can_channel,
-     *   [int] CAN_SID,
-     *   [CANMotorBase::motor_type_t] motor_type,
-     *   [int] initial_encoder_angle}
      * */
-    static void init(CANInterface *can1_, CANInterface *can2_, CANMotorBase CANMotorProfile_[]);
+    static void init(CANInterface *can1_, CANInterface *can2_);
 
     /**
      * @brief Motors that will be liked with logical motor id.
@@ -68,11 +75,14 @@ public:
 
     /**
      * @brief The function send the stored txmsg.
-     * @param can_channel_  (can_channel_1/can_channel_2)   The can channel to post.
-     * @param SID           (0x200/0x1FF/0x2FF)             The identifier of the CAN Tx Frame.
+     * @param can_channel_  [can_channel_1/can_channel_2]   The can channel to post.
+     * @param SID           [0x200/0x1FF/0x2FF]             The identifier of the CAN Tx Frame.
      * */
      static bool post_target_current(CANMotorBase::can_channel_t can_channel_, uint32_t SID);
 
+    /********************************************//**
+     *             SID and ID mapping
+     ***********************************************/
 private:
 
     /**
@@ -93,10 +103,19 @@ private:
         CANMotorBase::can_channel_t can_channel;
     } mapping_ID2SID[MOTOR_COUNT];
 
+    /********************************************//**
+     *               CAN Mechanism
+     ***********************************************/
+private:
+
     /**
-     * @brief Stored txmsg to send. \n
-     *        CAN1  |0x200  |0x1FF  |0x2FF \n
-     *        CAN2  |0x200  |0x1FF  |0x2FF
+     * @brief A 2x3 array stored txmsgs to send. Structure:\n
+     *
+     * @code
+     * CAN1  |  0x200  |  0x1FF  |  0x2FF
+     *       ----------------------------
+     * CAN2  |  0x200  |  0x1FF  |  0x2FF
+     * @endcode
      * */
     static CANTxFrame txmsg[2][3];
 
@@ -107,16 +126,15 @@ private:
     static void can1_callback_func(CANRxFrame const *rxmsg);
 
     /**
-     * @brief Overall can1 callback function.
+     * @brief Overall can2 callback function.
      * @param rxmsg CAN Rx Frame.
      * */
     static void can2_callback_func(CANRxFrame const *rxmsg);
 
     /**
-     * @brief CANInterface to use (CAN1).
+     * @brief CANInterface to use [CAN1, CAN2].
      * */
     static CANInterface *can[2];
 };
 
-
-#endif //META_INFANTRY_MOTOR_INTERFACE_H
+#endif //META_INFANTRY_CAN_MOTOR_INTERFACE_H

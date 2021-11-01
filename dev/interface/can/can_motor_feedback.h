@@ -5,7 +5,7 @@
 #ifndef META_INFANTRY_CAN_MOTOR_FEEDBACK_H
 #define META_INFANTRY_CAN_MOTOR_FEEDBACK_H
 
-#include "drivers/can_interface.h"
+#include "can_interface.h"
 
 struct CANMotorBase {
     enum can_channel_t{
@@ -24,11 +24,12 @@ struct CANMotorBase {
 };
 
 /**
+ * @author  Chen Qian
  * @brief   Motor interface for single motor.
  * @usage   1. Create a instance. \n
  *          2. Call init() function. \n
  *          3. Pass CANRxFrame to the process_feedback() function.\n
- *          4. Get the available feedback from motor.
+ *          4. Get the available feedback from this class.
  * */
 class CANMotorFeedback : public CANMotorBase {
 public:
@@ -63,8 +64,8 @@ public:
     /********************************************//**
      *         Integrated Feedback Methods
      ***********************************************/
-
 public:
+
     /**
      * @brief               Get accumulate angle of the motor.
      * @return  [Degree]    Accumulate angle of the motor.
@@ -135,13 +136,14 @@ private:
     /********************************************//**
      *     Constant for processing the feedback
      ***********************************************/
+private:
 
     static float constexpr M3508_TORQUE_CONST = 0.3;          // 0.3Nm/A  on the data sheet
     static float constexpr M3508_REDUCE_RATIO = 3591.0/187.0; // 3591/187 on the data sheet
     static float constexpr M2006_TORQUE_CONST = 1.0;          // 1.0 for feedback as the feedback is its torque.
     static float constexpr M2006_REDUCE_RATIO = 36.0;         // 36/1     on the data sheet
     static float constexpr ENCODER_ANGLE_RATIO = 360.0f/8192.0f;
-    static float constexpr ENCODER_CURRENT_RATIO = 16384.0 / 20.0;//       on the data sheet
+    static float constexpr ENCODER_CURRENT_RATIO =  20.0/16384.0;//       on the data sheet
 
 };
 

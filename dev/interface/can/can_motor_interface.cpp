@@ -2,19 +2,19 @@
 // Created by Qian Chen on 10/29/21.
 //
 
-#include "motor_interface.h"
+#include "can_motor_interface.h"
 
-CANInterface *motor_interface::can[2];
+CANInterface *can_motor_interface::can[2];
 
-CANMotorFeedback motor_interface::motor_feedback[MOTOR_COUNT];
+CANMotorFeedback can_motor_interface::motor_feedback[MOTOR_COUNT];
 
-motor_interface::motor_id_t motor_interface::mapping_SID2ID[2][11];
-motor_interface::mapping_ID2SID_t motor_interface::mapping_ID2SID[MOTOR_COUNT];
+can_motor_interface::motor_id_t can_motor_interface::mapping_SID2ID[2][11];
+can_motor_interface::mapping_ID2SID_t can_motor_interface::mapping_ID2SID[MOTOR_COUNT];
 
-CANTxFrame motor_interface::txmsg[2][3];
+CANTxFrame can_motor_interface::txmsg[2][3];
 
 // Initialize code just run for one time, thus the time complexity is not so critical.
-void motor_interface::init(CANInterface *can1_, CANInterface *can2_, CANMotorBase CANMotorProfile_[]) {
+void can_motor_interface::init(CANInterface *can1_, CANInterface *can2_) {
     // Assign can channel.
     can[0] = can1_;
     can[1] = can2_;
@@ -26,9 +26,9 @@ void motor_interface::init(CANInterface *can1_, CANInterface *can2_, CANMotorBas
     }
     // Creat mapping from ID to SID, vice versa.
     for (int i = 0; i<MOTOR_COUNT; i++) {
-        mapping_SID2ID[(int)CANMotorProfile_[i].can_channel][CANMotorProfile_[i].CAN_SID - 0x201] = (motor_id_t)i;
-        mapping_ID2SID[i] = {CANMotorProfile_[i].CAN_SID, CANMotorProfile_[i].can_channel};
-        motor_feedback[i].init(CANMotorProfile_[i].motor_type, CANMotorProfile_[i].initial_encoder_angle);
+        mapping_SID2ID[(int)CANMotorProfile[i].can_channel][CANMotorProfile[i].CAN_SID - 0x201] = (motor_id_t)i;
+        mapping_ID2SID[i] = {CANMotorProfile[i].CAN_SID, CANMotorProfile[i].can_channel};
+        motor_feedback[i].init(CANMotorProfile[i].motor_type, CANMotorProfile[i].initial_encoder_angle);
     }
     // Initialize the continuous SID field lists. Record the continuous SID fields.
     // Theoretically, the maximum number of SID fields for each can are 6 as there are only 11 SID for CAN motors.
@@ -44,7 +44,7 @@ void motor_interface::init(CANInterface *can1_, CANInterface *can2_, CANMotorBas
         }
         can_SID_field_count = 0;
         // Search and Record field for can1.
-        for (int i = 0; i < 0x211-0x200; i++) {
+        for (int i = 0; i < 0x20B-0x200; i++) {
             // Detect for SID lower bound.
             if(i == 0 && mapping_SID2ID[can_channel][i]!=MOTOR_COUNT){                // Boundary condition
                 can_SID_field_list[can_SID_field_count][0] = i + 0x201;
@@ -52,7 +52,7 @@ void motor_interface::init(CANInterface *can1_, CANInterface *can2_, CANMotorBas
                 can_SID_field_list[can_SID_field_count][0] = i + 0x201;
             }
             // Detect for SID upper bound.
-            if(i == (0x211-0x200-1) && mapping_SID2ID[can_channel][i]!=MOTOR_COUNT) { // Boundary condition
+            if(i == (0x20B-0x200-1) && mapping_SID2ID[can_channel][i]!=MOTOR_COUNT) { // Boundary condition
                 can_SID_field_list[can_SID_field_count][1] = i + 0x201;
                 can_SID_field_count++;//Count value need to be used for later.
             } else if(mapping_SID2ID[can_channel][i]!=MOTOR_COUNT && mapping_SID2ID[can_channel][i+1]==MOTOR_COUNT) {
@@ -60,7 +60,6 @@ void motor_interface::init(CANInterface *can1_, CANInterface *can2_, CANMotorBas
                 can_SID_field_count++;//After detect the lower bound, move to next.
             }
         }
-
         // Arrange the field.
         for (int i = 0; i < can_SID_field_count; i++) {
             int max_len_field[2] = {can_SID_field_list[i][0], can_SID_field_list[i][1]};
@@ -75,7 +74,6 @@ void motor_interface::init(CANInterface *can1_, CANInterface *can2_, CANMotorBas
                 }
             }
         }
-
         // Register the field by length of the field.
         for (int i = 0; i < can_SID_field_count; i++) {
             switch (can_channel) {
@@ -101,17 +99,17 @@ void motor_interface::init(CANInterface *can1_, CANInterface *can2_, CANMotorBas
     }
 }
 
-void motor_interface::can1_callback_func(CANRxFrame const *rxmsg) {
+void can_motor_interface::can1_callback_func(CANRxFrame const *rxmsg) {
     // As the can callback SID range are performed by program, no need to check the SID.
-    motor_feedback[mapping_SID2ID[0][(int)rxmsg->SID - 0x200]].process_feedback(rxmsg);
+    motor_feedback[mapping_SID2ID[0][(int)rxmsg->SID - 0x201]].process_feedback(rxmsg);
 }
 
-void motor_interface::can2_callback_func(CANRxFrame const *rxmsg) {
+void can_motor_interface::can2_callback_func(CANRxFrame const *rxmsg) {
     // As the can callback SID range are performed by program, no need to check the SID.
-    motor_feedback[mapping_SID2ID[0][(int)rxmsg->SID - 0x200]].process_feedback(rxmsg);
+    motor_feedback[mapping_SID2ID[1][(int)rxmsg->SID - 0x201]].process_feedback(rxmsg);
 }
 
-void motor_interface::set_current(motor_enumerator::motor_id_t motor_id, int target_current) {
+void can_motor_interface::set_current(motor_id_t motor_id, int target_current) {
     int motor_SID = mapping_ID2SID[motor_id].SID;
     if(motor_SID > 0x200 && motor_SID < 0x205) {
         int start_id = (motor_SID-0x201)*2;
@@ -121,7 +119,7 @@ void motor_interface::set_current(motor_enumerator::motor_id_t motor_id, int tar
         int start_id = (motor_SID-0x205)*2;
         txmsg[mapping_ID2SID[motor_id].can_channel][1].data8[start_id] = (uint8_t)target_current >> 8;
         txmsg[mapping_ID2SID[motor_id].can_channel][1].data8[start_id] = (uint8_t)target_current;
-    } else if (motor_SID < 0x212) {
+    } else if (motor_SID < 0x20B) {
         int start_id = (motor_SID-0x209)*2;
         txmsg[mapping_ID2SID[motor_id].can_channel][2].data8[start_id] = (uint8_t)target_current >> 8;
         txmsg[mapping_ID2SID[motor_id].can_channel][2].data8[start_id] = (uint8_t)target_current;
@@ -130,7 +128,7 @@ void motor_interface::set_current(motor_enumerator::motor_id_t motor_id, int tar
     }
 }
 
-bool motor_interface::post_target_current(CANMotorBase::can_channel_t can_channel_, uint32_t SID) {
+bool can_motor_interface::post_target_current(CANMotorBase::can_channel_t can_channel_, uint32_t SID) {
     if(!can[can_channel_]) return false;
     switch (SID) {
         case 0x200:
@@ -143,5 +141,3 @@ bool motor_interface::post_target_current(CANMotorBase::can_channel_t can_channe
             return false;
     }
 }
-
-
