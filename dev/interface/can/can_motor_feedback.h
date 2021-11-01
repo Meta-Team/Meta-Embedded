@@ -143,7 +143,7 @@ private:
     static float constexpr M2006_TORQUE_CONST = 1.0;          // 1.0 for feedback as the feedback is its torque.
     static float constexpr M2006_REDUCE_RATIO = 36.0;         // 36/1     on the data sheet
     static float constexpr ENCODER_ANGLE_RATIO = 360.0f/8192.0f;
-    static float constexpr ENCODER_CURRENT_RATIO = 16384.0 / 20.0;//       on the data sheet
+    static float constexpr ENCODER_CURRENT_RATIO =  20.0/16384.0;//       on the data sheet
 
 };
 

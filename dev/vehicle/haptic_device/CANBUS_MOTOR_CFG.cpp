@@ -4,14 +4,18 @@
 
 #include "CANBUS_MOTOR_CFG.h"
 
-CANMotorBase CANBUS_MOTOR_CFG::CANMotorProfile[motor_id_t::MOTOR_COUNT] =
-        {{CANMotorBase::can_channel_1, 0x205, CANMotorBase::M3508_without_deceleration, 0}
-        };
-
-PIDController::pid_params_t CANBUS_MOTOR_CFG::a2vParams[motor_id_t::MOTOR_COUNT] = {
-        {150, 0.0f, 0, 500, 3000},
+CANMotorBase CANBUS_MOTOR_CFG::CANMotorProfile[MOTOR_COUNT] = {
+        {CANMotorBase::can_channel_1, 0x205, CANMotorBase::M3508_without_deceleration, 3572}
 };
 
-PIDController::pid_params_t CANBUS_MOTOR_CFG::v2iParams[motor_id_t::MOTOR_COUNT] = {
-        {0.013,0.001,0.0001,1000.0,8000.0},
+PIDController::pid_params_t CANBUS_MOTOR_CFG::a2vParams[MOTOR_COUNT] = {
+        {10, 0.0f, 0.0, 100, 500},
+};
+
+PIDController::pid_params_t CANBUS_MOTOR_CFG::v2iParams[MOTOR_COUNT] = {
+        {0.09,0.0007,0.000,5000.0,16000.0},
+};
+
+bool CANBUS_MOTOR_CFG::enable_a2v[MOTOR_COUNT] {
+    true,
 };

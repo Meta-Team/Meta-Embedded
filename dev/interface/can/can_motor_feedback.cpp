@@ -74,6 +74,7 @@ float CANMotorFeedback::torque_const() {
         case M2006:
             return 0.18;
     }
+    return 0;
 }
 
 float CANMotorFeedback::accumulate_angle() {

@@ -113,7 +113,7 @@ int main() {
     /*** ------------ Period 2. Calibration and Start Logic Control Thread ----------- ***/
 
     /// Start SKDs
-    haptic_scheduler::start(THREAD_GIMBAL_SKD_PRIO);
+    haptic_scheduler::start(THREAD_GIMBAL_SKD_PRIO, THREAD_VISION_SKD_PRIO);
 
     /// Complete Period 2
 //    BuzzerSKD::play_sound(BuzzerSKD::sound_nyan_cat);  // Now play the startup sound
