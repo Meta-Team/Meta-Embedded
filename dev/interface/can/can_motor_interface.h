@@ -1,5 +1,5 @@
 //
-// Created by Qian Chen on 10/29/21.
+// Created by Chen Qian on 10/29/21.
 //
 
 #ifndef META_INFANTRY_CAN_MOTOR_INTERFACE_H
