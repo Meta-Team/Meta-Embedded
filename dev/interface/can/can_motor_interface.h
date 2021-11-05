@@ -47,8 +47,8 @@ public:
 
     /**
      * @brief Initialize the haptic arm interface.
-     * @param can1_             The can1 channel to use.
-     * @param can2_             The can2 channel to use.
+     * @param[in] can1_             The can1 channel to use.
+     * @param[in] can2_             The can2 channel to use.
      * */
     static void init(CANInterface *can1_, CANInterface *can2_);
 
@@ -59,8 +59,8 @@ public:
 
     /**
      * @brief Set can motor currents.
-     * @param motor_id      (YAW/PITCH)     Logical motor ID, use the enumerator.
-     * @param target_current                Input variable of motor. Varies from motor.
+     * @param motor_id[in]      (YAW/PITCH)     Logical motor ID, use the enumerator.
+     * @param target_current[in]                Input variable of motor. Varies from motor.
      * @details Input variables, range and mapping relation for each motor:
      * @code
      * Motor Type    |    GM6020     |     M3508     |         M2006
@@ -75,8 +75,8 @@ public:
 
     /**
      * @brief The function send the stored txmsg.
-     * @param can_channel_  [can_channel_1/can_channel_2]   The can channel to post.
-     * @param SID           [0x200/0x1FF/0x2FF]             The identifier of the CAN Tx Frame.
+     * @param can_channel_ [in]  [can_channel_1/can_channel_2]   The can channel to post.
+     * @param SID          [in]  [0x200/0x1FF/0x2FF]             The identifier of the CAN Tx Frame.
      * */
      static bool post_target_current(CANMotorBase::can_channel_t can_channel_, uint32_t SID);
 

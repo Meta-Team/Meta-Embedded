@@ -95,3 +95,7 @@ float CANMotorFeedback::torque() {
     }
     return 0;
 }
+
+int CANMotorFeedback::torque_current() {
+    return torque_current_raw;
+}

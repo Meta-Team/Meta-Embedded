@@ -113,16 +113,16 @@ void can_motor_interface::set_current(motor_id_t motor_id, int target_current) {
     int motor_SID = mapping_ID2SID[motor_id].SID;
     if(motor_SID > 0x200 && motor_SID < 0x205) {
         int start_id = (motor_SID-0x201)*2;
-        txmsg[mapping_ID2SID[motor_id].can_channel][0].data8[start_id] = (uint8_t)target_current >> 8;
-        txmsg[mapping_ID2SID[motor_id].can_channel][0].data8[start_id] = (uint8_t)target_current;
+        txmsg[mapping_ID2SID[motor_id].can_channel][0].data8[start_id] = (uint8_t)(target_current >> 8);
+        txmsg[mapping_ID2SID[motor_id].can_channel][0].data8[start_id+1] = (uint8_t)target_current;
     } else if (motor_SID < 0x209) {
         int start_id = (motor_SID-0x205)*2;
-        txmsg[mapping_ID2SID[motor_id].can_channel][1].data8[start_id] = (uint8_t)target_current >> 8;
-        txmsg[mapping_ID2SID[motor_id].can_channel][1].data8[start_id] = (uint8_t)target_current;
+        txmsg[mapping_ID2SID[motor_id].can_channel][1].data8[start_id] = (uint8_t)(target_current >> 8);
+        txmsg[mapping_ID2SID[motor_id].can_channel][1].data8[start_id+1] = (uint8_t)target_current;
     } else if (motor_SID < 0x20B) {
         int start_id = (motor_SID-0x209)*2;
-        txmsg[mapping_ID2SID[motor_id].can_channel][2].data8[start_id] = (uint8_t)target_current >> 8;
-        txmsg[mapping_ID2SID[motor_id].can_channel][2].data8[start_id] = (uint8_t)target_current;
+        txmsg[mapping_ID2SID[motor_id].can_channel][2].data8[start_id] = (uint8_t)(target_current >> 8);
+        txmsg[mapping_ID2SID[motor_id].can_channel][2].data8[start_id+1] = (uint8_t)target_current;
     } else {
         return;
     }
@@ -132,11 +132,11 @@ bool can_motor_interface::post_target_current(CANMotorBase::can_channel_t can_ch
     if(!can[can_channel_]) return false;
     switch (SID) {
         case 0x200:
-            return can[can_channel_]->send_msg(&txmsg[0][0]);
+            return can[can_channel_]->send_msg(&txmsg[can_channel_][0]);
         case 0x1FF:
-            return can[can_channel_]->send_msg(&txmsg[0][1]);
+            return can[can_channel_]->send_msg(&txmsg[can_channel_][1]);
         case 0x2FF:
-            return can[can_channel_]->send_msg(&txmsg[0][2]);
+            return can[can_channel_]->send_msg(&txmsg[can_channel_][2]);
         default:
             return false;
     }
