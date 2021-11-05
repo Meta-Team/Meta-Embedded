@@ -84,6 +84,13 @@ public:
      * */
     float torque();
 
+    /**
+     * @brief               Get the torque current of the motor, from feedback
+     * @return              Torque current in encoder unit.
+     * @details             Range mapping: [-16383~16383] -> [-20A, 20A]
+     * */
+    int torque_current();
+
     /********************************************//**
      *         Feedback Processing  Method
      ***********************************************/
@@ -121,7 +128,7 @@ private:
     /**
      * @brief Torque current from encoder.
      * */
-    uint16_t torque_current_raw = 0;
+    int16_t torque_current_raw = 0;
 
     /**
      * @brief Temperature feedback from encoder (If support).

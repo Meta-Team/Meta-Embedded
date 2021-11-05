@@ -9,13 +9,17 @@ CANMotorBase CANBUS_MOTOR_CFG::CANMotorProfile[MOTOR_COUNT] = {
 };
 
 PIDController::pid_params_t CANBUS_MOTOR_CFG::a2vParams[MOTOR_COUNT] = {
-        {10, 0.0f, 0.0, 100, 500},
+        {10, 0.0f, 0.2, 100, 500},
 };
 
 PIDController::pid_params_t CANBUS_MOTOR_CFG::v2iParams[MOTOR_COUNT] = {
-        {0.09,0.0007,0.000,5000.0,16000.0},
+        {10,0.2,0.000,4000.0,8100.0},
 };
 
 bool CANBUS_MOTOR_CFG::enable_a2v[MOTOR_COUNT] {
     true,
+};
+
+CANBUS_MOTOR_CFG::v2i_PID_status_t CANBUS_MOTOR_CFG::enable_v2i[MOTOR_COUNT] {
+    CANBUS_MOTOR_CFG::WORKING,
 };

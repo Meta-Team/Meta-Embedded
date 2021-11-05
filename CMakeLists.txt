@@ -192,6 +192,9 @@ add_executable(HAPTIC_DVC
         dev/scheduler/haptic_scheduler.cpp
         dev/vehicle/haptic_device/CANBUS_MOTOR_CFG.cpp
         dev/vehicle/haptic_device/Inspector.cpp
+        dev/module/controller_module.cpp
+        dev/logic/haptic_logic.cpp
+        dev/module/low_pass_filter.hpp
         dev/vehicle/haptic_device/main_haptic.cpp)
 target_include_directories(HAPTIC_DVC PRIVATE dev/vehicle/haptic_device)
 target_compile_definitions(HAPTIC_DVC PRIVATE HAPTIC_DVC)
@@ -374,7 +377,6 @@ target_link_libraries(pa_new_gimbal ${AHRS_LIB})
 add_executable(pa_elevator
         dev/interface/can/can_interface.cpp
         dev/module/pid_controller.hpp
-        dev/logic/engineer_elevator_logic.cpp
         dev/debug/param_adjusts/pa_engineer_elevator.cpp)
 
 add_executable(pa_engineer_chassis

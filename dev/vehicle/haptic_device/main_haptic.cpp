@@ -24,6 +24,7 @@
 #include "can_motor_interface.h"
 #include "Inspector.h"
 #include "haptic_scheduler.h"
+#include "haptic_logic.h"
 
 #else
 #error "File main_infantry.cpp should only be used for Infantry #3, #4, #5."
@@ -118,7 +119,8 @@ int main() {
     /// Complete Period 2
 //    BuzzerSKD::play_sound(BuzzerSKD::sound_nyan_cat);  // Now play the startup sound
     LED::led_on(DEV_BOARD_LED_CHASSIS);  // LED 5 on now
-
+    haptic_logic::init(THREAD_CHASSIS_LG_DODGE_PRIO, THREAD_SHOOT_SKD_PRIO);
+    LED::all_off();
     /*** ------------------------ Period 3. End of main thread ----------------------- ***/
 
     // Entering empty loop with low priority
