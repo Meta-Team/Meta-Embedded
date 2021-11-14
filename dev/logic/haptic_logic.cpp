@@ -29,9 +29,7 @@ void haptic_logic::back_driveability_thread::main() {
                 case torqueMode:
                     CANBUS_MOTOR_CFG::enable_a2v[i] = true;
                     CANBUS_MOTOR_CFG::enable_v2i[i] = CANBUS_MOTOR_CFG::DISABLED;
-                    haptic_scheduler::set_target_current((CANBUS_MOTOR_CFG::motor_id_t) i, -
-
-                    );
+                    haptic_scheduler::set_target_current((CANBUS_MOTOR_CFG::motor_id_t) i, 3000);
                     break;
                 case velMode:
                     CANBUS_MOTOR_CFG::enable_a2v[i] = false;
