@@ -1,5 +1,5 @@
 //
-// Created by Qian Chen on 10/28/21.
+// Created by Chen Qian on 10/28/21.
 //
 
 #include "can_motor_feedback.h"
