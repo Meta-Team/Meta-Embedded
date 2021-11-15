@@ -80,6 +80,16 @@ public:
      * */
      static bool post_target_current(CANMotorBase::can_channel_t can_channel_, uint32_t SID);
 
+     /**
+      * @brief CAN Tx Frame enable flag
+      * @details Indicate whether the can frame was used.
+      * @code
+      *   CAN1 | 0x200 | 0x1FF | 0x2FF
+      *   ----------------------------
+      *   CAN2 | 0x200 | 0x1FF | 0x2FF
+      * @endcode
+      * */
+     static bool EnableCANTxFrame[2][3];
     /********************************************//**
      *             SID and ID mapping
      ***********************************************/

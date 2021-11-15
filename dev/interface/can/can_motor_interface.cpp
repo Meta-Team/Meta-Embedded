@@ -12,6 +12,7 @@ can_motor_interface::motor_id_t can_motor_interface::mapping_SID2ID[2][11];
 can_motor_interface::mapping_ID2SID_t can_motor_interface::mapping_ID2SID[MOTOR_COUNT];
 
 CANTxFrame can_motor_interface::txmsg[2][3];
+bool       can_motor_interface::EnableCANTxFrame[2][3];
 
 // Initialize code just run for one time, thus the time complexity is not so critical.
 void can_motor_interface::init(CANInterface *can1_, CANInterface *can2_) {
@@ -28,6 +29,15 @@ void can_motor_interface::init(CANInterface *can1_, CANInterface *can2_) {
     for (int i = 0; i<MOTOR_COUNT; i++) {
         mapping_SID2ID[(int)CANMotorProfile[i].can_channel][CANMotorProfile[i].CAN_SID - 0x201] = (motor_id_t)i;
         mapping_ID2SID[i] = {CANMotorProfile[i].CAN_SID, CANMotorProfile[i].can_channel};
+        int index = 0;
+        if(CANMotorProfile[i].CAN_SID > 0x208) {
+            index = 2;
+        } else if (CANMotorProfile[i].CAN_SID > 0x204) {
+            index = 1;
+        } else if (CANMotorProfile[i].CAN_SID > 0x200){
+            index = 0;
+        }
+        EnableCANTxFrame[(int) CANMotorProfile[i].can_channel][index] = true; // Label the CANTxFrame
         motor_feedback[i].init(CANMotorProfile[i].motor_type, CANMotorProfile[i].initial_encoder_angle);
     }
     // Initialize the continuous SID field lists. Record the continuous SID fields.
@@ -48,6 +58,7 @@ void can_motor_interface::init(CANInterface *can1_, CANInterface *can2_) {
             // Detect for SID lower bound.
             if(i == 0 && mapping_SID2ID[can_channel][i]!=MOTOR_COUNT){                // Boundary condition
                 can_SID_field_list[can_SID_field_count][0] = i + 0x201;
+
             } else if(mapping_SID2ID[can_channel][i]!=MOTOR_COUNT && mapping_SID2ID[can_channel][i-1]==MOTOR_COUNT){
                 can_SID_field_list[can_SID_field_count][0] = i + 0x201;
             }

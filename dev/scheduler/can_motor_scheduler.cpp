@@ -79,8 +79,25 @@ void can_motor_scheduler::skdThread::main() {
             }
             can_motor_interface::set_current((CANBUS_MOTOR_CFG::motor_id_t)i, output[i]);
         }
-        can_motor_interface::post_target_current(CANMotorBase::can_channel_1, 0x200);
-        can_motor_interface::post_target_current(CANMotorBase::can_channel_1, 0x1FF);
+        /// Might be the most efficient way...currently?
+        if(can_motor_interface::EnableCANTxFrame[0][0]) {
+            can_motor_interface::post_target_current(CANMotorBase::can_channel_1, 0x200);
+        }
+        if(can_motor_interface::EnableCANTxFrame[0][1]) {
+            can_motor_interface::post_target_current(CANMotorBase::can_channel_1, 0x1FF);
+        }
+        if(can_motor_interface::EnableCANTxFrame[0][2]) {
+            can_motor_interface::post_target_current(CANMotorBase::can_channel_1, 0x2FF);
+        }
+        if(can_motor_interface::EnableCANTxFrame[1][0]) {
+            can_motor_interface::post_target_current(CANMotorBase::can_channel_2, 0x200);
+        }
+        if(can_motor_interface::EnableCANTxFrame[1][1]) {
+            can_motor_interface::post_target_current(CANMotorBase::can_channel_2, 0x1FF);
+        }
+        if(can_motor_interface::EnableCANTxFrame[1][2]) {
+            can_motor_interface::post_target_current(CANMotorBase::can_channel_2, 0x2FF);
+        }
         sleep(TIME_MS2I(1));
     }
 }
