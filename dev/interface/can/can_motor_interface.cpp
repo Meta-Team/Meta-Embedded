@@ -78,10 +78,10 @@ void can_motor_interface::init(CANInterface *can1_, CANInterface *can2_) {
         for (int i = 0; i < can_SID_field_count; i++) {
             switch (can_channel) {
                 case 0:
-                    can[can_channel]->register_callback(can_SID_field_list[i][1], can_SID_field_list[i][0], can1_callback_func);
+                    can[can_channel]->register_callback(can_SID_field_list[i][0], can_SID_field_list[i][1], can1_callback_func);
                     break;
                 case 1:
-                    can[can_channel]->register_callback(can_SID_field_list[i][1], can_SID_field_list[i][0], can2_callback_func);
+                    can[can_channel]->register_callback(can_SID_field_list[i][0], can_SID_field_list[i][1], can2_callback_func);
                     break;
             }
         }

@@ -5,7 +5,7 @@
 #ifndef META_INFANTRY_HAPTIC_LOGIC_H
 #define META_INFANTRY_HAPTIC_LOGIC_H
 
-#include "haptic_scheduler.h"
+#include "can_motor_scheduler.h"
 #include "module/low_pass_filter.hpp"
 
 using namespace chibios_rt;

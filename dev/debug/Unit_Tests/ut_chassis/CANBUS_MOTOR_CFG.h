@@ -1,5 +1,5 @@
 //
-// Created by 钱晨 on 10/29/21.
+// Created by 钱晨 on 11/14/21.
 //
 
 #ifndef META_INFANTRY_CANBUS_MOTOR_CFG_H
@@ -11,7 +11,10 @@
 class CANBUS_MOTOR_CFG {
 public:
     enum motor_id_t {
-        YAW,
+        FL,
+        FR,
+        BR,
+        BL,
         MOTOR_COUNT
     };
     static CANMotorBase CANMotorProfile[MOTOR_COUNT];

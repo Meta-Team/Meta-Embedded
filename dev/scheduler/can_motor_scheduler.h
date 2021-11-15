@@ -2,15 +2,15 @@
 // Created by 钱晨 on 10/29/21.
 //
 
-#ifndef META_INFANTRY_HAPTIC_SCHEDULER_H
-#define META_INFANTRY_HAPTIC_SCHEDULER_H
+#ifndef META_INFANTRY_CAN_MOTOR_SCHEDULER_H
+#define META_INFANTRY_CAN_MOTOR_SCHEDULER_H
 
 #include "can_motor_interface.h"
 #include "pid_controller.hpp"
 
 using namespace chibios_rt;
 
-class haptic_scheduler {
+class can_motor_scheduler {
 public:
 
     static void start(tprio_t SKD_PRIO, tprio_t FB_PRIO);
@@ -37,6 +37,11 @@ public:
      * */
     static int get_torque_current(CANBUS_MOTOR_CFG::motor_id_t id);
 
+    /**
+     * @brief           Get output current calculated by PID.
+     * @return          PID current.
+     * @details         Range mapping: [-16383~16383] -> [-20A, 20A]
+     * */
     static int get_PID_current(CANBUS_MOTOR_CFG::motor_id_t id);
 
     /**
@@ -46,6 +51,11 @@ public:
      * */
     static void set_target_angle(CANBUS_MOTOR_CFG::motor_id_t id, float target);
 
+    /**
+     * @brief Set the target velocity in velocity PID Controller mode
+     * @param id        [in] Target motor id
+     * @param target    [in] Target velocity of motor
+     * */
     static void set_target_vel(CANBUS_MOTOR_CFG::motor_id_t id, float target);
 
     /**
@@ -59,7 +69,7 @@ private:
     class feedbackThread : public BaseStaticThread<512> {
     public:
         //CANBUS_MOTOR_CFG::motor_id_t disp_id = (CANBUS_MOTOR_CFG::motor_id_t)((int)can_motor_interface::MOTOR_COUNT-1);
-        CANBUS_MOTOR_CFG::motor_id_t disp_id = CANBUS_MOTOR_CFG::YAW;
+        CANBUS_MOTOR_CFG::motor_id_t disp_id = (CANBUS_MOTOR_CFG::motor_id_t)0;
     private:
         void main() final;
     };
@@ -73,7 +83,7 @@ private:
         float PID_output[can_motor_interface::MOTOR_COUNT];
         void main() final;
         friend feedbackThread;
-        friend haptic_scheduler;
+        friend can_motor_scheduler;
     };
     static skdThread SKDThread;
 
@@ -82,4 +92,4 @@ private:
 };
 
 
-#endif //META_INFANTRY_HAPTIC_SCHEDULER_H
+#endif //META_INFANTRY_CAN_MOTOR_SCHEDULER_H

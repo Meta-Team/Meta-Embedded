@@ -29,12 +29,12 @@ void haptic_logic::back_driveability_thread::main() {
                 case torqueMode:
                     CANBUS_MOTOR_CFG::enable_a2v[i] = true;
                     CANBUS_MOTOR_CFG::enable_v2i[i] = CANBUS_MOTOR_CFG::DISABLED;
-                    haptic_scheduler::set_target_current((CANBUS_MOTOR_CFG::motor_id_t) i, 3000);
+                    can_motor_scheduler::set_target_current((CANBUS_MOTOR_CFG::motor_id_t) i, 3000);
                     break;
                 case velMode:
                     CANBUS_MOTOR_CFG::enable_a2v[i] = false;
                     CANBUS_MOTOR_CFG::enable_v2i[i] = CANBUS_MOTOR_CFG::WORKING;
-                    haptic_scheduler::set_target_vel((CANBUS_MOTOR_CFG::motor_id_t) i,
+                    can_motor_scheduler::set_target_vel((CANBUS_MOTOR_CFG::motor_id_t) i,
                                                      can_motor_interface::motor_feedback[i].actual_velocity);
                     break;
                 case angleMode:
@@ -42,12 +42,12 @@ void haptic_logic::back_driveability_thread::main() {
                     switch (CANBUS_MOTOR_CFG::enable_v2i[i]) {
                         case CANBUS_MOTOR_CFG::WORKING:
                             /// PID working, exceeded torque, disable PID and use linear torque.
-                            if (!ABS_IN_RANGE(haptic_scheduler::get_torque_current((can_motor_interface::motor_id_t) i),
+                            if (!ABS_IN_RANGE(can_motor_scheduler::get_torque_current((can_motor_interface::motor_id_t) i),
                                               current_threshold)) {
-                                target_current = haptic_scheduler::get_torque_current(
+                                target_current = can_motor_scheduler::get_torque_current(
                                         (can_motor_interface::motor_id_t) i);
                                 CANBUS_MOTOR_CFG::enable_v2i[i] = CANBUS_MOTOR_CFG::DISABLED;
-                                haptic_scheduler::set_target_current((CANBUS_MOTOR_CFG::motor_id_t) i,
+                                can_motor_scheduler::set_target_current((CANBUS_MOTOR_CFG::motor_id_t) i,
                                                                      target_current);
                             }
                             break;
@@ -56,7 +56,7 @@ void haptic_logic::back_driveability_thread::main() {
                             /// TODO: set to arbitrary torque during motion.
                             if (target_current * (int) can_motor_interface::motor_feedback[i].actual_velocity > 0) {
                                 /// If current drive the motor backward, stop immediately.
-                                haptic_scheduler::set_target_angle((CANBUS_MOTOR_CFG::motor_id_t) i,
+                                can_motor_scheduler::set_target_angle((CANBUS_MOTOR_CFG::motor_id_t) i,
                                                                    can_motor_interface::motor_feedback[i].accumulate_angle());
                                 CANBUS_MOTOR_CFG::enable_v2i[i] = CANBUS_MOTOR_CFG::WORKING;
                             } else {
@@ -72,21 +72,21 @@ void haptic_logic::back_driveability_thread::main() {
                                     haptic_logic::LowPassFilter[i].set_alpha(0.0001);
                                 }
                                 /// Set motor angle to 0
-                                haptic_scheduler::set_target_angle((CANBUS_MOTOR_CFG::motor_id_t) i,
+                                can_motor_scheduler::set_target_angle((CANBUS_MOTOR_CFG::motor_id_t) i,
                                                                    can_motor_interface::motor_feedback[i].accumulate_angle());
-                                haptic_scheduler::set_target_current((CANBUS_MOTOR_CFG::motor_id_t) i, target_current);
+                                can_motor_scheduler::set_target_current((CANBUS_MOTOR_CFG::motor_id_t) i, target_current);
                             }
                             break;
                         case CANBUS_MOTOR_CFG::FUSION:
                             /// If current conforms with current, let PID dominate current.
                             haptic_logic::LowPassFilter[i].update(
-                                    (float) haptic_scheduler::get_PID_current((CANBUS_MOTOR_CFG::motor_id_t) i));
-                            haptic_scheduler::set_target_current((CANBUS_MOTOR_CFG::motor_id_t) i,
+                                    (float) can_motor_scheduler::get_PID_current((CANBUS_MOTOR_CFG::motor_id_t) i));
+                            can_motor_scheduler::set_target_current((CANBUS_MOTOR_CFG::motor_id_t) i,
                                                                  (int) haptic_logic::LowPassFilter[i].get());
                             if (ABS_IN_RANGE(haptic_logic::LowPassFilter[i].get() -
-                                             haptic_scheduler::get_PID_current((CANBUS_MOTOR_CFG::motor_id_t) i),
+                                             can_motor_scheduler::get_PID_current((CANBUS_MOTOR_CFG::motor_id_t) i),
                                              0.1)) {
-                                haptic_scheduler::set_target_angle((CANBUS_MOTOR_CFG::motor_id_t) i,
+                                can_motor_scheduler::set_target_angle((CANBUS_MOTOR_CFG::motor_id_t) i,
                                                                    can_motor_interface::motor_feedback[i].accumulate_angle());
                                 CANBUS_MOTOR_CFG::enable_v2i[i] = CANBUS_MOTOR_CFG::WORKING;
                             }
@@ -96,7 +96,7 @@ void haptic_logic::back_driveability_thread::main() {
                 case zeroVelMode:
                     CANBUS_MOTOR_CFG::enable_a2v[i] = false;
                     CANBUS_MOTOR_CFG::enable_v2i[i] = CANBUS_MOTOR_CFG::WORKING;
-                    haptic_scheduler::set_target_vel((CANBUS_MOTOR_CFG::motor_id_t) i,
+                    can_motor_scheduler::set_target_vel((CANBUS_MOTOR_CFG::motor_id_t) i,
                                                      0.0f);
                     break;
             }

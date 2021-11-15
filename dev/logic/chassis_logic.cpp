@@ -11,15 +11,18 @@
  */
 
 #include "chassis_logic.h"
-#include "chassis_scheduler.h"
-#include "remote_interpreter.h"
 
+float ChassisLG::target_vx = 0.0f;
+float ChassisLG::target_vy = 0.0f;
+float ChassisLG::target_omega = 0.0f;
+ChassisLG::VelocityDecomposeThread ChassisLG::velocityDecomposeThread;
+ChassisLG::install_mode_t ChassisLG::install_mode = POSITIVE;
+float ChassisLG::w_to_v_ratio = 0.0f;
+float ChassisLG::v_to_wheel_angular_velocity = 0.0f;
+
+#if (FALSE)
 ChassisLG::action_t ChassisLG::action = FORCED_RELAX_MODE;
-float ChassisLG::target_vx;
-float ChassisLG::target_vy;
 float ChassisLG::target_theta;
-float ChassisLG::target_omega;
-
 float ChassisLG::dodge_mode_max_omega_ = 200.0f;
 float ChassisLG::dodge_mode_min_omega_ = 200.0f;
 int ChassisLG::dodge_mode_randomize_min_time_ = 2000.0f; // min rotate time for a constant speed[ms]
@@ -48,19 +51,12 @@ ChassisLG::action_t ChassisLG::get_action() {
 
 void ChassisLG::set_action(ChassisLG::action_t value) {
     if (value == action) return;  // avoid repeating setting target_theta, etc.
-
     action = value;
     if (action == FORCED_RELAX_MODE) {
-        ChassisSKD::load_pid_params(CHASSIS_FOLLOW_PID_THETA2V_PARAMS, CHASSIS_PID_V2I_PARAMS);
-        ChassisSKD::set_mode(ChassisSKD::FORCED_RELAX_MODE);
+
     } else if (action == FOLLOW_MODE) {
-        ChassisSKD::load_pid_params(CHASSIS_FOLLOW_PID_THETA2V_PARAMS, CHASSIS_PID_V2I_PARAMS);
-        ChassisSKD::set_mode(ChassisSKD::GIMBAL_COORDINATE_MODE);
-        apply_target();
+
     } else if (action == DODGE_MODE) {
-        ChassisSKD::load_pid_params(CHASSIS_CLIP_PID_THETA2V_PARAMS, CHASSIS_CLIP_PID_V2I_PARAMS);
-        ChassisSKD::set_mode(ChassisSKD::ANGULAR_VELOCITY_DODGE_MODE);
-        // Resume the thread
         chSysLock();  /// --- ENTER S-Locked state. DO NOT use LOG, printf, non S/I-Class functions or return ---
         if (!dodgeModeSwitchThread.started) {
             dodgeModeSwitchThread.started = true;
@@ -70,17 +66,23 @@ void ChassisLG::set_action(ChassisLG::action_t value) {
     }
     // Sending client data will be complete by higher level thread
 }
+#endif
 
-void ChassisLG::set_target(float vx, float vy) {
+void ChassisLG::set_target(float vx, float vy, float omega) {
     target_vx = vx;
     target_vy = vy;
-    if (action == FOLLOW_MODE) {
-        target_theta = 0.0f;
-    }
+    target_omega = omega;
     // For DODGE_MODE keep current target_theta unchanged
-    apply_target();
 }
 
+void ChassisLG::init(tprio_t velocity_decompose, float wheel_base, float wheel_thread, float wheel_circumference) {
+    velocityDecomposeThread.start(velocity_decompose);
+    w_to_v_ratio = (wheel_base + wheel_thread) / 2.0f / 360.0f * 3.14159f;
+    v_to_wheel_angular_velocity = (360.0f / wheel_circumference);
+}
+
+// TODO: Re-enable the functions when ready
+#if (FALSE)
 void ChassisLG::apply_target() {
     if (action == FOLLOW_MODE) {
         ChassisSKD::set_target(target_vx, target_vy, target_theta);
@@ -141,5 +143,20 @@ void ChassisLG::CapacitorPowerSetThread::main() {
         sleep(TIME_MS2I(CAP_POWER_SET_INTERVAL));
     }
 }
+#endif
 
 /** @} */
+void ChassisLG::VelocityDecomposeThread::main() {
+    setName("VelocityKinematic");
+    while(!shouldTerminate()) {
+        can_motor_scheduler::set_target_vel(CANBUS_MOTOR_CFG::FR, (float)install_mode *
+                                        (target_vx-target_vy *target_omega*w_to_v_ratio)*v_to_wheel_angular_velocity);
+        can_motor_scheduler::set_target_vel(CANBUS_MOTOR_CFG::FL, (float)install_mode *
+                                        (target_vx+target_vy *target_omega*w_to_v_ratio)*v_to_wheel_angular_velocity);
+        can_motor_scheduler::set_target_vel(CANBUS_MOTOR_CFG::BL, (float)install_mode *
+                                        (-target_vx+target_vy *target_omega*w_to_v_ratio)*v_to_wheel_angular_velocity);
+        can_motor_scheduler::set_target_vel(CANBUS_MOTOR_CFG::BR, (float)install_mode *
+                                        (-target_vx-target_vy *target_omega*w_to_v_ratio)*v_to_wheel_angular_velocity);
+        sleep(TIME_MS2I(VEL_DECOMPOSE_INTERVAL));
+    }
+}
