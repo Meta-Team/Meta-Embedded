@@ -10,7 +10,7 @@ float haptic_logic::velocity_threshold= 1.0f;
 haptic_logic::back_driveability_thread haptic_logic::BackDriveabilityThd;
 haptic_logic::button_switch_thread haptic_logic::ButtonSwitchThread;
 LowPassFilteredValue haptic_logic::LowPassFilter[CANBUS_MOTOR_CFG::MOTOR_COUNT];
-haptic_logic::mode_t haptic_logic::HAPTIC_DVC_MODE;
+haptic_logic::mode_t haptic_logic::HAPTIC_DVC_MODE = velMode;
 
 void haptic_logic::init(tprio_t PRIO, tprio_t FBPRIO) {
     BackDriveabilityThd.start(PRIO);
@@ -32,10 +32,10 @@ void haptic_logic::back_driveability_thread::main() {
                     can_motor_scheduler::set_target_current((CANBUS_MOTOR_CFG::motor_id_t) i, 3000);
                     break;
                 case velMode:
-                    CANBUS_MOTOR_CFG::enable_a2v[i] = false;
+                    CANBUS_MOTOR_CFG::enable_a2v[i] = true;
                     CANBUS_MOTOR_CFG::enable_v2i[i] = CANBUS_MOTOR_CFG::WORKING;
-                    can_motor_scheduler::set_target_vel((CANBUS_MOTOR_CFG::motor_id_t) i,
-                                                     can_motor_interface::motor_feedback[i].actual_velocity);
+                    can_motor_scheduler::set_target_angle((CANBUS_MOTOR_CFG::motor_id_t) i,
+                                                     0.0f);
                     break;
                 case angleMode:
                     CANBUS_MOTOR_CFG::enable_a2v[i] = true;
@@ -43,7 +43,7 @@ void haptic_logic::back_driveability_thread::main() {
                         case CANBUS_MOTOR_CFG::WORKING:
                             /// PID working, exceeded torque, disable PID and use linear torque.
                             if (!ABS_IN_RANGE(can_motor_scheduler::get_torque_current((can_motor_interface::motor_id_t) i),
-                                              current_threshold)) {
+                                              CANBUS_MOTOR_CFG::v2iParams[i].out_limit*0.9)) {
                                 target_current = can_motor_scheduler::get_torque_current(
                                         (can_motor_interface::motor_id_t) i);
                                 CANBUS_MOTOR_CFG::enable_v2i[i] = CANBUS_MOTOR_CFG::DISABLED;

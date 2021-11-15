@@ -27,11 +27,11 @@ void can_motor_scheduler::switch_feedback_motor(CANBUS_MOTOR_CFG::motor_id_t id)
     FeedbackThread.disp_id = id;
 }
 
-int can_motor_scheduler::get_torque_current(CANBUS_MOTOR_CFG::motor_id_t id){
+int  can_motor_scheduler::get_torque_current(CANBUS_MOTOR_CFG::motor_id_t id){
     return can_motor_interface::motor_feedback[id].torque_current();
 }
 
-int can_motor_scheduler::get_PID_current(CANBUS_MOTOR_CFG::motor_id_t id) {
+int  can_motor_scheduler::get_PID_current(CANBUS_MOTOR_CFG::motor_id_t id) {
     return SKDThread.PID_output[id];
 }
 
@@ -80,6 +80,7 @@ void can_motor_scheduler::skdThread::main() {
             can_motor_interface::set_current((CANBUS_MOTOR_CFG::motor_id_t)i, output[i]);
         }
         can_motor_interface::post_target_current(CANMotorBase::can_channel_1, 0x200);
+        can_motor_interface::post_target_current(CANMotorBase::can_channel_1, 0x1FF);
         sleep(TIME_MS2I(1));
     }
 }
