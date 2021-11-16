@@ -150,13 +150,13 @@ void ChassisLG::VelocityDecomposeThread::main() {
     setName("VelocityKinematic");
     while(!shouldTerminate()) {
         can_motor_scheduler::set_target_vel(CANBUS_MOTOR_CFG::FR, (float)install_mode *
-                                        (target_vx-target_vy *target_omega*w_to_v_ratio)*v_to_wheel_angular_velocity);
+                                        (target_vx-target_vy + target_omega * w_to_v_ratio)*v_to_wheel_angular_velocity);
         can_motor_scheduler::set_target_vel(CANBUS_MOTOR_CFG::FL, (float)install_mode *
-                                        (target_vx+target_vy *target_omega*w_to_v_ratio)*v_to_wheel_angular_velocity);
+                                        (target_vx+target_vy + target_omega * w_to_v_ratio)*v_to_wheel_angular_velocity);
         can_motor_scheduler::set_target_vel(CANBUS_MOTOR_CFG::BL, (float)install_mode *
-                                        (-target_vx+target_vy *target_omega*w_to_v_ratio)*v_to_wheel_angular_velocity);
+                                        (-target_vx+target_vy+ target_omega * w_to_v_ratio)*v_to_wheel_angular_velocity);
         can_motor_scheduler::set_target_vel(CANBUS_MOTOR_CFG::BR, (float)install_mode *
-                                        (-target_vx-target_vy *target_omega*w_to_v_ratio)*v_to_wheel_angular_velocity);
+                                        (-target_vx-target_vy+ target_omega * w_to_v_ratio)*v_to_wheel_angular_velocity);
         sleep(TIME_MS2I(VEL_DECOMPOSE_INTERVAL));
     }
 }

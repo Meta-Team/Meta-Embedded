@@ -68,6 +68,7 @@ set(VEHICLE_COMMON_SRC
         dev/interface/can/can_interface.cpp
         dev/interface/can/can_motor_feedback.cpp
         dev/interface/can/can_motor_interface.cpp
+        dev/scheduler/can_motor_scheduler.cpp
         dev/interface/remote_interpreter.cpp
         dev/common/CRC8.cpp
         dev/common/CRC16.cpp
@@ -189,7 +190,6 @@ target_link_libraries(HERO ${AHRS_LIB})
 add_executable(HAPTIC_DVC
         ${VEHICLE_COMMON_SRC}
         ${AHRS_SRC}
-        dev/scheduler/can_motor_scheduler.cpp
         dev/vehicle/haptic_device/CANBUS_MOTOR_CFG.cpp
         dev/vehicle/haptic_device/Inspector.cpp
         dev/module/controller_module.cpp
@@ -293,7 +293,6 @@ add_executable(ut_chassis
         ${VEHICLE_COMMON_SRC}
         ${AHRS_SRC}
         dev/debug/Unit_Tests/ut_chassis/CANBUS_MOTOR_CFG.cpp
-        dev/scheduler/can_motor_scheduler.cpp
         dev/logic/chassis_logic.cpp
         dev/module/low_pass_filter.hpp
         dev/debug/Unit_Tests/ut_chassis/ut_chassis.cpp

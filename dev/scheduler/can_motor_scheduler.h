@@ -69,7 +69,7 @@ private:
     class feedbackThread : public BaseStaticThread<512> {
     public:
         //CANBUS_MOTOR_CFG::motor_id_t disp_id = (CANBUS_MOTOR_CFG::motor_id_t)((int)can_motor_interface::MOTOR_COUNT-1);
-        CANBUS_MOTOR_CFG::motor_id_t disp_id = (CANBUS_MOTOR_CFG::motor_id_t)0;
+        CANBUS_MOTOR_CFG::motor_id_t disp_id = (CANBUS_MOTOR_CFG::motor_id_t)1;
     private:
         void main() final;
     };

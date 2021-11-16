@@ -38,7 +38,7 @@ private:
             if(Remote::rc.s1 == Remote::S_UP) {
                 ChassisLG::set_target(0.0f, 0.0f, 0.0f);
             } else {
-                ChassisLG::set_target(Remote::rc.ch2 * 1500.0f, Remote::rc.ch3 *1000.0f, Remote::rc.ch0 * 1.0f);
+                ChassisLG::set_target(Remote::rc.ch2 * 1500.0f, Remote::rc.ch3 * 1000.0f, Remote::rc.ch0 * 50.0f);
             }
             sleep(TIME_MS2I(100));
         }
