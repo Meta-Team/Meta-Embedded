@@ -190,6 +190,7 @@ target_link_libraries(HERO ${AHRS_LIB})
 add_executable(HAPTIC_DVC
         ${VEHICLE_COMMON_SRC}
         ${AHRS_SRC}
+        dev/interface/VCP.cpp
         dev/vehicle/haptic_device/CANBUS_MOTOR_CFG.cpp
         dev/vehicle/haptic_device/Inspector.cpp
         dev/module/controller_module.cpp
@@ -300,6 +301,12 @@ add_executable(ut_chassis
 target_include_directories(ut_chassis PRIVATE dev/debug/Unit_Tests/ut_chassis)
 target_compile_definitions(ut_chassis PRIVATE ut_chassis)
 target_link_libraries(ut_chassis ${AHRS_LIB})
+
+add_executable(ut_usb
+        dev/interface/VCP.cpp
+        dev/interface/led.cpp
+        dev/debug/Unit_Tests/ut_VCP/ut_usb.cpp
+        )
 
 # --------------------------------------- Param Adjusts ---------------------------------------
 

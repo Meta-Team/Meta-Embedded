@@ -9,6 +9,7 @@
 #include "led.h"
 #include "buzzer_scheduler.h"
 #include "common_macro.h"
+#include "VCP.h"
 
 #include "shell.h"
 #include "interface/can/can_interface.h"
@@ -39,6 +40,7 @@
 /// Instances
 CANInterface can1(&CAND1);
 CANInterface can2(&CAND2);
+SerialUSBDriver SDU1;
 AHRSOnBoard ahrs;
 
 /// Local Constants
@@ -73,7 +75,9 @@ int main() {
     BuzzerSKD::init(THREAD_BUZZER_SKD_PRIO);
 
     LED::led_on(DEV_BOARD_LED_SYSTEM_INIT);  // LED 1 on now
+    VCP::init(&SDU1);
 
+    //BuzzerSKD::play_sound(BuzzerSKD::sound_nyan_cat);
     /// Setup CAN1 & CAN2
     can1.start(THREAD_CAN1_RX_PRIO);
     can2.start(THREAD_CAN2_RX_PRIO);
