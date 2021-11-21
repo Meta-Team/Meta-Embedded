@@ -1,9 +1,9 @@
 //
-// Created by Chen Qian on 11/17/21.
+// Created by 钱晨 on 11/21/21.
 //
 
-#ifndef META_INFANTRY_VCP_H
-#define META_INFANTRY_VCP_H
+#ifndef META_INFANTRY_USBCONF_H
+#define META_INFANTRY_USBCONF_H
 
 #include "hal.h"
 #include "hal_usb_cdc.h"
@@ -12,8 +12,6 @@
 #define USBD_DATA_REQUEST_EP           1
 #define USBD_DATA_AVAILABLE_EP         1
 #define USBD_INTERRUPT_REQUEST_EP      2
-
-/**Inspired by STM32 Demo of ChibiOS*/
 
 /**
  * @brief Virtual COM port for STM32.
@@ -24,14 +22,9 @@
  * TODO: Sending function and data struct. Or add a property that using shell over VCP.
  * @endcode
  * */
-class VCP {
+
+class usbconf {
 public:
-    static void init(SerialUSBDriver *SDU);
-private:
-    /********************************************//**
-     *        Public Contribution and Methods
-     ***********************************************/
-private:
     static SerialUSBDriver *SDU;
     /**
      * @brief VCOM Device descriptor data, from ChibiOS STM32F429 Discovery Board Example.
@@ -158,4 +151,4 @@ private:
 };
 
 
-#endif //META_INFANTRY_VCP_H
+#endif //META_INFANTRY_USBCONF_H

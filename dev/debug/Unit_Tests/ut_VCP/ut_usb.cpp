@@ -6,7 +6,7 @@
 #include "hal.h"
 
 #include "led.h"
-#include "VCP.h"
+#include "interface/virtual_COM/VCP.h"
 #include "shell.h"
 // Other headers here
 
@@ -14,11 +14,21 @@ using namespace chibios_rt;
 
 SerialUSBDriver SDU;
 
+class DataSendingThread : public BaseStaticThread<512> {
+    void main() final {
+        setName("DSendThd");
+        while(!shouldTerminate()) {
+            VCP::transmitTest();
+            sleep(TIME_MS2I(200));
+        }
+    }
+} dataSendingThread;
+
 int main(void) {
     halInit();
     System::init();
     VCP::init(&SDU);
-
+//    dataSendingThread.start(NORMALPRIO+5);
     // Start ChibiOS shell at high priority, so even if a thread stucks, we still have access to shell.
     Shell::start(NORMALPRIO+10, (BaseSequentialStream*)&SDU);
 

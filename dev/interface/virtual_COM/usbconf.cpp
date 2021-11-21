@@ -1,16 +1,17 @@
 //
-// Created by Chen Qian on 11/17/21.
+// Created by 钱晨 on 11/21/21.
 //
 
-#include "VCP.h"
+#include "usbconf.h"
 
-USBInEndpointState VCP::ep1instate;
-USBInEndpointState VCP::ep2instate;
-USBOutEndpointState VCP::ep1outstate;
 
-SerialUSBDriver *VCP::SDU;
+USBInEndpointState usbconf::ep1instate;
+USBInEndpointState usbconf::ep2instate;
+USBOutEndpointState usbconf::ep1outstate;
 
-const uint8_t VCP::device_descriptor_data[18] = {
+SerialUSBDriver *usbconf::SDU;
+
+const uint8_t usbconf::device_descriptor_data[18] = {
         USB_DESC_DEVICE(0x0110,
                         0x02,
                         0x00,
@@ -25,12 +26,12 @@ const uint8_t VCP::device_descriptor_data[18] = {
                         1)
 };
 
-USBDescriptor VCP::device_descriptor = {
+USBDescriptor usbconf::device_descriptor = {
         sizeof device_descriptor_data,
         device_descriptor_data
 };
 
-const uint8_t VCP::configuration_descriptor_data[67] = {
+const uint8_t usbconf::configuration_descriptor_data[67] = {
         /* Configuration Descriptor.*/
         USB_DESC_CONFIGURATION(67,            /* wTotalLength.                    */
                                0x02,          /* bNumInterfaces.                  */
@@ -106,25 +107,25 @@ const uint8_t VCP::configuration_descriptor_data[67] = {
                                0x00)          /* bInterval.                       */
 };
 
-USBDescriptor VCP::configuration_descriptor = {
+USBDescriptor usbconf::configuration_descriptor = {
         sizeof configuration_descriptor_data,
         configuration_descriptor_data
 };
 
-const uint8_t VCP::vcom_string0[] = {
+const uint8_t usbconf::vcom_string0[] = {
         USB_DESC_BYTE(4),                     /* bLength.                         */
         USB_DESC_BYTE(USB_DESCRIPTOR_STRING), /* bDescriptorType.                 */
         USB_DESC_WORD(0x0409)                 /* wLANGID (U.S. English).          */
 };
 
-const uint8_t VCP::vcom_string1[] = {USB_DESC_BYTE(38),                    /* bLength.                         */
+const uint8_t usbconf::vcom_string1[] = {USB_DESC_BYTE(38),                    /* bLength.                         */
                                      USB_DESC_BYTE(USB_DESCRIPTOR_STRING), /* bDescriptorType.                 */
                                      'S', 0, 'T', 0, 'M', 0, 'i', 0, 'c', 0, 'r', 0, 'o', 0, 'e', 0,
                                      'l', 0, 'e', 0, 'c', 0, 't', 0, 'r', 0, 'o', 0, 'n', 0, 'i', 0,
                                      'c', 0, 's', 0
 };
 
-const uint8_t VCP::vcom_string2[] = {
+const uint8_t usbconf::vcom_string2[] = {
         USB_DESC_BYTE(56),                    /* bLength.                         */
         USB_DESC_BYTE(USB_DESCRIPTOR_STRING), /* bDescriptorType.                 */
         'C', 0, 'h', 0, 'i', 0, 'b', 0, 'i', 0, 'O', 0, 'S', 0, '/', 0,
@@ -133,7 +134,7 @@ const uint8_t VCP::vcom_string2[] = {
         'o', 0, 'r', 0, 't', 0
 };
 
-const uint8_t VCP::vcom_string3[] = {
+const uint8_t usbconf::vcom_string3[] = {
         USB_DESC_BYTE(8),                     /* bLength.                         */
         USB_DESC_BYTE(USB_DESCRIPTOR_STRING), /* bDescriptorType.                 */
         '0' + CH_KERNEL_MAJOR, 0,
@@ -141,7 +142,7 @@ const uint8_t VCP::vcom_string3[] = {
         '0' + CH_KERNEL_PATCH, 0
 };
 
-const USBEndpointConfig VCP::ep1config = {
+const USBEndpointConfig usbconf::ep1config = {
         USB_EP_MODE_TYPE_BULK,
         NULL,
         sduDataTransmitted,
@@ -154,7 +155,7 @@ const USBEndpointConfig VCP::ep1config = {
         NULL
 };
 
-const USBEndpointConfig VCP::ep2config = {
+const USBEndpointConfig usbconf::ep2config = {
         USB_EP_MODE_TYPE_INTR,
         NULL,
         sduInterruptTransmitted,
@@ -167,39 +168,28 @@ const USBEndpointConfig VCP::ep2config = {
         NULL
 };
 
-const USBDescriptor VCP::vcom_strings[] = {
-    {sizeof VCP::vcom_string0, VCP::vcom_string0},
-    {sizeof VCP::vcom_string1, VCP::vcom_string1},
-    {sizeof VCP::vcom_string2, VCP::vcom_string2},
-    {sizeof VCP::vcom_string3, VCP::vcom_string3}
+const USBDescriptor usbconf::vcom_strings[] = {
+        {sizeof usbconf::vcom_string0, usbconf::vcom_string0},
+        {sizeof usbconf::vcom_string1, usbconf::vcom_string1},
+        {sizeof usbconf::vcom_string2, usbconf::vcom_string2},
+        {sizeof usbconf::vcom_string3, usbconf::vcom_string3}
 };
 
-const USBConfig VCP::usbcfg = {
+const USBConfig usbconf::usbcfg = {
         usb_event,
         get_descriptor,
         sduRequestsHook,
         sof_handler
 };
 
-SerialUSBConfig VCP::serusbcfg = {
+SerialUSBConfig usbconf::serusbcfg = {
         &USBD1,
         USBD_DATA_REQUEST_EP,
         USBD_DATA_AVAILABLE_EP,
         USBD_INTERRUPT_REQUEST_EP
 };
 
-void VCP::init(SerialUSBDriver *SDU_) {
-    SDU = SDU_;
-    sduObjectInit(SDU);
-    sduStart(SDU, &serusbcfg);
-
-    usbDisconnectBus(serusbcfg.usbp);
-    chThdSleepMilliseconds(1500);
-    usbStart(serusbcfg.usbp, &usbcfg);
-    usbConnectBus(serusbcfg.usbp);
-}
-
-const USBDescriptor *VCP::get_descriptor(USBDriver *usbp, uint8_t dtype, uint8_t dindex, uint16_t lang) {
+const USBDescriptor *usbconf::get_descriptor(USBDriver *usbp, uint8_t dtype, uint8_t dindex, uint16_t lang) {
     (void)usbp;
     (void)lang;
     switch (dtype) {
@@ -214,7 +204,7 @@ const USBDescriptor *VCP::get_descriptor(USBDriver *usbp, uint8_t dtype, uint8_t
     return NULL;
 }
 
-void VCP::usb_event(USBDriver *usbp, usbevent_t event) {
+void usbconf::usb_event(USBDriver *usbp, usbevent_t event) {
     switch (event) {
         case USB_EVENT_RESET:
             return;
@@ -254,10 +244,9 @@ void VCP::usb_event(USBDriver *usbp, usbevent_t event) {
 
 }
 
-void VCP::sof_handler(USBDriver *usbp) {
+void usbconf::sof_handler(USBDriver *usbp) {
     (void)usbp;
     osalSysLockFromISR();
     sduSOFHookI(SDU);
     osalSysUnlockFromISR();
 }
-

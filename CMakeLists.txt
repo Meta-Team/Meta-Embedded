@@ -74,6 +74,10 @@ set(VEHICLE_COMMON_SRC
         dev/common/CRC16.cpp
         dev/interface/sd_card_interface.cpp)
 
+set(VCP_SRC
+        dev/interface/virtual_COM/usbconf.cpp
+        dev/interface/virtual_COM/VCP.cpp)
+
 set(AHRS_SRC
         dev/interface/ahrs/ahrs_math.hpp
         dev/interface/ahrs/ahrs.cpp
@@ -190,7 +194,7 @@ target_link_libraries(HERO ${AHRS_LIB})
 add_executable(HAPTIC_DVC
         ${VEHICLE_COMMON_SRC}
         ${AHRS_SRC}
-        dev/interface/VCP.cpp
+        dev/interface/virtual_COM/VCP.cpp
         dev/vehicle/haptic_device/CANBUS_MOTOR_CFG.cpp
         dev/vehicle/haptic_device/Inspector.cpp
         dev/module/controller_module.cpp
@@ -303,7 +307,7 @@ target_compile_definitions(ut_chassis PRIVATE ut_chassis)
 target_link_libraries(ut_chassis ${AHRS_LIB})
 
 add_executable(ut_usb
-        dev/interface/VCP.cpp
+        ${VCP_SRC}
         dev/interface/led.cpp
         dev/debug/Unit_Tests/ut_VCP/ut_usb.cpp
         )
