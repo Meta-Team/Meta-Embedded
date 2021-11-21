@@ -11,18 +11,18 @@ USBOutEndpointState VCP::ep1outstate;
 SerialUSBDriver *VCP::SDU;
 
 const uint8_t VCP::device_descriptor_data[18] = {
-        USB_DESC_DEVICE(0x0110,        /* bcdUSB (1.1).                    */
-                        0x02,          /* bDeviceClass (CDC).              */
-                        0x00,          /* bDeviceSubClass.                 */
-                        0x00,          /* bDeviceProtocol.                 */
-                        0x40,          /* bMaxPacketSize.                  */
-                        0x0483,        /* idVendor (ST).                   */
-                        0x5740,        /* idProduct.                       */
-                        0x0200,        /* bcdDevice.                       */
-                        1,             /* iManufacturer.                   */
-                        2,             /* iProduct.                        */
-                        3,             /* iSerialNumber.                   */
-                        1)             /* bNumConfigurations.              */
+        USB_DESC_DEVICE(0x0110,
+                        0x02,
+                        0x00,
+                        0x00,
+                        0x40,
+                        0x0483,
+                        0x5740,
+                        0x0200,
+                        1,
+                        2,
+                        3,
+                        1)
 };
 
 USBDescriptor VCP::device_descriptor = {
@@ -43,43 +43,43 @@ const uint8_t VCP::configuration_descriptor_data[67] = {
                                0x00,          /* bAlternateSetting.               */
                                0x01,          /* bNumEndpoints.                   */
                                0x02,          /* bInterfaceClass (Communications
-                                           Interface Class, CDC section
-                                           4.2).                            */
+                                                 Interface Class, CDC section
+                                                 4.2).                            */
                                0x02,          /* bInterfaceSubClass (Abstract
-                                         Control Model, CDC section 4.3).   */
+                                               Control Model, CDC section 4.3).   */
                                0x01,          /* bInterfaceProtocol (AT commands,
-                                           CDC section 4.4).                */
+                                                 CDC section 4.4).                */
                                0),            /* iInterface.                      */
         /* Header Functional Descriptor (CDC section 5.2.3).*/
         USB_DESC_BYTE         (5),            /* bLength.                         */
         USB_DESC_BYTE         (0x24),         /* bDescriptorType (CS_INTERFACE).  */
         USB_DESC_BYTE         (0x00),         /* bDescriptorSubtype (Header
-                                           Functional Descriptor.           */
-        USB_DESC_BCD          (0x0110),       /* bcdCDC.                          */
+                                                 Functional Descriptor.           */
+        USB_DESC_BCD          (0x0110),  /* bcdCDC.                          */
         /* Call Management Functional Descriptor. */
         USB_DESC_BYTE         (5),            /* bFunctionLength.                 */
         USB_DESC_BYTE         (0x24),         /* bDescriptorType (CS_INTERFACE).  */
         USB_DESC_BYTE         (0x01),         /* bDescriptorSubtype (Call Management
-                                           Functional Descriptor).          */
+                                                 Functional Descriptor).          */
         USB_DESC_BYTE         (0x00),         /* bmCapabilities (D0+D1).          */
         USB_DESC_BYTE         (0x01),         /* bDataInterface.                  */
         /* ACM Functional Descriptor.*/
         USB_DESC_BYTE         (4),            /* bFunctionLength.                 */
         USB_DESC_BYTE         (0x24),         /* bDescriptorType (CS_INTERFACE).  */
         USB_DESC_BYTE         (0x02),         /* bDescriptorSubtype (Abstract
-                                           Control Management Descriptor).  */
+                                                 Control Management Descriptor).  */
         USB_DESC_BYTE         (0x02),         /* bmCapabilities.                  */
         /* Union Functional Descriptor.*/
         USB_DESC_BYTE         (5),            /* bFunctionLength.                 */
         USB_DESC_BYTE         (0x24),         /* bDescriptorType (CS_INTERFACE).  */
         USB_DESC_BYTE         (0x06),         /* bDescriptorSubtype (Union
-                                           Functional Descriptor).          */
+                                                 Functional Descriptor).          */
         USB_DESC_BYTE         (0x00),         /* bMasterInterface (Communication
-                                           Class Interface).                */
+                                                 Class Interface).                */
         USB_DESC_BYTE         (0x01),         /* bSlaveInterface0 (Data Class
-                                           Interface).                      */
+                                                 Interface).                      */
         /* Endpoint 2 Descriptor.*/
-        USB_DESC_ENDPOINT     (USBD2_INTERRUPT_REQUEST_EP|0x80,
+        USB_DESC_ENDPOINT     (USBD_INTERRUPT_REQUEST_EP | 0x80,
                                0x03,          /* bmAttributes (Interrupt).        */
                                0x0008,        /* wMaxPacketSize.                  */
                                0xFF),         /* bInterval.                       */
@@ -88,19 +88,19 @@ const uint8_t VCP::configuration_descriptor_data[67] = {
                                0x00,          /* bAlternateSetting.               */
                                0x02,          /* bNumEndpoints.                   */
                                0x0A,          /* bInterfaceClass (Data Class
-                                           Interface, CDC section 4.5).     */
+                                                 Interface, CDC section 4.5).     */
                                0x00,          /* bInterfaceSubClass (CDC section
-                                           4.6).                            */
+                                                 4.6).                            */
                                0x00,          /* bInterfaceProtocol (CDC section
-                                           4.7).                            */
+                                                 4.7).                            */
                                0x00),         /* iInterface.                      */
         /* Endpoint 3 Descriptor.*/
-        USB_DESC_ENDPOINT     (USBD2_DATA_AVAILABLE_EP,       /* bEndpointAddress.*/
+        USB_DESC_ENDPOINT     (USBD_DATA_AVAILABLE_EP,        /* bEndpointAddress.*/
                                0x02,          /* bmAttributes (Bulk).             */
                                0x0040,        /* wMaxPacketSize.                  */
                                0x00),         /* bInterval.                       */
         /* Endpoint 1 Descriptor.*/
-        USB_DESC_ENDPOINT     (USBD2_DATA_REQUEST_EP|0x80,    /* bEndpointAddress.*/
+        USB_DESC_ENDPOINT     (USBD_DATA_REQUEST_EP | 0x80,   /* bEndpointAddress.*/
                                0x02,          /* bmAttributes (Bulk).             */
                                0x0040,        /* wMaxPacketSize.                  */
                                0x00)          /* bInterval.                       */
@@ -181,22 +181,22 @@ const USBConfig VCP::usbcfg = {
         sof_handler
 };
 
-const SerialUSBConfig VCP::serusbcfg = {
+SerialUSBConfig VCP::serusbcfg = {
         &USBD1,
-        USBD2_DATA_REQUEST_EP,
-        USBD2_DATA_AVAILABLE_EP,
-        USBD2_INTERRUPT_REQUEST_EP
+        USBD_DATA_REQUEST_EP,
+        USBD_DATA_AVAILABLE_EP,
+        USBD_INTERRUPT_REQUEST_EP
 };
 
 void VCP::init(SerialUSBDriver *SDU_) {
     SDU = SDU_;
     sduObjectInit(SDU);
     sduStart(SDU, &serusbcfg);
+
     usbDisconnectBus(serusbcfg.usbp);
-    chThdSleepMilliseconds(1000);
+    chThdSleepMilliseconds(1500);
     usbStart(serusbcfg.usbp, &usbcfg);
     usbConnectBus(serusbcfg.usbp);
-
 }
 
 const USBDescriptor *VCP::get_descriptor(USBDriver *usbp, uint8_t dtype, uint8_t dindex, uint16_t lang) {
@@ -215,8 +215,9 @@ const USBDescriptor *VCP::get_descriptor(USBDriver *usbp, uint8_t dtype, uint8_t
 }
 
 void VCP::usb_event(USBDriver *usbp, usbevent_t event) {
-
     switch (event) {
+        case USB_EVENT_RESET:
+            return;
         case USB_EVENT_ADDRESS:
             return;
         case USB_EVENT_CONFIGURED:
@@ -225,18 +226,14 @@ void VCP::usb_event(USBDriver *usbp, usbevent_t event) {
             /* Enables the endpoints specified into the configuration.
                Note, this callback is invoked from an ISR so I-Class functions
                must be used.*/
-            usbInitEndpointI(usbp, USBD2_DATA_REQUEST_EP, &ep1config);
-            usbInitEndpointI(usbp, USBD2_INTERRUPT_REQUEST_EP, &ep2config);
+            usbInitEndpointI(usbp, USBD_DATA_REQUEST_EP, &ep1config);
+            usbInitEndpointI(usbp, USBD_INTERRUPT_REQUEST_EP, &ep2config);
 
             /* Resetting the state of the CDC subsystem.*/
             sduConfigureHookI(SDU);
 
             chSysUnlockFromISR();
             return;
-        case USB_EVENT_RESET:
-            /* Falls into.*/
-        case USB_EVENT_UNCONFIGURED:
-            /* Falls into.*/
         case USB_EVENT_SUSPEND:
             chSysLockFromISR();
 
@@ -246,17 +243,13 @@ void VCP::usb_event(USBDriver *usbp, usbevent_t event) {
             chSysUnlockFromISR();
             return;
         case USB_EVENT_WAKEUP:
-            chSysLockFromISR();
-
-            /* Connection event on wakeup.*/
-            sduWakeupHookI(SDU);
-
-            chSysUnlockFromISR();
             return;
         case USB_EVENT_STALLED:
             return;
+        case USB_EVENT_UNCONFIGURED:
+            return;
     }
-    return;
+
 }
 
 void VCP::sof_handler(USBDriver *usbp) {
