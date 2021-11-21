@@ -231,7 +231,6 @@ void VCP::usb_event(USBDriver *usbp, usbevent_t event) {
 
             /* Resetting the state of the CDC subsystem.*/
             sduConfigureHookI(SDU);
-
             chSysUnlockFromISR();
             return;
         case USB_EVENT_SUSPEND:
@@ -239,10 +238,13 @@ void VCP::usb_event(USBDriver *usbp, usbevent_t event) {
 
             /* Disconnection event on suspend.*/
             sduSuspendHookI(SDU);
-
             chSysUnlockFromISR();
             return;
         case USB_EVENT_WAKEUP:
+            chSysLockFromISR();
+            /* Connection event on wakeup.*/
+            sduWakeupHookI(SDU);
+            chSysUnlockFromISR();
             return;
         case USB_EVENT_STALLED:
             return;

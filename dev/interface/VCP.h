@@ -20,7 +20,8 @@
  * @usage Please first define "BOARD_OTG_NOVBUSSENS" in board.h, to establish the appropriate communication with PC.
  * @code
  * 1. Enable HAL_USE_USB in halconf.h
- * 2. Enable HAL_USE_USB in halconf.h
+ * 2. Call init function to initialize the VCP.
+ * TODO: Sending function and data struct. Or add a property that using shell over VCP.
  * @endcode
  * */
 class VCP {
