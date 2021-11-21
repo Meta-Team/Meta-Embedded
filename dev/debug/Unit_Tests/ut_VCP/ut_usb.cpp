@@ -18,8 +18,12 @@ class DataSendingThread : public BaseStaticThread<512> {
     void main() final {
         setName("DSendThd");
         while(!shouldTerminate()) {
-            VCP::transmitTest();
-            sleep(TIME_MS2I(200));
+            sleep(TIME_MS2I(100));
+            Shell::printf("Buffer Content:" SHELL_NEWLINE_STR);
+            for(int i = 0; i < 100; i++) {
+                Shell::printf("%d ", VCP::buffer[i]);
+            }
+            sleep(TIME_MS2I(100));
         }
     }
 } dataSendingThread;
@@ -27,8 +31,8 @@ class DataSendingThread : public BaseStaticThread<512> {
 int main(void) {
     halInit();
     System::init();
-    VCP::init(&SDU);
-//    dataSendingThread.start(NORMALPRIO+5);
+    VCP::init(&SDU, NORMALPRIO+1);
+    dataSendingThread.start(NORMALPRIO+5);
     // Start ChibiOS shell at high priority, so even if a thread stucks, we still have access to shell.
     Shell::start(NORMALPRIO+10);
 

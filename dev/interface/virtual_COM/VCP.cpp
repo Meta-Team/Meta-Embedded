@@ -4,7 +4,10 @@
 
 #include "VCP.h"
 
-void VCP::init(SerialUSBDriver *SDU_) {
+uint8_t VCP::buffer[100];
+VCP::DataReceiveThread VCP::dataReceiveThread;
+
+void VCP::init(SerialUSBDriver *SDU_, tprio_t rx_thd_prio) {
     SDU = SDU_;
     sduObjectInit(SDU);
     sduStart(SDU, &serusbcfg);
@@ -13,9 +16,17 @@ void VCP::init(SerialUSBDriver *SDU_) {
     chThdSleepMilliseconds(1500);
     usbStart(serusbcfg.usbp, &usbcfg);
     usbConnectBus(serusbcfg.usbp);
+
+    dataReceiveThread.start(rx_thd_prio);
 }
 
-void VCP::transmitTest() {
-    chnWriteTimeout(SDU, reinterpret_cast<const uint8_t *>("Hello World!"), 12, TIME_INFINITE);
+void VCP::sendData(uint8_t *data, unsigned int size) {
+    chnWriteTimeout(SDU, data, size, TIME_INFINITE);
 }
 
+void VCP::DataReceiveThread::main() {
+    setName("vcom_rx_thd");
+    while (!shouldTerminate()) {
+        chnReadTimeout(SDU, buffer, sizeof(buffer), TIME_INFINITE);
+    }
+}
