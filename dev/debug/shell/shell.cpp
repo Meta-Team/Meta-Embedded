@@ -38,7 +38,7 @@ static constexpr SerialConfig SHELL_SERIAL_CONFIG = {115200,
  * Instead of calling main(), as BaseStaticThread does,
  * it calls the thread provided by ChibiOS shell.
  */
-bool Shell::start(tprio_t prio, BaseSequentialStream *stream) {
+bool Shell::start(tprio_t prio) {
 
     if (enabled) return false;
 
@@ -46,7 +46,7 @@ bool Shell::start(tprio_t prio, BaseSequentialStream *stream) {
 
     // Configure shell
     shellConfig = ShellConfig{
-            (BaseSequentialStream *) stream,
+            (BaseSequentialStream *) &SD6,
             (ShellCommand *) shellCommands,
             &printfMutex,
 #if (SHELL_USE_HISTORY == TRUE)

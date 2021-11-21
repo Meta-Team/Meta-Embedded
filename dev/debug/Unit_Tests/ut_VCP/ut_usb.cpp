@@ -30,7 +30,7 @@ int main(void) {
     VCP::init(&SDU);
 //    dataSendingThread.start(NORMALPRIO+5);
     // Start ChibiOS shell at high priority, so even if a thread stucks, we still have access to shell.
-    Shell::start(NORMALPRIO+10, (BaseSequentialStream*)&SDU);
+    Shell::start(NORMALPRIO+10);
 
 #if CH_CFG_NO_IDLE_THREAD // see chconf.h for what this #define means
     // ChibiOS idle thread has been disabled, main() should implement infinite loop

@@ -75,7 +75,7 @@ public:
      * @param prio   Thread priority
      * @return If the shell thread has already started, return false
      */
-    static bool start(tprio_t prio, BaseSequentialStream *stream);
+    static bool start(tprio_t prio);
 
     /**
      * Callback function pointer for Shell command
