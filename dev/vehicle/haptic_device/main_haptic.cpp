@@ -9,10 +9,10 @@
 #include "led.h"
 #include "buzzer_scheduler.h"
 #include "common_macro.h"
-#include "interface/virtual_COM/VCP.h"
+#include "VCP.h"
 
 #include "shell.h"
-#include "interface/can/can_interface.h"
+#include "can_interface.h"
 #include "ahrs.h"
 
 #include "thread_priorities.h"
@@ -73,11 +73,9 @@ int main() {
     chThdSleepMilliseconds(50);  // wait for logo to print :)
 
     BuzzerSKD::init(THREAD_BUZZER_SKD_PRIO);
-
     LED::led_on(DEV_BOARD_LED_SYSTEM_INIT);  // LED 1 on now
     VCP::init(&SDU1, THREAD_VIRTUAL_COM_PRIO);
 
-    //BuzzerSKD::play_sound(BuzzerSKD::sound_nyan_cat);
     /// Setup CAN1 & CAN2
     can1.start(THREAD_CAN1_RX_PRIO);
     can2.start(THREAD_CAN2_RX_PRIO);

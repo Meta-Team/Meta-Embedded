@@ -108,7 +108,7 @@ public:
     /********************************************//**
      *           Raw Data for Calculation
      ***********************************************/
-private:
+public:
 
     /**
      * @brief Motor's type. Motor supported: M3508, M3508 without reducer. M2006, GM6020.

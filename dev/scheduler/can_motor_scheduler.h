@@ -7,6 +7,7 @@
 
 #include "can_motor_interface.h"
 #include "pid_controller.hpp"
+#include "VCP.h"
 
 using namespace chibios_rt;
 
@@ -69,7 +70,7 @@ private:
     class feedbackThread : public BaseStaticThread<512> {
     public:
         //CANBUS_MOTOR_CFG::motor_id_t disp_id = (CANBUS_MOTOR_CFG::motor_id_t)((int)can_motor_interface::MOTOR_COUNT-1);
-        CANBUS_MOTOR_CFG::motor_id_t disp_id = (CANBUS_MOTOR_CFG::motor_id_t)1;
+        CANBUS_MOTOR_CFG::motor_id_t disp_id = (CANBUS_MOTOR_CFG::motor_id_t)0;
     private:
         void main() final;
     };

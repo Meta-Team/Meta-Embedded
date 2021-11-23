@@ -111,6 +111,10 @@ void can_motor_scheduler::feedbackThread::main() {
                           can_motor_interface::motor_feedback[disp_id].actual_angle, can_motor_scheduler::SKDThread.targetA[disp_id],
                           can_motor_interface::motor_feedback[disp_id].actual_velocity, can_motor_scheduler::SKDThread.targetV[disp_id],
                           can_motor_interface::motor_feedback[disp_id].torque_current(), (int)can_motor_scheduler::SKDThread.PID_output[disp_id]);
+            uint8_t txdata[4] = {0,0,0,0};
+            txdata[0] = (uint8_t) (can_motor_interface::motor_feedback[disp_id].last_rotor_angle_raw >> 8);
+            txdata[1] = (uint8_t) (can_motor_interface::motor_feedback[disp_id].last_rotor_angle_raw);
+            VCP::sendData(txdata, 4);
             sleep(TIME_MS2I(20));
         }
     }
