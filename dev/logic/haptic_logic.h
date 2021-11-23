@@ -13,7 +13,7 @@ using namespace chibios_rt;
 class haptic_logic {
 public:
 
-    static void init(tprio_t PRIO, tprio_t FBPRIO);
+    static void init(tprio_t PRIO, tprio_t BTNPRIO);
     /**
      * @brief Max torque current threshold for motor, disables PID controllers, enters torque mode.
      * @details To provide a seamless user experience, the target torque current for torque mode should be the same

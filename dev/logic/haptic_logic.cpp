@@ -12,9 +12,9 @@ haptic_logic::button_switch_thread haptic_logic::ButtonSwitchThread;
 LowPassFilteredValue haptic_logic::LowPassFilter[CANBUS_MOTOR_CFG::MOTOR_COUNT];
 haptic_logic::mode_t haptic_logic::HAPTIC_DVC_MODE = velMode;
 
-void haptic_logic::init(tprio_t PRIO, tprio_t FBPRIO) {
+void haptic_logic::init(tprio_t PRIO, tprio_t BTNPRIO) {
     BackDriveabilityThd.start(PRIO);
-    ButtonSwitchThread.start(FBPRIO);
+    ButtonSwitchThread.start(BTNPRIO);
 }
 
 void haptic_logic::back_driveability_thread::main() {

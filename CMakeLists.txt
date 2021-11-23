@@ -194,6 +194,7 @@ target_link_libraries(HERO ${AHRS_LIB})
 add_executable(HAPTIC_DVC
         ${VEHICLE_COMMON_SRC}
         ${AHRS_SRC}
+        dev/interface/virtual_COM/usbconf.cpp
         dev/interface/virtual_COM/VCP.cpp
         dev/vehicle/haptic_device/CANBUS_MOTOR_CFG.cpp
         dev/vehicle/haptic_device/Inspector.cpp

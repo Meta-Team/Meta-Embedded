@@ -9,7 +9,7 @@
 #include "led.h"
 #include "buzzer_scheduler.h"
 #include "common_macro.h"
-#include "VCP.h"
+#include "interface/virtual_COM/VCP.h"
 
 #include "shell.h"
 #include "interface/can/can_interface.h"
@@ -75,7 +75,7 @@ int main() {
     BuzzerSKD::init(THREAD_BUZZER_SKD_PRIO);
 
     LED::led_on(DEV_BOARD_LED_SYSTEM_INIT);  // LED 1 on now
-    VCP::init(&SDU1);
+    VCP::init(&SDU1, THREAD_VIRTUAL_COM_PRIO);
 
     //BuzzerSKD::play_sound(BuzzerSKD::sound_nyan_cat);
     /// Setup CAN1 & CAN2
@@ -118,12 +118,12 @@ int main() {
     /*** ------------ Period 2. Calibration and Start Logic Control Thread ----------- ***/
 
     /// Start SKDs
-    can_motor_scheduler::start(THREAD_GIMBAL_SKD_PRIO, THREAD_VISION_SKD_PRIO);
+    can_motor_scheduler::start(THREAD_MOTOR_SKD_PRIO, THREAD_FEEDBACK_SKD_PRIO);
 
     /// Complete Period 2
 //    BuzzerSKD::play_sound(BuzzerSKD::sound_nyan_cat);  // Now play the startup sound
     LED::led_on(DEV_BOARD_LED_CHASSIS);  // LED 5 on now
-    haptic_logic::init(THREAD_CHASSIS_LG_DODGE_PRIO, THREAD_SHOOT_SKD_PRIO);
+    haptic_logic::init(THREAD_MOTOR_LG_VISION_PRIO, THREAD_BUTTON_DETECT_PRIO);
     LED::all_off();
     /*** ------------------------ Period 3. End of main thread ----------------------- ***/
 
