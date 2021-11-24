@@ -4,119 +4,71 @@
 
 #include "haptic_logic.h"
 
-int haptic_logic::current_threshold = 8000;
-float haptic_logic::target_angle      = 0.0f;
-float haptic_logic::velocity_threshold= 1.0f;
-haptic_logic::back_driveability_thread haptic_logic::BackDriveabilityThd;
-haptic_logic::button_switch_thread haptic_logic::ButtonSwitchThread;
-LowPassFilteredValue haptic_logic::LowPassFilter[CANBUS_MOTOR_CFG::MOTOR_COUNT];
-haptic_logic::mode_t haptic_logic::HAPTIC_DVC_MODE = calibrateMode;
+int   HapticLG::current_threshold  = 8000;
+float HapticLG::target_angle       = 0.0f;
+float HapticLG::velocity_threshold = 1.0f;
+HapticLG::BackDrivabilityThread HapticLG::back_drivability_thd;
+HapticLG::ButtonSwitchThread    HapticLG::btn_switch_thd;
+LowPassFilteredValue HapticLG::LowPassFilter[CANMotorCFG::MOTOR_COUNT];
+HapticLG::mode_t HapticLG::haptic_device_mode = calibrateMode;
 
-void haptic_logic::init(tprio_t PRIO, tprio_t BTNPRIO) {
-    BackDriveabilityThd.start(PRIO);
-    ButtonSwitchThread.start(BTNPRIO);
+void HapticLG::init(tprio_t PRIO, tprio_t BTNPRIO) {
+    back_drivability_thd.start(PRIO);
+    btn_switch_thd.start(BTNPRIO);
 }
 
-void haptic_logic::back_driveability_thread::main() {
+void HapticLG::BackDrivabilityThread::main() {
     setName("Back_Drive_Ability_Thread");
     int target_current = 0;
-    long int STUCK_STARTTIME = 0;
+    time_msecs_t STUCK_STARTTIME = 0;
     long int SYS_STARTTIME = SYSTIME;
     while(!shouldTerminate()) {
         chSysLock();
-        for (auto &i: haptic_logic::LowPassFilter) {
+        for (auto &i: HapticLG::LowPassFilter) {
             i.set_alpha(0.0001);
         }
-        for (int i = 0; i < CANBUS_MOTOR_CFG::MOTOR_COUNT; i++) {
-            switch (HAPTIC_DVC_MODE) {
+        for (int i = 0; i < CANMotorCFG::MOTOR_COUNT; i++) {
+            switch (haptic_device_mode) {
                 case torqueMode:
-                    CANBUS_MOTOR_CFG::enable_a2v[i] = true;
-                    CANBUS_MOTOR_CFG::enable_v2i[i] = CANBUS_MOTOR_CFG::DISABLED;
-                    can_motor_scheduler::set_target_current((CANBUS_MOTOR_CFG::motor_id_t) i, 3000);
+                    CANMotorCFG::enable_a2v[i] = true;
+                    CANMotorCFG::enable_v2i[i] = false;
+                    CANMotorSKD::set_target_current((CANMotorCFG::motor_id_t) i, 3000);
                     break;
                 case calibrateMode:
-                    CANBUS_MOTOR_CFG::enable_a2v[i] = true;
-                    CANBUS_MOTOR_CFG::enable_v2i[i] = CANBUS_MOTOR_CFG::WORKING;
-                    can_motor_scheduler::set_target_angle((CANBUS_MOTOR_CFG::motor_id_t) i,
-                                                     0.0f);
-                    if(ABS_IN_RANGE(can_motor_interface::motor_feedback[i].actual_velocity,5.0) && // Velocity low
-                      !ABS_IN_RANGE(can_motor_interface::motor_feedback[i].accumulate_angle(),15.0f) &&
-                       ABS_IN_RANGE((int)(SYSTIME - SYS_STARTTIME), CALIB_TIMEOUT_DELAY) && !calibrated) {
+                    CANMotorCFG::enable_a2v[i] = true;
+                    CANMotorCFG::enable_v2i[i] = true;
+                    CANMotorSKD::set_target_angle((CANMotorCFG::motor_id_t) i,
+                                                  0.0f);
+                    if(ABS_IN_RANGE(CANMotorInterface::motor_feedback[i].actual_velocity, 5.0) && // Velocity low
+                      !ABS_IN_RANGE(CANMotorInterface::motor_feedback[i].accumulate_angle(), 15.0f) &&
+                       WITHIN_RECENT_TIME(SYS_STARTTIME, CALIB_TIMEOUT_DELAY) && !calibrated) {
                         if(STUCK_STARTTIME == 0) {
                             STUCK_STARTTIME = SYSTIME;
-                        } else if (SYSTIME - STUCK_STARTTIME > CALIB_THRESHOLD_DELAY) {
+                        } else if (!WITHIN_RECENT_TIME(STUCK_STARTTIME, CALIB_THRESHOLD_DELAY)) {
                             calibrated = true;
                             float zero_point = 0.0f;
                             if(i == 1) {
-                                zero_point = SIGN(can_motor_interface::motor_feedback[i].accumulate_angle()) > 0 ? 92.0f : -60.0f;
+                                zero_point = SIGN(CANMotorInterface::motor_feedback[i].accumulate_angle()) > 0 ? 92.0f : -60.0f;
                             } else {
-                                zero_point = SIGN(can_motor_interface::motor_feedback[i].accumulate_angle()) * 45.0f;
+                                zero_point = SIGN(CANMotorInterface::motor_feedback[i].accumulate_angle()) * 45.0f;
                             }
-                            can_motor_interface::motor_feedback[i].actual_angle -= zero_point;
+                            CANMotorInterface::motor_feedback[i].actual_angle -= zero_point;
                         }
+                    } else {
+                        STUCK_STARTTIME = 0;
                     }
                     break;
-                case angleMode:
-                    CANBUS_MOTOR_CFG::enable_a2v[i] = true;
-                    switch (CANBUS_MOTOR_CFG::enable_v2i[i]) {
-                        case CANBUS_MOTOR_CFG::WORKING:
-                            /// PID working, exceeded torque, disable PID and use linear torque.
-                            if (!ABS_IN_RANGE(can_motor_scheduler::get_torque_current((can_motor_interface::motor_id_t) i),
-                                              CANBUS_MOTOR_CFG::v2iParams[i].out_limit*0.9)) {
-                                target_current = can_motor_scheduler::get_torque_current(
-                                        (can_motor_interface::motor_id_t) i);
-                                CANBUS_MOTOR_CFG::enable_v2i[i] = CANBUS_MOTOR_CFG::DISABLED;
-                                can_motor_scheduler::set_target_current((CANBUS_MOTOR_CFG::motor_id_t) i,
-                                                                     target_current);
-                            }
-                            break;
-                        case CANBUS_MOTOR_CFG::DISABLED:
-                            /// Speed decreased, smaller than threshold velocity
-                            /// TODO: set to arbitrary torque during motion.
-                            if (target_current * (int) can_motor_interface::motor_feedback[i].actual_velocity > 0) {
-                                /// If current drive the motor backward, stop immediately.
-                                can_motor_scheduler::set_target_angle((CANBUS_MOTOR_CFG::motor_id_t) i,
-                                                                   can_motor_interface::motor_feedback[i].accumulate_angle());
-                                CANBUS_MOTOR_CFG::enable_v2i[i] = CANBUS_MOTOR_CFG::WORKING;
-                            } else {
-                                if (target_current > 100) {
-                                    target_current -= 100;
-                                } else if (target_current < -100) {
-                                    target_current += 100;
-                                } else {
-                                    target_current = 0;
-                                    CANBUS_MOTOR_CFG::enable_v2i[i] = CANBUS_MOTOR_CFG::FUSION;
-                                    haptic_logic::LowPassFilter[i].set_alpha(0.0);
-                                    haptic_logic::LowPassFilter[i].update(target_current);
-                                    haptic_logic::LowPassFilter[i].set_alpha(0.0001);
-                                }
-                                /// Set motor angle to 0
-                                can_motor_scheduler::set_target_angle((CANBUS_MOTOR_CFG::motor_id_t) i,
-                                                                   can_motor_interface::motor_feedback[i].accumulate_angle());
-                                can_motor_scheduler::set_target_current((CANBUS_MOTOR_CFG::motor_id_t) i, target_current);
-                            }
-                            break;
-                        case CANBUS_MOTOR_CFG::FUSION:
-                            /// If current conforms with current, let PID dominate current.
-                            haptic_logic::LowPassFilter[i].update(
-                                    (float) can_motor_scheduler::get_PID_current((CANBUS_MOTOR_CFG::motor_id_t) i));
-                            can_motor_scheduler::set_target_current((CANBUS_MOTOR_CFG::motor_id_t) i,
-                                                                 (int) haptic_logic::LowPassFilter[i].get());
-                            if (ABS_IN_RANGE(haptic_logic::LowPassFilter[i].get() -
-                                             can_motor_scheduler::get_PID_current((CANBUS_MOTOR_CFG::motor_id_t) i),
-                                             0.1)) {
-                                can_motor_scheduler::set_target_angle((CANBUS_MOTOR_CFG::motor_id_t) i,
-                                                                   can_motor_interface::motor_feedback[i].accumulate_angle());
-                                CANBUS_MOTOR_CFG::enable_v2i[i] = CANBUS_MOTOR_CFG::WORKING;
-                            }
-                            break;
-                    }
+                case followMode:
+                    CANMotorCFG::enable_a2v[i] = true;
+                    CANMotorCFG::enable_v2i[i] = true;
+                    CANMotorSKD::set_target_angle((CANMotorCFG::motor_id_t) i,
+                                                  0.0f);
                     break;
                 case zeroVelMode:
-                    CANBUS_MOTOR_CFG::enable_a2v[i] = false;
-                    CANBUS_MOTOR_CFG::enable_v2i[i] = CANBUS_MOTOR_CFG::WORKING;
-                    can_motor_scheduler::set_target_vel((CANBUS_MOTOR_CFG::motor_id_t) i,
-                                                     0.0f);
+                    CANMotorCFG::enable_a2v[i] = false;
+                    CANMotorCFG::enable_v2i[i] = true;
+                    CANMotorSKD::set_target_vel((CANMotorCFG::motor_id_t) i,
+                                                0.0f);
                     break;
             }
         }
@@ -125,18 +77,18 @@ void haptic_logic::back_driveability_thread::main() {
     }
 }
 
-void haptic_logic::button_switch_thread::main() {
+void HapticLG::ButtonSwitchThread::main() {
     setName("BtnSwtThd");
     while(!shouldTerminate()) {
-        if (palReadPad(GPIOB, GPIOB_USER_BUTTON) == 1){
-            if(HAPTIC_DVC_MODE < 3) {
-                int temp = ((int)HAPTIC_DVC_MODE) + 1;
-                HAPTIC_DVC_MODE = (haptic_logic::mode_t) temp;
+        if (palReadPad(GPIOB, GPIOB_USER_BUTTON) == 1) {
+            if(haptic_device_mode < 3) {
+                int temp = ((int)haptic_device_mode) + 1;
+                haptic_device_mode = (HapticLG::mode_t) temp;
             } else{
-                HAPTIC_DVC_MODE = torqueMode;
+                haptic_device_mode = torqueMode;
             }
             LED::all_off();
-            LED::led_on(HAPTIC_DVC_MODE);
+            LED::led_on(haptic_device_mode);
         }
         sleep(TIME_MS2I(300));
     }

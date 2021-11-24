@@ -63,23 +63,23 @@ The project use C++ class for encapsulation and modularization. The modules will
 │   │   ├── can_interface.h
 │   │   ├── can_motor_feedback.cpp        大疆CAN电机接口 | DJI Motors' Feedback Class Using CAN-BUS -
 │   │   ├── can_motor_feedback.h
-│   │   ├── can_motor_interface.cpp       大疆CAN电机整体接口 | Overall Interface for DJI Motors -
-│   │   └── can_motor_interface.h
+│   │   ├── CANMotorInterface.cpp       大疆CAN电机整体接口 | Overall Interface for DJI Motors -
+│   │   └── CANMotorInterface.h
 │   ├── virtual_COM                     - 虚拟串口 | STM32 Virtual COM port (CDC) -
 │   │   ├── usbconf.cpp                   USB配置文件 | USB configuration file
 │   │   ├── usbconf.h
-│   │   ├── VCP.cpp                       虚拟串口收发接口 | Interface for Virtual COM Port
-│   │   └── VCP.h
+│   │   ├── VirtualCOMPort.cpp                       虚拟串口收发接口 | Interface for Virtual COM Port
+│   │   └── VirtualCOMPort.h
 │   └── ...                               其他接口（可能会频繁更新） | Other Interfaces (Varies Over Time)
 ├── scheduler                           - 调度程序（包含控制算法） | Schedulers, contains thread performing control algorithms -
 │   ├── buzzer_scheduler.cpp              蜂鸣器 | Buzzer
 │   ├── buzzer_scheduler.h
-│   ├── can_motor_scheduler.cpp           CAN电机调度程序 | Schedulers for CAN motors. Performing control algorithms (like PID)
-│   ├── can_motor_scheduler.h
+│   ├── CANMotorSKD.cpp           CAN电机调度程序 | Schedulers for CAN motors. Performing control algorithms (like PID)
+│   ├── CANMotorSKD.h
 │   └── ...                               其他调度程序（近期更新） | Other Schedulers (Might Refactor Soon)
 ├── logic                               - 高级逻辑控制 | Higher Level Logic Control -
-│   ├── haptic_logic.cpp                  重力模拟器逻辑控制，包含开机校准以及多种模式控制 | Haptic device logic control, contains startup calibration and multiple control modes
-│   ├── haptic_logic.h
+│   ├── HapticLG.cpp                  重力模拟器逻辑控制，包含开机校准以及多种模式控制 | Haptic device logic control, contains startup calibration and multiple control modes
+│   ├── HapticLG.h
 │   ├── chassis_logic.cpp                 麦克纳姆轮底盘控制程序，包含速度分解 | Control Algorithm for chassises with Mecanum wheel, including velocity decompose
 │   ├── chassis_logic.h
 │   └── ...                               其他逻辑控制程序（近期更新） | Other high level logical control algorithms (Might Refactor Soon)

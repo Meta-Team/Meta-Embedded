@@ -6,9 +6,12 @@
 #define META_INFANTRY_INSPECTOR_H
 
 #include "can_motor_interface.h"
+#include "VirtualCOMPort.h"
 
 class Inspector {
 public:
+    static void startup_check_VCP();
+
     static void startup_check_motor();
 };
 

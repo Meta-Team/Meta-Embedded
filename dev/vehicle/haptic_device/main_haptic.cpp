@@ -9,7 +9,7 @@
 #include "led.h"
 #include "buzzer_scheduler.h"
 #include "common_macro.h"
-#include "VCP.h"
+#include "VirtualCOMPort.h"
 
 #include "shell.h"
 #include "can_interface.h"
@@ -67,6 +67,7 @@ int main() {
 
     /// Preparation of Period 1
     LED::all_off();
+    VirtualCOMPort::init(&SDU1, THREAD_VIRTUAL_COM_PRIO);
 
     /// Setup Shell
     Shell::start(THREAD_SHELL_PRIO);
@@ -74,7 +75,7 @@ int main() {
 
     BuzzerSKD::init(THREAD_BUZZER_SKD_PRIO);
     LED::led_on(DEV_BOARD_LED_SYSTEM_INIT);  // LED 1 on now
-    //VCP::init(&SDU1, THREAD_VIRTUAL_COM_PRIO);
+    //VirtualCOMPort::init(&SDU1, THREAD_VIRTUAL_COM_PRIO);
 
     /// Setup CAN1 & CAN2
     can1.start(THREAD_CAN1_RX_PRIO);
@@ -103,7 +104,7 @@ int main() {
     LED::led_on(DEV_BOARD_LED_AHRS);  // LED 3 on now
 
     /// Setup MOTOR
-    can_motor_interface::init(&can1, &can2);
+    CANMotorInterface::init(&can1, &can2);
     chThdSleepMilliseconds(1000);
     // FIXME: revert for development
 
@@ -116,12 +117,12 @@ int main() {
     /*** ------------ Period 2. Calibration and Start Logic Control Thread ----------- ***/
 
     /// Start SKDs
-    can_motor_scheduler::start(THREAD_MOTOR_SKD_PRIO, THREAD_FEEDBACK_SKD_PRIO);
+    CANMotorSKD::start(THREAD_MOTOR_SKD_PRIO, THREAD_FEEDBACK_SKD_PRIO);
 
     /// Complete Period 2
 //    BuzzerSKD::play_sound(BuzzerSKD::sound_nyan_cat);  // Now play the startup sound
     LED::led_on(DEV_BOARD_LED_CHASSIS);  // LED 5 on now
-    haptic_logic::init(THREAD_MOTOR_LG_VISION_PRIO, THREAD_BUTTON_DETECT_PRIO);
+    HapticLG::init(THREAD_MOTOR_LG_VISION_PRIO, THREAD_BUTTON_DETECT_PRIO);
     LED::all_off();
     /*** ------------------------ Period 3. End of main thread ----------------------- ***/
 

@@ -4,18 +4,18 @@
 
 #include "can_motor_scheduler.h"
 
-can_motor_scheduler::feedbackThread can_motor_scheduler::FeedbackThread;
-can_motor_scheduler::skdThread can_motor_scheduler::SKDThread;
-PIDController can_motor_scheduler::v2iController[CANBUS_MOTOR_CFG::MOTOR_COUNT];
-PIDController can_motor_scheduler::a2vController[CANBUS_MOTOR_CFG::MOTOR_COUNT];
+CANMotorSKD::feedbackThread CANMotorSKD::FeedbackThread;
+CANMotorSKD::skdThread CANMotorSKD::SKDThread;
+PIDController CANMotorSKD::v2iController[CANMotorCFG::MOTOR_COUNT];
+PIDController CANMotorSKD::a2vController[CANMotorCFG::MOTOR_COUNT];
 
-void can_motor_scheduler::start(tprio_t SKD_PRIO, tprio_t FB_PRIO) {
+void CANMotorSKD::start(tprio_t SKD_PRIO, tprio_t FB_PRIO) {
     SKDThread.start(SKD_PRIO);
     FeedbackThread.start(FB_PRIO);
 }
 
-void can_motor_scheduler::load_PID_params(CANBUS_MOTOR_CFG::motor_id_t id, bool is_a2v, PIDController::pid_params_t params) {
-    if(id < 0 || id > CANBUS_MOTOR_CFG::MOTOR_COUNT) return; // Check validation
+void CANMotorSKD::load_PID_params(CANMotorCFG::motor_id_t id, bool is_a2v, PIDController::pid_params_t params) {
+    if(id < 0 || id > CANMotorCFG::MOTOR_COUNT) return; // Check validation
     if(is_a2v) {
         a2vController[id].change_parameters(params);
     } else {
@@ -23,35 +23,35 @@ void can_motor_scheduler::load_PID_params(CANBUS_MOTOR_CFG::motor_id_t id, bool 
     }
 }
 
-void can_motor_scheduler::switch_feedback_motor(CANBUS_MOTOR_CFG::motor_id_t id) {
+void CANMotorSKD::switch_feedback_motor(CANMotorCFG::motor_id_t id) {
     FeedbackThread.disp_id = id;
 }
 
-int  can_motor_scheduler::get_torque_current(CANBUS_MOTOR_CFG::motor_id_t id){
-    return can_motor_interface::motor_feedback[id].torque_current();
+int  CANMotorSKD::get_torque_current(CANMotorCFG::motor_id_t id){
+    return CANMotorInterface::motor_feedback[id].torque_current();
 }
 
-int  can_motor_scheduler::get_PID_current(CANBUS_MOTOR_CFG::motor_id_t id) {
+int  CANMotorSKD::get_PID_current(CANMotorCFG::motor_id_t id) {
     return SKDThread.PID_output[id];
 }
 
-void can_motor_scheduler::set_target_angle(CANBUS_MOTOR_CFG::motor_id_t id, float target) {
+void CANMotorSKD::set_target_angle(CANMotorCFG::motor_id_t id, float target) {
     SKDThread.targetA[id] = target;
 }
 
-void can_motor_scheduler::set_target_vel(CANBUS_MOTOR_CFG::motor_id_t id, float target) {
+void CANMotorSKD::set_target_vel(CANMotorCFG::motor_id_t id, float target) {
     SKDThread.targetV[id] = target;
 }
 
-void can_motor_scheduler::set_target_current(CANBUS_MOTOR_CFG::motor_id_t id, int target) {
+void CANMotorSKD::set_target_current(CANMotorCFG::motor_id_t id, int target) {
     SKDThread.output[id] = target;
 }
 
-void can_motor_scheduler::skdThread::main() {
+void CANMotorSKD::skdThread::main() {
     setName("HapticSKDThread");
-    for(int i = 0; i < CANBUS_MOTOR_CFG::MOTOR_COUNT; i++) {
-        v2iController[i].change_parameters(CANBUS_MOTOR_CFG::v2iParams[i]);
-        a2vController[i].change_parameters(CANBUS_MOTOR_CFG::a2vParams[i]);
+    for(int i = 0; i < CANMotorCFG::MOTOR_COUNT; i++) {
+        v2iController[i].change_parameters(CANMotorCFG::v2iParams[i]);
+        a2vController[i].change_parameters(CANMotorCFG::a2vParams[i]);
     }
     for (auto &i: targetA) {
         i = 0.0f;
@@ -64,13 +64,13 @@ void can_motor_scheduler::skdThread::main() {
     }
     while(!shouldTerminate()) {
         chSysLock();
-        for (int i = 0; i < CANBUS_MOTOR_CFG::MOTOR_COUNT; i++) {
-            if(CANBUS_MOTOR_CFG::enable_a2v[i]) {
-                targetV[i] = a2vController[i].calc(can_motor_interface::motor_feedback[i].accumulate_angle(), targetA[i]);
+        for (int i = 0; i < CANMotorCFG::MOTOR_COUNT; i++) {
+            if(CANMotorCFG::enable_a2v[i]) {
+                targetV[i] = a2vController[i].calc(CANMotorInterface::motor_feedback[i].accumulate_angle(), targetA[i]);
             }
-            if(CANBUS_MOTOR_CFG::enable_v2i[i]!=CANBUS_MOTOR_CFG::DISABLED) {
-                PID_output[i]=v2iController[i].calc(can_motor_interface::motor_feedback[i].actual_velocity, targetV[i]);
-                if (CANBUS_MOTOR_CFG::enable_v2i[i]==CANBUS_MOTOR_CFG::WORKING){
+            if(CANMotorCFG::enable_v2i[i] != CANMotorCFG::DISABLED) {
+                PID_output[i]=v2iController[i].calc(CANMotorInterface::motor_feedback[i].actual_velocity, targetV[i]);
+                if (CANMotorCFG::enable_v2i[i] == CANMotorCFG::WORKING){
                     output[i] = (int)PID_output[i];
                 }
             } else {
@@ -78,44 +78,41 @@ void can_motor_scheduler::skdThread::main() {
                 a2vController[i].clear_i_out();
                 v2iController[i].clear_i_out();
             }
-            can_motor_interface::set_current((CANBUS_MOTOR_CFG::motor_id_t)i, output[i]);
+            CANMotorInterface::set_current((CANMotorCFG::motor_id_t)i, output[i]);
         }
         chSysUnlock();
         /// Might be the most efficient way...currently?
-        if(can_motor_interface::EnableCANTxFrame[0][0]) {
-            can_motor_interface::post_target_current(CANMotorBase::can_channel_1, 0x200);
+        if(CANMotorInterface::enable_CAN_tx_frames[0][0]) {
+            CANMotorInterface::post_target_current(CANMotorBase::can_channel_1, 0x200);
         }
-        if(can_motor_interface::EnableCANTxFrame[0][1]) {
-            can_motor_interface::post_target_current(CANMotorBase::can_channel_1, 0x1FF);
+        if(CANMotorInterface::enable_CAN_tx_frames[0][1]) {
+            CANMotorInterface::post_target_current(CANMotorBase::can_channel_1, 0x1FF);
         }
-        if(can_motor_interface::EnableCANTxFrame[0][2]) {
-            can_motor_interface::post_target_current(CANMotorBase::can_channel_1, 0x2FF);
+        if(CANMotorInterface::enable_CAN_tx_frames[0][2]) {
+            CANMotorInterface::post_target_current(CANMotorBase::can_channel_1, 0x2FF);
         }
-        if(can_motor_interface::EnableCANTxFrame[1][0]) {
-            can_motor_interface::post_target_current(CANMotorBase::can_channel_2, 0x200);
+        if(CANMotorInterface::enable_CAN_tx_frames[1][0]) {
+            CANMotorInterface::post_target_current(CANMotorBase::can_channel_2, 0x200);
         }
-        if(can_motor_interface::EnableCANTxFrame[1][1]) {
-            can_motor_interface::post_target_current(CANMotorBase::can_channel_2, 0x1FF);
+        if(CANMotorInterface::enable_CAN_tx_frames[1][1]) {
+            CANMotorInterface::post_target_current(CANMotorBase::can_channel_2, 0x1FF);
         }
-        if(can_motor_interface::EnableCANTxFrame[1][2]) {
-            can_motor_interface::post_target_current(CANMotorBase::can_channel_2, 0x2FF);
+        if(CANMotorInterface::enable_CAN_tx_frames[1][2]) {
+            CANMotorInterface::post_target_current(CANMotorBase::can_channel_2, 0x2FF);
         }
         sleep(TIME_MS2I(1));
     }
 }
 
-void can_motor_scheduler::feedbackThread::main() {
+void CANMotorSKD::feedbackThread::main() {
     setName("feedback");
     while(!shouldTerminate()) {
-        if(disp_id >= 0 && disp_id < CANBUS_MOTOR_CFG::MOTOR_COUNT) {
+        if(disp_id >= 0 && disp_id < CANMotorCFG::MOTOR_COUNT) {
             Shell::printf("!gy,%u,%.2f,%.2f,%.2f,%.2f,%d,%d" SHELL_NEWLINE_STR,
                           SYSTIME,
-                          can_motor_interface::motor_feedback[disp_id].actual_angle, can_motor_scheduler::SKDThread.targetA[disp_id],
-                          can_motor_interface::motor_feedback[disp_id].actual_velocity, can_motor_scheduler::SKDThread.targetV[disp_id],
-                          can_motor_interface::motor_feedback[disp_id].torque_current(), (int)can_motor_scheduler::SKDThread.PID_output[disp_id]);
-            uint8_t txdata[4] = {0,0,0,0};
-            txdata[0] = (uint8_t) (can_motor_interface::motor_feedback[disp_id].last_rotor_angle_raw >> 8);
-            txdata[1] = (uint8_t) (can_motor_interface::motor_feedback[disp_id].last_rotor_angle_raw);
+                          CANMotorInterface::motor_feedback[disp_id].actual_angle, CANMotorSKD::SKDThread.targetA[disp_id],
+                          CANMotorInterface::motor_feedback[disp_id].actual_velocity, CANMotorSKD::SKDThread.targetV[disp_id],
+                          CANMotorInterface::motor_feedback[disp_id].torque_current(), (int)CANMotorSKD::SKDThread.PID_output[disp_id]);
             sleep(TIME_MS2I(20));
         }
     }

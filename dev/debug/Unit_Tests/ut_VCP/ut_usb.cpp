@@ -6,7 +6,7 @@
 #include "hal.h"
 
 #include "led.h"
-#include "interface/virtual_COM/VCP.h"
+#include "interface/virtual_COM/VirtualCOMPort.h"
 #include "shell.h"
 // Other headers here
 
@@ -21,11 +21,11 @@ class DataSendingThread : public BaseStaticThread<512> {
             int16_t senddata = -0x1221;
             int16_t senddata2 = 0x1221;
             uint8_t txdata[5] = {0xFF,(uint8_t)(senddata >> 8), (uint8_t)senddata,(uint8_t)(senddata2 >> 8), (uint8_t)senddata2};
-            //VCP::sendData(txdata, 5);
+            //VirtualCOMPort::send_data(txdata, 5);
             sleep(TIME_MS2I(100));
             Shell::printf("Buffer Content:" SHELL_NEWLINE_STR);
             for(int i = 0; i < 100; i++) {
-                Shell::printf("%d ", VCP::buffer[i]);
+                Shell::printf("%d ", VirtualCOMPort::buffer[i]);
             }
             sleep(TIME_MS2I(100));
         }
@@ -35,7 +35,7 @@ class DataSendingThread : public BaseStaticThread<512> {
 int main(void) {
     halInit();
     System::init();
-    VCP::init(&SDU, NORMALPRIO+1);
+    VirtualCOMPort::init(&SDU, NORMALPRIO+1);
     dataSendingThread.start(NORMALPRIO+5);
     // Start ChibiOS shell at high priority, so even if a thread stucks, we still have access to shell.
     Shell::start(NORMALPRIO+10);

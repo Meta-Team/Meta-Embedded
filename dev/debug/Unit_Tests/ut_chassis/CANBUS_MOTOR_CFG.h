@@ -8,7 +8,7 @@
 #include "can_motor_feedback.h"
 #include "pid_controller.hpp"
 
-class CANBUS_MOTOR_CFG {
+class CANMotorCFG {
 public:
     enum motor_id_t {
         FL,

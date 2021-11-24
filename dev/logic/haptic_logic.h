@@ -13,7 +13,7 @@
 
 using namespace chibios_rt;
 
-class haptic_logic {
+class HapticLG {
 public:
 
     static void init(tprio_t PRIO, tprio_t BTNPRIO);
@@ -35,24 +35,24 @@ public:
     enum mode_t {
         torqueMode,
         calibrateMode,
-        angleMode,
+        followMode,
         zeroVelMode
     };
 
-    static mode_t HAPTIC_DVC_MODE;
+    static mode_t haptic_device_mode;
 
-    static LowPassFilteredValue LowPassFilter[CANBUS_MOTOR_CFG::MOTOR_COUNT];
+    static LowPassFilteredValue LowPassFilter[CANMotorCFG::MOTOR_COUNT];
 
-    class back_driveability_thread : public BaseStaticThread<512> {
+    class BackDrivabilityThread : public BaseStaticThread<512> {
         bool calibrated = false;
         void main() final;
     };
-    static back_driveability_thread BackDriveabilityThd;
+    static BackDrivabilityThread back_drivability_thd;
 
-    class button_switch_thread : public BaseStaticThread<512> {
+    class ButtonSwitchThread : public BaseStaticThread<512> {
         void main() final;
     };
-    static button_switch_thread ButtonSwitchThread;
+    static ButtonSwitchThread btn_switch_thd;
 };
 
 

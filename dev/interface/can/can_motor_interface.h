@@ -15,7 +15,7 @@
  * @brief  Universal Interface for CAN motors.
  * @usage
  * @code
- * 1.   Create and include motor CANBUS_MOTOR_CFG class.
+ * 1.   Create and include motor CANMotorCFG class.
  * 2.   Initialized the class by calling init() method.
  * 3.a. Set current to the motor on certain CAN BUS.
  * 3.b. Also can read feedback by accessing motor_feedback.
@@ -23,9 +23,9 @@
  * *Notice: Either set motor current or get access to motor feedback should use the
  *          logical index (YAW, PITCH).
  * @endcode
- * @details 1. CANBUS_MOTOR_CFG class structure:
+ * @details 1. CANMotorCFG class structure:
  * @code
- * class CANBUS_MOTOR_CFG{
+ * class CANMotorCFG{
  *     enum             motor_id_t {...,..., MOTOR_COUNT};
  *     CANMotorBase     CANMotorProfile[MOTOR_COUNT];}
  * @endcode
@@ -39,7 +39,7 @@
  * @endcode
  * */
 
-class can_motor_interface : public CANBUS_MOTOR_CFG {
+class CANMotorInterface : public CANMotorCFG {
     /********************************************//**
      *        Public Contribution and Methods
      ***********************************************/
@@ -89,7 +89,7 @@ public:
       *   CAN2 | 0x200 | 0x1FF | 0x2FF
       * @endcode
       * */
-     static bool EnableCANTxFrame[2][3];
+     static bool enable_CAN_tx_frames[2][3];
     /********************************************//**
      *             SID and ID mapping
      ***********************************************/
@@ -142,7 +142,7 @@ private:
     static void can2_callback_func(CANRxFrame const *rxmsg);
 
     /**
-     * @brief CANInterface to use [CAN1, CAN2].
+     * @brief CANInterfaces to use [CAN1, CAN2].
      * */
     static CANInterface *can[2];
 };

@@ -77,7 +77,7 @@ set(VEHICLE_COMMON_SRC
 
 set(VCP_SRC
         dev/interface/virtual_COM/usbconf.cpp
-        dev/interface/virtual_COM/VCP.cpp)
+        dev/interface/virtual_COM/VirtualCOMPort.cpp)
 
 set(AHRS_SRC
         dev/interface/ahrs/ahrs_math.hpp
