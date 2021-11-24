@@ -1,5 +1,5 @@
 //
-// Created by 钱晨 on 10/29/21.
+// Created by Chen Qian on 10/29/21.
 //
 
 #include "CANBUS_MOTOR_CFG.h"
@@ -24,7 +24,7 @@ bool CANMotorCFG::enable_a2v[MOTOR_COUNT] {
     true
 };
 
-CANMotorCFG::v2i_PID_status_t CANMotorCFG::enable_v2i[MOTOR_COUNT] {
-        CANMotorCFG::WORKING,
-        CANMotorCFG::WORKING
+bool CANMotorCFG::enable_v2i[MOTOR_COUNT] {
+    true,
+    true
 };

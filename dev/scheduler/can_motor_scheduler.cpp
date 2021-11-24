@@ -68,11 +68,9 @@ void CANMotorSKD::skdThread::main() {
             if(CANMotorCFG::enable_a2v[i]) {
                 targetV[i] = a2vController[i].calc(CANMotorInterface::motor_feedback[i].accumulate_angle(), targetA[i]);
             }
-            if(CANMotorCFG::enable_v2i[i] != CANMotorCFG::DISABLED) {
+            if(CANMotorCFG::enable_v2i[i]) {
                 PID_output[i]=v2iController[i].calc(CANMotorInterface::motor_feedback[i].actual_velocity, targetV[i]);
-                if (CANMotorCFG::enable_v2i[i] == CANMotorCFG::WORKING){
-                    output[i] = (int)PID_output[i];
-                }
+                output[i] = (int)PID_output[i];
             } else {
                 /// If disable the PID controller, clear the iterm so it does not bump.
                 a2vController[i].clear_i_out();
