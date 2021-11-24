@@ -1,12 +1,12 @@
 //
-// Created by 钱晨 on 11/4/21.
+// Created by Chen Qian on 11/4/21.
 //
 
 #include "haptic_logic.h"
 
-int   HapticLG::current_threshold  = 8000;
-float HapticLG::target_angle       = 0.0f;
-float HapticLG::velocity_threshold = 1.0f;
+int   HapticLG::current_threshold                      = 8000;
+float HapticLG::target_angle[CANMotorCFG::MOTOR_COUNT] = {0.0f, 0.0f};
+float HapticLG::velocity_threshold                     = 1.0f;
 HapticLG::BackDrivabilityThread HapticLG::back_drivability_thd;
 HapticLG::ButtonSwitchThread    HapticLG::btn_switch_thd;
 LowPassFilteredValue HapticLG::LowPassFilter[CANMotorCFG::MOTOR_COUNT];
@@ -62,7 +62,7 @@ void HapticLG::BackDrivabilityThread::main() {
                     CANMotorCFG::enable_a2v[i] = true;
                     CANMotorCFG::enable_v2i[i] = true;
                     CANMotorSKD::set_target_angle((CANMotorCFG::motor_id_t) i,
-                                                  0.0f);
+                                                  target_angle[i]);
                     break;
                 case zeroVelMode:
                     CANMotorCFG::enable_a2v[i] = false;

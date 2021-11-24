@@ -21,25 +21,41 @@ public:
      * @brief Max torque current threshold for motor, disables PID controllers, enters torque mode.
      * @details To provide a seamless user experience, the target torque current for torque mode should be the same
      *          as max torque current threshold.
-     * */
+     */
     static int current_threshold;
+
     /**
      * @brief Min velocity threshold for motor, enables PID controllers, enters 2-Loop PID angle control mode.
-     * */
+     */
     static float velocity_threshold;
+
     /**
      * @brief Target angle for 2-Loop PID angle control mode.
-     * */
-    static float target_angle;
+     */
+    static float target_angle[CANMotorCFG::MOTOR_COUNT];
 
+    /**
+     * @brief Device mode type
+     * @code
+     * torqueMode     Input is torque current
+     * calibrateMode  Calibrate Mode, use when start up
+     * followMode     Follow mode which use double loop PID, follow hand
+     * zeroVelMode    Zero velocity mode, achieve back-drive ability
+     * @endcode
+     */
     enum mode_t {
-        torqueMode,
-        calibrateMode,
-        followMode,
-        zeroVelMode
+        torqueMode,     /**< Input is torque current */
+        calibrateMode,  /**< Calibrate Mode, use when start up */
+        followMode,     /**< Follow mode which use double loop PID, follow hand */
+        zeroVelMode     /**< Zero velocity mode, achieve back-drive ability */
     };
 
+    /**
+     * @brief Device mode.
+     */
     static mode_t haptic_device_mode;
+
+private:
 
     static LowPassFilteredValue LowPassFilter[CANMotorCFG::MOTOR_COUNT];
 
