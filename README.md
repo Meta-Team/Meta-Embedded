@@ -22,6 +22,7 @@ Updated Time: Nov.24, 2021
 
 ```
 Meta-Embedded
+├── cmsis            CMSIS DSP 计算库 | CMSIS DSP Library for Calculation
 ├── config           CMake 配置、OpenOCD 配置、辅助脚本等 | Configuration for CMake, OpenOCD and shell scripts.
 ├── dev              我们编写的源码文件 | Main source code.
 ├── os               ChibiOS 源码文件 | ChibiOS/RT code.
