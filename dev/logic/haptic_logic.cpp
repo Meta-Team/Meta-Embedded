@@ -23,6 +23,7 @@ void haptic_logic::back_driveability_thread::main() {
     long int STUCK_STARTTIME = 0;
     long int SYS_STARTTIME = SYSTIME;
     while(!shouldTerminate()) {
+        chSysLock();
         for (auto &i: haptic_logic::LowPassFilter) {
             i.set_alpha(0.0001);
         }
@@ -118,10 +119,9 @@ void haptic_logic::back_driveability_thread::main() {
                                                      0.0f);
                     break;
             }
-            // Not working properly.
-
-            sleep(TIME_MS2I(10));
         }
+        chSysUnlock();
+        sleep(TIME_MS2I(10));
     }
 }
 

@@ -63,6 +63,7 @@ void can_motor_scheduler::skdThread::main() {
         i = 0.0f;
     }
     while(!shouldTerminate()) {
+        chSysLock();
         for (int i = 0; i < CANBUS_MOTOR_CFG::MOTOR_COUNT; i++) {
             if(CANBUS_MOTOR_CFG::enable_a2v[i]) {
                 targetV[i] = a2vController[i].calc(can_motor_interface::motor_feedback[i].accumulate_angle(), targetA[i]);
@@ -79,6 +80,7 @@ void can_motor_scheduler::skdThread::main() {
             }
             can_motor_interface::set_current((CANBUS_MOTOR_CFG::motor_id_t)i, output[i]);
         }
+        chSysUnlock();
         /// Might be the most efficient way...currently?
         if(can_motor_interface::EnableCANTxFrame[0][0]) {
             can_motor_interface::post_target_current(CANMotorBase::can_channel_1, 0x200);
