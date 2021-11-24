@@ -8,6 +8,9 @@
 #include "can_motor_scheduler.h"
 #include "module/low_pass_filter.hpp"
 
+#define CALIB_TIMEOUT_DELAY 5000
+#define CALIB_THRESHOLD_DELAY 500
+
 using namespace chibios_rt;
 
 class haptic_logic {
@@ -31,7 +34,7 @@ public:
 
     enum mode_t {
         torqueMode,
-        velMode,
+        calibrateMode,
         angleMode,
         zeroVelMode
     };
@@ -41,6 +44,7 @@ public:
     static LowPassFilteredValue LowPassFilter[CANBUS_MOTOR_CFG::MOTOR_COUNT];
 
     class back_driveability_thread : public BaseStaticThread<512> {
+        bool calibrated = false;
         void main() final;
     };
     static back_driveability_thread BackDriveabilityThd;

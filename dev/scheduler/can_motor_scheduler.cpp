@@ -114,7 +114,6 @@ void can_motor_scheduler::feedbackThread::main() {
             uint8_t txdata[4] = {0,0,0,0};
             txdata[0] = (uint8_t) (can_motor_interface::motor_feedback[disp_id].last_rotor_angle_raw >> 8);
             txdata[1] = (uint8_t) (can_motor_interface::motor_feedback[disp_id].last_rotor_angle_raw);
-            VCP::sendData(txdata, 4);
             sleep(TIME_MS2I(20));
         }
     }

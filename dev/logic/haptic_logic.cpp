@@ -10,7 +10,7 @@ float haptic_logic::velocity_threshold= 1.0f;
 haptic_logic::back_driveability_thread haptic_logic::BackDriveabilityThd;
 haptic_logic::button_switch_thread haptic_logic::ButtonSwitchThread;
 LowPassFilteredValue haptic_logic::LowPassFilter[CANBUS_MOTOR_CFG::MOTOR_COUNT];
-haptic_logic::mode_t haptic_logic::HAPTIC_DVC_MODE = velMode;
+haptic_logic::mode_t haptic_logic::HAPTIC_DVC_MODE = calibrateMode;
 
 void haptic_logic::init(tprio_t PRIO, tprio_t BTNPRIO) {
     BackDriveabilityThd.start(PRIO);
@@ -20,6 +20,8 @@ void haptic_logic::init(tprio_t PRIO, tprio_t BTNPRIO) {
 void haptic_logic::back_driveability_thread::main() {
     setName("Back_Drive_Ability_Thread");
     int target_current = 0;
+    long int STUCK_STARTTIME = 0;
+    long int SYS_STARTTIME = SYSTIME;
     while(!shouldTerminate()) {
         for (auto &i: haptic_logic::LowPassFilter) {
             i.set_alpha(0.0001);
@@ -31,11 +33,27 @@ void haptic_logic::back_driveability_thread::main() {
                     CANBUS_MOTOR_CFG::enable_v2i[i] = CANBUS_MOTOR_CFG::DISABLED;
                     can_motor_scheduler::set_target_current((CANBUS_MOTOR_CFG::motor_id_t) i, 3000);
                     break;
-                case velMode:
+                case calibrateMode:
                     CANBUS_MOTOR_CFG::enable_a2v[i] = true;
                     CANBUS_MOTOR_CFG::enable_v2i[i] = CANBUS_MOTOR_CFG::WORKING;
                     can_motor_scheduler::set_target_angle((CANBUS_MOTOR_CFG::motor_id_t) i,
                                                      0.0f);
+                    if(ABS_IN_RANGE(can_motor_interface::motor_feedback[i].actual_velocity,5.0) && // Velocity low
+                      !ABS_IN_RANGE(can_motor_interface::motor_feedback[i].accumulate_angle(),15.0f) &&
+                       ABS_IN_RANGE((int)(SYSTIME - SYS_STARTTIME), CALIB_TIMEOUT_DELAY) && !calibrated) {
+                        if(STUCK_STARTTIME == 0) {
+                            STUCK_STARTTIME = SYSTIME;
+                        } else if (SYSTIME - STUCK_STARTTIME > CALIB_THRESHOLD_DELAY) {
+                            calibrated = true;
+                            float zero_point = 0.0f;
+                            if(i == 1) {
+                                zero_point = SIGN(can_motor_interface::motor_feedback[i].accumulate_angle()) > 0 ? 92.0f : -60.0f;
+                            } else {
+                                zero_point = SIGN(can_motor_interface::motor_feedback[i].accumulate_angle()) * 45.0f;
+                            }
+                            can_motor_interface::motor_feedback[i].actual_angle -= zero_point;
+                        }
+                    }
                     break;
                 case angleMode:
                     CANBUS_MOTOR_CFG::enable_a2v[i] = true;

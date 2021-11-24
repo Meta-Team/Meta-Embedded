@@ -74,7 +74,7 @@ int main() {
 
     BuzzerSKD::init(THREAD_BUZZER_SKD_PRIO);
     LED::led_on(DEV_BOARD_LED_SYSTEM_INIT);  // LED 1 on now
-    VCP::init(&SDU1, THREAD_VIRTUAL_COM_PRIO);
+    //VCP::init(&SDU1, THREAD_VIRTUAL_COM_PRIO);
 
     /// Setup CAN1 & CAN2
     can1.start(THREAD_CAN1_RX_PRIO);

@@ -6,7 +6,7 @@
 
 CANMotorBase CANBUS_MOTOR_CFG::CANMotorProfile[MOTOR_COUNT] = {
         {CANMotorBase::can_channel_1, 0x203, CANMotorBase::M3508_without_deceleration, 3975},
-        {CANMotorBase::can_channel_1, 0x205, CANMotorBase::M3508_without_deceleration, 2557}
+        {CANMotorBase::can_channel_1, 0x205, CANMotorBase::M3508_without_deceleration, 2757}
 };
 
 PIDController::pid_params_t CANBUS_MOTOR_CFG::a2vParams[MOTOR_COUNT] = {
