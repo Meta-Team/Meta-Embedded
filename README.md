@@ -11,7 +11,7 @@ ZJU-UIUC Meta RoboMaster Team's Embedded Control Program, based on ChibiOS/RT. T
 工程包含步兵、工程、英雄、哨兵机器人源代码，适用于 RM 2018 A 型、RM 2017 开发板，通过条件编译控制编译目标。
 
 The project contains the standard, engineer, hero and sentry vehicles source code and is compatible with RM board 2018 A
-and RM board 2017. With CMake, the code for each robot could be built through switching the target of CMake.
+and RM board 2017. With CMake, the code for each robot could be built by switching the target of CMake.
 
 
 # 基本结构 | Basic Structures
