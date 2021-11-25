@@ -1,5 +1,5 @@
 //
-// Created by 钱晨 on 10/29/21.
+// Created by Chen Qian on 10/29/21.
 //
 
 #include "CANBUS_MOTOR_CFG.h"
@@ -10,13 +10,13 @@ CANMotorBase CANMotorCFG::CANMotorProfile[MOTOR_COUNT] = {
 };
 
 PIDController::pid_params_t CANMotorCFG::a2vParams[MOTOR_COUNT] = {
-        {10, 0.0f, 0.2, 100, 500},
-        {10, 0.0f, 0.2, 100, 500}
+        {10, 0.0f, 0.5, 100, 500},
+        {10, 0.0f, 0.5, 100, 500}
 };
 
 PIDController::pid_params_t CANMotorCFG::v2iParams[MOTOR_COUNT] = {
-        {25,0.8,0.000,14000.0,16000.0},
-        {25,0.8,0.000,14000.0,16000.0}
+        {15,0.4,0.000,8000.0,16000.0},
+        {15,0.4,0.000,8000.0,16000.0}
 };
 
 bool CANMotorCFG::enable_a2v[MOTOR_COUNT] {
@@ -24,7 +24,7 @@ bool CANMotorCFG::enable_a2v[MOTOR_COUNT] {
     true
 };
 
-CANMotorCFG::v2i_PID_status_t CANMotorCFG::enable_v2i[MOTOR_COUNT] {
-        CANMotorCFG::WORKING,
-        CANMotorCFG::WORKING
+bool CANMotorCFG::enable_v2i[MOTOR_COUNT] {
+    true,
+    true
 };

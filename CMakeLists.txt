@@ -196,6 +196,7 @@ add_executable(HAPTIC_DVC
         ${VEHICLE_COMMON_SRC}
         ${AHRS_SRC}
         ${VCP_SRC}
+        dev/vehicle/haptic_device/Communicator.cpp
         dev/vehicle/haptic_device/CANBUS_MOTOR_CFG.cpp
         dev/vehicle/haptic_device/Inspector.cpp
         dev/module/controller_module.cpp

@@ -15,8 +15,8 @@
     limitations under the License.
 */
 
-#ifndef META_INFANTRY_USBCONF_H
-#define META_INFANTRY_USBCONF_H
+#ifndef META_EMBEDDED_USBCONF_H
+#define META_EMBEDDED_USBCONF_H
 
 #include "hal.h"
 #include "hal_usb_cdc.h"
@@ -163,4 +163,4 @@ public:
 };
 
 
-#endif //META_INFANTRY_USBCONF_H
+#endif //META_EMBEDDED_USBCONF_H

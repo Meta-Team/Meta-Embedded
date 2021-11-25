@@ -18,6 +18,7 @@
 
 #define THREAD_VIRTUAL_COM_PRIO             (NORMALPRIO)
 #define THREAD_INSPECTOR_PRIO               (LOWPRIO + 10)
+#define THREAD_COMMUNICATOR_PRIO            (LOWPRIO + 9)
 #define THREAD_SHOOT_BULLET_COUNTER_PRIO    (LOWPRIO + 2)
 #define THREAD_SHELL_PRIO                   (LOWPRIO + 1)
 #define THREAD_BUZZER_SKD_PRIO              (LOWPRIO)

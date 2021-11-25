@@ -18,15 +18,12 @@ class DataSendingThread : public BaseStaticThread<512> {
     void main() final {
         setName("DSendThd");
         while(!shouldTerminate()) {
-            int16_t senddata = -0x1221;
-            int16_t senddata2 = 0x1221;
-            uint8_t txdata[5] = {0xFF,(uint8_t)(senddata >> 8), (uint8_t)senddata,(uint8_t)(senddata2 >> 8), (uint8_t)senddata2};
-            //VirtualCOMPort::send_data(txdata, 5);
             sleep(TIME_MS2I(100));
             Shell::printf("Buffer Content:" SHELL_NEWLINE_STR);
             for(int i = 0; i < 100; i++) {
-                Shell::printf("%d ", VirtualCOMPort::buffer[i]);
+                Shell::printf("%d ", VirtualCOMPort::rxbuffer[i]);
             }
+            Shell::printf(SHELL_NEWLINE_STR);
             sleep(TIME_MS2I(100));
         }
     }
