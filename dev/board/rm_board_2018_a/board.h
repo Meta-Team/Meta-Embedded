@@ -36,6 +36,8 @@
 #define BOARD_RM_2018_A
 #define BOARD_NAME                  "RM_Board_2018_A"
 
+#define BOARD_OTG_NOVBUSSENS  // Disable VBUS sense
+
 /*
  * Board oscillators-related settings.
  * NOTE: LSE not fitted.
@@ -81,18 +83,18 @@
 
 #define GPIOB_PIN0                  0U
 #define GPIOB_PIN1                  1U
-#define GPIOB_USER_BUTTON                  2U
+#define GPIOB_USER_BUTTON           2U
 #define GPIOB_SWO                   3U
 #define GPIOB_PIN4                  4U
 #define GPIOB_PIN5                  5U
 #define GPIOB_SCL                   6U
-#define GPIOB_USART1_RX                  7U
+#define GPIOB_USART1_RX             7U
 #define GPIOB_PIN8                  8U
 #define GPIOB_SDA                   9U
 #define GPIOB_CLK_IN                10U
 #define GPIOB_PIN11                 11U
-#define GPIOB_CAN2_RX                 12U
-#define GPIOB_CAN2_TX                 13U
+#define GPIOB_CAN2_RX               12U
+#define GPIOB_CAN2_TX               13U
 #define GPIOB_PIN14                 14U
 #define GPIOB_PIN15                 15U
 
@@ -104,25 +106,25 @@
 #define GPIOC_PIN5                  5U
 #define GPIOC_PIN6                  6U
 #define GPIOC_MCLK                  7U
-#define GPIOC_SDIO_D0                  8U
-#define GPIOC_SDIO_D1                  9U
-#define GPIOC_SDIO_D2                  10U
-#define GPIOC_SDIO_D3                 11U
-#define GPIOC_SDIO_CK                  12U
+#define GPIOC_SDIO_D0               8U
+#define GPIOC_SDIO_D1               9U
+#define GPIOC_SDIO_D2               10U
+#define GPIOC_SDIO_D3               11U
+#define GPIOC_SDIO_CK               12U
 #define GPIOC_PIN13                 13U
 #define GPIOC_PIN14                 14U
 #define GPIOC_PIN15                 15U
 
 #define GPIOD_CAN1_RX               0U
 #define GPIOD_CAN1_TX               1U
-#define GPIOD_SDIO_CMD                  2U
+#define GPIOD_SDIO_CMD              2U
 #define GPIOD_PIN3                  3U
 #define GPIOD_RESET                 4U
 #define GPIOD_OVER_CURRENT          5U
 #define GPIOD_PIN6                  6U
 #define GPIOD_PIN7                  7U
-#define GPIOD_USART3_TX                  8U
-#define GPIOD_USART3_RX                  9U
+#define GPIOD_USART3_TX             8U
+#define GPIOD_USART3_RX             9U
 #define GPIOD_PIN10                 10U
 #define GPIOD_PIN11                 11U
 #define GPIOD_LED4                  12U
@@ -130,15 +132,15 @@
 #define GPIOD_LED5                  14U
 #define GPIOD_LED6                  15U
 
-#define GPIOE_UART8_RX                  0U
-#define GPIOE_UART8_TX                  1U
-#define GPIOE_IST8310_RST                  2U
+#define GPIOE_UART8_RX              0U
+#define GPIOE_UART8_TX              1U
+#define GPIOE_IST8310_RST           2U
 #define GPIOE_CS_SPI                3U
 #define GPIOE_PIN4                  4U
 #define GPIOE_PIN5                  5U
 #define GPIOE_PIN6                  6U
-#define GPIOE_UART7_RX                  7U
-#define GPIOE_UART7_TX                  8U
+#define GPIOE_UART7_RX              7U
+#define GPIOE_UART7_TX              8U
 #define GPIOE_PIN9                  9U
 #define GPIOE_PIN10                 10U
 #define GPIOE_LED_RED               11U
@@ -173,20 +175,20 @@
 #define GPIOG_LED6                  6U
 #define GPIOG_LED7                  7U
 #define GPIOG_LED8                  8U
-#define GPIOG_USART6_RX                  9U
+#define GPIOG_USART6_RX             9U
 #define GPIOG_PIN10                 10U
 #define GPIOG_PIN11                 11U
 #define GPIOG_PIN12                 12U
-#define GPIOG_RED_SPOT_LASER                 13U
-#define GPIOG_USART6_TX                 14U
+#define GPIOG_RED_SPOT_LASER        13U
+#define GPIOG_USART6_TX             14U
 #define GPIOG_PIN15                 15U
 
 #define GPIOH_OSC_IN                0U
 #define GPIOH_OSC_OUT               1U
-#define GPIOH_POWER1_CTRL                  2U
-#define GPIOH_POWER2_CTRL                  3U
-#define GPIOH_POWER3_CTRL                  4U
-#define GPIOH_POWER4_CTRL                 5U
+#define GPIOH_POWER1_CTRL           2U
+#define GPIOH_POWER2_CTRL           3U
+#define GPIOH_POWER3_CTRL           4U
+#define GPIOH_POWER4_CTRL           5U
 #define GPIOH_BUZZER                6U
 #define GPIOH_PIN7                  7U
 #define GPIOH_PIN8                  8U
@@ -422,8 +424,8 @@
  * PB9  - SDA                       (alternate 4).
  * PB10 - CLK_IN                    (input pullup).
  * PB11 - PIN11                     (input pullup).
- * PB12 - CAN2_RX                     (alternate 9).
- * PB13 - CAN2_TX                     (alternate 9).
+ * PB12 - CAN2_RX                   (alternate 9).
+ * PB13 - CAN2_TX                   (alternate 9).
  * PB14 - PIN14                     (input pullup).
  * PB15 - PIN15                     (input pullup).
  */
@@ -535,11 +537,11 @@
  * PC5  - ADC1_IN15                 (analog input.
  * PC6  - PIN6                      (input pullup).
  * PC7  - MCLK                      (alternate 6).
- * PC8  - SDIO_D0                      (alternate 12).
- * PC9  - SDIO_D1                      (alternate 12).
- * PC10 - SDIO_D2                      (alternate 12).
- * PC11 - SDIO_D3                     (alternate 12).
- * PC12 - SDIO_CK                      (alternate 12).
+ * PC8  - SDIO_D0                   (alternate 12).
+ * PC9  - SDIO_D1                   (alternate 12).
+ * PC10 - SDIO_D2                   (alternate 12).
+ * PC11 - SDIO_D3                   (alternate 12).
+ * PC12 - SDIO_CK                   (alternate 12).
  * PC13 - PIN13                     (input pullup).
  * PC14 - PIN14                     (input pullup).
  * PC15 - PIN15                     (input pullup).
@@ -652,9 +654,9 @@
  * PD5  - OVER_CURRENT              (input floating).
  * PD6  - PIN6                      (input pullup).
  * PD7  - PIN7                      (input pullup).
- * PD8  - USART3_TX                      (alternate 7).
- * PD9  - USART3_RX                      (alternate 7).
- * PD10 - SDIO_CMD                     (alternate 12).
+ * PD8  - USART3_TX                 (alternate 7).
+ * PD9  - USART3_RX                 (alternate 7).
+ * PD10 - SDIO_CMD                  (alternate 12).
  * PD11 - PIN11                     (input pullup).
  * PD12 - LED4                      (output pushpull maximum).
  * PD13 - LED3                      (output pushpull maximum).
@@ -768,8 +770,8 @@
  * PE4  - PIN4                      (input floating).
  * PE5  - PIN5                      (input floating).
  * PE6  - PIN6                      (input floating).
- * PE7  - UART7_RX                      (alternate 8).
- * PE8  - UART7_TX                      (alternate 8).
+ * PE7  - UART7_RX                  (alternate 8).
+ * PE8  - UART7_TX                  (alternate 8).
  * PE9  - PIN9                      (input floating).
  * PE10 - PIN10                     (input floating).
  * PE11 - LED_RED                   (output pushpull maximum).
@@ -1004,12 +1006,12 @@
  * PG6  - LED6                      (output pushpull maximum).
  * PG7  - LED7                      (output pushpull maximum).
  * PG8  - LED8                      (output pushpull maximum).
- * PG9  - USART6_RX                      (alternate 8).
+ * PG9  - USART6_RX                 (alternate 8).
  * PG10 - PIN10                     (input floating).
  * PG11 - PIN11                     (input floating).
  * PG12 - PIN12                     (input floating).
- * PG13 - RED_SPOT_LAZER                     (output pushpull maximum).
- * PG14 - USART6_TX                     (alternate 8).
+ * PG13 - RED_SPOT_LAZER            (output pushpull maximum).
+ * PG14 - USART6_TX                 (alternate 8).
  * PG15 - PIN15                     (input floating).
  */
 #define VAL_GPIOG_MODER             (PIN_MODE_INPUT(GPIOG_PIN0) |           \
@@ -1114,9 +1116,9 @@
  *
  * PH0  - OSC_IN                    (input floating).
  * PH1  - OSC_OUT                   (input floating).
- * PH2  - POWER1_CTRL                      (output pushpull maximum).
- * PH3  - POWER2_CTRL                      (output pushpull maximum).
- * PH4  - POWER3_CTRL                      (output pushpull maximum).
+ * PH2  - POWER1_CTRL               (output pushpull maximum).
+ * PH3  - POWER2_CTRL               (output pushpull maximum).
+ * PH4  - POWER3_CTRL               (output pushpull maximum).
  * PH5  - PIN5                      (input floating).
  * PH6  - BUZZER                    (alternate 9).
  * PH7  - PIN7                      (input floating).

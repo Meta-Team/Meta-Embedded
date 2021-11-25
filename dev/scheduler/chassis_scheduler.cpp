@@ -11,8 +11,6 @@
  */
 
 #include "chassis_scheduler.h"
-#include "gimbal_interface.h"
-#include "referee_UI_logic.h"
 
 ChassisSKD::mode_t ChassisSKD::mode = FORCED_RELAX_MODE;
 

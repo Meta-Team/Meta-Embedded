@@ -14,7 +14,7 @@
 #include "led.h"
 #include "shell.h"
 
-#include "can_interface.h"
+#include "interface/can/can_interface.h"
 
 #include "hero_shoot.h"
 

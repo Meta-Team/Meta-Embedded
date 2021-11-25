@@ -11,7 +11,7 @@
 #include "common_macro.h"
 
 #include "shell.h"
-#include "can_interface.h"
+#include "interface/can/can_interface.h"
 #include "ahrs.h"
 #include "remote_interpreter.h"
 #include "sd_card_interface.h"
@@ -189,7 +189,7 @@ int main() {
     /// Start LGs
     GimbalLG::init(THREAD_GIMBAL_LG_VISION_PRIO, THREAD_GIMBAL_LG_SENTRY_PRIO);
     ShootLG::init(SHOOT_DEGREE_PER_BULLET, true, 60, THREAD_SHOOT_LG_STUCK_DETECT_PRIO, THREAD_SHOOT_BULLET_COUNTER_PRIO, THREAD_SHOOT_LG_VISION_PRIO);
-    ChassisLG::init(THREAD_CHASSIS_LG_DODGE_PRIO, THREAD_CHASSIS_POWER_SET_PRIO, CHASSIS_DODGE_MODE_THETA, CHASSIS_BIASED_ANGLE, CHASSIS_LOGIC_DODGE_OMEGA2VOLT_PARAMS);
+    ChassisLG::init(THREAD_CHASSIS_LG_DODGE_PRIO, 0, 0, 0);
 
     /// Setup Vision
 //    VisionIF::init();  // must be put after initialization of GimbalSKD

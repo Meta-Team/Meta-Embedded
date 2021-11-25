@@ -15,9 +15,7 @@
 
 #include "ch.hpp"
 
-#include "chassis_interface.h"
-#include "gimbal_scheduler.h"
-
+#include "can_motor_interface.h"
 #include "pid_controller.hpp"
 
 /**
@@ -29,7 +27,7 @@
  *        2. set_mode() and set_target() as needed
  *        3. Leave the rest of the work to this SKD
  */
-class ChassisSKD : public ChassisBase, public PIDControllerBase {
+class ChassisSKD {
 
 public:
 
