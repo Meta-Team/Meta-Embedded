@@ -10,6 +10,7 @@
 #include "buzzer_scheduler.h"
 #include "common_macro.h"
 #include "VirtualCOMPort.h"
+#include "Communicator.h"
 
 #include "shell.h"
 #include "can_interface.h"
@@ -110,7 +111,7 @@ int main() {
 
     Inspector::startup_check_motor(); // check gimbal motors has continuous feedback. Block for 20 ms
     LED::led_on(DEV_BOARD_LED_GIMBAL);  // LED 4 on now
-
+    Communicator::init(THREAD_COMMUNICATOR_PRIO);
     /// Setup Red Spot Laser
     palSetPad(GPIOG, GPIOG_RED_SPOT_LASER);  // enable the red spot laser
 

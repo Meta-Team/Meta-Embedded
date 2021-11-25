@@ -106,11 +106,11 @@ void CANMotorSKD::feedbackThread::main() {
     setName("feedback");
     while(!shouldTerminate()) {
         if(disp_id >= 0 && disp_id < CANMotorCFG::MOTOR_COUNT) {
-            Shell::printf("!gy,%u,%.2f,%.2f,%.2f,%.2f,%d,%d" SHELL_NEWLINE_STR,
-                          SYSTIME,
-                          CANMotorInterface::motor_feedback[disp_id].actual_angle, CANMotorSKD::SKDThread.targetA[disp_id],
-                          CANMotorInterface::motor_feedback[disp_id].actual_velocity, CANMotorSKD::SKDThread.targetV[disp_id],
-                          CANMotorInterface::motor_feedback[disp_id].torque_current(), (int)CANMotorSKD::SKDThread.PID_output[disp_id]);
+//            Shell::printf("!gy,%u,%.2f,%.2f,%.2f,%.2f,%d,%d" SHELL_NEWLINE_STR,
+//                          SYSTIME,
+//                          CANMotorInterface::motor_feedback[disp_id].actual_angle, CANMotorSKD::SKDThread.targetA[disp_id],
+//                          CANMotorInterface::motor_feedback[disp_id].actual_velocity, CANMotorSKD::SKDThread.targetV[disp_id],
+//                          CANMotorInterface::motor_feedback[disp_id].torque_current(), (int)CANMotorSKD::SKDThread.PID_output[disp_id]);
             sleep(TIME_MS2I(20));
         }
     }

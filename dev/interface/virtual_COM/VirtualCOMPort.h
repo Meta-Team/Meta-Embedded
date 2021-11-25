@@ -20,17 +20,17 @@ class VirtualCOMPort : public usbconf {
 public:
     static void init(SerialUSBDriver *SDU_, tprio_t rx_thd_prio);
 
-    static uint8_t rxbuffer[8];
+    static uint8_t rxbuffer[100];
+
+    static uint8_t txbuffer[100];
+
+    static uint8_t rxmode;
 
     static time_msecs_t last_update_time;
 
-    static float* torque[2];
+    static uint16_t target_torque[2];
 
-    static uint32_t bufferTemp[2];
-
-    static float get_torque(unsigned int id);
-
-    static void send_angles(float *angles, unsigned int size);
+    static void send_data(uint8_t *data, unsigned int size);
 
     class DataReceiveThread : public BaseStaticThread<512> {
         void main() final;

@@ -10,14 +10,26 @@
 
 using namespace chibios_rt;
 class Communicator {
+public:
 
+    /**
+     * @brief Initiate the communicator.
+     */
     static void init(tprio_t communicator_prio_);
 
-    class CommunicatorSKD : public BaseStaticThread<512> {
+    /**
+     * @brief send_angles
+     */
+    static uint8_t tx_angles[CANMotorCFG::MOTOR_COUNT*2+1];
+
+    /**
+     * @brief TxRxThread for CDC
+     */
+    class CommunicatorThd : public BaseStaticThread<512> {
         void main() final;
     };
 
-    static CommunicatorSKD communicator_skd;
+    static CommunicatorThd communicator_thd;
 };
 
 

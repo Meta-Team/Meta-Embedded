@@ -54,8 +54,6 @@ void HapticLG::BackDrivabilityThread::main() {
                             }
                             CANMotorInterface::motor_feedback[i].actual_angle -= zero_point;
                         }
-                    } else {
-                        STUCK_STARTTIME = 0;
                     }
                     break;
                 case followMode:
