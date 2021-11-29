@@ -6,20 +6,25 @@
 
 int   HapticLG::current_threshold                      = 8000;
 float HapticLG::target_angle[CANMotorCFG::MOTOR_COUNT] = {0.0f, 0.0f};
+int   HapticLG::target_current[CANMotorCFG::MOTOR_COUNT] = {0,0};
 float HapticLG::velocity_threshold                     = 1.0f;
 HapticLG::BackDrivabilityThread HapticLG::back_drivability_thd;
 HapticLG::ButtonSwitchThread    HapticLG::btn_switch_thd;
 LowPassFilteredValue HapticLG::LowPassFilter[CANMotorCFG::MOTOR_COUNT];
 HapticLG::mode_t HapticLG::haptic_device_mode = calibrateMode;
+bool HapticLG::calibrated = false;
 
 void HapticLG::init(tprio_t PRIO, tprio_t BTNPRIO) {
     back_drivability_thd.start(PRIO);
     btn_switch_thd.start(BTNPRIO);
 }
 
+bool HapticLG::device_calibrated() {
+    return calibrated;
+}
+
 void HapticLG::BackDrivabilityThread::main() {
     setName("Back_Drive_Ability_Thread");
-    int target_current = 0;
     time_msecs_t STUCK_STARTTIME = 0;
     long int SYS_STARTTIME = SYSTIME;
     while(!shouldTerminate()) {
@@ -32,7 +37,7 @@ void HapticLG::BackDrivabilityThread::main() {
                 case torqueMode:
                     CANMotorCFG::enable_a2v[i] = true;
                     CANMotorCFG::enable_v2i[i] = false;
-                    CANMotorSKD::set_target_current((CANMotorCFG::motor_id_t) i, 3000);
+                    CANMotorSKD::set_target_current((CANMotorCFG::motor_id_t) i, target_current[i]);
                     break;
                 case calibrateMode:
                     CANMotorCFG::enable_a2v[i] = true;

@@ -7,7 +7,7 @@
 uint8_t VirtualCOMPort::rxbuffer[100];
 uint8_t VirtualCOMPort::txbuffer[100];
 uint8_t VirtualCOMPort::rxmode=0;
-uint16_t VirtualCOMPort::target_torque[2];
+int16_t VirtualCOMPort::target_torque[2];
 VirtualCOMPort::DataReceiveThread VirtualCOMPort::data_receive_thd;
 time_msecs_t VirtualCOMPort::last_update_time = 0;
 
@@ -34,8 +34,8 @@ void VirtualCOMPort::DataReceiveThread::main() {
 
         chnReadTimeout(SDU, rxbuffer, 5, TIME_INFINITE);
 
-        target_torque[0] = (rxbuffer[1] << 8 | rxbuffer[0]);
-        target_torque[1] = (rxbuffer[3] << 8 | rxbuffer[2]);
+        target_torque[0] = (int16_t)(rxbuffer[1] << 8 | rxbuffer[0]);
+        target_torque[1] = (int16_t)(rxbuffer[3] << 8 | rxbuffer[2]);
         rxmode = rxbuffer[4];
 
         last_update_time = SYSTIME;
