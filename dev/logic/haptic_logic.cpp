@@ -53,12 +53,14 @@ void HapticLG::BackDrivabilityThread::main() {
                             calibrated = true;
                             float zero_point = 0.0f;
                             if(i == 1) {
-                                zero_point = SIGN(CANMotorInterface::motor_feedback[i].accumulate_angle()) > 0 ? 92.0f : -60.0f;
+                                zero_point = SIGN(CANMotorInterface::motor_feedback[i].accumulate_angle()) > 0 ? 62.0f : -60.0f;
                             } else {
                                 zero_point = SIGN(CANMotorInterface::motor_feedback[i].accumulate_angle()) * 45.0f;
                             }
                             CANMotorInterface::motor_feedback[i].actual_angle -= zero_point;
                         }
+                    } else if (!WITHIN_RECENT_TIME(SYS_STARTTIME, CALIB_TIMEOUT_DELAY)){
+                        calibrated = true;
                     }
                     break;
                 case followMode:
