@@ -34,7 +34,8 @@ void Communicator::CommunicatorThd::main() {
             HapticLG::target_current[0] = target0;
             HapticLG::target_current[1] = target1;
         } else if (HapticLG::device_calibrated()&&VirtualCOMPort::rxmode == 0x00) {
-            HapticLG::target_current[0] = HapticLG::target_current[1] = 0;
+            HapticLG::haptic_device_mode = HapticLG::followMode;
+            HapticLG::target_angle[0] = HapticLG::target_angle[1] = 0.0f;
         }
         sleep(TIME_MS2I(20));
     }
