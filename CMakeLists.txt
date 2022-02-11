@@ -69,7 +69,7 @@ set(VEHICLE_COMMON_SRC
         dev/interface/can/can_interface.cpp
         dev/interface/can/can_motor_feedback.cpp
         dev/interface/can/can_motor_interface.cpp
-        dev/scheduler/can_motor_scheduler.cpp
+        dev/interface/can/can_motor_scheduler.cpp
         dev/interface/remote_interpreter.cpp
         dev/common/CRC8.cpp
         dev/common/CRC16.cpp
@@ -89,7 +89,7 @@ set(AHRS_LIB
         ${PROJECT_SOURCE_DIR}/dev/interface/ahrs/ahrs_lib.lib)
 
 set(CHASSIS_SRC
-        dev/scheduler/chassis_scheduler.cpp
+        dev/scheduler/mecanum_chassis_scheduler.cpp
         dev/logic/chassis_logic.cpp)
 
 set(VISION_SRC
@@ -133,6 +133,7 @@ set(INFANTRY_SRC
         dev/interface/super_capacitor_port.cpp
 
         # Main
+        dev/vehicle/infantry/CANBUS_MOTOR_CFG.cpp
         dev/vehicle/infantry/inspector_infantry.cpp
         dev/vehicle/infantry/user_infantry.cpp
         dev/vehicle/infantry/main_infantry.cpp)
@@ -300,6 +301,8 @@ add_executable(ut_chassis
         ${VEHICLE_COMMON_SRC}
         ${AHRS_SRC}
         dev/debug/Unit_Tests/ut_chassis/CANBUS_MOTOR_CFG.cpp
+        dev/interface/can/can_motor_scheduler.cpp
+        dev/scheduler/mecanum_chassis_scheduler.cpp
         dev/logic/chassis_logic.cpp
         dev/module/low_pass_filter.hpp
         dev/debug/Unit_Tests/ut_chassis/ut_chassis.cpp
@@ -347,7 +350,7 @@ target_compile_definitions(pa_hero_shoot PUBLIC HERO)
 # Chassis
 add_executable(pa_chassis
         dev/interface/can/can_interface.cpp
-        dev/scheduler/chassis_scheduler.cpp
+        dev/scheduler/mecanum_chassis_scheduler.cpp
         dev/scheduler/gimbal_scheduler.cpp
         dev/debug/param_adjusts/pa_chassis.cpp)
 target_compile_definitions(pa_chassis PUBLIC INFANTRY)

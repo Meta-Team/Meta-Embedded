@@ -4,7 +4,7 @@
 
 #include "settings_hero.h"
 #include "gimbal_scheduler.h"
-#include "chassis_scheduler.h"
+#include "mecanum_chassis_scheduler.h"
 #include "ahrs.h"
 
 using namespace chibios_rt;

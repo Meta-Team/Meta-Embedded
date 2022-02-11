@@ -28,7 +28,7 @@ public:
 
     static time_msecs_t last_update_time;
 
-    static uint16_t target_torque[2];
+    static int16_t target_torque[2];
 
     static void send_data(uint8_t *data, unsigned int size);
 

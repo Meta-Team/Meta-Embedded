@@ -15,10 +15,7 @@
 float ChassisLG::target_vx = 0.0f;
 float ChassisLG::target_vy = 0.0f;
 float ChassisLG::target_omega = 0.0f;
-ChassisLG::VelocityDecomposeThread ChassisLG::velocityDecomposeThread;
-ChassisLG::install_mode_t ChassisLG::install_mode = POSITIVE;
-float ChassisLG::w_to_v_ratio = 0.0f;
-float ChassisLG::v_to_wheel_angular_velocity = 0.0f;
+ChassisLG::ChassisLGThread ChassisLG::dodge_thread;
 
 #if (FALSE)
 ChassisLG::action_t ChassisLG::action = FORCED_RELAX_MODE;
@@ -49,37 +46,26 @@ ChassisLG::action_t ChassisLG::get_action() {
     return action;
 }
 
-void ChassisLG::set_action(ChassisLG::action_t value) {
-    if (value == action) return;  // avoid repeating setting target_theta, etc.
-    action = value;
-    if (action == FORCED_RELAX_MODE) {
-
-    } else if (action == FOLLOW_MODE) {
-
-    } else if (action == DODGE_MODE) {
-        chSysLock();  /// --- ENTER S-Locked state. DO NOT use LOG, printf, non S/I-Class functions or return ---
-        if (!dodgeModeSwitchThread.started) {
-            dodgeModeSwitchThread.started = true;
-            chSchWakeupS(dodgeThreadReference.getInner(), 0);
-        }
-        chSysUnlock();  /// --- EXIT S-Locked state ---
-    }
-    // Sending client data will be complete by higher level thread
-}
 #endif
 
-void ChassisLG::set_target(float vx, float vy, float omega) {
+void ChassisLG::set_target(float vx, float vy) {
     target_vx = vx;
     target_vy = vy;
-    target_omega = omega;
     // For DODGE_MODE keep current target_theta unchanged
 }
 
-void ChassisLG::init(tprio_t velocity_decompose, float wheel_base, float wheel_thread, float wheel_circumference) {
-    velocityDecomposeThread.start(velocity_decompose);
-    w_to_v_ratio = (wheel_base + wheel_thread) / 2.0f / 360.0f * 3.14159f;
-    v_to_wheel_angular_velocity = (360.0f / wheel_circumference);
+void ChassisLG::init(tprio_t dodge_thread_prio_, tprio_t cap_power_set_thread_prio_, tprio_t dodge_mode_max_omega) {
+
 }
+
+void ChassisLG::set_mode(ChassisLG::chassis_mode_t mode) {
+    chSysLock();
+    {
+        ChassisLG::chassis_mode = mode;
+    }
+    chSysUnlock();
+}
+
 
 // TODO: Re-enable the functions when ready
 #if (FALSE)
@@ -146,17 +132,32 @@ void ChassisLG::CapacitorPowerSetThread::main() {
 #endif
 
 /** @} */
-void ChassisLG::VelocityDecomposeThread::main() {
-    setName("VelocityKinematic");
+void ChassisLG::ChassisLGThread::main() {
+    setName("");
     while(!shouldTerminate()) {
-        CANMotorSKD::set_target_vel(CANMotorCFG::FR, (float)install_mode *
-                                                     (target_vx-target_vy + target_omega * w_to_v_ratio) * v_to_wheel_angular_velocity);
-        CANMotorSKD::set_target_vel(CANMotorCFG::FL, (float)install_mode *
-                                                     (target_vx+target_vy + target_omega * w_to_v_ratio) * v_to_wheel_angular_velocity);
-        CANMotorSKD::set_target_vel(CANMotorCFG::BL, (float)install_mode *
-                                                     (-target_vx+target_vy+ target_omega * w_to_v_ratio) * v_to_wheel_angular_velocity);
-        CANMotorSKD::set_target_vel(CANMotorCFG::BR, (float)install_mode *
-                                                     (-target_vx-target_vy+ target_omega * w_to_v_ratio) * v_to_wheel_angular_velocity);
+        switch (chassis_mode) {
+            case FOLLOW:
+                chSysLock();
+                {
+
+                }
+                chSysUnlock();
+                break;
+            case DODGE:
+                chSysLock();
+                {
+
+                }
+                chSysUnlock();
+                break;
+            case FORCE_RELAX:
+                chSysLock();
+                {
+
+                }
+                chSysUnlock();
+                break;
+        }
         sleep(TIME_MS2I(VEL_DECOMPOSE_INTERVAL));
     }
 }

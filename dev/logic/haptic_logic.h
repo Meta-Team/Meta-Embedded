@@ -35,6 +35,11 @@ public:
     static float target_angle[CANMotorCFG::MOTOR_COUNT];
 
     /**
+     * @brief Target current.
+     */
+    static int target_current[CANMotorCFG::MOTOR_COUNT];
+
+    /**
      * @brief Device mode type
      * @code
      * torqueMode     Input is torque current
@@ -55,12 +60,15 @@ public:
      */
     static mode_t haptic_device_mode;
 
+    static bool device_calibrated();
+
 private:
+
+    static bool calibrated;
 
     static LowPassFilteredValue LowPassFilter[CANMotorCFG::MOTOR_COUNT];
 
     class BackDrivabilityThread : public BaseStaticThread<512> {
-        bool calibrated = false;
         void main() final;
     };
     static BackDrivabilityThread back_drivability_thd;
