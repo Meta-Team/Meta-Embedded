@@ -32,9 +32,9 @@ bool CANMotorCFG::enable_a2v[MOTOR_COUNT] {
         false
 };
 
-CANMotorCFG::v2i_PID_status_t CANMotorCFG::enable_v2i[MOTOR_COUNT] {
-        CANMotorCFG::WORKING,
-        CANMotorCFG::WORKING,
-        CANMotorCFG::WORKING,
-        CANMotorCFG::WORKING
+bool CANMotorCFG::enable_v2i[MOTOR_COUNT] {
+        false,
+        false,
+        false,
+        false
 };

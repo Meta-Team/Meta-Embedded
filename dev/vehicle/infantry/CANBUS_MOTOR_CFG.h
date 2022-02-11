@@ -15,14 +15,15 @@ public:
         FR,
         BR,
         BL,
+        YAW,
+        PITCH,
+        BULLET_LOADER,
+        FW_UP,
+        FW_DOWN,
         MOTOR_COUNT
     };
     static CANMotorBase CANMotorProfile[MOTOR_COUNT];
-    enum v2i_PID_status_t {
-        DISABLED,
-        WORKING,
-        FUSION
-    };
+
     // Parameters for double loop PID control.
     static PIDController::pid_params_t a2vParams [MOTOR_COUNT];
     static PIDController::pid_params_t v2iParams [MOTOR_COUNT];

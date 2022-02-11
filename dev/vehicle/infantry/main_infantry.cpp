@@ -19,14 +19,13 @@
 #include "referee_UI_update_scheduler.h"
 #include "referee_UI_logic.h"
 
-#include "gimbal_interface.h"
 #include "gimbal_scheduler.h"
 #include "shoot_scheduler.h"
 #include "gimbal_logic.h"
 #include "shoot_logic.h"
 
 #include "chassis_interface.h"
-#include "chassis_scheduler.h"
+#include "mecanum_chassis_scheduler.h"
 #include "chassis_logic.h"
 
 #include "vision_interface.h"
@@ -183,11 +182,11 @@ int main() {
     Shell::addCommands(ShootSKD::shellCommands);
     Shell::addFeedbackCallback(ShootSKD::cmdFeedback);
 
-    ChassisSKD::start(CHASSIS_WHEEL_BASE, CHASSIS_WHEEL_TREAD, CHASSIS_WHEEL_CIRCUMFERENCE, ChassisSKD::POSITIVE,
-                      GIMBAL_YAW_INSTALL_DIRECTION, 0, THREAD_CHASSIS_SKD_PRIO);
-    ChassisSKD::load_pid_params(CHASSIS_FOLLOW_PID_THETA2V_PARAMS, CHASSIS_PID_V2I_PARAMS);
-    Shell::addCommands(ChassisSKD::shellCommands);
-    Shell::addFeedbackCallback(ChassisSKD::cmdFeedback);
+    MecanumChassisSKD::start(CHASSIS_WHEEL_BASE, CHASSIS_WHEEL_TREAD, CHASSIS_WHEEL_CIRCUMFERENCE, MecanumChassisSKD::POSITIVE,
+                             GIMBAL_YAW_INSTALL_DIRECTION, 0, THREAD_CHASSIS_SKD_PRIO);
+    MecanumChassisSKD::load_pid_params(CHASSIS_FOLLOW_PID_THETA2V_PARAMS, CHASSIS_PID_V2I_PARAMS);
+    Shell::addCommands(MecanumChassisSKD::shellCommands);
+    Shell::addFeedbackCallback(MecanumChassisSKD::cmdFeedback);
 
     /// Start LGs
     GimbalLG::init(THREAD_GIMBAL_LG_VISION_PRIO, IDLEPRIO /* not used */, GIMBAL_PITCH_MIN_ANGLE,
