@@ -2,6 +2,14 @@
 // Created by Chen Qian on 10/29/21.
 //
 
+/**
+ * @file can_motor_interface.h
+ * @brief Class to handle CAN motor feedback data.
+ *
+ * @addtogroup CAN Driver
+ * @{
+ */
+
 #ifndef META_INFANTRY_CAN_MOTOR_INTERFACE_H
 #define META_INFANTRY_CAN_MOTOR_INTERFACE_H
 
@@ -40,9 +48,9 @@
  * */
 
 class CANMotorInterface : public CANMotorCFG {
-    /********************************************//**
-     *        Public Contribution and Methods
-     ***********************************************/
+    /*===========================================================================*/
+    /*                      Public Contribution and Methods                      */
+    /*===========================================================================*/
 public:
 
     /**
@@ -90,9 +98,10 @@ public:
       * @endcode
       * */
      static bool enable_CAN_tx_frames[2][3];
-    /********************************************//**
-     *             SID and ID mapping
-     ***********************************************/
+
+    /*===========================================================================*/
+    /*                            SID and ID mapping                             */
+    /*===========================================================================*/
 private:
 
     /**
@@ -112,10 +121,9 @@ private:
         int SID;
         CANMotorBase::can_channel_t can_channel;
     } mapping_ID2SID[MOTOR_COUNT];
-
-    /********************************************//**
-     *               CAN Mechanism
-     ***********************************************/
+    /*===========================================================================*/
+    /*                               CAN Mechanism                               */
+    /*===========================================================================*/
 private:
 
     /**
@@ -148,3 +156,5 @@ private:
 };
 
 #endif //META_INFANTRY_CAN_MOTOR_INTERFACE_H
+
+/** @} */

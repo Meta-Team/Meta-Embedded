@@ -15,8 +15,7 @@
 
 #include "ch.hpp"
 
-#include "gimbal_interface.h"
-#include "chassis_interface.h"
+#include "can_motor_scheduler.h"
 #include "ahrs_abstract.h"
 
 #include "pid_controller.hpp"

@@ -2,6 +2,14 @@
 // Created by Chen Qian on 10/28/21.
 //
 
+/**
+ * @file can_motor_feedback.cpp
+ * @brief Class to store CAN motor feedback data
+ *
+ * @addtogroup CAN driver
+ * @{
+ */
+
 #include "can_motor_feedback.h"
 
 void CANMotorFeedback::init(CANMotorBase::motor_type_t motor_type_, uint16_t initial_encoder_angle) {
@@ -99,3 +107,5 @@ float CANMotorFeedback::torque() {
 int CANMotorFeedback::torque_current() {
     return torque_current_raw;
 }
+
+/** @} */

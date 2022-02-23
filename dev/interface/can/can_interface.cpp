@@ -7,7 +7,7 @@
  * @file    can_interface.cpp
  * @brief   CAN interface to receive, distribute and send message.
  *
- * @addtogroup CANInterface
+ * @addtogroup CAN driver
  * @{
  */
 

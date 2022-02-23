@@ -2,6 +2,14 @@
 // Created by Chen Qian on 10/29/21.
 //
 
+/**
+ * @file can_motor_scheduler.cpp
+ * @brief Class to drive can motors.
+ *
+ * @addtogroup CAN Driver
+ * @{
+ */
+
 #include "can_motor_scheduler.h"
 
 CANMotorSKD::feedbackThread CANMotorSKD::FeedbackThread;
@@ -106,6 +114,7 @@ void CANMotorSKD::feedbackThread::main() {
     setName("feedback");
     while(!shouldTerminate()) {
         if(disp_id >= 0 && disp_id < CANMotorCFG::MOTOR_COUNT) {
+            /**TODO: re-enable Shell and display feedback*/
 //            Shell::printf("!gy,%u,%.2f,%.2f,%.2f,%.2f,%d,%d" SHELL_NEWLINE_STR,
 //                          SYSTIME,
 //                          CANMotorInterface::motor_feedback[disp_id].actual_angle, CANMotorSKD::SKDThread.targetA[disp_id],
@@ -115,3 +124,5 @@ void CANMotorSKD::feedbackThread::main() {
         }
     }
 }
+
+/** @} */

@@ -1,6 +1,14 @@
 //
-// Created by 钱晨 on 10/29/21.
+// Created by Chen Qian on 10/29/21.
 //
+
+/**
+ * @file can_motor_scheduler.h
+ * @brief Class to drive can motors.
+ *
+ * @addtogroup CAN Driver
+ * @{
+ */
 
 #ifndef META_INFANTRY_CAN_MOTOR_SCHEDULER_H
 #define META_INFANTRY_CAN_MOTOR_SCHEDULER_H
@@ -14,6 +22,11 @@ using namespace chibios_rt;
 class CANMotorSKD {
 public:
 
+    /**
+     * @brief Start CAN motor scheduler thread.
+     * @param SKD_PRIO Scheduler thread priority, motor controllers calculations.
+     * @param FB_PRIO Feedback thread priority, log motor feedback data on shell.
+     */
     static void start(tprio_t SKD_PRIO, tprio_t FB_PRIO);
 
     /**
@@ -93,3 +106,5 @@ private:
 
 
 #endif //META_INFANTRY_CAN_MOTOR_SCHEDULER_H
+
+/** @} */

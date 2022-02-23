@@ -2,6 +2,14 @@
 // Created by Chen Qian on 10/29/21.
 //
 
+/**
+ * @file can_motor_interface.cpp
+ * @brief Class to handle CAN motor feedback data.
+ *
+ * @addtogroup CAN Driver
+ * @{
+ */
+
 #include "can_motor_interface.h"
 
 CANInterface *CANMotorInterface::can[2];
@@ -152,3 +160,5 @@ bool CANMotorInterface::post_target_current(CANMotorBase::can_channel_t can_chan
             return false;
     }
 }
+
+/** @} */

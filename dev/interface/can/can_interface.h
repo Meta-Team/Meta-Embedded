@@ -6,7 +6,7 @@
  * @file    can_interface.h
  * @brief   CAN interface to receive, distribute and send message.
  *
- * @addtogroup CANInterface
+ * @addtogroup CAN driver
  * @{
  */
 

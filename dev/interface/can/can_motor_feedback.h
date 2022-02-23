@@ -2,6 +2,14 @@
 // Created by Chen Qian on 10/28/21.
 //
 
+/**
+ * @file can_motor_feedback.h
+ * @brief Class to store CAN motor feedback data
+ *
+ * @addtogroup CAN driver
+ * @{
+ */
+
 #ifndef META_INFANTRY_CAN_MOTOR_FEEDBACK_H
 #define META_INFANTRY_CAN_MOTOR_FEEDBACK_H
 
@@ -61,10 +69,9 @@ public:
      * */
     int round_count = 0;
 
-    /********************************************//**
-     *         Integrated Feedback Methods
-     ***********************************************/
-public:
+    /*===========================================================================*/
+    /*                        Integrated Feedback Methods                        */
+    /*===========================================================================*/
 
     /**
      * @brief               Get accumulate angle of the motor.
@@ -91,11 +98,10 @@ public:
      * */
     int torque_current();
 
-    /********************************************//**
-     *         Feedback Processing  Method
-     ***********************************************/
+    /*===========================================================================*/
+    /*                        Feedback Processing  Method                        */
+    /*===========================================================================*/
 
-public:
     /**
      * @brief Process feedback from can received can RX message. It will update the feedback in class. \n
      *        Often called in an overall feedback function (create the link of motor ID and SID). \n
@@ -105,10 +111,9 @@ public:
      * */
     void process_feedback(const CANRxFrame *rxmsg);
 
-    /********************************************//**
-     *           Raw Data for Calculation
-     ***********************************************/
-public:
+    /*===========================================================================*/
+    /*                          Raw Data for Calculation                         */
+    /*===========================================================================*/
 
     /**
      * @brief Motor's type. Motor supported: M3508, M3508 without reducer. M2006, GM6020.
@@ -140,9 +145,9 @@ public:
      * */
     uint16_t last_rotor_angle_raw = 0;
 
-    /********************************************//**
-     *     Constant for processing the feedback
-     ***********************************************/
+    /*===========================================================================*/
+    /*                   Constant for processing the feedback                    */
+    /*===========================================================================*/
 private:
 
     static float constexpr M3508_TORQUE_CONST = 0.3;          // 0.3Nm/A  on the data sheet
@@ -156,3 +161,5 @@ private:
 
 
 #endif //META_INFANTRY_CAN_MOTOR_FEEDBACK_H
+
+/** @} */
