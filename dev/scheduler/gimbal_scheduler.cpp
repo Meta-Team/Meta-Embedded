@@ -85,12 +85,36 @@ void GimbalSKD::set_target_angle(float yaw_target_angle, float pitch_target_angl
     target_angle[GimbalSKD::YAW] = yaw_target_angle;
     target_angle[GimbalSKD::PITCH] = pitch_target_angle;
 #if defined(ENABLE_SUBPITCH)
-    target_angle[SUB_PITCH] = sub_pitch_target_angle;
+    target_angle[GimbalSKD::SUB_PITCH] = sub_pitch_target_angle;
 #endif
 }
 
-float GimbalSKD::get_target_angle(GimbalSKD::angle_id_t motor) {
-    return target_angle[motor];
+float GimbalSKD::get_target_angle(GimbalSKD::angle_id_t angleID) {
+    return target_angle[angleID];
+}
+
+float GimbalSKD::get_AHRS_angle(GimbalSKD::angle_id_t angleID) {
+    return accumulated_angle[angleID];
+}
+
+float GimbalSKD::get_relatvie_angle(GimbalSKD::angle_id_t angleID) {
+    float angle = 0;
+    switch (angleID) {
+        case YAW:
+            angle = CANMotorIF::motor_feedback[CANMotorCFG::YAW].accumulate_angle();
+            break;
+        case PITCH:
+            angle = CANMotorIF::motor_feedback[CANMotorCFG::PITCH].accumulate_angle();
+            break;
+#if defined(ENABLE_SUBPITCH)
+        case SUB_PITCH:
+            angle = CANMotorIF::motor_feedback[CANMotorCFG::SUB_PITCH].accumulate_angle();
+            break;
+#endif
+        default:
+            return 0;
+    }
+    return angle;
 }
 
 void GimbalSKD::SKDThread::main() {
@@ -99,28 +123,20 @@ void GimbalSKD::SKDThread::main() {
 
         chSysLock();  /// --- ENTER S-Locked state. DO NOT use LOG, printf, non S/I-Class functions or return ---
         {
-
-            // Update angles
+            /// Update angles
             if (mode == GIMBAL_REF_MODE) {
-
                 // Fetch data
                 Vector3D ahrs_angle = ahrs_angle_rotation * gimbal_ahrs->get_angle();
                 Vector3D ahrs_gyro = ahrs_gyro_rotation * gimbal_ahrs->get_gyro();
 
-                // Convert AHRS angle and velocity into chassis coordinate.
+                // Convert AHRS angle and velocity into world frame.
                 float angle[2] = {ahrs_angle.x, ahrs_angle.y};
                 float velocity[2] = {
                         ahrs_gyro.x * cosf((float)(ahrs_angle.y / 180.0f * M_PI)) +
                         ahrs_gyro.z * sinf((float)(ahrs_angle.y / 180.0f * M_PI)),
                         ahrs_gyro.y};
 
-                /**
-                 * Deal with cases crossing 0 point
-                 * For example,
-                 * 1. new = 179, last = -179, movement = 358, should be corrected to 358 - 360 = -2
-                 * 2. new = -179, last = 179, movement = -358, should be corrected to -358 + 360 = 2
-                 * 200 (-200) is a threshold that is large enough that it's normally impossible to move in 1 ms
-                 */
+                // Yaw 0 point calculation
                 float yaw_angle_movement = angle[0] - last_angle[YAW];
                 last_angle[YAW] = angle[0];
                 if (yaw_angle_movement < -200) yaw_angle_movement += 360;
@@ -128,10 +144,9 @@ void GimbalSKD::SKDThread::main() {
                 accumulated_angle[GimbalSKD::YAW] += yaw_angle_movement;
                 actual_velocity[GimbalSKD::YAW] = velocity[0];
 
-                /// No need to deal with pitch 0 point
+                // No need to deal with pitch 0 point
                 accumulated_angle[GimbalSKD::PITCH] = angle[1];
                 actual_velocity[GimbalSKD::PITCH] = velocity[1];
-
             } else if (mode == CHASSIS_REF_MODE) {
                 accumulated_angle[GimbalSKD::YAW] =
                         CANMotorIF::motor_feedback[CANMotorIF::YAW].accumulate_angle();
@@ -143,41 +158,28 @@ void GimbalSKD::SKDThread::main() {
                 actual_velocity[GimbalSKD::PITCH] =
                         CANMotorIF::motor_feedback[CANMotorIF::YAW].actual_velocity;
             }
-
 #if defined(ENABLE_SUBPITCH)
             accumulated_angle[SUB_PITCH] =
                     CANMotorIF::motor_feedback[CANMotorIF::SUB_PITCH].accumulate_angle();
             actual_velocity[SUB_PITCH] =
                     CANMotorIF::motor_feedback[CANMotorIF::SUB_PITCH].actual_velocity;
 #endif
-            // Update target current
+            /// Set Target
             if (mode == FORCED_RELAX_MODE) {
                 CANMotorIF::enable_v2i[CANMotorIF::YAW] = false;
                 CANMotorIF::enable_v2i[CANMotorIF::PITCH] = false;
+                CANMotorIF::set_current(CANMotorCFG::YAW, 0);
+                CANMotorIF::set_current(CANMotorCFG::PITCH, 0);
 #if defined(ENABLE_SUBPITCH)
                 CANMotorIF::enable_v2i[CANMotorIF::SUB_PITCH] = false;
+                CANMotorIF::set_current(CANMotorCFG::SUB_PITCH, 0);
 #endif
-#if defined(ENABLE_SUBPITCH)
-                target_current[SUB_PITCH] = 0;
-#endif
-                target_current[YAW] = target_current[PITCH] = 0;
-
             } else {
-
-
                 CANMotorSKD::set_target_angle(CANMotorIF::YAW, target_angle[YAW]);
                 CANMotorSKD::set_target_angle(CANMotorIF::PITCH, target_angle[PITCH]);
 #if defined(ENABLE_SUBPITCH)
                 CANMotorSKD::set_target_angle(CANMotorIF::SUB_PITCH, target_angle[SUB_PITCH]);
 #endif
-
-#ifdef PARAM_ADJUST
-                if (a2v_pid_enabled) {
-#endif
-#ifdef PARAM_ADJUST
-                }
-#endif
-
             }
         }
         chSysUnlock();  /// --- EXIT S-Locked state ---

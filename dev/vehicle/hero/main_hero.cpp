@@ -11,11 +11,14 @@
 #include "common_macro.h"
 
 #include "shell.h"
-#include "interface/can/can_interface.h"
 #include "ahrs.h"
 #include "remote_interpreter.h"
 #include "sd_card_interface.h"
-#include "super_capacitor_port.h"
+
+#include "can_interface.h"
+#include "capacitor_interface.h"
+#include "lidar_interface.h"
+
 #include "referee_UI_update_scheduler.h"
 #include "referee_UI_logic.h"
 
@@ -101,8 +104,9 @@ int main() {
     InspectorH::startup_check_can();  // check no persistent CAN Error. Block for 100 ms
     LED::led_on(DEV_BOARD_LED_CAN);  // LED 2 on now
 
-    /// Setup SuperCapacitor Port
-    SuperCapacitor::init(&can2, THREAD_SUPERCAP_INIT_PRIO);
+    /// Setup CapacitorIF Port
+    CapacitorIF::init(&can2, THREAD_SUPERCAP_INIT_PRIO);
+    LidarIF::init(&can2);
 
     /// Setup Referee
     Referee::init();
@@ -136,8 +140,6 @@ int main() {
     InspectorH::startup_check_remote();  // check Remote has signal. Block for 50 ms
     LED::led_on(DEV_BOARD_LED_REMOTE);  // LED 4 on now
 
-
-
     /// Setup CAN
     CANMotorIF::init(&can1, &can2);
 
@@ -154,7 +156,7 @@ int main() {
     LED::led_on(DEV_BOARD_LED_CHASSIS);  // LED 6 on now
 
 
-    /// Setup Red Spot Laser
+    /// Setup Red Spot Laser and Lidar
     palSetPad(GPIOG, GPIOG_RED_SPOT_LASER);  // enable the red spot laser
 
     /*** ------------ Period 2. Calibration and Start Logic Control Thread ----------- ***/
@@ -171,25 +173,25 @@ int main() {
     /// Start SKDs
     GimbalSKD::start(&ahrs, GIMBAL_ANGLE_INSTALLATION_MATRIX_, GIMBAL_GYRO_INSTALLATION_MATRIX_,
                      THREAD_GIMBAL_SKD_PRIO);
-    Shell::addCommands(GimbalSKD::shellCommands);
+    /// TODO: Re-enable shell commands
+//    Shell::addCommands(GimbalSKD::shellCommands);
 //    Shell::addFeedbackCallback(GimbalSKD::cmdFeedback);
 
     ShootSKD::start(THREAD_SHOOT_SKD_PRIO);
-    ShootSKD::load_pid_params(SHOOT_PID_BULLET_LOADER_A2V_PARAMS, SHOOT_PID_BULLET_LOADER_V2I_PARAMS,
-                              SHOOT_PID_FW_LEFT_V2I_PARAMS, SHOOT_PID_FW_RIGHT_V2I_PARAMS);
-    Shell::addCommands(ShootSKD::shellCommands);
-    Shell::addFeedbackCallback(ShootSKD::cmdFeedback);
+    /// TODO: Re-enable shell commands
+//    Shell::addCommands(ShootSKD::shellCommands);
+//    Shell::addFeedbackCallback(ShootSKD::cmdFeedback);
 
-    MecanumChassisSKD::start(CHASSIS_WHEEL_BASE, CHASSIS_WHEEL_TREAD, CHASSIS_WHEEL_CIRCUMFERENCE, MecanumChassisSKD::POSITIVE,
-                             GIMBAL_YAW_INSTALL_DIRECTION, 0, THREAD_CHASSIS_SKD_PRIO);
-    MecanumChassisSKD::load_pid_params(CHASSIS_FOLLOW_PID_THETA2V_PARAMS, CHASSIS_PID_V2I_PARAMS);
-    Shell::addCommands(MecanumChassisSKD::shellCommands);
-    Shell::addFeedbackCallback(MecanumChassisSKD::cmdFeedback);
+    MecanumChassisSKD::init(THREAD_CHASSIS_SKD_PRIO, CHASSIS_WHEEL_BASE,
+                            CHASSIS_WHEEL_TREAD, CHASSIS_WHEEL_CIRCUMFERENCE);
+    /// TODO: Re-enable shell commands
+//    Shell::addCommands(MecanumChassisSKD::shellCommands);
+//    Shell::addFeedbackCallback(MecanumChassisSKD::cmdFeedback);
 
     /// Start LGs
-    GimbalLG::init(THREAD_GIMBAL_LG_VISION_PRIO, THREAD_GIMBAL_LG_SENTRY_PRIO);
-    ShootLG::init(SHOOT_DEGREE_PER_BULLET, true, 60, THREAD_SHOOT_LG_STUCK_DETECT_PRIO, THREAD_SHOOT_BULLET_COUNTER_PRIO, THREAD_SHOOT_LG_VISION_PRIO);
-    ChassisLG::init(THREAD_CHASSIS_LG_DODGE_PRIO, 0, 0, 0);
+//    GimbalLG::init(THREAD_GIMBAL_LG_VISION_PRIO, THREAD_GIMBAL_LG_SENTRY_PRIO);
+//    ShootLG::init(SHOOT_DEGREE_PER_BULLET, true, 60, THREAD_SHOOT_LG_STUCK_DETECT_PRIO, THREAD_SHOOT_BULLET_COUNTER_PRIO, THREAD_SHOOT_LG_VISION_PRIO);
+    ChassisLG::init(THREAD_CHASSIS_LG_PRIO, THREAD_CHASSIS_LG_PRIO, THREAD_CHASSIS_LG_PRIO);
 
     /// Setup Vision
 //    VisionIF::init();  // must be put after initialization of GimbalSKD

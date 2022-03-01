@@ -138,8 +138,8 @@ void ShootLG::StuckDetectorThread::main() {
             continue;
         }
 
-        if (ShootSKD::get_target_current(0) > STUCK_THRESHOLD_CURRENT &&
-            ShootSKD::get_actual_velocity(0) < STUCK_THRESHOLD_VELOCITY) {
+        if (CANMotorIF::motor_feedback[CANMotorIF::BULLET_LOADER].torque_current_raw > STUCK_THRESHOLD_CURRENT &&
+                CANMotorIF::motor_feedback[CANMotorIF::BULLET_LOADER].actual_velocity < STUCK_THRESHOLD_VELOCITY) {
             stuck_count++;
         } else {
             stuck_count = 0;

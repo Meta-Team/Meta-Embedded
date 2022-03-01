@@ -31,7 +31,7 @@
  * @brief Scheduler to control chassis to meet the target, including a thread to invoke PID calculation in period.
  * @pre GimbalIF and ChassisIF have been initialized properly
  * @usage 1. init()
- *        2. set_target() as needed
+ *        2. set_target_angle() as needed
  *        3. Leave the rest of the work to this SKD
  * @updates 1. Installation direction and PID parameter configuration left in CAN_MOTOR_CFG.
  *          2. SKD thread only handle velocity decompose [vx, vy, omega (angular velocity)], but not for chassis follow, dodge.

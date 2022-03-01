@@ -40,13 +40,14 @@
  * @brief Logic-level module to generate target values for ChassisSKD. Support follow-gimbal mode and dodge mode.
  * @pre ChassisSKD has started properly
  * @usage 1. Invoke init()
- *        2. Invoke set_action() and set_target() to control chassis
+ *        2. Invoke set_action() and set_target_angle() to control chassis
  */
 class ChassisLG {
 
 public:
 
     enum chassis_mode_t {
+        ABS,
         FOLLOW,
         DODGE,
         FORCE_RELAX
@@ -68,8 +69,9 @@ public:
      * @param vy vy in gimbal coordinate
      */
     static void set_target(float vx, float vy);
-#if(FALSE)
 
+    static void set_target_omega(float omega);
+#if(FALSE)
     static void init(tprio_t dodge_thread_prio_, tprio_t cap_power_set_thread_prio_, float dodge_mode_max_omega, float biased_angle, PIDController::pid_params_t omega_power_pid);
 
     enum action_t {
@@ -89,7 +91,6 @@ public:
      * @param value   Action to be applied
      */
     static void set_action(action_t value);
-
 #endif
 
 private:
@@ -141,7 +142,7 @@ private:
     static DodgeModeSwitchThread dodgeModeSwitchThread;
     static chibios_rt::ThreadReference dodgeThreadReference;
 #endif
-    static ChassisLGThread dodge_thread;
+    static ChassisLGThread chassis_logic_thread;
 };
 
 

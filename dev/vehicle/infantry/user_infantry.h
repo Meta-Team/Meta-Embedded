@@ -9,7 +9,7 @@
 
 #include "remote_interpreter.h"
 #include "referee_interface.h"
-#include "super_capacitor_port.h"
+#include "capacitor_interface.h"
 
 #include "gimbal_logic.h"
 #include "shoot_logic.h"

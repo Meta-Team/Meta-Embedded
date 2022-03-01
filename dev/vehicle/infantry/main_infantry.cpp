@@ -15,7 +15,7 @@
 #include "ahrs.h"
 #include "remote_interpreter.h"
 #include "sd_card_interface.h"
-#include "super_capacitor_port.h"
+#include "capacitor_interface.h"
 #include "referee_UI_update_scheduler.h"
 #include "referee_UI_logic.h"
 
@@ -107,8 +107,8 @@ int main() {
     InspectorI::startup_check_can();  // check no persistent CAN Error. Block for 100 ms
     LED::led_on(DEV_BOARD_LED_CAN);  // LED 2 on now
 
-    /// Setup SuperCapacitor Port
-    SuperCapacitor::init(&can2, THREAD_SUPERCAP_INIT_PRIO);
+    /// Setup CapacitorIF Port
+    CapacitorIF::init(&can2, THREAD_SUPERCAP_INIT_PRIO);
 
     /// Setup Referee
     Referee::init();

@@ -16,7 +16,11 @@
 #define THREAD_MOTOR_SKD_PRIO               (HIGHPRIO - 7)
 #define THREAD_FEEDBACK_SKD_PRIO            (HIGHPRIO - 8)
 #define THREAD_BUTTON_DETECT_PRIO           (HIGHPRIO - 9)
-#define THREAD_MOTOR_LG_VISION_PRIO         (HIGHPRIO - 10)
+
+#define THREAD_CHASSIS_LG_PRIO              (HIGHPRIO - 10)
+#define THREAD_MOTOR_LG_VISION_PRIO         (HIGHPRIO - 11)
+#define THREAD_USER_PRIO                    (HIGHPRIO - 12)
+#define THREAD_USER_ACTION_PRIO             (HIGHPRIO - 13)
 
 #define THREAD_VIRTUAL_COM_PRIO             (NORMALPRIO)
 #define THREAD_SUPERCAP_INIT_PRIO           (NORMALPRIO-1)

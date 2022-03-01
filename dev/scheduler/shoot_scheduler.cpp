@@ -67,6 +67,10 @@ void ShootSKD::reset_loader_accumulated_angle() {
     CANMotorIF::motor_feedback[CANMotorCFG::BULLET_LOADER].reset_accumulate_angle();
 }
 
+void ShootSKD::set_loader_target_velocity(float degree_per_second) {
+    CANMotorIF::a2vParams[CANMotorCFG::BULLET_LOADER].out_limit = degree_per_second;
+}
+
 void ShootSKD::SKDThread::main() {
     setName("ShootSKD");
     while (!shouldTerminate()) {

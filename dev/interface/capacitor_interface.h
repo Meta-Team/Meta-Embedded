@@ -2,15 +2,15 @@
 // Created by liuzikai on 2019-07-14.
 //
 
-#ifndef META_INFANTRY_SUPER_CAPACITOR_PORT_H
-#define META_INFANTRY_SUPER_CAPACITOR_PORT_H
+#ifndef META_INFANTRY_CAPACITOR_INTERFACE_H
+#define META_INFANTRY_CAPACITOR_INTERFACE_H
 
 #include "ch.hpp"
 #include "hal.h"
 #include "can_interface.h"
 
 /**
- * @name SuperCapacitor
+ * @name CapacitorIF
  * @brief Interface to interact with super capacitor from Liewu Control through CAN.
  * @pre Hardware is connected properly
  *
@@ -18,7 +18,7 @@
  * @usage 1. Call init() function
  *        2. Read feedback (stored in class) / Call set_power() to set maximum input power of super capacitor
  */
-class SuperCapacitor {
+class CapacitorIF {
 
 public:
 
@@ -77,4 +77,4 @@ private:
 };
 
 
-#endif //META_INFANTRY_SUPER_CAPACITOR_PORT_H
+#endif //META_INFANTRY_CAPACITOR_INTERFACE_H

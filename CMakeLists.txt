@@ -130,7 +130,7 @@ set(INFANTRY_SRC
         dev/logic/shoot_logic.cpp
 
         # Infantry has super capacitor
-        dev/interface/super_capacitor_port.cpp
+        dev/interface/capacitor_interface.cpp
 
         # Main
         dev/vehicle/infantry/CANBUS_MOTOR_CFG.cpp
@@ -183,7 +183,8 @@ add_executable(HERO
         dev/logic/shoot_logic.cpp
 
         # Hero has super capacitor
-        dev/interface/super_capacitor_port.cpp
+        dev/interface/capacitor_interface.cpp
+        dev/interface/lidar_interface.cpp
 
         # Main
         dev/vehicle/hero/CANBUS_MOTOR_CFG.cpp
@@ -281,7 +282,7 @@ add_executable(ut_sd_card
         dev/debug/Unit_Tests/ut_sd_card.cpp)
 
 add_executable(ut_super_capacitor
-        dev/interface/super_capacitor_port.cpp
+        dev/interface/capacitor_interface.cpp
         dev/interface/can/can_interface.cpp
         dev/debug/shell/shell.cpp
         dev/scheduler/buzzer_scheduler.cpp

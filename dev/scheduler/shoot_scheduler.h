@@ -97,20 +97,6 @@ public:
      */
     static float get_friction_wheels_target_velocity();
 
-    static float get_target_velocity(uint32_t motor_id);
-
-    /**
-     * Get bullet loader target current calculated in this SKD
-     * @return Bullet loader target current [positive for normal shooting]
-     */
-    static int get_target_current(uint32_t motor_id);
-
-    /**
-     * Get bullet loader actual velocity
-     * @return Bullet loader actual velocity [positive for normal shooting]
-     */
-    static float get_actual_velocity(uint32_t motor_id);
-
     /**
      * Get bullet loader target angle
      * @return Bullet loader target angle

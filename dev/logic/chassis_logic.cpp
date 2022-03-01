@@ -15,7 +15,8 @@
 float ChassisLG::target_vx = 0.0f;
 float ChassisLG::target_vy = 0.0f;
 float ChassisLG::target_omega = 0.0f;
-ChassisLG::ChassisLGThread ChassisLG::dodge_thread;
+ChassisLG::chassis_mode_t ChassisLG::chassis_mode;
+ChassisLG::ChassisLGThread ChassisLG::chassis_logic_thread;
 
 #if (FALSE)
 ChassisLG::action_t ChassisLG::action = FORCED_RELAX_MODE;
@@ -55,13 +56,21 @@ void ChassisLG::set_target(float vx, float vy) {
 }
 
 void ChassisLG::init(tprio_t dodge_thread_prio_, tprio_t cap_power_set_thread_prio_, tprio_t dodge_mode_max_omega) {
-
+    chassis_logic_thread.start(dodge_thread_prio_);
 }
 
 void ChassisLG::set_mode(ChassisLG::chassis_mode_t mode) {
     chSysLock();
     {
         ChassisLG::chassis_mode = mode;
+    }
+    chSysUnlock();
+}
+
+void ChassisLG::set_target_omega(float omega) {
+    chSysLock();
+    {
+        ChassisLG::target_omega = omega;
     }
     chSysUnlock();
 }
@@ -91,8 +100,8 @@ void ChassisLG::DodgeModeSwitchThread::main() {
         }
         chSysUnlock();  /// --- EXIT S-Locked state ---
 
-        if (SuperCapacitor::feedback->capacitor_voltage != 0) {
-            float voltage_decrement = 20 - SuperCapacitor::feedback->capacitor_voltage;
+        if (CapacitorIF::feedback->capacitor_voltage != 0) {
+            float voltage_decrement = 20 - CapacitorIF::feedback->capacitor_voltage;
             target_omega = (dodge_omega_power_pid.calc(voltage_decrement, 2));
             VAL_CROP(target_omega, 720.0f, 0.0f);
         } else {
@@ -121,9 +130,9 @@ void ChassisLG::CapacitorPowerSetThread::main() {
     while (!shouldTerminate()) {
 
         if ((float) Referee::power_heat.chassis_power_buffer - Referee::power_heat.chassis_power * 0.1 > 5.0) {
-            SuperCapacitor::set_power(95.0);
+            CapacitorIF::set_power(95.0);
         } else {
-            SuperCapacitor::set_power((float) Referee::robot_state.chassis_power_limit * 0.9f);
+            CapacitorIF::set_power((float) Referee::robot_state.chassis_power_limit * 0.9f);
         }
 
         sleep(TIME_MS2I(CAP_POWER_SET_INTERVAL));
@@ -131,11 +140,17 @@ void ChassisLG::CapacitorPowerSetThread::main() {
 }
 #endif
 
-/** @} */
 void ChassisLG::ChassisLGThread::main() {
-    setName("");
+    setName("ChassisLG");
     while(!shouldTerminate()) {
         switch (chassis_mode) {
+            case ABS:
+                chSysLock();
+                {
+                    MecanumChassisSKD::set_target(target_vx, target_vy, target_omega);
+                }
+                chSysUnlock();
+                break;
             case FOLLOW:
                 chSysLock();
                 {
@@ -161,3 +176,5 @@ void ChassisLG::ChassisLGThread::main() {
         sleep(TIME_MS2I(VEL_DECOMPOSE_INTERVAL));
     }
 }
+
+/** @} */

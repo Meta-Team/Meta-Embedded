@@ -32,8 +32,8 @@
  * @note SKD stands for "scheduler"
  * @brief Scheduler to control gimbal to meet the target, including a thread to invoke PID calculation in period.
  * @pre GimbalIF and ChassisIF have been initialized properly
- * @usage 1. start(), load_pid_params()
- *        2. set_mode() and set_target_angle() as needed
+ * @usage 1. start(), load_pid_params()\n
+ *        2. set_mode() and set_target_angle() as needed\n
  *        3. Leave the rest of the work to this SKD
  * @note ABOUT COORDINATE
  *       All components in this SKD use GIMBAL coordinate (rather than those of motors,
@@ -97,10 +97,24 @@ public:
 
     /**
      * Get current target angle data
-     * @param motor   YAW or PITCH or SUB_PITCH
+     * @param angleID   YAW or PITCH or SUB_PITCH
      * @return Current target angle of GIMBAL
      */
-    static float get_target_angle(GimbalSKD::angle_id_t motor);
+    static float get_target_angle(GimbalSKD::angle_id_t angleID);
+
+    /**
+     * Get AHRS feedback angle
+     * @param angleID (YAW/PITCH) GimbalSKD::angle_id_t
+     * @return  AHRS angle of YAW/PITCH
+     */
+    static float get_AHRS_angle(GimbalSKD::angle_id_t angleID);
+
+    /**
+     * Get certain joint's angle (motor's feedback)
+     * @param angleID (YAW/PITCH/SUB_PITCH) GimbalSKD::angle_id_t
+     * @return Specified joint's angle.
+     */
+    static float get_relatvie_angle(GimbalSKD::angle_id_t angleID);
 
     /// TODO: Re-enable shell functions
 //    static void cmdFeedback(void *);
