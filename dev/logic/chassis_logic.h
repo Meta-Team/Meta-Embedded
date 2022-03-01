@@ -47,10 +47,10 @@ class ChassisLG {
 public:
 
     enum chassis_mode_t {
+        FORCE_RELAX,
         ABS,
         FOLLOW,
-        DODGE,
-        FORCE_RELAX
+        DODGE
     };
 
     /**

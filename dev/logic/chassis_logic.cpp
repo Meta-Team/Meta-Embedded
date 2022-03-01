@@ -63,6 +63,12 @@ void ChassisLG::set_mode(ChassisLG::chassis_mode_t mode) {
     chSysLock();
     {
         ChassisLG::chassis_mode = mode;
+        if(mode != FORCE_RELAX) {
+            CANMotorCFG::enable_v2i[CANMotorCFG::FL] = true;
+            CANMotorCFG::enable_v2i[CANMotorCFG::FR] = true;
+            CANMotorCFG::enable_v2i[CANMotorCFG::BR] = true;
+            CANMotorCFG::enable_v2i[CANMotorCFG::BL] = true;
+        }
     }
     chSysUnlock();
 }
@@ -168,7 +174,14 @@ void ChassisLG::ChassisLGThread::main() {
             case FORCE_RELAX:
                 chSysLock();
                 {
-
+                    CANMotorCFG::enable_v2i[CANMotorCFG::FL] = false;
+                    CANMotorSKD::set_target_current(CANMotorCFG::FL, 0);
+                    CANMotorCFG::enable_v2i[CANMotorCFG::FR] = false;
+                    CANMotorSKD::set_target_current(CANMotorCFG::FR, 0);
+                    CANMotorCFG::enable_v2i[CANMotorCFG::BR] = false;
+                    CANMotorSKD::set_target_current(CANMotorCFG::BR, 0);
+                    CANMotorCFG::enable_v2i[CANMotorCFG::BL] = false;
+                    CANMotorSKD::set_target_current(CANMotorCFG::BL, 0);
                 }
                 chSysUnlock();
                 break;

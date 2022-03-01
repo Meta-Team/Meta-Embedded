@@ -25,7 +25,7 @@ void GimbalLG::set_target_angle(float yaw_target_angle, float pitch_target_angle
 void GimbalLG::set_action(GimbalLG::mode_t mode_) {
     mode = mode_;
     /// TODO: Add gimbal ref mode
-    if(mode_ == FORCE_RELAX_MODE) {
+    if(mode_ == FORCED_RELAX_MODE) {
         GimbalSKD::set_mode(GimbalSKD::FORCED_RELAX_MODE);
     } else {
         GimbalSKD::set_mode(GimbalSKD::CHASSIS_REF_MODE);

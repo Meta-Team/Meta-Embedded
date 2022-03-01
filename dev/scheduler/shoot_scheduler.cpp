@@ -27,15 +27,15 @@ void ShootSKD::start(tprio_t thread_prio) {
 void ShootSKD::set_mode(ShootSKD::mode_t skd_mode) {
     mode = skd_mode;
     if(skd_mode == FORCED_RELAX_MODE) {
-        CANMotorIF::enable_a2v[CANMotorCFG::BULLET_LOADER] = false;
-        CANMotorIF::enable_v2i[CANMotorCFG::BULLET_LOADER] = false;
-        CANMotorIF::enable_v2i[CANMotorCFG::FW_UP] = true;
-        CANMotorIF::enable_v2i[CANMotorCFG::FW_DOWN] = true;
+        CANMotorCFG::enable_a2v[CANMotorCFG::BULLET_LOADER] = false;
+        CANMotorCFG::enable_v2i[CANMotorCFG::BULLET_LOADER] = false;
+        CANMotorCFG::enable_v2i[CANMotorCFG::FW_UP] = true;
+        CANMotorCFG::enable_v2i[CANMotorCFG::FW_DOWN] = true;
     } else {
-        CANMotorIF::enable_a2v[CANMotorCFG::BULLET_LOADER] = true;
-        CANMotorIF::enable_v2i[CANMotorCFG::BULLET_LOADER] = true;
-        CANMotorIF::enable_v2i[CANMotorCFG::FW_UP] = true;
-        CANMotorIF::enable_v2i[CANMotorCFG::FW_DOWN] = true;
+        CANMotorCFG::enable_a2v[CANMotorCFG::BULLET_LOADER] = true;
+        CANMotorCFG::enable_v2i[CANMotorCFG::BULLET_LOADER] = true;
+        CANMotorCFG::enable_v2i[CANMotorCFG::FW_UP] = true;
+        CANMotorCFG::enable_v2i[CANMotorCFG::FW_DOWN] = true;
     }
 }
 
@@ -89,13 +89,13 @@ void ShootSKD::SKDThread::main() {
                 CANMotorSKD::set_target_current(CANMotorCFG::BULLET_LOADER, 0);
 
                 if(ABS_IN_RANGE(CANMotorIF::motor_feedback[CANMotorCFG::FW_UP].actual_velocity, 500)) {
-                    CANMotorIF::enable_v2i[CANMotorCFG::FW_UP] = false;
+                    CANMotorCFG::enable_v2i[CANMotorCFG::FW_UP] = false;
                     CANMotorSKD::set_target_current(CANMotorCFG::FW_UP, 0);
                 } else {
                     CANMotorSKD::set_target_vel(CANMotorCFG::FW_UP, 0);
                 }
                 if(ABS_IN_RANGE(CANMotorIF::motor_feedback[CANMotorCFG::FW_DOWN].actual_velocity, 500)) {
-                    CANMotorIF::enable_v2i[CANMotorCFG::FW_DOWN] = false;
+                    CANMotorCFG::enable_v2i[CANMotorCFG::FW_DOWN] = false;
                     CANMotorSKD::set_target_current(CANMotorCFG::FW_DOWN, 0);
                 } else {
                     CANMotorSKD::set_target_vel(CANMotorCFG::FW_DOWN, 0);

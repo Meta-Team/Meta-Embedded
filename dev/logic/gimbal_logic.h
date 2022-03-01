@@ -30,9 +30,9 @@ using namespace chibios_rt;
 class GimbalLG {
 public:
     enum mode_t {
-        FORCE_RELAX_MODE,
-        GIMBAL_REF_MODE,
-        CHASSIS_REF_MODE
+        FORCED_RELAX_MODE,  // zero force (but still taking control of GimbalIF)
+        CHASSIS_REF_MODE,   //
+        GIMBAL_REF_MODE // TODO: Use MIMO controller to optimize this mode
     };
 
     static mode_t mode;

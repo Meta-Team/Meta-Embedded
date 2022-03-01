@@ -171,6 +171,8 @@ int main() {
         CANMotorIF::motor_feedback[CANMotorIF::SUB_PITCH].accumulate_angle());
 
     /// Start SKDs
+    CANMotorSKD::start(THREAD_MOTOR_SKD_PRIO, THREAD_FEEDBACK_SKD_PRIO);
+
     GimbalSKD::start(&ahrs, GIMBAL_ANGLE_INSTALLATION_MATRIX_, GIMBAL_GYRO_INSTALLATION_MATRIX_,
                      THREAD_GIMBAL_SKD_PRIO);
     /// TODO: Re-enable shell commands
@@ -201,7 +203,7 @@ int main() {
 //    Shell::addCommands(VisionSKD::shell_commands);
 
     /// Start Inspector and User Threads
-//    InspectorH::start_inspection(THREAD_INSPECTOR_PRIO);
+    InspectorH::start_inspection(THREAD_INSPECTOR_PRIO);
     UserH::start(THREAD_USER_PRIO, THREAD_USER_ACTION_PRIO);
 
 

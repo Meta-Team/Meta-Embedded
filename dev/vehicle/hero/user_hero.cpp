@@ -53,9 +53,7 @@ void UserH::UserThread::main() {
         if (!InspectorH::remote_failure() /*&& !InspectorI::chassis_failure()*/ && !InspectorH::gimbal_failure()) {
             if ((Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_UP) ||
                 (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_MIDDLE)) {
-
                 /// Remote - Yaw + Pitch
-
                 GimbalLG::set_action(GimbalLG::CHASSIS_REF_MODE);
 
                 gimbal_yaw_target_angle_ +=
@@ -143,12 +141,12 @@ void UserH::UserThread::main() {
 
             } else {
                 /// Safe Mode
-                GimbalLG::set_action(GimbalLG::FORCE_RELAX_MODE);
+                GimbalLG::set_action(GimbalLG::FORCED_RELAX_MODE);
             }
 
         } else {  // InspectorH::remote_failure() || InspectorH::chassis_failure() || InspectorH::gimbal_failure()
             /// Safe Mode
-            GimbalLG::set_action(GimbalLG::FORCE_RELAX_MODE);
+            GimbalLG::set_action(GimbalLG::FORCED_RELAX_MODE);
         }
 
         /*** ---------------------------------- Shoot --------------------------------- ***/
@@ -245,10 +243,8 @@ void UserH::UserThread::main() {
 
         /*** ---------------------------------- Chassis --------------------------------- ***/
         if (!InspectorH::remote_failure() && !InspectorH::chassis_failure() /*&& !InspectorH::gimbal_failure()*/) {
-
             if ((Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_UP) ||
                 (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_DOWN)) {
-
                 /// Remote - Chassis Move + Chassis Follow
                 ChassisLG::set_mode(ChassisLG::ABS);
                 ChassisLG::set_target(Remote::rc.ch2 * chassis_v_left_right,  // Both use right as positive direction
