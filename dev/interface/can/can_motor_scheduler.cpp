@@ -36,7 +36,7 @@ void CANMotorSKD::switch_feedback_motor(CANMotorCFG::motor_id_t id) {
 }
 
 int  CANMotorSKD::get_torque_current(CANMotorCFG::motor_id_t id){
-    return CANMotorInterface::motor_feedback[id].torque_current();
+    return CANMotorIF::motor_feedback[id].torque_current();
 }
 
 int  CANMotorSKD::get_PID_current(CANMotorCFG::motor_id_t id) {
@@ -74,37 +74,37 @@ void CANMotorSKD::skdThread::main() {
         chSysLock();
         for (int i = 0; i < CANMotorCFG::MOTOR_COUNT; i++) {
             if(CANMotorCFG::enable_a2v[i]) {
-                targetV[i] = a2vController[i].calc(CANMotorInterface::motor_feedback[i].accumulate_angle(), targetA[i]);
+                targetV[i] = a2vController[i].calc(CANMotorIF::motor_feedback[i].accumulate_angle(), targetA[i]);
             }
             if(CANMotorCFG::enable_v2i[i]) {
-                PID_output[i]=v2iController[i].calc(CANMotorInterface::motor_feedback[i].actual_velocity, targetV[i]);
+                PID_output[i]=v2iController[i].calc(CANMotorIF::motor_feedback[i].actual_velocity, targetV[i]);
                 output[i] = (int)PID_output[i];
             } else {
                 /// If disable the PID controller, clear the iterm so it does not bump.
                 a2vController[i].clear_i_out();
                 v2iController[i].clear_i_out();
             }
-            CANMotorInterface::set_current((CANMotorCFG::motor_id_t)i, output[i]);
+            CANMotorIF::set_current((CANMotorCFG::motor_id_t)i, output[i]);
         }
         chSysUnlock();
         /// Might be the most efficient way...currently?
-        if(CANMotorInterface::enable_CAN_tx_frames[0][0]) {
-            CANMotorInterface::post_target_current(CANMotorBase::can_channel_1, 0x200);
+        if(CANMotorIF::enable_CAN_tx_frames[0][0]) {
+            CANMotorIF::post_target_current(CANMotorBase::can_channel_1, 0x200);
         }
-        if(CANMotorInterface::enable_CAN_tx_frames[0][1]) {
-            CANMotorInterface::post_target_current(CANMotorBase::can_channel_1, 0x1FF);
+        if(CANMotorIF::enable_CAN_tx_frames[0][1]) {
+            CANMotorIF::post_target_current(CANMotorBase::can_channel_1, 0x1FF);
         }
-        if(CANMotorInterface::enable_CAN_tx_frames[0][2]) {
-            CANMotorInterface::post_target_current(CANMotorBase::can_channel_1, 0x2FF);
+        if(CANMotorIF::enable_CAN_tx_frames[0][2]) {
+            CANMotorIF::post_target_current(CANMotorBase::can_channel_1, 0x2FF);
         }
-        if(CANMotorInterface::enable_CAN_tx_frames[1][0]) {
-            CANMotorInterface::post_target_current(CANMotorBase::can_channel_2, 0x200);
+        if(CANMotorIF::enable_CAN_tx_frames[1][0]) {
+            CANMotorIF::post_target_current(CANMotorBase::can_channel_2, 0x200);
         }
-        if(CANMotorInterface::enable_CAN_tx_frames[1][1]) {
-            CANMotorInterface::post_target_current(CANMotorBase::can_channel_2, 0x1FF);
+        if(CANMotorIF::enable_CAN_tx_frames[1][1]) {
+            CANMotorIF::post_target_current(CANMotorBase::can_channel_2, 0x1FF);
         }
-        if(CANMotorInterface::enable_CAN_tx_frames[1][2]) {
-            CANMotorInterface::post_target_current(CANMotorBase::can_channel_2, 0x2FF);
+        if(CANMotorIF::enable_CAN_tx_frames[1][2]) {
+            CANMotorIF::post_target_current(CANMotorBase::can_channel_2, 0x2FF);
         }
         sleep(TIME_MS2I(1));
     }
@@ -117,9 +117,9 @@ void CANMotorSKD::feedbackThread::main() {
             /**TODO: re-enable Shell and display feedback*/
 //            Shell::printf("!gy,%u,%.2f,%.2f,%.2f,%.2f,%d,%d" SHELL_NEWLINE_STR,
 //                          SYSTIME,
-//                          CANMotorInterface::motor_feedback[disp_id].actual_angle, CANMotorSKD::SKDThread.targetA[disp_id],
-//                          CANMotorInterface::motor_feedback[disp_id].actual_velocity, CANMotorSKD::SKDThread.targetV[disp_id],
-//                          CANMotorInterface::motor_feedback[disp_id].torque_current(), (int)CANMotorSKD::SKDThread.PID_output[disp_id]);
+//                          CANMotorIF::motor_feedback[disp_id].actual_angle, CANMotorSKD::SKDThread.targetA[disp_id],
+//                          CANMotorIF::motor_feedback[disp_id].actual_velocity, CANMotorSKD::SKDThread.targetV[disp_id],
+//                          CANMotorIF::motor_feedback[disp_id].torque_current(), (int)CANMotorSKD::SKDThread.PID_output[disp_id]);
             sleep(TIME_MS2I(20));
         }
     }

@@ -44,8 +44,8 @@ void HapticLG::BackDrivabilityThread::main() {
                     CANMotorCFG::enable_v2i[i] = true;
                     CANMotorSKD::set_target_angle((CANMotorCFG::motor_id_t) i,
                                                   0.0f);
-                    if(ABS_IN_RANGE(CANMotorInterface::motor_feedback[i].actual_velocity, 5.0) && // Velocity low
-                      !ABS_IN_RANGE(CANMotorInterface::motor_feedback[i].accumulate_angle(), 15.0f) &&
+                    if(ABS_IN_RANGE(CANMotorIF::motor_feedback[i].actual_velocity, 5.0) && // Velocity low
+                      !ABS_IN_RANGE(CANMotorIF::motor_feedback[i].accumulate_angle(), 15.0f) &&
                        WITHIN_RECENT_TIME(SYS_STARTTIME, CALIB_TIMEOUT_DELAY) && !calibrated) {
                         if(STUCK_STARTTIME == 0) {
                             STUCK_STARTTIME = SYSTIME;
@@ -53,11 +53,11 @@ void HapticLG::BackDrivabilityThread::main() {
                             calibrated = true;
                             float zero_point = 0.0f;
                             if(i == 1) {
-                                zero_point = SIGN(CANMotorInterface::motor_feedback[i].accumulate_angle()) > 0 ? 62.0f : -60.0f;
+                                zero_point = SIGN(CANMotorIF::motor_feedback[i].accumulate_angle()) > 0 ? 62.0f : -60.0f;
                             } else {
-                                zero_point = SIGN(CANMotorInterface::motor_feedback[i].accumulate_angle()) * 45.0f;
+                                zero_point = SIGN(CANMotorIF::motor_feedback[i].accumulate_angle()) * 45.0f;
                             }
-                            CANMotorInterface::motor_feedback[i].actual_angle -= zero_point;
+                            CANMotorIF::motor_feedback[i].actual_angle -= zero_point;
                         }
                     } else if (!WITHIN_RECENT_TIME(SYS_STARTTIME, CALIB_TIMEOUT_DELAY)){
                         calibrated = true;

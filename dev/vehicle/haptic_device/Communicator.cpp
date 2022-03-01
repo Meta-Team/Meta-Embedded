@@ -14,10 +14,10 @@ void Communicator::init(tprio_t communicator_prio_) {
 void Communicator::CommunicatorThd::main() {
     setName("Communicator");
     while(!shouldTerminate()) {
-        tx_angles[1] = (uint8_t)(((int16_t)(CANMotorInterface::motor_feedback[0].accumulate_angle()/360.0f*8192.0f)) >> 8);
-        tx_angles[2] = (uint8_t)((int16_t)(CANMotorInterface::motor_feedback[0].accumulate_angle()/360.0f*8192.0f));
-        tx_angles[3] = (uint8_t)(((int16_t)(CANMotorInterface::motor_feedback[1].accumulate_angle()/360.0f*8192.0f)) >> 8);
-        tx_angles[4] = (uint8_t)((int16_t)(CANMotorInterface::motor_feedback[1].accumulate_angle()/360.0f*8192.0f));
+        tx_angles[1] = (uint8_t)(((int16_t)(CANMotorIF::motor_feedback[0].accumulate_angle() / 360.0f * 8192.0f)) >> 8);
+        tx_angles[2] = (uint8_t)((int16_t)(CANMotorIF::motor_feedback[0].accumulate_angle() / 360.0f * 8192.0f));
+        tx_angles[3] = (uint8_t)(((int16_t)(CANMotorIF::motor_feedback[1].accumulate_angle() / 360.0f * 8192.0f)) >> 8);
+        tx_angles[4] = (uint8_t)((int16_t)(CANMotorIF::motor_feedback[1].accumulate_angle() / 360.0f * 8192.0f));
         VirtualCOMPort::send_data(tx_angles, 5);
         Shell::printf("torque:   %d %d, mode: %d" SHELL_NEWLINE_STR, VirtualCOMPort::target_torque[0], VirtualCOMPort::target_torque[1], VirtualCOMPort::rxmode);
         Shell::printf("rxbuffer:");

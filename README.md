@@ -63,8 +63,8 @@ The project use C++ class for encapsulation and modularization. The modules will
 │   │   ├── can_interface.h
 │   │   ├── can_motor_feedback.cpp        大疆CAN电机接口 | DJI Motors' Feedback Class Using CAN-BUS -
 │   │   ├── can_motor_feedback.h
-│   │   ├── CANMotorInterface.cpp       大疆CAN电机整体接口 | Overall Interface for DJI Motors -
-│   │   └── CANMotorInterface.h
+│   │   ├── CANMotorIF.cpp       大疆CAN电机整体接口 | Overall Interface for DJI Motors -
+│   │   └── CANMotorIF.h
 │   ├── virtual_COM                     - 虚拟串口 | STM32 Virtual COM port (CDC) -
 │   │   ├── usbconf.cpp                   USB配置文件 | USB configuration file
 │   │   ├── usbconf.h

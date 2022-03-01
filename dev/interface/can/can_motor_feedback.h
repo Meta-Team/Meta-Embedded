@@ -98,6 +98,11 @@ public:
      * */
     int torque_current();
 
+    /**
+     * @brief Reset the recorded angle of motor.
+     */
+    void reset_accumulate_angle();
+
     /*===========================================================================*/
     /*                        Feedback Processing  Method                        */
     /*===========================================================================*/

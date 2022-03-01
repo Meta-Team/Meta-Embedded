@@ -16,7 +16,7 @@
 
 #include "ch.hpp"
 
-#include "gimbal_interface.h"
+#include "can_motor_scheduler.h"
 #include "pid_controller.hpp"
 
 /**
@@ -41,7 +41,7 @@
  * @note To avoid ShootLG (logic level) to access GimbalIF (interface level) over scheduler level, this module provides
  *       lots of by-pass function to access GimbalIF, with coordinate changes
  */
-class ShootSKD : public GimbalBase, public PIDControllerBase {
+class ShootSKD {
 
 public:
 
@@ -51,27 +51,12 @@ public:
         LIMITED_SHOOTING_MODE    // using angle control to shoot specific number of bullet
     };
 
-    enum install_direction_t {
-        POSITIVE = 1,
-        NEGATIVE = -1
-    };
-
     /**
      * Start this scheduler.
      * @param loader_install_            Installation direction of loader
      * @param thread_prio                Priority of PID calculating thread
      */
-    static void start(install_direction_t loader_install_, tprio_t thread_prio);
-
-    /**
-     * Set PID parameters of loader and fraction wheel
-     * @param loader_a2v_params
-     * @param loader_v2i_params
-     * @param fw_left_v2i_params
-     * @param fw_right_v2i_params
-     */
-    static void load_pid_params(pid_params_t loader_a2v_params, pid_params_t loader_v2i_params,
-                                pid_params_t fw_left_v2i_params, pid_params_t fw_right_v2i_params);
+    static void start(tprio_t thread_prio);
 
     /**
      * Set mode of this SKD
@@ -141,27 +126,15 @@ public:
      * Reset accumulated angle of bullet loader to 0
      */
     static void reset_loader_accumulated_angle();
-
-    static void cmdFeedback(void *);
+    /// TODO: Re-enable shell commands
+//    static void cmdFeedback(void *);
     static const Shell::Command shellCommands[];
 
 private:
 
-    static install_direction_t install_position[3];
-
     static mode_t mode;
-
-    static bool motor_enable[3];
-
-    static float target_angle;
-    static float actual_angle;
+    static float bullet_target_angle;
     static float fw_target_velocity;
-    static float target_velocity[3];
-    static float actual_velocity[3];
-    static int target_current[3];
-
-    static PIDController v2i_pid[3];
-    static PIDController a2v_pid;
 
     static constexpr unsigned int SKD_THREAD_INTERVAL = 2; // PID calculation interval [ms]
 
@@ -170,12 +143,13 @@ private:
     };
 
     static SKDThread skd_thread;
-
+    /// TODO: Re-enable shell commands
+/***
     static DECL_SHELL_CMD(cmdInfo);
     static DECL_SHELL_CMD(cmdEnableFeedback);
     static DECL_SHELL_CMD(cmdPID);
     static DECL_SHELL_CMD(cmdEnableMotor);
-
+***/
 };
 
 #endif //META_INFANTRY_SHOOT_SCHEDULER_H

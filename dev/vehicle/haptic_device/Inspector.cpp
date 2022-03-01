@@ -7,7 +7,7 @@
 void Inspector::startup_check_motor() {
     time_msecs_t t = SYSTIME;
     while (WITHIN_RECENT_TIME(t, 20)) {
-        for (auto & i : CANMotorInterface::motor_feedback) {
+        for (auto & i : CANMotorIF::motor_feedback) {
             if (not WITHIN_RECENT_TIME(i.last_update_time, 5)) {
                 // No feedback in last 5 ms (normal 1 ms)
                 LOG_ERR("Startup - Motor offline.");

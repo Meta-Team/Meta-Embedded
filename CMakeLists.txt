@@ -186,6 +186,7 @@ add_executable(HERO
         dev/interface/super_capacitor_port.cpp
 
         # Main
+        dev/vehicle/hero/CANBUS_MOTOR_CFG.cpp
         dev/vehicle/hero/inspector_hero.cpp
         dev/vehicle/hero/user_hero.cpp
         dev/vehicle/hero/main_hero.cpp)

@@ -6,6 +6,8 @@
  * @file    gimbal_scheduler.h
  * @brief   Scheduler to control gimbal to meet the target, including a thread to invoke PID calculation in period.
  *
+ * @version 3.0a
+ * @date 2.28, 2022
  * @addtogroup gimbal
  * @{
  */
@@ -18,9 +20,12 @@
 #include "can_motor_scheduler.h"
 #include "ahrs_abstract.h"
 
-#include "pid_controller.hpp"
-#include "math.h"
+#include <cmath>
 
+#if defined(HERO)
+/// Enable sub-pitch motor in gimbal scheduler
+#define ENABLE_SUBPITCH
+#endif
 
 /**
  * @name GimbalSKD
@@ -40,24 +45,22 @@
  *       Conversions are performed when APIs are invoked.
  */
 
-class GimbalSKD : public GimbalBase, public PIDControllerBase {
+class GimbalSKD {
 
 public:
+    enum angle_id_t{
+        YAW,
+        PITCH,
+#if defined(ENABLE_SUBPITCH)
+        SUB_PITCH,
+#endif
+        GIMBAL_MOTOR_COUNT
+    };
 
     enum mode_t {
-        FORCED_RELAX_MODE,   // zero force (but still taking control of GimbalIF)
-        ENABLED_MODE
-    };
-
-    enum angle_mode_t {
-        ABS_ANGLE_MODE,
-        RELATIVE_ANGLE_MODE
-    };
-
-    enum install_direction_t {
-        POSITIVE = 1,
-        NONE = 0,
-        NEGATIVE = -1
+        FORCED_RELAX_MODE,  // zero force (but still taking control of GimbalIF)
+        CHASSIS_REF_MODE,   //
+        GIMBAL_REF_MODE // TODO: Use MIMO controller to optimize this mode
     };
 
     /**
@@ -70,23 +73,7 @@ public:
      * @param sub_pitch_install_          Sub-pitch motor install direction
      * @param thread_prio                 Priority of PID calculating thread
      */
-    static void
-    start(AbstractAHRS *gimbal_ahrs_, const Matrix33 ahrs_angle_rotation_, const Matrix33 ahrs_gyro_rotation_,
-          install_direction_t yaw_install_, install_direction_t pitch_install_, install_direction_t sub_pitch_install_, tprio_t thread_prio,
-          angle_mode_t angle_mode_);
-
-    /**
-     * Set PID parameters of yaw, pitch and sub-pitch
-     * @param yaw_a2v_params
-     * @param yaw_v2i_params
-     * @param pitch_a2v_params
-     * @param pitch_v2i_params
-     * @param sub_pitch_a2v_params
-     * @param sub_pitch_v2i_params
-     */
-    static void load_pid_params(pid_params_t yaw_a2v_params, pid_params_t yaw_v2i_params,
-                                pid_params_t pitch_a2v_params, pid_params_t pitch_v2i_params,
-                                pid_params_t sub_pitch_a2v_params, pid_params_t sub_pitch_v2i_params);
+    static void start(AbstractAHRS *gimbal_ahrs_, const Matrix33 ahrs_angle_rotation_, const Matrix33 ahrs_gyro_rotation_, tprio_t thread_prio);
 
     /**
      * Set mode of this SKD
@@ -113,37 +100,10 @@ public:
      * @param motor   YAW or PITCH or SUB_PITCH
      * @return Current target angle of GIMBAL
      */
-    static float get_target_angle(motor_id_t motor);
+    static float get_target_angle(GimbalSKD::angle_id_t motor);
 
-    /**
-     * Get current target velocity data
-     * @param motor
-     * @return
-     */
-    static float get_target_velocity(motor_id_t motor);
-
-    /**
-    * Get accumulated angle involved in PID calculation in this SKD
-    * @param motor   YAW or PITCH
-    * @return Actual angle of GIMBAL
-    */
-    static float get_accumulated_angle(motor_id_t motor) { return accumulated_angle[motor]; }
-
-    /**
-    * Get actual velocity involved in PID calculation in this SKD
-    * @param motor   YAW or PITCH
-    * @return Actual velocity of GIMBAL
-    */
-    static float get_actual_velocity(motor_id_t motor) { return actual_velocity[motor]; }
-
-    /**
-    * Get relative angle maintained by this SKD
-    * @param motor   YAW or PITCH
-    * @return Accumulated angle of MOTOR
-    */
-    static float get_relative_angle(motor_id_t motor);
-
-    static void cmdFeedback(void *);
+    /// TODO: Re-enable shell functions
+//    static void cmdFeedback(void *);
     static const Shell::Command shellCommands[];
 
 private:
@@ -151,31 +111,23 @@ private:
     static AbstractAHRS *gimbal_ahrs;
     static Matrix33 ahrs_angle_rotation;
     static Matrix33 ahrs_gyro_rotation;
-    static install_direction_t yaw_install;
-    static install_direction_t pitch_install;
-    static install_direction_t sub_pitch_install;
 
     // Local storage
     static mode_t mode;
 
-    static angle_mode_t angle_mode;
-
-    static bool motor_enable[3];
+    static bool motor_enable[GIMBAL_MOTOR_COUNT];
 #ifdef PARAM_ADJUST
     static bool a2v_pid_enabled;  // only allowed by PAUser
 #endif
 
-    static float target_angle[3];  // angles of MOTORS (NOTICE: different from target_angle in set_target_angle())
-    static float last_angle[3];  // last angle data of yaw and pitch from AHRS
-    static float accumulated_angle[3];  // accumulated angle of yaw and pitch motors, since the start of this SKD
+    static float target_angle[GIMBAL_MOTOR_COUNT];  // angles of MOTORS (NOTICE: different from target_angle in set_target_angle())
+    static float last_angle[GIMBAL_MOTOR_COUNT];  // last angle data of yaw and pitch from AHRS
+    static float accumulated_angle[GIMBAL_MOTOR_COUNT];  // accumulated angle of yaw and pitch motors, since the start of this SKD
 
-    static float target_velocity[3];  // calculated target velocity, middle values
-    static int target_current[3];     // local storage
+    static float target_velocity[GIMBAL_MOTOR_COUNT];  // calculated target velocity, middle values
+    static int target_current[GIMBAL_MOTOR_COUNT];     // local storage
 
-    static PIDController a2v_pid[3];
-    static PIDController v2i_pid[3];
-
-    static float actual_velocity[3];
+    static float actual_velocity[GIMBAL_MOTOR_COUNT];
 
     static constexpr unsigned int SKD_THREAD_INTERVAL = 1; // PID calculation interval [ms]
 
@@ -185,15 +137,19 @@ private:
 
     static SKDThread skd_thread;
 
+    /// TODO: Re-enable shell functions
+    /***
     static DECL_SHELL_CMD(cmdInfo);
     static DECL_SHELL_CMD(cmdEnableFeedback);
     static DECL_SHELL_CMD(cmdPID);
     static DECL_SHELL_CMD(cmdEnableMotor);
     static DECL_SHELL_CMD(cmdEchoRaw);
 
+
 #ifdef PARAM_ADJUST
     friend class PAUserGimbalThread;
 #endif
+    ***/
 
 };
 

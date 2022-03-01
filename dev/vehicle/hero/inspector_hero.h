@@ -13,8 +13,7 @@
 #include "interface/can/can_interface.h"
 #include "ahrs_abstract.h"
 #include "remote_interpreter.h"
-#include "chassis_interface.h"
-#include "gimbal_interface.h"
+#include "can_motor_interface.h"
 #include "referee_interface.h"
 
 #include "vehicle_hero.h"

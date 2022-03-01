@@ -105,7 +105,7 @@ int main() {
     LED::led_on(DEV_BOARD_LED_AHRS);  // LED 3 on now
 
     /// Setup MOTOR
-    CANMotorInterface::init(&can1, &can2);
+    CANMotorIF::init(&can1, &can2);
     chThdSleepMilliseconds(1000);
     // FIXME: revert for development
 

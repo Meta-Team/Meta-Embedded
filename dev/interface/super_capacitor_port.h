@@ -13,8 +13,10 @@
  * @name SuperCapacitor
  * @brief Interface to interact with super capacitor from Liewu Control through CAN.
  * @pre Hardware is connected properly
- * @usage 1. Call Call init(CANInterface *) with a properly initialized CANInterface.
- *        2. Read feedback / Call set_power() to set maximum input power of super capacitor
+ *
+ * @version 2.0a
+ * @usage 1. Call init() function
+ *        2. Read feedback (stored in class) / Call set_power() to set maximum input power of super capacitor
  */
 class SuperCapacitor {
 
@@ -27,26 +29,39 @@ public:
     static void init(CANInterface *can_interface, tprio_t INIT_THREAD_PRIO);
 
     /**
-     * Feedback info structure
-     */
-    static CANInterface::cap_feedback_t *feedback;
-    
-    /**
-     * Last update time (ms, from system start)
-     */
-    static time_msecs_t last_feedback_time;
-
-    /**
      * Set super capacitor maximum input power
      * @param input_power   Super capacitor maximum input power
      */
     static void set_power(float input_power);
 
+    /**
+     * The feedback input voltage
+     */
+    static float input_voltage;
+
+    /**
+     * The feedback capacitor voltage, indicated the charging status of super capacitor
+     */
+    static float capacitor_voltage;
+
+    /**
+     * The input current of super capacitor
+     */
+    static float input_current;
+
+    /**
+     * The output power of super capacitor
+     */
+    static float output_power;
+
+    /**
+     * Last update time (ms, from system start)
+     */
+    static time_msecs_t last_feedback_time;
+
 private:
 
     static CANInterface *can_;
-
-    friend CANInterface;
 
     static CANTxFrame txFrame;
 
@@ -57,6 +72,8 @@ private:
     };
 
     static SuperCapacitorInitThread superCapacitorInitThread;
+
+    static void process_feedback(CANRxFrame const *rxmsg);
 };
 
 

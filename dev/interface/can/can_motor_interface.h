@@ -47,7 +47,7 @@
  * @endcode
  * */
 
-class CANMotorInterface : public CANMotorCFG {
+class CANMotorIF : public CANMotorCFG {
     /*===========================================================================*/
     /*                      Public Contribution and Methods                      */
     /*===========================================================================*/

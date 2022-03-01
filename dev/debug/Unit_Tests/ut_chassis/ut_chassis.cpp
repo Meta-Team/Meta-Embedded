@@ -54,7 +54,7 @@ int main(void) {
     Shell::start(HIGHPRIO);
     can1.start(NORMALPRIO);
     can2.start(NORMALPRIO+1);
-    CANMotorInterface::init(&can1, &can2);
+    CANMotorIF::init(&can1, &can2);
     CANMotorSKD::start(NORMALPRIO + 2, NORMALPRIO + 3);
     Remote::start();
     ChassisLG::init(NORMALPRIO+4, 472.0f, 372.0f, 478.0f);

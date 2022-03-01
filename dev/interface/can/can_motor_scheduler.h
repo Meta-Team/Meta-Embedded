@@ -82,7 +82,7 @@ private:
 
     class feedbackThread : public BaseStaticThread<512> {
     public:
-        CANMotorCFG::motor_id_t disp_id = (CANMotorCFG::motor_id_t)((int)CANMotorInterface::MOTOR_COUNT - 1);
+        CANMotorCFG::motor_id_t disp_id = (CANMotorCFG::motor_id_t)((int)CANMotorIF::MOTOR_COUNT - 1);
     private:
         void main() final;
     };
@@ -90,18 +90,18 @@ private:
 
     class skdThread : public BaseStaticThread<512> {
     private:
-        float targetA[CANMotorInterface::MOTOR_COUNT];
-        float targetV[CANMotorInterface::MOTOR_COUNT];
-        int   output[CANMotorInterface::MOTOR_COUNT];
-        float PID_output[CANMotorInterface::MOTOR_COUNT];
+        float targetA[CANMotorIF::MOTOR_COUNT];
+        float targetV[CANMotorIF::MOTOR_COUNT];
+        int   output[CANMotorIF::MOTOR_COUNT];
+        float PID_output[CANMotorIF::MOTOR_COUNT];
         void main() final;
         friend feedbackThread;
         friend CANMotorSKD;
     };
     static skdThread SKDThread;
 
-    static PIDController a2vController[CANMotorInterface::MOTOR_COUNT];
-    static PIDController v2iController[CANMotorInterface::MOTOR_COUNT];
+    static PIDController a2vController[CANMotorIF::MOTOR_COUNT];
+    static PIDController v2iController[CANMotorIF::MOTOR_COUNT];
 };
 
 

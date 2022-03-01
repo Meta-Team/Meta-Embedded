@@ -108,4 +108,9 @@ int CANMotorFeedback::torque_current() {
     return torque_current_raw;
 }
 
+void CANMotorFeedback::reset_accumulate_angle() {
+    round_count = 0;
+    actual_angle = 0;
+}
+
 /** @} */

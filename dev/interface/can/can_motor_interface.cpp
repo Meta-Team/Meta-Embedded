@@ -12,18 +12,18 @@
 
 #include "can_motor_interface.h"
 
-CANInterface *CANMotorInterface::can[2];
+CANInterface *CANMotorIF::can[2];
 
-CANMotorFeedback CANMotorInterface::motor_feedback[MOTOR_COUNT];
+CANMotorFeedback CANMotorIF::motor_feedback[MOTOR_COUNT];
 
-CANMotorInterface::motor_id_t CANMotorInterface::mapping_SID2ID[2][11];
-CANMotorInterface::mapping_ID2SID_t CANMotorInterface::mapping_ID2SID[MOTOR_COUNT];
+CANMotorIF::motor_id_t CANMotorIF::mapping_SID2ID[2][11];
+CANMotorIF::mapping_ID2SID_t CANMotorIF::mapping_ID2SID[MOTOR_COUNT];
 
-CANTxFrame CANMotorInterface::txmsg[2][3];
-bool       CANMotorInterface::enable_CAN_tx_frames[2][3];
+CANTxFrame CANMotorIF::txmsg[2][3];
+bool       CANMotorIF::enable_CAN_tx_frames[2][3];
 
 // Initialize code just run for one time, thus the time complexity is not so critical.
-void CANMotorInterface::init(CANInterface *can1_, CANInterface *can2_) {
+void CANMotorIF::init(CANInterface *can1_, CANInterface *can2_) {
     // Assign can channel.
     can[0] = can1_;
     can[1] = can2_;
@@ -118,17 +118,17 @@ void CANMotorInterface::init(CANInterface *can1_, CANInterface *can2_) {
     }
 }
 
-void CANMotorInterface::can1_callback_func(CANRxFrame const *rxmsg) {
+void CANMotorIF::can1_callback_func(CANRxFrame const *rxmsg) {
     // As the can callback SID range are performed by program, no need to check the SID.
     motor_feedback[mapping_SID2ID[0][(int)rxmsg->SID - 0x201]].process_feedback(rxmsg);
 }
 
-void CANMotorInterface::can2_callback_func(CANRxFrame const *rxmsg) {
+void CANMotorIF::can2_callback_func(CANRxFrame const *rxmsg) {
     // As the can callback SID range are performed by program, no need to check the SID.
     motor_feedback[mapping_SID2ID[1][(int)rxmsg->SID - 0x201]].process_feedback(rxmsg);
 }
 
-void CANMotorInterface::set_current(motor_id_t motor_id, int target_current) {
+void CANMotorIF::set_current(motor_id_t motor_id, int target_current) {
     int motor_SID = mapping_ID2SID[motor_id].SID;
     if(motor_SID > 0x200 && motor_SID < 0x205) {
         int start_id = (motor_SID-0x201)*2;
@@ -147,7 +147,7 @@ void CANMotorInterface::set_current(motor_id_t motor_id, int target_current) {
     }
 }
 
-bool CANMotorInterface::post_target_current(CANMotorBase::can_channel_t can_channel_, uint32_t SID) {
+bool CANMotorIF::post_target_current(CANMotorBase::can_channel_t can_channel_, uint32_t SID) {
     if(!can[can_channel_]) return false;
     switch (SID) {
         case 0x200:
