@@ -57,7 +57,12 @@ void GimbalSKD::set_mode(GimbalSKD::mode_t skd_mode) {
 
         CANMotorCFG::enable_v2i[CANMotorIF::YAW] = false;
         CANMotorCFG::enable_v2i[CANMotorIF::PITCH] = false;
+        CANMotorSKD::set_target_current(CANMotorCFG::YAW, 0);
+        CANMotorSKD::set_target_current(CANMotorCFG::PITCH, 0);
+#if defined(ENABLE_SUBPITCH)
         CANMotorCFG::enable_v2i[CANMotorIF::SUB_PITCH] = false;
+        CANMotorIF::set_current(CANMotorCFG::SUB_PITCH, 0);
+#endif
     } else if (mode == CHASSIS_REF_MODE) {
         CANMotorCFG::enable_a2v[CANMotorIF::YAW] = true;
         CANMotorCFG::enable_a2v[CANMotorIF::PITCH] = false;
@@ -168,11 +173,11 @@ void GimbalSKD::SKDThread::main() {
             if (mode == FORCED_RELAX_MODE) {
                 CANMotorCFG::enable_v2i[CANMotorIF::YAW] = false;
                 CANMotorCFG::enable_v2i[CANMotorIF::PITCH] = false;
-                CANMotorIF::set_current(CANMotorCFG::YAW, 0);
-                CANMotorIF::set_current(CANMotorCFG::PITCH, 0);
+                CANMotorSKD::set_target_current(CANMotorCFG::YAW, 0);
+                CANMotorSKD::set_target_current(CANMotorCFG::PITCH, 0);
 #if defined(ENABLE_SUBPITCH)
                 CANMotorCFG::enable_v2i[CANMotorIF::SUB_PITCH] = false;
-                CANMotorIF::set_current(CANMotorCFG::SUB_PITCH, 0);
+                CANMotorSKD::set_target_current(CANMotorCFG::SUB_PITCH, 0);
 #endif
             } else {
                 CANMotorSKD::set_target_angle(CANMotorIF::YAW, target_angle[YAW]);

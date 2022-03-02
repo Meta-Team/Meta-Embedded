@@ -192,7 +192,7 @@ int main() {
 
     /// Start LGs
 //    GimbalLG::init(THREAD_GIMBAL_LG_VISION_PRIO, THREAD_GIMBAL_LG_SENTRY_PRIO);
-//    ShootLG::init(SHOOT_DEGREE_PER_BULLET, true, 60, THREAD_SHOOT_LG_STUCK_DETECT_PRIO, THREAD_SHOOT_BULLET_COUNTER_PRIO, THREAD_SHOOT_LG_VISION_PRIO);
+    ShootLG::init(SHOOT_DEGREE_PER_BULLET, true, THREAD_STUCK_DETECT_PRIO,  THREAD_SHOOT_BULLET_COUNTER_PRIO, THREAD_SHOOT_LG_VISION_PRIO);
     ChassisLG::init(THREAD_CHASSIS_LG_PRIO, THREAD_CHASSIS_LG_PRIO, THREAD_CHASSIS_LG_PRIO);
 
     /// Setup Vision
@@ -205,7 +205,6 @@ int main() {
     /// Start Inspector and User Threads
     InspectorH::start_inspection(THREAD_INSPECTOR_PRIO);
     UserH::start(THREAD_USER_PRIO, THREAD_USER_ACTION_PRIO);
-
 
     /// Complete Period 2
     BuzzerSKD::play_sound(BuzzerSKD::sound_startup_intel);  // Now play the startup sound

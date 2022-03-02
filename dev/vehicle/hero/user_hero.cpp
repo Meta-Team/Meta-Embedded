@@ -28,8 +28,8 @@ float UserH::chassis_pc_ctrl_ratio = 0.5;    // 50% when Ctrl is pressed
 float UserH::shoot_launch_left_count = 5;
 float UserH::shoot_launch_right_count = 999;
 
-float UserH::shoot_feed_rate = 5.0f;   // [bullet/s]
-float UserH::shoot_fw_speed[3] = {1000, 1500, 2000};  // [Slow, Normal, Fast] [deg/s]
+float UserH::shoot_feed_rate = 0.5f;   // [bullet/s]
+float UserH::shoot_fw_speed[3] = {48000, 72000, 10800};  // [Slow, Normal, Fast] [deg/s]
 
 
 /// Variables
@@ -51,8 +51,7 @@ void UserH::UserThread::main() {
 
         /*** ---------------------------------- Gimbal --------------------------------- ***/
         if (!InspectorH::remote_failure() /*&& !InspectorI::chassis_failure()*/ && !InspectorH::gimbal_failure()) {
-            if ((Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_UP) ||
-                (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_MIDDLE)) {
+            if ((Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_UP)) {
                 /// Remote - Yaw + Pitch
                 GimbalLG::set_action(GimbalLG::CHASSIS_REF_MODE);
 
@@ -62,12 +61,15 @@ void UserH::UserThread::main() {
 
                 float pitch_target;
                 if (Remote::rc.ch1 > 0) pitch_target += Remote::rc.ch1 * gimbal_pitch_max_angle * 0.1;
-                else pitch_target -= Remote::rc.ch1 * gimbal_pitch_min_angle * 0.1;  // GIMBAL_PITCH_MIN_ANGLE is negative
+                else
+                    pitch_target -=
+                            Remote::rc.ch1 * gimbal_pitch_min_angle * 0.1;  // GIMBAL_PITCH_MIN_ANGLE is negative
                 // ch1 use up as positive direction, while GimbalLG also use up as positive direction
 
                 VAL_CROP(pitch_target, gimbal_pitch_max_angle, gimbal_pitch_min_angle);
                 GimbalLG::set_target_angle(gimbal_yaw_target_angle_, pitch_target);
 
+            } else if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_MIDDLE) {
             } else if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_DOWN) {
 
 //                /// Vision - Change bullet speed with right vertical handle
@@ -243,8 +245,7 @@ void UserH::UserThread::main() {
 
         /*** ---------------------------------- Chassis --------------------------------- ***/
         if (!InspectorH::remote_failure() && !InspectorH::chassis_failure() /*&& !InspectorH::gimbal_failure()*/) {
-            if ((Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_UP) ||
-                (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_DOWN)) {
+            if ((Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_MIDDLE)) {
                 /// Remote - Chassis Move + Chassis Follow
                 ChassisLG::set_mode(ChassisLG::ABS);
                 ChassisLG::set_target(Remote::rc.ch2 * chassis_v_left_right,  // Both use right as positive direction
@@ -252,6 +253,7 @@ void UserH::UserThread::main() {
                                        Remote::rc.ch3 * 1000 :
                                        Remote::rc.ch3 * 800)   // Both use up as positive direction
                 );
+                ChassisLG::set_target_omega(Remote::rc.ch0 * 200.0f);
 
 //            } else if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_MIDDLE) {
 
