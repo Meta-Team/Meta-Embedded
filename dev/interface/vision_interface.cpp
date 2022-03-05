@@ -79,8 +79,8 @@ void VisionIF::handle_vision_command(const vision_command_t &command) {
     }
 
     // Record current gimbal angles, which will be used for next control command
-    last_gimbal_yaw = GimbalSKD::get_AHRS_angle(GimbalSKD::YAW);
-    last_gimbal_pitch = GimbalSKD::get_AHRS_angle(GimbalSKD::PITCH);
+    last_gimbal_yaw = GimbalSKD::get_feedback_angle(GimbalSKD::YAW);
+    last_gimbal_pitch = GimbalSKD::get_feedback_angle(GimbalSKD::PITCH);
     last_command_receive_time = now;
 }
 

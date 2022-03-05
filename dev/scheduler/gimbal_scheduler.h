@@ -58,9 +58,9 @@ public:
     };
 
     enum mode_t {
-        FORCED_RELAX_MODE,  // zero force (but still taking control of GimbalIF)
-        CHASSIS_REF_MODE,   //
-        GIMBAL_REF_MODE // TODO: Use MIMO controller to optimize this mode
+        FORCED_RELAX_MODE,  ///< zero force (but still taking control of GimbalIF)
+        CHASSIS_REF_MODE,   ///< Gimbal angle are in chassis frame
+        GIMBAL_REF_MODE     ///< Gimbal angle are in gimbal frame
     };
 
     /**
@@ -107,7 +107,7 @@ public:
      * @param angleID (YAW/PITCH) GimbalSKD::angle_id_t
      * @return  AHRS angle of YAW/PITCH
      */
-    static float get_AHRS_angle(GimbalSKD::angle_id_t angleID);
+    static float get_feedback_angle(GimbalSKD::angle_id_t angleID);
 
     /**
      * Get certain joint's angle (motor's feedback)
@@ -121,27 +121,29 @@ public:
     static const Shell::Command shellCommands[];
 
 private:
-
+    /*===========================================================================*/
+    /*                             AHRS Related Var                              */
+    /*===========================================================================*/
     static AbstractAHRS *gimbal_ahrs;
     static Matrix33 ahrs_angle_rotation;
     static Matrix33 ahrs_gyro_rotation;
 
-    // Local storage
-    static mode_t mode;
+    static float feedback_angle[GIMBAL_MOTOR_COUNT];  // accumulated angle of yaw and pitch motors, since the start of this SKD
+    static float feedback_velocity[GIMBAL_MOTOR_COUNT];
 
     static bool motor_enable[GIMBAL_MOTOR_COUNT];
 #ifdef PARAM_ADJUST
     static bool a2v_pid_enabled;  // only allowed by PAUser
 #endif
 
+    /*===========================================================================*/
+    /*                              PID Related Var                              */
+    /*===========================================================================*/
     static float target_angle[GIMBAL_MOTOR_COUNT];  // angles of MOTORS (NOTICE: different from target_angle in set_target_angle())
     static float last_angle[GIMBAL_MOTOR_COUNT];  // last angle data of yaw and pitch from AHRS
-    static float accumulated_angle[GIMBAL_MOTOR_COUNT];  // accumulated angle of yaw and pitch motors, since the start of this SKD
 
     static float target_velocity[GIMBAL_MOTOR_COUNT];  // calculated target velocity, middle values
     static int target_current[GIMBAL_MOTOR_COUNT];     // local storage
-
-    static float actual_velocity[GIMBAL_MOTOR_COUNT];
 
     static constexpr unsigned int SKD_THREAD_INTERVAL = 1; // PID calculation interval [ms]
 
@@ -150,6 +152,10 @@ private:
     };
 
     static SKDThread skd_thread;
+
+
+    /// Gimbal Behavior Control
+    static mode_t mode;
 
     /// TODO: Re-enable shell functions
     /***

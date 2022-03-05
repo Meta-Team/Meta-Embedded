@@ -163,12 +163,12 @@ int main() {
 
     /// Echo Gimbal Raws and Converted Angles
     LOG("Gimbal Yaw: %u, %f, Pitch: %u, %f, Sub Pitch: %u, %f",
-        CANMotorIF::motor_feedback[CANMotorIF::YAW].last_rotor_angle_raw,
-        CANMotorIF::motor_feedback[CANMotorIF::YAW].accumulate_angle(),
-        CANMotorIF::motor_feedback[CANMotorIF::PITCH].last_rotor_angle_raw,
-        CANMotorIF::motor_feedback[CANMotorIF::PITCH].accumulate_angle(),
-        CANMotorIF::motor_feedback[CANMotorIF::SUB_PITCH].last_rotor_angle_raw,
-        CANMotorIF::motor_feedback[CANMotorIF::SUB_PITCH].accumulate_angle());
+        CANMotorIF::motor_feedback[CANMotorCFG::YAW].last_rotor_angle_raw,
+        CANMotorIF::motor_feedback[CANMotorCFG::YAW].accumulate_angle(),
+        CANMotorIF::motor_feedback[CANMotorCFG::PITCH].last_rotor_angle_raw,
+        CANMotorIF::motor_feedback[CANMotorCFG::PITCH].accumulate_angle(),
+        CANMotorIF::motor_feedback[CANMotorCFG::SUB_PITCH].last_rotor_angle_raw,
+        CANMotorIF::motor_feedback[CANMotorCFG::SUB_PITCH].accumulate_angle());
 
     /// Start SKDs
     CANMotorSKD::start(THREAD_MOTOR_SKD_PRIO, THREAD_FEEDBACK_SKD_PRIO);

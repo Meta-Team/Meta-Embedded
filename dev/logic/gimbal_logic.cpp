@@ -32,11 +32,12 @@ void GimbalLG::set_action(GimbalLG::mode_t mode_) {
     }
 }
 
+#if defined(ENABLE_SUBPITCH)
 void GimbalLG::GimbalSubPitchThd::main() {
     setName("SubPitchThd");
     while(!shouldTerminate()) {
         sleep(INTERVAL);
     }
 }
-
+#endif
 /** @} */
