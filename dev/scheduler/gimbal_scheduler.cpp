@@ -22,6 +22,11 @@ float GimbalSKD::feedback_angle[GIMBAL_MOTOR_COUNT] = {0};
 GimbalSKD::SKDThread GimbalSKD::skd_thread;
 AbstractAHRS *GimbalSKD::gimbal_ahrs = nullptr;
 float GimbalSKD::feedback_velocity[GIMBAL_MOTOR_COUNT] = {0};
+#if ENABLE_SUBPITCH == FALSE
+GimbalSKD::install_direction_t GimbalSKD::install_direction[GIMBAL_MOTOR_COUNT] = {POSITIVE, POSITIVE};
+#else
+GimbalSKD::install_direction_t GimbalSKD::install_direction[GIMBAL_MOTOR_COUNT] = {POSITIVE, POSITIVE, POSITIVE};
+#endif
 
 void GimbalSKD::start(AbstractAHRS *gimbal_ahrs_, const Matrix33 ahrs_angle_rotation_, const Matrix33 ahrs_gyro_rotation_, tprio_t thread_prio) {
 
@@ -35,8 +40,8 @@ void GimbalSKD::start(AbstractAHRS *gimbal_ahrs_, const Matrix33 ahrs_angle_rota
 
     // Initialize last_angle, to use current pointing direction as startup direction
     Vector3D ahrs_angle = ahrs_angle_rotation * gimbal_ahrs->get_angle();
-    last_angle[YAW] = ahrs_angle.x;
-    last_angle[PITCH] = ahrs_angle.y;
+    last_angle[YAW] = ahrs_angle.x* (float)install_direction[YAW];
+    last_angle[PITCH] = ahrs_angle.y* (float)install_direction[PITCH];
     skd_thread.start(thread_prio);
 }
 
@@ -66,8 +71,8 @@ void GimbalSKD::SKDThread::main() {
             if (mode == GIMBAL_REF_MODE) {
                 /// Use AHRS angles for gimbal feedback
                 // In S-Lock State, ahrs feedback will not change during performing calculation.
-                Vector3D ahrs_angle = ahrs_angle_rotation * gimbal_ahrs->get_angle();
-                Vector3D ahrs_gyro  = ahrs_gyro_rotation  * gimbal_ahrs->get_gyro();
+                Vector3D ahrs_angle = ahrs_angle_rotation * gimbal_ahrs->get_angle() * (float)install_direction[YAW];
+                Vector3D ahrs_gyro  = ahrs_gyro_rotation  * gimbal_ahrs->get_gyro()  * (float)install_direction[YAW];
                 // Yaw 0 point calculation.
                 float yaw_angle_movement            =   ahrs_angle.x - last_angle[YAW];
                 last_angle[YAW]                     =   ahrs_angle.x;

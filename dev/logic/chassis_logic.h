@@ -163,7 +163,7 @@ private:
     };
 
     /**
-     * Instance of CapacitorSetThread.
+     * @brief Instance of CapacitorSetThread.
      */
     static CapacitorSetThread capacitor_set_thread;
 #endif
