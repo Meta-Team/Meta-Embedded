@@ -49,7 +49,7 @@
 
 class CANMotorIF: private CANMotorCFG{
     /*===========================================================================*/
-    /*                      Public Contribution and Methods                      */
+    /*                      Public Attributions and Methods                      */
     /*===========================================================================*/
 public:
 

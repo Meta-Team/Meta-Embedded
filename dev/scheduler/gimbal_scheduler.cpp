@@ -5,7 +5,6 @@
 /**
  * @file    gimbal_scheduler.cpp
  * @brief   Scheduler to control gimbal to meet the target, including a thread to invoke PID calculation in period.
- *
  * @addtogroup gimbal
  * @{
  */
@@ -17,10 +16,7 @@ Matrix33 GimbalSKD::ahrs_angle_rotation;
 Matrix33 GimbalSKD::ahrs_gyro_rotation;
 GimbalSKD::mode_t GimbalSKD::mode = FORCED_RELAX_MODE;
 
-bool GimbalSKD::motor_enable[GIMBAL_MOTOR_COUNT] = {true};
 float GimbalSKD::target_angle[GIMBAL_MOTOR_COUNT] = {0};
-float GimbalSKD::target_velocity[GIMBAL_MOTOR_COUNT] = {0};
-int GimbalSKD::target_current[GIMBAL_MOTOR_COUNT] = {0};
 float GimbalSKD::last_angle[GIMBAL_MOTOR_COUNT] = {0};
 float GimbalSKD::feedback_angle[GIMBAL_MOTOR_COUNT] = {0};
 GimbalSKD::SKDThread GimbalSKD::skd_thread;
@@ -30,7 +26,6 @@ float GimbalSKD::feedback_velocity[GIMBAL_MOTOR_COUNT] = {0};
 void GimbalSKD::start(AbstractAHRS *gimbal_ahrs_, const Matrix33 ahrs_angle_rotation_, const Matrix33 ahrs_gyro_rotation_, tprio_t thread_prio) {
 
     gimbal_ahrs = gimbal_ahrs_;
-
     for (int i = 0; i < 3; i++) {
         for (int j = 0; j < 3; j++) {
             ahrs_angle_rotation[i][j] = ahrs_angle_rotation_[i][j];
@@ -48,7 +43,7 @@ void GimbalSKD::start(AbstractAHRS *gimbal_ahrs_, const Matrix33 ahrs_angle_rota
 void GimbalSKD::set_target_angle(float yaw_target_angle, float pitch_target_angle, float sub_pitch_target_angle) {
     target_angle[GimbalSKD::YAW] = yaw_target_angle;
     target_angle[GimbalSKD::PITCH] = pitch_target_angle;
-#if defined(ENABLE_SUBPITCH)
+#if ENABLE_SUBPITCH == TRUE
     target_angle[GimbalSKD::SUB_PITCH] = sub_pitch_target_angle;
 #endif
 }
@@ -95,7 +90,7 @@ void GimbalSKD::SKDThread::main() {
                 feedback_velocity[GimbalSKD::PITCH] =
                         CANMotorIF::motor_feedback[CANMotorCFG::YAW].actual_velocity;
             }
-#if defined(ENABLE_SUBPITCH)
+#if ENABLE_SUBPITCH == TRUE
             feedback_angle[SUB_PITCH] =
                     CANMotorIF::motor_feedback[CANMotorCFG::SUB_PITCH].accumulate_angle();
             feedback_velocity[SUB_PITCH] =
@@ -108,7 +103,7 @@ void GimbalSKD::SKDThread::main() {
                 CANMotorCFG::enable_v2i[CANMotorCFG::PITCH] = false;
                 CANMotorSKD::set_target_current(CANMotorCFG::YAW, 0);
                 CANMotorSKD::set_target_current(CANMotorCFG::PITCH, 0);
-#if defined(ENABLE_SUBPITCH)
+#if ENABLE_SUBPITCH == TRUE
                 CANMotorCFG::enable_v2i[CANMotorCFG::SUB_PITCH] = false;
                 CANMotorSKD::set_target_current(CANMotorCFG::SUB_PITCH, 0);
 #endif
@@ -116,7 +111,7 @@ void GimbalSKD::SKDThread::main() {
                 /// Let CANMotorSKD perform the PID calculation.
                 CANMotorSKD::set_target_angle(CANMotorCFG::YAW, target_angle[YAW]);
                 CANMotorSKD::set_target_angle(CANMotorCFG::PITCH, target_angle[PITCH]);
-#if defined(ENABLE_SUBPITCH)
+#if ENABLE_SUBPITCH == TRUE
                 CANMotorSKD::set_target_angle(CANMotorCFG::SUB_PITCH, target_angle[SUB_PITCH]);
 #endif
             }
@@ -139,7 +134,7 @@ void GimbalSKD::set_mode(GimbalSKD::mode_t skd_mode) {
             CANMotorCFG::enable_a2v[CANMotorCFG::PITCH] = false;
             CANMotorCFG::enable_v2i[CANMotorCFG::PITCH] = false;
             CANMotorSKD::set_target_current(CANMotorCFG::PITCH, 0);
-#if defined(ENABLE_SUBPITCH)
+#if ENABLE_SUBPITCH == TRUE
             CANMotorCFG::enable_a2v[CANMotorCFG::SUB_PITCH] = false;
             CANMotorCFG::enable_v2i[CANMotorCFG::SUB_PITCH] = false;
             CANMotorSKD::set_target_current(CANMotorCFG::SUB_PITCH, 0);
@@ -173,7 +168,7 @@ void GimbalSKD::set_mode(GimbalSKD::mode_t skd_mode) {
             CANMotorCFG::enable_v2i[CANMotorCFG::YAW] = true;
             CANMotorCFG::enable_a2v[CANMotorCFG::PITCH] = true;
             CANMotorCFG::enable_v2i[CANMotorCFG::PITCH] = true;
-#if defined(ENABLE_SUBPITCH)
+#if ENABLE_SUBPITCH == TRUE
             /// TODO: enable sub pitch motor, so the variables should be both true.
             CANMotorCFG::enable_a2v[CANMotorCFG::SUB_PITCH] = false;
             CANMotorCFG::enable_v2i[CANMotorCFG::SUB_PITCH] = false;
@@ -184,6 +179,10 @@ void GimbalSKD::set_mode(GimbalSKD::mode_t skd_mode) {
 
 GimbalSKD::mode_t GimbalSKD::get_mode() {
     return mode;
+}
+
+void GimbalSKD::set_installation(GimbalSKD::angle_id_t angle, GimbalSKD::install_direction_t install_direction) {
+    GimbalSKD::install_direction[angle] = install_direction;
 }
 
 /// TODO: re-enable shell functions

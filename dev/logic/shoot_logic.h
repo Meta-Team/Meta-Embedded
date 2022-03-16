@@ -105,7 +105,7 @@ public:
      * Shoot bullets. Will change shooter state.
      * @param number_of_bullet   Number of bullet to shoot.
      */
-    static void shoot(float number_of_bullet, float number_per_second);
+    static void shoot(int number_of_bullet, float number_per_second);
 
     /**
      * Stop shooting.

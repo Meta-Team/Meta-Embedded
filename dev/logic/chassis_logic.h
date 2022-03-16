@@ -15,12 +15,8 @@
 
 #include "ch.hpp"
 #include <cmath>
+#include "hardware_conf.h"
 
-#if(FALSE)
-#include "referee_interface.h"
-#include "referee_UI_logic.h"
-#include "super_capacitor_port.h"
-#endif
 #include "pid_controller.hpp"
 #include "mecanum_chassis_scheduler.h"
 
@@ -48,16 +44,18 @@
  * 2. Invoke set_auto_straightening_pid_params() and set_dodge_omega_power_pid() for gimbal reference mode.
  * 3. Call set_mode() and set_target()
  * @endcode
+ * @date 3.16, 2022
+ * @version 3.0a
  */
 class ChassisLG : PIDControllerBase{
 
 public:
 
     enum chassis_mode_t {
-        FORCE_RELAX_MODE,
-        CHASSIS_REF_MODE,
-        GIMBAL_REF_MODE,
-        DODGE
+        FORCE_RELAX_MODE,   ///< Zero force (but still taking control of GimbalIF).
+        CHASSIS_REF_MODE,   ///< Chassis Reference.
+        GIMBAL_REF_MODE,    ///< Gimbal Reference.
+        DODGE               ///< Gimbal Reference. Chassis rotation mode.
     };
 
     /**
@@ -107,26 +105,66 @@ public:
     static chassis_mode_t get_mode();
 
 private:
+
+    /**
+     * @brief PID controller for maintaining the capacitor at certain voltage, by changing the chassis angular velocity,
+     *        only available in dodge mode.
+     */
     static PIDController dodge_omega_power_pid;
+
+    /**
+     * @brief PID controller to let chassis follow gimbal's direction. (Only enables in GIMBAL_REF_MODE)
+     */
     static PIDController auto_straightening_pid;
 
+    /**
+     * @brief Input target velocity in X axis (orthogonal to gimbal vehicle's direction)
+     */
     static float target_vx;
+
+    /**
+     * @brief Input target velocity in X axis (parallel to gimbal vehicle's direction)
+     */
     static float target_vy;
+
+
+    /**
+     * @brief Input target chassis angular velocity.
+     */
     static float target_omega;
 
+    /**
+     * @brief Chassis logic class modes.
+     */
     static chassis_mode_t chassis_mode;
 
+    /**
+     * @brief Thread for handling motion of chassis. (Auto Straightening, dodge omega setting)
+     */
     class MotionControllerThread : public chibios_rt::BaseStaticThread<512> {
         static constexpr unsigned CHASSIS_LG_INTERVAL = 5; //[ms]
         void main() final;
     };
+
+    /**
+     * @brief Instance of MotionControllerThread.
+     */
     static MotionControllerThread motion_controller_thread;
 
-#ifdef ENABLE_REFEREE
+#if ENABLE_CAPACITOR == TRUE && ENABLE_REFEREE == TRUE
+    /**
+     * @brief Thread for set capacitor's power. Only available when capacitor and referee system are working properly.
+     *        the receiving interval for super capacitor control board is 100 ms, for robustness, the interval was set
+     *        to 200 ms.
+     */
     class CapacitorSetThread : public chibios_rt::BaseStaticThread<256> {
         static constexpr unsigned CAPACITOR_SET_INTERVAL = 200; // [ms]
         void main() final;
     };
+
+    /**
+     * Instance of CapacitorSetThread.
+     */
     static CapacitorSetThread capacitor_set_thread;
 #endif
 

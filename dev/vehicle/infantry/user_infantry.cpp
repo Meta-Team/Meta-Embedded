@@ -13,12 +13,13 @@
 #include "vehicle_infantry_four.h"
 #elif defined(INFANTRY_FIVE)                                                /** Infantry #5 **/
 #include "vehicle_infantry_five.h"
-#include "referee_UI_logic.h"
-
 #else
 #error "File main_infantry.cpp should only be used for Infantry #3, #4, #5."
 #endif
 
+#if defined(ENABLE_REFEREE)
+#include "referee_UI_logic.h"
+#endif
 
 /// Gimbal Config
 float UserI::gimbal_rc_yaw_max_speed = 180;  // [degree/s]
@@ -69,11 +70,11 @@ void UserI::UserThread::main() {
                         -Remote::rc.ch0 * (gimbal_rc_yaw_max_speed * USER_THREAD_INTERVAL / 1000.0f);
                 // ch0 use right as positive direction, while GimbalLG use CCW (left) as positive direction
 
-                float pitch_target;
-                if (Remote::rc.ch1 > 0) pitch_target += Remote::rc.ch1 * GIMBAL_PITCH_MAX_ANGLE * 0.1;
+                float pitch_target = 0;
+                if (Remote::rc.ch1 > 0) pitch_target += (float) (Remote::rc.ch1 * GIMBAL_PITCH_MAX_ANGLE * 0.1);
                 else
                     pitch_target -=
-                            Remote::rc.ch1 * GIMBAL_PITCH_MIN_ANGLE * 0.1;  // GIMBAL_PITCH_MIN_ANGLE is negative
+                            (float) (Remote::rc.ch1 * GIMBAL_PITCH_MIN_ANGLE * 0.1);  // GIMBAL_PITCH_MIN_ANGLE is negative
                 // ch1 use up as positive direction, while GimbalLG also use up as positive direction
 
                 VAL_CROP(pitch_target, GIMBAL_PITCH_MAX_ANGLE, GIMBAL_PITCH_MIN_ANGLE);
@@ -320,11 +321,12 @@ void UserI::UserThread::main() {
             ChassisLG::set_mode(ChassisLG::FORCE_RELAX_MODE);
         }
 
-
+#if defined(ENABLE_REFEREE)
         /// Reset referee UI
         if (Remote::key.ctrl && Remote::key.shift && Remote::key.z) {
             RefereeUILG::reset();
         }
+#endif
 
         /// Final
         sleep(TIME_MS2I(USER_THREAD_INTERVAL));
@@ -347,8 +349,10 @@ void UserI::UserActionThread::main() {
 
         if (key_flag & (1U << Remote::KEY_Z)) {
             if (Remote::key.ctrl && Remote::key.shift) {
+#if defined(ENABLE_REFEREE)
                 // Ctrl + Shift + Z: reset referee UI
                 RefereeUILG::reset();
+#endif
             } else {
                 // Z: chassis follow mode
                 ChassisLG::set_mode(ChassisLG::GIMBAL_REF_MODE);

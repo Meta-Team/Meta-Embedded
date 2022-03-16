@@ -1,5 +1,6 @@
 //
 // Created by liuzikai on 2019-01-05.
+// Rebuild by Chen Qian on 2022-03-16.
 //
 
 /**
@@ -7,7 +8,7 @@
  * @brief   Scheduler to control gimbal to meet the target, including a thread to invoke PID calculation in period.
  *
  * @version 3.0a
- * @date 2.28, 2022
+ * @date 02.28, 2022
  * @addtogroup gimbal
  * @{
  */
@@ -16,6 +17,7 @@
 #define META_INFANTRY_GIMBAL_CONTROLLER_H
 
 #include "ch.hpp"
+#include "hardware_conf.h"
 
 #include "can_motor_scheduler.h"
 #include "ahrs_abstract.h"
@@ -37,10 +39,8 @@
  *        2. set_mode() and set_target_angle() as needed\n
  *        3. Leave the rest of the work to this SKD
  * @note ABOUT COORDINATE
- *       All components in this SKD use GIMBAL coordinate (rather than those of motors,
- *       Yaw: CCW as positive, Pitch: Up as positive), including targets and PID controllers. Only when reading from or
- *       writing to GimbalIF will coordinate transform (by multiple to install_direction_t) be performed based on
- *       yaw_install and pitch_install
+ *       You can switch the coordinate between chassis coordinate and gimbal coordinate. The direction definition:
+ *       Yaw: CCW as positive, Pitch: Up as positive.
  * @note ABOUT TARGET ANGLES
  *       APIs use angles of GIMBAL (rather than those of motors). But for local storage, deceleration_ratio is included.
  *       Conversions are performed when APIs are invoked.
@@ -52,55 +52,57 @@ public:
     enum angle_id_t{
         YAW,
         PITCH,
-#if defined(ENABLE_SUBPITCH)
+#if ENABLE_SUBPITCH == TRUE
         SUB_PITCH,
 #endif
         GIMBAL_MOTOR_COUNT
     };
 
+    enum install_direction_t {
+        POSITIVE = 1, ///<CCW for motor
+        NEGATIVE = -1 ///<CW for motor
+    };
+
     /**
-     * Start this scheduler
-     * @param gimbal_ahrs_                Pointer to an initialized AHRS on gimbal
-     * @param ahrs_angle_rotation_        Rotation matrix for AHRS angle
-     * @param ahrs_gyro_rotation_         Rotation matrix for AHRS gyro
-     * @param yaw_install_                Yaw motor install direction
-     * @param pitch_install_              Pitch motor install direction
-     * @param sub_pitch_install_          Sub-pitch motor install direction
-     * @param thread_prio                 Priority of PID calculating thread
+     * @brief Start this scheduler
+     * @param gimbal_ahrs_                [in] Pointer to an initialized AHRS on gimbal
+     * @param ahrs_angle_rotation_        [in] Rotation matrix for AHRS angle
+     * @param ahrs_gyro_rotation_         [in] Rotation matrix for AHRS gyro
+     * @param thread_prio                 [in] Priority of PID calculating thread
      */
     static void start(AbstractAHRS *gimbal_ahrs_, const Matrix33 ahrs_angle_rotation_, const Matrix33 ahrs_gyro_rotation_, tprio_t thread_prio);
 
     /**
-     * Set mode of this SKD
-     * @param skd_mode
+     * @brief Set mode of this SKD
+     * @param skd_mode [in] The current mode of gimbal scheduler.
      */
     static void set_mode(mode_t skd_mode);
 
     /**
-     * Get mode of this SKD
+     * @brief Get mode of this SKD
      * @return Current mode
      */
     static mode_t get_mode();
 
     /**
-     * Set target angles
-     * @param yaw_target_angle    GIMBAL yaw target ACCUMULATED angle on ground coordinate [degree]
-     * @param pitch_target_angle  GIMBAL pitch target ACCUMULATED angle on ground coordinate [degree]
-     * @param sub_pitch_target_angle  GIMBAL sub-pitch target ACCUMULATED angle on pitch coordinate [degree]
+     * @brief Set target angles
+     * @param yaw_target_angle          [in] GIMBAL yaw target ACCUMULATED angle on ground coordinate [degree]
+     * @param pitch_target_angle        [in] GIMBAL pitch target ACCUMULATED angle on ground coordinate [degree]
+     * @param sub_pitch_target_angle    [in] GIMBAL sub-pitch target ACCUMULATED angle on pitch coordinate [degree]
      */
     static void set_target_angle(float yaw_target_angle, float pitch_target_angle, float sub_pitch_target_angle = 0);
 
     /**
-     * Get current target angle data
-     * @param angleID   YAW or PITCH or SUB_PITCH
+     * @brief Get current target angle data
+     * @param angleID [in] YAW or PITCH or SUB_PITCH
      * @return Current target angle of GIMBAL
      */
     static float get_target_angle(GimbalSKD::angle_id_t angleID);
 
     /**
-     * Get AHRS feedback angle
-     * @param angleID (YAW/PITCH) GimbalSKD::angle_id_t
-     * @return  AHRS angle of YAW/PITCH
+     * @brief Get AHRS feedback angle
+     * @param angleID [in] (YAW/PITCH) GimbalSKD::angle_id_t
+     * @return AHRS angle of YAW/PITCH
      */
     static float get_feedback_angle(GimbalSKD::angle_id_t angleID);
 
@@ -108,42 +110,93 @@ public:
 //    static void cmdFeedback(void *);
     static const Shell::Command shellCommands[];
 
+    /**
+     * @brief When using AHRS feedback and find the positive direction of motor and AHRS are different, use this.
+     * @param angle             [in] The axis needs to be inverted.
+     * @param install_direction [in] The install direction of angle.
+     */
+    static void set_installation(GimbalSKD::angle_id_t angle, GimbalSKD::install_direction_t install_direction);
+
 private:
     /*===========================================================================*/
     /*                             AHRS Related Var                              */
     /*===========================================================================*/
+
+    // The reason why there are two extra matrices is that the AHRS system is only stable in certain installation with
+    // specific matrix, but the output may not be the angles we want. So we add two matrices to mapping the output angle
+    // and velocity to our desired feedback angle.
+
+    /**
+     * @brief AHRS module address
+     */
     static AbstractAHRS *gimbal_ahrs;
+
+    /**
+     * @brief Rotation matrix for angle of AHRS data output.
+     */
     static Matrix33 ahrs_angle_rotation;
+
+    /**
+     * @brief Rotation matrix for angular velocity of AHRS data output.
+     */
     static Matrix33 ahrs_gyro_rotation;
 
-    static float feedback_angle[GIMBAL_MOTOR_COUNT];  // accumulated angle of yaw and pitch motors, since the start of this SKD
+    /*===========================================================================*/
+    /*                             Motor Related Var                             */
+    /*===========================================================================*/
+
+    /**
+     * @brief Custom feedback angle for gimbal (mainly for AHRS)
+     */
+    static float feedback_angle[GIMBAL_MOTOR_COUNT];
+
+    /**
+     * @brief Custom feedback angular velocity for gimbal (mainly for AHRS)
+     */
     static float feedback_velocity[GIMBAL_MOTOR_COUNT];
 
-    static bool motor_enable[GIMBAL_MOTOR_COUNT];
 #ifdef PARAM_ADJUST
     static bool a2v_pid_enabled;  // only allowed by PAUser
 #endif
 
-    /*===========================================================================*/
-    /*                              PID Related Var                              */
-    /*===========================================================================*/
-    static float target_angle[GIMBAL_MOTOR_COUNT];  // angles of MOTORS (NOTICE: different from target_angle in set_target_angle())
-    static float last_angle[GIMBAL_MOTOR_COUNT];  // last angle data of yaw and pitch from AHRS
 
-    static float target_velocity[GIMBAL_MOTOR_COUNT];  // calculated target velocity, middle values
-    static int target_current[GIMBAL_MOTOR_COUNT];     // local storage
+    /*===========================================================================*/
+    /*                            Control Related Var                            */
+    /*===========================================================================*/
 
+    /**
+     * @brief [deg] Angles of motors.
+     */
+    static float target_angle[GIMBAL_MOTOR_COUNT];
+
+    /**
+     * @brief [deg] Last angle for updating AHRS accumulated angle.
+     */
+    static float last_angle[GIMBAL_MOTOR_COUNT];
+
+    /**
+     * @brief Interval for scheduler calculation thread.
+     */
     static constexpr unsigned int SKD_THREAD_INTERVAL = 1; // PID calculation interval [ms]
 
+    /**
+     * @brief Scheduler thread, for calculation.
+     */
     class SKDThread : public chibios_rt::BaseStaticThread<512> {
         void main() final;
     };
 
     static SKDThread skd_thread;
 
-
-    /// Gimbal Behavior Control
+    /**
+     * @brief Gimbal Behavior Control
+     */
     static mode_t mode;
+
+    /**
+     * For inverted installation of gimbal motors and using AHRS feedback.
+     */
+    static install_direction_t install_direction[GIMBAL_MOTOR_COUNT];
 
     /// TODO: Re-enable shell functions
     /***

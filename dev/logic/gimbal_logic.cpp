@@ -17,19 +17,19 @@
 #define PITCH_MIN_ANGLE -10
 
 GimbalLG::mode_t GimbalLG::mode;
-#if defined(ENABLE_VISION)
+#if ENABLE_VISION == TRUE
 GimbalLG::VisionControlThread GimbalLG::vision_control_thread;
 #endif
 
-#if defined(ENABLE_SUBPITCH)
+#if ENABLE_SUBPITCH == TRUE
 GimbalLG::BallisticCompensateThread GimbalLG::ballistic_compensate_thread;
 #endif
 
 void GimbalLG::init(tprio_t vision_prio, tprio_t ballistic_compensate_prio) {
-#if defined(ENABLE_VISION)
+#if ENABLE_VISION == TRUE
     vision_control_thread.start(vision_prio);
 #endif
-#if defined(ENABLE_SUBPITCH)
+#if ENABLE_SUBPITCH == TRUE
     ballistic_compensate_thread.start(ballistic_compensate_prio);
 #endif
 }
@@ -59,7 +59,7 @@ float GimbalLG::get_motor_angle(GimbalSKD::angle_id_t angle) {
             return CANMotorIF::motor_feedback[CANMotorCFG::YAW].accumulate_angle();
         case GimbalSKD::PITCH:
             return CANMotorIF::motor_feedback[CANMotorCFG::PITCH].accumulate_angle();
-#if defined(ENABLE_SUBPITCH)
+#if ENABLE_SUBPITCH == TRUE
         case GimbalSKD::SUB_PITCH:
             return CANMotorIF::motor_feedback[CANMotorCFG::SUB_PITCH].accumulate_angle();
 #endif
@@ -73,7 +73,7 @@ float GimbalLG::get_target_angle(GimbalSKD::angle_id_t angle) {
     return GimbalSKD::get_target_angle(angle);
 }
 
-#if defined(ENABLE_VISION)
+#if ENABLE_VISION == TRUE
 void GimbalLG::VisionControlThread::main() {
     setName("GimbalLG_Vision");
 
@@ -105,7 +105,7 @@ void GimbalLG::VisionControlThread::main() {
 }
 #endif
 
-#if defined(ENABLE_SUBPITCH)
+#if ENABLE_SUBPITCH == TRUE
 void GimbalLG::BallisticCompensateThread::main() {
     setName("SubPitchThd");
     while(!shouldTerminate()) {

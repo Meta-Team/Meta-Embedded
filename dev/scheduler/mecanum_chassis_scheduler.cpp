@@ -39,7 +39,7 @@ void MecanumChassisSKD::set_target(float vx, float vy, float omega) {
 }
 
 void MecanumChassisSKD::set_mode(SKDBase::mode_t mode_) {
-    MecanumChassisSKD::mode = mode;
+    MecanumChassisSKD::mode = mode_;
     if(mode != FORCED_RELAX_MODE) {
         CANMotorCFG::enable_v2i[CANMotorCFG::FL] = true;
         CANMotorCFG::enable_v2i[CANMotorCFG::FR] = true;
@@ -65,6 +65,7 @@ void MecanumChassisSKD::SKDThread::main() {
             switch (mode) {
 
                 case FORCED_RELAX_MODE:
+                    // Set torque current to 0.
                     CANMotorCFG::enable_v2i[CANMotorCFG::FL] = false;
                     CANMotorCFG::enable_v2i[CANMotorCFG::FR] = false;
                     CANMotorCFG::enable_v2i[CANMotorCFG::BR] = false;
@@ -75,6 +76,7 @@ void MecanumChassisSKD::SKDThread::main() {
                     CANMotorSKD::set_target_current(CANMotorCFG::BL, 0);
                     break;
                 case CHASSIS_REF_MODE:
+                    // Set the velocity in chassis coordinate.
                     CANMotorSKD::set_target_vel(CANMotorCFG::FR, (float)install_mode *
                                                                  (target_vx-target_vy + target_omega * w_to_v_ratio) * v_to_wheel_angular_velocity);
                     CANMotorSKD::set_target_vel(CANMotorCFG::FL, (float)install_mode *
@@ -85,13 +87,16 @@ void MecanumChassisSKD::SKDThread::main() {
                                                                  (-target_vx-target_vy+ target_omega * w_to_v_ratio) * v_to_wheel_angular_velocity);
                 case GIMBAL_REF_MODE:
 
+                    // Set the velocity in gimbal coordinate.
+
+                    // Convert target velocity from gimbal coordinate to chassis coordinate
                     float gimbal_offset_angle = CANMotorIF::motor_feedback[CANMotorCFG::YAW].actual_angle;
                     float chassis_vx = target_vx * cosf(gimbal_offset_angle / 180.0f * PI)
                                        - target_vy * sinf(gimbal_offset_angle / 180.0f * PI)
                                        - target_omega / 180.0f * PI * chassis_gimbal_offset_;
                     float chassis_vy = target_vx * sinf(gimbal_offset_angle / 180.0f * PI)
                                        + target_vy * cosf(gimbal_offset_angle / 180.0f * PI);
-
+                    // Apply targets
                     CANMotorSKD::set_target_vel(CANMotorCFG::FR, (float)install_mode *
                                                                  (chassis_vx-chassis_vy + target_omega * w_to_v_ratio) * v_to_wheel_angular_velocity);
                     CANMotorSKD::set_target_vel(CANMotorCFG::FL, (float)install_mode *

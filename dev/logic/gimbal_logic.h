@@ -28,6 +28,8 @@ using namespace chibios_rt;
  * @pre GimbalSKD has started properly
  * @usage Invoke set_mode() and set_target_angle() to control gimbal
  * @note define ENABLE_VISION and ENABLE_SUBPITCH on external files to enable vision control and sub pitch controller.
+ * @date 3.16, 2022
+ * @version 3.0a
  */
 class GimbalLG {
 public:
@@ -81,7 +83,7 @@ public:
     static float get_motor_angle(GimbalSKD::angle_id_t angle);
 
 private:
-#if defined(ENABLE_VISION)
+#if ENABLE_VISION == TRUE
     class VisionControlThread : public BaseStaticThread<512> {
         event_listener_t vision_listener{};
         void main() final;
@@ -89,7 +91,7 @@ private:
 
     static VisionControlThread vision_control_thread;
 #endif
-#if defined(ENABLE_SUBPITCH)
+#if ENABLE_SUBPITCH == TRUE
     class BallisticCompensateThread : public BaseStaticThread<512>{
         time_msecs_t INTERVAL = 5;
         void main() final;

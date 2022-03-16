@@ -21,7 +21,7 @@ float ChassisLG::target_vy = 0.0f;
 float ChassisLG::target_omega = 0.0f;
 ChassisLG::chassis_mode_t ChassisLG::chassis_mode;
 ChassisLG::MotionControllerThread ChassisLG::motion_controller_thread;
-#ifdef ENABLE_REFEREE
+#if ENABLE_CAPACITOR == TRUE && ENABLE_REFEREE == TRUE
 ChassisLG::CapacitorSetThread ChassisLG::capacitor_set_thread;
 #endif
 
@@ -33,7 +33,7 @@ void ChassisLG::set_target(float vx, float vy) {
 
 void ChassisLG::init(tprio_t dodge_thread_prio_, tprio_t cap_power_set_thread_prio_, tprio_t dodge_mode_max_omega) {
     motion_controller_thread.start(dodge_thread_prio_);
-#if defined(ENABLE_SUBPITCH)
+#if ENABLE_CAPACITOR == TRUE && ENABLE_REFEREE == TRUE
     capacitor_set_thread.start(cap_power_set_thread_prio_);
 #endif
 }
@@ -99,15 +99,15 @@ void ChassisLG::MotionControllerThread::main() {
             case DODGE:
                 {
                     // Control the target omega to keep super capacitor voltage at 20V.
-                    if (CapacitorIF::capacitor_voltage != 0) {
-                        float voltage_decrement = 24 - CapacitorIF::capacitor_voltage;
-                        target_omega = (dodge_omega_power_pid.calc(voltage_decrement, 4));
-                        VAL_CROP(target_omega, 720.0f, 0.0f);
-                    } else {
-                        target_omega = 360;
-                        ///target_omega = (dodge_omega_power_pid.calc((float)Referee::power_heat_data.chassis_power, (float)Referee::game_robot_state.chassis_power_limit));
-                        VAL_CROP(target_omega, 720.0f, 0.0f);
-                    }
+#if ENABLE_CAPACITOR == TRUE
+                    float voltage_decrement = 24 - CapacitorIF::capacitor_voltage;
+                    target_omega = (dodge_omega_power_pid.calc(voltage_decrement, 4));
+                    VAL_CROP(target_omega, 720.0f, 0.0f);
+#else
+                    target_omega = 360;
+                    ///target_omega = (dodge_omega_power_pid.calc((float)Referee::power_heat_data.chassis_power, (float)Referee::game_robot_state.chassis_power_limit));
+                    VAL_CROP(target_omega, 720.0f, 0.0f);
+#endif
                     VAL_CROP(target_omega, 720.0f, 0.0f);
                     MecanumChassisSKD::set_target(target_vx, target_vy, target_omega);
                 }
@@ -117,7 +117,7 @@ void ChassisLG::MotionControllerThread::main() {
         sleep(TIME_MS2I(CHASSIS_LG_INTERVAL));
     }
 }
-#if defined(ENABLE_REFEREE)
+#if ENABLE_CAPACITOR == TRUE && ENABLE_REFEREE == TRUE
 void ChassisLG::CapacitorSetThread::main() {
     setName("CapacitorSetThd");
     while(!shouldTerminate()) {

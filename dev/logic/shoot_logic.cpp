@@ -76,13 +76,13 @@ int ShootLG::get_bullet_count_to_heat_limit() {
     }
 }
 
-void ShootLG::shoot(float number_of_bullet, float number_per_second) {
+void ShootLG::shoot(int number_of_bullet, float number_per_second) {
     if (mode != UNLIMITED_MODE) {
         LOG_ERR("ShootLG: shoot() is called outside MANUAL_MODE");
         return;
     }
 
-    target_bullet_count = number_of_bullet;
+    target_bullet_count = (float) number_of_bullet;
     target_bullet_loader_velocity = number_per_second * angle_per_bullet;
 
     shooter_state = SHOOTING;

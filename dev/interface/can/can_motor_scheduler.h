@@ -79,6 +79,9 @@ public:
      */
      static void set_target_current(motor_id_t id, int target);
 
+     /**
+      * @brief Customized feedback type.
+      */
      enum feedback_type_t {
          angle, ///< Feedback type is angle
          velocity, ///< Feedback type is velocity
@@ -94,8 +97,8 @@ public:
 
      /**
       * Unregister the customize feedback, SKD will use build-in motor feedback for calculation.
-      * @param fb_type          [in] Feedback_type_t, angle/velocity.
-      * @param motor_id            [in] The logical motor will affect, like YAW for gimbal control.
+      * @param fb_type           [in] Feedback_type_t, angle/velocity.
+      * @param motor_id          [in] The logical motor will affect, like YAW for gimbal control.
       */
      static void unregister_custom_feedback(feedback_type_t fb_type, motor_id_t motor_id);
 private:

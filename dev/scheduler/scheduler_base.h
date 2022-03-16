@@ -5,7 +5,9 @@
 #ifndef META_INFANTRY_SCHEDULER_BASE_H
 #define META_INFANTRY_SCHEDULER_BASE_H
 
-
+/**
+ * @brief Scheduler base for vehicles with gimbal and chassis.
+ */
 class SKDBase {
 public:
     enum mode_t {

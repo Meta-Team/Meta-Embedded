@@ -1,11 +1,14 @@
 //
 // Rebuild by liuzikai
+// Rebuild by Chen Qian on Mar. 16, 2022
 //
 
 /**
  * @file    chassis_scheduler.h
  * @brief   Scheduler to control chassis to meet the target, including a thread to invoke PID calculation in period.
  *
+ * @version 3.0a
+ * @date 03.16, 2022
  * @addtogroup chassis
  * @{
  */
@@ -32,6 +35,8 @@
  * @note SKD stands for "scheduler"
  * @brief Scheduler to control chassis to meet the target, including a thread to invoke PID calculation in period.
  * @pre GimbalIF and ChassisIF have been initialized properly
+ * @date 3.16, 2022
+ * @version 3.0a
  * @usage 1. init()
  *        2. set_target_angle() as needed
  *        3. Leave the rest of the work to this SKD
@@ -81,13 +86,30 @@ public:
     static const Shell::Command shellCommands[];
 #endif
 private:
-    static PIDController dodge_omega_power_pid;
 
+    /**
+     * @brief Input target velocity in X axis (orthogonal to gimbal vehicle's direction)
+     */
     static float target_vx;
+
+    /**
+     * @brief Input target velocity in X axis (parallel to gimbal vehicle's direction)
+     */
     static float target_vy;
+
+    /**
+     * @brief Input target chassis angular velocity.
+     */
     static float target_omega;
+
+    /**
+     * @brief The distance of chassis and gimbal's geometric centers.
+     */
     static float chassis_gimbal_offset_;
 
+    /**
+     * @brief Thread for performing velocity decompose and angle transformation.
+     */
     class SKDThread : public chibios_rt::BaseStaticThread<512> {
         static constexpr unsigned SKD_INTERVAL = 5; //[ms]
         void main() final;

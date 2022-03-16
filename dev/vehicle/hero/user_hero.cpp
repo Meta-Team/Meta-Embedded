@@ -247,7 +247,7 @@ void UserH::UserThread::main() {
         if (!InspectorH::remote_failure() && !InspectorH::chassis_failure() /*&& !InspectorH::gimbal_failure()*/) {
             if ((Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_MIDDLE)) {
                 /// Remote - Chassis Move + Chassis Follow
-                ChassisLG::set_mode(ChassisLG::ABS);
+                ChassisLG::set_mode(ChassisLG::CHASSIS_REF_MODE);
                 ChassisLG::set_target(Remote::rc.ch2 * chassis_v_left_right,  // Both use right as positive direction
                                       (Remote::rc.ch3 > 0 ?
                                        Remote::rc.ch3 * 1000 :
