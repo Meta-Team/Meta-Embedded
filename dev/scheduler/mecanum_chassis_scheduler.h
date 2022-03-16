@@ -14,6 +14,8 @@
 #define META_INFANTRY_CHASSIS_CONTROLLER_H
 
 #include "can_motor_scheduler.h"
+#include "scheduler_base.h"
+#include <cmath>
 
 #if defined(INFANTRY)
 #include "vehicle/infantry/vehicle_infantry.h"
@@ -37,7 +39,7 @@
  *          2. SKD thread only handle velocity decompose [vx, vy, omega (angular velocity)], but not for chassis follow, dodge.
  *          TODO: Re-enable chassis shell functions.
  */
-class MecanumChassisSKD {
+class MecanumChassisSKD : public SKDBase{
 
 public:
 
@@ -53,7 +55,13 @@ public:
      * @param wheel_thread          Distance between left and right wheels [mm]
      * @param wheel_circumference   Circumference of wheels [mm]
      */
-    static void init(tprio_t skd_prio, float wheel_base, float wheel_thread, float wheel_circumference);
+    static void init(tprio_t skd_prio, float wheel_base, float wheel_thread, float wheel_circumference, float gimbal_offset = 0);
+
+    /**
+     * Set the mode for chassis.
+     * @param mode_
+     */
+    static void set_mode(mode_t mode_);
 
     /**
      * Set target values
@@ -78,6 +86,7 @@ private:
     static float target_vx;
     static float target_vy;
     static float target_omega;
+    static float chassis_gimbal_offset_;
 
     class SKDThread : public chibios_rt::BaseStaticThread<512> {
         static constexpr unsigned SKD_INTERVAL = 5; //[ms]
@@ -85,6 +94,9 @@ private:
     };
 
     static SKDThread skd_thread;
+
+    /// Gimbal Behavior Control
+    static mode_t mode;
 
 /// TODO: Re-Enable These functions.
 #ifdef ENABLE_CHASSIS_SHELL

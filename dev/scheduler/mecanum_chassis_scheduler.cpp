@@ -19,13 +19,16 @@ float MecanumChassisSKD::target_omega = 0.0f;
 MecanumChassisSKD::install_mode_t MecanumChassisSKD::install_mode = POSITIVE;
 float MecanumChassisSKD::w_to_v_ratio = 0.0f;
 float MecanumChassisSKD::v_to_wheel_angular_velocity = 0.0f;
+float MecanumChassisSKD::chassis_gimbal_offset_ = 0.0f;
 
 MecanumChassisSKD::SKDThread MecanumChassisSKD::skd_thread;
+SKDBase::mode_t MecanumChassisSKD::mode;
 
-void MecanumChassisSKD::init(tprio_t skd_prio, float wheel_base, float wheel_thread, float wheel_circumference) {
+void MecanumChassisSKD::init(tprio_t skd_prio, float wheel_base, float wheel_thread, float wheel_circumference, float gimbal_offset) {
     skd_thread.start(skd_prio);
     w_to_v_ratio = (wheel_base + wheel_thread) / 2.0f / 360.0f * 3.14159f;
     v_to_wheel_angular_velocity = (360.0f / wheel_circumference);
+    chassis_gimbal_offset_ = gimbal_offset;
 }
 
 void MecanumChassisSKD::set_target(float vx, float vy, float omega) {
@@ -35,19 +38,70 @@ void MecanumChassisSKD::set_target(float vx, float vy, float omega) {
     // For DODGE_MODE keep current target_theta unchanged
 }
 
+void MecanumChassisSKD::set_mode(SKDBase::mode_t mode_) {
+    MecanumChassisSKD::mode = mode;
+    if(mode != FORCED_RELAX_MODE) {
+        CANMotorCFG::enable_v2i[CANMotorCFG::FL] = true;
+        CANMotorCFG::enable_v2i[CANMotorCFG::FR] = true;
+        CANMotorCFG::enable_v2i[CANMotorCFG::BR] = true;
+        CANMotorCFG::enable_v2i[CANMotorCFG::BL] = true;
+    } else {
+        CANMotorCFG::enable_v2i[CANMotorCFG::FL] = false;
+        CANMotorCFG::enable_v2i[CANMotorCFG::FR] = false;
+        CANMotorCFG::enable_v2i[CANMotorCFG::BR] = false;
+        CANMotorCFG::enable_v2i[CANMotorCFG::BL] = false;
+        CANMotorSKD::set_target_current(CANMotorCFG::FL, 0);
+        CANMotorSKD::set_target_current(CANMotorCFG::FR, 0);
+        CANMotorSKD::set_target_current(CANMotorCFG::BR, 0);
+        CANMotorSKD::set_target_current(CANMotorCFG::BL, 0);
+    }
+}
+
 void MecanumChassisSKD::SKDThread::main() {
     setName("ChassisSKDThread");
     while(!shouldTerminate()) {
         chSysLock();  /// --- ENTER S-Locked state. DO NOT use LOG, printf, non S/I-Class functions or return ---
         {
-            CANMotorSKD::set_target_vel(CANMotorCFG::FR, (float)install_mode *
-                                                         (target_vx-target_vy + target_omega * w_to_v_ratio) * v_to_wheel_angular_velocity);
-            CANMotorSKD::set_target_vel(CANMotorCFG::FL, (float)install_mode *
-                                                         (target_vx+target_vy + target_omega * w_to_v_ratio) * v_to_wheel_angular_velocity);
-            CANMotorSKD::set_target_vel(CANMotorCFG::BL, (float)install_mode *
-                                                         (-target_vx+target_vy+ target_omega * w_to_v_ratio) * v_to_wheel_angular_velocity);
-            CANMotorSKD::set_target_vel(CANMotorCFG::BR, (float)install_mode *
-                                                         (-target_vx-target_vy+ target_omega * w_to_v_ratio) * v_to_wheel_angular_velocity);
+            switch (mode) {
+
+                case FORCED_RELAX_MODE:
+                    CANMotorCFG::enable_v2i[CANMotorCFG::FL] = false;
+                    CANMotorCFG::enable_v2i[CANMotorCFG::FR] = false;
+                    CANMotorCFG::enable_v2i[CANMotorCFG::BR] = false;
+                    CANMotorCFG::enable_v2i[CANMotorCFG::BL] = false;
+                    CANMotorSKD::set_target_current(CANMotorCFG::FL, 0);
+                    CANMotorSKD::set_target_current(CANMotorCFG::FR, 0);
+                    CANMotorSKD::set_target_current(CANMotorCFG::BR, 0);
+                    CANMotorSKD::set_target_current(CANMotorCFG::BL, 0);
+                    break;
+                case CHASSIS_REF_MODE:
+                    CANMotorSKD::set_target_vel(CANMotorCFG::FR, (float)install_mode *
+                                                                 (target_vx-target_vy + target_omega * w_to_v_ratio) * v_to_wheel_angular_velocity);
+                    CANMotorSKD::set_target_vel(CANMotorCFG::FL, (float)install_mode *
+                                                                 (target_vx+target_vy + target_omega * w_to_v_ratio) * v_to_wheel_angular_velocity);
+                    CANMotorSKD::set_target_vel(CANMotorCFG::BL, (float)install_mode *
+                                                                 (-target_vx+target_vy+ target_omega * w_to_v_ratio) * v_to_wheel_angular_velocity);
+                    CANMotorSKD::set_target_vel(CANMotorCFG::BR, (float)install_mode *
+                                                                 (-target_vx-target_vy+ target_omega * w_to_v_ratio) * v_to_wheel_angular_velocity);
+                case GIMBAL_REF_MODE:
+
+                    float gimbal_offset_angle = CANMotorIF::motor_feedback[CANMotorCFG::YAW].actual_angle;
+                    float chassis_vx = target_vx * cosf(gimbal_offset_angle / 180.0f * PI)
+                                       - target_vy * sinf(gimbal_offset_angle / 180.0f * PI)
+                                       - target_omega / 180.0f * PI * chassis_gimbal_offset_;
+                    float chassis_vy = target_vx * sinf(gimbal_offset_angle / 180.0f * PI)
+                                       + target_vy * cosf(gimbal_offset_angle / 180.0f * PI);
+
+                    CANMotorSKD::set_target_vel(CANMotorCFG::FR, (float)install_mode *
+                                                                 (chassis_vx-chassis_vy + target_omega * w_to_v_ratio) * v_to_wheel_angular_velocity);
+                    CANMotorSKD::set_target_vel(CANMotorCFG::FL, (float)install_mode *
+                                                                 (chassis_vx+chassis_vy + target_omega * w_to_v_ratio) * v_to_wheel_angular_velocity);
+                    CANMotorSKD::set_target_vel(CANMotorCFG::BL, (float)install_mode *
+                                                                 (-chassis_vx+chassis_vy+ target_omega * w_to_v_ratio) * v_to_wheel_angular_velocity);
+                    CANMotorSKD::set_target_vel(CANMotorCFG::BR, (float)install_mode *
+                                                                 (-chassis_vx-chassis_vy+ target_omega * w_to_v_ratio) * v_to_wheel_angular_velocity);
+                    break;
+            }
         }
         chSysUnlock();  /// --- EXIT S-Locked state ---
         sleep(TIME_MS2I(SKD_INTERVAL));

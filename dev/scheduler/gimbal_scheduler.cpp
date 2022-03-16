@@ -39,7 +39,6 @@ void GimbalSKD::start(AbstractAHRS *gimbal_ahrs_, const Matrix33 ahrs_angle_rota
     }
 
     // Initialize last_angle, to use current pointing direction as startup direction
-
     Vector3D ahrs_angle = ahrs_angle_rotation * gimbal_ahrs->get_angle();
     last_angle[YAW] = ahrs_angle.x;
     last_angle[PITCH] = ahrs_angle.y;

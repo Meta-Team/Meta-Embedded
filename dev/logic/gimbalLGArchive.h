@@ -49,14 +49,14 @@ class GimbalLG {
      * @param angleID   YAW or PITCH
      * @return Actual angle of the motor
      */
-    static float get_actual_angle(GimbalSKD::angle_id_t angleID);
+    static float get_feedback_angle(GimbalSKD::angle_id_t angleID);
 
     /**
     * Get relative angle maintained by GimbalSKD.
     * @param angleID   YAW or PITCH
     * @return Accumulated angle of the motor
     */
-    static float get_relative_angle(GimbalSKD::angle_id_t angleID);
+    static float get_motor_angle(GimbalSKD::angle_id_t angleID);
 
     /**
      * Get current target angle maintained by GimbalSKD.

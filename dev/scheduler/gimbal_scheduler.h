@@ -19,6 +19,7 @@
 
 #include "can_motor_scheduler.h"
 #include "ahrs_abstract.h"
+#include "scheduler_base.h"
 
 #include <cmath>
 
@@ -45,7 +46,7 @@
  *       Conversions are performed when APIs are invoked.
  */
 
-class GimbalSKD {
+class GimbalSKD : public SKDBase {
 
 public:
     enum angle_id_t{
@@ -55,12 +56,6 @@ public:
         SUB_PITCH,
 #endif
         GIMBAL_MOTOR_COUNT
-    };
-
-    enum mode_t {
-        FORCED_RELAX_MODE,  ///< zero force (but still taking control of GimbalIF)
-        CHASSIS_REF_MODE,   ///< Gimbal angle are in chassis frame
-        GIMBAL_REF_MODE     ///< Gimbal angle are in gimbal frame
     };
 
     /**
@@ -108,13 +103,6 @@ public:
      * @return  AHRS angle of YAW/PITCH
      */
     static float get_feedback_angle(GimbalSKD::angle_id_t angleID);
-
-    /**
-     * Get certain joint's angle (motor's feedback)
-     * @param angleID (YAW/PITCH/SUB_PITCH) GimbalSKD::angle_id_t
-     * @return Specified joint's angle.
-     */
-    static float get_relatvie_angle(GimbalSKD::angle_id_t angleID);
 
     /// TODO: Re-enable shell functions
 //    static void cmdFeedback(void *);

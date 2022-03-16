@@ -53,7 +53,7 @@ void UserH::UserThread::main() {
         if (!InspectorH::remote_failure() /*&& !InspectorI::chassis_failure()*/ && !InspectorH::gimbal_failure()) {
             if ((Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_UP)) {
                 /// Remote - Yaw + Pitch
-                GimbalLG::set_action(GimbalLG::CHASSIS_REF_MODE);
+                GimbalLG::set_mode(GimbalLG::CHASSIS_REF_MODE);
 
                 gimbal_yaw_target_angle_ +=
                         -Remote::rc.ch0 * (gimbal_rc_yaw_max_speed * USER_THREAD_INTERVAL / 1000.0f);
@@ -75,7 +75,7 @@ void UserH::UserThread::main() {
 //                /// Vision - Change bullet speed with right vertical handle
 //
 //                /// Vision - Yaw + Pitch
-//                GimbalLG::set_action(GimbalLG::VISION_MODE);
+//                GimbalLG::set_mode(GimbalLG::VISION_MODE);
 //
 //                if (Remote::rc.ch1 > 0.5) VisionSKD::set_bullet_speed(VisionSKD::get_bullet_speed() - 0.001f);
 //                else if (Remote::rc.ch1 <= -0.5) VisionSKD::set_bullet_speed(VisionSKD::get_bullet_speed() + 0.001f);
@@ -92,14 +92,14 @@ void UserH::UserThread::main() {
 
                 if (Remote::mouse.press_right) {
 
-//                    GimbalLG::set_action(GimbalLG::VISION_MODE);
+//                    GimbalLG::set_mode(GimbalLG::VISION_MODE);
 //
-//                    gimbal_yaw_target_angle_ = GimbalLG::get_actual_angle(GimbalLG::YAW);
-//                    gimbal_pc_pitch_target_angle_ = GimbalLG::get_actual_angle(GimbalLG::PITCH);
+//                    gimbal_yaw_target_angle_ = GimbalLG::get_feedback_angle(GimbalLG::YAW);
+//                    gimbal_pc_pitch_target_angle_ = GimbalLG::get_feedback_angle(GimbalLG::PITCH);
 
                 } else {
 //
-//                    GimbalLG::set_action(GimbalLG::ABS_ANGLE_MODE);
+//                    GimbalLG::set_mode(GimbalLG::ABS_ANGLE_MODE);
 //                    if (pitch_separated == SEPARATED) {
 //                        GimbalLG::cal_separate_angle(gimbal_pc_pitch_target_angle_, gimbal_pc_sub_pitch_target_angle_);
 //                    } else if (pitch_separated == MERGED) {
@@ -143,12 +143,12 @@ void UserH::UserThread::main() {
 
             } else {
                 /// Safe Mode
-                GimbalLG::set_action(GimbalLG::FORCED_RELAX_MODE);
+                GimbalLG::set_mode(GimbalLG::FORCED_RELAX_MODE);
             }
 
         } else {  // InspectorH::remote_failure() || InspectorH::chassis_failure() || InspectorH::gimbal_failure()
             /// Safe Mode
-            GimbalLG::set_action(GimbalLG::FORCED_RELAX_MODE);
+            GimbalLG::set_mode(GimbalLG::FORCED_RELAX_MODE);
         }
 
         /*** ---------------------------------- Shoot --------------------------------- ***/
@@ -277,7 +277,7 @@ void UserH::UserThread::main() {
 //
 //                if (ChassisLG::get_action() == ChassisLG::FORCED_RELAX_MODE) {
 //                    // Enter PC Mode from other mode, re-enable ChassisLG
-//                    ChassisLG::set_action(ChassisLG::FOLLOW_MODE);
+//                    ChassisLG::set_mode(ChassisLG::FOLLOW_MODE);
 //                }
 //
 //                float target_vx, target_vy;
@@ -303,12 +303,12 @@ void UserH::UserThread::main() {
 
             } else {
                 /// Safe Mode
-                ChassisLG::set_mode(ChassisLG::FORCE_RELAX);
+                ChassisLG::set_mode(ChassisLG::FORCE_RELAX_MODE);
             }
 
         } else {  // InspectorH::remote_failure() || InspectorH::chassis_failure() || InspectorH::gimbal_failure()
             /// Safe Mode
-            ChassisLG::set_mode(ChassisLG::FORCE_RELAX);
+            ChassisLG::set_mode(ChassisLG::FORCE_RELAX_MODE);
         }
         /// Final
         sleep(TIME_MS2I(USER_THREAD_INTERVAL));
@@ -342,9 +342,9 @@ void UserH::UserActionThread::main() {
             /// Chassis - Dodge Mode Switching
             if (key_flag & (1U << Remote::KEY_X)) {
 //                if (ChassisLG::get_action() == ChassisLG::FOLLOW_MODE) {
-//                    ChassisLG::set_action(ChassisLG::DODGE_MODE);
+//                    ChassisLG::set_mode(ChassisLG::DODGE_MODE);
 //                } else if (ChassisLG::get_action() == ChassisLG::DODGE_MODE) {
-//                    ChassisLG::set_action(ChassisLG::FOLLOW_MODE);
+//                    ChassisLG::set_mode(ChassisLG::FOLLOW_MODE);
 //                }
             }
 

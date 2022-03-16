@@ -35,22 +35,22 @@ void CANMotorFeedback::process_feedback(const CANRxFrame *rxmsg) {
 
     switch (motor_type) {
         case CANMotorBase::M3508:
-            actual_angle            += (float)angle_movement * ENCODER_ANGLE_RATIO / M3508_REDUCE_RATIO;
-            temperature_raw         = rxmsg->data8[6];
-            actual_velocity         = (float)rotor_rpm_raw * 6.0f / M3508_REDUCE_RATIO; // 360.0[deg]/60[s]
+            actual_angle            += ((float)angle_movement * ENCODER_ANGLE_RATIO / M3508_REDUCE_RATIO * external_reduce_ratio);
+            temperature_raw         =  rxmsg->data8[6];
+            actual_velocity         =  ((float)rotor_rpm_raw * 6.0f / M3508_REDUCE_RATIO * external_reduce_ratio); // 360.0[deg]/60[s]
             break;
         case CANMotorBase::M3508_without_deceleration:
-            actual_angle            += (float)angle_movement * ENCODER_ANGLE_RATIO;
-            temperature_raw         = rxmsg->data8[6];
-            actual_velocity         = (float)rotor_rpm_raw * 360.0f / 60.0f;           // 360.0[deg]/60[s]
+            actual_angle            += ((float)angle_movement * ENCODER_ANGLE_RATIO * external_reduce_ratio);
+            temperature_raw         =  rxmsg->data8[6];
+            actual_velocity         =  ((float)rotor_rpm_raw * 360.0f / 60.0f * external_reduce_ratio);           // 360.0[deg]/60[s]
             break;
         case CANMotorBase::M2006:
-            actual_angle            += (float)angle_movement * ENCODER_ANGLE_RATIO / M2006_REDUCE_RATIO;
-            actual_velocity         = (float)rotor_rpm_raw * 6.0f / M2006_REDUCE_RATIO; // 360.0[deg]/60[s]
+            actual_angle            += ((float)angle_movement * ENCODER_ANGLE_RATIO / M2006_REDUCE_RATIO * external_reduce_ratio);
+            actual_velocity         =  ((float)rotor_rpm_raw * 6.0f / M2006_REDUCE_RATIO * external_reduce_ratio); // 360.0[deg]/60[s]
             break;
         case CANMotorBase::GM6020:
-            actual_angle            += (float)angle_movement * ENCODER_ANGLE_RATIO;
-            actual_velocity         = (float)rotor_rpm_raw * 360.0f / 60.0f;             // 360.0[deg]/60[s]
+            actual_angle            += ((float)angle_movement * ENCODER_ANGLE_RATIO * external_reduce_ratio);
+            actual_velocity         =  ((float)rotor_rpm_raw * 360.0f / 60.0f * external_reduce_ratio);             // 360.0[deg]/60[s]
             break;
         case NONE_MOTOR:
             break;

@@ -24,6 +24,9 @@
 #include "pid_controller.hpp"
 #include "mecanum_chassis_scheduler.h"
 
+#include "capacitor_interface.h"
+#include "referee_interface.h"
+
 #if defined(INFANTRY)
 #include "vehicle/infantry/vehicle_infantry.h"
 #elif defined(HERO)
@@ -37,19 +40,23 @@
 /**
  * @name ChassisLG
  * @note LG stands for "logic"
- * @brief Logic-level module to generate target values for ChassisSKD. Support follow-gimbal mode and dodge mode.
+ * @brief Logic-level module to generate target values for ChassisSKD. Support chassis-ref mode, follow-gimbal mode and dodge mode.
  * @pre ChassisSKD has started properly
- * @usage 1. Invoke init()
- *        2. Invoke set_action() and set_target_angle() to control chassis
+ * @usage
+ * @code
+ * 1. Invoke init().
+ * 2. Invoke set_auto_straightening_pid_params() and set_dodge_omega_power_pid() for gimbal reference mode.
+ * 3. Call set_mode() and set_target()
+ * @endcode
  */
-class ChassisLG {
+class ChassisLG : PIDControllerBase{
 
 public:
 
     enum chassis_mode_t {
-        FORCE_RELAX,
-        ABS,
-        FOLLOW,
+        FORCE_RELAX_MODE,
+        CHASSIS_REF_MODE,
+        GIMBAL_REF_MODE,
         DODGE
     };
 
@@ -61,6 +68,10 @@ public:
      */
     static void init(tprio_t dodge_thread_prio_, tprio_t cap_power_set_thread_prio_, tprio_t dodge_mode_max_omega);
 
+    /**
+     * Set the mode for chassis logic, include force relax mode, chassis reference mode, gimbal reference mode and dodge mode.
+     * @param mode The mode of chassis logic.
+     */
     static void set_mode(chassis_mode_t mode);
 
     /**
@@ -70,31 +81,34 @@ public:
      */
     static void set_target(float vx, float vy);
 
+    /**
+     * Set the PID parameters for chassis auto straightening.
+     * @param params PID parameters for chassis auto straightening PID controller
+     */
+    static void set_auto_straightening_pid_params(pid_params_t params);
+
+    /**
+     * Set the PID parameters for chassis dodge mode omega calculation.
+     * @param params PID params for chassis dodge omega calculation.
+     */
+    static void set_dodge_omega_power_pid(pid_params_t params);
+
+    /**
+     * Set the target angular velocity of chassis
+     * @param omega target velocity for chassis.
+     * @note Only available for chassis ref mode.
+     */
     static void set_target_omega(float omega);
-#if(FALSE)
-    static void init(tprio_t dodge_thread_prio_, tprio_t cap_power_set_thread_prio_, float dodge_mode_max_omega, float biased_angle, PIDController::pid_params_t omega_power_pid);
-
-    enum action_t {
-        FORCED_RELAX_MODE,
-        FOLLOW_MODE,
-        DODGE_MODE,
-    };
 
     /**
-     * Get current action of chassis
-     * @return   Current action
+     * Get the current chassis mode.
+     * @return (FORCE_RELAX/GIMBAL_REF/CHASSIS_REF/DODGE) Current chassis mode.
      */
-    static action_t get_action();
-
-    /**
-     * Set action of chassis
-     * @param value   Action to be applied
-     */
-    static void set_action(action_t value);
-#endif
+    static chassis_mode_t get_mode();
 
 private:
     static PIDController dodge_omega_power_pid;
+    static PIDController auto_straightening_pid;
 
     static float target_vx;
     static float target_vy;
@@ -102,47 +116,20 @@ private:
 
     static chassis_mode_t chassis_mode;
 
-    class ChassisLGThread : public chibios_rt::BaseStaticThread<512> {
-        static constexpr unsigned VEL_DECOMPOSE_INTERVAL = 5; //[ms]
+    class MotionControllerThread : public chibios_rt::BaseStaticThread<512> {
+        static constexpr unsigned CHASSIS_LG_INTERVAL = 5; //[ms]
         void main() final;
     };
+    static MotionControllerThread motion_controller_thread;
 
-    // TODO Re-enable the functions.
-#if (FALSE)
-    static float target_theta;
-    static action_t action;
-    static float dodge_mode_max_omega_;  // rotation speed (omega) in DODGE_MODE [degree/s]
-    static float dodge_mode_min_omega_;
-    static int dodge_mode_randomize_max_time_;  // [ms]
-    static int dodge_mode_randomize_min_time_;  // [ms]
-    static float biased_angle_;    // gimbal angle in dodge mode set up for Hero
-
-    static tprio_t dodge_thread_prio;
-
-    class DodgeModeSwitchThread : public chibios_rt::BaseStaticThread<512> {
-    public:
-
-        bool started = false;
-
-    private:
-
-        static constexpr unsigned DODGE_MODE_SWITCH_INTERVAL = 5;  // interval to switch direction in DODGE_MODE [ms]
-
+#ifdef ENABLE_REFEREE
+    class CapacitorSetThread : public chibios_rt::BaseStaticThread<256> {
+        static constexpr unsigned CAPACITOR_SET_INTERVAL = 200; // [ms]
         void main() final;
     };
-
-    class CapacitorPowerSetThread : public chibios_rt::BaseStaticThread<512> {
-    public:
-    private:
-        static constexpr unsigned CAP_POWER_SET_INTERVAL = 100; //[ms]
-        void main() final;
-    };
-
-    static CapacitorPowerSetThread capacitorPowerSetThread;
-    static DodgeModeSwitchThread dodgeModeSwitchThread;
-    static chibios_rt::ThreadReference dodgeThreadReference;
+    static CapacitorSetThread capacitor_set_thread;
 #endif
-    static ChassisLGThread chassis_logic_thread;
+
 };
 
 

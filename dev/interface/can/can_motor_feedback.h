@@ -150,6 +150,11 @@ public:
      * */
     uint16_t last_rotor_angle_raw = 0;
 
+    /**
+     * @brief Attached external reducer's reduce ratio.
+     */
+    float external_reduce_ratio = 1.0;
+
     /*===========================================================================*/
     /*                   Constant for processing the feedback                    */
     /*===========================================================================*/
