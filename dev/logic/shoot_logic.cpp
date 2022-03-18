@@ -38,8 +38,12 @@ void ShootLG::init(float angle_per_bullet_, bool use_42mm_bullet_, tprio_t stuck
     angle_per_bullet = angle_per_bullet_;
     use_42mm_bullet = use_42mm_bullet_;
     stuck_detector_ref = stuck_detector_thread.start(stuck_detector_thread_prio);
-//    bullet_counter_thread.start(bullet_counter_thread_prio);
-//    vision_shoot_thread.start(vision_shooting_thread_prio);
+#if ENABLE_REFEREE
+    bullet_counter_thread.start(bullet_counter_thread_prio);
+#endif
+#if ENABLE_VISION
+    vision_shoot_thread.start(vision_shooting_thread_prio);
+#endif
 }
 
 void ShootLG::increment_remaining_bullet(int number_of_bullet) {
@@ -92,11 +96,11 @@ void ShootLG::shoot(int number_of_bullet, float number_per_second) {
     ShootSKD::set_loader_target_angle(-target_bullet_count * angle_per_bullet);
     chSysLock();  /// --- ENTER S-Locked state. DO NOT use LOG, printf, non S/I-Class functions or return ---
     {
-//        if (!stuck_detector_thread.started) {
-//            stuck_detector_thread.started = true;
-//            stuck_detector_thread.paused_once = false;
-//            chSchWakeupS(stuck_detector_ref.getInner(), 0);
-//        }
+        if (!stuck_detector_thread.started) {
+            stuck_detector_thread.started = true;
+            stuck_detector_thread.paused_once = false;
+            chSchWakeupS(stuck_detector_ref.getInner(), 0);
+        }
     }
     chSysUnlock();  /// --- EXIT S-Locked state ---
 }
@@ -160,9 +164,7 @@ void ShootLG::StuckDetectorThread::main() {
 
 void ShootLG::BulletCounterThread::main() {
     setName("ShootLG_Count");
-
     chEvtRegisterMask(&Referee::data_received_event, &data_received_listener, DATA_RECEIVED_EVENTMASK);
-
     while (!shouldTerminate()) {
 
         chEvtWaitAny(DATA_RECEIVED_EVENTMASK);
@@ -190,7 +192,7 @@ void ShootLG::BulletCounterThread::main() {
 void ShootLG::VisionShootThread::main() {
     setName("ShootLG_Vision");
 
-    chEvtRegisterMask(&Vision::shoot_time_updated_event, &vision_listener, EVENT_MASK(0));
+    chEvtRegisterMask(&VisionSKD::shoot_time_updated_event, &vision_listener, EVENT_MASK(0));
 
     while (!shouldTerminate()) {
         chEvtWaitAny(ALL_EVENTS);
@@ -200,7 +202,7 @@ void ShootLG::VisionShootThread::main() {
             time_msecs_t expected_shoot_time;
             chSysLock();  /// --- ENTER S-Locked state. DO NOT use LOG, printf, non S/I-Class functions or return ---
             {
-                expected_shoot_time = Vision::get_expected_shoot_time();
+                expected_shoot_time = VisionSKD::get_expected_shoot_time();
             }
             chSysUnlock();  /// --- EXIT S-Locked state ---
 

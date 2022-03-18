@@ -7,11 +7,11 @@
 #define META_INFANTRY_HARDWARE_CONF_H
 
 #if !defined(ENABLE_VISION) || defined(__DOXYGEN__)
-#define ENABLE_VISION                   TRUE
+#define ENABLE_VISION                   FALSE
 #endif
 
 #if !defined(ENABLE_REFEREE) || defined(__DOXYGEN__)
-#define ENABLE_REFEREE                  TRUE
+#define ENABLE_REFEREE                  FALSE
 #endif
 
 #if !defined(ENABLE_SUBPITCH) || defined(__DOXYGEN__)
@@ -19,7 +19,7 @@
 #endif
 
 #if !defined(ENABLE_CAPACITOR) || defined(__DOXYGEN__)
-#define ENABLE_CAPACITOR                TRUE
+#define ENABLE_CAPACITOR                FALSE
 #endif
 
 #endif //META_INFANTRY_HARDWARE_CONF_H

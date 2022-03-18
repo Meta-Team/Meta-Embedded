@@ -4,6 +4,8 @@
 
 #include "user_infantry.h"
 
+#include "hardware_conf.h"
+
 // FIXME: change as input parameter from main()
 
 /// Vehicle Specific Configurations
@@ -17,7 +19,7 @@
 #error "File main_infantry.cpp should only be used for Infantry #3, #4, #5."
 #endif
 
-#if defined(ENABLE_REFEREE)
+#if ENABLE_REFEREE == TRUE
 #include "referee_UI_logic.h"
 #endif
 
@@ -79,7 +81,7 @@ void UserI::UserThread::main() {
 
                 VAL_CROP(pitch_target, GIMBAL_PITCH_MAX_ANGLE, GIMBAL_PITCH_MIN_ANGLE);
                 GimbalLG::set_target_angle(gimbal_yaw_target_angle_, pitch_target);
-
+#if ENABLE_VISION == TRUE
             } else if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_DOWN) {
 
                 /// Vision - Change bullet speed with right vertical handle
@@ -87,20 +89,19 @@ void UserI::UserThread::main() {
                 /// Vision - Yaw + Pitch
                 GimbalLG::set_mode(GimbalLG::VISION_MODE);
 
-                if (Remote::rc.ch1 > 0.5) Vision::set_bullet_speed(Vision::get_bullet_speed() - 0.001f);
-                else if (Remote::rc.ch1 <= -0.5) Vision::set_bullet_speed(Vision::get_bullet_speed() + 0.001f);
-
+                if (Remote::rc.ch1 > 0.5) VisionSKD::set_bullet_speed(VisionSKD::get_bullet_speed() - 0.001f);
+                else if (Remote::rc.ch1 <= -0.5) VisionSKD::set_bullet_speed(VisionSKD::get_bullet_speed() + 0.001f);
+#endif
             } else if (Remote::rc.s1 == Remote::S_DOWN) {
 
                 /// PC control mode
-
+#if ENABLE_VISION
                 if (Remote::key.shift && Remote::key.v) {
-                    Vision::set_bullet_speed(Vision::get_bullet_speed() + 0.001f);
+                    VisionSKD::set_bullet_speed(VisionSKD::get_bullet_speed() + 0.001f);
                 } else if (Remote::key.ctrl && Remote::key.v) {
-                    Vision::set_bullet_speed(Vision::get_bullet_speed() - 0.001f);
+                    VisionSKD::set_bullet_speed(VisionSKD::get_bullet_speed() - 0.001f);
                 }
-
-                if (Remote::mouse.press_right && Vision::is_detected()) {
+                if (Remote::mouse.press_right && VisionSKD::is_detected()) {
 
                     GimbalLG::set_mode(GimbalLG::VISION_MODE);
 
@@ -108,7 +109,9 @@ void UserI::UserThread::main() {
                     gimbal_pc_pitch_target_angle_ = GimbalLG::get_feedback_angle(GimbalSKD::PITCH);
 
                 } else {
-
+#else
+                if (Remote::mouse.press_left) {
+#endif
                     GimbalLG::set_mode(GimbalLG::GIMBAL_REF_MODE);
 
                     float yaw_sensitivity, pitch_sensitivity;
@@ -190,7 +193,9 @@ void UserI::UserThread::main() {
                                        shoot_feed_rate);
                     }
                 } else if (Remote::rc.wheel < -0.5) {  // up
+#if ENABLE_VISION
                     ShootLG::set_limit_mode(ShootLG::VISION_LIMITED_MODE);
+#endif
                     if (ShootLG::get_shooter_state() == ShootLG::STOP) {
                         ShootLG::shoot(ignore_shoot_constraints ? 999 : ShootLG::get_bullet_count_to_heat_limit(),
                                        shoot_feed_rate);
@@ -209,21 +214,23 @@ void UserI::UserThread::main() {
                 /// PC control mode
 
                 if (Remote::mouse.press_left) {
-
+#if ENABLE_REFEREE == TRUE
                     // Read shoot limit
-                    /*if (Referee::robot_state.shooter_id1_17mm_cooling_rate >= 40) {
+                    if (Referee::robot_state.shooter_id1_17mm_cooling_rate >= 40) {
                         shoot_feed_rate = Referee::robot_state.shooter_id1_17mm_cooling_rate / 10 * 1.25;
                     } else {
                         shoot_feed_rate = Referee::robot_state.shooter_id1_17mm_cooling_limit / 25;
-                    }*/
-
-                    /*if (!ignore_shoot_constraints && Remote::mouse.press_right) {
+                    }
+#if ENABLE_VISION == TRUE
+                    if (!ignore_shoot_constraints && Remote::mouse.press_right) {
                         ShootLG::set_limit_mode(ShootLG::VISION_LIMITED_MODE);
                     } else {
                         ShootLG::set_limit_mode(ShootLG::UNLIMITED_MODE);
-                    }*/
+                    }
+#endif
+#else
                     ShootLG::set_limit_mode(ShootLG::UNLIMITED_MODE);
-
+#endif
                     if (ShootLG::get_shoot_speed() == 0) {  // force start friction wheels
                         ShootLG::set_shoot_speed(shoot_fw_speed[1]);
                     }
@@ -232,7 +239,6 @@ void UserI::UserThread::main() {
                         ShootLG::shoot(ignore_shoot_constraints ? 999 : ShootLG::get_bullet_count_to_heat_limit(),
                                        shoot_feed_rate);
                     }
-
                 } else {
 
                     ShootLG::stop();
@@ -280,7 +286,11 @@ void UserI::UserThread::main() {
                 /// PC control mode: Chassis - Movement
 
                 // Read current level information
+#if ENABLE_REFEREE == TRUE
                 chassis_v_forward = Referee::robot_state.chassis_power_limit * 0.9 / base_power * base_v_forward;
+#else
+                chassis_v_forward = 2000.0f;
+#endif
                 chassis_v_backward = chassis_v_forward;
 
                 if (ChassisLG::get_mode() == ChassisLG::FORCE_RELAX_MODE) {
@@ -321,7 +331,7 @@ void UserI::UserThread::main() {
             ChassisLG::set_mode(ChassisLG::FORCE_RELAX_MODE);
         }
 
-#if defined(ENABLE_REFEREE)
+#if ENABLE_REFEREE == TRUE
         /// Reset referee UI
         if (Remote::key.ctrl && Remote::key.shift && Remote::key.z) {
             RefereeUILG::reset();
@@ -349,7 +359,7 @@ void UserI::UserActionThread::main() {
 
         if (key_flag & (1U << Remote::KEY_Z)) {
             if (Remote::key.ctrl && Remote::key.shift) {
-#if defined(ENABLE_REFEREE)
+#if ENABLE_REFEREE == TRUE
                 // Ctrl + Shift + Z: reset referee UI
                 RefereeUILG::reset();
 #endif

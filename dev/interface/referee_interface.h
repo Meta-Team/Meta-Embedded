@@ -7,7 +7,7 @@
 
 #include "ch.hpp"
 #include "hal.h"
-
+#include "hardware_conf.h"
 
 /**
  * @name Referee

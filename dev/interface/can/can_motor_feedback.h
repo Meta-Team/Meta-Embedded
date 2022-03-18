@@ -46,27 +46,27 @@ public:
      * @brief Initialize the motorIF. Including its type and initial encoder angle.
      * @param   motor_type_             The corresponding motor's type.
      * @param   initial_encoder_angle   The encoder's reading at zero pose. Works best when reduce ratio is 1.
-     * */
+     */
     void init(motor_type_t motor_type_, uint16_t initial_encoder_angle);
 
     /**
      * @brief   [ms]        Last time data updated. Could be used for check CAN network.
-     * */
+     */
     time_msecs_t last_update_time = SYSTIME;
 
     /**
      * @brief   [Degree/Sec]Actual output shaft velocity for motors.
-     * */
+     */
     float actual_velocity = 0.0f;
 
     /**
      * @brief   [Degree]    Actual motor angle vary from -180 to 180.
-     * */
+     */
     float actual_angle = 0.0f;
 
     /**
      * @brief   [rounds]    The number of rounds motor rotate.
-     * */
+     */
     int round_count = 0;
 
     /*===========================================================================*/
@@ -76,26 +76,26 @@ public:
     /**
      * @brief               Get accumulate angle of the motor.
      * @return  [Degree]    Accumulate angle of the motor.
-     * */
+     */
     float accumulate_angle();
 
     /**
      * @brief               Get the torque constant of the motor.
      * @return  [Nm/A]      Torque constant of the motor.
-     * */
+     */
     float torque_const();
 
     /**
      * @brief               Get the output torque of the motor.
      * @return  [Nm]        Output torque of the motor.
-     * */
+     */
     float torque();
 
     /**
      * @brief               Get the torque current of the motor, from feedback
      * @return              Torque current in encoder unit.
      * @details             Range mapping: [-16383~16383] -> [-20A, 20A]
-     * */
+     */
     int torque_current();
 
     /**
@@ -113,7 +113,7 @@ public:
      *        Then registered the feedback function in CANInterface by \n
      *        register_callback_func() method.
      * @param rxmsg CAN Rx Frame.
-     * */
+     */
     void process_feedback(const CANRxFrame *rxmsg);
 
     /*===========================================================================*/
@@ -122,32 +122,32 @@ public:
 
     /**
      * @brief Motor's type. Motor supported: M3508, M3508 without reducer. M2006, GM6020.
-     * */
+     */
     motor_type_t motor_type = NONE_MOTOR;
 
     /**
      * @brief Angle from encoder, varies from (0 to 8191)
-     * */
+     */
     uint16_t rotor_angle_raw = 0;
 
     /**
      * @brief rpm from encoder.
-     * */
+     */
     int16_t rotor_rpm_raw = 0;
 
     /**
      * @brief Torque current from encoder.
-     * */
+     */
     int16_t torque_current_raw = 0;
 
     /**
      * @brief Temperature feedback from encoder (If support).
-     * */
+     */
     uint8_t temperature_raw = 0;
 
     /**
      * @brief Angle from last loop, to calculate the displacement.
-     * */
+     */
     uint16_t last_rotor_angle_raw = 0;
 
     /**

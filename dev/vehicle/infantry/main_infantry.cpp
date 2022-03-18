@@ -142,14 +142,12 @@ int main() {
     /// Setup CAN
     CANMotorIF::init(&can1, &can2);
 
-
     chThdSleepMilliseconds(2000);  // wait for C610 to be online and friction wheel to reset
-    /// Setup GimbalIF (for Gimbal and Shoot)
+    /// Check Gimbal Motors
     InspectorI::startup_check_gimbal_feedback(); // check gimbal motors has continuous feedback. Block for 20 ms
     LED::led_on(DEV_BOARD_LED_GIMBAL);  // LED 5 on now
 
-
-    /// Setup ChassisIF
+    /// Check Chassis Motors
     chThdSleepMilliseconds(10);
     InspectorI::startup_check_chassis_feedback();  // check chassis motors has continuous feedback. Block for 20 ms
     LED::led_on(DEV_BOARD_LED_CHASSIS);  // LED 6 on now
@@ -188,16 +186,16 @@ int main() {
 //    Shell::addFeedbackCallback(MecanumChassisSKD::cmdFeedback);
 
     /// Start LGs
-//    GimbalLG::init(THREAD_GIMBAL_LG_VISION_PRIO, THREAD_GIMBAL_LG_SENTRY_PRIO);
+    GimbalLG::init(THREAD_GIMBAL_LG_VISION_PRIO, THREAD_GIMBAL_BALLISTIC_PRIO);
     ShootLG::init(SHOOT_DEGREE_PER_BULLET, true, THREAD_STUCK_DETECT_PRIO,  THREAD_SHOOT_BULLET_COUNTER_PRIO, THREAD_SHOOT_LG_VISION_PRIO);
     ChassisLG::init(THREAD_CHASSIS_LG_PRIO, THREAD_CHASSIS_LG_PRIO, THREAD_CHASSIS_LG_PRIO);
-
+    ChassisLG::set_auto_straightening_pid_params(CHASSIS_FOLLOW_PID_THETA2V_PARAMS);
     /// Setup Vision
-//    VisionIF::init();  // must be put after initialization of GimbalSKD
-//    VisionSKD::start(VISION_BASIC_CONTROL_DELAY, THREAD_VISION_SKD_PRIO);
-//    VisionSKD::set_bullet_speed(VISION_DEFAULT_BULLET_SPEED);
-//    Shell::addFeedbackCallback(VisionSKD::cmd_feedback);
-//    Shell::addCommands(VisionSKD::shell_commands);
+    VisionIF::init();  // must be put after initialization of GimbalSKD
+    VisionSKD::start(VISION_BASIC_CONTROL_DELAY, THREAD_VISION_SKD_PRIO);
+    VisionSKD::set_bullet_speed(VISION_DEFAULT_BULLET_SPEED);
+    Shell::addFeedbackCallback(VisionSKD::cmd_feedback);
+    Shell::addCommands(VisionSKD::shell_commands);
 
     /// Start Inspector and User Threads
     InspectorI::start_inspection(THREAD_INSPECTOR_PRIO);
