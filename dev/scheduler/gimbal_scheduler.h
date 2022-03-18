@@ -35,7 +35,9 @@
  * @note SKD stands for "scheduler"
  * @brief Scheduler to control gimbal to meet the target, including a thread to invoke PID calculation in period.
  * @pre GimbalIF and ChassisIF have been initialized properly
- * @usage 1. start(), load_pid_params()\n
+ * @date 3.19, 2022
+ * @version 3.0a
+ * @usage 1. start()\n
  *        2. set_mode() and set_target_angle() as needed\n
  *        3. Leave the rest of the work to this SKD
  * @note ABOUT COORDINATE
@@ -94,18 +96,23 @@ public:
 
     /**
      * @brief Get current target angle data
-     * @param angleID [in] YAW or PITCH or SUB_PITCH
+     * @param angle [in] YAW or PITCH or SUB_PITCH
      * @return Current target angle of GIMBAL
      */
-    static float get_target_angle(GimbalSKD::angle_id_t angleID);
+    static float get_target_angle(GimbalSKD::angle_id_t angle);
 
     /**
-     * @brief Get AHRS feedback angle
-     * @param angleID [in] (YAW/PITCH) GimbalSKD::angle_id_t
-     * @return AHRS angle of YAW/PITCH
+     * @brief Get current gimbal feedback angle
+     * @param angle [in] (YAW/PITCH) GimbalSKD::angle_id_t
+     * @return Feedback angle of YAW/PITCH
      */
-    static float get_feedback_angle(GimbalSKD::angle_id_t angleID);
+    static float get_feedback_angle(GimbalSKD::angle_id_t angle);
 
+    /**
+     * @brief Get current gimbal feedback angular velocity
+     * @param angle [in] (YAW/PITCH) GimbalSKD::angle_id_t
+     * @return Feedback angular velocity of YAW/PITCH
+     */
     static float get_feedback_velocity(GimbalSKD::angle_id_t angle);
     /// TODO: Re-enable shell functions
 //    static void cmdFeedback(void *);

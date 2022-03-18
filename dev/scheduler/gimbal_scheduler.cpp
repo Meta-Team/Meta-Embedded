@@ -53,12 +53,12 @@ void GimbalSKD::set_target_angle(float yaw_target_angle, float pitch_target_angl
 #endif
 }
 
-float GimbalSKD::get_target_angle(GimbalSKD::angle_id_t angleID) {
-    return target_angle[angleID];
+float GimbalSKD::get_target_angle(GimbalSKD::angle_id_t angle) {
+    return target_angle[angle];
 }
 
-float GimbalSKD::get_feedback_angle(GimbalSKD::angle_id_t angleID) {
-    return feedback_angle[angleID];
+float GimbalSKD::get_feedback_angle(GimbalSKD::angle_id_t angle) {
+    return feedback_angle[angle];
 }
 
 void GimbalSKD::SKDThread::main() {

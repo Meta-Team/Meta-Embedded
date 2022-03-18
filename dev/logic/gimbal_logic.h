@@ -42,43 +42,49 @@ public:
 
     static mode_t mode;
     /**
-     * Initialize the gimbal Logic
-     * @param vision_prio Vision thread priority.
-     * @param ballistic_compensate_prio Gimbal control thread priority.
+     * @brief Initialize the gimbal Logic
+     * @param vision_prio               [in] Vision thread priority.
+     * @param ballistic_compensate_prio [in] Gimbal control thread priority.
      */
     static void init (tprio_t vision_prio, tprio_t ballistic_compensate_prio);
 
     /**
-     * Set the target angle in current reference mode.
-     * @param yaw_target_angle
-     * @param pitch_target_angle
+     * @brief Set the target angle in current reference mode.
+     * @param yaw_target_angle   [in] (degree)
+     * @param pitch_target_angle [in] (degree)
      */
     static void set_target_angle(float yaw_target_angle, float pitch_target_angle);
 
     /**
-     * Set mode of gimbal logic.
-     * @param mode_
+     * @brief Set mode of gimbal logic.
+     * @param mode_ [in]
      */
     static void set_mode(mode_t mode_);
 
     /**
-     * Get current feedback of certain axis.
-     * @param angle (GimbalSKD::angle_id_t) The desired axis.
+     * @brief Get current feedback of certain axis.
+     * @param angle [in] (GimbalSKD::angle_id_t) The desired axis.
      * @return The current feedback angle of certain axis.
      */
     static float get_feedback_angle(GimbalSKD::angle_id_t angle);
 
-    static float get_feedback_velocity(GimbalSKD::angle_id_t angle);
     /**
-     * Get target angle of certain axis.
-     * @param angle (GimbalSKD::angle_id_t) The desired axis.
+     * @brief get the feedback velocity of gimbal axes.
+     * @param angle [in] (GimbalKSD::angle_id_t) The desired axis
+     * @return The current feedback angular velocity of certain axis.
+     */
+    static float get_feedback_velocity(GimbalSKD::angle_id_t angle);
+
+    /**
+     * @brief Get target angle of certain axis.
+     * @param angle [in] (GimbalSKD::angle_id_t) The desired axis.
      * @return The target angle of certain axis.
      */
     static float get_target_angle(GimbalSKD::angle_id_t angle);
 
     /**
-     * Get feedback angle from motor encoder.
-     * @param angle (GimbalSKD::angle_id_t) The desired axis,
+     * @brief Get feedback angle from motor encoder.
+     * @param angle [in] (GimbalSKD::angle_id_t) The desired axis,
      * @return The motor encoder feedback angel of certain axis.
      */
     static float get_motor_angle(GimbalSKD::angle_id_t angle);
