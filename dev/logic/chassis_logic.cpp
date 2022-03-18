@@ -77,15 +77,11 @@ void ChassisLG::MotionControllerThread::main() {
         chSysLock();
         switch (chassis_mode) {
             case FORCE_RELAX_MODE:
-                {
-                    MecanumChassisSKD::set_mode(SKDBase::FORCED_RELAX_MODE);
-                }
                 break;
             case CHASSIS_REF_MODE:
                 {
                     MecanumChassisSKD::set_target(target_vx, target_vy, target_omega);
                 }
-
                 break;
             case GIMBAL_REF_MODE:
                 {

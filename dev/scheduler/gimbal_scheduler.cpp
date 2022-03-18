@@ -40,8 +40,8 @@ void GimbalSKD::start(AbstractAHRS *gimbal_ahrs_, const Matrix33 ahrs_angle_rota
 
     // Initialize last_angle, to use current pointing direction as startup direction
     Vector3D ahrs_angle = ahrs_angle_rotation * gimbal_ahrs->get_angle();
-    last_angle[YAW] = ahrs_angle.x* (float)install_direction[YAW];
-    last_angle[PITCH] = ahrs_angle.y* (float)install_direction[PITCH];
+    last_angle[YAW] = ahrs_angle.x * (float)install_direction[YAW];
+    last_angle[PITCH] = ahrs_angle.y * (float)install_direction[PITCH];
     skd_thread.start(thread_prio);
 }
 
@@ -159,6 +159,11 @@ void GimbalSKD::set_mode(GimbalSKD::mode_t skd_mode) {
             CANMotorSKD::register_custom_feedback(&feedback_velocity[GimbalSKD::PITCH],
                                                   CANMotorSKD::velocity,
                                                   CANMotorCFG::PITCH);
+            CANMotorCFG::enable_a2v[CANMotorCFG::YAW] = true;
+            CANMotorCFG::enable_v2i[CANMotorCFG::YAW] = true;
+            CANMotorCFG::enable_a2v[CANMotorCFG::PITCH] = true;
+            CANMotorCFG::enable_v2i[CANMotorCFG::PITCH] = true;
+            break;
         case CHASSIS_REF_MODE:
             CANMotorSKD::unregister_custom_feedback(CANMotorSKD::angle,
                                                     CANMotorCFG::YAW);
@@ -186,8 +191,12 @@ GimbalSKD::mode_t GimbalSKD::get_mode() {
     return mode;
 }
 
-void GimbalSKD::set_installation(GimbalSKD::angle_id_t angle, GimbalSKD::install_direction_t install_direction) {
-    GimbalSKD::install_direction[angle] = install_direction;
+void GimbalSKD::set_installation(GimbalSKD::angle_id_t angle, GimbalSKD::install_direction_t install_direction_) {
+    GimbalSKD::install_direction[angle] = install_direction_;
+}
+
+float GimbalSKD::get_feedback_velocity(GimbalSKD::angle_id_t angle) {
+    return feedback_velocity[angle];
 }
 
 /// TODO: re-enable shell functions

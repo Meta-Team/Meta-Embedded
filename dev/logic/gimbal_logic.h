@@ -68,6 +68,7 @@ public:
      */
     static float get_feedback_angle(GimbalSKD::angle_id_t angle);
 
+    static float get_feedback_velocity(GimbalSKD::angle_id_t angle);
     /**
      * Get target angle of certain axis.
      * @param angle (GimbalSKD::angle_id_t) The desired axis.

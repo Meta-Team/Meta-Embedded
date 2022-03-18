@@ -106,6 +106,7 @@ public:
      */
     static float get_feedback_angle(GimbalSKD::angle_id_t angleID);
 
+    static float get_feedback_velocity(GimbalSKD::angle_id_t angle);
     /// TODO: Re-enable shell functions
 //    static void cmdFeedback(void *);
     static const Shell::Command shellCommands[];
@@ -113,9 +114,9 @@ public:
     /**
      * @brief When using AHRS feedback and find the positive direction of motor and AHRS are different, use this.
      * @param angle             [in] The axis needs to be inverted.
-     * @param install_direction [in] The install direction of angle.
+     * @param install_direction_[in] The install direction of angle.
      */
-    static void set_installation(GimbalSKD::angle_id_t angle, GimbalSKD::install_direction_t install_direction);
+    static void set_installation(GimbalSKD::angle_id_t angle, GimbalSKD::install_direction_t install_direction_);
 
 private:
     /*===========================================================================*/

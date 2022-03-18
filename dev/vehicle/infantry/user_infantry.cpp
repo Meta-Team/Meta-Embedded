@@ -57,8 +57,8 @@ void UserI::start(tprio_t user_thd_prio, tprio_t user_action_thd_prio) {
 
 void UserI::UserThread::main() {
     setName("UserI");
+    float pitch_target = 0;
     while (!shouldTerminate()) {
-
         /*** ---------------------------------- Gimbal --------------------------------- ***/
         if (!InspectorI::remote_failure() && !InspectorI::chassis_failure() && !InspectorI::gimbal_failure()) {
             if ((Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_UP) ||
@@ -72,7 +72,6 @@ void UserI::UserThread::main() {
                         -Remote::rc.ch0 * (gimbal_rc_yaw_max_speed * USER_THREAD_INTERVAL / 1000.0f);
                 // ch0 use right as positive direction, while GimbalLG use CCW (left) as positive direction
 
-                float pitch_target = 0;
                 if (Remote::rc.ch1 > 0) pitch_target += (float) (Remote::rc.ch1 * GIMBAL_PITCH_MAX_ANGLE * 0.1);
                 else
                     pitch_target -=

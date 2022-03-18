@@ -40,11 +40,11 @@ void GimbalLG::set_target_angle(float yaw_target_angle, float pitch_target_angle
 
 void GimbalLG::set_mode(GimbalLG::mode_t mode_) {
     mode = mode_;
-    if(mode_ == FORCED_RELAX_MODE) {
+    if(mode_ == GimbalLG::FORCED_RELAX_MODE) {
         GimbalSKD::set_mode(GimbalSKD::FORCED_RELAX_MODE);
-    } else if(mode_ == CHASSIS_REF_MODE){
+    } else if(mode_ == GimbalLG::CHASSIS_REF_MODE){
         GimbalSKD::set_mode(GimbalSKD::CHASSIS_REF_MODE);
-    } else if(mode_ == GIMBAL_REF_MODE) {
+    } else if(mode_ == GimbalLG::GIMBAL_REF_MODE) {
         GimbalSKD::set_mode(GimbalSKD::GIMBAL_REF_MODE);
     }
 }
@@ -71,6 +71,10 @@ float GimbalLG::get_motor_angle(GimbalSKD::angle_id_t angle) {
 
 float GimbalLG::get_target_angle(GimbalSKD::angle_id_t angle) {
     return GimbalSKD::get_target_angle(angle);
+}
+
+float GimbalLG::get_feedback_velocity(GimbalSKD::angle_id_t angle) {
+    return GimbalSKD::get_feedback_velocity(angle);
 }
 
 #if ENABLE_VISION == TRUE

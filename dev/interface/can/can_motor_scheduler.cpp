@@ -76,7 +76,6 @@ void CANMotorSKD::register_custom_feedback(float *feedback_addr, CANMotorSKD::fe
 
 void CANMotorSKD::unregister_custom_feedback(CANMotorSKD::feedback_type_t fb_type, CANMotorCFG::motor_id_t motor_id) {
     switch (fb_type) {
-
         case angle:
             feedbackA[motor_id] = nullptr;
             break;
@@ -159,8 +158,8 @@ void CANMotorSKD::feedbackThread::main() {
 //                          CANMotorIF::motor_feedback[disp_id].actual_angle, CANMotorSKD::SKDThread.targetA[disp_id],
 //                          CANMotorIF::motor_feedback[disp_id].actual_velocity, CANMotorSKD::SKDThread.targetV[disp_id],
 //                          CANMotorIF::motor_feedback[disp_id].torque_current(), (int)CANMotorSKD::SKDThread.PID_output[disp_id]);
-            sleep(TIME_MS2I(20));
         }
+        sleep(TIME_MS2I(20));
     }
 }
 
