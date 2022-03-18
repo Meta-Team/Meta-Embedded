@@ -39,6 +39,7 @@ void ChassisLG::init(tprio_t dodge_thread_prio_, tprio_t cap_power_set_thread_pr
 }
 
 void ChassisLG::set_mode(ChassisLG::chassis_mode_t mode) {
+    chassis_mode = mode;
     switch (mode) {
         case FORCE_RELAX_MODE:
             MecanumChassisSKD::set_mode(SKDBase::FORCED_RELAX_MODE);
@@ -48,7 +49,7 @@ void ChassisLG::set_mode(ChassisLG::chassis_mode_t mode) {
             target_omega = 0;
             break;
         case GIMBAL_REF_MODE:
-            // Fall in.
+            // Fall through.
         case DODGE:
             MecanumChassisSKD::set_mode(SKDBase::GIMBAL_REF_MODE);
             break;
@@ -73,40 +74,40 @@ ChassisLG::chassis_mode_t ChassisLG::get_mode() {
 
 void ChassisLG::MotionControllerThread::main() {
     setName("ChassisLG");
+    float yaw_accumulate_angle;
+    float yaw_auto_straightening_angle;
+#if ENABLE_CAPACITOR == TRUE
+    float voltage_decrement;
+#endif
     while(!shouldTerminate()) {
         chSysLock();
         switch (chassis_mode) {
             case FORCE_RELAX_MODE:
                 break;
             case CHASSIS_REF_MODE:
-                {
-                    MecanumChassisSKD::set_target(target_vx, target_vy, target_omega);
-                }
+                MecanumChassisSKD::set_target(target_vx, target_vy, target_omega);
                 break;
             case GIMBAL_REF_MODE:
-                {
-                    float yaw_accumulate_angle = CANMotorIF::motor_feedback[CANMotorCFG::YAW].accumulate_angle();
-                    float yaw_auto_straightening_angle = (float)((int)(yaw_accumulate_angle/360.0f)) * 360.0f;
-                    if (yaw_accumulate_angle - yaw_auto_straightening_angle > 180.0f) yaw_auto_straightening_angle += 360.0f;
-                    target_omega = ChassisLG::auto_straightening_pid.calc(yaw_accumulate_angle, yaw_auto_straightening_angle);
-                    MecanumChassisSKD::set_target(target_vx, target_vy, target_omega);
-                }
+                yaw_accumulate_angle = CANMotorIF::motor_feedback[CANMotorCFG::YAW].accumulate_angle();
+                yaw_auto_straightening_angle = (float)((int)(yaw_accumulate_angle/360.0f)) * 360.0f;
+                if (yaw_accumulate_angle - yaw_auto_straightening_angle > 180.0f) yaw_auto_straightening_angle += 360.0f;
+                if (yaw_accumulate_angle - yaw_auto_straightening_angle < -180.0f) yaw_auto_straightening_angle -= 360.0f;
+                target_omega = ChassisLG::auto_straightening_pid.calc(yaw_accumulate_angle, yaw_auto_straightening_angle);
+                MecanumChassisSKD::set_target(target_vx, target_vy, target_omega);
                 break;
             case DODGE:
-                {
-                    // Control the target omega to keep super capacitor voltage at 20V.
+                // Control the target omega to keep super capacitor voltage at 20V.
 #if ENABLE_CAPACITOR == TRUE
-                    float voltage_decrement = 24 - CapacitorIF::capacitor_voltage;
-                    target_omega = (dodge_omega_power_pid.calc(voltage_decrement, 4));
-                    VAL_CROP(target_omega, 720.0f, 0.0f);
+                voltage_decrement = 24 - CapacitorIF::capacitor_voltage;
+                target_omega = (dodge_omega_power_pid.calc(voltage_decrement, 4));
+                VAL_CROP(target_omega, 720.0f, 0.0f);
 #else
-                    target_omega = 360;
-                    ///target_omega = (dodge_omega_power_pid.calc((float)Referee::power_heat_data.chassis_power, (float)Referee::game_robot_state.chassis_power_limit));
-                    VAL_CROP(target_omega, 720.0f, 0.0f);
+                target_omega = 100.0f;
+                ///target_omega = (dodge_omega_power_pid.calc((float)Referee::power_heat_data.chassis_power, (float)Referee::game_robot_state.chassis_power_limit));
+                VAL_CROP(target_omega, 720.0f, 0.0f);
 #endif
-                    VAL_CROP(target_omega, 720.0f, 0.0f);
-                    MecanumChassisSKD::set_target(target_vx, target_vy, target_omega);
-                }
+                VAL_CROP(target_omega, 720.0f, 0.0f);
+                MecanumChassisSKD::set_target(target_vx, target_vy, target_omega);
                 break;
         }
         chSysUnlock();
