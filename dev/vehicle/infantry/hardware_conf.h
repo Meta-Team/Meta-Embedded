@@ -11,7 +11,7 @@
 #endif
 
 #if !defined(ENABLE_REFEREE) || defined(__DOXYGEN__)
-#define ENABLE_REFEREE                  FALSE
+#define ENABLE_REFEREE                  TRUE
 #endif
 
 #if !defined(ENABLE_SUBPITCH) || defined(__DOXYGEN__)
@@ -19,7 +19,7 @@
 #endif
 
 #if !defined(ENABLE_CAPACITOR) || defined(__DOXYGEN__)
-#define ENABLE_CAPACITOR                FALSE
+#define ENABLE_CAPACITOR                TRUE
 #endif
 
 #endif //META_INFANTRY_HARDWARE_CONF_H

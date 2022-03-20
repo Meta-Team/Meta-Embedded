@@ -23,29 +23,29 @@ class CANMotorSKD: private CANMotorCFG{
 public:
 
     /**
-     * @brief Start CAN motor scheduler thread.
-     * @param SKD_PRIO Scheduler thread priority, motor controllers calculations.
-     * @param FB_PRIO Feedback thread priority, log motor feedback data on shell.
+     * @brief           Start CAN motor scheduler thread.
+     * @param SKD_PRIO  [in] Scheduler thread priority, motor controllers calculations.
+     * @param FB_PRIO   [in] Feedback thread priority, log motor feedback data on shell.
      */
     static void start(tprio_t SKD_PRIO, tprio_t FB_PRIO);
 
     /**
-     * @brief Load PID parameters.
-     * @param id        The corresponding motor PID to change.
-     * @param is_a2v    Identify whether it changes a2v or v2i parameters
-     * @param params    The PID parameters.
+     * @brief           Load PID parameters.
+     * @param id        [in] The corresponding motor PID to change.
+     * @param is_a2v    [in] Identify whether it changes a2v or v2i parameters
+     * @param params    [in] The PID parameters.
      */
     static void load_PID_params(motor_id_t id, bool is_a2v, PIDController::pid_params_t params);
 
     /**
-     * @brief Switch the motor to display.
-     * @param id        The corresponding id of the motor that tend to show feedback.
+     * @brief           Switch the motor to display.
+     * @param id        [in] The corresponding id of the motor that tend to show feedback.
      */
     static void switch_feedback_motor(motor_id_t id);
 
     /**
-     * @brief Get torque current from feedback
-     * @param id        The corresponding id of the motor that tend to show torque current.
+     * @brief           Get torque current from feedback
+     * @param id        [in] The corresponding id of the motor that tend to show torque current.
      * @return          Torque current in encoder unit.
      * @details         Range mapping: [-16383~16383] -> [-20A, 20A]
      */

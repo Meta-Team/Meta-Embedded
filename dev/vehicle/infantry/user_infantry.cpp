@@ -109,7 +109,7 @@ void UserI::UserThread::main() {
 
                 } else {
 #else
-                if (Remote::mouse.press_left) {
+                if (!Remote::mouse.press_right) {
 #endif
                     GimbalLG::set_mode(GimbalLG::GIMBAL_REF_MODE);
 

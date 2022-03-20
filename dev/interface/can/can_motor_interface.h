@@ -35,7 +35,11 @@
  * @code
  * class CANMotorCFG{
  *     enum             motor_id_t {...,..., MOTOR_COUNT};
- *     CANMotorBase     CANMotorProfile[MOTOR_COUNT];}
+ *     CANMotorBase     CANMotorProfile[MOTOR_COUNT];
+ *     pid_params_t     a2vParams[MOTOR_COUNT];
+ *     pid_params_t     v2iParams[MOTOR_COUNT];
+ *     bool             enable_a2v[MOTOR_COUNT];
+ *     bool             enable_v2i[MOTOR_COUNT];}
  * @endcode
  *
  * @details 2. Single CAN motor profile structure:
@@ -55,8 +59,8 @@ public:
 
     /**
      * @brief Initialize the haptic arm interface.
-     * @param[in] can1_             The can1 channel to use.
-     * @param[in] can2_             The can2 channel to use.
+     * @param can1_             [in] The can1 channel to use.
+     * @param can2_             [in] The can2 channel to use.
      */
     static void init(CANInterface *can1_, CANInterface *can2_);
 
@@ -67,8 +71,8 @@ public:
 
     /**
      * @brief Set can motor currents.
-     * @param motor_id[in]      (YAW/PITCH)     Logical motor ID, use the enumerator.
-     * @param target_current[in]                Input variable of motor. Varies from motor.
+     * @param motor_id          [in]      (YAW/PITCH)     Logical motor ID, use the enumerator.
+     * @param target_current    [in]                Input variable of motor. Varies from motor.
      * @details Input variables, range and mapping relation for each motor:
      * @code
      * Motor Type    |    GM6020     |     M3508     |         M2006
@@ -78,20 +82,20 @@ public:
      * Input Range   | -30000~30000  | -16384~16384  |  -10000~10000
      * -------------------------------------------------------------
      * Output Range  | Not Provided  |   -20A~20A    |      -10A~10A
-     *
+     * @endcode
      */
     static void set_current(motor_id_t motor_id, int target_current);
 
     /**
-     * @brief The function send the stored txmsg.
-     * @param can_channel_ [in]  [can_channel_1/can_channel_2]   The can channel to post.
-     * @param SID          [in]  [0x200/0x1FF/0x2FF]             The identifier of the CAN Tx Frame.
+     * @brief                   The function send the stored txmsg.
+     * @param can_channel_      [in]  [can_channel_1/can_channel_2]   The can channel to post.
+     * @param SID               [in]  [0x200/0x1FF/0x2FF]             The identifier of the CAN Tx Frame.
      */
      static bool post_target_current(CANMotorBase::can_channel_t can_channel_, uint32_t SID);
 
      /**
-      * @brief CAN Tx Frame enable flag
-      * @details Indicate whether the can frame was used.
+      * @brief                  CAN Tx Frame enable flag
+      * @details                Indicate whether the can frame was used.
       * @code
       *   CAN1 | 0x200 | 0x1FF | 0x2FF
       *   ----------------------------
@@ -122,10 +126,10 @@ private:
         int SID;
         CANMotorBase::can_channel_t can_channel;
     } mapping_ID2SID[MOTOR_COUNT];
+
     /*===========================================================================*/
     /*                               CAN Mechanism                               */
     /*===========================================================================*/
-private:
 
     /**
      * @brief A 2x3 array stored txmsgs to send. Structure:\n
@@ -139,19 +143,19 @@ private:
     static CANTxFrame txmsg[2][3];
 
     /**
-     * @brief Overall can1 callback function.
-     * @param rxmsg CAN Rx Frame.
+     * @brief               Overall can1 callback function.
+     * @param rxmsg         [in] CAN Rx Frame.
      */
     static void can1_callback_func(CANRxFrame const *rxmsg);
 
     /**
-     * @brief Overall can2 callback function.
-     * @param rxmsg CAN Rx Frame.
+     * @brief               Overall can2 callback function.
+     * @param rxmsg         [in] CAN Rx Frame.
      */
     static void can2_callback_func(CANRxFrame const *rxmsg);
 
     /**
-     * @brief CANInterfaces to use [CAN1, CAN2].
+     * @brief               CANInterfaces to use [CAN1, CAN2].
      */
     static CANInterface *can[2];
 };

@@ -190,6 +190,7 @@ int main() {
     ShootLG::init(SHOOT_DEGREE_PER_BULLET, true, THREAD_STUCK_DETECT_PRIO,  THREAD_SHOOT_BULLET_COUNTER_PRIO, THREAD_SHOOT_LG_VISION_PRIO);
     ChassisLG::init(THREAD_CHASSIS_LG_PRIO, THREAD_CHASSIS_LG_PRIO, THREAD_CHASSIS_LG_PRIO);
     ChassisLG::set_auto_straightening_pid_params(CHASSIS_FOLLOW_PID_THETA2V_PARAMS);
+    ChassisLG::set_dodge_omega_power_pid(CHASSIS_LOGIC_DODGE_OMEGA2VOLT_PARAMS);
     /// Setup Vision
     VisionIF::init();  // must be put after initialization of GimbalSKD
     VisionSKD::start(VISION_BASIC_CONTROL_DELAY, THREAD_VISION_SKD_PRIO);

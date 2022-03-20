@@ -225,7 +225,7 @@ void InspectorI::InspectorThread::main() {
 
         chassis_failure_ = check_chassis_failure();
         if (chassis_failure_) LED::led_off(DEV_BOARD_LED_CHASSIS);
-        else LED::led_on(DEV_BOARD_LED_CHASSIS);
+        else LED::led_on( DEV_BOARD_LED_CHASSIS);
 
         if (remote_failure_ || gimbal_failure_ || chassis_failure_) {
             if (!BuzzerSKD::alerting()) BuzzerSKD::alert_on();

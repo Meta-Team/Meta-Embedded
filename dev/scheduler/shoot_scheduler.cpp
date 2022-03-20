@@ -80,7 +80,7 @@ void ShootSKD::SKDThread::main() {
 
             if (mode == LIMITED_SHOOTING_MODE) {
 
-                CANMotorSKD::set_target_angle(CANMotorCFG::BULLET_LOADER, bullet_target_angle);
+                CANMotorSKD::set_target_angle(CANMotorCFG::BULLET_LOADER, -bullet_target_angle);
                 CANMotorSKD::set_target_vel(CANMotorCFG::FW_UP, -fw_target_velocity);
                 CANMotorSKD::set_target_vel(CANMotorCFG::FW_DOWN, fw_target_velocity);
 

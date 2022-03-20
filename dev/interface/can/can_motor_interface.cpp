@@ -102,6 +102,8 @@ void CANMotorIF::init(CANInterface *can1_, CANInterface *can2_) {
                 case 1:
                     can[can_channel]->register_callback(can_SID_field_list[i][0], can_SID_field_list[i][1], can2_callback_func);
                     break;
+                default:
+                    break;
             }
         }
     }

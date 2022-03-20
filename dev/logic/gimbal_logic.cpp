@@ -81,7 +81,7 @@ float GimbalLG::get_feedback_velocity(GimbalSKD::angle_id_t angle) {
 void GimbalLG::VisionControlThread::main() {
     setName("GimbalLG_Vision");
 
-    chEvtRegisterMask(&Vision::gimbal_updated_event, &vision_listener, EVENT_MASK(0));
+    chEvtRegisterMask(&VisionSKD::gimbal_updated_event, &vision_listener, EVENT_MASK(0));
 
     while (!shouldTerminate()) {
 
@@ -94,7 +94,7 @@ void GimbalLG::VisionControlThread::main() {
 
             chSysLock();  /// --- ENTER S-Locked state ---
             {
-                can_reach_the_target = Vision::get_gimbal_target_angles(yaw, pitch);
+                can_reach_the_target = VisionSKD::get_gimbal_target_angles(yaw, pitch);
             }
             chSysUnlock();  /// --- EXIT S-Locked state ---
 

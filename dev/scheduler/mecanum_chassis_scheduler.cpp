@@ -63,7 +63,7 @@ void MecanumChassisSKD::SKDThread::main() {
         chSysLock();  /// --- ENTER S-Locked state. DO NOT use LOG, printf, non S/I-Class functions or return ---
         {
             switch (mode) {
-
+                // TODO: Use AHRS feedback to optimize the precision of movement.
                 case FORCED_RELAX_MODE:
                     // Set torque current to 0.
                     CANMotorCFG::enable_v2i[CANMotorCFG::FL] = false;
