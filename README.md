@@ -66,8 +66,8 @@ The project use C++ class for encapsulation and modularization. The modules will
 │   │   ├── CANMotorIF.cpp       大疆CAN电机整体接口 | Overall Interface for DJI Motors -
 │   │   └── CANMotorIF.h
 │   ├── virtual_COM                     - 虚拟串口 | STM32 Virtual COM port (CDC) -
-│   │   ├── usbconf.cpp                   USB配置文件 | USB configuration file
-│   │   ├── usbconf.h
+│   │   ├── usb_serial_port.cpp                   USB配置文件 | USB configuration file
+│   │   ├── usb_serial_port.h
 │   │   ├── VirtualCOMPort.cpp                       虚拟串口收发接口 | Interface for Virtual COM Port
 │   │   └── VirtualCOMPort.h
 │   └── ...                               其他接口（可能会频繁更新） | Other Interfaces (Varies Over Time)

@@ -55,6 +55,7 @@ include_directories(  # common include directories
         dev/vehicle)
 
 set(BASE_SRC  # common cpp sources, which are included to every target at post configuration below
+        dev/interface/usb_serial_interface.cpp
         dev/debug/shell/shell.cpp
         dev/debug/shell/shell_base.c
         dev/debug/shell/shell_base_cmd.c
@@ -74,10 +75,6 @@ set(VEHICLE_COMMON_SRC
         dev/common/CRC8.cpp
         dev/common/CRC16.cpp
         dev/interface/sd_card_interface.cpp)
-
-set(VCP_SRC
-        dev/interface/virtual_COM/usbconf.cpp
-        dev/interface/virtual_COM/VirtualCOMPort.cpp)
 
 set(AHRS_SRC
         dev/interface/ahrs/ahrs_math.hpp
@@ -198,7 +195,6 @@ target_link_libraries(HERO ${AHRS_LIB})
 add_executable(HAPTIC_DVC
         ${VEHICLE_COMMON_SRC}
         ${AHRS_SRC}
-        ${VCP_SRC}
         dev/vehicle/haptic_device/Communicator.cpp
         dev/vehicle/haptic_device/CANBUS_MOTOR_CFG.cpp
         dev/vehicle/haptic_device/Inspector.cpp
@@ -312,12 +308,6 @@ add_executable(ut_chassis
 target_include_directories(ut_chassis PRIVATE dev/debug/Unit_Tests/ut_chassis)
 target_compile_definitions(ut_chassis PRIVATE ut_chassis)
 target_link_libraries(ut_chassis ${AHRS_LIB})
-
-add_executable(ut_usb
-        ${VCP_SRC}
-        dev/interface/led.cpp
-        dev/debug/Unit_Tests/ut_VCP/ut_usb.cpp
-        )
 
 # --------------------------------------- Param Adjusts ---------------------------------------
 

@@ -2,16 +2,26 @@
 // Created by 钱晨 on 11/21/21.
 //
 
-#include "usbconf.h"
+#include "usb_serial_interface.h"
 
 
-USBInEndpointState usbconf::ep1instate;
-USBInEndpointState usbconf::ep2instate;
-USBOutEndpointState usbconf::ep1outstate;
+USBInEndpointState USBSerialIF::ep1instate;
+USBInEndpointState USBSerialIF::ep2instate;
+USBOutEndpointState USBSerialIF::ep1outstate;
 
-SerialUSBDriver *usbconf::SDU;
+SerialUSBDriver USBSerialIF::SDU;
 
-const uint8_t usbconf::device_descriptor_data[18] = {
+void USBSerialIF::init() {
+    sduObjectInit(&SDU);
+    sduStart(&SDU, &serusbcfg);
+
+    usbDisconnectBus(serusbcfg.usbp);
+    chThdSleepMilliseconds(1500);
+    usbStart(serusbcfg.usbp, &usbcfg);
+    usbConnectBus(serusbcfg.usbp);
+}
+
+const uint8_t USBSerialIF::device_descriptor_data[18] = {
         USB_DESC_DEVICE(0x0110,
                         0x02,
                         0x00,
@@ -26,12 +36,12 @@ const uint8_t usbconf::device_descriptor_data[18] = {
                         1)
 };
 
-USBDescriptor usbconf::device_descriptor = {
+USBDescriptor USBSerialIF::device_descriptor = {
         sizeof device_descriptor_data,
         device_descriptor_data
 };
 
-const uint8_t usbconf::configuration_descriptor_data[67] = {
+const uint8_t USBSerialIF::configuration_descriptor_data[67] = {
         /* Configuration Descriptor.*/
         USB_DESC_CONFIGURATION(67,            /* wTotalLength.                    */
                                0x02,          /* bNumInterfaces.                  */
@@ -107,25 +117,25 @@ const uint8_t usbconf::configuration_descriptor_data[67] = {
                                0x00)          /* bInterval.                       */
 };
 
-USBDescriptor usbconf::configuration_descriptor = {
+USBDescriptor USBSerialIF::configuration_descriptor = {
         sizeof configuration_descriptor_data,
         configuration_descriptor_data
 };
 
-const uint8_t usbconf::vcom_string0[] = {
+const uint8_t USBSerialIF::vcom_string0[] = {
         USB_DESC_BYTE(4),                     /* bLength.                         */
         USB_DESC_BYTE(USB_DESCRIPTOR_STRING), /* bDescriptorType.                 */
         USB_DESC_WORD(0x0409)                 /* wLANGID (U.S. English).          */
 };
 
-const uint8_t usbconf::vcom_string1[] = {USB_DESC_BYTE(38),                    /* bLength.                         */
+const uint8_t USBSerialIF::vcom_string1[] = {USB_DESC_BYTE(38),                    /* bLength.                         */
                                      USB_DESC_BYTE(USB_DESCRIPTOR_STRING), /* bDescriptorType.                 */
                                      'S', 0, 'T', 0, 'M', 0, 'i', 0, 'c', 0, 'r', 0, 'o', 0, 'e', 0,
-                                     'l', 0, 'e', 0, 'c', 0, 't', 0, 'r', 0, 'o', 0, 'n', 0, 'i', 0,
-                                     'c', 0, 's', 0
+                                             'l', 0, 'e', 0, 'c', 0, 't', 0, 'r', 0, 'o', 0, 'n', 0, 'i', 0,
+                                             'c', 0, 's', 0
 };
 
-const uint8_t usbconf::vcom_string2[] = {
+const uint8_t USBSerialIF::vcom_string2[] = {
         USB_DESC_BYTE(56),                    /* bLength.                         */
         USB_DESC_BYTE(USB_DESCRIPTOR_STRING), /* bDescriptorType.                 */
         'C', 0, 'h', 0, 'i', 0, 'b', 0, 'i', 0, 'O', 0, 'S', 0, '/', 0,
@@ -134,7 +144,7 @@ const uint8_t usbconf::vcom_string2[] = {
         'o', 0, 'r', 0, 't', 0
 };
 
-const uint8_t usbconf::vcom_string3[] = {
+const uint8_t USBSerialIF::vcom_string3[] = {
         USB_DESC_BYTE(8),                     /* bLength.                         */
         USB_DESC_BYTE(USB_DESCRIPTOR_STRING), /* bDescriptorType.                 */
         '0' + CH_KERNEL_MAJOR, 0,
@@ -142,7 +152,7 @@ const uint8_t usbconf::vcom_string3[] = {
         '0' + CH_KERNEL_PATCH, 0
 };
 
-const USBEndpointConfig usbconf::ep1config = {
+const USBEndpointConfig USBSerialIF::ep1config = {
         USB_EP_MODE_TYPE_BULK,
         NULL,
         sduDataTransmitted,
@@ -155,7 +165,7 @@ const USBEndpointConfig usbconf::ep1config = {
         NULL
 };
 
-const USBEndpointConfig usbconf::ep2config = {
+const USBEndpointConfig USBSerialIF::ep2config = {
         USB_EP_MODE_TYPE_INTR,
         NULL,
         sduInterruptTransmitted,
@@ -168,28 +178,28 @@ const USBEndpointConfig usbconf::ep2config = {
         NULL
 };
 
-const USBDescriptor usbconf::vcom_strings[] = {
-        {sizeof usbconf::vcom_string0, usbconf::vcom_string0},
-        {sizeof usbconf::vcom_string1, usbconf::vcom_string1},
-        {sizeof usbconf::vcom_string2, usbconf::vcom_string2},
-        {sizeof usbconf::vcom_string3, usbconf::vcom_string3}
+const USBDescriptor USBSerialIF::vcom_strings[] = {
+        {sizeof USBSerialIF::vcom_string0, USBSerialIF::vcom_string0},
+        {sizeof USBSerialIF::vcom_string1, USBSerialIF::vcom_string1},
+        {sizeof USBSerialIF::vcom_string2, USBSerialIF::vcom_string2},
+        {sizeof USBSerialIF::vcom_string3, USBSerialIF::vcom_string3}
 };
 
-const USBConfig usbconf::usbcfg = {
+const USBConfig USBSerialIF::usbcfg = {
         usb_event,
         get_descriptor,
         sduRequestsHook,
         sof_handler
 };
 
-SerialUSBConfig usbconf::serusbcfg = {
+SerialUSBConfig USBSerialIF::serusbcfg = {
         &USBD1,
         USBD_DATA_REQUEST_EP,
         USBD_DATA_AVAILABLE_EP,
         USBD_INTERRUPT_REQUEST_EP
 };
 
-const USBDescriptor *usbconf::get_descriptor(USBDriver *usbp, uint8_t dtype, uint8_t dindex, uint16_t lang) {
+const USBDescriptor *USBSerialIF::get_descriptor(USBDriver *usbp, uint8_t dtype, uint8_t dindex, uint16_t lang) {
     (void)usbp;
     (void)lang;
     switch (dtype) {
@@ -204,7 +214,7 @@ const USBDescriptor *usbconf::get_descriptor(USBDriver *usbp, uint8_t dtype, uin
     return NULL;
 }
 
-void usbconf::usb_event(USBDriver *usbp, usbevent_t event) {
+void USBSerialIF::usb_event(USBDriver *usbp, usbevent_t event) {
     switch (event) {
         case USB_EVENT_RESET:
             return;
@@ -220,20 +230,20 @@ void usbconf::usb_event(USBDriver *usbp, usbevent_t event) {
             usbInitEndpointI(usbp, USBD_INTERRUPT_REQUEST_EP, &ep2config);
 
             /* Resetting the state of the CDC subsystem.*/
-            sduConfigureHookI(SDU);
+            sduConfigureHookI(&SDU);
             chSysUnlockFromISR();
             return;
         case USB_EVENT_SUSPEND:
             chSysLockFromISR();
 
             /* Disconnection event on suspend.*/
-            sduSuspendHookI(SDU);
+            sduSuspendHookI(&SDU);
             chSysUnlockFromISR();
             return;
         case USB_EVENT_WAKEUP:
             chSysLockFromISR();
             /* Connection event on wakeup.*/
-            sduWakeupHookI(SDU);
+            sduWakeupHookI(&SDU);
             chSysUnlockFromISR();
             return;
         case USB_EVENT_STALLED:
@@ -244,9 +254,9 @@ void usbconf::usb_event(USBDriver *usbp, usbevent_t event) {
 
 }
 
-void usbconf::sof_handler(USBDriver *usbp) {
+void USBSerialIF::sof_handler(USBDriver *usbp) {
     (void)usbp;
     osalSysLockFromISR();
-    sduSOFHookI(SDU);
+    sduSOFHookI(&SDU);
     osalSysUnlockFromISR();
 }

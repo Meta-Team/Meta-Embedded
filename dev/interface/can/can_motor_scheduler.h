@@ -15,7 +15,6 @@
 
 #include "can_motor_interface.h"
 #include "pid_controller.hpp"
-#include "VirtualCOMPort.h"
 
 using namespace chibios_rt;
 
