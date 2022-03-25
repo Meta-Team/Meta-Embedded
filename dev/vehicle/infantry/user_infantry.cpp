@@ -40,7 +40,7 @@ float UserI::chassis_pc_shift_ratio = 1.8f;  // 180% when Shift is pressed
 float UserI::chassis_pc_ctrl_ratio = 0.5f;    // 50% when Ctrl is pressed
 
 float UserI::shoot_feed_rate = 5.0f;   // [bullet/s]
-float UserI::shoot_fw_speed[3] = {SHOOT_FW_SPEED, SHOOT_FW_SPEED, SHOOT_FW_SPEED};  // [Slow, Normal, Fast] [deg/s]
+float UserI::shoot_fw_speed[3] = {SHOOT_FW_SPEED*15, SHOOT_FW_SPEED*15, SHOOT_FW_SPEED*15};  // [Slow, Normal, Fast] [deg/s]
 
 
 /// Variables
@@ -164,11 +164,13 @@ void UserI::UserThread::main() {
                 ShootLG::set_limit_mode(ShootLG::UNLIMITED_MODE);
 
                 if (Remote::rc.wheel > 0.5) {  // down
+                    ShootLG::set_shoot_speed(shoot_fw_speed[1]);
                     ShootLG::set_limit_mode(ShootLG::UNLIMITED_MODE);
                     if (ShootLG::get_shooter_state() == ShootLG::STOP) {
                         ShootLG::shoot(ignore_shoot_constraints ? 999 : ShootLG::get_bullet_count_to_heat_limit(), shoot_feed_rate);
                     }
                 } else if (Remote::rc.wheel < -0.5) {  // up
+                    ShootLG::set_shoot_speed(shoot_fw_speed[1]);
                     ShootLG::set_limit_mode(ShootLG::UNLIMITED_MODE);
                     if (ShootLG::get_shooter_state() == ShootLG::STOP) {
                         ShootLG::shoot(999 /* unlimited */, shoot_feed_rate);

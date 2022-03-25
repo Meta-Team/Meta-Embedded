@@ -38,7 +38,7 @@ struct CANMotorBase {
  *          2. Call init() function. \n
  *          3. Pass CANRxFrame to the process_feedback() function.\n
  *          4. Get the available feedback from this class.
- * */
+ */
 class CANMotorFeedback : public CANMotorBase {
 public:
 

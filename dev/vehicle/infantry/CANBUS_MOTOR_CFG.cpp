@@ -36,8 +36,8 @@ PIDController::pid_params_t CANMotorCFG::v2iParams[MOTOR_COUNT] = {
         {25.0f,  0.15f, 0.0f, 5000.0f, 30000.0f},
         { 100.0f, 1.0f, 0.00f, 5000.0f, 30000.0f},
         {55.0f, 5.0f, 0.0f, 10000.0f, 10000.0f},
-        {26.0f, 0.1f, 0.02f, 2000.0f, 6000.0f},
-        {26.0f, 0.1f, 0.02f, 2000.0f, 6000.0f}
+        {36.0f, 0.2f, 0.02f, 5000.0f, 10000.0f},
+        {36.0f, 0.2f, 0.02f, 5000.0f, 10000.0f}
 };
 
 bool CANMotorCFG::enable_a2v[MOTOR_COUNT] {

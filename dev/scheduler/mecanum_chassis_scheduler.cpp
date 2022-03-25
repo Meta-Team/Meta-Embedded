@@ -85,6 +85,7 @@ void MecanumChassisSKD::SKDThread::main() {
                                                                  (-target_vx+target_vy+ target_omega * w_to_v_ratio) * v_to_wheel_angular_velocity);
                     CANMotorSKD::set_target_vel(CANMotorCFG::BR, (float)install_mode *
                                                                  (-target_vx-target_vy+ target_omega * w_to_v_ratio) * v_to_wheel_angular_velocity);
+                    break;
                 case GIMBAL_REF_MODE:
 
                     // Set the velocity in gimbal coordinate.

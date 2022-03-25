@@ -72,6 +72,7 @@ set(VEHICLE_COMMON_SRC
         dev/interface/can/can_motor_interface.cpp
         dev/interface/can/can_motor_scheduler.cpp
         dev/interface/remote_interpreter.cpp
+        dev/interface/oled_interface.cpp
         dev/common/CRC8.cpp
         dev/common/CRC16.cpp
         dev/interface/sd_card_interface.cpp)
@@ -217,6 +218,7 @@ target_link_libraries(HAPTIC_DVC ${AHRS_LIB})
 
 # --------------------------------------- Unit Tests ---------------------------------------
 
+include_directories(dev/debug/Unit_Tests/)
 # Blink
 add_executable(ut_blink
         dev/module/button_monitor.cpp
@@ -290,6 +292,10 @@ add_executable(ut_super_capacitor
 add_executable(ut_adc
         dev/debug/Unit_Tests/ut_adc.cpp
         dev/interface/dms_interface.cpp)
+
+add_executable(ut_oled
+        dev/debug/Unit_Tests/ut_oled.cpp
+        dev/interface/oled_interface.cpp)
 
 add_executable(ut_sensors_sound
         dev/debug/Unit_Tests/ut_sensors_sound.cpp
