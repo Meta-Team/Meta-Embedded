@@ -9,32 +9,32 @@
 
 using namespace Trajectory;
 
-EVENTSOURCE_DECL(Vision::gimbal_updated_event);
-EVENTSOURCE_DECL(Vision::shoot_time_updated_event);
-float Vision::bullet_speed = 15;
-time_msecs_t Vision::basic_gimbal_delay = 0;
-PositionKalmanFilter Vision::armor_ypd[3];
-constexpr float Vision::ARMOR_Q_POSITION[3];
-constexpr float Vision::ARMOR_Q_VELOCITY[3];
-constexpr float Vision::ARMOR_R_POSITION[3];
-uint16_t Vision::last_frame_timestamp = 0;
-time_msecs_t Vision::last_detected_time = 0;
-time_msecs_t Vision::last_compute_time = 0;
-time_msecs_t Vision::last_vision_command_time = 0;
-bool Vision::can_reach_target = false;
-float Vision::bullet_flight_time = 0;
-float Vision::latest_target_yaw = 0;
-float Vision::latest_target_pitch = 0;
-time_msecs_t Vision::expected_shoot_time = 0;
-int Vision::expected_shoot_after_periods = 0;
-float Vision::IMAGE_TO_USER_SCALE = 0.59;
-int Vision::IMAGE_TO_USER_OFFSET_X = 770;
-int Vision::IMAGE_TO_USER_OFFSET_Y = 400;
-uint32_t Vision::user_view_x = 0;
-uint32_t Vision::user_view_y = 0;
-Vision::CalculationThread Vision::calculation_thread;
+EVENTSOURCE_DECL(VisionSKD::gimbal_updated_event);
+EVENTSOURCE_DECL(VisionSKD::shoot_time_updated_event);
+float VisionSKD::bullet_speed = 15;
+time_msecs_t VisionSKD::basic_gimbal_delay = 0;
+PositionKalmanFilter VisionSKD::armor_ypd[3];
+constexpr float VisionSKD::ARMOR_Q_POSITION[3];
+constexpr float VisionSKD::ARMOR_Q_VELOCITY[3];
+constexpr float VisionSKD::ARMOR_R_POSITION[3];
+uint16_t VisionSKD::last_frame_timestamp = 0;
+time_msecs_t VisionSKD::last_detected_time = 0;
+time_msecs_t VisionSKD::last_compute_time = 0;
+time_msecs_t VisionSKD::last_vision_command_time = 0;
+bool VisionSKD::can_reach_target = false;
+float VisionSKD::bullet_flight_time = 0;
+float VisionSKD::latest_target_yaw = 0;
+float VisionSKD::latest_target_pitch = 0;
+time_msecs_t VisionSKD::expected_shoot_time = 0;
+int VisionSKD::expected_shoot_after_periods = 0;
+float VisionSKD::IMAGE_TO_USER_SCALE = 0.59;
+int VisionSKD::IMAGE_TO_USER_OFFSET_X = 770;
+int VisionSKD::IMAGE_TO_USER_OFFSET_Y = 400;
+uint32_t VisionSKD::user_view_x = 0;
+uint32_t VisionSKD::user_view_y = 0;
+VisionSKD::CalculationThread VisionSKD::calculation_thread;
 
-void Vision::start(time_msecs_t basic_gimbal_delay_, tprio_t thread_prio) {
+void VisionSKD::start(time_msecs_t basic_gimbal_delay_, tprio_t thread_prio) {
     for (int i = 0; i < 3; i++) {
         armor_ypd[i].set_Q_position(ARMOR_Q_POSITION[i]);
         armor_ypd[i].set_Q_velocity(ARMOR_Q_VELOCITY[i]);
@@ -45,11 +45,11 @@ void Vision::start(time_msecs_t basic_gimbal_delay_, tprio_t thread_prio) {
     calculation_thread.start(thread_prio);
 }
 
-bool Vision::is_detected() {
+bool VisionSKD::is_detected() {
     return WITHIN_RECENT_TIME(last_detected_time, DETECTION_LOSE_TIME);
 }
 
-bool Vision::get_gimbal_target_angles(float &yaw, float &pitch) {
+bool VisionSKD::get_gimbal_target_angles(float &yaw, float &pitch) {
     if (WITHIN_RECENT_TIME(last_detected_time, DETECTION_LOSE_TIME)) {
         if (!can_reach_target) {
             return false;
@@ -63,12 +63,12 @@ bool Vision::get_gimbal_target_angles(float &yaw, float &pitch) {
     }
 }
 
-void Vision::get_user_view_points(uint32_t &x, uint32_t &y) {
+void VisionSKD::get_user_view_points(uint32_t &x, uint32_t &y) {
     x = user_view_x;
     y = user_view_y;
 }
 
-void Vision::CalculationThread::main() {
+void VisionSKD::CalculationThread::main() {
     setName("VisionSKD");
 
     chEvtRegisterMask(&VisionIF::command_received_event, &command_listener, EVENT_MASK(0));
@@ -171,14 +171,14 @@ void Vision::CalculationThread::main() {
     }
 }
 
-const Shell::Command Vision::shell_commands[] = {
-        {"_v",           nullptr,                                  Vision::cmdInfo,               nullptr},
-        {"_v_enable_fb", "Channel/All Feedback{Disabled,Enabled}", Vision::cmdEnableFeedback,     nullptr},
-        {"_v_user_view", "[Scale] [X_Offset] [Y_Offset]",          Vision::cmd_user_view_setting, nullptr},
+const Shell::Command VisionSKD::shell_commands[] = {
+        {"_v",           nullptr,                                  VisionSKD::cmdInfo,               nullptr},
+        {"_v_enable_fb", "Channel/All Feedback{Disabled,Enabled}", VisionSKD::cmdEnableFeedback,     nullptr},
+        {"_v_user_view", "[Scale] [X_Offset] [Y_Offset]",          VisionSKD::cmd_user_view_setting, nullptr},
         {nullptr,        nullptr,                                  nullptr,                       nullptr}
 };
 
-DEF_SHELL_CMD_START(Vision::cmdInfo)
+DEF_SHELL_CMD_START(VisionSKD::cmdInfo)
     Shell::printf("_v:VisionSKD" ENDL);
     Shell::printf("_v/Armor:X{Angle,Velocity} Y{Angle,Velocity} Z{Angle,Velocity}" ENDL);
     return true;
@@ -186,7 +186,7 @@ DEF_SHELL_CMD_END
 
 static bool feedbackEnabled[1] = {false};
 
-void Vision::cmd_feedback(void *) {
+void VisionSKD::cmd_feedback(void *) {
 
     if (feedbackEnabled[0]) {
         Shell::printf("_v0 %.2f %.2f %.2f %.2f %d %d" ENDL,
@@ -197,7 +197,7 @@ void Vision::cmd_feedback(void *) {
 
 }
 
-DEF_SHELL_CMD_START(Vision::cmdEnableFeedback)
+DEF_SHELL_CMD_START(VisionSKD::cmdEnableFeedback)
     int id;
     bool enabled;
     if (!Shell::parseIDAndBool(argc, argv, sizeof(feedbackEnabled) / sizeof(*feedbackEnabled), id, enabled))
@@ -210,7 +210,7 @@ DEF_SHELL_CMD_START(Vision::cmdEnableFeedback)
     return true;
 DEF_SHELL_CMD_END
 
-DEF_SHELL_CMD_START(Vision::cmd_user_view_setting)
+DEF_SHELL_CMD_START(VisionSKD::cmd_user_view_setting)
     if (argc == 0) {
         Shell::printf("_v_user_view %f %d %d" ENDL, IMAGE_TO_USER_SCALE, IMAGE_TO_USER_OFFSET_X,
                       IMAGE_TO_USER_OFFSET_Y);

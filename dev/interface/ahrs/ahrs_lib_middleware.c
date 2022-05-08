@@ -44,7 +44,7 @@ void AHRS_get_latitude(fp32 *latitude)
 {
     if (latitude != NULL)
     {
-        *latitude = LATITUDE_AT_SHENZHEN;
+        *latitude = LATITUDE_AT_HAINING;
     }
 }
 

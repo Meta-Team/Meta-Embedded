@@ -33,7 +33,7 @@
  * @brief Logic-level module to control shooter. Support number-controlling shooting.
  * @pre ShootSKD has started properly
  * @usage 1. Invoke init()
- *        2. Invoke set_action() and set_target() to control gimbal
+ *        2. Invoke set_mode() and set_target_angle() to control gimbal
  */
 class ShootLG {
 
@@ -105,7 +105,7 @@ public:
      * Shoot bullets. Will change shooter state.
      * @param number_of_bullet   Number of bullet to shoot.
      */
-    static void shoot(float number_of_bullet, float number_per_second);
+    static void shoot(int number_of_bullet, float number_per_second);
 
     /**
      * Stop shooting.

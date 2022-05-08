@@ -9,7 +9,7 @@
 
 #include "remote_interpreter.h"
 #include "referee_interface.h"
-#include "super_capacitor_port.h"
+#include "capacitor_interface.h"
 
 #include "gimbal_logic.h"
 #include "shoot_logic.h"
@@ -73,7 +73,7 @@ private:
     };
 
     static UserActionThread userActionThread;
-
+#if FALSE
     /// Friend Configure Functions
     friend void gimbal_get_config(BaseSequentialStream *chp, int argc, char *argv[]);
     friend void gimbal_set_config(BaseSequentialStream *chp, int argc, char *argv[]);
@@ -81,7 +81,7 @@ private:
     friend void chassis_set_config(BaseSequentialStream *chp, int argc, char *argv[]);
     friend void shoot_get_config(BaseSequentialStream *chp, int argc, char *argv[]);
     friend void shoot_set_config(BaseSequentialStream *chp, int argc, char *argv[]);
-
+#endif
 };
 
 

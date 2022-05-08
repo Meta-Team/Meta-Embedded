@@ -18,6 +18,8 @@
 #include "hal.h"
 
 #include "shellconf.h"
+#include "usb_serial_interface.h"
+#include "hardware_conf.h"
 
 #include "common_macro.h"
 
@@ -27,6 +29,11 @@
 // USART6_TX - PG14, USART6_RX - PG9
 #else
 #error "Shell has not been defined for selected board"
+#endif
+#if ENABLE_USB_SHELL == FALSE
+#define SerialDriver SD6
+#else
+#define SerialDriver USBSerialIF::SDU
 #endif
 
 #define SHELL_RX_WORK_AREA_SIZE 2048

@@ -79,7 +79,7 @@
 #define CHASSIS_BL_MOTOR_TYPE  (CANInterface::M3508)
 #define CHASSIS_BR_MOTOR_TYPE  (CANInterface::M3508)
 
-#define SHOOT_DEGREE_PER_BULLET 40.0f  // rotation degree of bullet loader for each bullet
+#define SHOOT_DEGREE_PER_BULLET 72.0f  // rotation degree of bullet loader for each bullet
 
 #define CHASSIS_FR_MOTOR_DR  (CANInterface::M3508_WITH_DECELERATION_RATIO)
 #define CHASSIS_FL_MOTOR_DR  (CANInterface::M3508_WITH_DECELERATION_RATIO)

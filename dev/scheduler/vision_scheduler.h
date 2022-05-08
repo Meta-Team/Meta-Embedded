@@ -9,7 +9,7 @@
 #include "position_kalman_filter.hpp"
 #include "shell.h"
 
-class Vision {
+class VisionSKD {
 public:
 
     static void start(time_msecs_t basic_gimbal_delay, tprio_t thread_prio);

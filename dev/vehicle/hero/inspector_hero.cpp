@@ -73,22 +73,26 @@ void InspectorH::startup_check_remote() {
 void InspectorH::startup_check_chassis_feedback() {
     time_msecs_t t = SYSTIME;
     while (WITHIN_RECENT_TIME(t, 20)) {
-        if (not WITHIN_RECENT_TIME(ChassisIF::feedback[ChassisIF::FR]->last_update_time, 5)) {
+        if (not WITHIN_RECENT_TIME(
+                CANMotorIF::motor_feedback[CANMotorCFG::FR].last_update_time, 5)) {
             // No feedback in last 5 ms (normal 1 ms)
             LOG_ERR("Startup - Chassis FR offline.");
             t = SYSTIME;  // reset the counter
         }
-        if (not WITHIN_RECENT_TIME(ChassisIF::feedback[ChassisIF::FL]->last_update_time, 5)) {
+        if (not WITHIN_RECENT_TIME(
+                CANMotorIF::motor_feedback[CANMotorCFG::FL].last_update_time, 5)) {
             // No feedback in last 5 ms (normal 1 ms)
             LOG_ERR("Startup - Chassis FL offline.");
             t = SYSTIME;  // reset the counter
         }
-        if (not WITHIN_RECENT_TIME(ChassisIF::feedback[ChassisIF::BL]->last_update_time, 5)) {
+        if (not WITHIN_RECENT_TIME(
+                CANMotorIF::motor_feedback[CANMotorCFG::BL].last_update_time, 5)) {
             // No feedback in last 5 ms (normal 1 ms)
             LOG_ERR("Startup - Chassis BL offline.");
             t = SYSTIME;  // reset the counter
         }
-        if (not WITHIN_RECENT_TIME(ChassisIF::feedback[ChassisIF::BR]->last_update_time, 5)) {
+        if (not WITHIN_RECENT_TIME(
+                CANMotorIF::motor_feedback[CANMotorCFG::BR].last_update_time, 5)) {
             // No feedback in last 5 ms (normal 1 ms)
             LOG_ERR("Startup - Chassis BR offline.");
             t = SYSTIME;  // reset the counter
@@ -101,38 +105,45 @@ void InspectorH::startup_check_gimbal_feedback() {
     time_msecs_t t = SYSTIME;
     while (WITHIN_RECENT_TIME(t, 20)) {
 //        if(Referee::bullet_remaining.bullet_remaining_num_17mm > 0) {
-            if (not WITHIN_RECENT_TIME(GimbalIF::feedback[GimbalIF::FW_LEFT]->last_update_time, 5)) {
-                // No feedback in last 5 ms (normal 1 ms)
-                LOG_ERR("Startup - Gimbal FW_LEFT offline.");
-                t = SYSTIME;  // reset the counter
-            }
-            if (not WITHIN_RECENT_TIME(GimbalIF::feedback[GimbalIF::FW_RIGHT]->last_update_time, 5)) {
-                // No feedback in last 5 ms (normal 1 ms)
-                LOG_ERR("Startup - Gimbal FW_RIGHT offline.");
-                t = SYSTIME;  // reset the counter
-            }
-            if (not WITHIN_RECENT_TIME(GimbalIF::feedback[GimbalIF::BULLET]->last_update_time, 5)) {
-                // No feedback in last 5 ms (normal 1 ms)
-                LOG_ERR("Startup - Gimbal Bullet offline.");
-                t = SYSTIME;  // reset the counter
-            }
+        if (not WITHIN_RECENT_TIME(
+                CANMotorIF::motor_feedback[CANMotorCFG::FW_DOWN].last_update_time, 5)) {
+            // No feedback in last 5 ms (normal 1 ms)
+            LOG_ERR("Startup - Gimbal FW_LEFT offline.");
+            t = SYSTIME;  // reset the counter
+        }
+        if (not WITHIN_RECENT_TIME(
+                CANMotorIF::motor_feedback[CANMotorCFG::FW_UP].last_update_time, 5)) {
+            // No feedback in last 5 ms (normal 1 ms)
+            LOG_ERR("Startup - Gimbal FW_RIGHT offline.");
+            t = SYSTIME;  // reset the counter
+        }
+        if (not WITHIN_RECENT_TIME(
+                CANMotorIF::motor_feedback[CANMotorCFG::BULLET_LOADER].last_update_time, 5)) {
+            // No feedback in last 5 ms (normal 1 ms)
+            LOG_ERR("Startup - Gimbal Bullet offline.");
+            t = SYSTIME;  // reset the counter
+        }
 //        }
 
-//        if (not WITHIN_RECENT_TIME(GimbalIF::feedback[GimbalIF::YAW]->last_update_time, 5)) {
-//            // No feedback in last 5 ms (normal 1 ms)
-//            LOG_ERR("Startup - Gimbal Yaw offline.");
-//            t = SYSTIME;  // reset the counter
-//        }
-        if (not WITHIN_RECENT_TIME(GimbalIF::feedback[GimbalIF::PITCH]->last_update_time, 5)) {
+        if (not WITHIN_RECENT_TIME(
+                CANMotorIF::motor_feedback[CANMotorCFG::YAW].last_update_time, 5)) {
+            // No feedback in last 5 ms (normal 1 ms)
+            LOG_ERR("Startup - Gimbal Yaw offline.");
+            t = SYSTIME;  // reset the counter
+        }
+        if (not WITHIN_RECENT_TIME(
+                CANMotorIF::motor_feedback[CANMotorCFG::PITCH].last_update_time, 5)) {
             // No feedback in last 5 ms (normal 1 ms)
             LOG_ERR("Startup - Gimbal Pitch offline.");
             t = SYSTIME;  // reset the counter
         }
-        if (not WITHIN_RECENT_TIME(GimbalIF::feedback[GimbalIF::SUB_PITCH]->last_update_time, 5)) {
+        if (not WITHIN_RECENT_TIME(
+                CANMotorIF::motor_feedback[CANMotorCFG::SUB_PITCH].last_update_time, 5)) {
             // No feedback in last 5 ms (normal 1 ms)
             LOG_ERR("Startup - Gimbal SUB_Pitch offline.");
             t = SYSTIME;  // reset the counter
         }
+
         chThdSleepMilliseconds(5);
     }
 }
@@ -151,12 +162,12 @@ bool InspectorH::remote_failure() {
 
 bool InspectorH::check_gimbal_failure() {
     bool ret = false;
+    /// TODO: Modified with referee.
 //    if(Referee::bullet_remaining.bullet_remaining_num_17mm > 0) {
-        for (unsigned i = 0; i < 6; i++) {
-            if (not WITHIN_RECENT_TIME(GimbalIF::feedback[i]->last_update_time, 250) &&
-                                                GimbalIF::feedback[i]->type != CANInterface::NONE_MOTOR) {
+        for (unsigned i = CANMotorCFG::YAW; i < CANMotorCFG::FW_DOWN + 1; i++) {
+            if (not WITHIN_RECENT_TIME(CANMotorIF::motor_feedback[i].last_update_time, 250)) {
                 if (!gimbal_failure_) {  // avoid repeating printing
-                    LOG_ERR("Gimbal motor %u offline (at %u)", i, GimbalIF::feedback[i]->last_update_time);
+                    LOG_ERR("Gimbal motor %u offline (at %u)", i, CANMotorIF::motor_feedback[i].last_update_time);
                 }
                 ret = true;
             }
@@ -177,12 +188,10 @@ bool InspectorH::check_gimbal_failure() {
 
 bool InspectorH::check_chassis_failure() {
     bool ret = false;
-    for (unsigned i = 0; i < ChassisIF::MOTOR_COUNT; i++) {
-        // Check feedback, if the feedback's type is NONE_MOTOR, it's not valid
-        if (not WITHIN_RECENT_TIME(ChassisIF::feedback[i]->last_update_time, 250) &&
-                                            ChassisIF::feedback[i]->type != CANInterface::NONE_MOTOR) {
+    for (unsigned i = CANMotorCFG::FL; i < CANMotorCFG::BL + 1; i++) {
+        if (not WITHIN_RECENT_TIME(CANMotorIF::motor_feedback[i].last_update_time, 250)) {
             if (!chassis_failure_) {  // avoid repeating printing
-                LOG_ERR("Chassis motor %u offline (since time %u)", i, ChassisIF::feedback[i]->last_update_time);
+                LOG_ERR("Gimbal motor %u offline (at %u)", i, CANMotorIF::motor_feedback[i].last_update_time);
             }
             ret = true;
         }

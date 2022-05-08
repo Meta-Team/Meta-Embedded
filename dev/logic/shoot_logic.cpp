@@ -38,8 +38,12 @@ void ShootLG::init(float angle_per_bullet_, bool use_42mm_bullet_, tprio_t stuck
     angle_per_bullet = angle_per_bullet_;
     use_42mm_bullet = use_42mm_bullet_;
     stuck_detector_ref = stuck_detector_thread.start(stuck_detector_thread_prio);
+#if ENABLE_REFEREE
     bullet_counter_thread.start(bullet_counter_thread_prio);
+#endif
+#if ENABLE_VISION
     vision_shoot_thread.start(vision_shooting_thread_prio);
+#endif
 }
 
 void ShootLG::increment_remaining_bullet(int number_of_bullet) {
@@ -76,20 +80,20 @@ int ShootLG::get_bullet_count_to_heat_limit() {
     }
 }
 
-void ShootLG::shoot(float number_of_bullet, float number_per_second) {
+void ShootLG::shoot(int number_of_bullet, float number_per_second) {
     if (mode != UNLIMITED_MODE) {
         LOG_ERR("ShootLG: shoot() is called outside MANUAL_MODE");
         return;
     }
 
-    target_bullet_count = number_of_bullet;
+    target_bullet_count = (float) number_of_bullet;
     target_bullet_loader_velocity = number_per_second * angle_per_bullet;
 
     shooter_state = SHOOTING;
     ShootSKD::reset_loader_accumulated_angle();
     ShootSKD::set_mode(ShootSKD::LIMITED_SHOOTING_MODE);
     ShootSKD::set_loader_target_velocity(target_bullet_loader_velocity);
-    ShootSKD::set_loader_target_angle(target_bullet_count * angle_per_bullet);
+    ShootSKD::set_loader_target_angle(-target_bullet_count * angle_per_bullet);
     chSysLock();  /// --- ENTER S-Locked state. DO NOT use LOG, printf, non S/I-Class functions or return ---
     {
         if (!stuck_detector_thread.started) {
@@ -138,8 +142,8 @@ void ShootLG::StuckDetectorThread::main() {
             continue;
         }
 
-        if (ShootSKD::get_target_current(0) > STUCK_THRESHOLD_CURRENT &&
-            ShootSKD::get_actual_velocity(0) < STUCK_THRESHOLD_VELOCITY) {
+        if (CANMotorIF::motor_feedback[CANMotorCFG::BULLET_LOADER].torque_current_raw > STUCK_THRESHOLD_CURRENT &&
+                CANMotorIF::motor_feedback[CANMotorCFG::BULLET_LOADER].actual_velocity < STUCK_THRESHOLD_VELOCITY) {
             stuck_count++;
         } else {
             stuck_count = 0;
@@ -160,9 +164,7 @@ void ShootLG::StuckDetectorThread::main() {
 
 void ShootLG::BulletCounterThread::main() {
     setName("ShootLG_Count");
-
     chEvtRegisterMask(&Referee::data_received_event, &data_received_listener, DATA_RECEIVED_EVENTMASK);
-
     while (!shouldTerminate()) {
 
         chEvtWaitAny(DATA_RECEIVED_EVENTMASK);
@@ -190,7 +192,7 @@ void ShootLG::BulletCounterThread::main() {
 void ShootLG::VisionShootThread::main() {
     setName("ShootLG_Vision");
 
-    chEvtRegisterMask(&Vision::shoot_time_updated_event, &vision_listener, EVENT_MASK(0));
+    chEvtRegisterMask(&VisionSKD::shoot_time_updated_event, &vision_listener, EVENT_MASK(0));
 
     while (!shouldTerminate()) {
         chEvtWaitAny(ALL_EVENTS);
@@ -200,7 +202,7 @@ void ShootLG::VisionShootThread::main() {
             time_msecs_t expected_shoot_time;
             chSysLock();  /// --- ENTER S-Locked state. DO NOT use LOG, printf, non S/I-Class functions or return ---
             {
-                expected_shoot_time = Vision::get_expected_shoot_time();
+                expected_shoot_time = VisionSKD::get_expected_shoot_time();
             }
             chSysUnlock();  /// --- EXIT S-Locked state ---
 

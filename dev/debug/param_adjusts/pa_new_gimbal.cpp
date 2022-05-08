@@ -8,7 +8,7 @@
 #include "led.h"
 #include "debug/shell/shell.h"
 
-#include "can_interface.h"
+#include "interface/can/can_interface.h"
 #include "ahrs.h"
 #include "sd_card_interface.h"
 #include "remote_interpreter.h"

@@ -10,7 +10,7 @@
 
 #include "ahrs_abstract.h"
 
-#include "can_interface.h"
+#include "interface/can/can_interface.h"
 
 /**
  * @name AHRSExt

@@ -5,10 +5,10 @@
 #include "referee_UI_logic.h"
 #include "shell.h"
 #include "common_macro.h"
-#include "super_capacitor_port.h"
+#include "capacitor_interface.h"
 #include "chassis_logic.h"
 #include "shoot_logic.h"
-#include "chassis_scheduler.h"
+#include "mecanum_chassis_scheduler.h"
 #include "vision_scheduler.h"
 
 const char RefereeUILG::cap_name[3] = {'c', 'a', 'p'};
@@ -208,16 +208,18 @@ void RefereeUILG::reset_vision_UI() {
 void RefereeUILG::DataFetchThread::main() {
     setName("RefereeUILG");
     while (!shouldTerminate()) {
-        set_cap_volt(SuperCapacitor::feedback->capacitor_voltage);
-        set_dodge_state(ChassisLG::get_action() == ChassisLG::DODGE_MODE);
+        set_cap_volt(CapacitorIF::capacitor_voltage);
+//        set_dodge_state(ChassisLG::get_action() == ChassisLG::DODGE_MODE);
 //        set_bullet_case_state(false);  // TODO
 //        set_remaining_bullet_count(ShootLG::get_remaining_bullet_count());
-        set_chassis_angle(ChassisSKD::get_actual_theta() / 180.0f * PI);
-        set_vision_bullet_speed(Vision::get_bullet_speed());
+//        set_chassis_angle(MecanumChassisSKD::get_actual_theta() / 180.0f * PI);
+        set_vision_bullet_speed(VisionSKD::get_bullet_speed());
         {
             uint32_t x = 9999, y = 9999;  // out side the screen to hide
-            if (Vision::is_detected()) Vision::get_user_view_points(x, y);
+#if ENABLE_VISION
+            if (VisionSKD::is_detected()) VisionSKD::get_user_view_points(x, y);
             set_main_enemy({x, y});
+#endif
         }
         sleep(TIME_MS2I(100));
     }
