@@ -9,7 +9,6 @@
 #include "led.h"
 #include "buzzer_scheduler.h"
 #include "common_macro.h"
-#include "VirtualCOMPort.h"
 #include "Communicator.h"
 
 #include "shell.h"
@@ -68,7 +67,6 @@ int main() {
 
     /// Preparation of Period 1
     LED::all_off();
-    VirtualCOMPort::init(&SDU1, THREAD_VIRTUAL_COM_PRIO);
 
     /// Setup Shell
     Shell::start(THREAD_SHELL_PRIO);
@@ -111,7 +109,7 @@ int main() {
 
     Inspector::startup_check_motor(); // check gimbal motors has continuous feedback. Block for 20 ms
     LED::led_on(DEV_BOARD_LED_GIMBAL);  // LED 4 on now
-    Communicator::init(THREAD_COMMUNICATOR_PRIO);
+    Communicator::init(THREAD_COMMUNICATOR_PRIO, THREAD_VIRTUAL_COM_PRIO);
     /// Setup Red Spot Laser
     palSetPad(GPIOG, GPIOG_RED_SPOT_LASER);  // enable the red spot laser
 

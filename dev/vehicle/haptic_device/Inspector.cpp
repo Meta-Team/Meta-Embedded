@@ -20,7 +20,7 @@ void Inspector::startup_check_motor() {
 void Inspector::startup_check_VCP() {
     time_msecs_t t = SYSTIME;
     while (WITHIN_RECENT_TIME(t, 20)) {
-        if(not WITHIN_RECENT_TIME(VirtualCOMPort::last_update_time, 10)) {
+        if(not WITHIN_RECENT_TIME(Communicator::last_update_time, 10)) {
             LOG_ERR("Startup - Virtual COM port not connected");
             t = SYSTIME;
         }

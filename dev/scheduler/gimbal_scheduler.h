@@ -25,11 +25,6 @@
 
 #include <cmath>
 
-#if defined(HERO)
-/// Enable sub-pitch motor in gimbal scheduler
-#define ENABLE_SUBPITCH
-#endif
-
 /**
  * @name GimbalSKD
  * @note SKD stands for "scheduler"

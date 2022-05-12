@@ -6,7 +6,7 @@
 #define META_INFANTRY_INSPECTOR_H
 
 #include "can_motor_interface.h"
-#include "VirtualCOMPort.h"
+#include "Communicator.h"
 
 class Inspector {
 public:
