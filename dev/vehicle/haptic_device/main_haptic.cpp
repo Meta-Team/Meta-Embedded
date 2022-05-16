@@ -40,7 +40,6 @@
 /// Instances
 CANInterface can1(&CAND1);
 CANInterface can2(&CAND2);
-SerialUSBDriver SDU1;
 AHRSOnBoard ahrs;
 
 /// Local Constants
@@ -104,6 +103,7 @@ int main() {
 
     /// Setup MOTOR
     CANMotorIF::init(&can1, &can2);
+    USBSerialIF::init();
     chThdSleepMilliseconds(1000);
     // FIXME: revert for development
 
@@ -119,9 +119,9 @@ int main() {
     CANMotorSKD::start(THREAD_MOTOR_SKD_PRIO, THREAD_FEEDBACK_SKD_PRIO);
 
     /// Complete Period 2
-//    BuzzerSKD::play_sound(BuzzerSKD::sound_nyan_cat);  // Now play the startup sound
     LED::led_on(DEV_BOARD_LED_CHASSIS);  // LED 5 on now
     HapticLG::init(THREAD_MOTOR_LG_VISION_PRIO, THREAD_BUTTON_DETECT_PRIO);
+    BuzzerSKD::play_sound(BuzzerSKD::sound_nyan_cat);  // Now play the startup sound
     LED::all_off();
     /*** ------------------------ Period 3. End of main thread ----------------------- ***/
 

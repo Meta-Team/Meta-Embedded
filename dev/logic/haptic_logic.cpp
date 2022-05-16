@@ -5,13 +5,13 @@
 #include "haptic_logic.h"
 
 int   HapticLG::current_threshold                      = 8000;
-float HapticLG::target_angle[CANMotorCFG::MOTOR_COUNT] = {0.0f, 0.0f};
-int   HapticLG::target_current[CANMotorCFG::MOTOR_COUNT] = {0,0};
+float HapticLG::target_angle[CANMotorCFG::MOTOR_COUNT] = {0.0f, 0.0f,0.0f};
+int   HapticLG::target_current[CANMotorCFG::MOTOR_COUNT] = {0,0, 0};
 float HapticLG::velocity_threshold                     = 1.0f;
 HapticLG::BackDrivabilityThread HapticLG::back_drivability_thd;
 HapticLG::ButtonSwitchThread    HapticLG::btn_switch_thd;
 LowPassFilteredValue HapticLG::LowPassFilter[CANMotorCFG::MOTOR_COUNT];
-HapticLG::mode_t HapticLG::haptic_device_mode = calibrateMode;
+HapticLG::mode_t HapticLG::haptic_device_mode = torqueMode;
 bool HapticLG::calibrated = false;
 
 void HapticLG::init(tprio_t PRIO, tprio_t BTNPRIO) {
@@ -39,41 +39,45 @@ void HapticLG::BackDrivabilityThread::main() {
                     CANMotorCFG::enable_v2i[i] = false;
                     CANMotorSKD::set_target_current((CANMotorCFG::motor_id_t) i, target_current[i]);
                     break;
-                case calibrateMode:
-                    CANMotorCFG::enable_a2v[i] = true;
-                    CANMotorCFG::enable_v2i[i] = true;
-                    CANMotorSKD::set_target_angle((CANMotorCFG::motor_id_t) i,
-                                                  0.0f);
-                    if(ABS_IN_RANGE(CANMotorIF::motor_feedback[i].actual_velocity, 5.0) && // Velocity low
-                      !ABS_IN_RANGE(CANMotorIF::motor_feedback[i].accumulate_angle(), 15.0f) &&
-                       WITHIN_RECENT_TIME(SYS_STARTTIME, CALIB_TIMEOUT_DELAY) && !calibrated) {
-                        if(STUCK_STARTTIME == 0) {
-                            STUCK_STARTTIME = SYSTIME;
-                        } else if (!WITHIN_RECENT_TIME(STUCK_STARTTIME, CALIB_THRESHOLD_DELAY)) {
-                            calibrated = true;
-                            float zero_point = 0.0f;
-                            if(i == 1) {
-                                zero_point = SIGN(CANMotorIF::motor_feedback[i].accumulate_angle()) > 0 ? 62.0f : -60.0f;
-                            } else {
-                                zero_point = SIGN(CANMotorIF::motor_feedback[i].accumulate_angle()) * 45.0f;
-                            }
-                            CANMotorIF::motor_feedback[i].actual_angle -= zero_point;
-                        }
-                    } else if (!WITHIN_RECENT_TIME(SYS_STARTTIME, CALIB_TIMEOUT_DELAY)){
-                        calibrated = true;
-                    }
-                    break;
-                case followMode:
-                    CANMotorCFG::enable_a2v[i] = true;
-                    CANMotorCFG::enable_v2i[i] = true;
-                    CANMotorSKD::set_target_angle((CANMotorCFG::motor_id_t) i,
-                                                  target_angle[i]);
-                    break;
-                case zeroVelMode:
-                    CANMotorCFG::enable_a2v[i] = false;
-                    CANMotorCFG::enable_v2i[i] = true;
-                    CANMotorSKD::set_target_vel((CANMotorCFG::motor_id_t) i,
-                                                0.0f);
+//                case calibrateMode:
+//                    CANMotorCFG::enable_a2v[i] = true;
+//                    CANMotorCFG::enable_v2i[i] = true;
+//                    CANMotorSKD::set_target_angle((CANMotorCFG::motor_id_t) i,
+//                                                  0.0f);
+//                    if(ABS_IN_RANGE(CANMotorIF::motor_feedback[i].actual_velocity, 5.0) && // Velocity low
+//                      !ABS_IN_RANGE(CANMotorIF::motor_feedback[i].accumulate_angle(), 15.0f) &&
+//                       WITHIN_RECENT_TIME(SYS_STARTTIME, CALIB_TIMEOUT_DELAY) && !calibrated) {
+//                        if(STUCK_STARTTIME == 0) {
+//                            STUCK_STARTTIME = SYSTIME;
+//                        } else if (!WITHIN_RECENT_TIME(STUCK_STARTTIME, CALIB_THRESHOLD_DELAY)) {
+//                            calibrated = true;
+//                            float zero_point = 0.0f;
+//                            if(i == 1) {
+//                                zero_point = SIGN(CANMotorIF::motor_feedback[i].accumulate_angle()) > 0 ? 62.0f : -60.0f;
+//                            } else {
+//                                zero_point = SIGN(CANMotorIF::motor_feedback[i].accumulate_angle()) * 45.0f;
+//                            }
+//                            CANMotorIF::motor_feedback[i].actual_angle -= zero_point;
+//                        }
+//                    } else if (!WITHIN_RECENT_TIME(SYS_STARTTIME, CALIB_TIMEOUT_DELAY)){
+//                        calibrated = true;
+//                    }
+//                    break;
+//                case followMode:
+//                    CANMotorCFG::enable_a2v[i] = true;
+//                    CANMotorCFG::enable_v2i[i] = true;
+//                    CANMotorSKD::set_target_angle((CANMotorCFG::motor_id_t) i,
+//                                                  target_angle[i]);
+//                    break;
+//                case zeroVelMode:
+//                    CANMotorCFG::enable_a2v[i] = false;
+//                    CANMotorCFG::enable_v2i[i] = true;
+//                    CANMotorSKD::set_target_vel((CANMotorCFG::motor_id_t) i,
+//                                                0.0f);
+//                    break;
+//                case calibrateMode:
+//                    break;
+                default:
                     break;
             }
         }
