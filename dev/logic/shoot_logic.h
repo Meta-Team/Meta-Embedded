@@ -15,6 +15,14 @@
 
 #include "ch.hpp"
 
+#include "shell.h"
+#include "shoot_scheduler.h"
+#include "referee_interface.h"
+#include "buzzer_scheduler.h"
+#include "vision_scheduler.h"
+#include "low_pass_filter.hpp"
+#include <cmath>
+
 #if defined(INFANTRY)
 #include "vehicle_infantry.h"
 #elif defined(SENTRY)

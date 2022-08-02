@@ -13,14 +13,6 @@
 
 #include "shoot_logic.h"
 
-#include "shell.h"
-#include "shoot_scheduler.h"
-#include "referee_interface.h"
-#include "buzzer_scheduler.h"
-#include "vision_scheduler.h"
-#include "low_pass_filter.hpp"
-#include <cmath>
-
 ShootLG::limit_mode_t ShootLG::mode = UNLIMITED_MODE;
 float ShootLG::angle_per_bullet = 0;
 int ShootLG::remaining_bullet_count = 0;

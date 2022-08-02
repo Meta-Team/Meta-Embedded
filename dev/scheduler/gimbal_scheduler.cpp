@@ -200,7 +200,9 @@ float GimbalSKD::get_feedback_velocity(GimbalSKD::angle_id_t angle) {
 }
 
 /// TODO: re-enable shell functions
+
 /***
+
 const Shell::Command GimbalSKD::shellCommands[] = {
         {"_g",              nullptr,                                                     GimbalSKD::cmdInfo,           nullptr},
         {"_g_enable_fb",    "Channel/All Feedback{Disabled,Enabled}",                    GimbalSKD::cmdEnableFeedback, nullptr},
@@ -291,5 +293,4 @@ DEF_SHELL_CMD_START(GimbalSKD::cmdEchoRaw)
     return true;
 DEF_SHELL_CMD_END
 ***/
-
 /** @} */

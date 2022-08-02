@@ -21,7 +21,7 @@
 #include <cmath>
 
 #if defined(INFANTRY)
-#include "vehicle/infantry/vehicle_infantry.h"
+#include "vehicle_infantry.h"
 #elif defined(HERO)
 #include "vehicle_hero.h"
 # elif defined(ut_chassis)

@@ -3,13 +3,6 @@
 //
 
 #include "referee_UI_logic.h"
-#include "shell.h"
-#include "common_macro.h"
-#include "capacitor_interface.h"
-#include "chassis_logic.h"
-#include "shoot_logic.h"
-#include "mecanum_chassis_scheduler.h"
-#include "vision_scheduler.h"
 
 const char RefereeUILG::cap_name[3] = {'c', 'a', 'p'};
 char RefereeUILG::cap_title[64];

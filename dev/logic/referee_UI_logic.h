@@ -8,7 +8,15 @@
 #include "referee_UI_update_scheduler.h"
 #include "ch.hpp"
 #include "hal.h"
-#include "math.h"
+#include <cmath>
+
+#include "shell.h"
+#include "common_macro.h"
+#include "capacitor_interface.h"
+#include "chassis_logic.h"
+#include "shoot_logic.h"
+#include "mecanum_chassis_scheduler.h"
+#include "vision_scheduler.h"
 
 class RefereeUILG {
 public:

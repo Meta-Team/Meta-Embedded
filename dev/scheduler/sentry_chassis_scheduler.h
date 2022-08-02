@@ -7,31 +7,25 @@
 
 #include "ch.hpp"
 #include "hal.h"
-
-#include "sentry_chassis_interface.h"
 #include "pid_controller.hpp"
 
 
-class SChassisSKD : public SChassisBase, public PIDControllerBase {
+class SChassisSKD {
 public:
 
     enum mode_t {
-        FORCED_RELAX_MODE,   // zero force (Still taking control of ChassisIF. External writing to target currents
-                             // will leads to conflicts.)
-        ABS_DEST_MODE,       // absolute position on the rail
-        PARAM_ADJUST_MODE    // TODO: make compatible for pa program
+        FORCED_RELAX_MODE,    ///< Stop immediately and then enter forced relax mode.
+        VELOCITY_MODE,        ///< Velocity control mode, for manual operation.
+        POSITION_MODE         ///< Absolute position on rail.
     };
 
     enum install_direction_t {
-        POSITIVE = 1,
-        NEGATIVE = -1
+        POSITIVE = 1,         ///< Axis CCW
+        NEGATIVE = -1         ///< Axis CW
     };
-
 
     static void start(install_direction_t left_motor_install, install_direction_t right_motor_install,
                       tprio_t thread_prio);
-
-    static void load_pid_params(pid_params_t sentry_a2v_params, pid_params_t sentry_v2i_params);
 
     static void reset_origin();
 
