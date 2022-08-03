@@ -74,8 +74,8 @@ The project use C++ class for encapsulation and modularization. The modules will
 ├── scheduler                           - 调度程序（包含控制算法） | Schedulers, contains thread performing control algorithms -
 │   ├── buzzer_scheduler.cpp              蜂鸣器 | Buzzer
 │   ├── buzzer_scheduler.h
-│   ├── CANMotorSKD.cpp           CAN电机调度程序 | Schedulers for CAN motors. Performing control algorithms (like PID)
-│   ├── CANMotorSKD.h
+│   ├── CANMotorController.cpp           CAN电机调度程序 | Schedulers for CAN motors. Performing control algorithms (like PID)
+│   ├── CANMotorController.h
 │   └── ...                               其他调度程序（近期更新） | Other Schedulers (Might Refactor Soon)
 ├── logic                               - 高级逻辑控制 | Higher Level Logic Control -
 │   ├── HapticLG.cpp                  重力模拟器逻辑控制，包含开机校准以及多种模式控制 | Haptic device logic control, contains startup calibration and multiple control modes

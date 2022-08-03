@@ -106,16 +106,16 @@ void GimbalSKD::SKDThread::main() {
                 /// Safe mode
                 CANMotorCFG::enable_v2i[CANMotorCFG::YAW] = false;
                 CANMotorCFG::enable_v2i[CANMotorCFG::PITCH] = false;
-                CANMotorSKD::set_target_current(CANMotorCFG::YAW, 0);
-                CANMotorSKD::set_target_current(CANMotorCFG::PITCH, 0);
+                CANMotorController::set_target_current(CANMotorCFG::YAW, 0);
+                CANMotorController::set_target_current(CANMotorCFG::PITCH, 0);
 #if ENABLE_SUBPITCH == TRUE
                 CANMotorCFG::enable_v2i[CANMotorCFG::SUB_PITCH] = false;
                 CANMotorSKD::set_target_current(CANMotorCFG::SUB_PITCH, 0);
 #endif
             } else {
                 /// Let CANMotorSKD perform the PID calculation.
-                CANMotorSKD::set_target_angle(CANMotorCFG::YAW, target_angle[YAW]);
-                CANMotorSKD::set_target_angle(CANMotorCFG::PITCH, target_angle[PITCH]);
+                CANMotorController::set_target_angle(CANMotorCFG::YAW, target_angle[YAW]);
+                CANMotorController::set_target_angle(CANMotorCFG::PITCH, target_angle[PITCH]);
 #if ENABLE_SUBPITCH == TRUE
                 CANMotorSKD::set_target_angle(CANMotorCFG::SUB_PITCH, target_angle[SUB_PITCH]);
 #endif
@@ -134,11 +134,11 @@ void GimbalSKD::set_mode(GimbalSKD::mode_t skd_mode) {
         case FORCED_RELAX_MODE:
             CANMotorCFG::enable_a2v[CANMotorCFG::YAW] = false;
             CANMotorCFG::enable_v2i[CANMotorCFG::YAW] = false;
-            CANMotorSKD::set_target_current(CANMotorCFG::YAW, 0);
+            CANMotorController::set_target_current(CANMotorCFG::YAW, 0);
 
             CANMotorCFG::enable_a2v[CANMotorCFG::PITCH] = false;
             CANMotorCFG::enable_v2i[CANMotorCFG::PITCH] = false;
-            CANMotorSKD::set_target_current(CANMotorCFG::PITCH, 0);
+            CANMotorController::set_target_current(CANMotorCFG::PITCH, 0);
 #if ENABLE_SUBPITCH == TRUE
             CANMotorCFG::enable_a2v[CANMotorCFG::SUB_PITCH] = false;
             CANMotorCFG::enable_v2i[CANMotorCFG::SUB_PITCH] = false;
@@ -147,32 +147,32 @@ void GimbalSKD::set_mode(GimbalSKD::mode_t skd_mode) {
             break;
 
         case GIMBAL_REF_MODE:
-            CANMotorSKD::register_custom_feedback(&feedback_angle[GimbalSKD::YAW],
-                                                  CANMotorSKD::angle,
-                                                  CANMotorCFG::YAW);
-            CANMotorSKD::register_custom_feedback(&feedback_velocity[GimbalSKD::YAW],
-                                                  CANMotorSKD::velocity,
-                                                  CANMotorCFG::YAW);
-            CANMotorSKD::register_custom_feedback(&feedback_angle[GimbalSKD::PITCH],
-                                                  CANMotorSKD::angle,
-                                                  CANMotorCFG::PITCH);
-            CANMotorSKD::register_custom_feedback(&feedback_velocity[GimbalSKD::PITCH],
-                                                  CANMotorSKD::velocity,
-                                                  CANMotorCFG::PITCH);
+            CANMotorController::register_custom_feedback(&feedback_angle[GimbalSKD::YAW],
+                                                         CANMotorController::angle,
+                                                         CANMotorCFG::YAW);
+            CANMotorController::register_custom_feedback(&feedback_velocity[GimbalSKD::YAW],
+                                                         CANMotorController::velocity,
+                                                         CANMotorCFG::YAW);
+            CANMotorController::register_custom_feedback(&feedback_angle[GimbalSKD::PITCH],
+                                                         CANMotorController::angle,
+                                                         CANMotorCFG::PITCH);
+            CANMotorController::register_custom_feedback(&feedback_velocity[GimbalSKD::PITCH],
+                                                         CANMotorController::velocity,
+                                                         CANMotorCFG::PITCH);
             CANMotorCFG::enable_a2v[CANMotorCFG::YAW] = true;
             CANMotorCFG::enable_v2i[CANMotorCFG::YAW] = true;
             CANMotorCFG::enable_a2v[CANMotorCFG::PITCH] = true;
             CANMotorCFG::enable_v2i[CANMotorCFG::PITCH] = true;
             break;
         case CHASSIS_REF_MODE:
-            CANMotorSKD::unregister_custom_feedback(CANMotorSKD::angle,
-                                                    CANMotorCFG::YAW);
-            CANMotorSKD::unregister_custom_feedback(CANMotorSKD::velocity,
-                                                    CANMotorCFG::YAW);
-            CANMotorSKD::unregister_custom_feedback(CANMotorSKD::angle,
-                                                    CANMotorCFG::PITCH);
-            CANMotorSKD::unregister_custom_feedback(CANMotorSKD::velocity,
-                                                    CANMotorCFG::PITCH);
+            CANMotorController::unregister_custom_feedback(CANMotorController::angle,
+                                                           CANMotorCFG::YAW);
+            CANMotorController::unregister_custom_feedback(CANMotorController::velocity,
+                                                           CANMotorCFG::YAW);
+            CANMotorController::unregister_custom_feedback(CANMotorController::angle,
+                                                           CANMotorCFG::PITCH);
+            CANMotorController::unregister_custom_feedback(CANMotorController::velocity,
+                                                           CANMotorCFG::PITCH);
 
             CANMotorCFG::enable_a2v[CANMotorCFG::YAW] = true;
             CANMotorCFG::enable_v2i[CANMotorCFG::YAW] = true;

@@ -16,7 +16,7 @@
 
 #include "ch.hpp"
 
-#include "can_motor_scheduler.h"
+#include "can_motor_controller.h"
 #include "pid_controller.hpp"
 
 /**

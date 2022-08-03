@@ -16,7 +16,7 @@
 #ifndef META_INFANTRY_CHASSIS_CONTROLLER_H
 #define META_INFANTRY_CHASSIS_CONTROLLER_H
 
-#include "can_motor_scheduler.h"
+#include "can_motor_controller.h"
 #include "scheduler_base.h"
 #include <cmath>
 

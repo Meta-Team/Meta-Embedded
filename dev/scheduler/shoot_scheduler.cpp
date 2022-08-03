@@ -80,25 +80,25 @@ void ShootSKD::SKDThread::main() {
 
             if (mode == LIMITED_SHOOTING_MODE) {
 
-                CANMotorSKD::set_target_angle(CANMotorCFG::BULLET_LOADER, -bullet_target_angle);
-                CANMotorSKD::set_target_vel(CANMotorCFG::FW_UP, -fw_target_velocity);
-                CANMotorSKD::set_target_vel(CANMotorCFG::FW_DOWN, fw_target_velocity);
+                CANMotorController::set_target_angle(CANMotorCFG::BULLET_LOADER, -bullet_target_angle);
+                CANMotorController::set_target_vel(CANMotorCFG::FW_UP, -fw_target_velocity);
+                CANMotorController::set_target_vel(CANMotorCFG::FW_DOWN, fw_target_velocity);
 
             } else if (mode == FORCED_RELAX_MODE) {
 
-                CANMotorSKD::set_target_current(CANMotorCFG::BULLET_LOADER, 0);
+                CANMotorController::set_target_current(CANMotorCFG::BULLET_LOADER, 0);
 
                 if(ABS_IN_RANGE(CANMotorIF::motor_feedback[CANMotorCFG::FW_UP].actual_velocity, 500)) {
                     CANMotorCFG::enable_v2i[CANMotorCFG::FW_UP] = false;
-                    CANMotorSKD::set_target_current(CANMotorCFG::FW_UP, 0);
+                    CANMotorController::set_target_current(CANMotorCFG::FW_UP, 0);
                 } else {
-                    CANMotorSKD::set_target_vel(CANMotorCFG::FW_UP, 0);
+                    CANMotorController::set_target_vel(CANMotorCFG::FW_UP, 0);
                 }
                 if(ABS_IN_RANGE(CANMotorIF::motor_feedback[CANMotorCFG::FW_DOWN].actual_velocity, 500)) {
                     CANMotorCFG::enable_v2i[CANMotorCFG::FW_DOWN] = false;
-                    CANMotorSKD::set_target_current(CANMotorCFG::FW_DOWN, 0);
+                    CANMotorController::set_target_current(CANMotorCFG::FW_DOWN, 0);
                 } else {
-                    CANMotorSKD::set_target_vel(CANMotorCFG::FW_DOWN, 0);
+                    CANMotorController::set_target_vel(CANMotorCFG::FW_DOWN, 0);
                 }
             }
         }

@@ -63,7 +63,7 @@ int main(void) {
     System::init();
 
     // Start button monitor threads.
-    buttonK0.start(NORMALPRIO);
+    buttonK0.start(NORMALPRIO, 0, 0, 0);
 
     // Start LED blink thread.
     blinkLEDThread.set_button_monitor(&buttonK0);

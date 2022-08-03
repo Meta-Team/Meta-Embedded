@@ -79,7 +79,7 @@ set(VEHICLE_COMMON_SRC
         dev/interface/can/can_interface.cpp
         dev/interface/can_motor/can_motor_feedback.cpp
         dev/interface/can_motor/can_motor_interface.cpp
-        dev/interface/can_motor/can_motor_scheduler.cpp
+        dev/interface/can_motor/can_motor_controller.cpp
         dev/interface/remote/remote_interpreter.cpp
         dev/interface/oled/oled_interface.cpp
         dev/common/CRC8.cpp
@@ -308,7 +308,7 @@ add_executable(ut_chassis
         ${VEHICLE_COMMON_SRC}
         ${AHRS_SRC}
         dev/application/unit_tests/ut_chassis/can_motor_config.cpp
-        dev/interface/can_motor/can_motor_scheduler.cpp
+        dev/interface/can_motor/can_motor_controller.cpp
         dev/scheduler/mecanum_chassis_scheduler.cpp
         dev/logic/chassis_logic.cpp
         dev/module/low_pass_filter.hpp

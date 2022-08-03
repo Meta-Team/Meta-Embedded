@@ -19,7 +19,7 @@
 #include "ch.hpp"
 #include "hardware_conf.h"
 
-#include "can_motor_scheduler.h"
+#include "can_motor_controller.h"
 #include "ahrs_abstract.h"
 #include "scheduler_base.h"
 

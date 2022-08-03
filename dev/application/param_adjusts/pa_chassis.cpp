@@ -195,8 +195,8 @@ int main(void) {
     install_mode_ = 1;
     w_to_v_ratio_ = (CHASSIS_WHEEL_BASE + CHASSIS_WHEEL_TREAD) / 2.0f / 360.0f * 3.14159f;
 
-    can1.start(HIGHPRIO-2, HIGHPRIO-3);
-    can2.start(HIGHPRIO, HIGHPRIO - 1);
+    can1.start(HIGHPRIO - 2, HIGHPRIO - 3, 0, 0);
+    can2.start(HIGHPRIO, HIGHPRIO - 1, 0, 0);
 
     chassisFeedbackThread.start(NORMALPRIO - 1);
     ChassisIF::motor_can_config_t CHASSIS_MOTOR_CONFIG_[ChassisIF::MOTOR_COUNT] = CHASSIS_MOTOR_CONFIG;

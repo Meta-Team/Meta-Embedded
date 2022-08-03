@@ -12,7 +12,7 @@
 #include "interface/led/led.h"
 #include "debug/shell/shell.h"
 #include "chassis_logic.h"
-#include "can_motor_scheduler.h"
+#include "can_motor_controller.h"
 #include "can_motor_interface.h"
 #include "remote_interpreter.h"
 #include "hardware_conf.h"
@@ -58,7 +58,7 @@ int main(void) {
     can1.start(NORMALPRIO);
     can2.start(NORMALPRIO+1);
     CANMotorIF::init(&can1, &can2);
-    CANMotorSKD::start(NORMALPRIO + 2, NORMALPRIO + 3);
+    CANMotorController::start(NORMALPRIO + 2, NORMALPRIO + 3, 0, 0);
     Remote::start();
     ChassisLG::init(NORMALPRIO+4, NORMALPRIO+5, 180.0f);
     ChassisLG::set_mode(ChassisLG::CHASSIS_REF_MODE);

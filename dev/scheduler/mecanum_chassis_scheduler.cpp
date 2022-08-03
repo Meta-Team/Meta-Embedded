@@ -50,10 +50,10 @@ void MecanumChassisSKD::set_mode(SKDBase::mode_t mode_) {
         CANMotorCFG::enable_v2i[CANMotorCFG::FR] = false;
         CANMotorCFG::enable_v2i[CANMotorCFG::BR] = false;
         CANMotorCFG::enable_v2i[CANMotorCFG::BL] = false;
-        CANMotorSKD::set_target_current(CANMotorCFG::FL, 0);
-        CANMotorSKD::set_target_current(CANMotorCFG::FR, 0);
-        CANMotorSKD::set_target_current(CANMotorCFG::BR, 0);
-        CANMotorSKD::set_target_current(CANMotorCFG::BL, 0);
+        CANMotorController::set_target_current(CANMotorCFG::FL, 0);
+        CANMotorController::set_target_current(CANMotorCFG::FR, 0);
+        CANMotorController::set_target_current(CANMotorCFG::BR, 0);
+        CANMotorController::set_target_current(CANMotorCFG::BL, 0);
     }
 }
 
@@ -70,21 +70,21 @@ void MecanumChassisSKD::SKDThread::main() {
                     CANMotorCFG::enable_v2i[CANMotorCFG::FR] = false;
                     CANMotorCFG::enable_v2i[CANMotorCFG::BR] = false;
                     CANMotorCFG::enable_v2i[CANMotorCFG::BL] = false;
-                    CANMotorSKD::set_target_current(CANMotorCFG::FL, 0);
-                    CANMotorSKD::set_target_current(CANMotorCFG::FR, 0);
-                    CANMotorSKD::set_target_current(CANMotorCFG::BR, 0);
-                    CANMotorSKD::set_target_current(CANMotorCFG::BL, 0);
+                    CANMotorController::set_target_current(CANMotorCFG::FL, 0);
+                    CANMotorController::set_target_current(CANMotorCFG::FR, 0);
+                    CANMotorController::set_target_current(CANMotorCFG::BR, 0);
+                    CANMotorController::set_target_current(CANMotorCFG::BL, 0);
                     break;
                 case CHASSIS_REF_MODE:
                     // Set the velocity in chassis coordinate.
-                    CANMotorSKD::set_target_vel(CANMotorCFG::FR, (float)install_mode *
-                                                                 (target_vx-target_vy + target_omega * w_to_v_ratio) * v_to_wheel_angular_velocity);
-                    CANMotorSKD::set_target_vel(CANMotorCFG::FL, (float)install_mode *
-                                                                 (target_vx+target_vy + target_omega * w_to_v_ratio) * v_to_wheel_angular_velocity);
-                    CANMotorSKD::set_target_vel(CANMotorCFG::BL, (float)install_mode *
-                                                                 (-target_vx+target_vy+ target_omega * w_to_v_ratio) * v_to_wheel_angular_velocity);
-                    CANMotorSKD::set_target_vel(CANMotorCFG::BR, (float)install_mode *
-                                                                 (-target_vx-target_vy+ target_omega * w_to_v_ratio) * v_to_wheel_angular_velocity);
+                    CANMotorController::set_target_vel(CANMotorCFG::FR, (float)install_mode *
+                                                                        (target_vx-target_vy + target_omega * w_to_v_ratio) * v_to_wheel_angular_velocity);
+                    CANMotorController::set_target_vel(CANMotorCFG::FL, (float)install_mode *
+                                                                        (target_vx+target_vy + target_omega * w_to_v_ratio) * v_to_wheel_angular_velocity);
+                    CANMotorController::set_target_vel(CANMotorCFG::BL, (float)install_mode *
+                                                                        (-target_vx+target_vy+ target_omega * w_to_v_ratio) * v_to_wheel_angular_velocity);
+                    CANMotorController::set_target_vel(CANMotorCFG::BR, (float)install_mode *
+                                                                        (-target_vx-target_vy+ target_omega * w_to_v_ratio) * v_to_wheel_angular_velocity);
                     break;
                 case GIMBAL_REF_MODE:
 
@@ -98,14 +98,14 @@ void MecanumChassisSKD::SKDThread::main() {
                     float chassis_vy = target_vx * sinf(gimbal_offset_angle / 180.0f * PI)
                                        + target_vy * cosf(gimbal_offset_angle / 180.0f * PI);
                     // Apply targets
-                    CANMotorSKD::set_target_vel(CANMotorCFG::FR, (float)install_mode *
-                                                                 (chassis_vx-chassis_vy + target_omega * w_to_v_ratio) * v_to_wheel_angular_velocity);
-                    CANMotorSKD::set_target_vel(CANMotorCFG::FL, (float)install_mode *
-                                                                 (chassis_vx+chassis_vy + target_omega * w_to_v_ratio) * v_to_wheel_angular_velocity);
-                    CANMotorSKD::set_target_vel(CANMotorCFG::BL, (float)install_mode *
-                                                                 (-chassis_vx+chassis_vy+ target_omega * w_to_v_ratio) * v_to_wheel_angular_velocity);
-                    CANMotorSKD::set_target_vel(CANMotorCFG::BR, (float)install_mode *
-                                                                 (-chassis_vx-chassis_vy+ target_omega * w_to_v_ratio) * v_to_wheel_angular_velocity);
+                    CANMotorController::set_target_vel(CANMotorCFG::FR, (float)install_mode *
+                                                                        (chassis_vx-chassis_vy + target_omega * w_to_v_ratio) * v_to_wheel_angular_velocity);
+                    CANMotorController::set_target_vel(CANMotorCFG::FL, (float)install_mode *
+                                                                        (chassis_vx+chassis_vy + target_omega * w_to_v_ratio) * v_to_wheel_angular_velocity);
+                    CANMotorController::set_target_vel(CANMotorCFG::BL, (float)install_mode *
+                                                                        (-chassis_vx+chassis_vy+ target_omega * w_to_v_ratio) * v_to_wheel_angular_velocity);
+                    CANMotorController::set_target_vel(CANMotorCFG::BR, (float)install_mode *
+                                                                        (-chassis_vx-chassis_vy+ target_omega * w_to_v_ratio) * v_to_wheel_angular_velocity);
                     break;
             }
         }

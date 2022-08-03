@@ -45,9 +45,9 @@ bool CANMotorCFG::enable_a2v[MOTOR_COUNT] {
         false,
         false,
         false,
-        true,
-        true,
-        true,
+        false,
+        false,
+        false,
         false,
         false
 };

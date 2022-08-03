@@ -37,7 +37,7 @@ void HapticLG::BackDrivabilityThread::main() {
                 case torqueMode:
                     CANMotorCFG::enable_a2v[i] = true;
                     CANMotorCFG::enable_v2i[i] = false;
-                    CANMotorSKD::set_target_current((CANMotorCFG::motor_id_t) i, target_current[i]);
+                    CANMotorController::set_target_current((CANMotorCFG::motor_id_t) i, target_current[i]);
                     break;
 //                case calibrateMode:
 //                    CANMotorCFG::enable_a2v[i] = true;

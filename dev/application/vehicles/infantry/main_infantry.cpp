@@ -140,7 +140,7 @@ int main() {
     LED::led_on(DEV_BOARD_LED_REMOTE);  // LED 4 on now
 
     /// Setup CAN
-    CANMotorIF::init(&can1, &can2);
+    CANMotorController::start(THREAD_MOTOR_SKD_PRIO, THREAD_FEEDBACK_SKD_PRIO, &can1, &can2);
 
     chThdSleepMilliseconds(2000);  // wait for C610 to be online and friction wheel to reset
     /// Check Gimbal Motors
@@ -166,8 +166,6 @@ int main() {
         CANMotorIF::motor_feedback[CANMotorCFG::PITCH].accumulate_angle());
 
     /// Start SKDs
-    CANMotorSKD::start(THREAD_MOTOR_SKD_PRIO, THREAD_FEEDBACK_SKD_PRIO);
-
     GimbalSKD::start(&ahrs, GIMBAL_ANGLE_INSTALLATION_MATRIX_, GIMBAL_GYRO_INSTALLATION_MATRIX_,
                      THREAD_GIMBAL_SKD_PRIO);
     /// TODO: Re-enable shell commands

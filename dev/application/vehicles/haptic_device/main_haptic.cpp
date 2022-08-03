@@ -24,7 +24,7 @@
 #include "DEBUG_CHECK.h"
 #include "can_motor_interface.h"
 #include "Inspector.h"
-#include "can_motor_scheduler.h"
+#include "can_motor_controller.h"
 #include "haptic_logic.h"
 
 #else
@@ -116,7 +116,7 @@ int main() {
     /*** ------------ Period 2. Calibration and Start Logic Control Thread ----------- ***/
 
     /// Start SKDs
-    CANMotorSKD::start(THREAD_MOTOR_SKD_PRIO, THREAD_FEEDBACK_SKD_PRIO);
+    CANMotorController::start(THREAD_MOTOR_SKD_PRIO, THREAD_FEEDBACK_SKD_PRIO, 0, 0);
 
     /// Complete Period 2
     LED::led_on(DEV_BOARD_LED_CHASSIS);  // LED 5 on now

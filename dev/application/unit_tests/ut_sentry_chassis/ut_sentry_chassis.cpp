@@ -12,7 +12,7 @@
 #include "buzzer_scheduler.h"
 // Other headers here
 #include "can_motor_config.h"
-#include "can_motor_scheduler.h"
+#include "can_motor_controller.h"
 #include "remote_interpreter.h"
 
 CANInterface can1(&CAND1);
@@ -28,7 +28,7 @@ class UTSentryChassisThread : public BaseStaticThread<512> {
                         i = false;
                     }
                     for (int i = 0; i < CANMotorCFG::MOTOR_COUNT; i++) {
-                        CANMotorSKD::set_target_vel((CANMotorCFG::motor_id_t) i, 0.0f);
+                        CANMotorController::set_target_vel((CANMotorCFG::motor_id_t) i, 0.0f);
                     }
                     sleep(TIME_MS2I(1000));
                 }
@@ -36,7 +36,7 @@ class UTSentryChassisThread : public BaseStaticThread<512> {
                     i = false;
                 }
                 for (int i = 0; i < CANMotorCFG::MOTOR_COUNT; i++) {
-                    CANMotorSKD::set_target_current((CANMotorCFG::motor_id_t)i, 0);
+                    CANMotorController::set_target_current((CANMotorCFG::motor_id_t)i, 0);
                 }
                 LED::led_off(1);
             } else if (Remote::rc.s1 == Remote::S_MIDDLE) {
@@ -45,7 +45,7 @@ class UTSentryChassisThread : public BaseStaticThread<512> {
                     i = true;
                 }
                 for (int i = 0; i < CANMotorCFG::MOTOR_COUNT; i++) {
-                    CANMotorSKD::set_target_vel((CANMotorCFG::motor_id_t)i, Remote::rc.ch0 * 500.0f);
+                    CANMotorController::set_target_vel((CANMotorCFG::motor_id_t)i, Remote::rc.ch0 * 500.0f);
                 }
             }
             sleep(TIME_MS2I(5));
@@ -69,7 +69,7 @@ int main(void) {
     // Initiate CAN Motor interface
     CANMotorIF::init(&can1, &can2);
     chThdSleepMilliseconds(500);
-    CANMotorSKD::start(HIGHPRIO - 3, HIGHPRIO - 4);
+    CANMotorController::start(HIGHPRIO - 3, HIGHPRIO - 4, 0, 0);
     chThdSleepMilliseconds(500);
     // Initiate remote controller
     Remote::start();

@@ -18,15 +18,17 @@
 
 using namespace chibios_rt;
 
-class CANMotorSKD: private CANMotorCFG{
+class CANMotorController: private CANMotorCFG{
 public:
 
     /**
      * @brief           Start CAN motor scheduler thread.
      * @param SKD_PRIO  [in] Scheduler thread priority, motor controllers calculations.
      * @param FB_PRIO   [in] Feedback thread priority, log motor feedback data on shell.
+     * @param can1_     [in/out] CAN interface for CAN channel 1.
+     * @param can2_     [in/out] CAN interface for CAN channel 2.
      */
-    static void start(tprio_t SKD_PRIO, tprio_t FB_PRIO);
+    static void start(tprio_t SKD_PRIO, tprio_t FB_PRIO, CANInterface *can1_, CANInterface *can2_);
 
     /**
      * @brief           Load PID parameters.
@@ -118,7 +120,7 @@ private:
         float PID_output[MOTOR_COUNT];
         void main() final;
         friend feedbackThread;
-        friend CANMotorSKD;
+        friend CANMotorController;
     };
     static skdThread SKDThread;
 

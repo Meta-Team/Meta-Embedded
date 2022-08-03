@@ -10,26 +10,27 @@
  * @{
  */
 
-#include "can_motor_scheduler.h"
+#include "can_motor_controller.h"
 
-CANMotorSKD::feedbackThread CANMotorSKD::FeedbackThread;
-CANMotorSKD::skdThread CANMotorSKD::SKDThread;
-PIDController CANMotorSKD::v2iController[MOTOR_COUNT];
-PIDController CANMotorSKD::a2vController[MOTOR_COUNT];
-float *CANMotorSKD::feedbackV[MOTOR_COUNT];
-float *CANMotorSKD::feedbackA[MOTOR_COUNT];
+CANMotorController::feedbackThread CANMotorController::FeedbackThread;
+CANMotorController::skdThread CANMotorController::SKDThread;
+PIDController CANMotorController::v2iController[MOTOR_COUNT];
+PIDController CANMotorController::a2vController[MOTOR_COUNT];
+float *CANMotorController::feedbackV[MOTOR_COUNT];
+float *CANMotorController::feedbackA[MOTOR_COUNT];
 
-void CANMotorSKD::start(tprio_t SKD_PRIO, tprio_t FB_PRIO) {
+void CANMotorController::start(tprio_t SKD_PRIO, tprio_t FB_PRIO, CANInterface *can1_, CANInterface *can2_) {
+    CANMotorIF::init(can1_, can2_);
     SKDThread.start(SKD_PRIO);
     FeedbackThread.start(FB_PRIO);
     for (int i = 0; i < MOTOR_COUNT; i++) {
-        CANMotorSKD::feedbackV[i] = nullptr;
-        CANMotorSKD::feedbackA[i] = nullptr;
+        CANMotorController::feedbackV[i] = nullptr;
+        CANMotorController::feedbackA[i] = nullptr;
     }
 }
 
-void CANMotorSKD::load_PID_params(motor_id_t id, bool is_a2v, PIDController::pid_params_t params) {
-    if(id < 0 || id > MOTOR_COUNT) return; // Check validation
+void CANMotorController::load_PID_params(motor_id_t id, bool is_a2v, PIDController::pid_params_t params) {
+    if(id < 0 || id >= MOTOR_COUNT) return; // Check validation
     if(is_a2v) {
         a2vController[id].change_parameters(params);
     } else {
@@ -37,32 +38,32 @@ void CANMotorSKD::load_PID_params(motor_id_t id, bool is_a2v, PIDController::pid
     }
 }
 
-void CANMotorSKD::switch_feedback_motor(motor_id_t id) {
+void CANMotorController::switch_feedback_motor(motor_id_t id) {
     FeedbackThread.disp_id = id;
 }
 
-int  CANMotorSKD::get_torque_current(motor_id_t id){
+int  CANMotorController::get_torque_current(motor_id_t id){
     return CANMotorIF::motor_feedback[id].torque_current();
 }
 
-int  CANMotorSKD::get_PID_current(motor_id_t id) {
+int  CANMotorController::get_PID_current(motor_id_t id) {
     return (int)SKDThread.PID_output[id];
 }
 
-void CANMotorSKD::set_target_angle(motor_id_t id, float target) {
+void CANMotorController::set_target_angle(motor_id_t id, float target) {
     SKDThread.targetA[id] = target;
 }
 
-void CANMotorSKD::set_target_vel(motor_id_t id, float target) {
+void CANMotorController::set_target_vel(motor_id_t id, float target) {
     SKDThread.targetV[id] = target;
 }
 
-void CANMotorSKD::set_target_current(motor_id_t id, int target) {
+void CANMotorController::set_target_current(motor_id_t id, int target) {
     SKDThread.output[id] = target;
 }
 
-void CANMotorSKD::register_custom_feedback(float *feedback_addr, CANMotorSKD::feedback_type_t fb_type,
-                                           CANMotorCFG::motor_id_t motor_id) {
+void CANMotorController::register_custom_feedback(float *feedback_addr, CANMotorController::feedback_type_t fb_type,
+                                                  CANMotorCFG::motor_id_t motor_id) {
     switch (fb_type) {
 
         case angle:
@@ -74,7 +75,7 @@ void CANMotorSKD::register_custom_feedback(float *feedback_addr, CANMotorSKD::fe
     }
 }
 
-void CANMotorSKD::unregister_custom_feedback(CANMotorSKD::feedback_type_t fb_type, CANMotorCFG::motor_id_t motor_id) {
+void CANMotorController::unregister_custom_feedback(CANMotorController::feedback_type_t fb_type, CANMotorCFG::motor_id_t motor_id) {
     switch (fb_type) {
         case angle:
             feedbackA[motor_id] = nullptr;
@@ -85,7 +86,7 @@ void CANMotorSKD::unregister_custom_feedback(CANMotorSKD::feedback_type_t fb_typ
     }
 }
 
-void CANMotorSKD::skdThread::main() {
+void CANMotorController::skdThread::main() {
     setName("HapticSKDThread");
     for(int i = 0; i < MOTOR_COUNT; i++) {
         v2iController[i].change_parameters(v2iParams[i]);
@@ -148,7 +149,7 @@ void CANMotorSKD::skdThread::main() {
     }
 }
 
-void CANMotorSKD::feedbackThread::main() {
+void CANMotorController::feedbackThread::main() {
     setName("feedback");
     while(!shouldTerminate()) {
         if(disp_id >= 0 && disp_id < MOTOR_COUNT) {
