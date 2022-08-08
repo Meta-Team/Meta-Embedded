@@ -29,10 +29,10 @@ void AHRSExt::update(CANRxFrame const *rxmsg) {
         angle.z = ((union conv32) {.ui32 = rxmsg->data32[1]}).fp32;  // roll
     } else if (rxmsg->SID == 0x0B) {
         angle.x = ((union conv32) {.ui32 = rxmsg->data32[0]}).fp32;  // yaw
-        accel_orig.x = ACCEL_PSC * (int16_t) rxmsg->data16[2];
-        accel_orig.y = ACCEL_PSC * (int16_t) rxmsg->data16[3];
+        accel_orig.x = ACCEL_PSC * (float)(int16_t) rxmsg->data16[2];
+        accel_orig.y = ACCEL_PSC * (float)(int16_t) rxmsg->data16[3];
     } else if (rxmsg->SID == 0x0C) {
-        accel_orig.z = ACCEL_PSC * (int16_t) rxmsg->data16[0];
+        accel_orig.z = ACCEL_PSC * (float)(int16_t) rxmsg->data16[0];
 
 
         // Perform gyro process only after final package

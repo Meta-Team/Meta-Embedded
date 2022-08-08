@@ -67,9 +67,8 @@ int main(void) {
     can2.start(HIGHPRIO - 2);
     chThdSleepMilliseconds(500);
     // Initiate CAN Motor interface
-    CANMotorIF::init(&can1, &can2);
     chThdSleepMilliseconds(500);
-    CANMotorController::start(HIGHPRIO - 3, HIGHPRIO - 4, 0, 0);
+    CANMotorController::start(HIGHPRIO - 3, HIGHPRIO - 4, &can1, &can2);
     chThdSleepMilliseconds(500);
     // Initiate remote controller
     Remote::start();

@@ -4,7 +4,9 @@
 
 #include "inspector_sentry.h"
 
+#if ENABLE_AHRS
 AbstractAHRS *InspectorS::ahrs = nullptr;
+#endif
 CANInterface *InspectorS::can1 = nullptr;
 CANInterface *InspectorS::can2 = nullptr;
 
@@ -14,10 +16,15 @@ bool InspectorS::remote_failure_ = false;
 
 InspectorS::InspectorThread InspectorS::inspectorThread;
 
-void InspectorS::init(CANInterface *can1_, CANInterface *can2_, AbstractAHRS *ahrs_) {
+void InspectorS::init(CANInterface *can1_, CANInterface *can2_
+#if ENABLE_AHRS
+                      , AbstractAHRS *ahrs_) {
+    ahrs = ahrs_;
+#else
+    ){
+#endif
     can1 = can1_;
     can2 = can2_;
-    ahrs = ahrs_;
 }
 
 void InspectorS::start_inspection(tprio_t thread_prio) {
@@ -37,6 +44,7 @@ void InspectorS::startup_check_can() {
     }
 }
 
+#if ENABLE_AHRS
 void InspectorS::startup_check_mpu() {
     time_msecs_t t = SYSTIME;
     while (WITHIN_RECENT_TIME(t, 20)) {
@@ -58,6 +66,7 @@ void InspectorS::startup_check_ist() {
         chThdSleepMilliseconds(5);
     }
 }
+#endif
 
 void InspectorS::startup_check_remote() {
     time_msecs_t t = SYSTIME;
@@ -72,12 +81,12 @@ void InspectorS::startup_check_remote() {
 void InspectorS::startup_check_chassis_feedback() {
     time_msecs_t t = SYSTIME;
     while (WITHIN_RECENT_TIME(t, 20)) {
-        if (not WITHIN_RECENT_TIME(SChassisIF::feedback[SChassisIF::MOTOR_LEFT].last_update_time, 5)) {
+        if (not WITHIN_RECENT_TIME(CANMotorIF::motor_feedback[CANMotorCFG::MOTOR_LEFT].last_update_time, 5)) {
             // No feedback in last 5 ms (normal 1 ms)
             LOG_ERR("Startup - Chassis MOTOR_LEFT offline.");
             t = SYSTIME;  // reset the counter
         }
-        if (not WITHIN_RECENT_TIME(SChassisIF::feedback[SChassisIF::MOTOR_RIGHT].last_update_time, 5)) {
+        if (not WITHIN_RECENT_TIME(CANMotorIF::motor_feedback[CANMotorCFG::MOTOR_RIGHT].last_update_time, 5)) {
             // No feedback in last 5 ms (normal 1 ms)
             LOG_ERR("Startup - Chassis MOTOR_RIGHT offline.");
             t = SYSTIME;  // reset the counter
@@ -89,17 +98,17 @@ void InspectorS::startup_check_chassis_feedback() {
 void InspectorS::startup_check_gimbal_feedback() {
     time_msecs_t t = SYSTIME;
     while (WITHIN_RECENT_TIME(t, 20)) {
-        if (not WITHIN_RECENT_TIME(GimbalIF::feedback[GimbalIF::YAW].last_update_time, 5)) {
+        if (not WITHIN_RECENT_TIME(CANMotorIF::motor_feedback[CANMotorCFG::YAW].last_update_time, 5)) {
             // No feedback in last 5 ms (normal 1 ms)
             LOG_ERR("Startup - Gimbal Yaw offline.");
             t = SYSTIME;  // reset the counter
         }
-        if (not WITHIN_RECENT_TIME(GimbalIF::feedback[GimbalIF::PITCH].last_update_time, 5)) {
+        if (not WITHIN_RECENT_TIME(CANMotorIF::motor_feedback[CANMotorCFG::PITCH].last_update_time, 5)) {
             // No feedback in last 5 ms (normal 1 ms)
             LOG_ERR("Startup - Gimbal Pitch offline.");
             t = SYSTIME;  // reset the counter
         }
-        if (not WITHIN_RECENT_TIME(GimbalIF::feedback[GimbalIF::BULLET].last_update_time, 5)) {
+        if (not WITHIN_RECENT_TIME(CANMotorIF::motor_feedback[CANMotorCFG::BULLET_LOADER].last_update_time, 5)) {
             // No feedback in last 5 ms (normal 1 ms)
             LOG_ERR("Startup - Gimbal Bullet offline.");
             t = SYSTIME;  // reset the counter
@@ -122,8 +131,8 @@ bool InspectorS::remote_failure() {
 
 bool InspectorS::check_gimbal_failure() {
     bool ret = false;
-    for (unsigned i = 0; i < 3; i++) {
-        if (not WITHIN_RECENT_TIME(GimbalIF::feedback[i].last_update_time, 20)) {
+    for (unsigned i = CANMotorCFG::YAW; i < CANMotorCFG::MOTOR_COUNT; i++) {
+        if (not WITHIN_RECENT_TIME(CANMotorIF::motor_feedback[i].last_update_time, 20)) {
             if (!gimbal_failure_) {  // avoid repeating printing
                 LOG_ERR("Gimbal motor %u offline", i);
             }
@@ -135,8 +144,8 @@ bool InspectorS::check_gimbal_failure() {
 
 bool InspectorS::check_chassis_failure() {
     bool ret = false;
-    for (unsigned i = 0; i < SChassisIF::MOTOR_COUNT; i++) {
-        if (not WITHIN_RECENT_TIME(SChassisIF::feedback[i].last_update_time, 20)) {
+    for (unsigned i = CANMotorCFG::MOTOR_LEFT; i < CANMotorCFG::MOTOR_RIGHT + 1; i++) {
+        if (not WITHIN_RECENT_TIME(CANMotorIF::motor_feedback[i].last_update_time, 20)) {
             if (!chassis_failure_) {  // avoid repeating printing
                 LOG_ERR("Chassis motor %u offline", i);
             }

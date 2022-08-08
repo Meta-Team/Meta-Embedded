@@ -9,8 +9,9 @@
 #include "hal.h"
 
 #include "ahrs_abstract.h"
+#include "ahrs_lib.h"
 
-#include "interface/can/can_interface.h"
+#include "can_interface.h"
 
 /**
  * @name AHRSExt
@@ -67,10 +68,38 @@ public:
      * @param can_interface initialized yaw, pitch and bullet_loader motor
      */
     void start(CANInterface *can_interface);
+    /**
+ * Get data from gyroscope (rotated with mpu_rotation_matrix)
+ * @return Rotated gyro data from gyroscope [deg/s]
+ */
+    Vector3D get_gyro() override { return gyro_deg;  /* rotated */ }
+
+    /**
+     * Get data from accelerometer (rotated with mpu_rotation_matrix)
+     * @return Rotated acceleration data from accelerometer [m/s^2]
+     */
+    Vector3D get_accel() override { return accel;  /* rotated */ }
+
+    /**
+     * Get magnet data
+     * @return Magnet data [uT]
+     */
+    Vector3D get_magnet() override { return magnet; }
+
+    /**
+     * Get board angle
+     * @return Board angle [degree]
+     * @note x - yaw, y - pitch, z - roll
+     */
+    Vector3D get_angle() override { return angle; }
 
     AHRSExt() { inst = this; };
 
 private:
+
+    Vector3D angle;
+    Vector3D gyro;
+    Vector3D accel;
 
     Vector3D gyro_orig;   // raw (biased) data of gyro
     Vector3D accel_orig;  // raw (not rotated) data from accel
@@ -106,6 +135,10 @@ private:
         float fp32;
         uint32_t ui32;
     };
+
+    time_msecs_t mpu_update_time = 0;
+    time_msecs_t ist_update_time = 0;
+    time_msecs_t ahrs_update_time = 0;
 
     friend void cmd_echo_gyro_bias(BaseSequentialStream *chp, int argc, char *argv[]);
 

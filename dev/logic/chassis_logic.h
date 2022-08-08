@@ -54,8 +54,10 @@ public:
     enum chassis_mode_t {
         FORCE_RELAX_MODE,   ///< Zero force (but still taking control of GimbalIF).
         CHASSIS_REF_MODE,   ///< Chassis Reference.
+#if ENABLE_AHRS
         GIMBAL_REF_MODE,    ///< Gimbal Reference.
         DODGE               ///< Gimbal Reference. Chassis rotation mode.
+#endif
     };
 
     /**
@@ -142,7 +144,7 @@ private:
      * @brief Thread for handling motion of chassis. (Auto Straightening, dodge omega setting)
      */
     class MotionControllerThread : public chibios_rt::BaseStaticThread<512> {
-        static constexpr unsigned CHASSIS_LG_INTERVAL = 5; //[ms]
+        static constexpr unsigned MTN_CTL_INTERVAL = 2; //[ms]
         void main() final;
     };
 

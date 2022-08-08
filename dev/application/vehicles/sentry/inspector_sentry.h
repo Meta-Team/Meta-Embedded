@@ -6,14 +6,18 @@
 #define META_SENTRY_INSPECTOR_H
 
 #include "ch.hpp"
+#include "hardware_conf.h"
 
 #include "buzzer_scheduler.h"
 
-#include "interface/can/can_interface.h"
+#include "can_interface.h"
+#include "can_motor_interface.h"
+
+#if ENABLE_AHRS
 #include "ahrs_abstract.h"
+#endif
+
 #include "remote_interpreter.h"
-#include "sentry_chassis_interface.h"
-#include "gimbal_interface.h"
 #include "vehicle_sentry.h"
 
 #if defined(SENTRY)
@@ -26,13 +30,19 @@ class InspectorS {
 
 public:
 
-    static void init(CANInterface *can1_, CANInterface *can2_, AbstractAHRS *ahrs_);
+    static void init(CANInterface *can1_, CANInterface *can2_
+#if ENABLE_AHRS
+                     , AbstractAHRS *ahrs_);
+
+    static void startup_check_mpu();
+    static void startup_check_ist();
+#else
+    );
+#endif
 
     static void start_inspection(tprio_t thread_prio);
 
     static void startup_check_can();
-    static void startup_check_mpu();
-    static void startup_check_ist();
     static void startup_check_remote();
     static void startup_check_gimbal_feedback();
     static void startup_check_chassis_feedback();
@@ -42,8 +52,9 @@ public:
     static bool remote_failure();
 
 private:
-
+#if ENABLE_AHRS
     static AbstractAHRS *ahrs;
+#endif
     static CANInterface *can1;
     static CANInterface *can2;
 

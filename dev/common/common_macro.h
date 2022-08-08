@@ -5,6 +5,8 @@
 #ifndef META_INFANTRY_COMMON_MACRO_H
 #define META_INFANTRY_COMMON_MACRO_H
 
+#include "random"
+
 #define ABS_CROP(n, limit) do { \
     if (n > limit) n = limit; \
     if (n < -(limit)) n = -(limit); \

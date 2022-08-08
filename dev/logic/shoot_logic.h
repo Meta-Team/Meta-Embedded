@@ -59,7 +59,7 @@ public:
     /**
      * Initialize this module
      * @param angle_per_bullet_            Angle for bullet loader to rotate to fill one bullet [degree]
-     * @param use_42mm_bullet
+     * @param use_42mm_bullet              Boolean, whether to use 42mm bullet.
      * @param stuck_detector_thread_prio   Thread priority for stuck detector thread
      * @param bullet_counter_thread_prio   Thread priority for bullet counter thread
      * @param vision_shooting_thread_prio  Thread priority for Vision automatic shooting thread

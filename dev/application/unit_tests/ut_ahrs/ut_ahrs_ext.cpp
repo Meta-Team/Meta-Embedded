@@ -17,7 +17,7 @@ using namespace chibios_rt;
 
 CANInterface can1(&CAND1);
 CANInterface can2(&CAND2);
-AHRSExt ahrs;
+AHRSExt *ahrs;
 
 static constexpr Matrix33 ANGLE_INSTALLATION_MATRIX = {{1.0f, 0.0f, 0.0f},
                                                        {0.0f, 0.0f, -1.0f},
@@ -32,8 +32,8 @@ protected:
     void main() final {
         setName("ahrs_ext");
         while (!shouldTerminate()) {
-            Vector3D angle = ahrs.get_angle() * ANGLE_INSTALLATION_MATRIX;
-            Vector3D gyro = ahrs.get_gyro() * GYRO_INSTALLATION_MATRIX;
+            Vector3D angle = ANGLE_INSTALLATION_MATRIX * ahrs -> get_angle();
+            Vector3D gyro = GYRO_INSTALLATION_MATRIX * ahrs -> get_gyro();
 
 //            Shell::printf("!a,%.4f,%.4f,%.4f" SHELL_NEWLINE_STR,
 //                          angle.x,

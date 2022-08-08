@@ -4,44 +4,28 @@
 
 #include "user_sentry.h"
 
-time_msecs_t UserS::blind_mode_start_time;
-
-UserS::sentry_mode_t UserS::sentryMode = FORCED_RELAX_MODE;
-
-/// Gimbal Config
-float UserS::yaw_sensitivity[3] = {20, 60, 90};  // [Slow, Normal, Fast] [degree/s]
-float UserS::pitch_sensitivity[3] = {10, 20, 30};   // [Slow, Normal, Fast] [degree/s]
-float UserS::gimbal_yaw_target_angle_ = 0;
-float UserS::gimbal_pitch_target_angle_ = 0;
+/// Gimbal config
 float UserS::gimbal_yaw_min_angle = -160; // left range for yaw [degree]
 float UserS::gimbal_yaw_max_angle = 160; // right range for yaw [degree]
 float UserS::gimbal_pitch_min_angle = -50; // down range for pitch [degree]
 float UserS::gimbal_pitch_max_angle = 0; //  up range for pitch [degree]
 
-/// Chassis Config
+/// Chassis config
 float UserS::chassis_v = 80.0f;  // [cm/s]
 
-/// Shoot Config
-bool UserS::shoot_power_on = true;
-float UserS::shoot_launch_left_count = 5;
-float UserS::shoot_launch_right_count = 999;
+/// Shoot config
+float UserS::shoot_feed_rate = 5.0; // [bullets/s]
+float UserS::shoot_fw_speed = 42150; // [deg/s] ????
 
-float UserS::shoot_launch_speed = 5.0f;
+/// Runtime variables
+float UserS::gimbal_yaw_target_angle_ = 0;
+float UserS::gimbal_pitch_target_angle_ = 0;
 
-float UserS::shoot_common_duty_cycle = 0.3;
-
-bool UserS::fire = false;
-
-
-/// Variables
+/// User thread
 UserS::UserThread UserS::userThread;
-//UserS::VitualUserThread UserS::vitualUserThread;
-//chibios_rt::ThreadReference UserS::vitualUserThreadReference;
 
-void UserS::start(tprio_t user_thd_prio, tprio_t v_user_thd_prio) {
+void UserS::start(tprio_t user_thd_prio) {
     userThread.start(user_thd_prio);
-//    vitualUserThread.started = true;
-//    vitualUserThreadReference = vitualUserThread.start(v_user_thd_prio);
 }
 
 /**
@@ -222,17 +206,19 @@ void UserS::UserThread::main() {
 //            }
 
 //        }
+        /*** ---------------------------------- Chassis --------------------------------- ***/
 
-        if (Remote::rc.s1 == Remote::S_UP) {
-            SChassisLG::set_mode(SChassisLG::FORCED_RELAX_MODE);
-        } else if (Remote::rc.s1 == Remote::S_MIDDLE) {
-            SChassisLG::set_mode(SChassisLG::MANUAL_MODE);
+        if (!InspectorS::chassis_failure() && !InspectorS::remote_failure()) {
+            if (Remote::rc.s1 == Remote::S_UP) {
+                SChassisLG::set_mode(SChassisLG::FORCED_RELAX_MODE);
+            } else if (Remote::rc.s1 == Remote::S_MIDDLE) {
+                SChassisLG::set_mode(SChassisLG::MANUAL_MODE);
+                SChassisLG::set_velocity(Remote::rc.ch2 * UserS::chassis_v);
+            } else {
+                SChassisLG::set_mode(SChassisLG::AUTO_MODE);
+            }
         } else {
-            SChassisLG::set_mode(SChassisLG::SHUTTLE_MODE);
-        }
-
-        if (SChassisLG::get_mode() == SChassisLG::MANUAL_MODE) {
-            SChassisLG::set_dest(SChassisLG::get_dest() + Remote::rc.ch0 * .3f);
+            SChassisLG::set_mode(SChassisLG::FORCED_RELAX_MODE);
         }
 
         /// Final

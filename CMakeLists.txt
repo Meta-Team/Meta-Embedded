@@ -92,6 +92,12 @@ set(AHRS_SRC
         dev/interface/ahrs/ahrs_lib_middleware.c
         dev/interface/ahrs/imu_on_board.cpp)
 
+set(AHRS_EXT_SRC
+        dev/interface/ahrs/ahrs_math.hpp
+        dev/interface/ahrs/ahrs_ext.cpp
+        dev/interface/ahrs/ahrs_lib_middleware.c
+        dev/interface/ahrs/imu_on_board.cpp)
+
 set(AHRS_LIB
         ${PROJECT_SOURCE_DIR}/dev/interface/ahrs/ahrs_lib.lib)
 
@@ -218,9 +224,14 @@ target_link_libraries(HAPTIC_DVC ${AHRS_LIB})
 # Main Program -- Sentry
 add_executable(SENTRY
         ${VEHICLE_COMMON_SRC}
-        ${AHRS_SRC}
+        ${AHRS_EXT_SRC}
         dev/scheduler/sentry_chassis_scheduler.cpp
         dev/logic/sentry_chassis_logic.cpp
+
+        dev/application/vehicles/sentry/inspector_sentry.cpp
+        dev/application/vehicles/sentry/can_motor_config.cpp
+        dev/application/vehicles/sentry/user_sentry.cpp
+        dev/application/vehicles/sentry/main_sentry.cpp
         )
 target_include_directories(SENTRY PRIVATE dev/application/vehicles/sentry)
 target_compile_definitions(SENTRY PRIVATE SENTRY)

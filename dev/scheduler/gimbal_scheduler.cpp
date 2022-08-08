@@ -11,16 +11,17 @@
 
 #include "gimbal_scheduler.h"
 #include <cmath>
-
+#if ENABLE_AHRS
 Matrix33 GimbalSKD::ahrs_angle_rotation;
 Matrix33 GimbalSKD::ahrs_gyro_rotation;
+AbstractAHRS *GimbalSKD::gimbal_ahrs = nullptr;
+#endif
 GimbalSKD::mode_t GimbalSKD::mode = FORCED_RELAX_MODE;
 
 float GimbalSKD::target_angle[GIMBAL_MOTOR_COUNT] = {0};
 float GimbalSKD::last_angle[GIMBAL_MOTOR_COUNT] = {0};
 float GimbalSKD::feedback_angle[GIMBAL_MOTOR_COUNT] = {0};
 GimbalSKD::SKDThread GimbalSKD::skd_thread;
-AbstractAHRS *GimbalSKD::gimbal_ahrs = nullptr;
 float GimbalSKD::feedback_velocity[GIMBAL_MOTOR_COUNT] = {0};
 #if ENABLE_SUBPITCH == FALSE
 GimbalSKD::install_direction_t GimbalSKD::install_direction[GIMBAL_MOTOR_COUNT] = {POSITIVE, POSITIVE};
@@ -28,8 +29,8 @@ GimbalSKD::install_direction_t GimbalSKD::install_direction[GIMBAL_MOTOR_COUNT] 
 GimbalSKD::install_direction_t GimbalSKD::install_direction[GIMBAL_MOTOR_COUNT] = {POSITIVE, POSITIVE, POSITIVE};
 #endif
 
+#if ENABLE_AHRS
 void GimbalSKD::start(AbstractAHRS *gimbal_ahrs_, const Matrix33 ahrs_angle_rotation_, const Matrix33 ahrs_gyro_rotation_, tprio_t thread_prio) {
-
     gimbal_ahrs = gimbal_ahrs_;
     for (int i = 0; i < 3; i++) {
         for (int j = 0; j < 3; j++) {
@@ -44,6 +45,11 @@ void GimbalSKD::start(AbstractAHRS *gimbal_ahrs_, const Matrix33 ahrs_angle_rota
     last_angle[PITCH] = ahrs_angle.y * (float)install_direction[PITCH];
     skd_thread.start(thread_prio);
 }
+#else
+void GimbalSKD::start(tprio_t thread_prio) {
+    skd_thread.start(thread_prio);
+}
+#endif
 
 void GimbalSKD::set_target_angle(float yaw_target_angle, float pitch_target_angle, float sub_pitch_target_angle) {
     target_angle[GimbalSKD::YAW] = yaw_target_angle;
@@ -68,6 +74,7 @@ void GimbalSKD::SKDThread::main() {
         chSysLock();  /// S-Lock State
         {
             /// Update angles
+#if ENABLE_AHRS
             if (mode == GIMBAL_REF_MODE) {
                 /// Use AHRS angles for gimbal feedback
                 // In S-Lock State, ahrs feedback will not change during performing calculation.
@@ -84,7 +91,9 @@ void GimbalSKD::SKDThread::main() {
                                                         ahrs_gyro.z * sinf((float)(ahrs_angle.y / 180.0f * M_PI));
                 feedback_angle[GimbalSKD::PITCH]    =   ahrs_angle.y;
                 feedback_velocity[GimbalSKD::PITCH] =   ahrs_gyro.y;
-            } else if (mode == CHASSIS_REF_MODE) {
+            } else
+#endif
+                if (mode == CHASSIS_REF_MODE) {
                 /// Use motor encoder angles for gimbal feedback
                 feedback_angle[GimbalSKD::YAW] =
                         CANMotorIF::motor_feedback[CANMotorCFG::YAW].accumulate_angle();
@@ -145,7 +154,7 @@ void GimbalSKD::set_mode(GimbalSKD::mode_t skd_mode) {
             CANMotorSKD::set_target_current(CANMotorCFG::SUB_PITCH, 0);
 #endif
             break;
-
+#if ENABLE_AHRS
         case GIMBAL_REF_MODE:
             CANMotorController::register_custom_feedback(&feedback_angle[GimbalSKD::YAW],
                                                          CANMotorController::angle,
@@ -164,6 +173,7 @@ void GimbalSKD::set_mode(GimbalSKD::mode_t skd_mode) {
             CANMotorCFG::enable_a2v[CANMotorCFG::PITCH] = true;
             CANMotorCFG::enable_v2i[CANMotorCFG::PITCH] = true;
             break;
+#endif
         case CHASSIS_REF_MODE:
             CANMotorController::unregister_custom_feedback(CANMotorController::angle,
                                                            CANMotorCFG::YAW);

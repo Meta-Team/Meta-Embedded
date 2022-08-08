@@ -24,7 +24,7 @@ bool HapticLG::device_calibrated() {
 }
 
 void HapticLG::BackDrivabilityThread::main() {
-    setName("Back_Drive_Ability_Thread");
+    setName("back_drive_ability_thread");
     time_msecs_t STUCK_STARTTIME = 0;
     long int SYS_STARTTIME = SYSTIME;
     while(!shouldTerminate()) {

@@ -13,7 +13,7 @@
 #ifndef META_INFANTRY_GIMBAL_LOGIC_H
 #define META_INFANTRY_GIMBAL_LOGIC_H
 
-
+#include "hardware_conf.h"
 #include "gimbal_scheduler.h"
 #include "lidar_interface.h"
 #include "vision_scheduler.h"
@@ -36,7 +36,9 @@ public:
     enum mode_t {
         FORCED_RELAX_MODE,  ///< Zero force (but still taking control of GimbalIF)
         CHASSIS_REF_MODE,   ///< Chassis Reference
+#if ENABLE_AHRS
         GIMBAL_REF_MODE,    ///< Gimbal Reference
+#endif
         VISION_MODE         ///< Gimbal Reference, Vision override input
     };
 

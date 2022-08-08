@@ -43,18 +43,26 @@ Outside `main()` function, create two `CANInterface` classes with parameters `&C
    can2.start(<CAN2_RX_PRIO>);
    ```
    where `<CAN1_RX_PRIO>` and `<CAN1_RX_PRIO>` should be replaced with your own thread priorities
-### Setup motor controller
+### Setup interface and motor controller
    Initiate `CANMotorController` by calling
    ```c++
    CANMotorController::start(<MOTOR_SKD_PRIO>, <FEEDBACK_SKD_PRIO>, &can1, &can2);
    ```
    where `<MOTOR_SKD_PRIO>` and `<FEEDBACK_SKD_PRIO>` should be replaced with your own thread priorities.
-
+   With this command, `CANMotorIF` will be automatically set up.
 ## Included functions
-See the inline DOXYGEN document for detailed description.
+See the inline DOXYGEN document in files for detailed description.
 
+**PLEASE READ INLINE DOXYGEN DOCUMENT OF CAN MOTOR INTERFACE!**
+It will help you understand the communication DJI motors' communication protocol and how CAN-BUS works.
 
+### Basic functions for `CANMotorController` and `CANMotorIF`
 
+`CANMotorIF` is the interface for Robomaster motors that use *Control Area Network* (CAN) to communicate with our board.
+You can get feedback of motors from the interface, by accessing `CANMotorIF::motor_feedback`.
+
+`CANMotorController` is aimed at controlling the motors. You could set angle, angular velocity or torque current through 
+this controller. In `CANMotorCFG`, the `enable_a2v` and `enable_v2i` boolean array control the control mode for each motor.
 
 ## Further optimization of motor controller
 Please finish the requirements below in the future updates.

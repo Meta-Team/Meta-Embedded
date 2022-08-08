@@ -59,7 +59,7 @@ public:
         POSITIVE = 1, ///<CCW for motor
         NEGATIVE = -1 ///<CW for motor
     };
-
+#if ENABLE_AHRS
     /**
      * @brief Start this scheduler
      * @param gimbal_ahrs_                [in] Pointer to an initialized AHRS on gimbal
@@ -68,7 +68,13 @@ public:
      * @param thread_prio                 [in] Priority of PID calculating thread
      */
     static void start(AbstractAHRS *gimbal_ahrs_, const Matrix33 ahrs_angle_rotation_, const Matrix33 ahrs_gyro_rotation_, tprio_t thread_prio);
-
+#else
+    /**
+     * @brief Start this scheduler
+     * @param thread_prio                 [in] Priority of PID calculating thread
+     */
+    static void start(tprio_t thread_prio);
+#endif
     /**
      * @brief Set mode of this SKD
      * @param skd_mode [in] The current mode of gimbal scheduler.
@@ -128,7 +134,7 @@ private:
     // The reason why there are two extra matrices is that the AHRS system is only stable in certain installation with
     // specific matrix, but the output may not be the angles we want. So we add two matrices to mapping the output angle
     // and velocity to our desired feedback angle.
-
+#if ENABLE_AHRS
     /**
      * @brief AHRS module address
      */
@@ -143,7 +149,7 @@ private:
      * @brief Rotation matrix for angular velocity of AHRS data output.
      */
     static Matrix33 ahrs_gyro_rotation;
-
+#endif
     /*===========================================================================*/
     /*                             Motor Related Var                             */
     /*===========================================================================*/

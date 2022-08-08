@@ -17,6 +17,7 @@
 #include "can_motor_feedback.h"
 
 #include "can_motor_config.h"
+#include "can_motor_controller.h"
 
 /**
  * @author Chen Qian
@@ -58,16 +59,18 @@ class CANMotorIF: private CANMotorCFG{
 public:
 
     /**
+     * @brief Motors that will be liked with logical motor id.
+     */
+    static CANMotorFeedback motor_feedback[MOTOR_COUNT];
+
+private:
+
+    /**
      * @brief Initialize the haptic arm interface.
      * @param can1_             [in] The can1 channel to use.
      * @param can2_             [in] The can2 channel to use.
      */
     static void init(CANInterface *can1_, CANInterface *can2_);
-
-    /**
-     * @brief Motors that will be liked with logical motor id.
-     */
-    static CANMotorFeedback motor_feedback[MOTOR_COUNT];
 
     /**
      * @brief Set can motor currents.
@@ -107,7 +110,6 @@ public:
     /*===========================================================================*/
     /*                            SID and ID mapping                             */
     /*===========================================================================*/
-private:
 
     /**
      * @brief Mapping from motor SID(0x20*) to motor id (YAW, PITCH, ...).
@@ -153,6 +155,8 @@ private:
      * @brief               CANInterfaces to use [CAN1, CAN2].
      */
     static CANInterface *can[2];
+
+    friend class CANMotorController;
 };
 
 #endif //META_INFANTRY_CAN_MOTOR_INTERFACE_H

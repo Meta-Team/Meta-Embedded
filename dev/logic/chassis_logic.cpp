@@ -48,11 +48,13 @@ void ChassisLG::set_mode(ChassisLG::chassis_mode_t mode) {
             MecanumChassisSKD::set_mode(SKDBase::CHASSIS_REF_MODE);
             target_omega = 0;
             break;
+#if ENABLE_AHRS
         case GIMBAL_REF_MODE:
             // Fall through.
         case DODGE:
             MecanumChassisSKD::set_mode(SKDBase::GIMBAL_REF_MODE);
             break;
+#endif
     }
 }
 
@@ -73,7 +75,7 @@ ChassisLG::chassis_mode_t ChassisLG::get_mode() {
 }
 
 void ChassisLG::MotionControllerThread::main() {
-    setName("ChassisLG");
+    setName("chassis_motion_control");
     float yaw_accumulate_angle;
     float yaw_auto_straightening_angle;
 #if ENABLE_CAPACITOR == TRUE
@@ -87,6 +89,7 @@ void ChassisLG::MotionControllerThread::main() {
             case CHASSIS_REF_MODE:
                 MecanumChassisSKD::set_target(target_vx, target_vy, target_omega);
                 break;
+#if ENABLE_AHRS
             case GIMBAL_REF_MODE:
                 yaw_accumulate_angle = CANMotorIF::motor_feedback[CANMotorCFG::YAW].accumulate_angle();
                 yaw_auto_straightening_angle = (float)((int)(yaw_accumulate_angle/360.0f)) * 360.0f;
@@ -109,14 +112,16 @@ void ChassisLG::MotionControllerThread::main() {
                 VAL_CROP(target_omega, 720.0f, 0.0f);
                 MecanumChassisSKD::set_target(target_vx, target_vy, target_omega);
                 break;
+#endif
         }
         chSysUnlock();
-        sleep(TIME_MS2I(CHASSIS_LG_INTERVAL));
+        sleep(TIME_MS2I(MTN_CTL_INTERVAL));
     }
 }
 #if ENABLE_CAPACITOR == TRUE && ENABLE_REFEREE == TRUE
 void ChassisLG::CapacitorSetThread::main() {
-    setName("CapacitorSetThd");
+
+    setName("capacitor_set_thread");
     while(!shouldTerminate()) {
         if ((float) Referee::power_heat.chassis_power_buffer - Referee::power_heat.chassis_power * 0.1 > 5.0) {
             CapacitorIF::set_power(95.0);
@@ -126,5 +131,6 @@ void ChassisLG::CapacitorSetThread::main() {
         sleep(TIME_MS2I(CAPACITOR_SET_INTERVAL));
     }
 }
+
 #endif
 /** @} */

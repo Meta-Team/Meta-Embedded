@@ -26,13 +26,13 @@ public:
 
 private:
 
-    /// Gimbal Config
+    /// Gimbal config
     static float gimbal_rc_yaw_max_speed;  // [degree/s]
     static float gimbal_pc_yaw_sensitivity[];  // [Ctrl, Normal, Shift] [degree/s]
 
     static float gimbal_pc_pitch_sensitivity[];   // rotation speed when mouse moves fastest [degree/s]
 
-    /// Chassis Config
+    /// Chassis config
     static float base_power;             // [w]
     static float base_v_forward;        // [mm/s]
     static float chassis_v_left_right;  // [mm/s]
@@ -44,6 +44,7 @@ private:
     static float chassis_pc_shift_ratio;  // 150% when Shift is pressed
     static float chassis_pc_ctrl_ratio;    // 50% when Ctrl is pressed
 
+    /// Shoot config
     static float shoot_feed_rate;
     static float shoot_fw_speed[3];
 
@@ -57,7 +58,7 @@ private:
     static float gimbal_pc_pitch_target_angle_;
     static bool ignore_shoot_constraints;
 
-    /// User Thread
+    /// User thread
     static constexpr unsigned USER_THREAD_INTERVAL = 7;  // [ms]
     class UserThread : public chibios_rt::BaseStaticThread<512> {
         void main() override;
@@ -66,7 +67,7 @@ private:
     static UserThread userThread;
 
 
-    /// User Action Thread
+    /// User action thread
     class UserActionThread : public chibios_rt::BaseStaticThread<512> {
         event_listener_t key_press_listener;
         void main() override;

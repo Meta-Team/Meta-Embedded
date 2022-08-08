@@ -65,8 +65,11 @@ void UserI::UserThread::main() {
                 (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_MIDDLE)) {
 
                 /// Remote - Yaw + Pitch
-
+#if ENABLE_AHRS
                 GimbalLG::set_mode(GimbalLG::GIMBAL_REF_MODE);
+#else
+                GimbalLG::set_mode(GimbalLG::CHASSIS_REF_MODE);
+#endif
 
                 gimbal_yaw_target_angle_ +=
                         -Remote::rc.ch0 * (gimbal_rc_yaw_max_speed * USER_THREAD_INTERVAL / 1000.0f);
@@ -111,7 +114,11 @@ void UserI::UserThread::main() {
 #else
                 if (!Remote::mouse.press_right) {
 #endif
+#if ENABLE_AHRS
                     GimbalLG::set_mode(GimbalLG::GIMBAL_REF_MODE);
+#else
+                    GimbalLG::set_mode(GimbalLG::CHASSIS_REF_MODE);
+#endif
 
                     float yaw_sensitivity, pitch_sensitivity;
                     if (Remote::key.ctrl) {
@@ -264,7 +271,11 @@ void UserI::UserThread::main() {
             if ((Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_UP) ||
                 (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_DOWN)) {
                 /// Remote - Chassis Move + Chassis Follow
+#if ENABLE_AHRS
                 ChassisLG::set_mode(ChassisLG::GIMBAL_REF_MODE);
+#else
+                ChassisLG::set_mode(ChassisLG::CHASSIS_REF_MODE);
+#endif
                 ChassisLG::set_target(Remote::rc.ch2 * chassis_v_left_right,  // Both use right as positive direction
                                       (Remote::rc.ch3 > 0 ?
                                        Remote::rc.ch3 * 1000 :
@@ -274,7 +285,11 @@ void UserI::UserThread::main() {
             } else if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_MIDDLE) {
 
                 /// Remote - Chassis Move + Chassis Dodge
+#if ENABLE_AHRS
                 ChassisLG::set_mode(ChassisLG::DODGE);
+#else
+                ChassisLG::set_mode(ChassisLG::CHASSIS_REF_MODE);
+#endif
                 ChassisLG::set_target(Remote::rc.ch2 * chassis_v_left_right,  // Both use right as positive direction
                                       (Remote::rc.ch3 > 0 ?
                                        Remote::rc.ch3 * 1000 :
@@ -295,7 +310,11 @@ void UserI::UserThread::main() {
 
                 if (ChassisLG::get_mode() == ChassisLG::FORCE_RELAX_MODE) {
                     // Enter PC Mode from other mode, re-enable ChassisLG
+#if ENABLE_AHRS
                     ChassisLG::set_mode(ChassisLG::GIMBAL_REF_MODE);
+#else
+                    ChassisLG::set_mode(ChassisLG::CHASSIS_REF_MODE);
+#endif
                 }
 
                 float target_vx, target_vy;
@@ -365,7 +384,11 @@ void UserI::UserActionThread::main() {
 #endif
             } else {
                 // Z: chassis follow mode
+#if ENABLE_AHRS
                 ChassisLG::set_mode(ChassisLG::GIMBAL_REF_MODE);
+#else
+                ChassisLG::set_mode(ChassisLG::CHASSIS_REF_MODE);
+#endif
             }
         }
 
@@ -375,7 +398,11 @@ void UserI::UserActionThread::main() {
                 ignore_shoot_constraints = true;
             } else {
                 // X: chassis dodge mode
+#if ENABLE_AHRS
                 ChassisLG::set_mode(ChassisLG::DODGE);
+#else
+                ChassisLG::set_mode(ChassisLG::CHASSIS_REF_MODE);
+#endif
             }
         }
 

@@ -11,19 +11,15 @@
 #endif
 
 #if !defined(ENABLE_REFEREE) || defined(__DOXYGEN__)
-#define ENABLE_REFEREE                  TRUE
-#endif
-
-#if !defined(ENABLE_AHRS) || defined(__DOXYGEN__)
-#define ENABLE_AHRS                     TRUE
+#define ENABLE_REFEREE                  FALSE
 #endif
 
 #if !defined(ENABLE_SUBPITCH) || defined(__DOXYGEN__)
 #define ENABLE_SUBPITCH                 FALSE
 #endif
 
-#if !defined(ENABLE_CAPACITOR) || defined(__DOXYGEN__)
-#define ENABLE_CAPACITOR                TRUE
+#if !defined(ENABLE_AHRS) || defined(__DOXYGEN__)
+#define ENABLE_AHRS                     FALSE
 #endif
 
 #if !defined(ENABLE_USB_SHELL) || defined(__DOXYGEN__)

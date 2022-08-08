@@ -14,6 +14,10 @@
 #define ENABLE_REFEREE                  TRUE
 #endif
 
+#if !defined(ENABLE_AHRS) || defined(__DOXYGEN__)
+#define ENABLE_AHRS                     TRUE
+#endif
+
 #if !defined(ENABLE_SUBPITCH) || defined(__DOXYGEN__)
 #define ENABLE_SUBPITCH                 FALSE
 #endif

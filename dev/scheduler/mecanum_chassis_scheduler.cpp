@@ -86,6 +86,7 @@ void MecanumChassisSKD::SKDThread::main() {
                     CANMotorController::set_target_vel(CANMotorCFG::BR, (float)install_mode *
                                                                         (-target_vx-target_vy+ target_omega * w_to_v_ratio) * v_to_wheel_angular_velocity);
                     break;
+#if ENABLE_AHRS
                 case GIMBAL_REF_MODE:
 
                     // Set the velocity in gimbal coordinate.
@@ -107,6 +108,7 @@ void MecanumChassisSKD::SKDThread::main() {
                     CANMotorController::set_target_vel(CANMotorCFG::BR, (float)install_mode *
                                                                         (-chassis_vx-chassis_vy+ target_omega * w_to_v_ratio) * v_to_wheel_angular_velocity);
                     break;
+#endif
             }
         }
         chSysUnlock();  /// --- EXIT S-Locked state ---

@@ -44,9 +44,12 @@ void GimbalLG::set_mode(GimbalLG::mode_t mode_) {
         GimbalSKD::set_mode(GimbalSKD::FORCED_RELAX_MODE);
     } else if(mode_ == GimbalLG::CHASSIS_REF_MODE){
         GimbalSKD::set_mode(GimbalSKD::CHASSIS_REF_MODE);
-    } else if(mode_ == GimbalLG::GIMBAL_REF_MODE) {
+    }
+#if ENABLE_AHRS
+    else if(mode_ == GimbalLG::GIMBAL_REF_MODE) {
         GimbalSKD::set_mode(GimbalSKD::GIMBAL_REF_MODE);
     }
+#endif
 }
 
 float GimbalLG::get_feedback_angle(GimbalSKD::angle_id_t angle) {

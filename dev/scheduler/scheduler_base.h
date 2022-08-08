@@ -13,7 +13,9 @@ public:
     enum mode_t {
         FORCED_RELAX_MODE,  ///< zero force (but still taking control of GimbalIF)
         CHASSIS_REF_MODE,   ///< Gimbal angle are in chassis frame
+#if ENABLE_AHRS
         GIMBAL_REF_MODE     ///< Gimbal angle are in gimbal frame
+#endif
     };
 };
 
