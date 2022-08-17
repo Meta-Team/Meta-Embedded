@@ -171,7 +171,6 @@ void UserS::UserThread::main() {
         sleep(TIME_MS2I(USER_THREAD_INTERVAL));
     }
 }
-
 //void UserS::set_mode(UserS::sentry_mode_t mode) {
 //    if (mode == sentryMode) return;
 //

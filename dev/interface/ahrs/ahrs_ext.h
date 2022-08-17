@@ -72,7 +72,7 @@ public:
  * Get data from gyroscope (rotated with mpu_rotation_matrix)
  * @return Rotated gyro data from gyroscope [deg/s]
  */
-    Vector3D get_gyro() override { return gyro_deg;  /* rotated */ }
+    //Vector3D get_gyro() override { return gyro_deg;  /* rotated */ }
 
     /**
      * Get data from accelerometer (rotated with mpu_rotation_matrix)
@@ -84,7 +84,7 @@ public:
      * Get magnet data
      * @return Magnet data [uT]
      */
-    Vector3D get_magnet() override { return magnet; }
+    //Vector3D get_magnet() override { return magnet; }
 
     /**
      * Get board angle

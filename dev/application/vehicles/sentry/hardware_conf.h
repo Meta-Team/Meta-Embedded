@@ -11,7 +11,7 @@
 #endif
 
 #if !defined(ENABLE_REFEREE) || defined(__DOXYGEN__)
-#define ENABLE_REFEREE                  FALSE
+#define ENABLE_REFEREE                  TRUE
 #endif
 
 #if !defined(ENABLE_SUBPITCH) || defined(__DOXYGEN__)

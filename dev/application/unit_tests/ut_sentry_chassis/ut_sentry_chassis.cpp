@@ -7,8 +7,7 @@
 
 #include "interface/led/led.h"
 #include "hardware_conf.h"
-#include "debug/shell/shell.h"
-
+#include "shell.h"
 #include "buzzer_scheduler.h"
 // Other headers here
 #include "can_motor_config.h"
@@ -17,6 +16,23 @@
 
 CANInterface can1(&CAND1);
 CANInterface can2(&CAND2);
+
+void startup_check_chassis_feedback() {
+    time_msecs_t t = SYSTIME;
+    while (WITHIN_RECENT_TIME(t, 20)) {
+        if (not WITHIN_RECENT_TIME(CANMotorIF::motor_feedback[CANMotorCFG::LEFT].last_update_time, 5)) {
+            // No feedback in last 5 ms (normal 1 ms)
+            LOG_ERR("Startup - Chassis MOTOR_LEFT offline.");
+            t = SYSTIME;  // reset the counter
+        }
+        if (not WITHIN_RECENT_TIME(CANMotorIF::motor_feedback[CANMotorCFG::RIGHT].last_update_time, 5)) {
+            // No feedback in last 5 ms (normal 1 ms)
+            LOG_ERR("Startup - Chassis MOTOR_RIGHT offline.");
+            t = SYSTIME;  // reset the counter
+        }
+        chThdSleepMilliseconds(5);
+    }
+}
 
 class UTSentryChassisThread : public BaseStaticThread<512> {
     void main() final {
@@ -69,6 +85,9 @@ int main(void) {
     // Initiate CAN Motor interface
     chThdSleepMilliseconds(500);
     CANMotorController::start(HIGHPRIO - 3, HIGHPRIO - 4, &can1, &can2);
+    chThdSleepMilliseconds(10);
+    startup_check_chassis_feedback();
+
     chThdSleepMilliseconds(500);
     // Initiate remote controller
     Remote::start();
