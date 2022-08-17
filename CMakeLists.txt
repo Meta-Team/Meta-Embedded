@@ -225,13 +225,27 @@ target_link_libraries(HAPTIC_DVC ${AHRS_LIB})
 add_executable(SENTRY
         ${VEHICLE_COMMON_SRC}
         ${AHRS_EXT_SRC}
+        ${AHRS_SRC}
+        ${VISION_SRC}
+        dev/common/CRC8.cpp
+        dev/common/CRC16.cpp
+        dev/interface/referee/referee_interface.cpp
+
         dev/scheduler/sentry_chassis_scheduler.cpp
         dev/logic/sentry_chassis_logic.cpp
+
+        dev/logic/gimbal_logic.cpp
+        dev/scheduler/gimbal_scheduler.cpp
+
+        dev/logic/shoot_logic.cpp
+        dev/scheduler/shoot_scheduler.cpp
 
         dev/application/vehicles/sentry/inspector_sentry.cpp
         dev/application/vehicles/sentry/can_motor_config.cpp
         dev/application/vehicles/sentry/user_sentry.cpp
         dev/application/vehicles/sentry/main_sentry.cpp
+
+
         )
 target_include_directories(SENTRY PRIVATE dev/application/vehicles/sentry)
 target_compile_definitions(SENTRY PRIVATE SENTRY)

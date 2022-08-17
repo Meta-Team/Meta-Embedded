@@ -30,7 +30,7 @@
 #include "user_sentry.h"
 #include "thread_priorities.h"
 
-#include "settings_sentry.h"
+//#include "settings_sentry.h"
 
 CANInterface can1(&CAND1);
 CANInterface can2(&CAND2);
@@ -67,7 +67,7 @@ int main() {
 
     /// Setup Shell
     Shell::start(THREAD_SHELL_PRIO);
-    Shell::addCommands(mainProgramCommands);
+    //Shell::addCommands(mainProgramCommands);
     chThdSleepMilliseconds(50);  // wait for logo to print :)
 
     BuzzerSKD::init(THREAD_BUZZER_SKD_PRIO);
@@ -83,9 +83,9 @@ int main() {
     /// Setup CAN1
     can1.start(THREAD_CAN1_RX_PRIO);
     can2.start(THREAD_CAN2_RX_PRIO);
+    //chThdSleepMilliseconds(500);
+    //CANMotorController::start(THREAD_MOTOR_SKD_PRIO, THREAD_FEEDBACK_SKD_PRIO, &can1, &can2);
     chThdSleepMilliseconds(5);
-    CANMotorController::start(THREAD_MOTOR_SKD_PRIO, THREAD_FEEDBACK_SKD_PRIO, &can1, &can2);
-
     InspectorS::startup_check_can();  // check no persistent CAN Error. Block for 100 ms
     LED::led_on(DEV_BOARD_LED_CAN);  // LED 2 on now
 
@@ -111,6 +111,8 @@ int main() {
     InspectorS::startup_check_remote();  // check Remote has signal. Block for 50 ms
     LED::led_on(DEV_BOARD_LED_REMOTE);  // LED 4 on now
 
+    /// Setup Can
+    CANMotorController::start(THREAD_MOTOR_SKD_PRIO, THREAD_FEEDBACK_SKD_PRIO, &can1, &can2);
     chThdSleepMilliseconds(2000);
     // FIXME: re-enable startup check
     InspectorS::startup_check_gimbal_feedback(); // check gimbal motors has continuous feedback. Block for 20 ms
@@ -126,7 +128,7 @@ int main() {
 
     /// Setup Referee
 #if ENABLE_REFEREE
-    Referee::init(THREAD_REFEREE_SENDING_PRIO);
+    Referee::init();
 #endif
 #if ENABLE_VISION
     /// Setup VisionPort
@@ -164,8 +166,8 @@ int main() {
 
     /// Start Inspector and User Threads
     // FIXME: re-enable inspector
-//    InspectorS::start_inspection(THREAD_INSPECTOR_PRIO);
-    UserS::start(THREAD_USER_PRIO, THREAD_GIMBAL_LG_VISION_PRIO);
+    InspectorS::start_inspection(THREAD_INSPECTOR_PRIO);
+    UserS::start(THREAD_USER_PRIO);
 
     /// Complete Period 2
     BuzzerSKD::play_sound(BuzzerSKD::sound_startup_intel);  // Now play the startup sound
