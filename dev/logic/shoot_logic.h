@@ -19,7 +19,9 @@
 #include "shoot_scheduler.h"
 #include "referee_interface.h"
 #include "buzzer_scheduler.h"
+#if ENABLE_VISION
 #include "vision_scheduler.h"
+#endif
 #include "low_pass_filter.hpp"
 #include <cmath>
 

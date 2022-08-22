@@ -17,7 +17,9 @@
 #include "gimbal_scheduler.h"
 #include "lidar_interface.h"
 #include "vision_scheduler.h"
+#if ENABLE_VISION
 #include "trajectory_calculator.hpp"
+#endif
 
 using namespace chibios_rt;
 

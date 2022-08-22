@@ -13,7 +13,6 @@
 #include "shell.h"
 #include "can_interface.h"
 #include "can_motor_controller.h"
-#include "ahrs_ext.h"
 #include "remote_interpreter.h"
 #include "sd_card_interface.h"
 #include "vision_interface.h"
@@ -30,16 +29,14 @@
 #include "user_sentry.h"
 #include "thread_priorities.h"
 
-#include "settings_sentry.h"
-
 CANInterface can1(&CAND1);
 CANInterface can2(&CAND2);
 // TODO: Select hardware and write corresponding software.
 //AHRSExt ahrsExt;
 
 /// Local Constants
-static const Matrix33 GIMBAL_ANGLE_INSTALLATION_MATRIX_ = GIMBAL_ANGLE_INSTALLATION_MATRIX;
-static const Matrix33 GIMBAL_GYRO_INSTALLATION_MATRIX_ = GIMBAL_GYRO_INSTALLATION_MATRIX;
+//static const Matrix33 GIMBAL_ANGLE_INSTALLATION_MATRIX_ = GIMBAL_ANGLE_INSTALLATION_MATRIX;
+//static const Matrix33 GIMBAL_GYRO_INSTALLATION_MATRIX_ = GIMBAL_GYRO_INSTALLATION_MATRIX;
 
 int main() {
 
@@ -67,7 +64,7 @@ int main() {
 
     /// Setup Shell
     Shell::start(THREAD_SHELL_PRIO);
-    Shell::addCommands(mainProgramCommands);
+//    Shell::addCommands(mainProgramCommands);
     chThdSleepMilliseconds(50);  // wait for logo to print :)
 
     BuzzerSKD::init(THREAD_BUZZER_SKD_PRIO);

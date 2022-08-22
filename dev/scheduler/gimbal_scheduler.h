@@ -20,7 +20,9 @@
 #include "hardware_conf.h"
 
 #include "can_motor_controller.h"
+#if ENABLE_AHRS
 #include "ahrs_abstract.h"
+#endif
 #include "scheduler_base.h"
 
 #include <cmath>

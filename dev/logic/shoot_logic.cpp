@@ -22,8 +22,12 @@ ShootLG::shooter_state_t ShootLG::shooter_state = STOP;
 bool ShootLG::use_42mm_bullet = false;
 ShootLG::StuckDetectorThread ShootLG::stuck_detector_thread;
 chibios_rt::ThreadReference ShootLG::stuck_detector_ref;
-ShootLG::BulletCounterThread ShootLG::bullet_counter_thread;
+#if ENABLE_VISION
 ShootLG::VisionShootThread ShootLG::vision_shoot_thread;
+#endif
+#if ENABLE_REFEREE
+ShootLG::BulletCounterThread ShootLG::bullet_counter_thread;
+#endif
 
 void ShootLG::init(float angle_per_bullet_, bool use_42mm_bullet_, tprio_t stuck_detector_thread_prio,
                    tprio_t bullet_counter_thread_prio, tprio_t vision_shooting_thread_prio) {
@@ -154,6 +158,7 @@ void ShootLG::StuckDetectorThread::main() {
     }
 }
 
+#if ENABLE_REFEREE
 void ShootLG::BulletCounterThread::main() {
     setName("ShootLG_Count");
     chEvtRegisterMask(&Referee::data_received_event, &data_received_listener, DATA_RECEIVED_EVENTMASK);
@@ -180,7 +185,8 @@ void ShootLG::BulletCounterThread::main() {
         }
     }
 }
-
+#endif
+#if ENABLE_VISION
 void ShootLG::VisionShootThread::main() {
     setName("ShootLG_Vision");
 
@@ -217,5 +223,5 @@ void ShootLG::VisionShootThread::main() {
         }  // otherwise, discard the event
     }
 }
-
+#endif
 /** @} */
