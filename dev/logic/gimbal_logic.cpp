@@ -12,10 +12,6 @@
 
 #include "gimbal_logic.h"
 
-/// TODO: Move it into vehicles.h
-#define PITCH_MAX_ANGLE 30
-#define PITCH_MIN_ANGLE -10
-
 GimbalLG::mode_t GimbalLG::mode;
 #if ENABLE_VISION == TRUE
 GimbalLG::VisionControlThread GimbalLG::vision_control_thread;

@@ -85,7 +85,7 @@ int main() {
     can2.start(THREAD_CAN2_RX_PRIO);
     chThdSleepMilliseconds(5);
     CANMotorController::start(THREAD_MOTOR_SKD_PRIO, THREAD_FEEDBACK_SKD_PRIO, &can1, &can2);
-
+    chThdSleepMilliseconds(5);
     InspectorS::startup_check_can();  // check no persistent CAN Error. Block for 100 ms
     LED::led_on(DEV_BOARD_LED_CAN);  // LED 2 on now
 
@@ -147,11 +147,6 @@ int main() {
         CANMotorIF::motor_feedback[CANMotorCFG::PITCH].accumulate_angle());
 
     /// Start SKDs
-//    GimbalSKD::start(&ahrsExt, GIMBAL_ANGLE_INSTALLATION_MATRIX_, GIMBAL_GYRO_INSTALLATION_MATRIX_,
-//                     GIMBAL_YAW_INSTALL_DIRECTION, GIMBAL_PITCH_INSTALL_DIRECTION, THREAD_GIMBAL_SKD_PRIO,
-//                     GIMBAL_YAW_DECELERATION_RATIO, GIMBAL_PITCH_DECELERATION_RATIO);
-
-
     GimbalSKD::start(THREAD_GIMBAL_SKD_PRIO);
     ShootSKD::start(THREAD_SHOOT_SKD_PRIO);
     SChassisSKD::start(SChassisSKD::POSITIVE, SChassisSKD::POSITIVE, THREAD_CHASSIS_SKD_PRIO);
@@ -164,8 +159,8 @@ int main() {
 
     /// Start Inspector and User Threads
     // FIXME: re-enable inspector
-//    InspectorS::start_inspection(THREAD_INSPECTOR_PRIO);
-    UserS::start(THREAD_USER_PRIO, THREAD_GIMBAL_LG_VISION_PRIO);
+    InspectorS::start_inspection(THREAD_INSPECTOR_PRIO);
+    UserS::start(THREAD_USER_PRIO);
 
     /// Complete Period 2
     BuzzerSKD::play_sound(BuzzerSKD::sound_startup_intel);  // Now play the startup sound
