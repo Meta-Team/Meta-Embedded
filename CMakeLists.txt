@@ -225,6 +225,9 @@ target_link_libraries(HAPTIC_DVC ${AHRS_LIB})
 add_executable(SENTRY
         ${VEHICLE_COMMON_SRC}
 #        ${AHRS_EXT_SRC}
+
+        dev/interface/referee/referee_interface.cpp
+
         dev/scheduler/sentry_chassis_scheduler.cpp
         dev/scheduler/gimbal_scheduler.cpp
         dev/scheduler/shoot_scheduler.cpp

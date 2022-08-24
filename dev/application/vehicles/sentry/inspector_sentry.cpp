@@ -131,7 +131,7 @@ bool InspectorS::remote_failure() {
 
 bool InspectorS::check_gimbal_failure() {
     bool ret = false;
-    for (unsigned i = CANMotorCFG::YAW; i < CANMotorCFG::MOTOR_COUNT; i++) {
+    for (unsigned i = CANMotorCFG::YAW; i < CANMotorCFG::BULLET_LOADER+1; i++) {
         if (not WITHIN_RECENT_TIME(CANMotorIF::motor_feedback[i].last_update_time, 20)) {
             if (!gimbal_failure_) {  // avoid repeating printing
                 LOG_ERR("Gimbal motor %u offline", i);

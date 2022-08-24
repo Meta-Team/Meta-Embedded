@@ -57,6 +57,15 @@ private:
 
     static UserThread userThread;
 
+//    /// Virtual User Thread
+//    static constexpr unsigned VIRTUAL_USER_THREAD_INTERVAL = 7;  // [ms]
+//    class VirtualUserThread : public chibios_rt::BaseStaticThread<512> {
+//        void main() final;
+//    };
+//
+//    static VirtualUserThread virtualUserThread;
+
+
 #if FALSE
     /// Friend Configure Functions
     friend void gimbal_get_config(BaseSequentialStream *chp, int argc, char *argv[]);

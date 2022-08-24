@@ -23,7 +23,7 @@
 #endif
 
 #if !defined(ENABLE_USB_SHELL) || defined(__DOXYGEN__)
-#define ENABLE_USB_SHELL                FALSE
+#define ENABLE_USB_SHELL                TRUE
 #endif
 
 #endif //META_INFANTRY_HARDWARE_CONF_H

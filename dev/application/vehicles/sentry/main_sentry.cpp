@@ -123,7 +123,7 @@ int main() {
 
     /// Setup Referee
 #if ENABLE_REFEREE
-    Referee::init(THREAD_REFEREE_SENDING_PRIO);
+    Referee::init();
 #endif
 #if ENABLE_VISION
     /// Setup VisionPort
@@ -150,8 +150,8 @@ int main() {
 
     /// Start LGs
     GimbalLG::init(THREAD_GIMBAL_LG_VISION_PRIO, THREAD_GIMBAL_BALLISTIC_PRIO);
-    ShootLG::init(45.0f, false, THREAD_SHOOT_BULLET_COUNTER_PRIO,
-                  THREAD_SHOOT_BULLET_COUNTER_PRIO, THREAD_SHOOT_LG_VISION_PRIO);
+    ShootLG::init(45.0f, false, THREAD_SHOOT_BULLET_COUNTER_PRIO,THREAD_SHOOT_BULLET_COUNTER_PRIO, THREAD_SHOOT_LG_VISION_PRIO);
+
     SChassisLG::init(THREAD_CHASSIS_MTN_CTL_PRIO);
 
     /// Start Inspector and User Threads

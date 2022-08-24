@@ -36,23 +36,24 @@ void SChassisLG::set_velocity(float target_velocity_) {
 void SChassisLG::MotionControlThread::main() {
     setName("sentry_motion_control_thread");
     // Uniform random number generation.
-    std::random_device rnd;
-    std::mt19937 random(rnd());
-    std::uniform_real_distribution<float> distribution(0, 300);
+//    std::random_device rnd;
+//    std::mt19937 random(rnd());
+//    std::uniform_real_distribution<float> distribution(0, 300);
 
     // Random sentry chassis destination
     float destination = 0.0f;
     while (!shouldTerminate()) {
+        chSysLock();
         switch (mode) {
             case FORCED_RELAX_MODE:
                 // Settings in set_mode function will automatically execute emergency stop.
                 break;
             case AUTO_MODE: {
                 // If reaches to the destination, pick a new one randomly.
-                if(ABS_IN_RANGE(SChassisSKD::present_position() - destination, 10.0f)) {
-                    destination = distribution(random);
-                    SChassisSKD::set_destination(destination);
-                }
+//                if(ABS_IN_RANGE(SChassisSKD::present_position() - destination, 10.0f)) {
+//                    destination = distribution(random);
+//                    SChassisSKD::set_destination(destination);
+//                }
                 break;
             }
             case MANUAL_MODE: {
@@ -61,6 +62,7 @@ void SChassisLG::MotionControlThread::main() {
                 break;
             }
         }
+        chSysUnlock();
         sleep(TIME_MS2I(SCHASSIS_MTN_CTL_INTERVAL));
     }
 }
