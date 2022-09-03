@@ -46,72 +46,6 @@ void UserS::start(tprio_t user_thd_prio) {
 void UserS::UserThread::main() {
     setName("UserS");
     while (!shouldTerminate()) {
-
-//        /*** ---------------------------------- Gimbal --------------------------------- ***/
-
-        if (!InspectorS::remote_failure() && !InspectorS::gimbal_failure()) {
-
-            if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_UP) {
-
-                /// Remote - Yaw + Pitch
-
-                GimbalLG::set_mode(GimbalLG::CHASSIS_REF_MODE);
-
-                if (Remote::rc.ch0 > 0) gimbal_yaw_target_angle_ = -Remote::rc.ch0 * gimbal_yaw_max_angle;
-                else
-                    gimbal_yaw_target_angle_ =
-                            Remote::rc.ch0 * gimbal_yaw_min_angle;  // GIMBAL_YAW_MIN_ANGLE is negative
-                // ch0 use right as positive direction, while GimbalLG use CCW (left) as positive direction
-
-                if (Remote::rc.ch1 > 0) gimbal_pitch_target_angle_ = Remote::rc.ch1 * gimbal_pitch_max_angle;
-                else
-                    gimbal_pitch_target_angle_ =
-                            -Remote::rc.ch1 * gimbal_pitch_min_angle;  // GIMBAL_PITCH_MIN_ANGLE is negative
-                // ch1 use up as positive direction, while GimbalLG also use up as positive direction
-
-
-                GimbalLG::set_target_angle(gimbal_yaw_target_angle_, gimbal_pitch_target_angle_);
-
-            } else if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_MIDDLE) {
-
-                /// Remote - Yaw
-
-                GimbalLG::set_mode(GimbalLG::CHASSIS_REF_MODE);
-
-
-                gimbal_yaw_target_angle_ +=
-                        -Remote::rc.ch0 * (gimbal_yaw_max_angle * USER_THREAD_INTERVAL / 1000.0f);
-                // ch0 use right as positive direction, while GimbalLG use CCW (left) as positive direction
-                gimbal_pitch_target_angle_ +=
-                        Remote::rc.ch1 * (gimbal_pitch_max_angle * USER_THREAD_INTERVAL / 1000.0f);
-                // ch1 use up as positive direction, while GimbalLG use up as positive direction
-
-                VAL_CROP(gimbal_yaw_target_angle_, gimbal_yaw_max_angle, gimbal_yaw_min_angle);
-                VAL_CROP(gimbal_pitch_target_angle_, gimbal_pitch_max_angle, gimbal_pitch_min_angle);
-
-                GimbalLG::set_target_angle(gimbal_yaw_target_angle_, gimbal_pitch_target_angle_);
-
-//            } else if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_DOWN) {
-//
-//                set_mode(AUTO_MODE);
-//                vitualUserThread.set_v_user_mode(VitualUserThread::CRUISING_ONLY_MODE);
-//
-//            } else if (Remote::rc.s1 == Remote::S_DOWN) {
-//
-//                set_mode(AUTO_MODE);
-//                vitualUserThread.set_v_user_mode(VitualUserThread::FINAL_AUTO_MODE);
-
-            } else {
-                /// Safe Mode
-                GimbalLG::set_mode(GimbalLG::FORCED_RELAX_MODE);
-            }
-
-        } else {  // InspectorS::remote_failure() || InspectorS::chassis_failure() || InspectorS::gimbal_failure()
-            /// Safe Mode
-            GimbalLG::set_mode(GimbalLG::FORCED_RELAX_MODE);
-        }
-//
-//
 //        /*** ---------------------------------- Shoot --------------------------------- ***/
 //
 //        if (!shoot_power_on){
@@ -272,6 +206,47 @@ void UserS::UserThread::main() {
             ShootLG::set_shoot_speed(0);
         }
 
+        /*** ---------------------------------- Gimbal  --------------------------------- ***/
+
+        if (!InspectorS::gimbal_failure() && !InspectorS::remote_failure()) {
+            if (Remote::rc.s1 == Remote::S_UP) {
+                GimbalLG::set_mode(GimbalLG::FORCED_RELAX_MODE);
+            } else if (Remote::rc.s1 == Remote::S_MIDDLE) {
+                GimbalLG::set_mode(GimbalLG::CHASSIS_REF_MODE);
+
+                /// Update gimbal targets from remote controller
+                gimbal_pitch_target_angle_ += ((Remote::rc.ch1 > 0) ? gimbal_pitch_max_angle : gimbal_pitch_min_angle)
+                                                * 0.1f * Remote::rc.ch1;
+                gimbal_yaw_target_angle_ += Remote::rc.ch0 * gimbal_yaw_max_angle * 0.1f;
+
+                /// Crop gimbal targets to limited range. Direction remains same for yaw axis.
+                VAL_CROP(gimbal_pitch_target_angle_, gimbal_pitch_max_angle, gimbal_pitch_min_angle);
+
+                /// Copy these lines for crop vision target angle.
+                float yaw_target_angle_cropped = gimbal_yaw_target_angle_;
+                int yaw_rounds = (int)(gimbal_yaw_target_angle_ / 360.0f);
+                yaw_target_angle_cropped = yaw_target_angle_cropped - (float)yaw_rounds * 360.0f;
+
+                GimbalLG::set_target_angle(gimbal_pitch_target_angle_, yaw_target_angle_cropped);
+            } else if(Remote::rc.s1 == Remote::S_DOWN){
+                /// TODO: Add vision mode
+                GimbalLG::set_mode(GimbalLG::FORCED_RELAX_MODE);
+            }
+        } else {
+            GimbalLG::set_mode(GimbalLG::FORCED_RELAX_MODE);
+        }
+
+        /*** ----------------------------------  Shoot  --------------------------------- ***/
+
+        if (!InspectorS::gimbal_failure() && !InspectorS::remote_failure()) {
+            if (Remote::rc.s1 == Remote::S_UP) {
+                /// TODO: Safe mode
+            } else if (Remote::rc.s1 == Remote::S_MIDDLE) {
+                /// TODO: MANUAL MODE
+            } else if (Remote::rc.s1 == Remote::S_DOWN) {
+                /// TODO: VISION MODE
+            }
+        }
 
         /*** ---------------------------------- Chassis --------------------------------- ***/
 
@@ -292,6 +267,7 @@ void UserS::UserThread::main() {
         sleep(TIME_MS2I(USER_THREAD_INTERVAL));
     }
 }
+
 //void UserS::set_mode(UserS::sentry_mode_t mode) {
 //    if (mode == sentryMode) return;
 //
