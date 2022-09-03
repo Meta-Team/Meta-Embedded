@@ -36,6 +36,15 @@ public:
      */
     static void set_velocity(float target_velocity);
 
+    /**
+     * @brief Set a random destination for sentry
+     */
+    static float set_random_destination();
+
+    static float set_destination;
+
+    static float positions[];
+
 private:
 
     static mode_t mode;
@@ -47,6 +56,11 @@ private:
     };
 
     static MotionControlThread motion_control_thread;
+
+
+    static void set_scalar_destination();
+
+    static int iterator;
 };
 
 

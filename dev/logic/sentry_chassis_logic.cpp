@@ -8,6 +8,10 @@ SChassisLG::mode_t SChassisLG::mode = FORCED_RELAX_MODE;
 SChassisLG::MotionControlThread SChassisLG::motion_control_thread;
 
 float SChassisLG::target_velocity = 0.0f;
+float SChassisLG::set_destination = 0.0f;
+float SChassisLG::positions[] = {100,0,100
+                                 ,100};
+int SChassisLG::iterator = 0;
 
 void SChassisLG::init(tprio_t mtn_ctl_prio) {
     motion_control_thread.start(mtn_ctl_prio);
@@ -29,19 +33,29 @@ void SChassisLG::set_mode(SChassisLG::mode_t mode_) {
 
 }
 
+float SChassisLG::set_random_destination(){
+    float destination;
+    std::random_device rnd;
+    std::mt19937 random(rnd());
+    std::uniform_real_distribution<float> distribution(0, 100);
+    destination = distribution(random);
+    return destination;
+}
+
+void SChassisLG::set_scalar_destination(){
+    iterator++;
+    if(iterator>3){
+        iterator = 0;
+    }
+    set_destination = positions[iterator];
+}
+
 void SChassisLG::set_velocity(float target_velocity_) {
     SChassisLG::target_velocity = target_velocity_;
 }
 
 void SChassisLG::MotionControlThread::main() {
     setName("sentry_motion_control_thread");
-    // Uniform random number generation.
-//    std::random_device rnd;
-//    std::mt19937 random(rnd());
-//    std::uniform_real_distribution<float> distribution(0, 300);
-
-    // Random sentry chassis destination
-    float destination = 0.0f;
     while (!shouldTerminate()) {
         chSysLock();
         switch (mode) {
@@ -50,10 +64,14 @@ void SChassisLG::MotionControlThread::main() {
                 break;
             case AUTO_MODE: {
                 // If reaches to the destination, pick a new one randomly.
-//                if(ABS_IN_RANGE(SChassisSKD::present_position() - destination, 10.0f)) {
-//                    destination = distribution(random);
-//                    SChassisSKD::set_destination(destination);
+//                if(ABS_IN_RANGE(SChassisSKD::present_position() - set_destination, 10.0f)) {
+//                    set_destination = set_random_destination(set_destination);
+//                    SChassisSKD::set_destination(set_destination);
 //                }
+                if(ABS_IN_RANGE(SChassisSKD::present_position() - set_destination, 100.0f)) {
+                    set_destination = 50000 - set_destination;
+                    SChassisSKD::set_destination(set_destination);
+                }
                 break;
             }
             case MANUAL_MODE: {
@@ -64,5 +82,6 @@ void SChassisLG::MotionControlThread::main() {
         }
         chSysUnlock();
         sleep(TIME_MS2I(SCHASSIS_MTN_CTL_INTERVAL));
+        LOG("%f",set_destination);
     }
 }

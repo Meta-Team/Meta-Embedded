@@ -20,7 +20,7 @@ float UserS::shoot_fw_speed = 42150; // [deg/s] ????
 /// Runtime variables
 float UserS::gimbal_yaw_target_angle_ = 0;
 float UserS::gimbal_pitch_target_angle_ = 0;
-
+bool UserS::ignore_shoot_constraints = false;
 /// User thread
 UserS::UserThread UserS::userThread;
 
@@ -147,7 +147,7 @@ void UserS::UserThread::main() {
 //
 //                ShootLG::set_shoot_speed(shoot_common_duty_cycle);
 //
-//            } else if (Remote::rc.s1 == Remote::S_DOWN) {
+//            }else if (Remote::rc.s1 == Remote::S_DOWN) {
 //
 //                /// PC control mode
 //
@@ -172,6 +172,105 @@ void UserS::UserThread::main() {
 //            ShootLG::stop();
 //            ShootLG::set_shoot_speed(0);
 //        }
+//// Wu Feiyang: I just grab this stuff from the Infantry
+        if (!InspectorS::remote_failure() && !InspectorS::chassis_failure() && !InspectorS::gimbal_failure()) {
+            if ((Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_UP) ||
+                (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_MIDDLE)) {
+
+                /// Remote - Shoot with Scrolling Wheel
+
+                ShootLG::set_limit_mode(ShootLG::UNLIMITED_MODE);
+
+                if (Remote::rc.wheel > 0.5) {  // down
+                    ShootLG::set_shoot_speed(shoot_fw_speed);
+                    ShootLG::set_limit_mode(ShootLG::UNLIMITED_MODE);
+                    if (ShootLG::get_shooter_state() == ShootLG::STOP) {
+                        ShootLG::shoot(ignore_shoot_constraints ? 999 : ShootLG::get_bullet_count_to_heat_limit(), shoot_feed_rate);
+                    }
+                } else if (Remote::rc.wheel < -0.5) {  // up
+                    ShootLG::set_shoot_speed(shoot_fw_speed);
+                    ShootLG::set_limit_mode(ShootLG::UNLIMITED_MODE);
+                    if (ShootLG::get_shooter_state() == ShootLG::STOP) {
+                        ShootLG::shoot(999 /* unlimited */, shoot_feed_rate);
+                    }
+                } else {
+                    if (ShootLG::get_shooter_state() != ShootLG::STOP) {
+                        ShootLG::stop();
+                    }
+                }
+
+                ShootLG::set_shoot_speed(shoot_fw_speed);
+
+            } else if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_DOWN) {
+
+                /// Remote - Vision
+
+                if (Remote::rc.wheel > 0.5) {  // down
+                    ShootLG::set_limit_mode(ShootLG::UNLIMITED_MODE);
+                    if (ShootLG::get_shooter_state() == ShootLG::STOP) {
+                        ShootLG::shoot(ignore_shoot_constraints ? 999 : ShootLG::get_bullet_count_to_heat_limit(),
+                                       shoot_feed_rate);
+                    }
+                } else if (Remote::rc.wheel < -0.5) {  // up
+#if ENABLE_VISION
+                    ShootLG::set_limit_mode(ShootLG::VISION_LIMITED_MODE);
+#endif
+                    if (ShootLG::get_shooter_state() == ShootLG::STOP) {
+                        ShootLG::shoot(ignore_shoot_constraints ? 999 : ShootLG::get_bullet_count_to_heat_limit(),
+                                       shoot_feed_rate);
+                    }
+                } else {
+                    ShootLG::set_limit_mode(ShootLG::UNLIMITED_MODE);
+                    if (ShootLG::get_shooter_state() != ShootLG::STOP) {
+                        ShootLG::stop();
+                    }
+                }
+
+                ShootLG::set_shoot_speed(shoot_fw_speed);
+
+            } else if (Remote::rc.s1 == Remote::S_DOWN) {
+
+                /// PC control mode
+
+                if (Remote::mouse.press_left) {
+#if ENABLE_REFEREE == TRUE
+                    // Read shoot limit
+                    if (Referee::robot_state.shooter_id1_17mm_cooling_rate >= 40) {
+                        shoot_feed_rate = Referee::robot_state.shooter_id1_17mm_cooling_rate / 10 * 1.25;
+                    } else {
+                        shoot_feed_rate = Referee::robot_state.shooter_id1_17mm_cooling_limit / 25;
+                    }
+#if ENABLE_VISION == TRUE
+                    none
+#endif
+#else
+                    ShootLG::set_limit_mode(ShootLG::UNLIMITED_MODE);
+#endif
+                    if (ShootLG::get_shoot_speed() == 0) {  // force start friction wheels
+                        ShootLG::set_shoot_speed(shoot_fw_speed);
+                    }
+
+                    if (ShootLG::get_shooter_state() == ShootLG::STOP) {  // set target once
+                        ShootLG::shoot(ignore_shoot_constraints ? 999 : ShootLG::get_bullet_count_to_heat_limit(),
+                                       shoot_feed_rate);
+                    }
+                } else {
+
+                    ShootLG::stop();
+
+                }
+
+            } else {
+                /// Safe Mode
+                ShootLG::force_stop();
+                ShootLG::set_shoot_speed(0);
+            }
+
+        } else {  // InspectorI::remote_failure() || InspectorI::chassis_failure() || InspectorI::gimbal_failure()
+            /// Safe Mode
+            ShootLG::stop();
+            ShootLG::set_shoot_speed(0);
+        }
 
 
         /*** ---------------------------------- Chassis --------------------------------- ***/

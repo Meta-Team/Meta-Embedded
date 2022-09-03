@@ -94,10 +94,10 @@ void SChassisSKD::SKDThread::main() {
             chSysLock();
             CANMotorController::set_target_vel(CANMotorCFG::MOTOR_LEFT,
                                                  target_velocity / schassis_wheel_curriculum
-                                                 * (float)motor_install_[SChassisSKD::MOTOR_LEFT] * 5);
+                                                 * (float)motor_install_[SChassisSKD::MOTOR_LEFT] * 200);
             CANMotorController::set_target_vel(CANMotorCFG::MOTOR_RIGHT,
                                                target_velocity / schassis_wheel_curriculum
-                                                 * (float)motor_install_[SChassisSKD::MOTOR_RIGHT] * 5);
+                                                 * (float)motor_install_[SChassisSKD::MOTOR_RIGHT] * 200);
             chSysUnlock();
 
         } else if (mode == FORCED_RELAX_MODE) {
