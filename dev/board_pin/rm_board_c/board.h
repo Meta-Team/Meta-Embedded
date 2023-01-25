@@ -33,8 +33,8 @@
 /*
  * Board identifier.
  */
-#define BOARD_ST_STM32F4_DISCOVERY
-#define BOARD_NAME                  "STMicroelectronics STM32F4-Discovery"
+#define BOARD_RM_C
+#define BOARD_NAME                  "RM_Board_C"
 
 /*
  * Board oscillators-related settings.
@@ -191,9 +191,9 @@
 #define GPIOH_PIN7                  7U
 #define GPIOH_PIN8                  8U
 #define GPIOH_PIN9                  9U
-#define GPIOH_PIN10                 10U
-#define GPIOH_PIN11                 11U
-#define GPIOH_PIN12                 12U
+#define GPIOH_LED_B                 10U
+#define GPIOH_LED_G                 11U
+#define GPIOH_LED_R                 12U
 #define GPIOH_PIN13                 13U
 #define GPIOH_PIN14                 14U
 #define GPIOH_PIN15                 15U
@@ -1120,9 +1120,9 @@
  * PH7  - PIN7                      (input floating).
  * PH8  - PIN8                      (input floating).
  * PH9  - PIN9                      (input floating).
- * PH10 - PIN10                     (input floating).
- * PH11 - PIN11                     (input floating).
- * PH12 - PIN12                     (input floating).
+ * PH10 - LED_B                     (output pushpull maximum).
+ * PH11 - LED_G                     (output pushpull maximum).
+ * PH12 - LED_R                     (output pushpull maximum).
  * PH13 - PIN13                     (input floating).
  * PH14 - PIN14                     (input floating).
  * PH15 - PIN15                     (input floating).
@@ -1137,9 +1137,9 @@
                                      PIN_MODE_INPUT(GPIOH_PIN7) |           \
                                      PIN_MODE_INPUT(GPIOH_PIN8) |           \
                                      PIN_MODE_INPUT(GPIOH_PIN9) |           \
-                                     PIN_MODE_INPUT(GPIOH_PIN10) |          \
-                                     PIN_MODE_INPUT(GPIOH_PIN11) |          \
-                                     PIN_MODE_INPUT(GPIOH_PIN12) |          \
+                                     PIN_MODE_OUTPUT(GPIOH_LED_B) |          \
+                                     PIN_MODE_OUTPUT(GPIOH_LED_G) |          \
+                                     PIN_MODE_OUTPUT(GPIOH_LED_R) |          \
                                      PIN_MODE_INPUT(GPIOH_PIN13) |          \
                                      PIN_MODE_INPUT(GPIOH_PIN14) |          \
                                      PIN_MODE_INPUT(GPIOH_PIN15))
@@ -1153,9 +1153,9 @@
                                      PIN_OTYPE_PUSHPULL(GPIOH_PIN7) |       \
                                      PIN_OTYPE_PUSHPULL(GPIOH_PIN8) |       \
                                      PIN_OTYPE_PUSHPULL(GPIOH_PIN9) |       \
-                                     PIN_OTYPE_PUSHPULL(GPIOH_PIN10) |      \
-                                     PIN_OTYPE_PUSHPULL(GPIOH_PIN11) |      \
-                                     PIN_OTYPE_PUSHPULL(GPIOH_PIN12) |      \
+                                     PIN_OTYPE_PUSHPULL(GPIOH_LED_B) |      \
+                                     PIN_OTYPE_PUSHPULL(GPIOH_LED_G) |      \
+                                     PIN_OTYPE_PUSHPULL(GPIOH_LED_R) |      \
                                      PIN_OTYPE_PUSHPULL(GPIOH_PIN13) |      \
                                      PIN_OTYPE_PUSHPULL(GPIOH_PIN14) |      \
                                      PIN_OTYPE_PUSHPULL(GPIOH_PIN15))
@@ -1169,9 +1169,9 @@
                                      PIN_OSPEED_HIGH(GPIOH_PIN7) |          \
                                      PIN_OSPEED_HIGH(GPIOH_PIN8) |          \
                                      PIN_OSPEED_HIGH(GPIOH_PIN9) |          \
-                                     PIN_OSPEED_HIGH(GPIOH_PIN10) |         \
-                                     PIN_OSPEED_HIGH(GPIOH_PIN11) |         \
-                                     PIN_OSPEED_HIGH(GPIOH_PIN12) |         \
+                                     PIN_OSPEED_HIGH(GPIOH_LED_B) |         \
+                                     PIN_OSPEED_HIGH(GPIOH_LED_G) |         \
+                                     PIN_OSPEED_HIGH(GPIOH_LED_R) |         \
                                      PIN_OSPEED_HIGH(GPIOH_PIN13) |         \
                                      PIN_OSPEED_HIGH(GPIOH_PIN14) |         \
                                      PIN_OSPEED_HIGH(GPIOH_PIN15))
@@ -1185,9 +1185,9 @@
                                      PIN_PUPDR_FLOATING(GPIOH_PIN7) |       \
                                      PIN_PUPDR_FLOATING(GPIOH_PIN8) |       \
                                      PIN_PUPDR_FLOATING(GPIOH_PIN9) |       \
-                                     PIN_PUPDR_FLOATING(GPIOH_PIN10) |      \
-                                     PIN_PUPDR_FLOATING(GPIOH_PIN11) |      \
-                                     PIN_PUPDR_FLOATING(GPIOH_PIN12) |      \
+                                     PIN_PUPDR_FLOATING(GPIOH_LED_B) |      \
+                                     PIN_PUPDR_FLOATING(GPIOH_LED_G) |      \
+                                     PIN_PUPDR_FLOATING(GPIOH_LED_R) |      \
                                      PIN_PUPDR_FLOATING(GPIOH_PIN13) |      \
                                      PIN_PUPDR_FLOATING(GPIOH_PIN14) |      \
                                      PIN_PUPDR_FLOATING(GPIOH_PIN15))
@@ -1201,9 +1201,9 @@
                                      PIN_ODR_HIGH(GPIOH_PIN7) |             \
                                      PIN_ODR_HIGH(GPIOH_PIN8) |             \
                                      PIN_ODR_HIGH(GPIOH_PIN9) |             \
-                                     PIN_ODR_HIGH(GPIOH_PIN10) |            \
-                                     PIN_ODR_HIGH(GPIOH_PIN11) |            \
-                                     PIN_ODR_HIGH(GPIOH_PIN12) |            \
+                                     PIN_ODR_HIGH(GPIOH_LED_B) |            \
+                                     PIN_ODR_HIGH(GPIOH_LED_G) |            \
+                                     PIN_ODR_HIGH(GPIOH_LED_R) |            \
                                      PIN_ODR_HIGH(GPIOH_PIN13) |            \
                                      PIN_ODR_HIGH(GPIOH_PIN14) |            \
                                      PIN_ODR_HIGH(GPIOH_PIN15))
@@ -1217,9 +1217,9 @@
                                      PIN_AFIO_AF(GPIOH_PIN7, 0U))
 #define VAL_GPIOH_AFRH              (PIN_AFIO_AF(GPIOH_PIN8, 0U) |          \
                                      PIN_AFIO_AF(GPIOH_PIN9, 0U) |          \
-                                     PIN_AFIO_AF(GPIOH_PIN10, 0U) |         \
-                                     PIN_AFIO_AF(GPIOH_PIN11, 0U) |         \
-                                     PIN_AFIO_AF(GPIOH_PIN12, 0U) |         \
+                                     PIN_AFIO_AF(GPIOH_LED_B, 0U) |         \
+                                     PIN_AFIO_AF(GPIOH_LED_G, 0U) |         \
+                                     PIN_AFIO_AF(GPIOH_LED_R, 0U) |         \
                                      PIN_AFIO_AF(GPIOH_PIN13, 0U) |         \
                                      PIN_AFIO_AF(GPIOH_PIN14, 0U) |         \
                                      PIN_AFIO_AF(GPIOH_PIN15, 0U))

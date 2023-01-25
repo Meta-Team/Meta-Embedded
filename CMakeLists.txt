@@ -16,7 +16,7 @@ if (NOT DEFINED BOARD_NAME)
     #    message(FATAL_ERROR "[ERROR] No specific dev board. Do you forget to add -DBOARD_NAMD=\"***\" to CMake options?")
 endif ()
 
-if ((${BOARD_NAME} STREQUAL rm_board_2017) OR (${BOARD_NAME} STREQUAL rm_board_2018_a))
+if ((${BOARD_NAME} STREQUAL rm_board_2017) OR (${BOARD_NAME} STREQUAL rm_board_2018_a) OR (${BOARD_NAME} STREQUAL rm_board_c))
     message("[Notice] Current profile is configurated for dev board \"${BOARD_NAME}\".")
 else ()
     message(FATAL_ERROR "[ERROR] Dev board \"${BOARD_NAME}\" is not configured.")
