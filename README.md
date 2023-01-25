@@ -25,7 +25,7 @@ Meta-Embedded
 ├── cmsis            CMSIS DSP 计算库 | CMSIS DSP Library for Calculation
 ├── config           CMake 配置、OpenOCD 配置、辅助脚本等 | Configuration for CMake, OpenOCD and shell scripts.
 ├── dev              我们编写的源码文件 | Main source code.
-├── os               ChibiOS 源码文件 | ChibiOS/RT code.
+├── os               ChibiOS/RT 源码文件 | ChibiOS/RT code.
 ├── CMakeLists.txt   CMake 主配置文件 | Main configuration file for CMake.
 └── README.md        此文件 | This file.
 ```
@@ -58,7 +58,7 @@ The project use C++ class for encapsulation and modularization. The modules will
 │   │   ├── mpu6500.cpp                   MPU6500 陀螺仪接口 | Interface for MPU 6500 -
 │   │   ├── mpu6500.h
 │   │   └── mpu6500_reg.h
-│   ├── can                             - CAN总下相关接口 | Interfaces for CAN-BUS -
+│   ├── can                             - CAN总线相关接口 | Interfaces for CAN-BUS -
 │   │   ├── can_interface.cpp             CAN总线收发程序 | CAN-BUS Tx/RX Module
 │   │   ├── can_interface.h
 │   │   ├── can_motor_feedback.cpp        大疆CAN电机接口 | DJI Motors' Feedback Class Using CAN-BUS -
