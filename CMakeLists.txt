@@ -12,7 +12,7 @@ set(CMAKE_CXX_STANDARD 11)
 # NOTICE: ${BOARD_NAME} needs to be specific externally
 # NOTICE: if you want to adapt this project to a new board, be sure to also set startup file in compile_options.cmake
 if (NOT DEFINED BOARD_NAME)
-    set(BOARD_NAME rm_board_2018_a)
+    set(BOARD_NAME rm_board_c)
     #    message(FATAL_ERROR "[ERROR] No specific dev board. Do you forget to add -DBOARD_NAMD=\"***\" to CMake options?")
 endif ()
 

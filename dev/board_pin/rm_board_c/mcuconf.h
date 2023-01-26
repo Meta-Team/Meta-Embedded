@@ -273,7 +273,7 @@
 #define STM32_SPI_USE_SPI2                  FALSE
 #define STM32_SPI_USE_SPI3                  FALSE
 #define STM32_SPI_USE_SPI4                  FALSE
-#define STM32_SPI_USE_SPI5                  TRUE
+#define STM32_SPI_USE_SPI5                  FALSE
 #define STM32_SPI_SPI1_RX_DMA_STREAM        STM32_DMA_STREAM_ID(2, 0)
 #define STM32_SPI_SPI1_TX_DMA_STREAM        STM32_DMA_STREAM_ID(2, 3)
 #define STM32_SPI_SPI2_RX_DMA_STREAM        STM32_DMA_STREAM_ID(1, 3)
@@ -311,8 +311,8 @@
 #define STM32_UART_USE_UART4                FALSE
 #define STM32_UART_USE_UART5                FALSE
 #define STM32_UART_USE_USART6               FALSE
-#define STM32_UART_USE_UART7                TRUE
-#define STM32_UART_USE_UART8                TRUE
+#define STM32_UART_USE_UART7                FALSE
+#define STM32_UART_USE_UART8                FALSE
 #define STM32_UART_USART1_RX_DMA_STREAM     STM32_DMA_STREAM_ID(2, 5)
 #define STM32_UART_USART1_TX_DMA_STREAM     STM32_DMA_STREAM_ID(2, 7)
 #define STM32_UART_USART2_RX_DMA_STREAM     STM32_DMA_STREAM_ID(1, 5)
@@ -353,7 +353,7 @@
  * USB driver system settings.
  */
 #define STM32_USB_USE_OTG1                  TRUE
-#define STM32_USB_USE_OTG2                  TRUE
+#define STM32_USB_USE_OTG2                  FALSE
 #define STM32_USB_OTG1_IRQ_PRIORITY         14
 #define STM32_USB_OTG2_IRQ_PRIORITY         14
 #define STM32_USB_OTG1_RX_FIFO_SIZE         512
