@@ -7,7 +7,7 @@
 
 // #include "button/button_monitor.h"
 // #include "interface/led/led.h"
-#include "shell.h"
+// #include "shell.h"
 
 using namespace chibios_rt;
 
@@ -72,7 +72,7 @@ int main(void) {
     blinkLEDThread.start(NORMALPRIO - 1);
 
     // Start ChibiOS shell at high priority, so even if a thread stucks, we still have access to shell.
-    Shell::start(HIGHPRIO);
+//    Shell::start(HIGHPRIO);
 
 
 #if CH_CFG_NO_IDLE_THREAD // See chconf.h for what this #define means.

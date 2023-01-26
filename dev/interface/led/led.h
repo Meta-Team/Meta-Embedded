@@ -21,6 +21,10 @@
 // Green - PF14, Red - PE7. High to turn on
 #define LED_PAD_ON(port, pad) palSetPad(port, pad)
 #define LED_PAD_OFF(port, pad) palClearPad(port, pad)
+#elif defined(BOARD_RM_C)
+// Blue - PH10, Green - PH11, Red PH12. Low to turn on
+#define LED_PAD_ON(port, pad) palSetPad(port, pad)
+#define LED_PAD_OFF(port, pad) palClearPad(port, pad)
 #else
 #error "LED has not been defined for selected board"
 #endif
@@ -39,42 +43,67 @@ public:
      * Turn off green LED
      */
     static void green_off() {
+#if defined(BOARD_RM_C)
+        LED_PAD_OFF(GPIOH, GPIOH_LED_G);
+#else
         LED_PAD_OFF(GPIOF, GPIOF_LED_GREEN);
+#endif
     }
 
     /**
      * Turn on green LED
      */
     static void green_on() {
+#if defined(BOARD_RM_C)
+        LED_PAD_ON(GPIOH, GPIOH_LED_G);
+#else
         LED_PAD_ON(GPIOF, GPIOF_LED_GREEN);
+#endif
     }
 
     /**
      * Toggle green LED
      */
     static void green_toggle() {
+#if defined(BOARD_RM_C)
+        palTogglePad(GPIOH, GPIOH_LED_G);
+#else
         palTogglePad(GPIOF, GPIOF_LED_GREEN);
+#endif
     }
 
     /**
      * Turn off red LED
      */
     static void red_off() {
-        LED_PAD_OFF(GPIOE, GPIOE_LED_RED);
+
+#if defined(BOARD_RM_C)
+        LED_PAD_OFF(GPIOH, GPIOH_LED_R);
+#else
+        LED_PAD_OFF(GPIOF, GPIOF_LED_RED);
+#endif
     }
 
     /**
      * Turn on red LED
      */
     static void red_on() {
-        LED_PAD_ON(GPIOE, GPIOE_LED_RED);
+#if defined(BOARD_RM_C)
+        LED_PAD_ON(GPIOH, GPIOH_LED_R);
+#else
+        LED_PAD_ON(GPIOF, GPIOF_LED_RED);
+#endif
     }
 
     /**
      * Toggle red LED
      */
     static void red_toggle() {
-        palTogglePad(GPIOE, GPIOE_LED_RED);
+#if defined(BOARD_RM_C)
+        palTogglePad(GPIOH, GPIOH_LED_R);
+#else
+        palTogglePad(GPIOF, GPIOF_LED_RED);
+#endif
     }
 
 #if defined(BOARD_RM_2018_A)
