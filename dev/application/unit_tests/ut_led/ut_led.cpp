@@ -6,7 +6,7 @@
 #include "hal.h"
 
 // #include "button/button_monitor.h"
-// #include "interface/led/led.h"
+#include "interface/led/led.h"
 // #include "shell.h"
 
 using namespace chibios_rt;
@@ -35,6 +35,8 @@ class BlinkLEDThread : public chibios_rt::BaseStaticThread<256> {
 
     void main() final {
         setName("blink");
+        LED::red_off();
+        LED::green_off();
         while (!shouldTerminate()) {
             palTogglePad(GPIOH, GPIOH_LED_B);
             sleep(TIME_MS2I(1000));
