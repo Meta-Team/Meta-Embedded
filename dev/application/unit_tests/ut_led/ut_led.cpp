@@ -67,14 +67,14 @@ int main(void) {
     System::init();
 
     // Start button monitor threads.
-    buttonK0.start(NORMALPRIO, 0, 0, 0);
+    buttonK0.start(NORMALPRIO);
 
     // Start LED blink thread.
     blinkLEDThread.set_button_monitor(&buttonK0);
     blinkLEDThread.start(NORMALPRIO - 1);
 
     // Start ChibiOS shell at high priority, so even if a thread stucks, we still have access to shell.
-//    Shell::start(HIGHPRIO);
+    // Shell::start(HIGHPRIO);
 
 
 #if CH_CFG_NO_IDLE_THREAD // See chconf.h for what this #define means.
