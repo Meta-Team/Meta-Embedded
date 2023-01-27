@@ -7,7 +7,9 @@
 #if defined(BOARD_RM_2017) // press to be low
 #define BUTTON_PRESS_PAL_STATUS PAL_LOW
 #elif defined(BOARD_RM_2018_A) // press to be high
-#define BUTTON_PRESS_PAL_STATUS PAL_HIGH 
+#define BUTTON_PRESS_PAL_STATUS PAL_HIGH
+#elif defined(BOARD_RM_C) // press to be high
+#define BUTTON_PRESS_PAL_STATUS PAL_HIGH
 #endif
 
 class ButtonMonitorThread : public chibios_rt::BaseStaticThread<128> {
