@@ -106,6 +106,27 @@ public:
 #endif
     }
 
+    /**
+     * Turn off blue LED
+     */
+    static void blue_off() {
+        LED_PAD_OFF(GPIOH, GPIOH_LED_B);
+    }
+
+    /**
+     * Turn on blue LED
+     */
+    static void blue_on() {
+        LED_PAD_ON(GPIOH, GPIOH_LED_B);
+    }
+
+    /**
+     * Toggle blue LED
+     */
+    static void blue_toggle() {
+        palTogglePad(GPIOH, GPIOH_LED_B);
+    }
+
 #if defined(BOARD_RM_2018_A)
 
     /**

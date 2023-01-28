@@ -32,12 +32,15 @@ private:
 
 #if defined(BOARD_RM_2018_A)
     unsigned led_i = 1;
+#elif defined(BOARD_RM_C)
+    unsigned led_i = 1;
 #endif
 
     void main() final {
         setName("blink");
         LED::red_off();
         LED::green_off();
+        LED::blue_off();
         while (!shouldTerminate()) {
             sleep(TIME_MS2I(1000));
             if (button->pressed) {
