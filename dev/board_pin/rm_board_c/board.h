@@ -173,12 +173,12 @@
 #define GPIOG_PIN6                  6U
 #define GPIOG_PIN7                  7U
 #define GPIOG_PIN8                  8U
-#define GPIOG_PIN9                  9U
+#define GPIOG_UART6_RX              9U
 #define GPIOG_PIN10                 10U
 #define GPIOG_PIN11                 11U
 #define GPIOG_PIN12                 12U
 #define GPIOG_PIN13                 13U
-#define GPIOG_PIN14                 14U
+#define GPIOG_UART6_TX              14U
 #define GPIOG_PIN15                 15U
 
 #define GPIOH_OSC_IN                0U
@@ -1002,12 +1002,12 @@
  * PG6  - PIN6                      (input floating).
  * PG7  - PIN7                      (input floating).
  * PG8  - PIN8                      (input floating).
- * PG9  - PIN9                      (input floating).
+ * PG9  - UART6_RX                  (alternate 8).
  * PG10 - PIN10                     (input floating).
  * PG11 - PIN11                     (input floating).
  * PG12 - PIN12                     (input floating).
  * PG13 - PIN13                     (input floating).
- * PG14 - PIN14                     (input floating).
+ * PG14 - UART6_TX                  (alternate 8).
  * PG15 - PIN15                     (input floating).
  */
 #define VAL_GPIOG_MODER             (PIN_MODE_INPUT(GPIOG_PIN0) |           \
@@ -1019,12 +1019,12 @@
                                      PIN_MODE_INPUT(GPIOG_PIN6) |           \
                                      PIN_MODE_INPUT(GPIOG_PIN7) |           \
                                      PIN_MODE_INPUT(GPIOG_PIN8) |           \
-                                     PIN_MODE_INPUT(GPIOG_PIN9) |           \
+                                     PIN_MODE_ALTERNATE(GPIOG_UART6_RX) |           \
                                      PIN_MODE_INPUT(GPIOG_PIN10) |          \
                                      PIN_MODE_INPUT(GPIOG_PIN11) |          \
                                      PIN_MODE_INPUT(GPIOG_PIN12) |          \
                                      PIN_MODE_INPUT(GPIOG_PIN13) |          \
-                                     PIN_MODE_INPUT(GPIOG_PIN14) |          \
+                                     PIN_MODE_ALTERNATE(GPIOG_UART6_TX) |          \
                                      PIN_MODE_INPUT(GPIOG_PIN15))
 #define VAL_GPIOG_OTYPER            (PIN_OTYPE_PUSHPULL(GPIOG_PIN0) |       \
                                      PIN_OTYPE_PUSHPULL(GPIOG_PIN1) |       \
@@ -1035,12 +1035,12 @@
                                      PIN_OTYPE_PUSHPULL(GPIOG_PIN6) |       \
                                      PIN_OTYPE_PUSHPULL(GPIOG_PIN7) |       \
                                      PIN_OTYPE_PUSHPULL(GPIOG_PIN8) |       \
-                                     PIN_OTYPE_PUSHPULL(GPIOG_PIN9) |       \
+                                     PIN_OTYPE_PUSHPULL(GPIOG_UART6_RX) |       \
                                      PIN_OTYPE_PUSHPULL(GPIOG_PIN10) |      \
                                      PIN_OTYPE_PUSHPULL(GPIOG_PIN11) |      \
                                      PIN_OTYPE_PUSHPULL(GPIOG_PIN12) |      \
                                      PIN_OTYPE_PUSHPULL(GPIOG_PIN13) |      \
-                                     PIN_OTYPE_PUSHPULL(GPIOG_PIN14) |      \
+                                     PIN_OTYPE_PUSHPULL(GPIOG_UART6_TX) |      \
                                      PIN_OTYPE_PUSHPULL(GPIOG_PIN15))
 #define VAL_GPIOG_OSPEEDR           (PIN_OSPEED_HIGH(GPIOG_PIN0) |          \
                                      PIN_OSPEED_HIGH(GPIOG_PIN1) |          \
@@ -1051,12 +1051,12 @@
                                      PIN_OSPEED_HIGH(GPIOG_PIN6) |          \
                                      PIN_OSPEED_HIGH(GPIOG_PIN7) |          \
                                      PIN_OSPEED_HIGH(GPIOG_PIN8) |          \
-                                     PIN_OSPEED_HIGH(GPIOG_PIN9) |          \
+                                     PIN_OSPEED_HIGH(GPIOG_UART6_RX) |          \
                                      PIN_OSPEED_HIGH(GPIOG_PIN10) |         \
                                      PIN_OSPEED_HIGH(GPIOG_PIN11) |         \
                                      PIN_OSPEED_HIGH(GPIOG_PIN12) |         \
                                      PIN_OSPEED_HIGH(GPIOG_PIN13) |         \
-                                     PIN_OSPEED_HIGH(GPIOG_PIN14) |         \
+                                     PIN_OSPEED_HIGH(GPIOG_UART6_TX) |         \
                                      PIN_OSPEED_HIGH(GPIOG_PIN15))
 #define VAL_GPIOG_PUPDR             (PIN_PUPDR_FLOATING(GPIOG_PIN0) |       \
                                      PIN_PUPDR_FLOATING(GPIOG_PIN1) |       \
@@ -1067,12 +1067,12 @@
                                      PIN_PUPDR_FLOATING(GPIOG_PIN6) |       \
                                      PIN_PUPDR_FLOATING(GPIOG_PIN7) |       \
                                      PIN_PUPDR_FLOATING(GPIOG_PIN8) |       \
-                                     PIN_PUPDR_FLOATING(GPIOG_PIN9) |       \
+                                     PIN_PUPDR_FLOATING(GPIOG_UART6_RX) |       \
                                      PIN_PUPDR_FLOATING(GPIOG_PIN10) |      \
                                      PIN_PUPDR_FLOATING(GPIOG_PIN11) |      \
                                      PIN_PUPDR_FLOATING(GPIOG_PIN12) |      \
                                      PIN_PUPDR_FLOATING(GPIOG_PIN13) |      \
-                                     PIN_PUPDR_FLOATING(GPIOG_PIN14) |      \
+                                     PIN_PUPDR_FLOATING(GPIOG_UART6_TX) |      \
                                      PIN_PUPDR_FLOATING(GPIOG_PIN15))
 #define VAL_GPIOG_ODR               (PIN_ODR_HIGH(GPIOG_PIN0) |             \
                                      PIN_ODR_HIGH(GPIOG_PIN1) |             \
@@ -1083,12 +1083,12 @@
                                      PIN_ODR_HIGH(GPIOG_PIN6) |             \
                                      PIN_ODR_HIGH(GPIOG_PIN7) |             \
                                      PIN_ODR_HIGH(GPIOG_PIN8) |             \
-                                     PIN_ODR_HIGH(GPIOG_PIN9) |             \
+                                     PIN_ODR_HIGH(GPIOG_UART6_RX) |             \
                                      PIN_ODR_HIGH(GPIOG_PIN10) |            \
                                      PIN_ODR_HIGH(GPIOG_PIN11) |            \
                                      PIN_ODR_HIGH(GPIOG_PIN12) |            \
                                      PIN_ODR_HIGH(GPIOG_PIN13) |            \
-                                     PIN_ODR_HIGH(GPIOG_PIN14) |            \
+                                     PIN_ODR_HIGH(GPIOG_UART6_TX) |            \
                                      PIN_ODR_HIGH(GPIOG_PIN15))
 #define VAL_GPIOG_AFRL              (PIN_AFIO_AF(GPIOG_PIN0, 0U) |          \
                                      PIN_AFIO_AF(GPIOG_PIN1, 0U) |          \
@@ -1099,12 +1099,12 @@
                                      PIN_AFIO_AF(GPIOG_PIN6, 0U) |          \
                                      PIN_AFIO_AF(GPIOG_PIN7, 0U))
 #define VAL_GPIOG_AFRH              (PIN_AFIO_AF(GPIOG_PIN8, 0U) |          \
-                                     PIN_AFIO_AF(GPIOG_PIN9, 0U) |          \
+                                     PIN_AFIO_AF(GPIOG_UART6_RX, 8U) |          \
                                      PIN_AFIO_AF(GPIOG_PIN10, 0U) |         \
                                      PIN_AFIO_AF(GPIOG_PIN11, 0U) |         \
                                      PIN_AFIO_AF(GPIOG_PIN12, 0U) |         \
                                      PIN_AFIO_AF(GPIOG_PIN13, 0U) |         \
-                                     PIN_AFIO_AF(GPIOG_PIN14, 0U) |         \
+                                     PIN_AFIO_AF(GPIOG_UART6_TX, 8U) |         \
                                      PIN_AFIO_AF(GPIOG_PIN15, 0U))
 
 /*

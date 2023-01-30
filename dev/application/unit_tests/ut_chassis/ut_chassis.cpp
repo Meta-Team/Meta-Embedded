@@ -10,7 +10,7 @@
 #include "hal.h"
 
 #include "interface/led/led.h"
-#include "debug/shell/shell.h"
+#include "shell.h"
 #include "chassis_logic.h"
 #include "can_motor_controller.h"
 #include "can_motor_interface.h"

@@ -27,6 +27,8 @@
 // USART6_TX - PG14, USART6_RX - PG9
 #elif defined(BOARD_RM_2017)
 // USART6_TX - PG14, USART6_RX - PG9
+#elif defined(BOARD_RM_C)
+// UART6_TX - PG14, UART6_RX -PG9
 #else
 #error "Shell has not been defined for selected board"
 #endif
