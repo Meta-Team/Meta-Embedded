@@ -8,6 +8,7 @@
 #include "interface/button/button_monitor.h"
 #include "interface/led/led.h"
 #include "shell.h"
+#include "interface/buzzer/buzzer_scheduler.h"
 
 using namespace chibios_rt;
 
@@ -72,12 +73,20 @@ int main(void) {
     // Start button monitor threads.
     buttonK0.start(NORMALPRIO);
 
+    // Start ChibiOS shell at high priority, so even if a thread stucks, we still have access to shell.
+    Shell::start(HIGHPRIO);
+
+    chThdSleepMilliseconds(500);
     // Start LED blink thread.
     blinkLEDThread.set_button_monitor(&buttonK0);
     blinkLEDThread.start(NORMALPRIO - 1);
 
-    // Start ChibiOS shell at high priority, so even if a thread stucks, we still have access to shell.
-    Shell::start(HIGHPRIO);
+    chThdSleepMilliseconds(500);
+    BuzzerSKD::init(NORMALPRIO+1);
+
+    chThdSleepMilliseconds(500);
+
+    BuzzerSKD::play_sound(BuzzerSKD::sound_kong_fu_FC);
 
 #if CH_CFG_NO_IDLE_THREAD // See chconf.h for what this #define means.
     // ChibiOS idle thread has been disabled, main() should implement infinite loop

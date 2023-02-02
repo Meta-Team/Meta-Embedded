@@ -72,10 +72,10 @@ private:
             1000000, // Default playing_note: 1Hz
             nullptr,
             {
-                    {PWM_OUTPUT_ACTIVE_HIGH, nullptr},  // it's all CH1 for current support boards
+                    {PWM_OUTPUT_DISABLED, nullptr},  // it's all CH1 for 2017 and A
                     {PWM_OUTPUT_DISABLED, nullptr},
                     {PWM_OUTPUT_DISABLED, nullptr},
-                    {PWM_OUTPUT_DISABLED, nullptr}
+                    {PWM_OUTPUT_ACTIVE_HIGH, nullptr}  // CH3 for C
             },
             0,
             0

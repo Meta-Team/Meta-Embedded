@@ -258,7 +258,9 @@ include_directories(dev/application/unit_tests/)
 # Blink
 add_executable(ut_blink
         dev/interface/button/button_monitor.cpp
-        dev/application/unit_tests/ut_led/ut_led.cpp)
+        dev/application/unit_tests/ut_led/ut_led.cpp
+        dev/interface/buzzer/buzzer_interface.cpp
+        dev/interface/buzzer/buzzer_scheduler.cpp)
 target_include_directories(ut_blink PRIVATE dev/application/unit_tests/ut_led)
 
 # Remote Interpreter: include remote_interpreter sources and the unit test modules.
