@@ -64,15 +64,15 @@ include_directories(  # common include directories
         dev/application)
 
 set(BASE_SRC  # common cpp sources, which are included to every target at post configuration below
-#        dev/interface/usb_com/usb_serial_interface.cpp
-#        dev/interface/shell/shell.cpp
-#        dev/interface/shell/shell_base.c
-#        dev/interface/shell/shell_base_cmd.c
-#        dev/interface/shell/shell_dbg_cmd.cpp
-#        dev/interface/shell/printf.c
-        dev/interface/led/led.cpp)
-#        dev/interface/buzzer/buzzer_interface.cpp
-#        dev/interface/buzzer/buzzer_scheduler.cpp)
+        dev/interface/usb_com/usb_serial_interface.cpp
+        dev/interface/shell/shell.cpp
+        dev/interface/shell/shell_base.c
+        dev/interface/shell/shell_base_cmd.c
+        dev/interface/shell/shell_dbg_cmd.cpp
+        dev/interface/shell/printf.c
+        dev/interface/led/led.cpp
+        dev/interface/buzzer/buzzer_interface.cpp
+        dev/interface/buzzer/buzzer_scheduler.cpp)
 
 set(VEHICLE_COMMON_SRC
         dev/module/pid_controller.hpp

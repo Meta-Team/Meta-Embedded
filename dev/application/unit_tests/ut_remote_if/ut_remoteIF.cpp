@@ -9,7 +9,7 @@
 #include "hal.h"
 
 #include "interface/led/led.h"
-#include "debug/shell/shell.h"
+#include "shell.h"
 #include "remote_interpreter.h"
 
 using namespace chibios_rt;

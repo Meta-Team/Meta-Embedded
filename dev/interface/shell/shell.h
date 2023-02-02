@@ -32,6 +32,7 @@
 #else
 #error "Shell has not been defined for selected board"
 #endif
+
 #if ENABLE_USB_SHELL == FALSE
 #define SerialDriver SD6
 #else
