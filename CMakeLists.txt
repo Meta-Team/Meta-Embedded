@@ -268,6 +268,11 @@ add_executable(ut_remote_interpreter
         dev/interface/remote/remote_interpreter.cpp
         dev/application/unit_tests/ut_remote_if/ut_remoteIF.cpp)
 
+# Motor
+add_executable(ut_motor
+        ${VEHICLE_COMMON_SRC}
+        ut_motor.cpp)
+
 # IMU: include IMU interface and unit test.
 add_executable(ut_imu
         dev/interface/ahrs/ahrs_math.hpp

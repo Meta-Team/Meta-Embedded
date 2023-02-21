@@ -50,6 +50,7 @@ private:
                 LED::red_off();
                 sleep(TIME_MS2I((1 + button->counter % 3) * 100));
             } else {
+                Shell::printf("Key pushed!" ENDL);
                 LED::green_on();
                 sleep(TIME_MS2I((1 + button->counter % 3) * 100));
                 LED::green_off();
