@@ -81,7 +81,7 @@ set(VEHICLE_COMMON_SRC
         dev/interface/can_motor/can_motor_interface.cpp
         dev/interface/can_motor/can_motor_controller.cpp
         dev/interface/remote/remote_interpreter.cpp
-        dev/interface/oled/oled_interface.cpp
+#        dev/interface/oled/oled_interface.cpp
         dev/common/CRC8.cpp
         dev/common/CRC16.cpp
         dev/interface/sd_card/sd_card_interface.cpp)
@@ -271,7 +271,9 @@ add_executable(ut_remote_interpreter
 # Motor
 add_executable(ut_motor
         ${VEHICLE_COMMON_SRC}
-        ut_motor.cpp)
+        dev/application/unit_tests/ut_motor/ut_motor.cpp
+        dev/application/unit_tests/ut_motor/can_motor_config.cpp)
+target_include_directories(ut_motor PRIVATE dev/application/unit_tests/ut_motor)
 
 # IMU: include IMU interface and unit test.
 add_executable(ut_imu

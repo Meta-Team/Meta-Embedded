@@ -5,8 +5,10 @@
 #include "ch.hpp"
 #include "hal.h"
 
+#include "interface/led/led.h"
 #include "shell.h"
 #include "can_motor_interface.h"
+#include "hardware_conf.h"
 
 using namespace chibios_rt;
 CANInterface can1(&CAND1);
@@ -22,7 +24,7 @@ int main(void) {
     can2.start(NORMALPRIO+1);
     CANMotorIF::init(&can1, &can2);
 
-    CANMotorIF::set_current(0, 3000);
+    CANMotorIF::set_current(CANMotorCFG::MOTOR1, 3000);
 
     return 0;
 }

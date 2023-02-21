@@ -63,31 +63,31 @@ public:
      */
     static CANMotorFeedback motor_feedback[MOTOR_COUNT];
 
+/**
+ * @brief Initialize the haptic arm interface.
+ * @param can1_             [in] The can1 channel to use.
+ * @param can2_             [in] The can2 channel to use.
+ */
+static void init(CANInterface *can1_, CANInterface *can2_); // made public for testing, TH, 02/21/2023
+
+/**
+ * @brief Set can motor currents.
+ * @param motor_id          [in]      (YAW/PITCH)     Logical motor ID, use the enumerator.
+ * @param target_current    [in]                Input variable of motor. Varies from motor.
+ * @details Input variables, range and mapping relation for each motor:
+ * @code
+ * Motor Type    |    GM6020     |     M3508     |         M2006
+ * -------------------------------------------------------------
+ * Input Vars    |    Voltage    |    Current    |       Current
+ * -------------------------------------------------------------
+ * Input Range   | -30000~30000  | -16384~16384  |  -10000~10000
+ * -------------------------------------------------------------
+ * Output Range  | Not Provided  |   -20A~20A    |      -10A~10A
+ * @endcode
+ */
+static void set_current(motor_id_t motor_id, int target_current); // made public for testing, TH, 02/21/2023
+
 private:
-
-    /**
-     * @brief Initialize the haptic arm interface.
-     * @param can1_             [in] The can1 channel to use.
-     * @param can2_             [in] The can2 channel to use.
-     */
-    static void init(CANInterface *can1_, CANInterface *can2_);
-
-    /**
-     * @brief Set can motor currents.
-     * @param motor_id          [in]      (YAW/PITCH)     Logical motor ID, use the enumerator.
-     * @param target_current    [in]                Input variable of motor. Varies from motor.
-     * @details Input variables, range and mapping relation for each motor:
-     * @code
-     * Motor Type    |    GM6020     |     M3508     |         M2006
-     * -------------------------------------------------------------
-     * Input Vars    |    Voltage    |    Current    |       Current
-     * -------------------------------------------------------------
-     * Input Range   | -30000~30000  | -16384~16384  |  -10000~10000
-     * -------------------------------------------------------------
-     * Output Range  | Not Provided  |   -20A~20A    |      -10A~10A
-     * @endcode
-     */
-    static void set_current(motor_id_t motor_id, int target_current);
 
     /**
      * @brief                   The function send the stored txmsg.

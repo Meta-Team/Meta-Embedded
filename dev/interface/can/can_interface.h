@@ -23,6 +23,8 @@
 // CAN1_RX - PD0, CAN1_TX - PD1
 #elif defined(BOARD_RM_2017)
 // CAN1_RX - PD0, CAN1_TX - PD1
+#elif defined(BOARD_RM_C)
+// CAN1_RX - PD0, CAN1_TX - PD1
 #else
 #error "CANInterface has not been defined for selected board"
 #endif

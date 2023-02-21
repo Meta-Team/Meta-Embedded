@@ -109,7 +109,7 @@
 #define GPIOC_PIN8                  8U
 #define GPIOC_PIN9                  9U
 #define GPIOC_SCLK                  10U
-#define GPIOC_PIN11                 11U
+#define GPIOC_USART3_RX             11U  // listed as UART3_RX in RM_board_c schematic diagram and USART3_RX in ST datasheet, change to UART if error occur
 #define GPIOC_SDIN                  12U
 #define GPIOC_PIN13                 13U
 #define GPIOC_PIN14                 14U
@@ -538,7 +538,7 @@
  * PC8  - PIN8                      (input pullup).
  * PC9  - PIN9                      (input pullup).
  * PC10 - SCLK                      (alternate 6).
- * PC11 - PIN11                     (input pullup).
+ * PC11 - GPIOC_USART3_RX           (alternate 7).
  * PC12 - SDIN                      (alternate 6).
  * PC13 - PIN13                     (input pullup).
  * PC14 - PIN14                     (input pullup).
@@ -555,7 +555,7 @@
                                      PIN_MODE_INPUT(GPIOC_PIN8) |           \
                                      PIN_MODE_INPUT(GPIOC_PIN9) |           \
                                      PIN_MODE_ALTERNATE(GPIOC_SCLK) |       \
-                                     PIN_MODE_INPUT(GPIOC_PIN11) |          \
+                                     PIN_MODE_ALTERNATE(GPIOC_USART3_RX) |          \
                                      PIN_MODE_ALTERNATE(GPIOC_SDIN) |       \
                                      PIN_MODE_INPUT(GPIOC_PIN13) |          \
                                      PIN_MODE_INPUT(GPIOC_PIN14) |          \
@@ -571,7 +571,7 @@
                                      PIN_OTYPE_PUSHPULL(GPIOC_PIN8) |       \
                                      PIN_OTYPE_PUSHPULL(GPIOC_PIN9) |       \
                                      PIN_OTYPE_PUSHPULL(GPIOC_SCLK) |       \
-                                     PIN_OTYPE_PUSHPULL(GPIOC_PIN11) |      \
+                                     PIN_OTYPE_PUSHPULL(GPIOC_USART3_RX) |      \
                                      PIN_OTYPE_PUSHPULL(GPIOC_SDIN) |       \
                                      PIN_OTYPE_PUSHPULL(GPIOC_PIN13) |      \
                                      PIN_OTYPE_PUSHPULL(GPIOC_PIN14) |      \
@@ -587,7 +587,7 @@
                                      PIN_OSPEED_HIGH(GPIOC_PIN8) |          \
                                      PIN_OSPEED_HIGH(GPIOC_PIN9) |          \
                                      PIN_OSPEED_HIGH(GPIOC_SCLK) |          \
-                                     PIN_OSPEED_HIGH(GPIOC_PIN11) |         \
+                                     PIN_OSPEED_HIGH(GPIOC_USART3_RX) |         \
                                      PIN_OSPEED_HIGH(GPIOC_SDIN) |          \
                                      PIN_OSPEED_HIGH(GPIOC_PIN13) |         \
                                      PIN_OSPEED_HIGH(GPIOC_PIN14) |         \
@@ -603,7 +603,7 @@
                                      PIN_PUPDR_PULLUP(GPIOC_PIN8) |         \
                                      PIN_PUPDR_PULLUP(GPIOC_PIN9) |         \
                                      PIN_PUPDR_FLOATING(GPIOC_SCLK) |       \
-                                     PIN_PUPDR_PULLUP(GPIOC_PIN11) |        \
+                                     PIN_PUPDR_PULLUP(GPIOC_USART3_RX) |        \
                                      PIN_PUPDR_FLOATING(GPIOC_SDIN) |       \
                                      PIN_PUPDR_PULLUP(GPIOC_PIN13) |        \
                                      PIN_PUPDR_PULLUP(GPIOC_PIN14) |        \
@@ -619,7 +619,7 @@
                                      PIN_ODR_HIGH(GPIOC_PIN8) |             \
                                      PIN_ODR_HIGH(GPIOC_PIN9) |             \
                                      PIN_ODR_HIGH(GPIOC_SCLK) |             \
-                                     PIN_ODR_HIGH(GPIOC_PIN11) |            \
+                                     PIN_ODR_HIGH(GPIOC_USART3_RX) |            \
                                      PIN_ODR_HIGH(GPIOC_SDIN) |             \
                                      PIN_ODR_HIGH(GPIOC_PIN13) |            \
                                      PIN_ODR_HIGH(GPIOC_PIN14) |            \
@@ -635,7 +635,7 @@
 #define VAL_GPIOC_AFRH              (PIN_AFIO_AF(GPIOC_PIN8, 0U) |          \
                                      PIN_AFIO_AF(GPIOC_PIN9, 0U) |          \
                                      PIN_AFIO_AF(GPIOC_SCLK, 6U) |          \
-                                     PIN_AFIO_AF(GPIOC_PIN11, 0U) |         \
+                                     PIN_AFIO_AF(GPIOC_USART3_RX, 7U) |     \
                                      PIN_AFIO_AF(GPIOC_SDIN, 6U) |          \
                                      PIN_AFIO_AF(GPIOC_PIN13, 0U) |         \
                                      PIN_AFIO_AF(GPIOC_PIN14, 0U) |         \
