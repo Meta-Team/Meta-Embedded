@@ -87,16 +87,16 @@ static void init(CANInterface *can1_, CANInterface *can2_); // made public for t
  */
 static void set_current(motor_id_t motor_id, int target_current); // made public for testing, TH, 02/21/2023
 
+/**
+ * @brief                   The function send the stored txmsg.
+ * @param can_channel_      [in]  [can_channel_1/can_channel_2]   The can channel to post.
+ * @param SID               [in]  [0x200/0x1FF/0x2FF]             The identifier of the CAN Tx Frame.
+ */
+ static bool post_target_current(CANMotorBase::can_channel_t can_channel_, uint32_t SID);
+
 private:
 
     /**
-     * @brief                   The function send the stored txmsg.
-     * @param can_channel_      [in]  [can_channel_1/can_channel_2]   The can channel to post.
-     * @param SID               [in]  [0x200/0x1FF/0x2FF]             The identifier of the CAN Tx Frame.
-     */
-     static bool post_target_current(CANMotorBase::can_channel_t can_channel_, uint32_t SID);
-
-     /**
       * @brief                  CAN Tx Frame enable flag
       * @details                Indicate whether the can frame was used.
       * @code

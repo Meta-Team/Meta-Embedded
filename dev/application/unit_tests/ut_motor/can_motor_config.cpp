@@ -5,7 +5,7 @@
 #include "can_motor_config.h"
 
 CANMotorBase CANMotorCFG::CANMotorProfile[MOTOR_COUNT] = {
-        {CANMotorBase::can_channel_1, 0x201, CANMotorBase::GM6020, 3572},
+        {CANMotorBase::can_channel_1, 0x205, CANMotorBase::GM6020, 3572},
 };
 
 PIDController::pid_params_t CANMotorCFG::a2vParams[MOTOR_COUNT] = {
