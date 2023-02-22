@@ -244,7 +244,30 @@ add_executable(SENTRY
 target_include_directories(SENTRY PRIVATE dev/application/vehicles/sentry)
 target_compile_definitions(SENTRY PRIVATE SENTRY)
 target_link_libraries(SENTRY ${AHRS_LIB})
+# 2023 New Sentry
+add_executable(NEW_SENTRY
+        ${VEHICLE_COMMON_SRC}
+        #        ${AHRS_EXT_SRC}
 
+        dev/interface/referee/referee_interface.cpp
+
+#        dev/scheduler/sentry_chassis_scheduler.cpp
+#        dev/scheduler/gimbal_scheduler.cpp
+#        dev/scheduler/shoot_scheduler.cpp
+        dev/scheduler/omni_chassis_scheduler.cpp
+
+#        dev/logic/sentry_chassis_logic.cpp
+#        dev/logic/gimbal_logic.cpp
+#        dev/logic/shoot_logic.cpp
+
+        dev/application/vehicles/new_sentry/inspector_sentry.cpp
+        dev/application/vehicles/new_sentry/can_motor_config.cpp
+        dev/application/vehicles/new_sentry/user_sentry.cpp
+        dev/application/vehicles/new_sentry/main_sentry.cpp
+        )
+target_include_directories(NEW_SENTRY PRIVATE dev/application/vehicles/new_sentry)
+target_compile_definitions(NEW_SENTRY PRIVATE NEW_SENTRY)
+target_link_libraries(NEW_SENTRY ${AHRS_LIB})
 # Main Program -- Engineer
 
 
@@ -335,6 +358,20 @@ add_executable(ut_chassis
 target_include_directories(ut_chassis PRIVATE dev/application/unit_tests/ut_chassis)
 target_compile_definitions(ut_chassis PRIVATE ut_chassis)
 target_link_libraries(ut_chassis ${AHRS_LIB})
+
+
+add_executable(ut_omni_chassis
+        ${VEHICLE_COMMON_SRC}
+        ${AHRS_SRC}
+        dev/application/unit_tests/ut_omni_chassis/can_motor_config.cpp
+        dev/interface/can_motor/can_motor_controller.cpp
+        dev/scheduler/omni_chassis_scheduler.cpp
+        dev/logic/omni_chassis_logic.cpp
+        dev/module/low_pass_filter.hpp
+        dev/application/unit_tests/ut_omni_chassis/ut_omni_chassis.cpp)
+target_include_directories(ut_omni_chassis PRIVATE dev/application/unit_tests/ut_omni_chassis)
+target_compile_definitions(ut_omni_chassis PRIVATE ut_omni_chassis)
+target_link_libraries(ut_omni_chassis ${AHRS_LIB})
 
 # --------------------------------------- Param Adjusts ---------------------------------------
 

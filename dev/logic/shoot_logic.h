@@ -33,6 +33,8 @@
 #include "vehicle_aerial.h"
 #elif defined(HERO)
 #include "vehicle_hero.h"
+#elif defined(NEW_SENTRY)
+#include "vehicle_sentry.h"
 #else
 #error "Files infantry_shoot_logic.h/cpp should only be used for Infantry or Sentry main program"
 #endif
