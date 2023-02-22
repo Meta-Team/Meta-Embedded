@@ -24,7 +24,12 @@ int main(void) {
     can2.start(NORMALPRIO+1);
     CANMotorIF::init(&can1, &can2);
 
-    CANMotorIF::set_current(CANMotorCFG::MOTOR1, 3000);
+    // turn green LED on
+    LED::green_on();
+    LED::red_off();
+    LED::blue_off();
+
+    CANMotorIF::set_current(CANMotorCFG::MOTOR1, 15000);
 
     return 0;
 }
