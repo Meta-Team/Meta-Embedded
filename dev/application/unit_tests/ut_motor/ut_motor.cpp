@@ -8,23 +8,31 @@
 #include "interface/led/led.h"
 #include "shell.h"
 #include "can_motor_interface.h"
+#include "can_motor_controller.h"
 #include "hardware_conf.h"
 
 using namespace chibios_rt;
 CANInterface can1(&CAND1);
 CANInterface can2(&CAND2);
 
-class thd :public BaseStaticThread<512> {
+class MotorControl :public BaseStaticThread<512> {
+private:
+    int shell_print_cnt = 0;
+
     void main() final{
         setName("feedback");
         while(!shouldTerminate()){
-            Shell::printf("%f", CANMotorIF::motor_feedback[CANMotorCFG::MOTOR1].actual_angle);
-            CANMotorIF::set_current(CANMotorCFG::MOTOR1, 2000);
-            CANMotorIF::post_target_current(CANMotorBase::can_channel_1, 0x1FF);
+            CANMotorController::set_target_current(CANMotorCFG::MOTOR1, 2000);
             sleep(TIME_MS2I(1));
+
+            shell_print_cnt++;
+            if (shell_print_cnt == 1000){
+                Shell::printf("%.2f" ENDL, CANMotorIF::motor_feedback[CANMotorCFG::MOTOR1].actual_angle);
+                shell_print_cnt = 0;
+            }
         }
     }
-}thddd;
+} ControlThread;
 
 int main(void) {
     halInit();
@@ -32,16 +40,18 @@ int main(void) {
 
     // Start shell at high priority
     Shell::start(HIGHPRIO);
+    chThdSleepMilliseconds(500);
     can1.start(NORMALPRIO);
     can2.start(NORMALPRIO+1);
-    CANMotorIF::init(&can1, &can2);
+
+    CANMotorController::start(NORMALPRIO + 2, NORMALPRIO + 3, &can1, &can2);
     chThdSleepMilliseconds(500);
-    // turn green LED on
+
+    ControlThread.start(NORMALPRIO+2);
+    // green LED on, indicating thread running
     LED::green_on();
     LED::red_off();
     LED::blue_off();
-    thddd.start(NORMALPRIO+2);
-
 
 #if CH_CFG_NO_IDLE_THREAD  // See chconf.h for what this #define means.
     // ChibiOS idle thread has been disabled, main() should implement infinite loop
