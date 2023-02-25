@@ -130,7 +130,7 @@ private:
             CAN_BTR_SJW(0) | CAN_BTR_TS2(3) |
             CAN_BTR_TS1(8) | CAN_BTR_BRP(2)
     };
-    static constexpr unsigned TRANSMIT_TIMEOUT_MS = 10;
+    static constexpr unsigned TRANSMIT_TIMEOUT_MS = 1;
 
     void main() final;
 };

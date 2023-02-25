@@ -14,6 +14,7 @@
 #define META_INFANTRY_CAN_MOTOR_FEEDBACK_H
 
 #include "can_interface.h"
+#include "iir_butterworth.hpp"
 
 struct CANMotorBase {
     enum can_channel_t{
@@ -69,6 +70,8 @@ public:
      */
     int round_count = 0;
 
+    float filtered_velocity = 0.0f;
+
     /*===========================================================================*/
     /*                        Integrated Feedback Methods                        */
     /*===========================================================================*/
@@ -83,7 +86,7 @@ public:
      * @brief               Get the torque constant of the motor.
      * @return  [Nm/A]      Torque constant of the motor.
      */
-    float torque_const();
+    float torque_const() const;
 
     /**
      * @brief               Get the output torque of the motor.
@@ -166,7 +169,7 @@ private:
     static float constexpr M2006_REDUCE_RATIO = 36.0;         // 36/1     on the data sheet
     static float constexpr ENCODER_ANGLE_RATIO = 360.0f/8192.0f;
     static float constexpr ENCODER_CURRENT_RATIO =  20.0/16384.0;//       on the data sheet
-
+    IIRButterworth filter = IIRButterworth(100.0,1000.0);
 };
 
 

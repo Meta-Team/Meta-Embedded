@@ -20,7 +20,9 @@ using namespace chibios_rt;
 
 class CANMotorController: private CANMotorCFG{
 public:
-
+    static float feedforward_v;
+    static time_msecs_t last_target_time;
+    static float previous_target_a;
     /**
      * @brief           Start CAN motor scheduler thread.
      * @param SKD_PRIO  [in] Scheduler thread priority, motor controllers calculations.
@@ -79,6 +81,8 @@ public:
      * @param target    [in] Target current of motor.
      */
      static void set_target_current(motor_id_t id, int target);
+
+     static float fuck_target_V;
 
      /**
       * @brief Customized feedback type.

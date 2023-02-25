@@ -1,5 +1,8 @@
 # Meta Team - Infantry 2021
 
+## 本分支仅供参考，请勿合并分支.
+本分支修改了pa_gimbal.cpp，mcuconf.h以及halconf.h，通过DBUS口读取PWM信号对M2006电机进行角度控制，实现了模拟stepper motor driver的效果。
+
 => 请务必阅读 [Project Wiki](https://github.com/Meta-Team/Meta-Infantry/wiki) :smiley:
 
 => Please read [Project Wiki](https://github.com/Meta-Team/Meta-Infantry/wiki) :smiley:

@@ -163,12 +163,14 @@ set(INFANTRY_LIBS
 
 # Main Program -- Infantry #3
 add_executable(INFANTRY_THREE ${INFANTRY_SRC})
-target_include_directories(INFANTRY_THREE PRIVATE dev/application/vehicles/infantry)
+set_target_properties(INFANTRY_THREE PROPERTIES TARGET_DIR dev/application/vehicles/infantry)
+target_include_directories(INFANTRY_THREE PRIVATE ${INFANTRY_DIR})
 target_compile_definitions(INFANTRY_THREE PRIVATE ${INFANTRY_DEFS} INFANTRY_THREE)
 target_link_libraries(INFANTRY_THREE ${INFANTRY_LIBS})
 
 # Main Program -- Infantry #4
 add_executable(INFANTRY_FOUR ${INFANTRY_SRC})
+set_target_properties(INFANTRY_FOUR PROPERTIES TARGET_DIR dev/application/vehicles/infantry)
 target_include_directories(INFANTRY_FOUR PRIVATE dev/application/vehicles/infantry)
 target_compile_definitions(INFANTRY_FOUR PRIVATE ${INFANTRY_DEFS} INFANTRY_FOUR)
 target_link_libraries(INFANTRY_FOUR ${INFANTRY_LIBS})
@@ -336,6 +338,18 @@ target_include_directories(ut_chassis PRIVATE dev/application/unit_tests/ut_chas
 target_compile_definitions(ut_chassis PRIVATE ut_chassis)
 target_link_libraries(ut_chassis ${AHRS_LIB})
 
+add_executable(ut_stepper_driver
+        dev/module/pid_controller.hpp
+        dev/interface/can/can_interface.cpp
+        dev/interface/can_motor/can_motor_feedback.cpp
+        dev/interface/can_motor/can_motor_interface.cpp
+        dev/interface/can_motor/can_motor_controller.cpp
+        dev/application/unit_tests/ut_stepper_driver/can_motor_config.cpp
+        dev/interface/can_motor/can_motor_controller.cpp
+        dev/application/unit_tests/ut_stepper_driver/ut_stepper.cpp)
+target_include_directories(ut_stepper_driver PRIVATE dev/application/unit_tests/ut_stepper_driver)
+target_compile_definitions(ut_stepper_driver PRIVATE ut_stepper_driver)
+
 # --------------------------------------- Param Adjusts ---------------------------------------
 
 #add_executable(pa_hero_gimbal
@@ -376,13 +390,18 @@ add_executable(pa_gimbal
         dev/interface/remote/remote_interpreter.cpp
         ${AHRS_SRC}
         dev/interface/can/can_interface.cpp
+
+        dev/interface/can_motor/can_motor_feedback.cpp
+        dev/interface/can_motor/can_motor_interface.cpp
+        dev/interface/can_motor/can_motor_controller.cpp
+
         dev/module/pid_controller.hpp
-        dev/scheduler/gimbal_scheduler.cpp
-        dev/scheduler/shoot_scheduler.cpp
         dev/interface/buzzer/buzzer_scheduler.cpp
         dev/interface/ahrs/ahrs.cpp
+        dev/application/param_adjusts/can_motor_config.cpp
         dev/application/param_adjusts/pa_gimbal.cpp)
 target_link_libraries(pa_gimbal ${AHRS_LIB})
+target_include_directories(pa_gimbal PRIVATE dev/application/param_adjusts)
 
 add_executable(ca_ahrs_infantry
         dev/interface/ahrs/ahrs_math.hpp

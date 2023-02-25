@@ -8,12 +8,14 @@
 #include "hal.h"
 
 #include "interface/led/led.h"
-#include "debug/shell/shell.h"
-#include "chassis_interface.h"
+#include "can_interface.h"
+#include "can_motor_config.h"
+#include "can_motor_controller.h"
+#include "shell.h"
 #include "pid_controller.hpp"
 
 
-#include "vehicle/infantry/vehicle_infantry.h"
+#include "vehicle_pa.h"
 
 using namespace chibios_rt;
 
@@ -67,17 +69,17 @@ static void velocity_decompose_(float vx, float vy, float w) {
     // BL, -vx, +vy, +w, since the motor is installed in the opposite direction
     // BR, -vx, -vy, +w
 
-    target_velocity[ChassisIF::FR] = install_mode_ * (+vx - vy + w * w_to_v_ratio_) * v_to_wheel_angular_velocity_;
-    target_current[ChassisIF::FR] = (int) v2i_pid[ChassisIF::FR].calc(ChassisIF::feedback[ChassisIF::FR]->actual_velocity, target_velocity[ChassisIF::FR]);
+    target_velocity[CANMotorCFG::FR] = install_mode_ * (+vx - vy + w * w_to_v_ratio_) * v_to_wheel_angular_velocity_;
+    target_current[CANMotorCFG::FR] = (int) v2i_pid[ChassisIF::FR].calc(ChassisIF::feedback[ChassisIF::FR]->actual_velocity, target_velocity[ChassisIF::FR]);
 
-    target_velocity[ChassisIF::FL] = install_mode_ * (+vx + vy + w * w_to_v_ratio_) * v_to_wheel_angular_velocity_;
-    target_current[ChassisIF::FL] = (int) v2i_pid[ChassisIF::FL].calc(ChassisIF::feedback[ChassisIF::FL]->actual_velocity, target_velocity[ChassisIF::FL]);
+    target_velocity[CANMotorCFG::FL] = install_mode_ * (+vx + vy + w * w_to_v_ratio_) * v_to_wheel_angular_velocity_;
+    target_current[CANMotorCFG::FL] = (int) v2i_pid[ChassisIF::FL].calc(ChassisIF::feedback[ChassisIF::FL]->actual_velocity, target_velocity[ChassisIF::FL]);
 
-    target_velocity[ChassisIF::BL] = install_mode_ * (-vx + vy + w * w_to_v_ratio_) * v_to_wheel_angular_velocity_;
-    target_current[ChassisIF::BL] = (int) v2i_pid[ChassisIF::BL].calc(ChassisIF::feedback[ChassisIF::BL]->actual_velocity, target_velocity[ChassisIF::BL]);
+    target_velocity[CANMotorCFG::BL] = install_mode_ * (-vx + vy + w * w_to_v_ratio_) * v_to_wheel_angular_velocity_;
+    target_current[CANMotorCFG::BL] = (int) v2i_pid[ChassisIF::BL].calc(ChassisIF::feedback[ChassisIF::BL]->actual_velocity, target_velocity[ChassisIF::BL]);
 
-    target_velocity[ChassisIF::BR] = install_mode_ * (-vx - vy + w * w_to_v_ratio_) * v_to_wheel_angular_velocity_;
-    target_current[ChassisIF::BR] = (int) v2i_pid[ChassisIF::BR].calc(ChassisIF::feedback[ChassisIF::BR]->actual_velocity, target_velocity[ChassisIF::BR]);
+    target_velocity[CANMotorCFG::BR] = install_mode_ * (-vx - vy + w * w_to_v_ratio_) * v_to_wheel_angular_velocity_;
+    target_current[CANMotorCFG::BR] = (int) v2i_pid[ChassisIF::BR].calc(ChassisIF::feedback[ChassisIF::BR]->actual_velocity, target_velocity[ChassisIF::BR]);
 }
 
 /**

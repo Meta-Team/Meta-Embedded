@@ -56,6 +56,8 @@ void CANMotorFeedback::process_feedback(const CANRxFrame *rxmsg) {
             break;
     }
 
+    filtered_velocity = (float)filter.update(actual_velocity);
+
     if (actual_angle >= 180.0f) {   // Angle crop
         actual_angle -= 360.0f;
         round_count++;
@@ -68,7 +70,7 @@ void CANMotorFeedback::process_feedback(const CANRxFrame *rxmsg) {
     last_update_time        = SYSTIME;  // Update Time
 }
 
-float CANMotorFeedback::torque_const() {
+float CANMotorFeedback::torque_const() const {
     switch (motor_type) {
         case NONE_MOTOR:
             return 0;

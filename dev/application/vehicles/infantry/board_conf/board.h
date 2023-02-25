@@ -429,7 +429,7 @@
  * PB14 - PIN14                     (input pullup).
  * PB15 - PIN15                     (input pullup).
  */
-#define VAL_GPIOB_MODER             (PIN_MODE_INPUT(GPIOB_PIN0) |           \
+#define VAL_GPIOB_MODER             (PIN_MODE_OUTPUT(GPIOB_PIN0) |           \
                                      PIN_MODE_INPUT(GPIOB_PIN1) |           \
                                      PIN_MODE_INPUT(GPIOB_USER_BUTTON) |           \
                                      PIN_MODE_ALTERNATE(GPIOB_SPI1_SCK) |        \
@@ -784,9 +784,9 @@
                                      PIN_MODE_ALTERNATE(GPIOE_UART8_TX) |           \
                                      PIN_MODE_OUTPUT(GPIOE_IST8310_RST) |           \
                                      PIN_MODE_OUTPUT(GPIOE_CS_SPI) |        \
-                                     PIN_MODE_ALTERNATE(GPIOE_PIN4) |           \
-                                     PIN_MODE_ALTERNATE(GPIOE_PIN5) |           \
-                                     PIN_MODE_ALTERNATE(GPIOE_PIN6) |           \
+                                     PIN_MODE_OUTPUT(GPIOE_PIN4) |           \
+                                     PIN_MODE_OUTPUT(GPIOE_PIN5) |           \
+                                     PIN_MODE_OUTPUT(GPIOE_PIN6) |           \
                                      PIN_MODE_ALTERNATE(GPIOE_UART7_RX) |       \
                                      PIN_MODE_ALTERNATE(GPIOE_UART7_TX) |           \
                                      PIN_MODE_INPUT(GPIOE_PIN9) |           \
@@ -832,9 +832,9 @@
                                      PIN_PUPDR_FLOATING(GPIOE_UART8_TX) |       \
                                      PIN_PUPDR_FLOATING(GPIOE_IST8310_RST) |       \
                                      PIN_PUPDR_FLOATING(GPIOE_CS_SPI) |     \
-                                     PIN_PUPDR_PULLUP(GPIOE_PIN4) |       \
-                                     PIN_PUPDR_PULLUP(GPIOE_PIN5) |       \
-                                     PIN_PUPDR_PULLUP(GPIOE_PIN6) |       \
+                                     PIN_PUPDR_FLOATING(GPIOE_PIN4) |       \
+                                     PIN_PUPDR_FLOATING(GPIOE_PIN5) |       \
+                                     PIN_PUPDR_FLOATING(GPIOE_PIN6) |       \
                                      PIN_PUPDR_FLOATING(GPIOE_UART7_RX) |    \
                                      PIN_PUPDR_FLOATING(GPIOE_UART7_TX) |       \
                                      PIN_PUPDR_FLOATING(GPIOE_PIN9) |       \
@@ -897,8 +897,8 @@
  * PF14 - LED_GREEN                 (output pushpull maximum).
  * PF15 - PIN15                     (input floating).
  */
-#define VAL_GPIOF_MODER             (PIN_MODE_INPUT(GPIOF_PIN0) |           \
-                                     PIN_MODE_INPUT(GPIOF_PIN1) |           \
+#define VAL_GPIOF_MODER             (PIN_MODE_OUTPUT(GPIOF_PIN0) |           \
+                                     PIN_MODE_OUTPUT(GPIOF_PIN1) |           \
                                      PIN_MODE_INPUT(GPIOF_PIN2) |           \
                                      PIN_MODE_INPUT(GPIOF_PIN3) |           \
                                      PIN_MODE_INPUT(GPIOF_PIN4) |           \
@@ -945,7 +945,7 @@
                                      PIN_OSPEED_HIGH(GPIOF_PIN13) |         \
                                      PIN_OSPEED_HIGH(GPIOF_LED_GREEN) |      \
                                      PIN_OSPEED_HIGH(GPIOF_PIN15))
-#define VAL_GPIOF_PUPDR             (PIN_PUPDR_PULLDOWN(GPIOF_PIN0) |       \
+#define VAL_GPIOF_PUPDR             (PIN_PUPDR_FLOATING(GPIOF_PIN0) |       \
                                      PIN_PUPDR_FLOATING(GPIOF_PIN1) |       \
                                      PIN_PUPDR_FLOATING(GPIOF_PIN2) |       \
                                      PIN_PUPDR_FLOATING(GPIOF_PIN3) |       \
