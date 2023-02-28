@@ -73,7 +73,7 @@ void CANInterface::main() {
 
     while (!shouldTerminate()) {
 
-        // Wait until a event occurs
+        // Wait until an event occurs
         waitAnyEvent(ALL_EVENTS);
 
         // Process every received message
