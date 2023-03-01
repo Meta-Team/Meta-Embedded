@@ -12,11 +12,6 @@
 
 #include "can_motor_controller.h"
 
-float CANMotorController::feedforward_v;
-time_msecs_t CANMotorController::last_target_time = SYSTIME;
-float CANMotorController::previous_target_a;
-float CANMotorController::fuck_target_V=0.0f;
-
 CANMotorController::feedbackThread CANMotorController::FeedbackThread;
 CANMotorController::skdThread CANMotorController::SKDThread;
 PIDController CANMotorController::v2iController[MOTOR_COUNT];
@@ -43,8 +38,8 @@ void CANMotorController::load_PID_params(motor_id_t id, bool is_a2v, PIDControll
     }
 }
 
-void CANMotorController::switch_feedback_motor(motor_id_t id) {
-    FeedbackThread.disp_id = id;
+void CANMotorController::shell_display(motor_id_t id, bool enable) {
+    FeedbackThread.enable_feedback[id] = enable;
 }
 
 int  CANMotorController::get_torque_current(motor_id_t id){
@@ -56,19 +51,11 @@ int  CANMotorController::get_PID_current(motor_id_t id) {
 }
 
 void CANMotorController::set_target_angle(motor_id_t id, float target) {
-    if(id == BULLET_LOADER){
-        feedforward_v = (target - previous_target_a)/((float)SYSTIME - (float)last_target_time);
-        previous_target_a = SKDThread.targetA[id];
-        last_target_time = SYSTIME;
-    }
     SKDThread.targetA[id] = target;
 }
 
 void CANMotorController::set_target_vel(motor_id_t id, float target) {
     SKDThread.targetV[id] = target;
-    if(target == 0) {
-        v2iController[id].clear_i_out();
-    }
 }
 
 void CANMotorController::set_target_current(motor_id_t id, int target) {
@@ -100,7 +87,7 @@ void CANMotorController::unregister_custom_feedback(CANMotorController::feedback
 }
 
 void CANMotorController::skdThread::main() {
-    setName("MotorController");
+    setName("HapticSKDThread");
     for(int i = 0; i < MOTOR_COUNT; i++) {
         v2iController[i].change_parameters(v2iParams[i]);
         a2vController[i].change_parameters(a2vParams[i]);
@@ -118,29 +105,31 @@ void CANMotorController::skdThread::main() {
         chSysLock();
         for (int i = 0; i < MOTOR_COUNT; i++) {
             if(enable_a2v[i]) {
-                if (feedbackA[i] == nullptr) {
+                if(feedbackA[i] == nullptr) {
                     targetV[i] = a2vController[i].calc(CANMotorIF::motor_feedback[i].accumulate_angle(), targetA[i]);
                 } else {
                     targetV[i] = a2vController[i].calc(*feedbackA[i], targetA[i]);
                 }
             }
             if(enable_v2i[i]) {
+                float a_ff = ((targetV[i]-prev_v_target)/(float)THREAD_INTERVAL)*1000000.0f*2.0f;
+
                 if(feedbackV[i] == nullptr) {
-                    PID_output[i]=v2iController[i].calc(CANMotorIF::motor_feedback[i].actual_velocity, targetV[i]);
+                    PID_output[i]=v2iController[i].calc(CANMotorIF::motor_feedback[i].actual_velocity, targetV[i])+a_ff;
                 } else {
                     PID_output[i]=v2iController[i].calc(*feedbackV[i], targetV[i]);
                 }
                 output[i] = (int)PID_output[i];
             } else {
-                LED::led_off(2);
                 /// If disable the PID controller, clear the iterm so it does not bump.
                 a2vController[i].clear_i_out();
                 v2iController[i].clear_i_out();
             }
+            prev_v_target = targetV[i];
             CANMotorIF::set_current((motor_id_t)i, output[i]);
         }
         chSysUnlock();
-        /// Might be the most efficient way...currently?
+        /// Multi thread should take no effects on the timing as sending will cause chSysLock
         if(CANMotorIF::enable_CAN_tx_frames[0][0]) {
             CANMotorIF::post_target_current(CANMotorBase::can_channel_1, 0x200);
         }
@@ -159,29 +148,26 @@ void CANMotorController::skdThread::main() {
         if(CANMotorIF::enable_CAN_tx_frames[1][2]) {
             CANMotorIF::post_target_current(CANMotorBase::can_channel_2, 0x2FF);
         }
-        sleep(TIME_US2I(10));
+        // This command will adjust the sleep time to ensure controller was triggered at a constant rate.
+        // Sampling time could be critical when designing controller. Non-uniform sampling time would cause robustness problem in control system.
+        chThdSleepUntil(((TIME_I2US(chVTGetSystemTimeX())+CANMotorController::skdThread::getPriorityX())/THREAD_INTERVAL + 1)*THREAD_INTERVAL+CANMotorController::skdThread::getPriorityX());
     }
 }
 
 void CANMotorController::feedbackThread::main() {
     setName("feedback");
-    time_usecs_t SLEEP_INTERVAL = 2000; //us,
-
     while(!shouldTerminate()) {
-        if(disp_id >= 0 && disp_id < MOTOR_COUNT) {
-            /**TODO: re-enable Shell and display feedback*/
-            Shell::printf("!gy,%u,%.2f,%.2f,%.2f,%.2f,%d,%d,%f" SHELL_NEWLINE_STR,
-                          TIME_I2US(chVTGetSystemTimeX()),
-                          CANMotorIF::motor_feedback[disp_id].actual_angle, CANMotorController::SKDThread.targetA[disp_id],
-                          CANMotorIF::motor_feedback[disp_id].actual_velocity, CANMotorController::SKDThread.targetV[disp_id],
-                          CANMotorIF::motor_feedback[disp_id].torque_current(), (int)CANMotorController::SKDThread.PID_output[disp_id],
-                          fuck_target_V);
+        for (int i = 0; i < CANMotorCFG::MOTOR_COUNT; i++) {
+            if(enable_feedback[i]) {
+                Shell::printf("!fb,%u,%u,%.2f,%.2f,%.2f,%.2f,%d,%d" SHELL_NEWLINE_STR,
+                              SYSTIME,
+                              i, // Motor ID
+                              CANMotorIF::motor_feedback[i].actual_angle, CANMotorController::SKDThread.targetA[i],
+                              CANMotorIF::motor_feedback[i].actual_velocity, CANMotorController::SKDThread.targetV[i],
+                              CANMotorIF::motor_feedback[i].torque_current(), (int)CANMotorController::SKDThread.PID_output[i]);
+            }
         }
-        time_usecs_t sleep_time = SLEEP_INTERVAL-(TIME_I2US(chVTGetSystemTimeX())%SLEEP_INTERVAL);
-        if (sleep_time == 0){
-            sleep_time += SLEEP_INTERVAL;
-        }
-        sleep(TIME_US2I(sleep_time));
+        chThdSleepUntil(((TIME_I2US(chVTGetSystemTimeX())+CANMotorController::feedbackThread::getPriorityX())/THREAD_INTERVAL + 1)*THREAD_INTERVAL+CANMotorController::feedbackThread::getPriorityX());
     }
 }
 

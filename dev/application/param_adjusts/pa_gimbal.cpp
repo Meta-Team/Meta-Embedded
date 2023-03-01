@@ -66,6 +66,21 @@ AHRSOnBoard ahrs;
 static icucnt_t width, period;
 static float target_angle, dir;
 static float pos_vel, neg_vel;
+static float vellll;
+
+static struct velocity_profile_t {
+    static const int max_length = 30;
+    unsigned int profile1_length;
+    float vel_profile_1[max_length];
+    unsigned int hold_time_1;
+    float hold_vel_1;
+    unsigned int profile2_length;
+    float vel_profile_2[max_length];
+    unsigned int hold_time_2;
+    float hold_vel_2;
+    unsigned int profile3_length;
+    float vel_profile_3[max_length];
+} velocity_profile;
 
 static constexpr PWMConfig pwm_config = {
         1000000,
@@ -157,7 +172,6 @@ DEF_SHELL_CMD_START(cmd_enable_feedback)
 //        return true;
 //    }
     Shell::printf("%s feedback enabled" SHELL_NEWLINE_STR, motor_name[feedback_id]);
-    CANMotorController::switch_feedback_motor((CANMotorCFG::motor_id_t) feedback_id);
 }
 
 DEF_SHELL_CMD_START(cmd_disable_feedback)
@@ -182,6 +196,42 @@ DEF_SHELL_CMD_START(cmd_set_vel)
     }
     pos_vel = Shell::atof(argv[0]);
     neg_vel = Shell::atof(argv[1]);
+DEF_SHELL_CMD_END
+
+DEF_SHELL_CMD_START(cmd_set_vel_pf)
+    (void) argv;
+    switch (Shell::atoi(argv[0])) {
+        case 0:
+            velocity_profile.profile1_length = Shell::atoi(argv[1]);
+            break;
+        case 1:
+            velocity_profile.vel_profile_1[Shell::atoi(argv[1])] = Shell::atof(argv[2]);
+            break;
+        case 2:
+            velocity_profile.hold_time_1 = Shell::atoi(argv[1]);
+            break;
+        case 3:
+            velocity_profile.hold_vel_1 = Shell::atof(argv[1]);
+            break;
+        case 4:
+            velocity_profile.profile2_length = Shell::atoi(argv[1]);
+            break;
+        case 5:
+            velocity_profile.vel_profile_2[Shell::atoi(argv[1])] = Shell::atof(argv[2]);
+            break;
+        case 6:
+            velocity_profile.hold_time_2 = Shell::atoi(argv[1]);
+            break;
+        case 7:
+            velocity_profile.hold_vel_2 = Shell::atof(argv[1]);
+            break;
+        case 8:
+            velocity_profile.profile3_length = Shell::atoi(argv[1]);
+            break;
+        case 9:
+            velocity_profile.vel_profile_3[Shell::atoi(argv[1])] = Shell::atof(argv[2]);
+            break;
+    }
 DEF_SHELL_CMD_END
 
 DEF_SHELL_CMD_START(cmd_set_param)
@@ -283,7 +333,12 @@ Shell::Command mainProgramCommands[] = {
         {"echo_pid",        "motor_id pid_id(0: angle_to_v, 1: v_to_i)",   cmd_echo_param,      nullptr},
         {"set_target_angle","motor_id target_angle",   cmd_set_target_angle,nullptr},
         {"set_vel", "pos_vel neg_vel", cmd_set_vel, nullptr},
+        {"set_vel_pf", "cyka", cmd_set_vel_pf, nullptr},
         {nullptr,           nullptr,  nullptr,              nullptr}
+};
+
+class inputThread : public BaseStaticThread<512> {
+    void main() final;
 };
 
 class controlThread : public BaseStaticThread<512> {
@@ -293,6 +348,46 @@ class controlThread : public BaseStaticThread<512> {
 class encoderThread : public BaseStaticThread<512> {
     void main() final;
 };
+
+void inputThread::main() {
+    setName("input");
+    const unsigned long THREAD_INTERVAL = 1000; // [us]
+    const unsigned long PRIO = this->getPriorityX();
+    unsigned sleep_time;
+    float prev_velll = 0.0f;
+    unsigned traj_index = 0;
+    const float printer_ratio = 1.0f*93.0f/3200.0f*360.0f;
+    bool enable_track = false;
+    while(!shouldTerminate()) {
+        chSysLock();
+        if(vellll>0 && prev_velll==0){
+            traj_index = 0;
+            enable_track = true;
+        }
+        if(enable_track) {
+            if(traj_index < velocity_profile.profile1_length) {
+                CANMotorController::set_target_vel(CANMotorCFG::BULLET_LOADER,velocity_profile.vel_profile_1[traj_index]*printer_ratio);
+            } else if(traj_index < velocity_profile.profile1_length + velocity_profile.hold_time_1) {
+                CANMotorController::set_target_vel(CANMotorCFG::BULLET_LOADER,velocity_profile.hold_vel_1*printer_ratio);
+            } else if(traj_index < velocity_profile.profile1_length + velocity_profile.hold_time_1 + velocity_profile.profile2_length) {
+                CANMotorController::set_target_vel(CANMotorCFG::BULLET_LOADER,velocity_profile.vel_profile_2[traj_index-velocity_profile.profile1_length-velocity_profile.hold_time_1]*printer_ratio);
+            } else if(traj_index < velocity_profile.profile1_length + velocity_profile.hold_time_1 + velocity_profile.profile2_length + velocity_profile.hold_time_2) {
+                CANMotorController::set_target_vel(CANMotorCFG::BULLET_LOADER,velocity_profile.hold_vel_2*printer_ratio);
+            } else if(traj_index < velocity_profile.profile1_length + velocity_profile.hold_time_1 + velocity_profile.profile2_length + velocity_profile.hold_time_2 + velocity_profile.profile3_length) {
+                CANMotorController::set_target_vel(CANMotorCFG::BULLET_LOADER,velocity_profile.vel_profile_3[traj_index-velocity_profile.profile1_length-velocity_profile.hold_time_1- velocity_profile.profile2_length - velocity_profile.hold_time_2]*printer_ratio);
+            } else {
+                CANMotorController::set_target_vel(CANMotorCFG::BULLET_LOADER, 0.0f);
+                enable_track = false;
+            }
+            traj_index ++;
+        }
+        prev_velll = vellll;
+        chSysUnlock();
+        sleep_time = THREAD_INTERVAL - (chVTGetSystemTimeX() + PRIO)%THREAD_INTERVAL;
+        sleep(TIME_US2I(sleep_time));
+    }
+}
+
 
 /**
  * @brief thread for calculate encoder angle.
@@ -337,12 +432,13 @@ void encoderThread::main() {
                 encoder_angle += (1.0f/200.0f/4.0f*360.0f);
             }
         }
-        CANMotorController::fuck_target_V = encoder_angle;
         sleep(TIME_MS2I(1));
     }
 }
 
 encoderThread enc_thd;
+
+inputThread ipt_thd;
 
 void controlThread::main() {
     setName("controllerThread");
@@ -361,7 +457,6 @@ void controlThread::main() {
         dacPutChannelX(&DACD1, 0, outputvalue);
         auto target_speed =(float)((target_angle-prev_angle)/(float)(TIME_I2US(chVTGetSystemTimeX()) - prev_time))*1000000.0f;
         target_speed = (float)lround((float)target_speed/printer_ratio)*printer_ratio;
-        float vellll;
         if(target_speed > 0) {
             vellll = pos_vel * printer_ratio;
         } else if(target_speed < 0) {
@@ -369,7 +464,7 @@ void controlThread::main() {
         } else {
             vellll = 0;
         }
-        CANMotorController::set_target_vel(CANMotorCFG::BULLET_LOADER,vellll);//tg*10.4625f*2.0f);
+//        CANMotorController::set_target_vel(CANMotorCFG::BULLET_LOADER,vellll);//tg*10.4625f*2.0f);
         prev_angle = target_angle;
         prev_time = TIME_I2US(chVTGetSystemTimeX());
         sleep(TIME_MS2I(40));
@@ -452,6 +547,7 @@ int main(void) {
     /// Start SKDs
     CANMotorController::start(THREAD_MOTOR_SKD_PRIO, THREAD_FEEDBACK_SKD_PRIO, &can1, &can2);
     enc_thd.start(THREAD_CHASSIS_SKD_PRIO);
+    ipt_thd.start(THREAD_COMMUNICATOR_PRIO);
     control_thread.start(HIGHPRIO-10);
     /// Complete Period 2
     BuzzerSKD::play_sound(BuzzerSKD::sound_startup);  // Now play the startup sound

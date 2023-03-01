@@ -20,9 +20,7 @@ using namespace chibios_rt;
 
 class CANMotorController: private CANMotorCFG{
 public:
-    static float feedforward_v;
-    static time_msecs_t last_target_time;
-    static float previous_target_a;
+
     /**
      * @brief           Start CAN motor scheduler thread.
      * @param SKD_PRIO  [in] Scheduler thread priority, motor controllers calculations.
@@ -41,10 +39,19 @@ public:
     static void load_PID_params(motor_id_t id, bool is_a2v, PIDController::pid_params_t params);
 
     /**
-     * @brief           Switch the motor to display.
+     * @brief           Start/stop showing feedback data in shell.
+     * @details         Feedback format in shell:
+     * @code
+     * !fb, %u, %u,  %.2f,   %.2f,  %.2f,    %.2f,    %d,     %d \r\n
+     *       |   |    |       |      |        |        |       |
+     *       |   |  actual target  actual   target   actual  target
+     *     time id  angle  angle   velocity velocity current current
+     * @endcode
+     * @pre             Shell is configured properly.
      * @param id        [in] The corresponding id of the motor that tend to show feedback.
+     * @param enable    [in] Whether enable or disable feedback.
      */
-    static void switch_feedback_motor(motor_id_t id);
+    static void shell_display(motor_id_t id, bool enable);
 
     /**
      * @brief           Get torque current from feedback
@@ -80,39 +87,38 @@ public:
      * @param id        [in] Target motor id.
      * @param target    [in] Target current of motor.
      */
-     static void set_target_current(motor_id_t id, int target);
+    static void set_target_current(motor_id_t id, int target);
 
-     static float fuck_target_V;
+    /**
+     * @brief Customized feedback type.
+     */
+    enum feedback_type_t {
+        angle, ///< Feedback type is angle
+        velocity, ///< Feedback type is velocity
+    };
 
-     /**
-      * @brief Customized feedback type.
-      */
-     enum feedback_type_t {
-         angle, ///< Feedback type is angle
-         velocity, ///< Feedback type is velocity
-     };
+    /**
+     * Register the customize feedback, like AHRS angle for gimbal.
+     * @param feedback_addr    [in] The address of input variable (static), SKD will continuously read the address.
+     * @param fb_type          [in] Feedback_type_t, angle/velocity.
+     * @param motor_id         [in] The logical motor will affect, like YAW for gimbal control.
+     */
+    static void register_custom_feedback(float *feedback_addr, feedback_type_t fb_type, motor_id_t motor_id);
 
-     /**
-      * Register the customize feedback, like AHRS angle for gimbal.
-      * @param feedback_addr    [in] The address of input variable (static), SKD will continuously read the address.
-      * @param fb_type          [in] Feedback_type_t, angle/velocity.
-      * @param motor_id         [in] The logical motor will affect, like YAW for gimbal control.
-      */
-     static void register_custom_feedback(float *feedback_addr, feedback_type_t fb_type, motor_id_t motor_id);
-
-     /**
-      * Unregister the customize feedback, SKD will use build-in motor feedback for calculation.
-      * @param fb_type           [in] Feedback_type_t, angle/velocity.
-      * @param motor_id          [in] The logical motor will affect, like YAW for gimbal control.
-      */
-     static void unregister_custom_feedback(feedback_type_t fb_type, motor_id_t motor_id);
+    /**
+     * Unregister the customize feedback, SKD will use build-in motor feedback for calculation.
+     * @param fb_type           [in] Feedback_type_t, angle/velocity.
+     * @param motor_id          [in] The logical motor will affect, like YAW for gimbal control.
+     */
+    static void unregister_custom_feedback(feedback_type_t fb_type, motor_id_t motor_id);
 private:
 
     class feedbackThread : public BaseStaticThread<512> {
     public:
-        motor_id_t disp_id = (motor_id_t)((int)MOTOR_COUNT - 1);
+        bool enable_feedback[CANMotorCFG::MOTOR_COUNT]={0};
     private:
         void main() final;
+        const int THREAD_INTERVAL = 20000; // [us]
     };
     static feedbackThread FeedbackThread;
 
@@ -122,9 +128,11 @@ private:
         float targetV[MOTOR_COUNT];
         int   output[MOTOR_COUNT];
         float PID_output[MOTOR_COUNT];
+        float prev_v_target;
         void main() final;
         friend feedbackThread;
         friend CANMotorController;
+        const int THREAD_INTERVAL = 8000; // [us] The timeout value for sending 1 CAN frame is 1ms. In the worst case, the sending time would be 6 ms if we need to send 6 frame.
     };
     static skdThread SKDThread;
 
