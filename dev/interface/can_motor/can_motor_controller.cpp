@@ -147,7 +147,9 @@ void CANMotorController::skdThread::main() {
         }
         // This command will adjust the sleep time to ensure controller was triggered at a constant rate.
         // Sampling time could be critical when designing controller. Non-uniform sampling time would cause robustness problem in control system.
-        chThdSleepUntil(((TIME_I2US(chVTGetSystemTimeX())+CANMotorController::skdThread::getPriorityX())/THREAD_INTERVAL + 1)*THREAD_INTERVAL+CANMotorController::skdThread::getPriorityX());
+        tprio_t PRIO = this->getPriorityX();
+        unsigned long sleep_time = THREAD_INTERVAL - (TIME_I2US(chVTGetSystemTimeX()) + PRIO)%THREAD_INTERVAL;
+        sleep(TIME_US2I(sleep_time));
     }
 }
 
@@ -164,7 +166,9 @@ void CANMotorController::feedbackThread::main() {
                           CANMotorIF::motor_feedback[i].torque_current(), (int)CANMotorController::SKDThread.PID_output[i]);
             }
         }
-        chThdSleepUntil(((TIME_I2US(chVTGetSystemTimeX())+CANMotorController::feedbackThread::getPriorityX())/THREAD_INTERVAL + 1)*THREAD_INTERVAL+CANMotorController::feedbackThread::getPriorityX());
+        tprio_t PRIO = this->getPriorityX();
+        unsigned long sleep_time = THREAD_INTERVAL - (TIME_I2US(chVTGetSystemTimeX()) + PRIO)%THREAD_INTERVAL;
+        sleep(TIME_US2I(sleep_time));
     }
 }
 
