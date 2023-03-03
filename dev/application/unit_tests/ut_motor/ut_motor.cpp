@@ -22,8 +22,10 @@ private:
     void main() final{
         setName("feedback");
         while(!shouldTerminate()){
-            CANMotorController::set_target_current(CANMotorCFG::MOTOR1, 2000);
-            sleep(TIME_MS2I(1));
+            CANMotorController::set_target_angle(CANMotorCFG::MOTOR1, 180);
+            sleep(TIME_MS2I(1000));
+            CANMotorController::set_target_angle(CANMotorCFG::MOTOR1, -180);
+            sleep(TIME_MS2I(1000));
 
             shell_print_cnt++;
             if (shell_print_cnt == 1000){
