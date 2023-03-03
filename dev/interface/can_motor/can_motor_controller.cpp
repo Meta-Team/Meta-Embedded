@@ -14,10 +14,12 @@
 
 CANMotorController::feedbackThread CANMotorController::FeedbackThread;
 CANMotorController::skdThread CANMotorController::SKDThread;
+float CANMotorController::a_coeff = 1.0f;
 PIDController CANMotorController::v2iController[MOTOR_COUNT];
 PIDController CANMotorController::a2vController[MOTOR_COUNT];
 float *CANMotorController::feedbackV[MOTOR_COUNT];
 float *CANMotorController::feedbackA[MOTOR_COUNT];
+float CANMotorController::encoder_v;
 
 void CANMotorController::start(tprio_t SKD_PRIO, tprio_t FB_PRIO, CANInterface *can1_, CANInterface *can2_) {
     CANMotorIF::init(can1_, can2_);
@@ -112,7 +114,7 @@ void CANMotorController::skdThread::main() {
                 }
             }
             if(enable_v2i[i]) {
-                float a_ff = ((targetV[i]-prev_v_target)/(float)THREAD_INTERVAL)*1000000.0f*2.0f;
+                float a_ff = ((targetV[i]-prev_v_target)/(float)THREAD_INTERVAL)*1000000.0f*a_coeff;
 
                 if(feedbackV[i] == nullptr) {
                     PID_output[i]=v2iController[i].calc(CANMotorIF::motor_feedback[i].actual_velocity, targetV[i])+a_ff;
@@ -150,7 +152,9 @@ void CANMotorController::skdThread::main() {
         }
         // This command will adjust the sleep time to ensure controller was triggered at a constant rate.
         // Sampling time could be critical when designing controller. Non-uniform sampling time would cause robustness problem in control system.
-        chThdSleepUntil(((TIME_I2US(chVTGetSystemTimeX())+CANMotorController::skdThread::getPriorityX())/THREAD_INTERVAL + 1)*THREAD_INTERVAL+CANMotorController::skdThread::getPriorityX());
+        tprio_t PRIO = this->getPriorityX();
+        unsigned long sleep_time = THREAD_INTERVAL - (TIME_I2US(chVTGetSystemTimeX()) + PRIO)%THREAD_INTERVAL;
+        sleep(TIME_US2I(sleep_time));
     }
 }
 
@@ -159,15 +163,18 @@ void CANMotorController::feedbackThread::main() {
     while(!shouldTerminate()) {
         for (int i = 0; i < CANMotorCFG::MOTOR_COUNT; i++) {
             if(enable_feedback[i]) {
-                Shell::printf("!fb,%u,%u,%.2f,%.2f,%.2f,%.2f,%d,%d" SHELL_NEWLINE_STR,
-                              SYSTIME,
+                Shell::printf("!fb,%u,%u,%.2f,%.2f,%.2f,%.2f,%d,%d,%f" SHELL_NEWLINE_STR,
+                              TIME_I2US(chVTGetSystemTimeX()),
                               i, // Motor ID
                               CANMotorIF::motor_feedback[i].actual_angle, CANMotorController::SKDThread.targetA[i],
                               CANMotorIF::motor_feedback[i].actual_velocity, CANMotorController::SKDThread.targetV[i],
-                              CANMotorIF::motor_feedback[i].torque_current(), (int)CANMotorController::SKDThread.PID_output[i]);
+                              CANMotorIF::motor_feedback[i].torque_current(), (int)CANMotorController::SKDThread.PID_output[i],
+                              CANMotorController::encoder_v);
             }
         }
-        chThdSleepUntil(((TIME_I2US(chVTGetSystemTimeX())+CANMotorController::feedbackThread::getPriorityX())/THREAD_INTERVAL + 1)*THREAD_INTERVAL+CANMotorController::feedbackThread::getPriorityX());
+        tprio_t PRIO = this->getPriorityX();
+        unsigned long sleep_time = THREAD_INTERVAL - (TIME_I2US(chVTGetSystemTimeX()) + PRIO)%THREAD_INTERVAL;
+        sleep(TIME_US2I(sleep_time));
     }
 }
 

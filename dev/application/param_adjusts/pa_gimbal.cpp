@@ -58,6 +58,7 @@ bool feedback_enable[13];
 static const Matrix33 ON_BOARD_AHRS_MATRIX_ = ON_BOARD_AHRS_MATRIX;
 static const Matrix33 GIMBAL_ANGLE_INSTALLATION_MATRIX_ = GIMBAL_ANGLE_INSTALLATION_MATRIX;
 static const Matrix33 GIMBAL_GYRO_INSTALLATION_MATRIX_ = GIMBAL_GYRO_INSTALLATION_MATRIX;
+static ThreadReference ipt_ref;
 
 CANInterface can1(&CAND1);
 CANInterface can2(&CAND2);
@@ -67,18 +68,20 @@ static icucnt_t width, period;
 static float target_angle, dir;
 static float pos_vel, neg_vel;
 static float vellll;
+static float trapz_endvel;
+static float trapz_accel;
 
 static struct velocity_profile_t {
     static const int max_length = 30;
-    unsigned int profile1_length;
+    int profile1_length;
     float vel_profile_1[max_length];
-    unsigned int hold_time_1;
+    int hold_time_1;
     float hold_vel_1;
-    unsigned int profile2_length;
+    int profile2_length;
     float vel_profile_2[max_length];
-    unsigned int hold_time_2;
+    int hold_time_2;
     float hold_vel_2;
-    unsigned int profile3_length;
+    int profile3_length;
     float vel_profile_3[max_length];
 } velocity_profile;
 
@@ -323,21 +326,21 @@ DEF_SHELL_CMD_START(cmd_echo_icu_freq)
     Shell::printf("Period: %d Width: %d" SHELL_NEWLINE_STR, period, width);
 DEF_SHELL_CMD_END
 
-// Command lists for gimbal controller test and adjustments
-Shell::Command mainProgramCommands[] = {
-        {"_a",              nullptr,   cmd_set_enable,      nullptr},
-        {"set_disable",     "motor_id",   cmd_set_disable,     nullptr},
-        {"fb_enable",       "feedback_id",   cmd_enable_feedback, nullptr},
-        {"fb_disable",      "feedback_id",   cmd_disable_feedback,nullptr},
-        {"set_pid",         "motor_id pid_id(0: angle_to_v, 1: v_to_i) ki kp kd i_limit out_limit",   cmd_set_param,       nullptr},
-        {"echo_pid",        "motor_id pid_id(0: angle_to_v, 1: v_to_i)",   cmd_echo_param,      nullptr},
-        {"set_target_angle","motor_id target_angle",   cmd_set_target_angle,nullptr},
-        {"set_vel", "pos_vel neg_vel", cmd_set_vel, nullptr},
-        {"set_vel_pf", "cyka", cmd_set_vel_pf, nullptr},
-        {nullptr,           nullptr,  nullptr,              nullptr}
-};
+DEF_SHELL_CMD_START(cmd_set_aff)
+    CANMotorController::a_coeff = Shell::atof(argv[0]);
+DEF_SHELL_CMD_END
+
+DEF_SHELL_CMD_START(cmd_set_trapz)
+    trapz_endvel = Shell::atof(argv[0]);
+    trapz_accel  = Shell::atof(argv[1]);
+DEF_SHELL_CMD_END
+
+
 
 class inputThread : public BaseStaticThread<512> {
+public:
+    bool mode = false;
+private:
     void main() final;
 };
 
@@ -352,38 +355,63 @@ class encoderThread : public BaseStaticThread<512> {
 void inputThread::main() {
     setName("input");
     const unsigned long THREAD_INTERVAL = 1000; // [us]
-    const unsigned long PRIO = this->getPriorityX();
     unsigned sleep_time;
     float prev_velll = 0.0f;
-    unsigned traj_index = 0;
+    int traj_index = 0;
     const float printer_ratio = 1.0f*93.0f/3200.0f*360.0f;
     bool enable_track = false;
+    int index = 0;
+    float target_vel  = 0.0f;
     while(!shouldTerminate()) {
+        tprio_t PRIO = this->getPriorityX();
         chSysLock();
         if(vellll>0 && prev_velll==0){
             traj_index = 0;
             enable_track = true;
         }
         if(enable_track) {
-            if(traj_index < velocity_profile.profile1_length) {
-                CANMotorController::set_target_vel(CANMotorCFG::BULLET_LOADER,velocity_profile.vel_profile_1[traj_index]*printer_ratio);
-            } else if(traj_index < velocity_profile.profile1_length + velocity_profile.hold_time_1) {
-                CANMotorController::set_target_vel(CANMotorCFG::BULLET_LOADER,velocity_profile.hold_vel_1*printer_ratio);
-            } else if(traj_index < velocity_profile.profile1_length + velocity_profile.hold_time_1 + velocity_profile.profile2_length) {
-                CANMotorController::set_target_vel(CANMotorCFG::BULLET_LOADER,velocity_profile.vel_profile_2[traj_index-velocity_profile.profile1_length-velocity_profile.hold_time_1]*printer_ratio);
-            } else if(traj_index < velocity_profile.profile1_length + velocity_profile.hold_time_1 + velocity_profile.profile2_length + velocity_profile.hold_time_2) {
-                CANMotorController::set_target_vel(CANMotorCFG::BULLET_LOADER,velocity_profile.hold_vel_2*printer_ratio);
-            } else if(traj_index < velocity_profile.profile1_length + velocity_profile.hold_time_1 + velocity_profile.profile2_length + velocity_profile.hold_time_2 + velocity_profile.profile3_length) {
-                CANMotorController::set_target_vel(CANMotorCFG::BULLET_LOADER,velocity_profile.vel_profile_3[traj_index-velocity_profile.profile1_length-velocity_profile.hold_time_1- velocity_profile.profile2_length - velocity_profile.hold_time_2]*printer_ratio);
+            if(mode) {
+                if(traj_index <= (int)(trapz_endvel/trapz_accel*1000000.0f/(float)THREAD_INTERVAL)) {
+                    target_vel += (trapz_accel/1000000.0f*THREAD_INTERVAL);
+                } else if (traj_index < (int)(2.0f*trapz_endvel/trapz_accel*1000000.0f/(float)THREAD_INTERVAL)) {
+                    target_vel -= (trapz_accel/1000000.0f*THREAD_INTERVAL);
+                } else {
+                    target_vel = 0.0f;
+                    enable_track = false;
+                    traj_index = 0;
+                }
+                CANMotorController::set_target_vel(CANMotorCFG::BULLET_LOADER, target_vel*printer_ratio);
             } else {
-                CANMotorController::set_target_vel(CANMotorCFG::BULLET_LOADER, 0.0f);
-                enable_track = false;
+                if(traj_index < velocity_profile.profile1_length) {
+                    LED::led_on(1);
+                    CANMotorController::set_target_vel(CANMotorCFG::BULLET_LOADER,velocity_profile.vel_profile_1[traj_index]*printer_ratio);
+                } else if(traj_index < velocity_profile.profile1_length + velocity_profile.hold_time_1) {
+                    LED::led_on(2);
+                    CANMotorController::set_target_vel(CANMotorCFG::BULLET_LOADER,velocity_profile.hold_vel_1*printer_ratio);
+                } else if(traj_index < velocity_profile.profile1_length + velocity_profile.hold_time_1 + velocity_profile.profile2_length) {
+                    LED::led_on(3);
+                    CANMotorController::set_target_vel(CANMotorCFG::BULLET_LOADER,velocity_profile.vel_profile_2[traj_index-velocity_profile.profile1_length-velocity_profile.hold_time_1]*printer_ratio);
+                } else if(traj_index < velocity_profile.profile1_length + velocity_profile.hold_time_1 + velocity_profile.profile2_length + velocity_profile.hold_time_2) {
+                    LED::led_on(4);
+                    CANMotorController::set_target_vel(CANMotorCFG::BULLET_LOADER,velocity_profile.hold_vel_2*printer_ratio);
+                } else if(traj_index < velocity_profile.profile1_length + velocity_profile.hold_time_1 + velocity_profile.profile2_length + velocity_profile.hold_time_2 + velocity_profile.profile3_length) {
+                    LED::led_on(5);
+                    CANMotorController::set_target_vel(CANMotorCFG::BULLET_LOADER,velocity_profile.vel_profile_3[traj_index-velocity_profile.profile1_length-velocity_profile.hold_time_1- velocity_profile.profile2_length - velocity_profile.hold_time_2]*printer_ratio);
+                } else {
+                    LED::all_off();
+                    CANMotorController::set_target_vel(CANMotorCFG::BULLET_LOADER, 0.0f);
+                    enable_track = false;
+                }
             }
             traj_index ++;
+        } else {
+            if (ABS_IN_RANGE(CANMotorIF::motor_feedback[0].actual_velocity, 0.5)){
+                CANMotorController::v2iController[CANMotorCFG::BULLET_LOADER].clear_i_out();
+            }
         }
         prev_velll = vellll;
         chSysUnlock();
-        sleep_time = THREAD_INTERVAL - (chVTGetSystemTimeX() + PRIO)%THREAD_INTERVAL;
+        sleep_time = THREAD_INTERVAL - (TIME_I2US(chVTGetSystemTimeX()) + PRIO)%THREAD_INTERVAL;
         sleep(TIME_US2I(sleep_time));
     }
 }
@@ -432,13 +460,14 @@ void encoderThread::main() {
                 encoder_angle += (1.0f/200.0f/4.0f*360.0f);
             }
         }
+        CANMotorController::encoder_v = encoder_angle;
         sleep(TIME_MS2I(1));
     }
 }
 
-encoderThread enc_thd;
+static encoderThread enc_thd;
 
-inputThread ipt_thd;
+static inputThread ipt_thd;
 
 void controlThread::main() {
     setName("controllerThread");
@@ -470,6 +499,27 @@ void controlThread::main() {
         sleep(TIME_MS2I(40));
     }
 }
+
+DEF_SHELL_CMD_START(cmd_switch_mode)
+    ipt_thd.mode = Shell::atoi(argv[0]);
+DEF_SHELL_CMD_END
+
+// Command lists for gimbal controller test and adjustments
+Shell::Command mainProgramCommands[] = {
+        {"_a",              nullptr,   cmd_set_enable,      nullptr},
+        {"set_disable",     "motor_id",   cmd_set_disable,     nullptr},
+        {"fb_enable",       "feedback_id",   cmd_enable_feedback, nullptr},
+        {"fb_disable",      "feedback_id",   cmd_disable_feedback,nullptr},
+        {"set_pid",         "motor_id pid_id(0: angle_to_v, 1: v_to_i) ki kp kd i_limit out_limit",   cmd_set_param,       nullptr},
+        {"echo_pid",        "motor_id pid_id(0: angle_to_v, 1: v_to_i)",   cmd_echo_param,      nullptr},
+        {"set_target_angle","motor_id target_angle",   cmd_set_target_angle,nullptr},
+        {"set_vel",         "pos_vel neg_vel", cmd_set_vel, nullptr},
+        {"set_vel_pf",      "cyka", cmd_set_vel_pf, nullptr},
+        {"set_ff",          "cyka", cmd_set_aff, nullptr},
+        {"set_trapz",          "cyka", cmd_set_trapz, nullptr},
+        {"set_mode", "cyka", cmd_switch_mode, nullptr},
+        {nullptr,           nullptr,  nullptr,              nullptr}
+};
 
 static controlThread control_thread;
 
@@ -547,7 +597,9 @@ int main(void) {
     /// Start SKDs
     CANMotorController::start(THREAD_MOTOR_SKD_PRIO, THREAD_FEEDBACK_SKD_PRIO, &can1, &can2);
     enc_thd.start(THREAD_CHASSIS_SKD_PRIO);
-    ipt_thd.start(THREAD_COMMUNICATOR_PRIO);
+    ipt_ref = ipt_thd.start(THREAD_COMMUNICATOR_PRIO);
+
+
     control_thread.start(HIGHPRIO-10);
     /// Complete Period 2
     BuzzerSKD::play_sound(BuzzerSKD::sound_startup);  // Now play the startup sound

@@ -90,7 +90,7 @@ void CANInterface::main() {
 }
 
 bool CANInterface::send_msg(const CANTxFrame *txmsg) {
-    if (canTransmit(can_driver, CAN_ANY_MAILBOX, txmsg, TIME_MS2I(TRANSMIT_TIMEOUT_MS)) != MSG_OK) {
+    if (canTransmit(can_driver, CAN_ANY_MAILBOX, txmsg, TIME_US2I(500)) != MSG_OK) {
         // TODO: show debug info for failure
         return false;
     }

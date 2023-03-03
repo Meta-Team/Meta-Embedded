@@ -20,7 +20,8 @@ using namespace chibios_rt;
 
 class CANMotorController: private CANMotorCFG{
 public:
-
+    static float encoder_v;
+    static float a_coeff;
     /**
      * @brief           Start CAN motor scheduler thread.
      * @param SKD_PRIO  [in] Scheduler thread priority, motor controllers calculations.
@@ -115,10 +116,10 @@ private:
 
     class feedbackThread : public BaseStaticThread<512> {
     public:
-        bool enable_feedback[CANMotorCFG::MOTOR_COUNT]={0};
+        bool enable_feedback[CANMotorCFG::MOTOR_COUNT]={1};
     private:
         void main() final;
-        const int THREAD_INTERVAL = 20000; // [us]
+        const int THREAD_INTERVAL = 2000; // [us]
     };
     static feedbackThread FeedbackThread;
 
@@ -132,13 +133,13 @@ private:
         void main() final;
         friend feedbackThread;
         friend CANMotorController;
-        const int THREAD_INTERVAL = 8000; // [us] The timeout value for sending 1 CAN frame is 1ms. In the worst case, the sending time would be 6 ms if we need to send 6 frame.
+        const int THREAD_INTERVAL = 1000; // [us] The timeout value for sending 1 CAN frame is 1ms. In the worst case, the sending time would be 6 ms if we need to send 6 frame.
     };
     static skdThread SKDThread;
 
     static float *feedbackV[MOTOR_COUNT];
     static float *feedbackA[MOTOR_COUNT];
-
+public:
     static PIDController a2vController[MOTOR_COUNT];
     static PIDController v2iController[MOTOR_COUNT];
 };
