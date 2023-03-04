@@ -10,7 +10,7 @@
 #include "hal.h"
 
 #include "interface/led/led.h"
-#include "debug/shell/shell.h"
+#include "shell.h"
 #include "chassis_logic.h"
 #include "can_motor_controller.h"
 #include "can_motor_interface.h"
@@ -22,6 +22,46 @@ using namespace chibios_rt;
 CANInterface can1(&CAND1);
 CANInterface can2(&CAND2);
 
+void startup_check_remote() {
+    time_msecs_t t = SYSTIME;
+    while (WITHIN_RECENT_TIME(t, 50)) {
+        if (not WITHIN_RECENT_TIME(Remote::last_update_time, 25)) {  // No signal in last 25 ms (normal interval 7 ms)
+            t = SYSTIME;  // reset the counter
+        }
+        chThdSleepMilliseconds(15);
+    }
+}
+
+void startup_check_chassis_feedback() {
+    time_msecs_t t = SYSTIME;
+    while (WITHIN_RECENT_TIME(t, 20)) {
+        if (not WITHIN_RECENT_TIME(
+                CANMotorIF::motor_feedback[CANMotorCFG::FR].last_update_time, 5)) {
+            // No feedback in last 5 ms (normal 1 ms)
+            LOG_ERR("Startup - Chassis FR offline.");
+            t = SYSTIME;  // reset the counter
+        }
+        if (not WITHIN_RECENT_TIME(
+                CANMotorIF::motor_feedback[CANMotorCFG::FL].last_update_time, 5)) {
+            // No feedback in last 5 ms (normal 1 ms)
+            LOG_ERR("Startup - Chassis FL offline.");
+            t = SYSTIME;  // reset the counter
+        }
+        if (not WITHIN_RECENT_TIME(
+                CANMotorIF::motor_feedback[CANMotorCFG::BL].last_update_time, 5)) {
+            // No feedback in last 5 ms (normal 1 ms)
+            LOG_ERR("Startup - Chassis BL offline.");
+            t = SYSTIME;  // reset the counter
+        }
+        if (not WITHIN_RECENT_TIME(
+                CANMotorIF::motor_feedback[CANMotorCFG::BR].last_update_time, 5)) {
+            // No feedback in last 5 ms (normal 1 ms)
+            LOG_ERR("Startup - Chassis BR offline.");
+            t = SYSTIME;  // reset the counter
+        }
+        chThdSleepMilliseconds(5);
+    }
+}
 /**
  * @brief set enabled state of yaw and pitch motor
  * @param chp
@@ -39,6 +79,7 @@ private:
             if(Remote::rc.s1 == Remote::S_UP) {
                 ChassisLG::set_target(0.0f, 0.0f);
                 ChassisLG::set_target_omega(0.0f);
+                LOG("Response");
             } else {
                 ChassisLG::set_target(Remote::rc.ch2 * 1500.0f, Remote::rc.ch3 * 1000.0f);
                 ChassisLG::set_target_omega(Remote::rc.ch0 * 50.0f);
@@ -49,17 +90,24 @@ private:
 } ControlThread;
 
 
-int main(void) {
+int main() {
     halInit();
     System::init();
 
+    LED::led_on(1);
     // Start ChibiOS shell at high priority, so even if a thread stucks, we still have access to shell.
     Shell::start(HIGHPRIO);
     can1.start(NORMALPRIO);
     can2.start(NORMALPRIO+1);
-    CANMotorIF::init(&can1, &can2);
-    CANMotorController::start(NORMALPRIO + 2, NORMALPRIO + 3, 0, 0);
+    //CANMotorIF::init(&can1, &can2);
+    CANMotorController::start(NORMALPRIO + 2, NORMALPRIO + 3, &can1, &can2);
+    chThdSleepMilliseconds(2000);
+    startup_check_chassis_feedback();
+    LED::led_on(2);
     Remote::start();
+    startup_check_remote();
+    LED::led_on(3);
+    MecanumChassisSKD::init(HIGHPRIO-4,550.0f,500.0f,478.0f);
     ChassisLG::init(NORMALPRIO+4, NORMALPRIO+5, 180.0f);
     ChassisLG::set_mode(ChassisLG::CHASSIS_REF_MODE);
     ControlThread.start(NORMALPRIO + 6);

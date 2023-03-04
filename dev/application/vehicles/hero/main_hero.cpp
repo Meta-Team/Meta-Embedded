@@ -146,7 +146,7 @@ int main() {
 
     chThdSleepMilliseconds(2000);  // wait for C610 to be online and friction wheel to reset
     /// Setup GimbalIF (for Gimbal and Shoot)
-    InspectorH::startup_check_gimbal_feedback(); // check gimbal motors has continuous feedback. Block for 20 ms
+    //InspectorH::startup_check_gimbal_feedback(); // check gimbal motors has continuous feedback. Block for 20 ms
     LED::led_on(DEV_BOARD_LED_GIMBAL);  // LED 5 on now
 
 

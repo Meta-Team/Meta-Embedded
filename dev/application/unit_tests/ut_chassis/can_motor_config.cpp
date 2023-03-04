@@ -5,8 +5,8 @@
 #include "can_motor_config.h"
 
 CANMotorBase CANMotorCFG::CANMotorProfile[MOTOR_COUNT] = {
-        {CANMotorBase::can_channel_1, 0x201, CANMotorBase::M3508, 3572},
         {CANMotorBase::can_channel_1, 0x202, CANMotorBase::M3508, 3572},
+        {CANMotorBase::can_channel_1, 0x201, CANMotorBase::M3508, 3572},
         {CANMotorBase::can_channel_1, 0x204, CANMotorBase::M3508, 3572},
         {CANMotorBase::can_channel_1, 0x203, CANMotorBase::M3508, 3572}
 };
