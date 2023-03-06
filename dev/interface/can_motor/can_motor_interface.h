@@ -14,7 +14,6 @@
 #define META_INFANTRY_CAN_MOTOR_INTERFACE_H
 
 #include "can_interface.h"
-#include "can_motor_feedback.h"
 
 #include "can_motor_config.h"
 #include "can_motor_controller.h"

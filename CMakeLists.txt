@@ -80,6 +80,14 @@ set(BASE_SRC  # common cpp sources, which are included to every target at post c
         dev/interface/buzzer/buzzer_interface.cpp
         dev/interface/buzzer/buzzer_scheduler.cpp)
 
+set(CAN_SRC
+        dev/module/pid_controller.hpp
+        dev/interface/can/can_interface.cpp
+        dev/interface/can_motor/can_motor_feedback.cpp
+        dev/interface/can_motor/can_motor_interface.cpp
+        dev/interface/can_motor/can_motor_controller.cpp
+        )
+
 set(VEHICLE_COMMON_SRC
         dev/module/pid_controller.hpp
         dev/interface/can/can_interface.cpp
@@ -349,51 +357,26 @@ target_link_libraries(ut_chassis ${AHRS_LIB})
 
 # --------------------------------------- Param Adjusts ---------------------------------------
 
-#add_executable(pa_hero_gimbal
-#        ${VEHICLE_COMMON_SRC}
-#        ${AHRS_SRC}
-#
-#        # Hero gimbal
-#        dev/scheduler/gimbal_scheduler.cpp
-#
-#        # PAUser
-#        dev/debug/param_adjusts/pa_user_gimbal.cpp
-#        )
-#target_include_directories(pa_hero_gimbal PRIVATE dev/vehicle/hero)
-#target_compile_definitions(pa_hero_gimbal PRIVATE
-#        PARAM_ADJUST
-#        PARAM_ADJUST_INCLUDE="debug/param_adjusts/pa_user_gimbal.h"
-#        PARAM_ADJUST_CLASS=PAUserGimbal
-#        HERO
-#        HERO_GIMBAL_ENABLE=1
-#        HERO_SHOOT_ENABLE=0
-#        HERO_CHASSIS_ENABLE=0
-#        HERO_VISION_ENABLE=0)
-#target_link_libraries(pa_hero_gimbal ${AHRS_LIB})
-
 # Chassis
 add_executable(pa_chassis
         dev/interface/can/can_interface.cpp
         dev/scheduler/mecanum_chassis_scheduler.cpp
         dev/scheduler/gimbal_scheduler.cpp
-        dev/application/param_adjusts/pa_chassis.cpp)
+        dev/application/param_adjusts/pa_chassis/pa_chassis.cpp)
 target_compile_definitions(pa_chassis PUBLIC INFANTRY)
 
 # Gimbal: include CANInterface, GimbalInterface, GimbalController, GimbalFeedbackThread and adjustment modules.
 
+set(pa_gimbal_dir dev/application/param_adjusts/pa_infantry/)
 add_executable(pa_gimbal
-        dev/common/CRC16.cpp
-        dev/interface/sd_card/sd_card_interface.cpp
-        dev/interface/remote/remote_interpreter.cpp
+        ${COMMON_SRC}
         ${AHRS_SRC}
-        dev/interface/can/can_interface.cpp
-        dev/module/pid_controller.hpp
-        dev/scheduler/gimbal_scheduler.cpp
-        dev/scheduler/shoot_scheduler.cpp
-        dev/interface/buzzer/buzzer_scheduler.cpp
-        dev/interface/ahrs/ahrs.cpp
-        dev/application/param_adjusts/pa_gimbal.cpp)
+        ${CAN_SRC}
+        dev/interface/remote/remote_interpreter.cpp
+        ${pa_gimbal_dir}can_motor_config.cpp
+        ${pa_gimbal_dir}pa_infantry.cpp)
 target_link_libraries(pa_gimbal ${AHRS_LIB})
+target_include_directories(pa_gimbal PRIVATE ${pa_gimbal_dir})
 
 add_executable(ca_ahrs_infantry
         dev/interface/ahrs/ahrs_math.hpp

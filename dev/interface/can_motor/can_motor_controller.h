@@ -39,10 +39,19 @@ public:
     static void load_PID_params(motor_id_t id, bool is_a2v, PIDController::pid_params_t params);
 
     /**
-     * @brief           Switch the motor to display.
+     * @brief           Start/stop showing feedback data in shell.
+     * @details         Feedback format in shell:
+     * @code
+     * !fb, %u, %u,  %.2f,   %.2f,  %.2f,    %.2f,    %d,     %d \r\n
+     *       |   |    |       |      |        |        |       |
+     *       |   |  actual target  actual   target   actual  target
+     *     time id  angle  angle   velocity velocity current current
+     * @endcode
+     * @pre             Shell is configured properly.
      * @param id        [in] The corresponding id of the motor that tend to show feedback.
+     * @param enable    [in] Whether enable or disable feedback.
      */
-    static void switch_feedback_motor(motor_id_t id);
+    static void shell_display(motor_id_t id, bool enable);
 
     /**
      * @brief           Get torque current from feedback
@@ -106,9 +115,10 @@ private:
 
     class feedbackThread : public BaseStaticThread<512> {
     public:
-        motor_id_t disp_id = (motor_id_t)((int)MOTOR_COUNT - 1);
+        bool enable_feedback[CANMotorCFG::MOTOR_COUNT]={0};
     private:
         void main() final;
+        const int THREAD_INTERVAL = 20000; // [us]
     };
     static feedbackThread FeedbackThread;
 
@@ -121,6 +131,7 @@ private:
         void main() final;
         friend feedbackThread;
         friend CANMotorController;
+        const int THREAD_INTERVAL = 8000; // [us] The timeout value for sending 1 CAN frame is 1ms. In the worst case, the sending time would be 6 ms if we need to send 6 frame.
     };
     static skdThread SKDThread;
 
