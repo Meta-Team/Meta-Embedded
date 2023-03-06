@@ -48,7 +48,7 @@ void UserH::start(tprio_t user_thd_prio, tprio_t user_action_thd_prio) {
 void UserH::UserThread::main() {
     setName("UserH");
     while (!shouldTerminate()) {
-
+#ifndef DEBUG_NO_GIMBAL
         /*** ---------------------------------- Gimbal --------------------------------- ***/
         if (!InspectorH::remote_failure() /*&& !InspectorI::chassis_failure()*/ && !InspectorH::gimbal_failure()) {
             if ((Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_UP)) {
@@ -60,10 +60,10 @@ void UserH::UserThread::main() {
                 // ch0 use right as positive direction, while GimbalLG use CCW (left) as positive direction
 
                 float pitch_target;
-                if (Remote::rc.ch1 > 0) pitch_target += Remote::rc.ch1 * gimbal_pitch_max_angle * 0.1;
+                if (Remote::rc.ch1 > 0)
+                    pitch_target += Remote::rc.ch1 * gimbal_pitch_max_angle * 0.1;
                 else
-                    pitch_target -=
-                            Remote::rc.ch1 * gimbal_pitch_min_angle * 0.1;  // GIMBAL_PITCH_MIN_ANGLE is negative
+                    pitch_target -= Remote::rc.ch1 * gimbal_pitch_min_angle * 0.1;  // GIMBAL_PITCH_MIN_ANGLE is negative
                 // ch1 use up as positive direction, while GimbalLG also use up as positive direction
 
                 VAL_CROP(pitch_target, gimbal_pitch_max_angle, gimbal_pitch_min_angle);
@@ -150,7 +150,8 @@ void UserH::UserThread::main() {
             /// Safe Mode
             GimbalLG::set_mode(GimbalLG::FORCED_RELAX_MODE);
         }
-
+#endif
+#ifndef DEBUG_NO_SHOOT
         /*** ---------------------------------- Shoot --------------------------------- ***/
         if (!InspectorH::remote_failure() /*&& !InspectorH::chassis_failure()*/ && !InspectorH::gimbal_failure()) {
             if ((Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_UP) ||
@@ -175,7 +176,7 @@ void UserH::UserThread::main() {
                         ShootLG::stop();
                     }
                 }
-
+// set friction wheel speed to 72000
                 ShootLG::set_shoot_speed(shoot_fw_speed[1]);
 
             } else if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_DOWN) {
@@ -242,7 +243,8 @@ void UserH::UserThread::main() {
             ShootLG::stop();
             ShootLG::set_shoot_speed(0);
         }
-
+#endif
+#ifndef DEBUG_NO_CHASSIS
         /*** ---------------------------------- Chassis --------------------------------- ***/
         if (!InspectorH::remote_failure() && !InspectorH::chassis_failure() /*&& !InspectorH::gimbal_failure()*/) {
             if ((Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_MIDDLE)) {
@@ -312,6 +314,7 @@ void UserH::UserThread::main() {
         }
         /// Final
         sleep(TIME_MS2I(USER_THREAD_INTERVAL));
+#endif
     }
 }
 

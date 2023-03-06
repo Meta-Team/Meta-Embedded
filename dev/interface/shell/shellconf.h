@@ -20,7 +20,7 @@
 #define SHELL_CMD_EXIT_ENABLED              FALSE
 
 // Echo is printed back as typing, handled in shell_base.c, not controlled by printf mutex in Shell
-#define SHELL_NO_ECHO_MODE                  TRUE
+#define SHELL_NO_ECHO_MODE                  FALSE
 /// NOTE: this disable history and completion, regardless of the two options below
 
 // Disable history in the shell

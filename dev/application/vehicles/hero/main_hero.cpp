@@ -41,11 +41,12 @@
 #else
 #include PARAM_ADJUST_INCLUDE
 #endif
-
+#include "shellconf.h"
 /// Vehicle Specific Configurations
 
 #include "vehicle_hero.h"
-
+//ZTN DEBUG
+#include <printf.h>
 /// Board Guard
 #if defined(BOARD_RM_2018_A)
 #else
@@ -88,7 +89,6 @@ int main() {
     chThdSleepMilliseconds(50);  // wait for logo to print :)
 
     BuzzerSKD::init(THREAD_BUZZER_SKD_PRIO);
-
     /// Setup SDCard
     if (SDCard::init()) {
         SDCard::read_all();
@@ -97,7 +97,7 @@ int main() {
 
     LED::led_on(DEV_BOARD_LED_SYSTEM_INIT);  // LED 1 on now
 
-    /// Setup CAN1 & CAN2
+    /// Setup CAN1 & CAN2 BUS
     can1.start(THREAD_CAN1_RX_PRIO);
     can2.start(THREAD_CAN2_RX_PRIO);
     chThdSleepMilliseconds(5);
@@ -143,18 +143,19 @@ int main() {
     /// Setup CAN
     CANMotorController::start(THREAD_MOTOR_SKD_PRIO, THREAD_FEEDBACK_SKD_PRIO, &can1, &can2);
 
-
+#ifndef DEBUG_NO_GIMBAL
     chThdSleepMilliseconds(2000);  // wait for C610 to be online and friction wheel to reset
     /// Setup GimbalIF (for Gimbal and Shoot)
-    InspectorH::startup_check_gimbal_feedback(); // check gimbal motors has continuous feedback. Block for 20 ms
+    //InspectorH::startup_check_gimbal_feedback(); // check gimbal motors has continuous feedback. Block for 20 ms
     LED::led_on(DEV_BOARD_LED_GIMBAL);  // LED 5 on now
+#endif
 
-
+#ifndef DEBUG_NO_CHASSIS
     /// Setup ChassisIF
     chThdSleepMilliseconds(10);
     InspectorH::startup_check_chassis_feedback();  // check chassis motors has continuous feedback. Block for 20 ms
     LED::led_on(DEV_BOARD_LED_CHASSIS);  // LED 6 on now
-
+#endif
 
     /// Setup Red Spot Laser and Lidar
     palSetPad(GPIOG, GPIOG_RED_SPOT_LASER);  // enable the red spot laser
@@ -172,16 +173,18 @@ int main() {
 
     /// Start SKDs
 #if ENABLE_AHRS
-    GimbalSKD::start(&ahrs, GIMBAL_ANGLE_INSTALLATION_MATRIX_, GIMBAL_GYRO_INSTALLATION_MATRIX_,
-                     THREAD_GIMBAL_SKD_PRIO);
+#ifndef DEBUG_NO_GIMBAL
+    GimbalSKD::start(&ahrs, GIMBAL_ANGLE_INSTALLATION_MATRIX_, GIMBAL_GYRO_INSTALLATION_MATRIX_ ,THREAD_GIMBAL_SKD_PRIO);
+#endif
 #else
     GimbalSKD::start(THREAD_GIMBAL_SKD_PRIO);
 #endif
     /// TODO: Re-enable shell commands
 //    Shell::addCommands(GimbalSKD::shellCommands);
 //    Shell::addFeedbackCallback(GimbalSKD::cmdFeedback);
-
+#ifndef DEBUG_NO_SHOOT
     ShootSKD::start(THREAD_SHOOT_SKD_PRIO);
+#endif
     /// TODO: Re-enable shell commands
 //    Shell::addCommands(ShootSKD::shellCommands);
 //    Shell::addFeedbackCallback(ShootSKD::cmdFeedback);
@@ -193,9 +196,15 @@ int main() {
 //    Shell::addFeedbackCallback(MecanumChassisSKD::cmdFeedback);
 
     /// Start LGs
-//    GimbalLG::init(THREAD_GIMBAL_LG_VISION_PRIO, THREAD_GIMBAL_LG_SENTRY_PRIO);
+#ifndef DEBUG_NO_GIMBAL
+    GimbalLG::init(THREAD_GIMBAL_LG_VISION_PRIO, THREAD_GIMBAL_LG_SENTRY_PRIO);
+#endif
+#ifndef DEBUG_NO_SHOOT
     ShootLG::init(SHOOT_DEGREE_PER_BULLET, true, THREAD_STUCK_DETECT_PRIO,  THREAD_SHOOT_BULLET_COUNTER_PRIO, THREAD_SHOOT_LG_VISION_PRIO);
+#endif
+#ifndef DEBUG_NO_CHASSIS
     ChassisLG::init(THREAD_CHASSIS_LG_PRIO, THREAD_CHASSIS_LG_PRIO, THREAD_CHASSIS_LG_PRIO);
+#endif
 
     /// Setup Vision
 //    VisionIF::init();  // must be put after initialization of GimbalSKD
@@ -205,10 +214,13 @@ int main() {
 //    Shell::addCommands(VisionSKD::shell_commands);
 
     /// Start Inspector and User Threads
+#if !defined(DEBUG_NO_SHOOT) && !defined(DEBUG_NO_CHASSIS) && !defined(DEBUG_NO_GIMBAL)
     InspectorH::start_inspection(THREAD_INSPECTOR_PRIO);
+#endif
     UserH::start(THREAD_USER_PRIO, THREAD_USER_ACTION_PRIO);
 
     /// Complete Period 2
+
     BuzzerSKD::play_sound(BuzzerSKD::sound_startup_intel);  // Now play the startup sound
 
 

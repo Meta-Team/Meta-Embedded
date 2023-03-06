@@ -101,17 +101,20 @@ static void list_commands(BaseSequentialStream *chp, const ShellCommand *scp) {
 
 static bool cmdexec(ShellConfig *scfg, const ShellCommand *scp, BaseSequentialStream *chp,
                     char *name, int argc, char *argv[]) {
-
-    while (scp->sc_name != NULL) {
-        if (strcmp(scp->sc_name, name) == 0) {
+    //for debug
+    // chprintf(chp,"argc:%d" SHELL_NEWLINE_STR,argc);
+    // the argc here exclude the command itself i.e. command a b c, the number of args is 3
+    while (scp->sc_name != NULL) {// current shell command in the given command list is not null
+        if (strcmp(scp->sc_name, name) == 0) {//  and match the input command name
             bool ret;
-            if (!scp->sc_arg) {
-                ret = scp->sc_function(chp, argc, argv);
+            if (!scp->sc_arg) {// if the predefined args exists in the ShellCommand struct, then use the default one
+                // no predefined args, then use the input args
+                ret = scp->sc_function(chp, argc, argv); // in each callback function, if it is executed correctly then return true
             } else {
                 // Here we just pass void* as BaseSequentialStream *, maybe fix this someday
                 ret = scp->sc_function(scp->sc_arg, argc, argv);
             }
-            if (!ret) {
+            if (!ret) {// args error, print hints
                 if (scp->sc_arguments) {
                     chMtxLock(scfg->sc_mutex);
                     {
@@ -130,6 +133,7 @@ static bool cmdexec(ShellConfig *scfg, const ShellCommand *scp, BaseSequentialSt
         }
         scp++;
     }
+    // if error return true
     return true;
 }
 
@@ -381,6 +385,8 @@ THD_FUNCTION(shellThread, p) {
 #endif
     while (true) {
         chprintf(chp, SHELL_PROMPT_STR);
+        // out variable: line
+        // true then sleep for 100ms
         if (shellGetLine(scfg, line, sizeof(line), shp)) {
 #if (SHELL_CMD_EXIT_ENABLED == TRUE) && !defined(_CHIBIOS_NIL_)
             chprintf(chp, SHELL_NEWLINE_STR);
@@ -395,6 +401,7 @@ THD_FUNCTION(shellThread, p) {
         lp = parse_arguments(line, &tokp);
         cmd = lp;
         n = 0;
+        // parse args
         while ((lp = parse_arguments(NULL, &tokp)) != NULL) {
             if (n >= SHELL_MAX_ARGUMENTS) {
                 chprintf(chp, "too many arguments" SHELL_NEWLINE_STR);
@@ -404,6 +411,7 @@ THD_FUNCTION(shellThread, p) {
             args[n++] = lp;
         }
         args[n] = NULL;
+        //analyze command
         if (cmd != NULL) {
             if (strcmp(cmd, "help") == 0) {
                 if (n > 0) {
@@ -417,6 +425,7 @@ THD_FUNCTION(shellThread, p) {
                 chprintf(chp, SHELL_NEWLINE_STR);
             } else if (cmdexec(scfg, shell_local_commands, chp, cmd, n, args) &&
                        ((scp == NULL) || cmdexec(scfg, scp, chp, cmd, n, args))) {
+                // error command
                 chprintf(chp, "%s", cmd);
                 chprintf(chp, " ?" SHELL_NEWLINE_STR);
             }

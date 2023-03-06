@@ -27,6 +27,8 @@ void InspectorH::start_inspection(tprio_t thread_prio) {
 
 void InspectorH::startup_check_can() {
     time_msecs_t t = SYSTIME;
+    // make sure no CAN error is occurred within 100ms
+    // last_error_time is set to 0 by default
     while (WITHIN_RECENT_TIME(t, 100)) {
         if (WITHIN_RECENT_TIME(can1->last_error_time, 5)) {  // can error occurs
             t = SYSTIME;  // reset the counter

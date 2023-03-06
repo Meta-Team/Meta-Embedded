@@ -50,6 +50,13 @@ void CANMotorIF::init(CANInterface *can1_, CANInterface *can2_) {
     }
     // Initialize the continuous SID field lists. Record the continuous SID fields.
     // Theoretically, the maximum number of SID fields for each can are 6 as there are only 11 SID for CAN motors.
+
+    // Brief explanation on  what is a can field
+    // for example, there are these SIDs on CAN1: 0x201 0x202 0x204 0x205, 0x208 then
+    // can_SID_fi| i
+    // eld_list  | x |  0  |  1  |  2  | 3
+    //     j     | 0 |0x201|0x204|0x208|...
+    //           | 1 |0x202|0x205|0x208|...
     int can_SID_field_list[6][2];
     int can_SID_field_count = 0;
     // Detect fields' upper and lower bounds and register the callback function.
@@ -62,12 +69,14 @@ void CANMotorIF::init(CANInterface *can1_, CANInterface *can2_) {
         }
         can_SID_field_count = 0;
         // Search and Record field for can1.
-        for (int i = 0; i < 0x20B-0x200; i++) {
+        for (int i = 0; i < 0x20B-0x200; i++) { // from 0 to 10
             // Detect for SID lower bound.
             if(i == 0 && mapping_SID2ID[can_channel][i]!=MOTOR_COUNT){                // Boundary condition
+                // if the ith SID(0x201+i) of this channel is valid ( mapped ID equals MOTOR_COUNT)
                 can_SID_field_list[can_SID_field_count][0] = i + 0x201;
 
             } else if(mapping_SID2ID[can_channel][i]!=MOTOR_COUNT && mapping_SID2ID[can_channel][i-1]==MOTOR_COUNT){
+                // ith valid but (i-1)th invalid
                 can_SID_field_list[can_SID_field_count][0] = i + 0x201;
             }
             // Detect for SID upper bound.
@@ -79,7 +88,10 @@ void CANMotorIF::init(CANInterface *can1_, CANInterface *can2_) {
                 can_SID_field_count++;//After detect the lower bound, move to next.
             }
         }
+
         // Arrange the field.
+        // selection sort ,to rearrange the field in descending order with regard to field width
+
         for (int i = 0; i < can_SID_field_count; i++) {
             int max_len_field[2] = {can_SID_field_list[i][0], can_SID_field_list[i][1]};
             for (int j = i; j < can_SID_field_count; j++) {
@@ -121,12 +133,12 @@ void CANMotorIF::init(CANInterface *can1_, CANInterface *can2_) {
 }
 
 void CANMotorIF::can1_callback_func(CANRxFrame const *rxmsg) {
-    // As the can callback SID range are performed by program, no need to check the SID.
+    // As the can callback SID range are performed by CANInterface::main, no need to check the SID.
     motor_feedback[mapping_SID2ID[0][(int)rxmsg->SID - 0x201]].process_feedback(rxmsg);
 }
 
 void CANMotorIF::can2_callback_func(CANRxFrame const *rxmsg) {
-    // As the can callback SID range are performed by program, no need to check the SID.
+    // As the can callback SID range are performed by CANInterface::main, no need to check the SID.
     motor_feedback[mapping_SID2ID[1][(int)rxmsg->SID - 0x201]].process_feedback(rxmsg);
 }
 
