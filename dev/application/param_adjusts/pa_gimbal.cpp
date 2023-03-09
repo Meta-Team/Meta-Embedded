@@ -496,10 +496,11 @@ void inputThread::main() {
                 traj_index ++;
             } else {
                 CANMotorController::set_target_vel(CANMotorCFG::BULLET_LOADER, 5*printer_ratio);
-                sleep(TIME_MS2I(1500));
+                sleep(TIME_MS2I(350));
                 last_experiment_time = SYSTIME;
                 CANMotorController::set_target_vel(CANMotorCFG::BULLET_LOADER, 0);
                 init_start = false;
+                enable_track = false;
             }
         } else {
             if (ABS_IN_RANGE(CANMotorIF::motor_feedback[0].actual_velocity, 0.5)){
