@@ -71,20 +71,6 @@ static float vellll;
 static float trapz_endvel;
 static float trapz_accel;
 
-static struct velocity_profile_t {
-    static const int max_length = 30;
-    int profile1_length;
-    float vel_profile_1[max_length];
-    int hold_time_1;
-    float hold_vel_1;
-    int profile2_length;
-    float vel_profile_2[max_length];
-    int hold_time_2;
-    float hold_vel_2;
-    int profile3_length;
-    float vel_profile_3[max_length];
-} velocity_profile;
-
 static struct velocity_profile_3_t {
     static const int max_length = 30;
     int profile1_length;
@@ -223,34 +209,34 @@ DEF_SHELL_CMD_START(cmd_set_vel_pf)
     (void) argv;
     switch (Shell::atoi(argv[0])) {
         case 0:
-            velocity_profile.profile1_length = Shell::atoi(argv[1]);
+            velocity_profile_3.profile1_length = Shell::atoi(argv[1]);
             break;
         case 1:
-            velocity_profile.vel_profile_1[Shell::atoi(argv[1])] = Shell::atof(argv[2]);
+            velocity_profile_3.vel_profile_1[Shell::atoi(argv[1])] = Shell::atof(argv[2]);
             break;
         case 2:
-            velocity_profile.hold_time_1 = Shell::atoi(argv[1]);
+            velocity_profile_3.hold_time_1 = Shell::atoi(argv[1]);
             break;
         case 3:
-            velocity_profile.hold_vel_1 = Shell::atof(argv[1]);
+            velocity_profile_3.hold_vel_1 = Shell::atof(argv[1]);
             break;
         case 4:
-            velocity_profile.profile2_length = Shell::atoi(argv[1]);
+            velocity_profile_3.profile2_length = Shell::atoi(argv[1]);
             break;
         case 5:
-            velocity_profile.vel_profile_2[Shell::atoi(argv[1])] = Shell::atof(argv[2]);
+            velocity_profile_3.vel_profile_2[Shell::atoi(argv[1])] = Shell::atof(argv[2]);
             break;
         case 6:
-            velocity_profile.hold_time_2 = Shell::atoi(argv[1]);
+            velocity_profile_3.hold_time_2 = Shell::atoi(argv[1]);
             break;
         case 7:
-            velocity_profile.hold_vel_2 = Shell::atof(argv[1]);
+            velocity_profile_3.hold_vel_2 = Shell::atof(argv[1]);
             break;
         case 8:
-            velocity_profile.profile3_length = Shell::atoi(argv[1]);
+            velocity_profile_3.profile3_length = Shell::atoi(argv[1]);
             break;
         case 9:
-            velocity_profile.vel_profile_3[Shell::atoi(argv[1])] = Shell::atof(argv[2]);
+            velocity_profile_3.vel_profile_3[Shell::atoi(argv[1])] = Shell::atof(argv[2]);
             break;
     }
 DEF_SHELL_CMD_END
@@ -427,90 +413,100 @@ void inputThread::main() {
     const float printer_ratio = 1.0f*93.0f/3200.0f*360.0f;
     bool enable_track = false;
     float target_vel  = 0.0f;
+    tprio_t PRIO = this->getPriorityX();
+    bool init_start = true;
+    unsigned long last_experiment_time = 0;
     while(!shouldTerminate()) {
-        tprio_t PRIO = this->getPriorityX();
-        chSysLock();
         if(vellll>0 && prev_velll==0){
             traj_index = 0;
             enable_track = true;
         }
         if(enable_track) {
-            switch (mode) {
-                case 0:
-                    if(traj_index <= (int)(trapz_endvel/trapz_accel*1000000.0f/(float)THREAD_INTERVAL)) {
-                        target_vel += (trapz_accel/1000000.0f*THREAD_INTERVAL);
-                    } else if (traj_index < (int)(2.0f*trapz_endvel/trapz_accel*1000000.0f/(float)THREAD_INTERVAL)) {
-                        target_vel -= (trapz_accel/1000000.0f*THREAD_INTERVAL);
-                    } else {
-                        target_vel = 0.0f;
-                        enable_track = false;
-                        traj_index = 0;
-                    }
-                    CANMotorController::set_target_vel(CANMotorCFG::BULLET_LOADER, target_vel*printer_ratio);
-                    break;
-                case 1:
-                    if(traj_index < velocity_profile.profile1_length) {
-                        LED::led_on(1);
-                        CANMotorController::set_target_vel(CANMotorCFG::BULLET_LOADER,velocity_profile.vel_profile_1[traj_index]*printer_ratio);
-                    } else if(traj_index < velocity_profile.profile1_length + velocity_profile.hold_time_1) {
-                        LED::led_on(2);
-                        CANMotorController::set_target_vel(CANMotorCFG::BULLET_LOADER,velocity_profile.hold_vel_1*printer_ratio);
-                    } else if(traj_index < velocity_profile.profile1_length + velocity_profile.hold_time_1 + velocity_profile.profile2_length) {
-                        LED::led_on(3);
-                        CANMotorController::set_target_vel(CANMotorCFG::BULLET_LOADER,velocity_profile.vel_profile_2[traj_index-velocity_profile.profile1_length-velocity_profile.hold_time_1]*printer_ratio);
-                    } else if(traj_index < velocity_profile.profile1_length + velocity_profile.hold_time_1 + velocity_profile.profile2_length + velocity_profile.hold_time_2) {
-                        LED::led_on(4);
-                        CANMotorController::set_target_vel(CANMotorCFG::BULLET_LOADER,velocity_profile.hold_vel_2*printer_ratio);
-                    } else if(traj_index < velocity_profile.profile1_length + velocity_profile.hold_time_1 + velocity_profile.profile2_length + velocity_profile.hold_time_2 + velocity_profile.profile3_length) {
-                        LED::led_on(5);
-                        CANMotorController::set_target_vel(CANMotorCFG::BULLET_LOADER,velocity_profile.vel_profile_3[traj_index-velocity_profile.profile1_length-velocity_profile.hold_time_1- velocity_profile.profile2_length - velocity_profile.hold_time_2]*printer_ratio);
-                    } else {
-                        LED::all_off();
-                        CANMotorController::set_target_vel(CANMotorCFG::BULLET_LOADER, 0.0f);
-                        enable_track = false;
-                    }
-                    break;
-                case 2:
-                    if(traj_index < velocity_profile_3.profile1_length) {
-                        CANMotorController::set_target_vel(CANMotorCFG::BULLET_LOADER,velocity_profile_3.vel_profile_1[traj_index]*printer_ratio);
-                    } else if(traj_index < velocity_profile_3.profile1_length
-                            + velocity_profile_3.hold_time_1) {
-                        CANMotorController::set_target_vel(CANMotorCFG::BULLET_LOADER,velocity_profile_3.hold_vel_1*printer_ratio);
-                    } else if(traj_index < velocity_profile_3.profile1_length
-                            + velocity_profile_3.hold_time_1 + velocity_profile_3.profile2_length) {
-                        CANMotorController::set_target_vel(CANMotorCFG::BULLET_LOADER,velocity_profile_3.vel_profile_2[traj_index-velocity_profile_3.profile1_length-velocity_profile_3.hold_time_1]*printer_ratio);
-                    } else if(traj_index < velocity_profile_3.profile1_length
-                            + velocity_profile_3.hold_time_1 + velocity_profile_3.profile2_length
-                            + velocity_profile_3.hold_time_2) {
-                        CANMotorController::set_target_vel(CANMotorCFG::BULLET_LOADER,velocity_profile_3.hold_vel_2*printer_ratio);
-                    } else if(traj_index < velocity_profile_3.profile1_length
-                            + velocity_profile_3.hold_time_1 + velocity_profile_3.profile2_length
-                            + velocity_profile_3.hold_time_2 + velocity_profile_3.profile3_length) {
-                        CANMotorController::set_target_vel(CANMotorCFG::BULLET_LOADER,velocity_profile_3.vel_profile_3[traj_index-velocity_profile_3.profile1_length-velocity_profile_3.hold_time_1- velocity_profile_3.profile2_length - velocity_profile_3.hold_time_2]*printer_ratio);
-                    } else if(traj_index < velocity_profile_3.profile1_length
-                            + velocity_profile_3.hold_time_1 + velocity_profile_3.profile2_length
-                            + velocity_profile_3.hold_time_2 + velocity_profile_3.profile3_length
-                            + velocity_profile_3.hold_time_3){
-                        CANMotorController::set_target_vel(CANMotorCFG::BULLET_LOADER,velocity_profile_3.hold_vel_3*printer_ratio);
-                    } else if (traj_index < velocity_profile_3.profile1_length
-                            + velocity_profile_3.hold_time_1 + velocity_profile_3.profile2_length
-                            + velocity_profile_3.hold_time_2 + velocity_profile_3.profile3_length
-                            + velocity_profile_3.hold_time_3 + velocity_profile_3.profile4_length) {
-                        CANMotorController::set_target_vel(CANMotorCFG::BULLET_LOADER,velocity_profile_3.vel_profile_3[traj_index-velocity_profile_3.profile1_length-velocity_profile_3.hold_time_1- velocity_profile_3.profile2_length - velocity_profile_3.hold_time_2 - velocity_profile_3.profile3_length - velocity_profile_3.hold_time_3]*printer_ratio);
-                    }else {
-                        CANMotorController::set_target_vel(CANMotorCFG::BULLET_LOADER, 0.0f);
-                        enable_track = false;
-                    }
-                    break;
+            if(WITHIN_RECENT_TIME(last_experiment_time, 15000)&&!init_start) {
+                switch (mode) {
+                    case 0:
+                        if(traj_index <= (int)(trapz_endvel/trapz_accel*1000000.0f/(float)THREAD_INTERVAL)) {
+                            target_vel += (trapz_accel/1000000.0f*THREAD_INTERVAL);
+                        } else if (traj_index < (int)(2.0f*trapz_endvel/trapz_accel*1000000.0f/(float)THREAD_INTERVAL)) {
+                            target_vel -= (trapz_accel/1000000.0f*THREAD_INTERVAL);
+                        } else {
+                            target_vel = 0.0f;
+                            enable_track = false;
+                            traj_index = 0;
+                        }
+                        CANMotorController::set_target_vel(CANMotorCFG::BULLET_LOADER, target_vel*printer_ratio);
+                        break;
+                    case 1:
+                        if(traj_index < velocity_profile_3.profile1_length) {
+                            LED::led_on(1);
+                            CANMotorController::set_target_vel(CANMotorCFG::BULLET_LOADER,velocity_profile_3.vel_profile_1[traj_index]*printer_ratio);
+                        } else if(traj_index < velocity_profile_3.profile1_length + velocity_profile_3.hold_time_1) {
+                            LED::led_on(2);
+                            CANMotorController::set_target_vel(CANMotorCFG::BULLET_LOADER,velocity_profile_3.hold_vel_1*printer_ratio);
+                        } else if(traj_index < velocity_profile_3.profile1_length + velocity_profile_3.hold_time_1 + velocity_profile_3.profile2_length) {
+                            LED::led_on(3);
+                            CANMotorController::set_target_vel(CANMotorCFG::BULLET_LOADER,velocity_profile_3.vel_profile_2[traj_index-velocity_profile_3.profile1_length-velocity_profile_3.hold_time_1]*printer_ratio);
+                        } else if(traj_index < velocity_profile_3.profile1_length + velocity_profile_3.hold_time_1 + velocity_profile_3.profile2_length + velocity_profile_3.hold_time_2) {
+                            LED::led_on(4);
+                            CANMotorController::set_target_vel(CANMotorCFG::BULLET_LOADER,velocity_profile_3.hold_vel_2*printer_ratio);
+                        } else if(traj_index < velocity_profile_3.profile1_length + velocity_profile_3.hold_time_1 + velocity_profile_3.profile2_length + velocity_profile_3.hold_time_2 + velocity_profile_3.profile3_length) {
+                            LED::led_on(5);
+                            CANMotorController::set_target_vel(CANMotorCFG::BULLET_LOADER,velocity_profile_3.vel_profile_3[traj_index-velocity_profile_3.profile1_length-velocity_profile_3.hold_time_1- velocity_profile_3.profile2_length - velocity_profile_3.hold_time_2]*printer_ratio);
+                        } else {
+                            LED::all_off();
+                            CANMotorController::set_target_vel(CANMotorCFG::BULLET_LOADER, 0.0f);
+                            enable_track = false;
+                            last_experiment_time = SYSTIME;
+                        }
+                        break;
+                    case 2:
+                        if(traj_index < velocity_profile_3.profile1_length) {
+                            CANMotorController::set_target_vel(CANMotorCFG::BULLET_LOADER,velocity_profile_3.vel_profile_1[traj_index]*printer_ratio);
+                        } else if(traj_index < velocity_profile_3.profile1_length
+                                               + velocity_profile_3.hold_time_1) {
+                            CANMotorController::set_target_vel(CANMotorCFG::BULLET_LOADER,velocity_profile_3.hold_vel_1*printer_ratio);
+                        } else if(traj_index < velocity_profile_3.profile1_length
+                                               + velocity_profile_3.hold_time_1 + velocity_profile_3.profile2_length) {
+                            CANMotorController::set_target_vel(CANMotorCFG::BULLET_LOADER,velocity_profile_3.vel_profile_2[traj_index-velocity_profile_3.profile1_length-velocity_profile_3.hold_time_1]*printer_ratio);
+                        } else if(traj_index < velocity_profile_3.profile1_length
+                                               + velocity_profile_3.hold_time_1 + velocity_profile_3.profile2_length
+                                               + velocity_profile_3.hold_time_2) {
+                            CANMotorController::set_target_vel(CANMotorCFG::BULLET_LOADER,velocity_profile_3.hold_vel_2*printer_ratio);
+                        } else if(traj_index < velocity_profile_3.profile1_length
+                                               + velocity_profile_3.hold_time_1 + velocity_profile_3.profile2_length
+                                               + velocity_profile_3.hold_time_2 + velocity_profile_3.profile3_length) {
+                            CANMotorController::set_target_vel(CANMotorCFG::BULLET_LOADER,velocity_profile_3.vel_profile_3[traj_index-velocity_profile_3.profile1_length-velocity_profile_3.hold_time_1- velocity_profile_3.profile2_length - velocity_profile_3.hold_time_2]*printer_ratio);
+                        } else if(traj_index < velocity_profile_3.profile1_length
+                                               + velocity_profile_3.hold_time_1 + velocity_profile_3.profile2_length
+                                               + velocity_profile_3.hold_time_2 + velocity_profile_3.profile3_length
+                                               + velocity_profile_3.hold_time_3){
+                            CANMotorController::set_target_vel(CANMotorCFG::BULLET_LOADER,velocity_profile_3.hold_vel_3*printer_ratio);
+                        } else if (traj_index < velocity_profile_3.profile1_length
+                                                + velocity_profile_3.hold_time_1 + velocity_profile_3.profile2_length
+                                                + velocity_profile_3.hold_time_2 + velocity_profile_3.profile3_length
+                                                + velocity_profile_3.hold_time_3 + velocity_profile_3.profile4_length) {
+                            CANMotorController::set_target_vel(CANMotorCFG::BULLET_LOADER,velocity_profile_3.vel_profile_4[traj_index-velocity_profile_3.profile1_length-velocity_profile_3.hold_time_1- velocity_profile_3.profile2_length - velocity_profile_3.hold_time_2 - velocity_profile_3.profile3_length - velocity_profile_3.hold_time_3]*printer_ratio);
+                        }else {
+                            CANMotorController::set_target_vel(CANMotorCFG::BULLET_LOADER, 0.0f);
+                            enable_track = false;
+                            last_experiment_time = SYSTIME;
+                        }
+                        break;
+                }
+                traj_index ++;
+            } else {
+                CANMotorController::set_target_vel(CANMotorCFG::BULLET_LOADER, 5*printer_ratio);
+                sleep(TIME_MS2I(1500));
+                last_experiment_time = SYSTIME;
+                CANMotorController::set_target_vel(CANMotorCFG::BULLET_LOADER, 0);
+                init_start = false;
             }
-            traj_index ++;
         } else {
             if (ABS_IN_RANGE(CANMotorIF::motor_feedback[0].actual_velocity, 0.5)){
                 CANMotorController::v2iController[CANMotorCFG::BULLET_LOADER].clear_i_out();
             }
         }
         prev_velll = vellll;
-        chSysUnlock();
         sleep_time = THREAD_INTERVAL - (TIME_I2US(chVTGetSystemTimeX()) + PRIO)%THREAD_INTERVAL;
         sleep(TIME_US2I(sleep_time));
     }
@@ -587,9 +583,9 @@ void controlThread::main() {
         auto target_speed =(float)((target_angle-prev_angle)/(float)(TIME_I2US(chVTGetSystemTimeX()) - prev_time))*1000000.0f;
         target_speed = (float)lround((float)target_speed/printer_ratio)*printer_ratio;
         if(target_speed > 0) {
-            vellll = pos_vel * printer_ratio;
+            vellll = 1.0f;
         } else if(target_speed < 0) {
-            vellll = neg_vel * printer_ratio;
+            vellll = -1.0f;
         } else {
             vellll = 0;
         }
