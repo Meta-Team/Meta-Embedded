@@ -17,7 +17,7 @@ CANInterface can2(&CAND2);
 
 class MotorControl :public BaseStaticThread<512> {
 private:
-    int shell_print_cnt = 0;
+//    int shell_print_cnt = 0;
 
     void main() final{
         setName("feedback");
@@ -27,11 +27,11 @@ private:
             CANMotorController::set_target_angle(CANMotorCFG::MOTOR1, -180);
             sleep(TIME_MS2I(1000));
 
-            shell_print_cnt++;
-            if (shell_print_cnt == 1000){
-                Shell::printf("%.2f" ENDL, CANMotorIF::motor_feedback[CANMotorCFG::MOTOR1].actual_angle);
-                shell_print_cnt = 0;
-            }
+//            shell_print_cnt++;
+//            if (shell_print_cnt == 1000){
+//                Shell::printf("%.2f" ENDL, CANMotorIF::motor_feedback[CANMotorCFG::MOTOR1].actual_angle);
+//                shell_print_cnt = 0;
+//            }
         }
     }
 } ControlThread;
@@ -40,8 +40,8 @@ int main(void) {
     halInit();
     System::init();
 
-    // Start shell at high priority
-    Shell::start(HIGHPRIO);
+    // see CanMotorController feedback thread for shell feedback
+    // Shell::start(HIGHPRIO);
     chThdSleepMilliseconds(500);
     can1.start(NORMALPRIO);
     can2.start(NORMALPRIO+1);
