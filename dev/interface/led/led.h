@@ -34,6 +34,7 @@
  * @name LED
  * @brief LED Controller
  * @note RM Board 2018 has additional 8 green LEDs
+ * @note RM Board C has an additional blue LED
  */
 class LED {
 
@@ -110,21 +111,27 @@ public:
      * Turn off blue LED
      */
     static void blue_off() {
+#if defined(BOARD_RM_C)
         LED_PAD_OFF(GPIOH, GPIOH_LED_B);
+#endif
     }
 
     /**
      * Turn on blue LED
      */
     static void blue_on() {
+#if defined(BOARD_RM_C)
         LED_PAD_ON(GPIOH, GPIOH_LED_B);
+#endif
     }
 
     /**
      * Toggle blue LED
      */
     static void blue_toggle() {
+#if defined(BOARD_RM_C)
         palTogglePad(GPIOH, GPIOH_LED_B);
+#endif
     }
 
 #if defined(BOARD_RM_2018_A)
@@ -164,8 +171,11 @@ public:
      * Turn off all LEDs
      */
     static void all_off() {
-        green_off();
         red_off();
+        green_off();
+#if defined(BOARD_RM_C)
+        blue_off();
+#endif
 #if defined(BOARD_RM_2018_A)
         for (unsigned i = 1; i <= 8; i++) {
             led_off(i);

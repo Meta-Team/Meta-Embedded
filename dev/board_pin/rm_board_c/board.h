@@ -658,7 +658,7 @@
  * PD11 - PIN11                     (input pullup).
  * PD12 - LED4                      (output pushpull maximum).
  * PD13 - LED3                      (output pushpull maximum).
- * PD14 - Buzzer                    (alternate 9).
+ * PD14 - Buzzer                    (alternate 2).
  * PD15 - LED6                      (output pushpull maximum).
  */
 #define VAL_GPIOD_MODER             (PIN_MODE_ALTERNATE(GPIOD_CAN1_RX) |           \
@@ -755,7 +755,7 @@
                                      PIN_AFIO_AF(GPIOD_PIN11, 0U) |         \
                                      PIN_AFIO_AF(GPIOD_LED4, 0U) |          \
                                      PIN_AFIO_AF(GPIOD_LED3, 0U) |          \
-                                     PIN_AFIO_AF(GPIOD_BUZZER, 9U) |          \
+                                     PIN_AFIO_AF(GPIOD_BUZZER, 2U) |          \
                                      PIN_AFIO_AF(GPIOD_LED6, 0U))
 
 /*

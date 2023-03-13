@@ -16,6 +16,7 @@
 // RM_BOARD_2017: PB4 TIM3 CH1
 #define BUZZER_PWM_DRIVER PWMD3
 #elif defined(BOARD_RM_C)
+// RM_BOARD_C: PD14 TIM4 CH3
 #define BUZZER_PWM_DRIVER PWMD4
 #else
 #error "BuzzerSKD interface has not been defined for selected board"

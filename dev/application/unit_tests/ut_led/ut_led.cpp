@@ -87,7 +87,7 @@ int main(void) {
 
     chThdSleepMilliseconds(500);
 
-    BuzzerSKD::play_sound(BuzzerSKD::sound_kong_fu_FC);
+    BuzzerSKD::play_sound(BuzzerSKD::sound_startup);
 
 #if CH_CFG_NO_IDLE_THREAD // See chconf.h for what this #define means.
     // ChibiOS idle thread has been disabled, main() should implement infinite loop
