@@ -22,6 +22,7 @@ class CANMotorController: private CANMotorCFG{
 public:
     static float encoder_v;
     static float a_coeff;
+    static float get_target_V();
     /**
      * @brief           Start CAN motor scheduler thread.
      * @param SKD_PRIO  [in] Scheduler thread priority, motor controllers calculations.

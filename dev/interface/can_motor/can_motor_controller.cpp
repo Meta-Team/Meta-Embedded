@@ -88,6 +88,10 @@ void CANMotorController::unregister_custom_feedback(CANMotorController::feedback
     }
 }
 
+float CANMotorController::get_target_V() {
+    return SKDThread.targetV[0];
+}
+
 void CANMotorController::skdThread::main() {
     setName("HapticSKDThread");
     for(int i = 0; i < MOTOR_COUNT; i++) {

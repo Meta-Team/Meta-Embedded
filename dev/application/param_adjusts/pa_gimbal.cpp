@@ -451,7 +451,7 @@ void inputThread::main() {
                             CANMotorController::set_target_vel(CANMotorCFG::BULLET_LOADER,velocity_profile_3.hold_vel_2*printer_ratio);
                         } else if(traj_index < velocity_profile_3.profile1_length + velocity_profile_3.hold_time_1 + velocity_profile_3.profile2_length + velocity_profile_3.hold_time_2 + velocity_profile_3.profile3_length) {
                             LED::led_on(5);
-                            CANMotorController::set_target_vel(CANMotorCFG::BULLET_LOADER,velocity_profile_3.vel_profile_3[traj_index-velocity_profile_3.profile1_length-velocity_profile_3.hold_time_1- velocity_profile_3.profile2_length - velocity_profile_3.hold_time_2]*printer_ratio);
+                            CANMotorController::set_target_vel(CANMotorCFG::BULLET_LOADER,velocity_profile_3.vel_profile_3[traj_index-velocity_profile_3.profile1_length-velocity_profile_3.hold_time_1 - velocity_profile_3.profile2_length - velocity_profile_3.hold_time_2]*printer_ratio);
                         } else {
                             LED::all_off();
                             CANMotorController::set_target_vel(CANMotorCFG::BULLET_LOADER, 0.0f);
@@ -507,6 +507,8 @@ void inputThread::main() {
                 CANMotorController::v2iController[CANMotorCFG::BULLET_LOADER].clear_i_out();
             }
         }
+        auto outputvalue = (unsigned int) (2048.0f+(float)CANMotorController::get_target_V()/200.0f*2048.0f);
+        dacPutChannelX(&DACD1, 0, outputvalue);
         prev_velll = vellll;
         sleep_time = THREAD_INTERVAL - (TIME_I2US(chVTGetSystemTimeX()) + PRIO)%THREAD_INTERVAL;
         sleep(TIME_US2I(sleep_time));
@@ -579,8 +581,6 @@ void controlThread::main() {
 
     while(!shouldTerminate()){
         CANMotorCFG::enable_v2i[0] = true;
-        int outputvalue = (int) (2048.0f+(float)CANMotorIF::motor_feedback[0].torque_current()/10000.0f*2048.0f);
-        dacPutChannelX(&DACD1, 0, outputvalue);
         auto target_speed =(float)((target_angle-prev_angle)/(float)(TIME_I2US(chVTGetSystemTimeX()) - prev_time))*1000000.0f;
         target_speed = (float)lround((float)target_speed/printer_ratio)*printer_ratio;
         if(target_speed > 0) {
