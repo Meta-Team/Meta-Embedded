@@ -66,10 +66,9 @@ AHRSOnBoard ahrs;
 
 static icucnt_t width, period;
 static float target_angle, dir;
-static float pos_vel, neg_vel;
-static float vellll;
 static float trapz_endvel;
 static float trapz_accel;
+static bool enable_track = false;
 
 static struct velocity_profile_3_t {
     static const int max_length = 30;
@@ -110,16 +109,9 @@ static void step_dropcb(ICUDriver *icup) {
 static void step_risecb(ICUDriver *icup) {
     width = icuGetWidthX(icup);
     period = icuGetPeriodX(icup);
-
     if (period - width > 4) {
-        if(palReadPad(GPIOF, GPIOF_PIN1)) {
-            dir = 1.0f;
-        } else {
-            dir = -1.0f;
-        }
-        target_angle += (dir / 200.0f / 16.0f * 360.0f);
+        enable_track = true;
     }
-
 }
 
 static ICUConfig step_cfg = {
@@ -194,16 +186,6 @@ DEF_SHELL_CMD_START(cmd_disable_feedback)
     feedback_enable[feedback_id] = false;
     Shell::printf("%s feedback disabled" SHELL_NEWLINE_STR, motor_name[feedback_id]);
 }
-
-DEF_SHELL_CMD_START(cmd_set_vel)
-    (void) argv;
-    if (argc != 2) {
-
-        return true;
-    }
-    pos_vel = Shell::atof(argv[0]);
-    neg_vel = Shell::atof(argv[1]);
-DEF_SHELL_CMD_END
 
 DEF_SHELL_CMD_START(cmd_set_vel_pf)
     (void) argv;
@@ -396,9 +378,9 @@ private:
     void main() final;
 };
 
-class controlThread : public BaseStaticThread<512> {
-    void main() final;
-};
+//class controlThread : public BaseStaticThread<512> {
+//    void main() final;
+//};
 
 class encoderThread : public BaseStaticThread<512> {
     void main() final;
@@ -408,18 +390,16 @@ void inputThread::main() {
     setName("input");
     const unsigned long THREAD_INTERVAL = 1000; // [us]
     unsigned sleep_time;
-    float prev_velll = 0.0f;
     int traj_index = 0;
     const float printer_ratio = 1.0f*93.0f/3200.0f*360.0f;
-    bool enable_track = false;
+    bool prev_enable = false;
     float target_vel  = 0.0f;
     tprio_t PRIO = this->getPriorityX();
     bool init_start = true;
     unsigned long last_experiment_time = 0;
     while(!shouldTerminate()) {
-        if(vellll>0 && prev_velll==0){
+        if(!prev_enable && enable_track){
             traj_index = 0;
-            enable_track = true;
         }
         if(enable_track) {
             if(WITHIN_RECENT_TIME(last_experiment_time, 15000)&&!init_start) {
@@ -509,7 +489,7 @@ void inputThread::main() {
         }
         auto outputvalue = (unsigned int) (2048.0f+(float)CANMotorController::get_target_V()/200.0f*2048.0f);
         dacPutChannelX(&DACD1, 0, outputvalue);
-        prev_velll = vellll;
+        prev_enable = enable_track;
         sleep_time = THREAD_INTERVAL - (TIME_I2US(chVTGetSystemTimeX()) + PRIO)%THREAD_INTERVAL;
         sleep(TIME_US2I(sleep_time));
     }
@@ -568,34 +548,34 @@ static encoderThread enc_thd;
 
 static inputThread ipt_thd;
 
-void controlThread::main() {
-    setName("controllerThread");
-    CANMotorCFG::enable_v2i[0] = true;
-    auto prev_time = 0;
-    float prev_angle = 0.0f;
-    float printer_ratio = 1.0f*93.0f/3200.0f*360.0f;
-    // We assume the target would only vary 0.5mm/s, i.e. 1.5mm/s 2.0mm/s 2.5mm/s;
-    // 93 was the step size in simulink. (Varies from printer)
-    // 3200 is the original full step (200 steps) * (16 micro step) / round.
-    // 360 is 360.0 degree/round.
-
-    while(!shouldTerminate()){
-        CANMotorCFG::enable_v2i[0] = true;
-        auto target_speed =(float)((target_angle-prev_angle)/(float)(TIME_I2US(chVTGetSystemTimeX()) - prev_time))*1000000.0f;
-        target_speed = (float)lround((float)target_speed/printer_ratio)*printer_ratio;
-        if(target_speed > 0) {
-            vellll = 1.0f;
-        } else if(target_speed < 0) {
-            vellll = -1.0f;
-        } else {
-            vellll = 0;
-        }
-//        CANMotorController::set_target_vel(CANMotorCFG::BULLET_LOADER,vellll);//tg*10.4625f*2.0f);
-        prev_angle = target_angle;
-        prev_time = TIME_I2US(chVTGetSystemTimeX());
-        sleep(TIME_MS2I(40));
-    }
-}
+//void controlThread::main() {
+//    setName("controllerThread");
+//    CANMotorCFG::enable_v2i[0] = true;
+//    auto prev_time = 0;
+//    float prev_angle = 0.0f;
+//    float printer_ratio = 1.0f*93.0f/3200.0f*360.0f;
+//    // We assume the target would only vary 0.5mm/s, i.e. 1.5mm/s 2.0mm/s 2.5mm/s;
+//    // 93 was the step size in simulink. (Varies from printer)
+//    // 3200 is the original full step (200 steps) * (16 micro step) / round.
+//    // 360 is 360.0 degree/round.
+//
+//    while(!shouldTerminate()){
+//        CANMotorCFG::enable_v2i[0] = true;
+//        auto target_speed =(float)((target_angle-prev_angle)/(float)(TIME_I2US(chVTGetSystemTimeX()) - prev_time))*1000000.0f;
+//        target_speed = (float)lround((float)target_speed/printer_ratio)*printer_ratio;
+////        if(target_speed > 0) {
+////            vellll = 1.0f;
+////        } else if(target_speed < 0) {
+////            vellll = -1.0f;
+////        } else {
+////            vellll = 0;
+////        }
+////        CANMotorController::set_target_vel(CANMotorCFG::BULLET_LOADER,vellll);//tg*10.4625f*2.0f);
+//        prev_angle = target_angle;
+//        prev_time = TIME_I2US(chVTGetSystemTimeX());
+//        sleep(TIME_MS2I(40));
+//    }
+//}
 
 DEF_SHELL_CMD_START(cmd_switch_mode)
     ipt_thd.mode = Shell::atoi(argv[0]);
@@ -610,7 +590,6 @@ Shell::Command mainProgramCommands[] = {
         {"set_pid",         "motor_id pid_id(0: angle_to_v, 1: v_to_i) ki kp kd i_limit out_limit",   cmd_set_param,       nullptr},
         {"echo_pid",        "motor_id pid_id(0: angle_to_v, 1: v_to_i)",   cmd_echo_param,      nullptr},
         {"set_target_angle","motor_id target_angle",   cmd_set_target_angle,nullptr},
-        {"set_vel",         "pos_vel neg_vel", cmd_set_vel, nullptr},
         {"set_vel_pf",      "cyka", cmd_set_vel_pf, nullptr},
         {"set_vel_pf_3",      "cyka", cmd_set_vel_pf_3, nullptr},
         {"set_ff",          "cyka", cmd_set_aff, nullptr},
@@ -619,7 +598,7 @@ Shell::Command mainProgramCommands[] = {
         {nullptr,           nullptr,  nullptr,              nullptr}
 };
 
-static controlThread control_thread;
+//static controlThread control_thread;
 
 int main(void) {
     /*** --------------------------- Period 0. Fundamental Setup --------------------------- ***/
@@ -695,10 +674,8 @@ int main(void) {
     /// Start SKDs
     CANMotorController::start(THREAD_MOTOR_SKD_PRIO, THREAD_FEEDBACK_SKD_PRIO, &can1, &can2);
     enc_thd.start(THREAD_CHASSIS_SKD_PRIO);
-    ipt_ref = ipt_thd.start(THREAD_COMMUNICATOR_PRIO);
+    ipt_thd.start(THREAD_COMMUNICATOR_PRIO);
 
-
-    control_thread.start(HIGHPRIO-10);
     /// Complete Period 2
     BuzzerSKD::play_sound(BuzzerSKD::sound_startup);  // Now play the startup sound
 
