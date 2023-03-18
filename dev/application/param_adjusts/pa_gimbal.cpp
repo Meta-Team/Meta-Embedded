@@ -65,7 +65,6 @@ CANInterface can2(&CAND2);
 AHRSOnBoard ahrs;
 
 static icucnt_t width, period;
-static float target_angle, dir;
 static float trapz_endvel;
 static float trapz_accel;
 static bool enable_track = false;
@@ -166,10 +165,6 @@ DEF_SHELL_CMD_START(cmd_enable_feedback)
         return true;
     }
     unsigned feedback_id = Shell::atoi(argv[0]);
-//    if (feedback_id > 9) {
-//        Shell::printf("Invalid feedback ID %d" SHELL_NEWLINE_STR, feedback_id);
-//        return true;
-//    }
     Shell::printf("%s feedback enabled" SHELL_NEWLINE_STR, motor_name[feedback_id]);
 }
 
@@ -397,11 +392,14 @@ void inputThread::main() {
     tprio_t PRIO = this->getPriorityX();
     bool init_start = true;
     unsigned long last_experiment_time = 0;
+    CANMotorCFG::enable_v2i[0] = true;
+    // TODO: debug based on LED behavior.
     while(!shouldTerminate()) {
         if(!prev_enable && enable_track){
             traj_index = 0;
         }
         if(enable_track) {
+            LED::red_on();
             if(WITHIN_RECENT_TIME(last_experiment_time, 15000)&&!init_start) {
                 switch (mode) {
                     case 0:
@@ -436,25 +434,31 @@ void inputThread::main() {
                             LED::all_off();
                             CANMotorController::set_target_vel(CANMotorCFG::BULLET_LOADER, 0.0f);
                             enable_track = false;
+                            traj_index = 0;
                             last_experiment_time = SYSTIME;
                         }
                         break;
                     case 2:
                         if(traj_index < velocity_profile_3.profile1_length) {
+                            LED::led_on(1);
                             CANMotorController::set_target_vel(CANMotorCFG::BULLET_LOADER,velocity_profile_3.vel_profile_1[traj_index]*printer_ratio);
                         } else if(traj_index < velocity_profile_3.profile1_length
                                                + velocity_profile_3.hold_time_1) {
+                            LED::led_on(2);
                             CANMotorController::set_target_vel(CANMotorCFG::BULLET_LOADER,velocity_profile_3.hold_vel_1*printer_ratio);
                         } else if(traj_index < velocity_profile_3.profile1_length
                                                + velocity_profile_3.hold_time_1 + velocity_profile_3.profile2_length) {
+                            LED::led_on(3);
                             CANMotorController::set_target_vel(CANMotorCFG::BULLET_LOADER,velocity_profile_3.vel_profile_2[traj_index-velocity_profile_3.profile1_length-velocity_profile_3.hold_time_1]*printer_ratio);
                         } else if(traj_index < velocity_profile_3.profile1_length
                                                + velocity_profile_3.hold_time_1 + velocity_profile_3.profile2_length
                                                + velocity_profile_3.hold_time_2) {
+                            LED::led_on(4);
                             CANMotorController::set_target_vel(CANMotorCFG::BULLET_LOADER,velocity_profile_3.hold_vel_2*printer_ratio);
                         } else if(traj_index < velocity_profile_3.profile1_length
                                                + velocity_profile_3.hold_time_1 + velocity_profile_3.profile2_length
                                                + velocity_profile_3.hold_time_2 + velocity_profile_3.profile3_length) {
+                            LED::led_on(5);
                             CANMotorController::set_target_vel(CANMotorCFG::BULLET_LOADER,velocity_profile_3.vel_profile_3[traj_index-velocity_profile_3.profile1_length-velocity_profile_3.hold_time_1- velocity_profile_3.profile2_length - velocity_profile_3.hold_time_2]*printer_ratio);
                         } else if(traj_index < velocity_profile_3.profile1_length
                                                + velocity_profile_3.hold_time_1 + velocity_profile_3.profile2_length
@@ -467,8 +471,10 @@ void inputThread::main() {
                                                 + velocity_profile_3.hold_time_3 + velocity_profile_3.profile4_length) {
                             CANMotorController::set_target_vel(CANMotorCFG::BULLET_LOADER,velocity_profile_3.vel_profile_4[traj_index-velocity_profile_3.profile1_length-velocity_profile_3.hold_time_1- velocity_profile_3.profile2_length - velocity_profile_3.hold_time_2 - velocity_profile_3.profile3_length - velocity_profile_3.hold_time_3]*printer_ratio);
                         }else {
+                            LED::all_off();
                             CANMotorController::set_target_vel(CANMotorCFG::BULLET_LOADER, 0.0f);
                             enable_track = false;
+                            traj_index = 0;
                             last_experiment_time = SYSTIME;
                         }
                         break;
@@ -481,8 +487,10 @@ void inputThread::main() {
                 CANMotorController::set_target_vel(CANMotorCFG::BULLET_LOADER, 0);
                 init_start = false;
                 enable_track = false;
+                traj_index = 0;
             }
         } else {
+            LED::red_off();
             if (ABS_IN_RANGE(CANMotorIF::motor_feedback[0].actual_velocity, 0.5)){
                 CANMotorController::v2iController[CANMotorCFG::BULLET_LOADER].clear_i_out();
             }
@@ -502,8 +510,8 @@ void inputThread::main() {
 
 void encoderThread::main() {
     setName("encoder");
-    bool A[2]={0,0};
-    bool B[2]={0,0};
+    bool A[2]={false,false};
+    bool B[2]={false,false};
     while(!shouldTerminate()) {
         // Update.
         A[0] = A[1];
@@ -548,35 +556,6 @@ static encoderThread enc_thd;
 
 static inputThread ipt_thd;
 
-//void controlThread::main() {
-//    setName("controllerThread");
-//    CANMotorCFG::enable_v2i[0] = true;
-//    auto prev_time = 0;
-//    float prev_angle = 0.0f;
-//    float printer_ratio = 1.0f*93.0f/3200.0f*360.0f;
-//    // We assume the target would only vary 0.5mm/s, i.e. 1.5mm/s 2.0mm/s 2.5mm/s;
-//    // 93 was the step size in simulink. (Varies from printer)
-//    // 3200 is the original full step (200 steps) * (16 micro step) / round.
-//    // 360 is 360.0 degree/round.
-//
-//    while(!shouldTerminate()){
-//        CANMotorCFG::enable_v2i[0] = true;
-//        auto target_speed =(float)((target_angle-prev_angle)/(float)(TIME_I2US(chVTGetSystemTimeX()) - prev_time))*1000000.0f;
-//        target_speed = (float)lround((float)target_speed/printer_ratio)*printer_ratio;
-////        if(target_speed > 0) {
-////            vellll = 1.0f;
-////        } else if(target_speed < 0) {
-////            vellll = -1.0f;
-////        } else {
-////            vellll = 0;
-////        }
-////        CANMotorController::set_target_vel(CANMotorCFG::BULLET_LOADER,vellll);//tg*10.4625f*2.0f);
-//        prev_angle = target_angle;
-//        prev_time = TIME_I2US(chVTGetSystemTimeX());
-//        sleep(TIME_MS2I(40));
-//    }
-//}
-
 DEF_SHELL_CMD_START(cmd_switch_mode)
     ipt_thd.mode = Shell::atoi(argv[0]);
 DEF_SHELL_CMD_END
@@ -600,7 +579,7 @@ Shell::Command mainProgramCommands[] = {
 
 //static controlThread control_thread;
 
-int main(void) {
+int main() {
     /*** --------------------------- Period 0. Fundamental Setup --------------------------- ***/
 
     halInit();
