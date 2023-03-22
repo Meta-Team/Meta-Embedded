@@ -68,6 +68,7 @@ static icucnt_t width, period;
 static float trapz_endvel;
 static float trapz_accel;
 static bool enable_track = false;
+static float target_angle = 0.0f;
 
 static struct velocity_profile_3_t {
     static const int max_length = 30;
@@ -110,6 +111,7 @@ static void step_risecb(ICUDriver *icup) {
     period = icuGetPeriodX(icup);
     if (period - width > 4) {
         enable_track = true;
+        target_angle -= (((palReadPad(GPIOF,GPIOF_PIN1) == 0) ? 1.0f:-1.0f)*360.0f/3200.0f);
     }
 }
 
@@ -398,8 +400,10 @@ void inputThread::main() {
         if(!prev_enable && enable_track){
             traj_index = 0;
         }
-        if(enable_track) {
+
+        if(enable_track && mode != 4) {
             LED::red_on();
+
             if(WITHIN_RECENT_TIME(last_experiment_time, 15000)&&!init_start) {
                 switch (mode) {
                     case 0:
@@ -489,6 +493,9 @@ void inputThread::main() {
                 enable_track = false;
                 traj_index = 0;
             }
+        } else if(mode == 4) {
+            CANMotorCFG::enable_a2v[0] = true;
+            CANMotorController::set_target_angle(CANMotorCFG::BULLET_LOADER,target_angle);
         } else {
             LED::red_off();
             if (ABS_IN_RANGE(CANMotorIF::motor_feedback[0].actual_velocity, 0.5)){
@@ -557,6 +564,7 @@ static encoderThread enc_thd;
 static inputThread ipt_thd;
 
 DEF_SHELL_CMD_START(cmd_switch_mode)
+    target_angle = CANMotorIF::motor_feedback[0].accumulate_angle();
     ipt_thd.mode = Shell::atoi(argv[0]);
 DEF_SHELL_CMD_END
 
