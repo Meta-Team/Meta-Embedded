@@ -47,10 +47,6 @@ void spi_read_write_data(const uint8_t *tx_data, uint8_t *rx_data, size_t data_l
     spiExchange(&BMI088_SPI_DRIVER, data_len, tx_data, rx_data);
     spiUnselect(&BMI088_SPI_DRIVER);
     spiReleaseBus(&BMI088_SPI_DRIVER);
-/*    for (int i=0; i<data_len; i++) {
-        Shell::printf("tx: %x rx: %x" ENDL, *(tx_data+i), *(rx_data+i));
-    }
-    Shell::printf(ENDL);*/
 }
 
 void BMI088Interface::bmi088_write_reg(uint8_t reg, uint8_t data){
@@ -60,9 +56,9 @@ void BMI088Interface::bmi088_write_reg(uint8_t reg, uint8_t data){
 }
 
 void BMI088Interface::bmi088_read_reg(uint8_t reg, uint8_t *rx_data, uint8_t data_len, uint8_t data_offset){
-    uint8_t tx_data[data_len+data_offset];
+    uint8_t tx_data[data_len + data_offset];
     tx_data[0] = 0x80 | reg;
-    uint8_t dummy_rx_data[data_len+data_offset];
+    uint8_t dummy_rx_data[data_len + data_offset];
     spi_read_write_data(tx_data, dummy_rx_data, data_len + data_offset);
     std::copy(dummy_rx_data + data_offset, dummy_rx_data + data_len + data_offset, rx_data);
 }
@@ -92,7 +88,7 @@ bool BMI088Interface::init_accel() {
     // Start accelerometer communication
     spiStart(&BMI088_SPI_DRIVER, &SPI1_accel_cfg);
 
-    // Check communication
+    // Check communication, activate accelerometer spi mote by toggle chip select pin
     bmi088_read_reg(BMI088_ACC_CHIP_ID, &res, 1, BMI088_ACCEL_READ_OFFSET);
     chThdSleepMicroseconds(BMI088_COM_WAIT_SENSOR_TIME_US);
     bmi088_read_reg(BMI088_ACC_CHIP_ID, &res, 1, BMI088_ACCEL_READ_OFFSET);
@@ -100,9 +96,9 @@ bool BMI088Interface::init_accel() {
 
     // Accel software reset
     bmi088_write_reg(BMI088_ACC_SOFTRESET, BMI088_ACC_SOFTRESET_VALUE);
-    chThdSleepMilliseconds(5);
+    chThdSleepMilliseconds(BMI088_SENSOR_RESET_TIME_MS);
 
-    // Check communication is normal after reset
+    // Check communication is normal after reset, activate accelerometer spi mote by toggle chip select pin
     bmi088_read_reg(BMI088_ACC_CHIP_ID, &res, 1, BMI088_ACCEL_READ_OFFSET);
     chThdSleepMicroseconds(BMI088_COM_WAIT_SENSOR_TIME_US);
     bmi088_read_reg(BMI088_ACC_CHIP_ID, &res, 1, BMI088_ACCEL_READ_OFFSET);
@@ -149,7 +145,7 @@ bool BMI088Interface::init_gyro() {
 
     /// Reset the gyro sensor
     bmi088_write_reg(BMI088_GYRO_SOFTRESET, BMI088_GYRO_SOFTRESET_VALUE);
-    chThdSleepMilliseconds(5);
+    chThdSleepMilliseconds(BMI088_SENSOR_RESET_TIME_MS);
 
     //check communication is normal after reset
     bmi088_read_reg(BMI088_GYRO_CHIP_ID, &res, 1, BMI088_GYRO_READ_OFFSET);
@@ -186,17 +182,17 @@ void BMI088Interface::load_calibration_data(Vector3D gyro_bias_) {
 }
 
 void BMI088Interface::update() {
-    /// Fetch data from SPI
-
-    chSysLock();  /// --- ENTER S-Locked state. DO NOT use LOG, printf, non S/I-Class functions or return ---
-    {
-        uint8_t buf[8] = {0, 0, 0, 0, 0, 0};
+//    chSysLock();  // --- ENTER S-Locked state. DO NOT use LOG, printf, non S/I-Class functions or return ---
+//    {
+        uint8_t buf[8];
         int16_t bmi088_raw_temp;
 
         // Start accelerometer communication
         spiStart(&BMI088_SPI_DRIVER, &SPI1_accel_cfg);
 
+        // Fetch data from SPI
         bmi088_read_reg(BMI088_ACCEL_XOUT_L, buf, 6, BMI088_ACCEL_READ_OFFSET);
+        // Decode data
         bmi088_raw_temp = (int16_t)((buf[1]) << 8) | buf[0];
         accel.x = bmi088_raw_temp * BMI088_ACCEL_SEN;
         bmi088_raw_temp = (int16_t)((buf[3]) << 8) | buf[2];
@@ -204,7 +200,9 @@ void BMI088Interface::update() {
         bmi088_raw_temp = (int16_t)((buf[5]) << 8) | buf[4];
         accel.z = bmi088_raw_temp * BMI088_ACCEL_SEN;
 
+        // Fetch data from SPI
         bmi088_read_reg(BMI088_TEMP_M, buf, 2, BMI088_ACCEL_READ_OFFSET);
+        // Decode data
         bmi088_raw_temp = (int16_t)((buf[0] << 3) | (buf[1] >> 5));
 
         if (bmi088_raw_temp > 1023) bmi088_raw_temp -= 2048;
@@ -216,20 +214,18 @@ void BMI088Interface::update() {
         // Start gyroscope communication
         spiStart(&BMI088_SPI_DRIVER, &SPI1_gyro_cfg);
 
-        bmi088_read_reg(BMI088_GYRO_CHIP_ID, buf, 8, BMI088_GYRO_READ_OFFSET);
-        if(buf[0] == BMI088_GYRO_CHIP_ID_VALUE) {
-            bmi088_raw_temp = (int16_t)((buf[3]) << 8) | buf[2];
-            gyro.x = bmi088_raw_temp * BMI088_GYRO_SEN;
-            bmi088_raw_temp = (int16_t)((buf[5]) << 8) | buf[4];
-            gyro.y = bmi088_raw_temp * BMI088_GYRO_SEN;
-            bmi088_raw_temp = (int16_t)((buf[7]) << 8) | buf[6];
-            gyro.z = bmi088_raw_temp * BMI088_GYRO_SEN;
-        }
+        // Fetch data from SPI
+        bmi088_read_reg(BMI088_GYRO_X_L, buf, 6, BMI088_GYRO_READ_OFFSET);
+        // Decode data
+        bmi088_raw_temp = (int16_t)((buf[1]) << 8) | buf[0];
+        gyro.x = bmi088_raw_temp * BMI088_GYRO_SEN;
+        bmi088_raw_temp = (int16_t)((buf[3]) << 8) | buf[2];
+        gyro.y = bmi088_raw_temp * BMI088_GYRO_SEN;
+        bmi088_raw_temp = (int16_t)((buf[5]) << 8) | buf[4];
+        gyro.z = bmi088_raw_temp * BMI088_GYRO_SEN;
 
         // Stop gyroscope communication
         spiStop(&BMI088_SPI_DRIVER);
-
-        /// Decode data
 
         /// Gyro Calibration sampling
 
@@ -251,8 +247,8 @@ void BMI088Interface::update() {
 //            last_calibration_time = SYSTIME;
 //        }
 
-    }
-    chSysUnlock();  /// --- EXIT S-Locked state ---
+//    }
+//    chSysUnlock();  /// --- EXIT S-Locked state ---
 }
 
 void BMI088Interface::main() {

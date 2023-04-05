@@ -23,6 +23,7 @@
 
 #define BMI088_LONG_DELAY_TIME 80
 #define BMI088_COM_WAIT_SENSOR_TIME_US 150
+#define BMI088_SENSOR_RESET_TIME_MS 1
 
 #define BMI088_ACCEL_READ_OFFSET 2
 #define BMI088_GYRO_READ_OFFSET 1
@@ -208,7 +209,7 @@ private:
      * @param reg Register address
      * @param rx_data Data to read
      * @param data_len Data length
-     * @param data_offset Bytes needed to discard before the actual data, 2 for accel, 1 for gyro
+     * @param data_offset Bytes need to be discarded before the actual data, 2 for accel, 1 for gyro
      */
     void bmi088_read_reg(uint8_t reg, uint8_t *rx_data, uint8_t data_len, uint8_t data_offset);
 

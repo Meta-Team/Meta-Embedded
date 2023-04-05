@@ -21,21 +21,20 @@ protected:
     void main() final {
         setName("AHRS");
 //        ahrs.load_calibration_data({0.682773649f, -0.682926177f, -0.257317185f});
-//        ahrs.start(AHRS_MATRIX, HIGHPRIO - 2);
 //        BuzzerSKD::init(LOWPRIO);
 //        BuzzerSKD::play_sound(BuzzerSKD::sound_startup);
         while (!shouldTerminate()) {
-//            Vector3D angle = ANGLE_INSTALLATION_MATRIX * abstract_ahrs -> get_angle();
             Vector3D accel = ahrs_c.get_accel();
-//            Shell::printf("!a,%.4f,%.4f,%.4f" SHELL_NEWLINE_STR,
-//                          accel.x,
-//                          accel.y,
-//                          accel.z);
+            Shell::printf("!a\t%.4f\t%.4f\t%.4f\t" ,
+                          accel.x,
+                          accel.y,
+                          accel.z);
             Vector3D gyro = ahrs_c.get_gyro();
-//            Shell::printf("!g,%.4f,%.4f,%.4f" SHELL_NEWLINE_STR,
-//                          gyro.x,
-//                          gyro.y,
-//                          gyro.z);
+            Shell::printf("!g\t%.4f\t%.4f\t%.4f" ENDL,
+                          gyro.x,
+                          gyro.y,
+                          gyro.z);
+//            Vector3D angle = ANGLE_INSTALLATION_MATRIX * abstract_ahrs -> get_angle();
 //            Vector3D gyro = GYRO_INSTALLATION_MATRIX * abstract_ahrs -> get_gyro();
 //            Shell::printf("gyro ,%.4f,%.4f,%.4f" SHELL_NEWLINE_STR,
 //                          gyro.x,
@@ -64,6 +63,7 @@ int main(void) {
 
     // green LED on, indicating thread running
     LED::green_on();
+    chThdSleepMilliseconds(1000);
 
     feedbackThread.start(NORMALPRIO+1);
 
