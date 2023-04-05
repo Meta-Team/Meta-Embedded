@@ -11,11 +11,6 @@
 #include "ahrs_math.hpp"
 #include "bmi088_reg.h"
 
-/// Define BMI088 using SPI communication
-#define BMI088_USE_SPI
-/// Define BMI088 using I2C communication
-// #define BMI088_USE_I2C
-
 #define BMI088_TEMP_FACTOR 0.125f
 #define BMI088_TEMP_OFFSET 23.0f
 
@@ -28,6 +23,9 @@
 
 #define BMI088_LONG_DELAY_TIME 80
 #define BMI088_COM_WAIT_SENSOR_TIME_US 150
+
+#define BMI088_ACCEL_READ_OFFSET 2
+#define BMI088_GYRO_READ_OFFSET 1
 
 #define BMI088_ACCEL_IIC_ADDRESSE (0x18 << 1)
 #define BMI088_GYRO_IIC_ADDRESSE (0x68 << 1)
@@ -58,8 +56,10 @@
 
 #if defined(BOARD_RM_C)
 #define BMI088_SPI_DRIVER SPID1
-#define BMI088_SPI_CS_PAD GPIOB
-#define BMI088_SPI_CS_PIN GPIOB_SPI1_CLK
+#define BMI088_SPI_CS_ACCEL_PAD GPIOA
+#define BMI088_SPI_CS_ACCEL_PIN GPIOA_CS1_ACCEL
+#define BMI088_SPI_CS_GYRO_PAD GPIOB
+#define BMI088_SPI_CS_GYRO_PIN GPIOB_CS1_GYRO
 #else
 #error "BMI088 interface has not been defined for selected board"
 #endif
@@ -199,68 +199,18 @@ private:
     /**
      * Write to a single register in BMI088
      * @param reg Register address
-     * @param tx_data Data to write
+     * @param data Data to write
      */
-    void bmi088_write_single_reg(uint8_t reg, uint8_t tx_data);
+    void bmi088_write_reg(uint8_t reg, uint8_t data);
 
     /**
-     * Read from a single register in BMI088
+     * Read from one or multiple registers in BMI088
      * @param reg Register address
      * @param rx_data Data to read
+     * @param data_len Data length
+     * @param data_offset Bytes needed to discard before the actual data, 2 for accel, 1 for gyro
      */
-    void bmi088_read_single_reg(uint8_t reg, uint8_t *rx_data);
-
-    /**
-     * Read from multiple register in BMI088
-     * @param reg Register address
-     * @param rx_data Data to read
-     * @param rx_len Data length
-     */
-    void bmi088_read_muli_reg(uint8_t reg, uint8_t *rx_data, uint8_t rx_len);
-
-    /**
-     * Write to a single register in BMI088 with accel select pin at LOW
-     * @param reg Register address
-     * @param tx_data Data to write
-     */
-    void bmi088_accel_write_single_reg(uint8_t reg, uint8_t tx_data);
-
-    /**
-     * Read from a single register in BMI088 with accel select pin at LOW
-     * @param reg Register address
-     * @param rx_data Data to read
-     */
-    void bmi088_accel_read_single_reg(uint8_t reg, uint8_t *rx_data);
-
-    /**
-     * Read from multiple register in BMI088 with accel select pin at LOW
-     * @param reg Register address
-     * @param rx_data Data to read
-     * @param rx_len Data length
-     */
-    void bmi088_accel_read_muli_reg(uint8_t reg, uint8_t *rx_data, uint8_t rx_len);
-
-    /**
-     * Write to a single register in BMI088 with gyro select pin at LOW
-     * @param reg Register address
-     * @param tx_data Data to write
-     */
-    void bmi088_gyro_write_single_reg(uint8_t reg, uint8_t tx_data);
-
-    /**
-     * Read from a single register in BMI088 with gyro select pin at LOW
-     * @param reg Register address
-     * @param rx_data Data to read
-     */
-    void bmi088_gyro_read_single_reg(uint8_t reg, uint8_t *rx_data);
-
-    /**
-     * Read from multiple register in BMI088 with gyro select pin at LOW
-     * @param reg Register address
-     * @param rx_data Data to read
-     * @param rx_len Data length
-     */
-    void bmi088_gyro_read_muli_reg(uint8_t reg, uint8_t *rx_data, uint8_t rx_len);
+    void bmi088_read_reg(uint8_t reg, uint8_t *rx_data, uint8_t data_len, uint8_t data_offset);
 
     friend class AHRSCalibrationThread;
 };

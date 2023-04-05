@@ -27,15 +27,15 @@ protected:
         while (!shouldTerminate()) {
 //            Vector3D angle = ANGLE_INSTALLATION_MATRIX * abstract_ahrs -> get_angle();
             Vector3D accel = ahrs_c.get_accel();
-            Shell::printf("!a,%.4f,%.4f,%.4f" SHELL_NEWLINE_STR,
-                          accel.x,
-                          accel.y,
-                          accel.z);
+//            Shell::printf("!a,%.4f,%.4f,%.4f" SHELL_NEWLINE_STR,
+//                          accel.x,
+//                          accel.y,
+//                          accel.z);
             Vector3D gyro = ahrs_c.get_gyro();
-            Shell::printf("!g,%.4f,%.4f,%.4f" SHELL_NEWLINE_STR,
-                          gyro.x,
-                          gyro.y,
-                          gyro.z);
+//            Shell::printf("!g,%.4f,%.4f,%.4f" SHELL_NEWLINE_STR,
+//                          gyro.x,
+//                          gyro.y,
+//                          gyro.z);
 //            Vector3D gyro = GYRO_INSTALLATION_MATRIX * abstract_ahrs -> get_gyro();
 //            Shell::printf("gyro ,%.4f,%.4f,%.4f" SHELL_NEWLINE_STR,
 //                          gyro.x,
