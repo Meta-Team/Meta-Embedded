@@ -239,14 +239,12 @@ void BMI088Interface::update() {
 
         /// Perform gyro re-bias
 //        if (!imu_startup_calibrated && (static_measurement_count >= BIAS_SAMPLE_COUNT) && (SYSTIME > BMI088_STARTUP_TIME)) {
-//
 //            imu_startup_calibrated = true;
 //            gyro_bias = temp_gyro_bias / static_measurement_count;
 //            static_measurement_count = 0;
 //            temp_gyro_bias = Vector3D(0, 0, 0);
 //            last_calibration_time = SYSTIME;
 //        }
-
 //    }
 //    chSysUnlock();  /// --- EXIT S-Locked state ---
 }

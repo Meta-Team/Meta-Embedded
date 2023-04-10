@@ -14,6 +14,15 @@
 
 using namespace chibios_rt;
 
+static constexpr Matrix33 ANGLE_INSTALLATION_MATRIX = {{1.0f, 0.0f, 0.0f},
+                                                       {0.0f, 1.0f, 0.0f},
+                                                       {0.0f, 0.0f, 1.0f}};
+
+
+static constexpr Matrix33 GYRO_INSTALLATION_MATRIX = {{1.0f,  0.0f, 0.0f},
+                                                      {0.0f,  1.0f,  0.0f},
+                                                      {0.0f, 0.0f,  1.0f}};
+
 BMI088Interface ahrs_c;
 
 class AHRSFeedbackThread : public BaseStaticThread<1024> {
@@ -21,8 +30,6 @@ protected:
     void main() final {
         setName("AHRS");
 //        ahrs.load_calibration_data({0.682773649f, -0.682926177f, -0.257317185f});
-//        BuzzerSKD::init(LOWPRIO);
-//        BuzzerSKD::play_sound(BuzzerSKD::sound_startup);
         while (!shouldTerminate()) {
             Vector3D accel = ahrs_c.get_accel();
             Shell::printf("!a\t%.4f\t%.4f\t%.4f\t" ,
@@ -61,7 +68,7 @@ int main(void) {
 
     ahrs_c.start(NORMALPRIO);
 
-    // green LED on, indicating thread running
+    // Indicating thread running
     LED::green_on();
     chThdSleepMilliseconds(1000);
 
