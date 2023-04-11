@@ -15,54 +15,53 @@
  * @usage 1. Call start() to enable driver and updating thread.
  * @note This interface is modified based on ChibiOS/testhal/STM32/STM32F1XX/I2C
  */
-class BMI088Interface : protected chibios_rt::BaseStaticThread<512> {
+class IST8310Interface : protected chibios_rt::BaseStaticThread<512> {
 public:
     /**
-     * Initialize BMI088driver
+     * Initialize IST8310driver
      */
     chibios_rt::ThreadReference start(tprio_t prio) override;
 
     /**
      * Load external calibration data
-     * @param gyro_bias_   Gyro bias value
+     * @param mag_bias_   magnetometer bias value
      * @note To skip initial calibration at init(), call this function BEFORE init()
      */
-    void load_calibration_data(Vector3D gyro_bias_);
+    void load_calibration_data(Vector3D compass_bias_);
 
     /**
      * Return whether the device is ready
      */
-    bool ready() const { return imu_startup_calibrated; };
+    bool ready() const { return compass_startup_calibrated; };
 
-    Vector3D get_gyro() const { return gyro; }
-    Vector3D get_accel() const { return accel; }
+    Vector3D get_compass() const { return compass; }
+
     float get_temp() const { return temperature; }
 
     /**
-     * Update gyro, accel and magnet
+     * Update magnet
      * @note Should be called from NORMAL state (not in locks)
      */
     void update();
 
-    time_msecs_t imu_update_time = 0;   // last update time from system start [ms]
+    time_msecs_t mag_update_time = 0;   // last update time from system start [ms]
 
 private:
 
-    Vector3D gyro;    // data from gyroscope [deg/s]
-    Vector3D accel;   // data from accelerometer [m/s^2]
+    Vector3D compass;    // data from magnetometer
+
     float temperature;
 
-    Vector3D gyro_raw;   // raw (biased) data of gyro
+    Vector3D compass_raw;   // raw (biased) data
 
-    float gyro_psc;   // the coefficient converting the raw data to degree
-    float accel_psc;  // the coefficient converting the raw data to m/s^2
+    float compass_psc;   // the coefficient converting the raw data
 
     // TODO: calculate RX_BUF_SIZE
     static constexpr size_t RX_BUF_SIZE = 6 /* gyro */ + 2 /* temperature */ + 6 /* accel */ + 7 /* ist8310*/;
     uint8_t rx_buf[RX_BUF_SIZE];
 
-    Vector3D gyro_bias;        // averaged gyro value when "static"
-    Vector3D temp_gyro_bias;   // temp sum of gyro for calibration
+    Vector3D compass_bias;        // averaged gyro value when "static"
+    Vector3D temp_compass_bias;   // temp sum of gyro for calibration
 
     const float TEMPERATURE_BIAS = 0.0f;
 
