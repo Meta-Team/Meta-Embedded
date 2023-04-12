@@ -9,19 +9,20 @@
 #include "hal.h"
 #include "shell.h"
 
-#include "imu_on_board.h"
+#include "ahrs_abstract.h"
 #include "ahrs_math.hpp"
 #include "ahrs_lib.h"
+#include "bmi088_interface.h"
+#include "ist8310_interface.h"
 
 /**
- * @name AHRSOnBoard
+ * @name AHRSOnBoard_C
  * @brief Attitude And Heading Reference System using on-board IMU and IST
  * @note This module make use of AHRS component from DJI standard program
  * @usage 1. Call start() to enable MPUOnBoard, ISTOnBoard and AHRS updating thread
  *        2. Make use of data, angle, etc.
  */
-class AHRSOnBoard : public AbstractAHRS, protected chibios_rt::BaseStaticThread<512> {
-
+class AHRSOnBoard_C : public AbstractAHRS, protected chibios_rt::BaseStaticThread<512> {
 public:
 
     /**
@@ -84,8 +85,8 @@ public:
     };
 
 private:
-
-    IMUOnBoard imu;
+    BMI088Interface imu;
+    IST8310Interface compass;
 
     float q[4];
     Vector3D angle;  // board angle
@@ -113,7 +114,6 @@ private:
     bool feedbackEnabled[4] = {false, false, false, false};
 
     friend class AHRSCalibrationThread;
-
 };
 
 #endif //META_EMBEDDED_AHRS_C_INTERFACE_H

@@ -4,7 +4,7 @@
 
 #include "ahrs_c_interface.h"
 
-void AHRSOnBoard::start(const Matrix33 mpu_rotation_matrix_, tprio_t update_thread_prio) {
+void AHRSOnBoard_C::start(const Matrix33 mpu_rotation_matrix_, tprio_t update_thread_prio) {
 
     for (int i = 0; i < 3; i++) {
         for (int j = 0; j < 3; j++) {
@@ -13,8 +13,10 @@ void AHRSOnBoard::start(const Matrix33 mpu_rotation_matrix_, tprio_t update_thre
     }
 
     imu.start(update_thread_prio - 1);
+    compass.start(update_thread_prio - 2);
+    chThdSleepMilliseconds(1000);
 
-    while(!imu.ready()) chThdSleepMilliseconds(1);
+    // while(!imu.ready()) chThdSleepMilliseconds(1);
 
     fetch_data();
     ::AHRS_init(q, (const fp32 *) &accel, (const fp32 *) &magnet);
@@ -22,31 +24,31 @@ void AHRSOnBoard::start(const Matrix33 mpu_rotation_matrix_, tprio_t update_thre
     chibios_rt::BaseStaticThread<512>::start(update_thread_prio);
 }
 
-void AHRSOnBoard::fetch_data() {
-    chSysLock();  /// --- ENTER S-Locked state. DO NOT use LOG, printf, non S/I-Class functions or return ---
-    {
+void AHRSOnBoard_C::fetch_data() {
+    // chSysLock();  /// --- ENTER S-Locked state. DO NOT use LOG, printf, non S/I-Class functions or return ---
+    // {
         gyro_deg = mpu_rotation_matrix * imu.get_gyro();  // rotated
         gyro_rad = gyro_deg * DEG2RAD;
         accel = mpu_rotation_matrix * imu.get_accel();    // rotated
-        magnet = imu.get_magnet();
-    }
-    chSysUnlock();  /// --- EXIT S-Locked state ---
+        magnet = compass.get_compass();
+    // }
+    // chSysUnlock();  /// --- EXIT S-Locked state ---
 }
 
-void AHRSOnBoard::update() {
+void AHRSOnBoard_C::update() {
     fetch_data();  // should be called in NORMAL state
 
-    chSysLock();  /// --- ENTER S-Locked state. DO NOT use LOG, printf, non S/I-Class functions or return ---
-    {
+    // chSysLock();  /// --- ENTER S-Locked state. DO NOT use LOG, printf, non S/I-Class functions or return ---
+    // {
         ::AHRS_update(q, 0.001f, (const fp32 *) &gyro_rad, (const fp32 *) &accel, (const fp32 *) &magnet);
         ::get_angle(q, &angle.x, &angle.y, &angle.z);
         angle = angle * RAD2DEG;
         ahrs_update_time = SYSTIME;
-    }
-    chSysUnlock();  /// --- EXIT S-Locked state ---
+    // }
+    // chSysUnlock();  /// --- EXIT S-Locked state ---
 }
 
-void AHRSOnBoard::main() {
+void AHRSOnBoard_C::main() {
     setName("AHRS");
     while (!shouldTerminate()) {
         update();
@@ -54,7 +56,7 @@ void AHRSOnBoard::main() {
     }
 }
 
-DEF_SHELL_CMD_START(AHRSOnBoard::cmdInfo)
+DEF_SHELL_CMD_START(AHRSOnBoard_C::cmdInfo)
     Shell::printf("_a:AHRS" ENDL);
     Shell::printf("_a/Angle:X{Angle} Y{Angle} Z{Angle}" ENDL);
     Shell::printf("_a/Gyro:X{Angle} Y{Angle} Z{Angle}" ENDL);
@@ -63,8 +65,8 @@ DEF_SHELL_CMD_START(AHRSOnBoard::cmdInfo)
     return true;
 DEF_SHELL_CMD_END
 
-void AHRSOnBoard::cmdFeedback(void *arg) {
-    auto ahrs = reinterpret_cast<AHRSOnBoard *>(arg);
+void AHRSOnBoard_C::cmdFeedback(void *arg) {
+    auto ahrs = reinterpret_cast<AHRSOnBoard_C *>(arg);
     for (int i = 0; i < 4; i++) {
         if (ahrs->feedbackEnabled[i]) {
             Vector3D v;
@@ -79,8 +81,8 @@ void AHRSOnBoard::cmdFeedback(void *arg) {
     }
 }
 
-DEF_SHELL_CMD_START(AHRSOnBoard::cmdEnableFeedback)
-    auto ahrs = reinterpret_cast<AHRSOnBoard *>(chp);
+DEF_SHELL_CMD_START(AHRSOnBoard_C::cmdEnableFeedback)
+    auto ahrs = reinterpret_cast<AHRSOnBoard_C *>(chp);
     int id;
     bool enabled;
     if (!Shell::parseIDAndBool(argc, argv, 4, id, enabled)) return false;
