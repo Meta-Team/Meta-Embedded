@@ -17,6 +17,7 @@
 #define IST8310_WHO_AM_I 0x00       //ist8310 "who am I "
 #define IST8310_WHO_AM_I_VALUE 0x10 //device ID
 #define IST8310_WRITE_REG_NUM 4
+#define IST8310_DATAXL 0x03
 
 #if defined(BOARD_RM_C)
 #define IST8310_SPI_DRIVER I2CD3
@@ -122,9 +123,8 @@ private:
      * @param reg Register address
      * @param rx_data Data to read
      * @param data_len Data length
-     * @param data_offset Bytes need to be discarded before the actual data
      */
-    void ist8310_read_reg(uint8_t reg, uint8_t *rx_data, uint8_t rx_len, uint8_t data_offset);
+    void ist8310_read_reg(uint8_t reg, uint8_t *rx_data, uint8_t rx_len);
 
     friend class AHRSCalibrationThread;
 };

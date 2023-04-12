@@ -22,16 +22,12 @@ static const I2CConfig i2cfg1 = {
         FAST_DUTY_CYCLE_2,
 };
 
-void IST8310Interface::ist8310_read_reg(uint8_t reg, uint8_t *rx_data, uint8_t rx_len, uint8_t data_offset) {
+void IST8310Interface::ist8310_read_reg(uint8_t reg, uint8_t *rx_data, uint8_t rx_len) {
     tx_buf[0] = reg;
     i2cAcquireBus(&IST8310_SPI_DRIVER);
     i2cMasterTransmitTimeout(&IST8310_SPI_DRIVER, IST8310_IIC_ADDRESS,
                              tx_buf, 1, rx_data, rx_len, TIME_MS2I(4));
     i2cReleaseBus(&IST8310_SPI_DRIVER);
-    Shell::printf("READ: tx: %x\t", *tx_buf);
-    Shell::printf("rx: ");
-    for (int i=0; i<rx_len; i++) Shell::printf("%x\t", *(rx_data+i));
-    Shell::printf(ENDL);
 }
 
 void IST8310Interface::ist8310_write_reg(uint8_t reg, uint8_t data) {
@@ -41,7 +37,6 @@ void IST8310Interface::ist8310_write_reg(uint8_t reg, uint8_t data) {
     i2cMasterTransmitTimeout(&IST8310_SPI_DRIVER, IST8310_IIC_ADDRESS,
                              tx_buf, 2, NULL, 0, TIME_MS2I(4));
     i2cReleaseBus(&IST8310_SPI_DRIVER);
-    Shell::printf("WRITE: tx: %x %x" ENDL, reg, data);
 }
 
 void IST8310Interface::ist8310_hard_reset() {
@@ -70,7 +65,7 @@ uint8_t IST8310Interface::init() {
     uint8_t write_reg_num = 0;
 
     // Who am I
-    ist8310_read_reg(IST8310_WHO_AM_I, rx_buf, 1, 0);
+    ist8310_read_reg(IST8310_WHO_AM_I, rx_buf, 1);
     if (rx_buf[0] != IST8310_WHO_AM_I_VALUE) {
         return IST8310_NO_SENSOR;
     }
@@ -79,7 +74,7 @@ uint8_t IST8310Interface::init() {
     for (write_reg_num = 0; write_reg_num < IST8310_WRITE_REG_NUM; write_reg_num++) {
         ist8310_write_reg(ist8310_write_reg_data_error[write_reg_num][0], ist8310_write_reg_data_error[write_reg_num][1]);
         chThdSleepMicroseconds(150);
-        ist8310_read_reg(ist8310_write_reg_data_error[write_reg_num][0], rx_buf, 1, 0);
+        ist8310_read_reg(ist8310_write_reg_data_error[write_reg_num][0], rx_buf, 1);
         chThdSleepMicroseconds(150);
         if (rx_buf[0] != ist8310_write_reg_data_error[write_reg_num][1])
         {
@@ -96,7 +91,15 @@ void IST8310Interface::load_calibration_data(Vector3D compass_bias_) {
 }
 
 void IST8310Interface::update() {
+    int16_t temp_ist8310_data = 0;
+    ist8310_read_reg(IST8310_DATAXL, rx_buf, 6);
 
+    temp_ist8310_data = (int16_t)((rx_buf[1] << 8) | rx_buf[0]);
+    compass.x = MAG_SEN * temp_ist8310_data;
+    temp_ist8310_data = (int16_t)((rx_buf[3] << 8) | rx_buf[2]);
+    compass.y = MAG_SEN * temp_ist8310_data;
+    temp_ist8310_data = (int16_t)((rx_buf[5] << 8) | rx_buf[4]);
+    compass.z = MAG_SEN * temp_ist8310_data;
 }
 
 void IST8310Interface::main() {

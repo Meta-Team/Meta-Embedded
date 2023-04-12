@@ -34,7 +34,7 @@ protected:
         setName("AHRS");
 //        ahrs.load_calibration_data({0.682773649f, -0.682926177f, -0.257317185f});
         while (!shouldTerminate()) {
-            Vector3D accel = ahrs_imu.get_accel();
+            /*Vector3D accel = ahrs_imu.get_accel();
             Shell::printf("!a\t%.4f\t%.4f\t%.4f\t" ,
                           accel.x,
                           accel.y,
@@ -43,7 +43,12 @@ protected:
             Shell::printf("!g\t%.4f\t%.4f\t%.4f" ENDL,
                           gyro.x,
                           gyro.y,
-                          gyro.z);
+                          gyro.z);*/
+            Vector3D compass = ahrs_compass.get_compass();
+            Shell::printf("!g\t%.4f\t%.4f\t%.4f" ENDL,
+                          compass.x,
+                          compass.y,
+                          compass.z);
 //            Vector3D angle = ANGLE_INSTALLATION_MATRIX * abstract_ahrs -> get_angle();
 //            Vector3D gyro = GYRO_INSTALLATION_MATRIX * abstract_ahrs -> get_gyro();
 //            Shell::printf("gyro ,%.4f,%.4f,%.4f" SHELL_NEWLINE_STR,
@@ -77,7 +82,7 @@ int main(void) {
     LED::green_on();
     chThdSleepMilliseconds(1000);
 
-    // feedbackThread.start(NORMALPRIO+1);
+    feedbackThread.start(NORMALPRIO+1);
 
     // See chconf.h for what this #define means.
 #if CH_CFG_NO_IDLE_THREAD
