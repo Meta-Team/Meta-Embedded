@@ -294,13 +294,15 @@ target_link_libraries(ut_ahrs ${AHRS_LIB})
 
 # AHRS_C
 add_executable(ut_ahrs_c
+        dev/interface/ahrs/ahrs_lib_middleware.c
         dev/interface/ahrs_c/ahrs_c_interface.cpp
         dev/interface/ahrs_c/bmi088_interface.cpp
         dev/interface/ahrs_c/ist8310_interface.cpp
         dev/application/unit_tests/ut_ahrs_c/ut_ahrs_c.cpp)
 target_include_directories(ut_ahrs_c PRIVATE dev/application/unit_tests/ut_ahrs_c)
-target_include_directories(ut_ahrs PRIVATE dev/application/unit_tests/ut_ahrs)
+target_include_directories(ut_ahrs_c PRIVATE dev/application/unit_tests/ut_ahrs)
 target_include_directories(ut_ahrs_c PRIVATE dev/interface/ahrs_c)
+target_link_libraries(ut_ahrs_c ${AHRS_LIB})
 
 # AHRSExt
 add_executable(ut_ahrs_ext
