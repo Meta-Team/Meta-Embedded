@@ -10,7 +10,7 @@
 #include "interface/led/led.h"
 #include "shell.h"
 
-#include "ahrs_ext.h"
+#include "interface/ahrs/external_ahrs/ahrs_ext.h"
 #include "buzzer_scheduler.h"
 
 using namespace chibios_rt;

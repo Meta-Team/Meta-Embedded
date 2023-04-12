@@ -11,7 +11,7 @@
 #include "debug/shell/shell.h"
 
 #include "interface/can/can_interface.h"
-#include "ahrs.h"
+#include "interface/ahrs/board_A/ahrs.h"
 #include "interface/sd_card/sd_card_interface.h"
 #include "remote_interpreter.h"
 

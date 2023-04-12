@@ -12,7 +12,7 @@
 
 #include "shell.h"
 #include "interface/can/can_interface.h"
-#include "ahrs_ext.h"
+#include "interface/ahrs/external_ahrs/ahrs_ext.h"
 #include "remote_interpreter.h"
 #include "interface/sd_card/sd_card_interface.h"
 #include "interface/vision/vision_interface.h"

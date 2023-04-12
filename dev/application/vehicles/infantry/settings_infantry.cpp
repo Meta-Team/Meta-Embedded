@@ -5,7 +5,7 @@
 #include "settings_infantry.h"
 #include "gimbal_scheduler.h"
 #include "mecanum_chassis_scheduler.h"
-#include "ahrs.h"
+#include "interface/ahrs/board_A/ahrs.h"
 
 using namespace chibios_rt;
 //ShellCommand mainProgramCommands[] = {

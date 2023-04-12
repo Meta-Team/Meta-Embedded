@@ -11,7 +11,7 @@
 #include "common_macro.h"
 
 #include "shell.h"
-#include "ahrs.h"
+#include "interface/ahrs/board_A/ahrs.h"
 #include "remote_interpreter.h"
 #include "sd_card_interface.h"
 

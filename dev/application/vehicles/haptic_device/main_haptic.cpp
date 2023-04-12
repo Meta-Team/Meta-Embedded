@@ -13,7 +13,7 @@
 
 #include "shell.h"
 #include "can_interface.h"
-#include "ahrs.h"
+#include "interface/ahrs/board_A/ahrs.h"
 
 #include "thread_priorities.h"
 

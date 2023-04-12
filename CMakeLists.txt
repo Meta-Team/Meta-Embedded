@@ -88,15 +88,15 @@ set(VEHICLE_COMMON_SRC
 
 set(AHRS_SRC
         dev/interface/ahrs/ahrs_math.hpp
-        dev/interface/ahrs/ahrs.cpp
+        dev/interface/ahrs/board_a_ahrs/ahrs.cpp
         dev/interface/ahrs/ahrs_lib_middleware.c
-        dev/interface/ahrs/imu_on_board.cpp)
+        dev/interface/ahrs/board_a_ahrs/imu_on_board.cpp)
 
 set(AHRS_EXT_SRC
         dev/interface/ahrs/ahrs_math.hpp
-        dev/interface/ahrs/ahrs_ext.cpp
+        dev/interface/ahrs/external_ahrs/ahrs_ext.cpp
         dev/interface/ahrs/ahrs_lib_middleware.c
-        dev/interface/ahrs/imu_on_board.cpp)
+        dev/interface/ahrs/board_a_ahrs/imu_on_board.cpp)
 
 set(AHRS_LIB
         ${PROJECT_SOURCE_DIR}/dev/interface/ahrs/ahrs_lib.lib)
@@ -278,16 +278,16 @@ target_include_directories(ut_motor PRIVATE dev/application/unit_tests/ut_motor)
 # IMU: include IMU interface and unit test.
 add_executable(ut_imu
         dev/interface/ahrs/ahrs_math.hpp
-        dev/interface/ahrs/imu_on_board.cpp
-        dev/interface/ahrs/ahrs.cpp
+        dev/interface/ahrs/board_a_ahrs/imu_on_board.cpp
+        dev/interface/ahrs/board_a_ahrs/ahrs.cpp
         dev/application/unit_tests/ut_ahrs/ut_ahrs.cpp)
 
 # AHRS
 add_executable(ut_ahrs
         dev/interface/ahrs/ahrs_math.hpp
-        dev/interface/ahrs/imu_on_board.cpp
+        dev/interface/ahrs/board_a_ahrs/imu_on_board.cpp
         dev/interface/ahrs/ahrs_lib_middleware.c
-        dev/interface/ahrs/ahrs.cpp
+        dev/interface/ahrs/board_a_ahrs/ahrs.cpp
         dev/application/unit_tests/ut_ahrs/ut_ahrs.cpp)
 target_include_directories(ut_ahrs PRIVATE dev/application/unit_tests/ut_ahrs)
 target_link_libraries(ut_ahrs ${AHRS_LIB})
@@ -295,19 +295,19 @@ target_link_libraries(ut_ahrs ${AHRS_LIB})
 # AHRS_C
 add_executable(ut_ahrs_c
         dev/interface/ahrs/ahrs_lib_middleware.c
-        dev/interface/ahrs_c/ahrs_c_interface.cpp
-        dev/interface/ahrs_c/bmi088_interface.cpp
-        dev/interface/ahrs_c/ist8310_interface.cpp
+        dev/interface/ahrs/board_c_ahrs/ahrs_c_interface.cpp
+        dev/interface/ahrs/board_c_ahrs/bmi088_interface.cpp
+        dev/interface/ahrs/board_c_ahrs/ist8310_interface.cpp
         dev/application/unit_tests/ut_ahrs_c/ut_ahrs_c.cpp)
 target_include_directories(ut_ahrs_c PRIVATE dev/application/unit_tests/ut_ahrs_c)
-target_include_directories(ut_ahrs_c PRIVATE dev/application/unit_tests/ut_ahrs)
-target_include_directories(ut_ahrs_c PRIVATE dev/interface/ahrs_c)
+target_include_directories(ut_ahrs_c PRIVATE dev/interface/ahrs/board_c_ahrs)
+target_include_directories(ut_ahrs_c PRIVATE dev/interface/ahrs)
 target_link_libraries(ut_ahrs_c ${AHRS_LIB})
 
 # AHRSExt
 add_executable(ut_ahrs_ext
         dev/interface/can/can_interface.cpp
-        dev/interface/ahrs/ahrs_ext.cpp
+        dev/interface/ahrs/external_ahrs/ahrs_ext.cpp
         dev/application/unit_tests/ut_ahrs/ut_ahrs_ext.cpp)
 target_include_directories(ut_ahrs_ext PRIVATE dev/application/unit_tests/ut_ahrs)
 
@@ -402,15 +402,15 @@ add_executable(pa_gimbal
         dev/scheduler/gimbal_scheduler.cpp
         dev/scheduler/shoot_scheduler.cpp
         dev/interface/buzzer/buzzer_scheduler.cpp
-        dev/interface/ahrs/ahrs.cpp
+        dev/interface/ahrs/board_a_ahrs/ahrs.cpp
         dev/application/param_adjusts/pa_gimbal.cpp)
 target_link_libraries(pa_gimbal ${AHRS_LIB})
 
 add_executable(ca_ahrs_infantry
         dev/interface/ahrs/ahrs_math.hpp
-        dev/interface/ahrs/imu_on_board.cpp
+        dev/interface/ahrs/board_a_ahrs/imu_on_board.cpp
         dev/interface/ahrs/ahrs_lib_middleware.c
-        dev/interface/ahrs/ahrs.cpp
+        dev/interface/ahrs/board_a_ahrs/ahrs.cpp
         dev/common/CRC16.cpp
         dev/interface/sd_card/sd_card_interface.cpp
         dev/application/unit_tests/ut_ahrs/ca_ahrs.cpp)
@@ -420,9 +420,9 @@ target_compile_definitions(ca_ahrs_infantry PRIVATE INFANTRY)
 
 add_executable(ca_ahrs_hero
         dev/interface/ahrs/ahrs_math.hpp
-        dev/interface/ahrs/imu_on_board.cpp
+        dev/interface/ahrs/board_a_ahrs/imu_on_board.cpp
         dev/interface/ahrs/ahrs_lib_middleware.c
-        dev/interface/ahrs/ahrs.cpp
+        dev/interface/ahrs/board_a_ahrs/ahrs.cpp
         dev/common/CRC16.cpp
         dev/interface/sd_card/sd_card_interface.cpp
         dev/application/unit_tests/ut_ahrs/ca_ahrs.cpp)

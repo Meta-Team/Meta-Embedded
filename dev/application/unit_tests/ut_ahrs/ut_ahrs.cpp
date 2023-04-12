@@ -8,7 +8,7 @@
 #include "led.h"
 #include "shell.h"
 
-#include "ahrs.h"
+#include "interface/ahrs/board_A/ahrs.h"
 #include "ahrs_abstract.h"
 #include "buzzer_scheduler.h"
 #include <cmath>
