@@ -11,6 +11,7 @@
 #include "shell.h"
 
 #include "bmi088_interface.h"
+#include "ist8310_interface.h"
 
 using namespace chibios_rt;
 
@@ -23,7 +24,9 @@ static constexpr Matrix33 GYRO_INSTALLATION_MATRIX = {{1.0f,  0.0f, 0.0f},
                                                       {0.0f,  1.0f,  0.0f},
                                                       {0.0f, 0.0f,  1.0f}};
 
-BMI088Interface ahrs_c;
+BMI088Interface ahrs_imu;
+IST8310Interface ahrs_compass;
+
 
 class AHRSFeedbackThread : public BaseStaticThread<1024> {
 protected:
@@ -31,12 +34,12 @@ protected:
         setName("AHRS");
 //        ahrs.load_calibration_data({0.682773649f, -0.682926177f, -0.257317185f});
         while (!shouldTerminate()) {
-            Vector3D accel = ahrs_c.get_accel();
+            Vector3D accel = ahrs_imu.get_accel();
             Shell::printf("!a\t%.4f\t%.4f\t%.4f\t" ,
                           accel.x,
                           accel.y,
                           accel.z);
-            Vector3D gyro = ahrs_c.get_gyro();
+            Vector3D gyro = ahrs_imu.get_gyro();
             Shell::printf("!g\t%.4f\t%.4f\t%.4f" ENDL,
                           gyro.x,
                           gyro.y,
@@ -66,13 +69,15 @@ int main(void) {
 //    Shell::addCommands(ahrsShellCommands);
     LED::all_off();
 
-    ahrs_c.start(NORMALPRIO);
+    chThdSleepMilliseconds(5000);
+    // ahrs_imu.start(NORMALPRIO);
+    ahrs_compass.start(NORMALPRIO-1);
 
     // Indicating thread running
     LED::green_on();
     chThdSleepMilliseconds(1000);
 
-    feedbackThread.start(NORMALPRIO+1);
+    // feedbackThread.start(NORMALPRIO+1);
 
     // See chconf.h for what this #define means.
 #if CH_CFG_NO_IDLE_THREAD

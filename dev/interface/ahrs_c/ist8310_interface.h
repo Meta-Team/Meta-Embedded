@@ -18,6 +18,12 @@
 #define IST8310_WHO_AM_I_VALUE 0x10 //device ID
 #define IST8310_WRITE_REG_NUM 4
 
+#if defined(BOARD_RM_C)
+#define IST8310_SPI_DRIVER I2CD3
+#else
+#error "IST8310 interface has not been defined for selected board"
+#endif
+
 /**
  * @name IST8310Interface
  * @brief Read/write data from the IST8310 Magnetometer through the I2C bus
@@ -73,7 +79,9 @@ private:
     bool compass_startup_calibrated = false;
     time_msecs_t last_calibration_time = 0;
 
-    static constexpr size_t RX_BUF_SIZE = 6 /* gyro */ + 2 /* temperature */ + 6 /* accel */ + 7 /* ist8310*/;
+    static constexpr size_t TX_BUF_SIZE = 6;
+    uint8_t tx_buf[TX_BUF_SIZE];
+    static constexpr size_t RX_BUF_SIZE = 6;
     uint8_t rx_buf[RX_BUF_SIZE];
 
     static constexpr int UPDATE_THREAD_INTERVAL = 1;  // [ms]
@@ -98,20 +106,25 @@ private:
     void main() override;
 
     /**
-     * Write to a single register in ist8310
+     * Perform reset on the IST8310
+     */
+    void ist8310_hard_reset();
+
+    /**
+     * Write to a single register in IST8310
      * @param reg Register address
      * @param data Data to write
      */
     void ist8310_write_reg(uint8_t reg, uint8_t data);
 
     /**
-     * Read from one or multiple registers in ist8310
+     * Read from one or multiple registers in IST8310
      * @param reg Register address
      * @param rx_data Data to read
      * @param data_len Data length
-     * @param data_offset Bytes need to be discarded before the actual data, 2 for accel, 1 for gyro
+     * @param data_offset Bytes need to be discarded before the actual data
      */
-    void ist8310_read_reg(uint8_t reg, uint8_t *rx_data, uint8_t data_len, uint8_t data_offset);
+    void ist8310_read_reg(uint8_t reg, uint8_t *rx_data, uint8_t rx_len, uint8_t data_offset);
 
     friend class AHRSCalibrationThread;
 };
