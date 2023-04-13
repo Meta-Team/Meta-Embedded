@@ -14,9 +14,7 @@ void AHRSOnBoard_C::start(const Matrix33 mpu_rotation_matrix_, tprio_t update_th
 
     imu.start(update_thread_prio - 1);
     compass.start(update_thread_prio - 2);
-    chThdSleepMilliseconds(1000);
-
-    // while(!imu.ready()) chThdSleepMilliseconds(1);
+    chThdSleepMilliseconds(100);
 
     fetch_data();
     ::AHRS_init(q, (const fp32 *) &accel, (const fp32 *) &magnet);
@@ -25,27 +23,26 @@ void AHRSOnBoard_C::start(const Matrix33 mpu_rotation_matrix_, tprio_t update_th
 }
 
 void AHRSOnBoard_C::fetch_data() {
-    // chSysLock();  /// --- ENTER S-Locked state. DO NOT use LOG, printf, non S/I-Class functions or return ---
-    // {
-        gyro_deg = mpu_rotation_matrix * imu.get_gyro();  // rotated
-        gyro_rad = gyro_deg * DEG2RAD;
+     chSysLock();  /// --- ENTER S-Locked state. DO NOT use LOG, printf, non S/I-Class functions or return ---
+     {
+        gyro_rad = mpu_rotation_matrix * imu.get_gyro();  // rotated
         accel = mpu_rotation_matrix * imu.get_accel();    // rotated
         magnet = compass.get_compass();
-    // }
-    // chSysUnlock();  /// --- EXIT S-Locked state ---
+     }
+     chSysUnlock();  /// --- EXIT S-Locked state ---
 }
 
 void AHRSOnBoard_C::update() {
     fetch_data();  // should be called in NORMAL state
 
-    // chSysLock();  /// --- ENTER S-Locked state. DO NOT use LOG, printf, non S/I-Class functions or return ---
-    // {
+    chSysLock();  /// --- ENTER S-Locked state. DO NOT use LOG, printf, non S/I-Class functions or return ---
+    {
         ::AHRS_update(q, 0.001f, (const fp32 *) &gyro_rad, (const fp32 *) &accel, (const fp32 *) &magnet);
         ::get_angle(q, &angle.x, &angle.y, &angle.z);
         angle = angle * RAD2DEG;
         ahrs_update_time = SYSTIME;
-    // }
-    // chSysUnlock();  /// --- EXIT S-Locked state ---
+    }
+    chSysUnlock();  /// --- EXIT S-Locked state ---
 }
 
 void AHRSOnBoard_C::main() {

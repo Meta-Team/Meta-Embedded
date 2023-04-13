@@ -6,6 +6,10 @@
 #include "led.h"
 #include "shell.h"
 
+/**
+ * @note The BMI088 sensor is ready-to-use calibrated, no need to do start-up calibration
+ */
+
 float BMI088_ACCEL_SEN = BMI088_ACCEL_3G_SEN;
 float BMI088_GYRO_SEN = BMI088_GYRO_2000_SEN;
 
@@ -66,7 +70,7 @@ void BMI088Interface::bmi088_read_reg(uint8_t reg, uint8_t *rx_data, uint8_t dat
 chibios_rt::ThreadReference BMI088Interface::start(tprio_t prio) {
     uint8_t error = BMI088_NO_ERROR;
     error = init();
-    Shell::printf("error: %d" ENDL, error);
+    // Shell::printf("error: %d" ENDL, error);
     return chibios_rt::BaseStaticThread<512>::start(prio);
 }
 
@@ -176,37 +180,29 @@ bool BMI088Interface::init_gyro() {
     return BMI088_NO_ERROR;
 }
 
-void BMI088Interface::load_calibration_data(Vector3D gyro_bias_) {
-    gyro_bias = gyro_bias_;
-    last_calibration_time = SYSTIME;
-}
-
 void BMI088Interface::update() {
 //    chSysLock();  // --- ENTER S-Locked state. DO NOT use LOG, printf, non S/I-Class functions or return ---
 //    {
-        uint8_t buf[8];
-        int16_t bmi088_raw_temp;
-
         // Start accelerometer communication
         spiStart(&BMI088_SPI_DRIVER, &SPI1_accel_cfg);
 
         // Fetch data from SPI
-        bmi088_read_reg(BMI088_ACCEL_XOUT_L, buf, 6, BMI088_ACCEL_READ_OFFSET);
+        bmi088_read_reg(BMI088_ACCEL_XOUT_L, rx_buf, 6, BMI088_ACCEL_READ_OFFSET);
         // Decode data
-        bmi088_raw_temp = (int16_t)((buf[1]) << 8) | buf[0];
-        accel.x = bmi088_raw_temp * BMI088_ACCEL_SEN;
-        bmi088_raw_temp = (int16_t)((buf[3]) << 8) | buf[2];
-        accel.y = bmi088_raw_temp * BMI088_ACCEL_SEN;
-        bmi088_raw_temp = (int16_t)((buf[5]) << 8) | buf[4];
-        accel.z = bmi088_raw_temp * BMI088_ACCEL_SEN;
+        raw_temp = (int16_t)((rx_buf[1]) << 8) | rx_buf[0];
+        accel.x = raw_temp * BMI088_ACCEL_SEN;
+        raw_temp = (int16_t)((rx_buf[3]) << 8) | rx_buf[2];
+        accel.y = raw_temp * BMI088_ACCEL_SEN;
+        raw_temp = (int16_t)((rx_buf[5]) << 8) | rx_buf[4];
+        accel.z = raw_temp * BMI088_ACCEL_SEN;
 
         // Fetch data from SPI
-        bmi088_read_reg(BMI088_TEMP_M, buf, 2, BMI088_ACCEL_READ_OFFSET);
+        bmi088_read_reg(BMI088_TEMP_M, rx_buf, 2, BMI088_ACCEL_READ_OFFSET);
         // Decode data
-        bmi088_raw_temp = (int16_t)((buf[0] << 3) | (buf[1] >> 5));
+        raw_temp = (int16_t)((rx_buf[0] << 3) | (rx_buf[1] >> 5));
 
-        if (bmi088_raw_temp > 1023) bmi088_raw_temp -= 2048;
-        temperature = bmi088_raw_temp * BMI088_TEMP_FACTOR + BMI088_TEMP_OFFSET;
+        if (raw_temp > 1023) raw_temp -= 2048;
+        temperature = raw_temp * BMI088_TEMP_FACTOR + BMI088_TEMP_OFFSET;
 
         // Stop accelerometer communication
         spiStop(&BMI088_SPI_DRIVER);
@@ -215,36 +211,17 @@ void BMI088Interface::update() {
         spiStart(&BMI088_SPI_DRIVER, &SPI1_gyro_cfg);
 
         // Fetch data from SPI
-        bmi088_read_reg(BMI088_GYRO_X_L, buf, 6, BMI088_GYRO_READ_OFFSET);
+        bmi088_read_reg(BMI088_GYRO_X_L, rx_buf, 6, BMI088_GYRO_READ_OFFSET);
         // Decode data
-        bmi088_raw_temp = (int16_t)((buf[1]) << 8) | buf[0];
-        gyro.x = bmi088_raw_temp * BMI088_GYRO_SEN;
-        bmi088_raw_temp = (int16_t)((buf[3]) << 8) | buf[2];
-        gyro.y = bmi088_raw_temp * BMI088_GYRO_SEN;
-        bmi088_raw_temp = (int16_t)((buf[5]) << 8) | buf[4];
-        gyro.z = bmi088_raw_temp * BMI088_GYRO_SEN;
+        raw_temp = (int16_t)((rx_buf[1]) << 8) | rx_buf[0];
+        gyro.x = raw_temp * BMI088_GYRO_SEN;
+        raw_temp = (int16_t)((rx_buf[3]) << 8) | rx_buf[2];
+        gyro.y = raw_temp * BMI088_GYRO_SEN;
+        raw_temp = (int16_t)((rx_buf[5]) << 8) | rx_buf[4];
+        gyro.z = raw_temp * BMI088_GYRO_SEN;
 
         // Stop gyroscope communication
         spiStop(&BMI088_SPI_DRIVER);
-
-        /// Gyro Calibration sampling
-
-        /// Bias data
-//        gyro_raw = new_gyro_raw;
-//        gyro = gyro_raw + gyro_bias;
-//        accel = accel_raw;
-
-        /// Update info
-//        imu_update_time = SYSTIME;
-
-        /// Perform gyro re-bias
-//        if (!imu_startup_calibrated && (static_measurement_count >= BIAS_SAMPLE_COUNT) && (SYSTIME > BMI088_STARTUP_TIME)) {
-//            imu_startup_calibrated = true;
-//            gyro_bias = temp_gyro_bias / static_measurement_count;
-//            static_measurement_count = 0;
-//            temp_gyro_bias = Vector3D(0, 0, 0);
-//            last_calibration_time = SYSTIME;
-//        }
 //    }
 //    chSysUnlock();  /// --- EXIT S-Locked state ---
 }
