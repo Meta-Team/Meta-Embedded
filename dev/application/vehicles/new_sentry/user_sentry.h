@@ -11,11 +11,11 @@
 
 #include "remote_interpreter.h"
 #include "referee_interface.h"
-#include "capacitor_interface.h"
+//#include "capacitor_interface.h"
 
-#include "gimbal_logic.h"
-#include "shoot_logic.h"
-#include "sentry_chassis_logic.h"
+//#include "gimbal_logic.h"
+//#include "shoot_logic.h"
+#include "omni_chassis_logic.h"
 #include "vision_scheduler.h"
 
 #include "inspector_sentry.h"

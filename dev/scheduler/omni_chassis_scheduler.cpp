@@ -32,19 +32,19 @@ void OmniChassisSKD::set_target(float vx, float vy, float omega) {
 void OmniChassisSKD::set_mode(mode_t mode_) {
     OmniChassisSKD::mode = mode_;
     if(mode != FORCED_RELAX_MODE) {
-        CANMotorCFG::enable_v2i[CANMotorCFG::FRONT] = true;
-        CANMotorCFG::enable_v2i[CANMotorCFG::REAR] = true;
-        CANMotorCFG::enable_v2i[CANMotorCFG::LEFT] = true;
-        CANMotorCFG::enable_v2i[CANMotorCFG::RIGHT] = true;
+        CANMotorCFG::enable_v2i[CANMotorCFG::FL] = true;
+        CANMotorCFG::enable_v2i[CANMotorCFG::FR] = true;
+        CANMotorCFG::enable_v2i[CANMotorCFG::BR] = true;
+        CANMotorCFG::enable_v2i[CANMotorCFG::BL] = true;
     } else {
-        CANMotorCFG::enable_v2i[CANMotorCFG::FRONT] = false;
-        CANMotorCFG::enable_v2i[CANMotorCFG::REAR] = false;
-        CANMotorCFG::enable_v2i[CANMotorCFG::LEFT] = false;
-        CANMotorCFG::enable_v2i[CANMotorCFG::RIGHT] = false;
-        CANMotorController::set_target_current(CANMotorCFG::FRONT, 0);
-        CANMotorController::set_target_current(CANMotorCFG::REAR, 0);
-        CANMotorController::set_target_current(CANMotorCFG::LEFT, 0);
-        CANMotorController::set_target_current(CANMotorCFG::RIGHT, 0);
+        CANMotorCFG::enable_v2i[CANMotorCFG::FL] = false;
+        CANMotorCFG::enable_v2i[CANMotorCFG::FR] = false;
+        CANMotorCFG::enable_v2i[CANMotorCFG::BR] = false;
+        CANMotorCFG::enable_v2i[CANMotorCFG::BL] = false;
+        CANMotorController::set_target_current(CANMotorCFG::FL, 0);
+        CANMotorController::set_target_current(CANMotorCFG::FR, 0);
+        CANMotorController::set_target_current(CANMotorCFG::BR, 0);
+        CANMotorController::set_target_current(CANMotorCFG::BL, 0);
     }
 }
 
@@ -56,39 +56,26 @@ void OmniChassisSKD::SKDThread::main() {
             switch (mode) {
                 // TODO: Use AHRS feedback to optimize the precision of movement.
                 case FORCED_RELAX_MODE:
-//                    // Set torque current to 0.
-//                    CANMotorCFG::enable_v2i[CANMotorCFG::FL] = false;
-//                    CANMotorCFG::enable_v2i[CANMotorCFG::FR] = false;
-//                    CANMotorCFG::enable_v2i[CANMotorCFG::BR] = false;
-//                    CANMotorCFG::enable_v2i[CANMotorCFG::BL] = false;
-
-                    CANMotorCFG::enable_v2i[CANMotorCFG::FRONT] = false;
-                    CANMotorCFG::enable_v2i[CANMotorCFG::REAR] = false;
-                    CANMotorCFG::enable_v2i[CANMotorCFG::LEFT] = false;
-                    CANMotorCFG::enable_v2i[CANMotorCFG::RIGHT] = false;
-                    CANMotorController::set_target_current(CANMotorCFG::FRONT, 0);
-                    CANMotorController::set_target_current(CANMotorCFG::REAR, 0);
-                    CANMotorController::set_target_current(CANMotorCFG::LEFT, 0);
-                    CANMotorController::set_target_current(CANMotorCFG::RIGHT, 0);
+                    // Set torque current to 0.
+                    CANMotorCFG::enable_v2i[CANMotorCFG::FL] = false;
+                    CANMotorCFG::enable_v2i[CANMotorCFG::FR] = false;
+                    CANMotorCFG::enable_v2i[CANMotorCFG::BR] = false;
+                    CANMotorCFG::enable_v2i[CANMotorCFG::BL] = false;
+                    CANMotorController::set_target_current(CANMotorCFG::FL, 0);
+                    CANMotorController::set_target_current(CANMotorCFG::FR, 0);
+                    CANMotorController::set_target_current(CANMotorCFG::BR, 0);
+                    CANMotorController::set_target_current(CANMotorCFG::BL, 0);
                     break;
                 case CHASSIS_REF_MODE:
                     // Set the velocity in chassis coordinate.
-//                    CANMotorController::set_target_vel(CANMotorCFG::FR, (float)install_mode *
-//                                                                        (target_vx-target_vy + target_omega * w_to_v_ratio) * v_to_wheel_angular_velocity);
-//                    CANMotorController::set_target_vel(CANMotorCFG::FL, (float)install_mode *
-//                                                                        (target_vx+target_vy + target_omega * w_to_v_ratio) * v_to_wheel_angular_velocity);
-//                    CANMotorController::set_target_vel(CANMotorCFG::BL, (float)install_mode *
-//                                                                        (-target_vx+target_vy+ target_omega * w_to_v_ratio) * v_to_wheel_angular_velocity);
-//                    CANMotorController::set_target_vel(CANMotorCFG::BR, (float)install_mode *
-//                                                                        (-target_vx-target_vy+ target_omega * w_to_v_ratio) * v_to_wheel_angular_velocity);
-                    CANMotorController::set_target_vel(CANMotorCFG::FRONT, (float)install_mode *
-                    (target_vx-target_vy + target_omega * w_to_v_ratio) * v_to_wheel_angular_velocity);
-                    CANMotorController::set_target_vel(CANMotorCFG::REAR, (float)install_mode *
-                    (target_vx+target_vy + target_omega * w_to_v_ratio) * v_to_wheel_angular_velocity);
-                    CANMotorController::set_target_vel(CANMotorCFG::LEFT, (float)install_mode *
-                    (-target_vx+target_vy+ target_omega * w_to_v_ratio) * v_to_wheel_angular_velocity);
-                    CANMotorController::set_target_vel(CANMotorCFG::RIGHT, (float)install_mode *
-                    (-target_vx-target_vy+ target_omega * w_to_v_ratio) * v_to_wheel_angular_velocity);
+                    CANMotorController::set_target_vel(CANMotorCFG::FR, (float)install_mode *
+                                                                        (target_vx-target_vy + target_omega * w_to_v_ratio) * v_to_wheel_angular_velocity);
+                    CANMotorController::set_target_vel(CANMotorCFG::FL, (float)install_mode *
+                                                                        (target_vx+target_vy + target_omega * w_to_v_ratio) * v_to_wheel_angular_velocity);
+                    CANMotorController::set_target_vel(CANMotorCFG::BL, (float)install_mode *
+                                                                        (-target_vx+target_vy+ target_omega * w_to_v_ratio) * v_to_wheel_angular_velocity);
+                    CANMotorController::set_target_vel(CANMotorCFG::BR, (float)install_mode *
+                                                                        (-target_vx-target_vy+ target_omega * w_to_v_ratio) * v_to_wheel_angular_velocity);
                     break;
 
 #if ENABLE_AHRS

@@ -18,6 +18,8 @@
 #include "vehicle_infantry.h"
 #elif defined(HERO)
 #include "vehicle_hero.h"
+#elif defined(NEW_SENTRY)
+#include "vehicle_sentry.h"
 # elif defined(ut_omni_chassis)
 #else
 #error "Files infantry_shoot_logic.h/cpp can only be used for Infantry, Sentry or Hero main program now"

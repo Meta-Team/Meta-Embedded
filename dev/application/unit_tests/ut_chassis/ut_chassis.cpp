@@ -77,10 +77,12 @@ private:
         setName("Control");
         while (!shouldTerminate()) {
             if(Remote::rc.s1 == Remote::S_UP) {
-                ChassisLG::set_target(0.0f, 0.0f);
-                ChassisLG::set_target_omega(0.0f);
+                ChassisLG::set_mode(ChassisLG::FORCE_RELAX_MODE);
+//                ChassisLG::set_target(0.0f, 0.0f);
+//                ChassisLG::set_target_omega(0.0f);
                 LOG("Response");
             } else {
+                ChassisLG::set_mode(ChassisLG::CHASSIS_REF_MODE);
                 ChassisLG::set_target(Remote::rc.ch2 * 1500.0f, Remote::rc.ch3 * 1000.0f);
                 ChassisLG::set_target_omega(Remote::rc.ch0 * 50.0f);
             }
@@ -89,6 +91,20 @@ private:
     }
 } ControlThread;
 
+class PrintParam: public BaseStaticThread<512>{
+private:
+    void main() final {
+        setName("Param");
+        while (!shouldTerminate()) {
+            LOG("CAN Motor FeedBack:\n\r");
+            LOG("FL: %d\n\r",CANMotorIF::motor_feedback[CANMotorCFG::FL].torque_current());
+            LOG("FR: %d\n\r",CANMotorIF::motor_feedback[CANMotorCFG::FR].torque_current());
+            LOG("LB: %d\n\r",CANMotorIF::motor_feedback[CANMotorCFG::BL].torque_current());
+            LOG("LB: %d\n\r",CANMotorIF::motor_feedback[CANMotorCFG::BR].torque_current());
+            sleep(TIME_MS2I(500));
+        }
+    }
+} ParamThread;
 
 int main() {
     halInit();
@@ -111,6 +127,7 @@ int main() {
     ChassisLG::init(NORMALPRIO+4, NORMALPRIO+5, 180.0f);
     ChassisLG::set_mode(ChassisLG::CHASSIS_REF_MODE);
     ControlThread.start(NORMALPRIO + 6);
+    LOG("Hello\n\r");
 
 
 #if CH_CFG_NO_IDLE_THREAD // see chconf.h for what this #define means

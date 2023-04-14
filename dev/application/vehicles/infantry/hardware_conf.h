@@ -7,7 +7,7 @@
 #define META_INFANTRY_HARDWARE_CONF_H
 
 #if !defined(ENABLE_VISION) || defined(__DOXYGEN__)
-#define ENABLE_VISION                   FALSE
+#define ENABLE_VISION                   TRUE
 #endif
 
 #if !defined(ENABLE_REFEREE) || defined(__DOXYGEN__)

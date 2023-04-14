@@ -46,8 +46,8 @@ int main() {
     chibios_rt::System::init();
 
     // Enable power of bullet loader motor
-    palSetPadMode(GPIOH, GPIOH_POWER1_CTRL, PAL_MODE_OUTPUT_PUSHPULL);
-    palSetPad(GPIOH, GPIOH_POWER1_CTRL);
+//    palSetPadMode(GPIOH, GPIOH_POWER1_CTRL, PAL_MODE_OUTPUT_PUSHPULL);
+//    palSetPad(GPIOH, GPIOH_POWER1_CTRL);
 
     /*** ---------------------- Period 1. Modules Setup and Self-Check ---------------------- ***/
 
@@ -110,7 +110,7 @@ int main() {
 
     chThdSleepMilliseconds(2000);
     // FIXME: re-enable startup check
-    InspectorS::startup_check_gimbal_feedback(); // check gimbal motors has continuous feedback. Block for 20 ms
+    //InspectorS::startup_check_gimbal_feedback(); // check gimbal motors has continuous feedback. Block for 20 ms
     LED::led_on(DEV_BOARD_LED_GIMBAL);  // LED 5 on now
 
     chThdSleepMilliseconds(10);
@@ -137,15 +137,15 @@ int main() {
     /*** ------------ Period 2. Calibration and Start Logic Control Thread ----------- ***/
 
     /// Echo Gimbal Raws and Converted Angles
-    LOG("Gimbal Yaw: %u, %f, Pitch: %u, %f",
-        CANMotorIF::motor_feedback[CANMotorCFG::YAW].last_rotor_angle_raw,
-        CANMotorIF::motor_feedback[CANMotorCFG::YAW].accumulate_angle(),
-        CANMotorIF::motor_feedback[CANMotorCFG::PITCH].last_rotor_angle_raw,
-        CANMotorIF::motor_feedback[CANMotorCFG::PITCH].accumulate_angle());
+//    LOG("Gimbal Yaw: %u, %f, Pitch: %u, %f",
+//        CANMotorIF::motor_feedback[CANMotorCFG::YAW].last_rotor_angle_raw,
+//        CANMotorIF::motor_feedback[CANMotorCFG::YAW].accumulate_angle(),
+//        CANMotorIF::motor_feedback[CANMotorCFG::PITCH].last_rotor_angle_raw,
+//        CANMotorIF::motor_feedback[CANMotorCFG::PITCH].accumulate_angle());
 
     /// Start SKDs
-    GimbalSKD::start(THREAD_GIMBAL_SKD_PRIO);
-    ShootSKD::start(THREAD_SHOOT_SKD_PRIO);
+//    GimbalSKD::start(THREAD_GIMBAL_SKD_PRIO);
+//    ShootSKD::start(THREAD_SHOOT_SKD_PRIO);
     SChassisSKD::start(SChassisSKD::POSITIVE, SChassisSKD::POSITIVE, THREAD_CHASSIS_SKD_PRIO);
 
     /// Start LGs

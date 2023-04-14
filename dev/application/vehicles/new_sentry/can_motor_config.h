@@ -11,13 +11,16 @@
 class CANMotorCFG {
 public:
     enum motor_id_t {
-        FRONT,
-        REAR,
-        LEFT,
-        RIHGT,
-        BULLET_LOADER,
-        FW_UP,
-        FW_DOWN,
+        //EMPTY,      //TODO: add a empty motor here; should be removed when bug is fixed
+        FL,
+        FR,
+        BL,
+        BR,
+//        YAW,
+//        PITCH,
+//        BULLET_LOADER,
+//        FW_UP,
+//        FW_DOWN,
         MOTOR_COUNT
     };
     static CANMotorBase CANMotorProfile[MOTOR_COUNT];

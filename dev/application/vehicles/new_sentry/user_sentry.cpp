@@ -46,6 +46,15 @@ void UserS::start(tprio_t user_thd_prio) {
 void UserS::UserThread::main() {
     setName("UserS");
     while (!shouldTerminate()) {
+
+
+
+
+
+
+
+
+
 //        /*** ---------------------------------- Shoot --------------------------------- ***/
 //
 //        if (!shoot_power_on){
@@ -106,161 +115,165 @@ void UserS::UserThread::main() {
 //            ShootLG::stop();
 //            ShootLG::set_shoot_speed(0);
 //        }
-//// Wu Feiyang: I just grab this stuff from the Infantry
-        if (!InspectorS::remote_failure() && !InspectorS::chassis_failure() && !InspectorS::gimbal_failure()) {
-            if ((Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_UP) ||
-                (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_MIDDLE)) {
-
-                /// Remote - Shoot with Scrolling Wheel
-
-                ShootLG::set_limit_mode(ShootLG::UNLIMITED_MODE);
-
-                if (Remote::rc.wheel > 0.5) {  // down
-                    ShootLG::set_shoot_speed(shoot_fw_speed);
-                    ShootLG::set_limit_mode(ShootLG::UNLIMITED_MODE);
-                    if (ShootLG::get_shooter_state() == ShootLG::STOP) {
-                        ShootLG::shoot(ignore_shoot_constraints ? 999 : ShootLG::get_bullet_count_to_heat_limit(), shoot_feed_rate);
-                    }
-                } else if (Remote::rc.wheel < -0.5) {  // up
-                    ShootLG::set_shoot_speed(shoot_fw_speed);
-                    ShootLG::set_limit_mode(ShootLG::UNLIMITED_MODE);
-                    if (ShootLG::get_shooter_state() == ShootLG::STOP) {
-                        ShootLG::shoot(999 /* unlimited */, shoot_feed_rate);
-                    }
-                } else {
-                    if (ShootLG::get_shooter_state() != ShootLG::STOP) {
-                        ShootLG::stop();
-                    }
-                }
-
-                ShootLG::set_shoot_speed(shoot_fw_speed);
-
-            } else if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_DOWN) {
-
-                /// Remote - Vision
-
-                if (Remote::rc.wheel > 0.5) {  // down
-                    ShootLG::set_limit_mode(ShootLG::UNLIMITED_MODE);
-                    if (ShootLG::get_shooter_state() == ShootLG::STOP) {
-                        ShootLG::shoot(ignore_shoot_constraints ? 999 : ShootLG::get_bullet_count_to_heat_limit(),
-                                       shoot_feed_rate);
-                    }
-                } else if (Remote::rc.wheel < -0.5) {  // up
-#if ENABLE_VISION
-                    ShootLG::set_limit_mode(ShootLG::VISION_LIMITED_MODE);
-#endif
-                    if (ShootLG::get_shooter_state() == ShootLG::STOP) {
-                        ShootLG::shoot(ignore_shoot_constraints ? 999 : ShootLG::get_bullet_count_to_heat_limit(),
-                                       shoot_feed_rate);
-                    }
-                } else {
-                    ShootLG::set_limit_mode(ShootLG::UNLIMITED_MODE);
-                    if (ShootLG::get_shooter_state() != ShootLG::STOP) {
-                        ShootLG::stop();
-                    }
-                }
-
-                ShootLG::set_shoot_speed(shoot_fw_speed);
-
-            } else if (Remote::rc.s1 == Remote::S_DOWN) {
+////// Wu Feiyang: I just grab this stuff from the Infantry
+//        if (!InspectorS::remote_failure() && !InspectorS::chassis_failure() && !InspectorS::gimbal_failure()) {
+//            if ((Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_UP) ||
+//                (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_MIDDLE)) {
+//
+//                /// Remote - Shoot with Scrolling Wheel
+//
+//                ShootLG::set_limit_mode(ShootLG::UNLIMITED_MODE);
+//
+//                if (Remote::rc.wheel > 0.5) {  // down
+//                    ShootLG::set_shoot_speed(shoot_fw_speed);
+//                    ShootLG::set_limit_mode(ShootLG::UNLIMITED_MODE);
+//                    if (ShootLG::get_shooter_state() == ShootLG::STOP) {
+//                        ShootLG::shoot(ignore_shoot_constraints ? 999 : ShootLG::get_bullet_count_to_heat_limit(), shoot_feed_rate);
+//                    }
+//                } else if (Remote::rc.wheel < -0.5) {  // up
+//                    ShootLG::set_shoot_speed(shoot_fw_speed);
+//                    ShootLG::set_limit_mode(ShootLG::UNLIMITED_MODE);
+//                    if (ShootLG::get_shooter_state() == ShootLG::STOP) {
+//                        ShootLG::shoot(999 /* unlimited */, shoot_feed_rate);
+//                    }
+//                } else {
+//                    if (ShootLG::get_shooter_state() != ShootLG::STOP) {
+//                        ShootLG::stop();
+//                    }
+//                }
+//
+//                ShootLG::set_shoot_speed(shoot_fw_speed);
+//
+//            } else if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_DOWN) {
+//
+//                /// Remote - Vision
+//
+//                if (Remote::rc.wheel > 0.5) {  // down
+//                    ShootLG::set_limit_mode(ShootLG::UNLIMITED_MODE);
+//                    if (ShootLG::get_shooter_state() == ShootLG::STOP) {
+//                        ShootLG::shoot(ignore_shoot_constraints ? 999 : ShootLG::get_bullet_count_to_heat_limit(),
+//                                       shoot_feed_rate);
+//                    }
+//                } else if (Remote::rc.wheel < -0.5) {  // up
+//#if ENABLE_VISION
+//                    ShootLG::set_limit_mode(ShootLG::VISION_LIMITED_MODE);
+//#endif
+//                    if (ShootLG::get_shooter_state() == ShootLG::STOP) {
+//                        ShootLG::shoot(ignore_shoot_constraints ? 999 : ShootLG::get_bullet_count_to_heat_limit(),
+//                                       shoot_feed_rate);
+//                    }
+//                } else {
+//                    ShootLG::set_limit_mode(ShootLG::UNLIMITED_MODE);
+//                    if (ShootLG::get_shooter_state() != ShootLG::STOP) {
+//                        ShootLG::stop();
+//                    }
+//                }
+//
+//                ShootLG::set_shoot_speed(shoot_fw_speed);
+//
+//            } else if (Remote::rc.s1 == Remote::S_DOWN) {
 
                 /// PC control mode
 
-                if (Remote::mouse.press_left) {
-#if ENABLE_REFEREE == TRUE
-                    // Read shoot limit
-                    if (Referee::robot_state.shooter_id1_17mm_cooling_rate >= 40) {
-                        shoot_feed_rate = Referee::robot_state.shooter_id1_17mm_cooling_rate / 10 * 1.25;
-                    } else {
-                        shoot_feed_rate = Referee::robot_state.shooter_id1_17mm_cooling_limit / 25;
-                    }
-#if ENABLE_VISION == TRUE
-                    none
-#endif
-#else
-                    ShootLG::set_limit_mode(ShootLG::UNLIMITED_MODE);
-#endif
-                    if (ShootLG::get_shoot_speed() == 0) {  // force start friction wheels
-                        ShootLG::set_shoot_speed(shoot_fw_speed);
-                    }
-
-                    if (ShootLG::get_shooter_state() == ShootLG::STOP) {  // set target once
-                        ShootLG::shoot(ignore_shoot_constraints ? 999 : ShootLG::get_bullet_count_to_heat_limit(),
-                                       shoot_feed_rate);
-                    }
-                } else {
-
-                    ShootLG::stop();
-
-                }
-
-            } else {
-                /// Safe Mode
-                ShootLG::force_stop();
-                ShootLG::set_shoot_speed(0);
-            }
-
-        } else {  // InspectorI::remote_failure() || InspectorI::chassis_failure() || InspectorI::gimbal_failure()
-            /// Safe Mode
-            ShootLG::stop();
-            ShootLG::set_shoot_speed(0);
-        }
+//                if (Remote::mouse.press_left) {
+//#if ENABLE_REFEREE == TRUE
+//                    // Read shoot limit
+//                    if (Referee::robot_state.shooter_id1_17mm_cooling_rate >= 40) {
+//                        shoot_feed_rate = Referee::robot_state.shooter_id1_17mm_cooling_rate / 10 * 1.25;
+//                    } else {
+//                        shoot_feed_rate = Referee::robot_state.shooter_id1_17mm_cooling_limit / 25;
+//                    }
+//#if ENABLE_VISION == TRUE
+//                    none
+//#endif
+//#else
+//                    ShootLG::set_limit_mode(ShootLG::UNLIMITED_MODE);
+//#endif
+//                    if (ShootLG::get_shoot_speed() == 0) {  // force start friction wheels
+//                        ShootLG::set_shoot_speed(shoot_fw_speed);
+//                    }
+//
+//                    if (ShootLG::get_shooter_state() == ShootLG::STOP) {  // set target once
+//                        ShootLG::shoot(ignore_shoot_constraints ? 999 : ShootLG::get_bullet_count_to_heat_limit(),
+//                                       shoot_feed_rate);
+//                    }
+//                } else {
+//
+//                    ShootLG::stop();
+//
+//                }
+//
+//            } else {
+//                /// Safe Mode
+//                ShootLG::force_stop();
+//                ShootLG::set_shoot_speed(0);
+//            }
+//
+//        } else {  // InspectorI::remote_failure() || InspectorI::chassis_failure() || InspectorI::gimbal_failure()
+//            /// Safe Mode
+//            ShootLG::stop();
+//            ShootLG::set_shoot_speed(0);
+//        }
 
         /*** ---------------------------------- Gimbal  --------------------------------- ***/
 
-        if (!InspectorS::gimbal_failure() && !InspectorS::remote_failure()) {
-            if (Remote::rc.s1 == Remote::S_UP) {
-                GimbalLG::set_mode(GimbalLG::FORCED_RELAX_MODE);
-            } else if (Remote::rc.s1 == Remote::S_MIDDLE) {
-                GimbalLG::set_mode(GimbalLG::CHASSIS_REF_MODE);
-
-                /// Update gimbal targets from remote controller
-                gimbal_pitch_target_angle_ += ((Remote::rc.ch1 > 0) ? gimbal_pitch_max_angle : gimbal_pitch_min_angle)
-                                                * 0.1f * Remote::rc.ch1;
-                gimbal_yaw_target_angle_ += Remote::rc.ch0 * gimbal_yaw_max_angle * 0.1f;
-
-                /// Crop gimbal targets to limited range. Direction remains same for yaw axis.
-                VAL_CROP(gimbal_pitch_target_angle_, gimbal_pitch_max_angle, gimbal_pitch_min_angle);
-
-                /// Copy these lines for crop vision target angle.
-                float yaw_target_angle_cropped = gimbal_yaw_target_angle_;
-                int yaw_rounds = (int)(gimbal_yaw_target_angle_ / 360.0f);
-                yaw_target_angle_cropped = yaw_target_angle_cropped - (float)yaw_rounds * 360.0f;
-
-                GimbalLG::set_target_angle(gimbal_pitch_target_angle_, yaw_target_angle_cropped);
-            } else if(Remote::rc.s1 == Remote::S_DOWN){
-                /// TODO: Add vision mode
-                GimbalLG::set_mode(GimbalLG::FORCED_RELAX_MODE);
-            }
-        } else {
-            GimbalLG::set_mode(GimbalLG::FORCED_RELAX_MODE);
-        }
+//        if (!InspectorS::gimbal_failure() && !InspectorS::remote_failure()) {
+//            if (Remote::rc.s1 == Remote::S_UP) {
+//                GimbalLG::set_mode(GimbalLG::FORCED_RELAX_MODE);
+//            } else if (Remote::rc.s1 == Remote::S_MIDDLE) {
+//                GimbalLG::set_mode(GimbalLG::CHASSIS_REF_MODE);
+//
+//                /// Update gimbal targets from remote controller
+//                gimbal_pitch_target_angle_ += ((Remote::rc.ch1 > 0) ? gimbal_pitch_max_angle : gimbal_pitch_min_angle)
+//                                                * 0.1f * Remote::rc.ch1;
+//                gimbal_yaw_target_angle_ += Remote::rc.ch0 * gimbal_yaw_max_angle * 0.1f;
+//
+//                /// Crop gimbal targets to limited range. Direction remains same for yaw axis.
+//                VAL_CROP(gimbal_pitch_target_angle_, gimbal_pitch_max_angle, gimbal_pitch_min_angle);
+//
+//                /// Copy these lines for crop vision target angle.
+//                float yaw_target_angle_cropped = gimbal_yaw_target_angle_;
+//                int yaw_rounds = (int)(gimbal_yaw_target_angle_ / 360.0f);
+//                yaw_target_angle_cropped = yaw_target_angle_cropped - (float)yaw_rounds * 360.0f;
+//
+//                GimbalLG::set_target_angle(gimbal_pitch_target_angle_, yaw_target_angle_cropped);
+//            } else if(Remote::rc.s1 == Remote::S_DOWN){
+//                /// TODO: Add vision mode
+//                GimbalLG::set_mode(GimbalLG::FORCED_RELAX_MODE);
+//            }
+//        } else {
+//            GimbalLG::set_mode(GimbalLG::FORCED_RELAX_MODE);
+//        }
 
         /*** ----------------------------------  Shoot  --------------------------------- ***/
 
-        if (!InspectorS::gimbal_failure() && !InspectorS::remote_failure()) {
-            if (Remote::rc.s1 == Remote::S_UP) {
-                /// TODO: Safe mode
-            } else if (Remote::rc.s1 == Remote::S_MIDDLE) {
-                /// TODO: MANUAL MODE
-            } else if (Remote::rc.s1 == Remote::S_DOWN) {
-                /// TODO: VISION MODE
-            }
-        }
+//        if (!InspectorS::gimbal_failure() && !InspectorS::remote_failure()) {
+//            if (Remote::rc.s1 == Remote::S_UP) {
+//                /// TODO: Safe mode
+//            } else if (Remote::rc.s1 == Remote::S_MIDDLE) {
+//                /// TODO: MANUAL MODE
+//            } else if (Remote::rc.s1 == Remote::S_DOWN) {
+//                /// TODO: VISION MODE
+//            }
+//        }
 
         /*** ---------------------------------- Chassis --------------------------------- ***/
 
         if (!InspectorS::chassis_failure() && !InspectorS::remote_failure()) {
             if (Remote::rc.s1 == Remote::S_UP) {
-                SChassisLG::set_mode(SChassisLG::FORCED_RELAX_MODE);
+                ChassisLG::set_mode(ChassisLG::FORCE_RELAX_MODE);
             } else if (Remote::rc.s1 == Remote::S_MIDDLE) {
-                SChassisLG::set_mode(SChassisLG::MANUAL_MODE);
-                SChassisLG::set_velocity(Remote::rc.ch2 * UserS::chassis_v);
+                ChassisLG::set_mode(ChassisLG::CHASSIS_REF_MODE);
+                //ChassisLG::set_velocity(Remote::rc.ch2 * UserS::chassis_v);
+                ChassisLG::set_target(Remote::rc.ch2 * chassis_v_left_right,
+                                      Remote::rc.ch3 > 0 ?
+                                      Remote::rc.ch3 * 1000 :
+                                      Remote::rc.ch3 * 800);
             } else {
-                SChassisLG::set_mode(SChassisLG::AUTO_MODE);
+                ChassisLG::set_mode(ChassisLG::CHASSIS_REF_MODE);
             }
         } else {
-            SChassisLG::set_mode(SChassisLG::FORCED_RELAX_MODE);
+            ChassisLG::set_mode(ChassisLG::FORCE_RELAX_MODE);
         }
 
         /// Final

@@ -254,8 +254,9 @@ add_executable(NEW_SENTRY
 #        dev/scheduler/sentry_chassis_scheduler.cpp
 #        dev/scheduler/gimbal_scheduler.cpp
 #        dev/scheduler/shoot_scheduler.cpp
-        dev/scheduler/omni_chassis_scheduler.cpp
+         dev/scheduler/omni_chassis_scheduler.cpp
 
+         dev/logic/omni_chassis_logic.cpp
 #        dev/logic/sentry_chassis_logic.cpp
 #        dev/logic/gimbal_logic.cpp
 #        dev/logic/shoot_logic.cpp

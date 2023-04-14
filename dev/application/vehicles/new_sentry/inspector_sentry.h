@@ -46,10 +46,10 @@ public:
 
     static void startup_check_can();
     static void startup_check_remote();
-    static void startup_check_gimbal_feedback();
+    //static void startup_check_gimbal_feedback();
     static void startup_check_chassis_feedback();
 
-    static bool gimbal_failure();
+    //static bool gimbal_failure();
     static bool chassis_failure();
     static bool remote_failure();
 

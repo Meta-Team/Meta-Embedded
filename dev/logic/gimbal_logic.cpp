@@ -11,7 +11,10 @@
  */
 
 #include "gimbal_logic.h"
-
+/** TODO: to be moved out of here **/
+#define PITCH_MAX_ANGLE 30
+#define PITCH_MIN_ANGLE -30
+/** Todo: to be removed here**/
 GimbalLG::mode_t GimbalLG::mode;
 #if ENABLE_VISION == TRUE
 GimbalLG::VisionControlThread GimbalLG::vision_control_thread;

@@ -81,12 +81,22 @@ void InspectorS::startup_check_remote() {
 void InspectorS::startup_check_chassis_feedback() {
     time_msecs_t t = SYSTIME;
     while (WITHIN_RECENT_TIME(t, 20)) {
-        if (not WITHIN_RECENT_TIME(CANMotorIF::motor_feedback[CANMotorCFG::MOTOR_LEFT].last_update_time, 5)) {
+        if (not WITHIN_RECENT_TIME(CANMotorIF::motor_feedback[CANMotorCFG::FL].last_update_time, 5)) {
             // No feedback in last 5 ms (normal 1 ms)
             LOG_ERR("Startup - Chassis MOTOR_LEFT offline.");
             t = SYSTIME;  // reset the counter
         }
-        if (not WITHIN_RECENT_TIME(CANMotorIF::motor_feedback[CANMotorCFG::MOTOR_RIGHT].last_update_time, 5)) {
+        if (not WITHIN_RECENT_TIME(CANMotorIF::motor_feedback[CANMotorCFG::FR].last_update_time, 5)) {
+            // No feedback in last 5 ms (normal 1 ms)
+            LOG_ERR("Startup - Chassis MOTOR_RIGHT offline.");
+            t = SYSTIME;  // reset the counter
+        }
+        if (not WITHIN_RECENT_TIME(CANMotorIF::motor_feedback[CANMotorCFG::BR].last_update_time, 5)) {
+            // No feedback in last 5 ms (normal 1 ms)
+            LOG_ERR("Startup - Chassis MOTOR_RIGHT offline.");
+            t = SYSTIME;  // reset the counter
+        }
+        if (not WITHIN_RECENT_TIME(CANMotorIF::motor_feedback[CANMotorCFG::BL].last_update_time, 5)) {
             // No feedback in last 5 ms (normal 1 ms)
             LOG_ERR("Startup - Chassis MOTOR_RIGHT offline.");
             t = SYSTIME;  // reset the counter
@@ -95,9 +105,9 @@ void InspectorS::startup_check_chassis_feedback() {
     }
 }
 
-void InspectorS::startup_check_gimbal_feedback() {
-    time_msecs_t t = SYSTIME;
-    while (WITHIN_RECENT_TIME(t, 20)) {
+//void InspectorS::startup_check_gimbal_feedback() {
+//    time_msecs_t t = SYSTIME;
+//    while (WITHIN_RECENT_TIME(t, 20)) {
 //        if (not WITHIN_RECENT_TIME(CANMotorIF::motor_feedback[CANMotorCFG::YAW].last_update_time, 5)) {
 //            // No feedback in last 5 ms (normal 1 ms)
 //            LOG_ERR("Startup - Gimbal Yaw offline.");
@@ -108,18 +118,18 @@ void InspectorS::startup_check_gimbal_feedback() {
 //            LOG_ERR("Startup - Gimbal Pitch offline.");
 //            t = SYSTIME;  // reset the counter
 //        }
-        if (not WITHIN_RECENT_TIME(CANMotorIF::motor_feedback[CANMotorCFG::BULLET_LOADER].last_update_time, 5)) {
-            // No feedback in last 5 ms (normal 1 ms)
-            LOG_ERR("Startup - Gimbal Bullet offline.");
-            t = SYSTIME;  // reset the counter
-        }
-        chThdSleepMilliseconds(5);
-    }
-}
+//        if (not WITHIN_RECENT_TIME(CANMotorIF::motor_feedback[CANMotorCFG::BULLET_LOADER].last_update_time, 5)) {
+//            // No feedback in last 5 ms (normal 1 ms)
+//            LOG_ERR("Startup - Gimbal Bullet offline.");
+//            t = SYSTIME;  // reset the counter
+//        }
+//        chThdSleepMilliseconds(5);
+//    }
+//}
 
-bool InspectorS::gimbal_failure() {
-    return gimbal_failure_;
-}
+//bool InspectorS::gimbal_failure() {
+//    return gimbal_failure_;
+//}
 
 bool InspectorS::chassis_failure() {
     return chassis_failure_;
@@ -129,22 +139,22 @@ bool InspectorS::remote_failure() {
     return remote_failure_;
 }
 
-bool InspectorS::check_gimbal_failure() {
-    bool ret = false;
-    for (unsigned i = CANMotorCFG::YAW; i < CANMotorCFG::BULLET_LOADER+1; i++) {
-        if (not WITHIN_RECENT_TIME(CANMotorIF::motor_feedback[i].last_update_time, 20)) {
-            if (!gimbal_failure_) {  // avoid repeating printing
-                LOG_ERR("Gimbal motor %u offline", i);
-            }
-            ret = true;
-        }
-    }
-    return ret;
-}
+//bool InspectorS::check_gimbal_failure() {
+//    bool ret = false;
+//    for (unsigned i = CANMotorCFG::YAW; i < CANMotorCFG::BULLET_LOADER+1; i++) {
+//        if (not WITHIN_RECENT_TIME(CANMotorIF::motor_feedback[i].last_update_time, 20)) {
+//            if (!gimbal_failure_) {  // avoid repeating printing
+//                LOG_ERR("Gimbal motor %u offline", i);
+//            }
+//            ret = true;
+//        }
+//    }
+//    return ret;
+//}
 
 bool InspectorS::check_chassis_failure() {
     bool ret = false;
-    for (unsigned i = CANMotorCFG::MOTOR_LEFT; i < CANMotorCFG::MOTOR_RIGHT + 1; i++) {
+    for (unsigned i = CANMotorCFG::FL; i < CANMotorCFG::MOTOR_COUNT + 1; i++) {
         if (not WITHIN_RECENT_TIME(CANMotorIF::motor_feedback[i].last_update_time, 20)) {
             if (!chassis_failure_) {  // avoid repeating printing
                 LOG_ERR("Chassis motor %u offline", i);
@@ -183,15 +193,16 @@ void InspectorS::InspectorThread::main() {
         if (remote_failure_) LED::led_off(DEV_BOARD_LED_REMOTE);
         else LED::led_on(DEV_BOARD_LED_REMOTE);
 
-        gimbal_failure_ = check_gimbal_failure();
-        if (gimbal_failure_) LED::led_off(DEV_BOARD_LED_GIMBAL);
-        else LED::led_on(DEV_BOARD_LED_GIMBAL);
+//        gimbal_failure_ = check_gimbal_failure();
+//        if (gimbal_failure_) LED::led_off(DEV_BOARD_LED_GIMBAL);
+//        else LED::led_on(DEV_BOARD_LED_GIMBAL);
 
         chassis_failure_ = check_chassis_failure();
         if (chassis_failure_) LED::led_off(DEV_BOARD_LED_CHASSIS);
         else LED::led_on(DEV_BOARD_LED_CHASSIS);
 
-        if (remote_failure_ || gimbal_failure_ || chassis_failure_) {
+        if (/*remote_failure_ || gimbal_failure_ || chassis_failure_*/
+                chassis_failure_) {
             if (!BuzzerSKD::alerting()) BuzzerSKD::alert_on();
         } else {
             if (BuzzerSKD::alerting()) BuzzerSKD::alert_off();
