@@ -25,7 +25,7 @@ PIDController::pid_params_t CANMotorCFG::a2vParams[MOTOR_COUNT] = {
         {10, 0.0f, 0.1, 70,  90},
         {8.5, 0.0f, 0.1, 70, 90},
         {10, 0.0f, 0.2, 100, 500},
-        {100, 0.0f, 0.18, 100, 200},//Bullet Loader temprarily to 2x to surpass the friction
+        {50, 0.0f, 0.18, 100, 250},//Bullet Loader temprarily to 2.5x to surpass the friction
         {10, 0.0f, 0.2, 100, 500},
         {10, 0.0f, 0.2, 100, 500},
 };

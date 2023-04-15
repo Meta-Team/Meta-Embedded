@@ -94,6 +94,7 @@ public:
      * Shell command defintion
      * @note same as the revised revised ShellCommand in shell_base.h
      */
+    // TODO The struct Command in shell.h and struct ShellCommand in shell_base is the same one but arg names differ, try to make them consistent later
     struct Command {
         const char *name;
         const char *arguments;

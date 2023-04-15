@@ -107,11 +107,14 @@ static bool cmdexec(ShellConfig *scfg, const ShellCommand *scp, BaseSequentialSt
     while (scp->sc_name != NULL) {// current shell command in the given command list is not null
         if (strcmp(scp->sc_name, name) == 0) {//  and match the input command name
             bool ret;
-            if (!scp->sc_arg) {// if the predefined args exists in the ShellCommand struct, then use the default one
+            if (!scp->sc_arg) {// if the predefined args exists in the ShellCommand struct, then use the default one(default sc_channel(SerialDriver) defined in Shell::start in shell.cpp)
                 // no predefined args, then use the input args
                 ret = scp->sc_function(chp, argc, argv); // in each callback function, if it is executed correctly then return true
             } else {
-                // Here we just pass void* as BaseSequentialStream *, maybe fix this someday
+                //TODO Here we just pass void* as BaseSequentialStream *, maybe fix this someday
+                // It means if we want to pass other type of pointer(like 'this' pointer in a class),
+                // we still need to convert the type to (BaseSequentialStream *),
+                // since it is hard coded in marco DEF_SHELL_CMD_START in shell.h
                 ret = scp->sc_function(scp->sc_arg, argc, argv);
             }
             if (!ret) {// args error, print hints

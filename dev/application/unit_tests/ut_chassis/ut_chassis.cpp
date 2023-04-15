@@ -41,7 +41,7 @@ private:
                 ChassisLG::set_target_omega(0.0f);
             } else {
                 ChassisLG::set_target(Remote::rc.ch2 * 1500.0f, Remote::rc.ch3 * 1000.0f);
-                ChassisLG::set_target_omega(Remote::rc.ch0 * 50.0f);
+                ChassisLG::set_target_omega(Remote::rc.ch0 * 200.0f);
             }
             sleep(TIME_MS2I(100));
         }

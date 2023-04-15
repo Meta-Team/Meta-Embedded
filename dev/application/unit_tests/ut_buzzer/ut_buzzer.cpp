@@ -1,24 +1,23 @@
 //
 // Created by liuzikai on 2019-02-10.
-//
+// Modified by Tony Zhang on 4/15/2023
 
 #include "ch.hpp"
 #include "hal.h"
 
-#include "interface/led/led.h"
-#include "debug/shell/shell.h"
+#include "led.h"
+#include "shell.h"
 #include "buzzer_scheduler.h"
+#include "chprintf.h"
 
-// TODO: Fix the bugs in this file.
 
 using namespace chibios_rt;
 
 
-static void cmd_play(BaseSequentialStream *chp, int argc, char *argv[]) {
+DEF_SHELL_CMD_START(cmd_play)
     (void) argv;
     if (argc != 1) {
-        shellUsage(chp, "buzzer 0-7");
-        return;
+        return false;
     }
 
     switch (Shell::atoi(argv[0]))
@@ -48,16 +47,15 @@ static void cmd_play(BaseSequentialStream *chp, int argc, char *argv[]) {
             BuzzerSKD::play_sound(BuzzerSKD::sound_nyan_cat);
             break;
         default:
-            shellUsage(chp, "buzzer 0-7");
+            chprintf(chp,"buzzer 0-7");
     }
+    return true; // command executed successfully
+DEF_SHELL_CMD_END
 
-}
-
-static void cmd_alarm(BaseSequentialStream *chp, int argc, char *argv[]) {
+DEF_SHELL_CMD_START(cmd_alarm)
     (void) argv;
     if (argc != 1) {
-        shellUsage(chp, "alarm (0/1)");
-        return;
+        return false;
     }
     switch (Shell::atoi(argv[0]))
     {
@@ -68,11 +66,13 @@ static void cmd_alarm(BaseSequentialStream *chp, int argc, char *argv[]) {
             BuzzerSKD::alert_on();
             break;
     }
-}
-ShellCommand buzzerShellCommands[] = {
-        {"buzzer", cmd_play},
-        {"alarm" , cmd_alarm},
-        {nullptr,    nullptr}
+    return true; // command executed successfully
+DEF_SHELL_CMD_END
+
+Shell::Command buzzerShellCommands[] = {
+        {"buzzer", "buzzer 0-7", cmd_play, nullptr},
+        {"alarm" , "alarm (0/1)", cmd_alarm, nullptr},
+        {nullptr,    nullptr,nullptr,    nullptr}
 };
 
 int main(void) {

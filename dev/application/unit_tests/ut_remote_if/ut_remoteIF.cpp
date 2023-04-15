@@ -4,12 +4,12 @@
 
 // [遥控器拨轮的数据解析【RoboMaster论坛-科技宅天堂】](https://bbs.robomaster.com/thread-8123-1-1.html)
 
-#include "interface/buzzer/buzzer_scheduler.h"
+#include "buzzer_scheduler.h"
 #include "ch.hpp"
 #include "hal.h"
 
-#include "interface/led/led.h"
-#include "debug/shell/shell.h"
+#include "led.h"
+#include "shell.h"
 #include "remote_interpreter.h"
 
 using namespace chibios_rt;

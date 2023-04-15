@@ -1,14 +1,15 @@
 //
 // Created by liuzikai on 2019-01-17.
-//
+// Modified by Tony Zhang on 2023/4/15
 
 
 #include "ch.hpp"
 #include "hal.h"
 
-#include "interface/led/led.h"
+#include "led.h"
 #include "shell.h"
-#include "interface/referee/referee_interface.h"
+#include "referee_interface.h"
+#include "printf.h"
 
 // TODO: Fix the bugs in this file. (Shell)
 using namespace chibios_rt;
@@ -46,11 +47,10 @@ private:
  * @param argc
  * @param argv
  */
-static void cmd_add_rect(BaseSequentialStream *chp, int argc, char *argv[]) {
+DEF_SHELL_CMD_START(cmd_add_rect)
     (void) argv;
     if (argc != 0) {
-        shellUsage(chp, "add");
-        return;
+        return false;
     }
     Referee::graphic_data_struct_t rect{};
 
@@ -74,7 +74,8 @@ static void cmd_add_rect(BaseSequentialStream *chp, int argc, char *argv[]) {
     Referee::set_graphic(rect);
     enabled_send = true;
     chprintf(chp, "added" SHELL_NEWLINE_STR);
-}
+    return true; // command executed successfully
+DEF_SHELL_CMD_END
 
 
 /**
@@ -83,11 +84,10 @@ static void cmd_add_rect(BaseSequentialStream *chp, int argc, char *argv[]) {
  * @param argc
  * @param argv
  */
-static void cmd_modify_rect(BaseSequentialStream *chp, int argc, char *argv[]) {
+DEF_SHELL_CMD_START(cmd_modify_rect)
     (void) argv;
     if (argc != 0) {
-        shellUsage(chp, "add");
-        return;
+        return false;
     }
     Referee::graphic_data_struct_t rect{};
     rect.graphic_name[0] = 'A';
@@ -108,8 +108,9 @@ static void cmd_modify_rect(BaseSequentialStream *chp, int argc, char *argv[]) {
     rect.radius = 200;
 
     Referee::set_graphic(rect);
-    chprintf(chp, "added" SHELL_NEWLINE_STR);
-}
+    chprintf(chp, "modified" SHELL_NEWLINE_STR);
+    return true; // command executed successfully
+DEF_SHELL_CMD_END
 
 /**
  * @brief set enabled state of yaw and pitch motor
@@ -117,11 +118,10 @@ static void cmd_modify_rect(BaseSequentialStream *chp, int argc, char *argv[]) {
  * @param argc
  * @param argv
  */
-static void cmd_del_rect(BaseSequentialStream *chp, int argc, char *argv[]) {
+DEF_SHELL_CMD_START(cmd_del_rect)
     (void) argv;
     if (argc != 0) {
-        shellUsage(chp, "add");
-        return;
+        return false;
     }
     Referee::graphic_data_struct_t rect{};
 
@@ -144,15 +144,16 @@ static void cmd_del_rect(BaseSequentialStream *chp, int argc, char *argv[]) {
 
     Referee::set_graphic(rect);
     enabled_send = false;
-    chprintf(chp, "added" SHELL_NEWLINE_STR);
-}
+    chprintf(chp, "deleted" SHELL_NEWLINE_STR);
+    return true; // command executed successfully
+DEF_SHELL_CMD_END
 
 // Shell commands to ...
-ShellCommand templateShellCommands[] = {
-        {"add", cmd_add_rect},
-        {"modify", cmd_modify_rect},
-        {"delete", cmd_del_rect},
-        {nullptr,    nullptr}
+Shell::Command templateShellCommands[] = {
+        {"add","add", cmd_add_rect, nullptr},
+        {"modify","modify", cmd_modify_rect,nullptr},
+        {"delete","delete", cmd_del_rect,nullptr},
+        {nullptr,    nullptr,nullptr,nullptr}
 };
 
 int main() {
