@@ -144,23 +144,24 @@ private:
      * @brief Instance of MotionControllerThread.
      */
     static MotionControllerThread motion_controller_thread;
-
-#if ENABLE_CAPACITOR == TRUE && ENABLE_REFEREE == TRUE
-    /**
-     * @brief Thread for set capacitor's power. Only available when capacitor and referee system are working properly.
-     *        the receiving interval for super capacitor control board is 100 ms, for robustness, the interval was set
-     *        to 200 ms.
-     */
-    class CapacitorSetThread : public chibios_rt::BaseStaticThread<256> {
-        static constexpr unsigned CAPACITOR_SET_INTERVAL = 200; // [ms]
-        void main() final;
-    };
-
-    /**
-     * @brief Instance of CapacitorSetThread.
-     */
-    static CapacitorSetThread capacitor_set_thread;
-#endif
+    ////TODO: Renable capcitor in the future
+//
+//#if ENABLE_CAPACITOR == TRUE && ENABLE_REFEREE == TRUE
+//    /**
+//     * @brief Thread for set capacitor's power. Only available when capacitor and referee system are working properly.
+//     *        the receiving interval for super capacitor control board is 100 ms, for robustness, the interval was set
+//     *        to 200 ms.
+//     */
+//    class CapacitorSetThread : public chibios_rt::BaseStaticThread<256> {
+//        static constexpr unsigned CAPACITOR_SET_INTERVAL = 200; // [ms]
+//        void main() final;
+//    };
+//
+//    /**
+//     * @brief Instance of CapacitorSetThread.
+//     */
+//    static CapacitorSetThread capacitor_set_thread;
+//#endif
 
 };
 

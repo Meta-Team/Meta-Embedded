@@ -249,7 +249,7 @@ add_executable(NEW_SENTRY
         ${VEHICLE_COMMON_SRC}
         #        ${AHRS_EXT_SRC}
 
-        dev/interface/referee/referee_interface.cpp
+#        dev/interface/referee/referee_interface.cpp
 
 #        dev/scheduler/sentry_chassis_scheduler.cpp
 #        dev/scheduler/gimbal_scheduler.cpp

@@ -15,15 +15,15 @@
 #include "can_motor_controller.h"
 #include "remote_interpreter.h"
 #include "sd_card_interface.h"
-#include "vision_interface.h"
+//#include "vision_interface.h"
 
-#include "gimbal_scheduler.h"
-#include "gimbal_logic.h"
-#include "shoot_scheduler.h"
-#include "shoot_logic.h"
+//#include "gimbal_scheduler.h"
+//#include "gimbal_logic.h"
+//#include "shoot_scheduler.h"
+//#include "shoot_logic.h"
 
-#include "sentry_chassis_scheduler.h"
-#include "sentry_chassis_logic.h"
+#include "omni_chassis_scheduler.h"
+#include "omni_chassis_logic.h"
 
 #include "inspector_sentry.h"
 #include "user_sentry.h"
@@ -149,15 +149,15 @@ int main() {
     SChassisSKD::start(SChassisSKD::POSITIVE, SChassisSKD::POSITIVE, THREAD_CHASSIS_SKD_PRIO);
 
     /// Start LGs
-    GimbalLG::init(THREAD_GIMBAL_LG_VISION_PRIO, THREAD_GIMBAL_BALLISTIC_PRIO);
-    ShootLG::init(45.0f, false, THREAD_SHOOT_BULLET_COUNTER_PRIO,THREAD_SHOOT_BULLET_COUNTER_PRIO, THREAD_SHOOT_LG_VISION_PRIO);
+//    GimbalLG::init(THREAD_GIMBAL_LG_VISION_PRIO, THREAD_GIMBAL_BALLISTIC_PRIO);
+//    ShootLG::init(45.0f, false, THREAD_SHOOT_BULLET_COUNTER_PRIO,THREAD_SHOOT_BULLET_COUNTER_PRIO, THREAD_SHOOT_LG_VISION_PRIO);
 
-    SChassisLG::init(THREAD_CHASSIS_MTN_CTL_PRIO);
+    ChassisLG::init(THREAD_CHASSIS_MTN_CTL_PRIO);
 
     /// Start Inspector and User Threads
     // FIXME: re-enable inspector
     InspectorS::start_inspection(THREAD_INSPECTOR_PRIO);
-    UserS::start(THREAD_USER_PRIO);
+    UserS::start(THREAD_USER_PRIO,THREAD_USER_ACTION_PRIO);
 
     /// Complete Period 2
     BuzzerSKD::play_sound(BuzzerSKD::sound_startup_intel);  // Now play the startup sound

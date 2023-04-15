@@ -1,122 +1,170 @@
 //
-// Created by Wu Feiyang on
+// Created by liuzikai on 2019-06-25.
 //
 
 #include "user_sentry.h"
 
-/// Gimbal config
-float UserS::gimbal_yaw_min_angle = -160; // left range for yaw [degree]
-float UserS::gimbal_yaw_max_angle = 160; // right range for yaw [degree]
-float UserS::gimbal_pitch_min_angle = -50; // down range for pitch [degree]
-float UserS::gimbal_pitch_max_angle = 0; //  up range for pitch [degree]
+#include "hardware_conf.h"
 
-/// Chassis config
-float UserS::chassis_v = 80.0f;  // [cm/s]
+// FIXME: change as input parameter from main()
 
-/// Shoot config
-float UserS::shoot_feed_rate = 5.0; // [bullets/s]
-float UserS::shoot_fw_speed = 42150; // [deg/s] ????
+/// Vehicle Specific Configurations
+#if defined(INFANTRY_THREE)                                                 /** Infantry #3 **/
+#include "vehicle_infantry_three.h"
+#elif defined(INFANTRY_FOUR)                                                /** Infantry #4 **/
+#include "vehicle_infantry_four.h"
+#elif defined(INFANTRY_FIVE)                                                /** Infantry #5 **/
+#include "vehicle_infantry_five.h"
+#elif defined(NEW_SENTRY)
+#include "vehicle_sentry.h"
+#else
+//#error "File main_infantry.cpp should only be used for Infantry #3, #4, #5."
+#endif
 
-/// Runtime variables
+#if ENABLE_REFEREE == TRUE
+#include "referee_UI_logic.h"
+#endif
+
+/// Gimbal Config
+float UserS::gimbal_rc_yaw_max_speed = 180;  // [degree/s]
+float UserS::gimbal_pc_yaw_sensitivity[3] = {100000, 200000, 300000};  // [Slow, Normal, Fast] [degree/s]
+
+float UserS::gimbal_pc_pitch_sensitivity[3] = {20000, 50000, 60000};   // [Slow, Normal, Fast] [degree/s]
+
+/// Chassis Config
+float UserS::base_power = 40.0f;
+float UserS::base_v_forward = 1500.0f;
+float UserS::chassis_v_left_right = 1500.0f;   // [mm/s]
+float UserS::chassis_v_forward = 1500.0f;     // [mm/s]
+float UserS::chassis_v_backward = 1500.0f;    // [mm/s]
+
+float UserS::chassis_pc_shift_ratio = 1.8f;  // 180% when Shift is pressed
+float UserS::chassis_pc_ctrl_ratio = 0.5f;    // 50% when Ctrl is pressed
+
+//float UserS::shoot_feed_rate = 5.0f;   // [bullet/s]
+//float UserS::shoot_fw_speed[3] = {SHOOT_FW_SPEED*15, SHOOT_FW_SPEED*15, SHOOT_FW_SPEED*15};  // [Slow, Normal, Fast] [deg/s]
+
+
+/// Variables
 float UserS::gimbal_yaw_target_angle_ = 0;
-float UserS::gimbal_pitch_target_angle_ = 0;
+float UserS::gimbal_pc_pitch_target_angle_ = 0;
 bool UserS::ignore_shoot_constraints = false;
-/// User thread
 UserS::UserThread UserS::userThread;
+UserS::UserActionThread UserS::userActionThread;
 
-void UserS::start(tprio_t user_thd_prio) {
+void UserS::start(tprio_t user_thd_prio, tprio_t user_action_thd_prio) {
     userThread.start(user_thd_prio);
+    userActionThread.start(user_action_thd_prio);
 }
-
-/**
- * Mode Table:
- * ------------------------------------------------------------
- * Left  Right  Mode
- * ------------------------------------------------------------
- *  UP    ***   Safe
- *  MID   UP    Remote - Gimbal: Angle Control, Chassis: Manual Mode
- *  MID   MID   Remote - Gimbal: Velocity Control, Chassis: Manual Mode
- *  MID   DOWN  Remote - Gimbal: Scanning Mode, Chassis: Manual Mode
- *  DOWN  UP    Remote - Gimbal: Vision Control, Chassis: Manual Mode
- *  DOWN  MID   Remote - Gimbal: Scanning Mode + Vision Control, Chassis: Shuttle Mode
- *  DOWN  DOWN  Auto   - Gimbal: Scanning Mode + Vision Control, Chassis: Final Auto Mode
- * ------------------------------------------------------------
- */
 
 void UserS::UserThread::main() {
     setName("UserS");
+    float pitch_target = 0;
     while (!shouldTerminate()) {
-
-
-
-
-
-
-
-
-
-//        /*** ---------------------------------- Shoot --------------------------------- ***/
-//
-//        if (!shoot_power_on){
-//            if (Referee::robot_state.mains_power_shooter_output == 1){
-//                float pre_duty = ShootLG::get_shoot_speed();
-//                ShootLG::set_shoot_speed(0);
-//                sleep(TIME_MS2I(2000));
-//                ShootLG::set_shoot_speed(pre_duty);
-//                LOG("POWER ON AGAIN");
-//            }
-//        }
-//        shoot_power_on = (Referee::robot_state.mains_power_shooter_output == 1);
-//
-//        if (!InspectorS::remote_failure() /*&& !InspectorS::chassis_failure()*/ && !InspectorS::gimbal_failure()) {
+        /*** ---------------------------------- Gimbal --------------------------------- ***/
+//        if (!InspectorI::remote_failure() && !InspectorI::chassis_failure() && !InspectorI::gimbal_failure()) {
 //            if ((Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_UP) ||
 //                (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_MIDDLE)) {
 //
-//                /// Remote - Shoot with Scrolling Wheel
+//                /// Remote - Yaw + Pitch
+//#if ENABLE_AHRS
+//                GimbalLG::set_mode(GimbalLG::GIMBAL_REF_MODE);
+//#else
+//                GimbalLG::set_mode(GimbalLG::CHASSIS_REF_MODE);
+//#endif
 //
-//                if (Remote::rc.wheel > 0.5) {  // down
-//                    if (ShootLG::get_shooter_state() == ShootLG::STOP) {
-//                        ShootLG::shoot(shoot_launch_left_count, shoot_launch_speed);
-//                    }
-//                } else if (Remote::rc.wheel < -0.5) {  // up
-//                    if (ShootLG::get_shooter_state() == ShootLG::STOP) {
-//                        ShootLG::shoot(shoot_launch_right_count, shoot_launch_speed);
-//                    }
-//                } else {
-//                    if (ShootLG::get_shooter_state() != ShootLG::STOP) {
-//                        ShootLG::stop();
-//                    }
-//                }
+//                gimbal_yaw_target_angle_ +=
+//                        -Remote::rc.ch0 * (gimbal_rc_yaw_max_speed * USER_THREAD_INTERVAL / 1000.0f);
+//                // ch0 use right as positive direction, while GimbalLG use CCW (left) as positive direction
 //
-//                ShootLG::set_shoot_speed(shoot_common_duty_cycle);
+//                if (Remote::rc.ch1 > 0) pitch_target += (float) (Remote::rc.ch1 * GIMBAL_PITCH_MAX_ANGLE * 0.1);
+//                else
+//                    pitch_target -=
+//                            (float) (Remote::rc.ch1 * GIMBAL_PITCH_MIN_ANGLE * 0.1);  // GIMBAL_PITCH_MIN_ANGLE is negative
+//                // ch1 use up as positive direction, while GimbalLG also use up as positive direction
 //
-//            }else if (Remote::rc.s1 == Remote::S_DOWN) {
+//                VAL_CROP(pitch_target, GIMBAL_PITCH_MAX_ANGLE, GIMBAL_PITCH_MIN_ANGLE);
+//                GimbalLG::set_target_angle(gimbal_yaw_target_angle_, pitch_target);
+//#if ENABLE_VISION == TRUE
+//                } else if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_DOWN) {
+//
+//                /// Vision - Change bullet speed with right vertical handle
+//
+//                /// Vision - Yaw + Pitch
+//                GimbalLG::set_mode(GimbalLG::VISION_MODE);
+//
+//                if (Remote::rc.ch1 > 0.5) VisionSKD::set_bullet_speed(VisionSKD::get_bullet_speed() - 0.001f);
+//                else if (Remote::rc.ch1 <= -0.5) VisionSKD::set_bullet_speed(VisionSKD::get_bullet_speed() + 0.001f);
+//#endif
+//            } else if (Remote::rc.s1 == Remote::S_DOWN) {
 //
 //                /// PC control mode
+//#if ENABLE_VISION
+//                if (Remote::key.shift && Remote::key.v) {
+//                    VisionSKD::set_bullet_speed(VisionSKD::get_bullet_speed() + 0.001f);
+//                } else if (Remote::key.ctrl && Remote::key.v) {
+//                    VisionSKD::set_bullet_speed(VisionSKD::get_bullet_speed() - 0.001f);
+//                }
+//                if (Remote::mouse.press_right && VisionSKD::is_detected()) {
 //
-//                if (fire) {
-//                    if (ShootLG::get_shooter_state() == ShootLG::STOP) {
-//                        ShootLG::shoot(shoot_launch_right_count, shoot_launch_speed);
-//                    }
+//                    GimbalLG::set_mode(GimbalLG::VISION_MODE);
+//
+//                    gimbal_yaw_target_angle_ = GimbalLG::get_feedback_angle(GimbalSKD::YAW);
+//                    gimbal_pc_pitch_target_angle_ = GimbalLG::get_feedback_angle(GimbalSKD::PITCH);
+//
 //                } else {
-//                    if (ShootLG::get_shooter_state() != ShootLG::STOP) {
-//                        ShootLG::stop();
+//#else
+//                if (!Remote::mouse.press_right) {
+//#endif
+//#if ENABLE_AHRS
+//                    GimbalLG::set_mode(GimbalLG::GIMBAL_REF_MODE);
+//#else
+//                    GimbalLG::set_mode(GimbalLG::CHASSIS_REF_MODE);
+//#endif
+//
+//                    float yaw_sensitivity, pitch_sensitivity;
+//                    if (Remote::key.ctrl) {
+//                        yaw_sensitivity = gimbal_pc_yaw_sensitivity[0];
+//                        pitch_sensitivity = gimbal_pc_pitch_sensitivity[0];
+//                    } else if (Remote::key.shift) {
+//                        yaw_sensitivity = gimbal_pc_yaw_sensitivity[2];
+//                        pitch_sensitivity = gimbal_pc_pitch_sensitivity[2];
+//                    } else {
+//                        yaw_sensitivity = gimbal_pc_yaw_sensitivity[1];
+//                        pitch_sensitivity = gimbal_pc_pitch_sensitivity[1];
+//
 //                    }
+//                    // Referee client data will be sent by ClientDataSendingThread
+//
+//                    float yaw_delta = -Remote::mouse.x * (yaw_sensitivity * USER_THREAD_INTERVAL / 1000.0f);
+//                    float pitch_delta = Remote::mouse.y * (pitch_sensitivity * USER_THREAD_INTERVAL / 1000.0f);
+//
+//                    VAL_CROP(yaw_delta, 1.5, -1.5);
+//                    VAL_CROP(pitch_delta, 1, -1);
+//
+//                    gimbal_yaw_target_angle_ += yaw_delta;
+//                    // mouse.x use right as positive direction, while GimbalLG use CCW (left) as positive direction
+//
+//                    gimbal_pc_pitch_target_angle_ += pitch_delta;
+//                    // mouse.y use down as positive direction, while GimbalLG use CCW (left) as positive direction
+//
+//                    VAL_CROP(gimbal_pc_pitch_target_angle_, GIMBAL_PITCH_MAX_ANGLE, GIMBAL_PITCH_MIN_ANGLE);
+//
+//                    GimbalLG::set_target_angle(gimbal_yaw_target_angle_, gimbal_pc_pitch_target_angle_);
 //                }
 //
 //            } else {
 //                /// Safe Mode
-//                ShootLG::stop();
-//                ShootLG::set_shoot_speed(0);
+//                GimbalLG::set_mode(GimbalLG::FORCED_RELAX_MODE);
 //            }
 //
-//        } else {  // InspectorS::remote_failure() || InspectorS::chassis_failure() || InspectorS::gimbal_failure()
+//        } else {  // InspectorI::remote_failure() || InspectorI::chassis_failure() || InspectorI::gimbal_failure()
 //            /// Safe Mode
-//            ShootLG::stop();
-//            ShootLG::set_shoot_speed(0);
+//            GimbalLG::set_mode(GimbalLG::FORCED_RELAX_MODE);
 //        }
-////// Wu Feiyang: I just grab this stuff from the Infantry
-//        if (!InspectorS::remote_failure() && !InspectorS::chassis_failure() && !InspectorS::gimbal_failure()) {
+
+        /*** ---------------------------------- Shoot --------------------------------- ***/
+//        if (!InspectorI::remote_failure() && !InspectorI::chassis_failure() && !InspectorI::gimbal_failure()) {
 //            if ((Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_UP) ||
 //                (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_MIDDLE)) {
 //
@@ -125,13 +173,13 @@ void UserS::UserThread::main() {
 //                ShootLG::set_limit_mode(ShootLG::UNLIMITED_MODE);
 //
 //                if (Remote::rc.wheel > 0.5) {  // down
-//                    ShootLG::set_shoot_speed(shoot_fw_speed);
+//                    ShootLG::set_shoot_speed(shoot_fw_speed[1]);
 //                    ShootLG::set_limit_mode(ShootLG::UNLIMITED_MODE);
 //                    if (ShootLG::get_shooter_state() == ShootLG::STOP) {
 //                        ShootLG::shoot(ignore_shoot_constraints ? 999 : ShootLG::get_bullet_count_to_heat_limit(), shoot_feed_rate);
 //                    }
 //                } else if (Remote::rc.wheel < -0.5) {  // up
-//                    ShootLG::set_shoot_speed(shoot_fw_speed);
+//                    ShootLG::set_shoot_speed(shoot_fw_speed[1]);
 //                    ShootLG::set_limit_mode(ShootLG::UNLIMITED_MODE);
 //                    if (ShootLG::get_shooter_state() == ShootLG::STOP) {
 //                        ShootLG::shoot(999 /* unlimited */, shoot_feed_rate);
@@ -142,7 +190,7 @@ void UserS::UserThread::main() {
 //                    }
 //                }
 //
-//                ShootLG::set_shoot_speed(shoot_fw_speed);
+//                ShootLG::set_shoot_speed(shoot_fw_speed[1]);
 //
 //            } else if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_DOWN) {
 //
@@ -169,12 +217,12 @@ void UserS::UserThread::main() {
 //                    }
 //                }
 //
-//                ShootLG::set_shoot_speed(shoot_fw_speed);
+//                ShootLG::set_shoot_speed(shoot_fw_speed[1]);
 //
 //            } else if (Remote::rc.s1 == Remote::S_DOWN) {
-
-                /// PC control mode
-
+//
+//                /// PC control mode
+//
 //                if (Remote::mouse.press_left) {
 //#if ENABLE_REFEREE == TRUE
 //                    // Read shoot limit
@@ -184,13 +232,17 @@ void UserS::UserThread::main() {
 //                        shoot_feed_rate = Referee::robot_state.shooter_id1_17mm_cooling_limit / 25;
 //                    }
 //#if ENABLE_VISION == TRUE
-//                    none
+//                    if (!ignore_shoot_constraints && Remote::mouse.press_right) {
+//                        ShootLG::set_limit_mode(ShootLG::VISION_LIMITED_MODE);
+//                    } else {
+//                        ShootLG::set_limit_mode(ShootLG::UNLIMITED_MODE);
+//                    }
 //#endif
 //#else
 //                    ShootLG::set_limit_mode(ShootLG::UNLIMITED_MODE);
 //#endif
 //                    if (ShootLG::get_shoot_speed() == 0) {  // force start friction wheels
-//                        ShootLG::set_shoot_speed(shoot_fw_speed);
+//                        ShootLG::set_shoot_speed(shoot_fw_speed[1]);
 //                    }
 //
 //                    if (ShootLG::get_shooter_state() == ShootLG::STOP) {  // set target once
@@ -215,186 +267,157 @@ void UserS::UserThread::main() {
 //            ShootLG::set_shoot_speed(0);
 //        }
 
-        /*** ---------------------------------- Gimbal  --------------------------------- ***/
-
-//        if (!InspectorS::gimbal_failure() && !InspectorS::remote_failure()) {
-//            if (Remote::rc.s1 == Remote::S_UP) {
-//                GimbalLG::set_mode(GimbalLG::FORCED_RELAX_MODE);
-//            } else if (Remote::rc.s1 == Remote::S_MIDDLE) {
-//                GimbalLG::set_mode(GimbalLG::CHASSIS_REF_MODE);
-//
-//                /// Update gimbal targets from remote controller
-//                gimbal_pitch_target_angle_ += ((Remote::rc.ch1 > 0) ? gimbal_pitch_max_angle : gimbal_pitch_min_angle)
-//                                                * 0.1f * Remote::rc.ch1;
-//                gimbal_yaw_target_angle_ += Remote::rc.ch0 * gimbal_yaw_max_angle * 0.1f;
-//
-//                /// Crop gimbal targets to limited range. Direction remains same for yaw axis.
-//                VAL_CROP(gimbal_pitch_target_angle_, gimbal_pitch_max_angle, gimbal_pitch_min_angle);
-//
-//                /// Copy these lines for crop vision target angle.
-//                float yaw_target_angle_cropped = gimbal_yaw_target_angle_;
-//                int yaw_rounds = (int)(gimbal_yaw_target_angle_ / 360.0f);
-//                yaw_target_angle_cropped = yaw_target_angle_cropped - (float)yaw_rounds * 360.0f;
-//
-//                GimbalLG::set_target_angle(gimbal_pitch_target_angle_, yaw_target_angle_cropped);
-//            } else if(Remote::rc.s1 == Remote::S_DOWN){
-//                /// TODO: Add vision mode
-//                GimbalLG::set_mode(GimbalLG::FORCED_RELAX_MODE);
-//            }
-//        } else {
-//            GimbalLG::set_mode(GimbalLG::FORCED_RELAX_MODE);
-//        }
-
-        /*** ----------------------------------  Shoot  --------------------------------- ***/
-
-//        if (!InspectorS::gimbal_failure() && !InspectorS::remote_failure()) {
-//            if (Remote::rc.s1 == Remote::S_UP) {
-//                /// TODO: Safe mode
-//            } else if (Remote::rc.s1 == Remote::S_MIDDLE) {
-//                /// TODO: MANUAL MODE
-//            } else if (Remote::rc.s1 == Remote::S_DOWN) {
-//                /// TODO: VISION MODE
-//            }
-//        }
-
         /*** ---------------------------------- Chassis --------------------------------- ***/
+        if (!InspectorS::remote_failure() && !InspectorS::chassis_failure()
+        //&& !InspectorS::gimbal_failure()
+        ) {
 
-        if (!InspectorS::chassis_failure() && !InspectorS::remote_failure()) {
-            if (Remote::rc.s1 == Remote::S_UP) {
-                ChassisLG::set_mode(ChassisLG::FORCE_RELAX_MODE);
-            } else if (Remote::rc.s1 == Remote::S_MIDDLE) {
+            if ((Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_UP) ||
+                (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_DOWN)) {
+                /// Remote - Chassis Move + Chassis Follow
+#if ENABLE_AHRS
+                ChassisLG::set_mode(ChassisLG::GIMBAL_REF_MODE);
+#else
                 ChassisLG::set_mode(ChassisLG::CHASSIS_REF_MODE);
-                //ChassisLG::set_velocity(Remote::rc.ch2 * UserS::chassis_v);
-                ChassisLG::set_target(Remote::rc.ch2 * chassis_v_left_right,
-                                      Remote::rc.ch3 > 0 ?
-                                      Remote::rc.ch3 * 1000 :
-                                      Remote::rc.ch3 * 800);
+#endif
+                ChassisLG::set_target(Remote::rc.ch2 * chassis_v_left_right,  // Both use right as positive direction
+                                      (Remote::rc.ch3 > 0 ?
+                                       Remote::rc.ch3 * 1000 :
+                                       Remote::rc.ch3 * 800)   // Both use up as positive direction
+                );
+
+            } else if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_MIDDLE) {
+
+                /// Remote - Chassis Move + Chassis Dodge
+#if ENABLE_AHRS
+                ChassisLG::set_mode(ChassisLG::DODGE);
+#else
+                ChassisLG::set_mode(ChassisLG::CHASSIS_REF_MODE);
+#endif
+                ChassisLG::set_target(Remote::rc.ch2 * chassis_v_left_right,  // Both use right as positive direction
+                                      (Remote::rc.ch3 > 0 ?
+                                       Remote::rc.ch3 * 1000 :
+                                       Remote::rc.ch3 * 800)   // Both use up as positive direction
+                );
+
+            } else if (Remote::rc.s1 == Remote::S_DOWN) {
+
+                /// PC control mode: Chassis - Movement
+
+                // Read current level information
+#if ENABLE_REFEREE == TRUE
+                chassis_v_forward = Referee::robot_state.chassis_power_limit * 0.9 / base_power * base_v_forward;
+#else
+                chassis_v_forward = 2000.0f;
+#endif
+                chassis_v_backward = chassis_v_forward;
+
+                if (ChassisLG::get_mode() == ChassisLG::FORCE_RELAX_MODE) {
+                    // Enter PC Mode from other mode, re-enable ChassisLG
+#if ENABLE_AHRS
+                    ChassisLG::set_mode(ChassisLG::GIMBAL_REF_MODE);
+#else
+                    ChassisLG::set_mode(ChassisLG::CHASSIS_REF_MODE);
+#endif
+                }
+
+                float target_vx, target_vy;
+
+                if (Remote::key.w) target_vy = chassis_v_forward;
+                else if (Remote::key.s) target_vy = -chassis_v_backward;
+                else target_vy = 0;
+
+                if (Remote::key.d) target_vx = chassis_v_left_right;
+                else if (Remote::key.a) target_vx = -chassis_v_left_right;
+                else target_vx = 0;
+
+                if (Remote::key.ctrl) {
+                    target_vx *= chassis_pc_ctrl_ratio;
+                    target_vy *= chassis_pc_ctrl_ratio;
+                } else if (Remote::key.shift) {
+                    target_vx *= chassis_pc_shift_ratio;
+                    target_vy *= chassis_pc_shift_ratio;
+                }
+                // No need to echo to user since it has been done above
+
+                ChassisLG::set_target(target_vx, target_vy);
+
             } else {
-                ChassisLG::set_mode(ChassisLG::CHASSIS_REF_MODE);
+
+                /// Safe Mode
+                ChassisLG::set_mode(ChassisLG::FORCE_RELAX_MODE);
             }
-        } else {
+
+        } else {  // InspectorI::remote_failure() || InspectorI::chassis_failure() || InspectorI::gimbal_failure()
+
+            /// Safe Mode
             ChassisLG::set_mode(ChassisLG::FORCE_RELAX_MODE);
         }
+
+#if ENABLE_REFEREE == TRUE
+        /// Reset referee UI
+        if (Remote::key.ctrl && Remote::key.shift && Remote::key.z) {
+            RefereeUILG::reset();
+        }
+#endif
 
         /// Final
         sleep(TIME_MS2I(USER_THREAD_INTERVAL));
     }
 }
 
-//void UserS::set_mode(UserS::sentry_mode_t mode) {
-//    if (mode == sentryMode) return;
-//
-//    sentryMode = mode;
-//
-//    if (sentryMode == FORCED_RELAX_MODE) GimbalLG::set_action(GimbalLG::FORCED_RELAX_MODE);
-//    else {
-//        GimbalLG::set_action(GimbalLG::SENTRY_MODE);
-//        if (sentryMode == AUTO_MODE) {
-//            // Resume the thread
-//            blind_mode_start_time = SYSTIME;
-//            chSysLock();  /// --- ENTER S-Locked state. DO NOT use LOG, printf, non S/I-Class functions or return ---
-//            if (!vitualUserThread.started) {
-//                vitualUserThread.started = true;
-//                chSchWakeupS(vitualUserThreadReference.getInner(), 0);
-//            }
-//            chSysUnlock();  /// --- EXIT S-Locked state ---
-//        }
-//    }
-//}
+void UserS::UserActionThread::main() {
+    setName("UserS_Action");
 
-//void UserS::VitualUserThread::main() {
-//
-//    setName("Sentry_Gimbal_Auto");
-//
-//    while (!shouldTerminate()) {
-//
-//        chSysLock();  /// --- ENTER S-Locked state. DO NOT use LOG, printf, non S/I-Class functions or return ---
-//        if (sentryMode != AUTO_MODE) {
-//            started = false;
-//            chSchGoSleepS(CH_STATE_SUSPENDED);
+    chEvtRegisterMask(&Remote::key_press_event, &key_press_listener, EVENT_MASK(0));
+
+    while (!shouldTerminate()) {
+        chEvtWaitAny(ALL_EVENTS);
+
+        /**
+         * NOTICE: use flags instead of direct accessing variable in Remote, since event can be trigger by other key, etc
+         */
+
+        eventflags_t key_flag = chEvtGetAndClearFlags(&key_press_listener);
+
+        if (key_flag & (1U << Remote::KEY_Z)) {
+            if (Remote::key.ctrl && Remote::key.shift) {
+#if ENABLE_REFEREE == TRUE
+                // Ctrl + Shift + Z: reset referee UI
+                RefereeUILG::reset();
+#endif
+            } else {
+                // Z: chassis follow mode
+#if ENABLE_AHRS
+                ChassisLG::set_mode(ChassisLG::GIMBAL_REF_MODE);
+#else
+                ChassisLG::set_mode(ChassisLG::CHASSIS_REF_MODE);
+#endif
+            }
+        }
+
+        if (key_flag & (1U << Remote::KEY_X)) {
+            if (Remote::key.ctrl && Remote::key.shift) {
+                // Ctrl + Shift + X: ignore shoot constraints
+                ignore_shoot_constraints = true;
+            } else {
+                // X: chassis dodge mode
+#if ENABLE_AHRS
+                ChassisLG::set_mode(ChassisLG::DODGE);
+#else
+                ChassisLG::set_mode(ChassisLG::CHASSIS_REF_MODE);
+#endif
+            }
+        }
+
+//        if (key_flag & (1U << Remote::KEY_Q)) {
+//            // Q: left rotate 90 degree
+//            gimbal_yaw_target_angle_ += 90.0f;
+//            GimbalLG::set_target_angle(gimbal_yaw_target_angle_, gimbal_pc_pitch_target_angle_);
+//        } else if (key_flag & (1U << Remote::KEY_E)) {
+//            // E: left rotate 90 degree
+//            gimbal_yaw_target_angle_ -= 90.0f;
+//            GimbalLG::set_target_angle(gimbal_yaw_target_angle_, gimbal_pc_pitch_target_angle_);
 //        }
-//        chSysUnlock();  /// --- EXIT S-Locked state ---
-//
-//        Vision::send_gimbal(GimbalLG::get_accumulated_angle(GimbalLG::YAW),
-//                            GimbalLG::get_accumulated_angle(GimbalLG::PITCH));
-//
-////        VisionPort::send_enemy_color(Referee::game_robot_state.robot_id < 10);
-//
-//        enemy_spotted = WITHIN_RECENT_TIME(Vision::last_update_time, 50);
-//
-//        if (enemy_spotted){
-//            LOG("%.2f, %.2f   yaw: %.2f, pitch: %%.2f, distance: %.2f", GimbalLG::get_accumulated_angle(GimbalLG::YAW), GimbalLG::get_accumulated_angle(GimbalLG::PITCH), Vision::enemy_info.yaw_delta, Vision::enemy_info.pitch_delta, Vision::enemy_info.dist);
-//        }
-//
-//        /*** ---------------------------------- Gimbal + Shooter --------------------------------- ***/
-//
-//        if (v_user_mode == FINAL_AUTO_MODE && enemy_spotted) {
-//            float yaw_delta = Vision::enemy_info.yaw_delta + 17 - gimbal_yaw_target_angle_,
-//                    pitch_delta = Vision::enemy_info.pitch_delta - 12 - gimbal_pitch_target_angle_;
-//
-//            if (!ABS_IN_RANGE(yaw_delta, GIMBAL_YAW_TARGET_FAST_TRIGGER)) {
-//                gimbal_yaw_target_angle_ +=
-//                        SIGN(yaw_delta) * (yaw_sensitivity[TARGET_FAST] * AUTO_CONTROL_INTERVAL / 1000.0f);
-//            } else {
-//                gimbal_yaw_target_angle_ +=
-//                        SIGN(yaw_delta) * (yaw_sensitivity[TARGET_SLOW] * AUTO_CONTROL_INTERVAL / 1000.0f);
-//            }
-//
-//            fire = (ABS_IN_RANGE(yaw_delta, GIMBAL_YAW_SHOOT_TRIGGER_ANGLE) && ABS_IN_RANGE(pitch_delta, GIMBAL_PIT_SHOOT_TRIGGER_ANGLE));
-//
-//
-//            if (!ABS_IN_RANGE(pitch_delta, GIMBAL_PITCH_TARGET_FAST_TRIGGER))
-//                gimbal_pitch_target_angle_ +=
-//                        SIGN(pitch_delta) * (pitch_sensitivity[TARGET_FAST] * AUTO_CONTROL_INTERVAL / 1000.0f);
-//            else
-//                gimbal_pitch_target_angle_ +=
-//                        SIGN(pitch_delta) * (pitch_sensitivity[TARGET_SLOW] * AUTO_CONTROL_INTERVAL / 1000.0f);
-//
-//            VAL_CROP(gimbal_yaw_target_angle_, gimbal_yaw_max_angle, gimbal_yaw_min_angle);
-//            VAL_CROP(gimbal_pitch_target_angle_, gimbal_pitch_max_angle, gimbal_pitch_min_angle);
-//
-//        } else if ((v_user_mode == FINAL_AUTO_MODE && !enemy_spotted) || v_user_mode == CRUISING_ONLY_MODE) {
-//
-//            if (gimbal_yaw_target_angle_ < yaw_terminal){
-//                gimbal_yaw_target_angle_ +=
-//                        (yaw_sensitivity[CRUISING] * AUTO_CONTROL_INTERVAL / 1000.0f);
-//            }else{
-//                gimbal_yaw_target_angle_ -=
-//                        (yaw_sensitivity[CRUISING] * AUTO_CONTROL_INTERVAL / 1000.0f);
-//            }
-//
-//            if (gimbal_pitch_target_angle_ < pitch_terminal){
-//                gimbal_pitch_target_angle_ +=
-//                        (pitch_sensitivity[CRUISING] * AUTO_CONTROL_INTERVAL / 1000.0f);
-//            }else{
-//                gimbal_pitch_target_angle_ -=
-//                        (pitch_sensitivity[CRUISING] * AUTO_CONTROL_INTERVAL / 1000.0f);
-//            }
-//
-//            if (gimbal_yaw_target_angle_ >= gimbal_yaw_max_angle) yaw_terminal = gimbal_yaw_min_angle;
-//            else if (gimbal_yaw_target_angle_ <= gimbal_yaw_min_angle) yaw_terminal = gimbal_yaw_max_angle;
-//
-//            if (gimbal_pitch_target_angle_ >= gimbal_pitch_max_angle) pitch_terminal = gimbal_pitch_min_angle;
-//            else if (gimbal_pitch_target_angle_ <= gimbal_pitch_min_angle) pitch_terminal = gimbal_pitch_max_angle;
-//
-//            fire = false;
-//        }
-//
-//        GimbalLG::set_target(gimbal_yaw_target_angle_, gimbal_pitch_target_angle_, 0);
-//
-//        /*** ---------------------------------- Chassis --------------------------------- ***/
-//
-//        if ((v_user_mode == FINAL_AUTO_MODE) && (enemy_spotted || Referee::robot_hurt.armor_id > 0)) {
-//            if (!SChassisLG::get_escaping_status()) {
-//                SChassisLG::start_escaping();
-//            }
-//        }
-//
-//        sleep(TIME_MS2I(AUTO_CONTROL_INTERVAL));
-//    }
-//
-//}
-//
-//void UserS::VitualUserThread::set_v_user_mode(UserS::VitualUserThread::vitual_user_mode_t mode) {
-//    v_user_mode = mode;
-//}
+    }
+}
