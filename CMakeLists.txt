@@ -374,6 +374,21 @@ target_include_directories(ut_omni_chassis PRIVATE dev/application/unit_tests/ut
 target_compile_definitions(ut_omni_chassis PRIVATE ut_omni_chassis)
 target_link_libraries(ut_omni_chassis ${AHRS_LIB})
 
+add_executable(ut_sentry
+        ${VEHICLE_COMMON_SRC}
+        ${AHRS_SRC}
+        dev/application/unit_tests/ut_sentry/can_motor_config.cpp
+        dev/application/unit_tests/ut_sentry/ut_chassis.cpp
+        dev/interface/can_motor/can_motor_controller.cpp
+        dev/scheduler/mecanum_chassis_scheduler.cpp
+        dev/logic/chassis_logic.cpp
+        dev/module/low_pass_filter.hpp
+        dev/application/unit_tests/ut_chassis/ut_chassis.cpp)
+target_include_directories(ut_sentry PRIVATE dev/application/unit_tests/ut_chassis)
+target_compile_definitions(ut_sentry PRIVATE ut_sentry)
+target_link_libraries(ut_sentry ${AHRS_LIB})
+
+
 # --------------------------------------- Param Adjusts ---------------------------------------
 
 #add_executable(pa_hero_gimbal
