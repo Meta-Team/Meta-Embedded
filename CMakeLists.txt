@@ -362,12 +362,13 @@ target_link_libraries(ut_chassis ${AHRS_LIB})
 # --------------------------------------- Param Adjusts ---------------------------------------
 
 # Chassis
-add_executable(pa_chassis
-        dev/interface/can/can_interface.cpp
-        dev/scheduler/mecanum_chassis_scheduler.cpp
-        dev/scheduler/gimbal_scheduler.cpp
-        dev/application/param_adjusts/pa_chassis/pa_chassis.cpp)
-target_compile_definitions(pa_chassis PUBLIC INFANTRY)
+# Temporarily disabled by Tony Zhang on 4/15/2023
+#add_executable(pa_chassis
+#        dev/interface/can/can_interface.cpp
+#        dev/scheduler/mecanum_chassis_scheduler.cpp
+#        dev/scheduler/gimbal_scheduler.cpp
+#        dev/application/param_adjusts/pa_chassis/pa_chassis.cpp)
+#target_compile_definitions(pa_chassis PUBLIC INFANTRY)
 
 # Gimbal: include CANInterface, GimbalInterface, GimbalController, GimbalFeedbackThread and adjustment modules.
 
