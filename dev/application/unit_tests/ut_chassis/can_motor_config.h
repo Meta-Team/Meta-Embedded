@@ -11,6 +11,7 @@
 class CANMotorCFG {
 public:
     enum motor_id_t {
+        EMPTY,
         FL,
         FR,
         BR,
