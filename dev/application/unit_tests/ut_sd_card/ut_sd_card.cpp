@@ -1,16 +1,18 @@
 //
 // Created by liuzikai on 2019/07/13.
+// Modified by Tony Zhang on 4/15/2023
 //
 
 /**
  * This file contain SD Card Unit Test.
  */
-// TODO: Fix the bugs in this file.
+
 #include "ch.hpp"
 #include "hal.h"
 
 #include "interface/led/led.h"
 #include "shell.h"
+#include "chprintf.h"
 
 #include "interface/sd_card/sd_card_interface.h"
 
@@ -25,11 +27,10 @@ __PACKED_STRUCT test_struct_t {
     bool b;
 } test_data;
 
-static void cmd_sd_write(BaseSequentialStream *chp, int argc, char *argv[]) {
+DEF_SHELL_CMD_START(cmd_sd_write)
     (void) argv;
     if (argc != 5) {
-        shellUsage(chp, "sd_write x y z a b");
-        return;
+        return false;
     }
     test_data.x = Shell::atof(argv[0]);
     test_data.y = Shell::atof(argv[1]);
@@ -37,13 +38,13 @@ static void cmd_sd_write(BaseSequentialStream *chp, int argc, char *argv[]) {
     test_data.a = Shell::atoi(argv[3]);
     test_data.b = Shell::atoi(argv[4]);
     chprintf(chp, "%d" SHELL_NEWLINE_STR, SDCard::write_data(TEST_DATA_CMD_ID, &test_data, sizeof(test_data)));
-}
+    return true;// command executed successfully
+DEF_SHELL_CMD_END
 
-static void cmd_sd_get(BaseSequentialStream *chp, int argc, char *argv[]) {
+DEF_SHELL_CMD_START(cmd_sd_get)
     (void) argv;
     if (argc != 0) {
-        shellUsage(chp, "sd_get");
-        return;
+        return false;
     }
     chprintf(chp, "%d" SHELL_NEWLINE_STR, SDCard::get_data(TEST_DATA_CMD_ID, &test_data, sizeof(test_data)));
     chprintf(chp, "test_data.x = %f" SHELL_NEWLINE_STR, test_data.x);
@@ -51,33 +52,34 @@ static void cmd_sd_get(BaseSequentialStream *chp, int argc, char *argv[]) {
     chprintf(chp, "test_data.z = %f" SHELL_NEWLINE_STR, test_data.z);
     chprintf(chp, "test_data.a = %d" SHELL_NEWLINE_STR, test_data.a);
     chprintf(chp, "test_data.b = %d" SHELL_NEWLINE_STR, test_data.b);
-}
+    return true;// command executed successfully
+DEF_SHELL_CMD_END
 
-static void cmd_sd_read_all(BaseSequentialStream *chp, int argc, char *argv[]) {
+DEF_SHELL_CMD_START(cmd_sd_read_all)
     (void) argv;
     if (argc != 0) {
-        shellUsage(chp, "sd_read_all");
-        return;
+        return false;
     }
     chprintf(chp, "%d" SHELL_NEWLINE_STR, SDCard::read_all());
-}
+    return true;// command executed successfully
+DEF_SHELL_CMD_END
 
-static void cmd_sd_erase(BaseSequentialStream *chp, int argc, char *argv[]) {
+DEF_SHELL_CMD_START(cmd_sd_erase)
     (void) argv;
     if (argc != 0) {
-        shellUsage(chp, "sd_erase");
-        return;
+        return false;
     }
     chprintf(chp, "%d" SHELL_NEWLINE_STR, SDCard::erase());
-}
+    return true; // command executed successfully
+DEF_SHELL_CMD_END
 
 
-ShellCommand sdCommands[] = {
-        {"sd_write", cmd_sd_write},
-        {"sd_get", cmd_sd_get},
-        {"sd_read_all", cmd_sd_read_all},
-        {"sd_erase", cmd_sd_erase},
-        {nullptr,    nullptr}
+Shell::Command sdCommands[] = {
+        {"sd_write", "sd_write x y z a b", cmd_sd_write, nullptr},
+        {"sd_get","sd_get", cmd_sd_get, nullptr},
+        {"sd_read_all", "sd_read_all",cmd_sd_read_all, nullptr},
+        {"sd_erase", "sd_erase",cmd_sd_erase, nullptr},
+        {nullptr,    nullptr, nullptr, nullptr}
 };
 
 

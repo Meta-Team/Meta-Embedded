@@ -79,7 +79,7 @@ int main(void) {
     can2.start(HIGHPRIO - 1);
 
 //    ahrs.load_calibration_data({-0.984146595, 1.359451293, 0.020426832});
-    ahrs.start(&can2);
+    ahrs->start(&can2);
     BuzzerSKD::play_sound(BuzzerSKD::sound_startup);
 
     feedbackThread.start(NORMALPRIO);

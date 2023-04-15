@@ -1,6 +1,7 @@
 //
 // Created by Quoke on 8/1/2022.
-//
+// Added by Tony Zhang
+// Note, this Unit test is deprecated since advance of new sentry
 
 #ifndef META_EMBEDDED_CAN_MOTOR_CONFIG_H
 #define META_EMBEDDED_CAN_MOTOR_CONFIG_H

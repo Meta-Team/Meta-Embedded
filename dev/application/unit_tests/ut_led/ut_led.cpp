@@ -1,13 +1,13 @@
 //
 // Created by liuzikai on 2019-02-09.
-//
+// Modified by Tony Zhang on 4/15/2023
 
 #include "ch.hpp"
 #include "hal.h"
 
-#include "hardware_driver/button/button_monitor.h"
-#include "interface/led/led.h"
-#include "debug/shell/shell.h"
+#include "button_monitor.h"
+#include "led.h"
+#include "shell.h"
 
 using namespace chibios_rt;
 
@@ -63,7 +63,7 @@ int main(void) {
     System::init();
 
     // Start button monitor threads.
-    buttonK0.start(NORMALPRIO, 0, 0, 0);
+    buttonK0.start(NORMALPRIO);
 
     // Start LED blink thread.
     blinkLEDThread.set_button_monitor(&buttonK0);

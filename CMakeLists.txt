@@ -278,18 +278,18 @@ include_directories(dev/application/unit_tests/)
 add_executable(ut_blink
         dev/interface/button/button_monitor.cpp
         dev/application/unit_tests/ut_led/ut_led.cpp)
+target_include_directories(ut_blink
+        PRIVATE
+        dev/interface/button
+        dev/application/unit_tests/ut_led)
 
 # Remote Interpreter: include remote_interpreter sources and the unit test modules.
 add_executable(ut_remote_interpreter
         dev/interface/remote/remote_interpreter.cpp
         dev/application/unit_tests/ut_remote_if/ut_remoteIF.cpp)
-
-# IMU: include IMU interface and unit test.
-add_executable(ut_imu
-        dev/interface/ahrs/ahrs_math.hpp
-        dev/interface/ahrs/imu_on_board.cpp
-        dev/interface/ahrs/ahrs.cpp
-        dev/application/unit_tests/ut_ahrs/ut_ahrs.cpp)
+target_include_directories(ut_remote_interpreter
+        PRIVATE
+        dev/application/unit_tests/ut_remote_if)
 
 # AHRS
 add_executable(ut_ahrs
@@ -316,12 +316,13 @@ add_executable(ut_buzzer
 target_include_directories(ut_buzzer PRIVATE dev/application/unit_tests/ut_buzzer)
 
 # Referee
-add_executable(ut_referee_interface
-        dev/common/CRC8.cpp
-        dev/common/CRC16.cpp
-        dev/interface/referee/referee_interface.cpp
-        dev/application/unit_tests/ut_referee_if/ut_referee_if.cpp)
-target_include_directories(ut_referee_interface PRIVATE dev/application/unit_tests/ut_referee_if)
+# temporarily disabled by Tony Zhang
+#add_executable(ut_referee_interface
+#        dev/common/CRC8.cpp
+#        dev/common/CRC16.cpp
+#        dev/interface/referee/referee_interface.cpp
+#        dev/application/unit_tests/ut_referee_if/ut_referee_if.cpp)
+#target_include_directories(ut_referee_interface PRIVATE dev/application/unit_tests/ut_referee_if)
 
 add_executable(ut_sd_card
         dev/interface/sd_card/sd_card_interface.cpp
@@ -334,13 +335,16 @@ add_executable(ut_oled
         dev/interface/oled/oled_interface.cpp)
 target_include_directories(ut_oled PRIVATE dev/application/unit_tests/ut_oled)
 
-add_executable(ut_sentry_chassis
-        ${VEHICLE_COMMON_SRC}
-        dev/interface/buzzer/buzzer_interface.cpp
-        dev/interface/buzzer/buzzer_scheduler.cpp
-        dev/application/unit_tests/ut_sentry_chassis/can_motor_config.cpp
-        dev/application/unit_tests/ut_sentry_chassis/ut_sentry_chassis.cpp)
-target_include_directories(ut_sentry_chassis PRIVATE dev/application/unit_tests/ut_sentry_chassis)
+# Added by Tony Zhang
+# Note, this Unit test is deprecated since advance of new sentry
+#
+#add_executable(ut_sentry_chassis
+#        ${VEHICLE_COMMON_SRC}
+#        dev/interface/buzzer/buzzer_interface.cpp
+#        dev/interface/buzzer/buzzer_scheduler.cpp
+#        dev/application/unit_tests/ut_sentry_chassis/can_motor_config.cpp
+#        dev/application/unit_tests/ut_sentry_chassis/ut_sentry_chassis.cpp)
+#target_include_directories(ut_sentry_chassis PRIVATE dev/application/unit_tests/ut_sentry_chassis)
 
 add_executable(ut_chassis
         ${VEHICLE_COMMON_SRC}

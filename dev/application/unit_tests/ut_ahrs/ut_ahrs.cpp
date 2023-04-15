@@ -12,7 +12,7 @@
 #include "ahrs_abstract.h"
 #include "buzzer_scheduler.h"
 #include <cmath>
-
+//TODO there is a deadlock in the feedbackThread, fix it
 using namespace chibios_rt;
 
 static constexpr Matrix33 AHRS_MATRIX = {{0.0f, 0.0f, 1.0f},
@@ -95,14 +95,14 @@ int main(void) {
     halInit();
     System::init();
 
-    Shell::start(NORMALPRIO - 10);
+    Shell::start(HIGHPRIO-10 );
 //    Shell::addCommands(ahrsShellCommands);
     LED::all_off();
 
     ahrs.start(AHRS_MATRIX, NORMALPRIO - 1);
 
     abstract_ahrs = &ahrs;
-    feedbackThread.start(NORMALPRIO);
+    //feedbackThread.start(NORMALPRIO);
 
     // See chconf.h for what this #define means.
 #if CH_CFG_NO_IDLE_THREAD
