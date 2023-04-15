@@ -9,13 +9,24 @@ set(CMAKE_SYSTEM_PROCESSOR arm)
 # ---------- Toolchain Configurations ----------
 
 # The following lines set the toolchain. Setting toolchain in CLion preference is also valid.
-
-set(TOOLCHAIN_PREFIX arm-none-eabi-)
-set(CMAKE_C_COMPILER   ${TOOLCHAIN_PREFIX}gcc    )
-set(CMAKE_ASM_COMPILER ${TOOLCHAIN_PREFIX}gcc    )
-set(CMAKE_CXX_COMPILER ${TOOLCHAIN_PREFIX}g++    )
-set(CMAKE_OBJCOPY      ${TOOLCHAIN_PREFIX}objcopy)
-set(CMAKE_SIZE_UTILITY ${TOOLCHAIN_PREFIX}size)
+# Add support for compiling from CLI
+if(WIN32)
+# For windows system
+set(EXTENSION ".exe")
+else()
+# For the UNIX like systems
+set(EXTENSION "")
+endif()
+# To retain a clear environment by not directly adding it to system PATH
+if(SDK_CLEAR_ENV)
+    set(ARM_TOOLCHAIN_DIR "C:/Program Files (x86)/GNU Arm Embedded Toolchain/10 2021.10/bin/")
+endif()
+set(TOOLCHAIN_PREFIX "${ARM_TOOLCHAIN_DIR}arm-none-eabi-")
+set(CMAKE_C_COMPILER   ${TOOLCHAIN_PREFIX}gcc${EXTENSION}    )
+set(CMAKE_ASM_COMPILER ${TOOLCHAIN_PREFIX}gcc${EXTENSION}    )
+set(CMAKE_CXX_COMPILER ${TOOLCHAIN_PREFIX}g++${EXTENSION}   )
+set(CMAKE_OBJCOPY      ${TOOLCHAIN_PREFIX}objcopy${EXTENSION})
+set(CMAKE_SIZE_UTILITY ${TOOLCHAIN_PREFIX}size${EXTENSION})
 set(CMAKE_EXE_LINKER_FLAGS "--specs=nosys.specs")
 
 

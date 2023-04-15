@@ -28,6 +28,7 @@ Shell::FeedbackThread Shell::feedbackThread;
 THD_WORKING_AREA(wa, SHELL_RX_WORK_AREA_SIZE);  // the working area for the shell rx thread
 
 static ShellConfig shellConfig;
+// Serial config for Serial Driver
 #if ENABLE_USB_SHELL == FALSE
 static constexpr SerialConfig SHELL_SERIAL_CONFIG = {115200,
                                                      0,
@@ -52,7 +53,7 @@ bool Shell::start(tprio_t prio) {
             (ShellCommand *) shellCommands,
             &printfMutex,
 #if (SHELL_USE_HISTORY == TRUE)
-            , new char[64],
+             new char[64],
             64
 #endif
 #if (SHELL_USE_COMPLETION == TRUE)

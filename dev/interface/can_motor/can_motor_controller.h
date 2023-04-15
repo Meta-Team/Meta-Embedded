@@ -126,7 +126,7 @@ private:
     private:
         float targetA[MOTOR_COUNT];
         float targetV[MOTOR_COUNT];
-        int   output[MOTOR_COUNT];
+        int   output[MOTOR_COUNT]; // output current (mapped 16bit)
         float PID_output[MOTOR_COUNT];
         void main() final;
         friend feedbackThread;

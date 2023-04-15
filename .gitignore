@@ -40,3 +40,7 @@ html/
 
 .DS_Store
 openocd.log
+# to prevent adding cache 
+.cache/
+.vscode/
+.editorconfig

@@ -3,10 +3,16 @@
 # =========== General Part ===========
 
 cmake_minimum_required(VERSION 3.10)
+set (BUILD_HERO TRUE)
+set (BUILD_SENTRY TRUE)
+set (BUILD_INFANTRY3 TRUE)
+set (BUILD_INFANTRY4 TRUE)
+set (BUILD_INFANTRY5 TRUE)
+
 
 include(config/toolchain.cmake)  # include cross compile configurations
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 14)
 
 # Check dev board definition
 # NOTICE: ${BOARD_NAME} needs to be specific externally
@@ -135,124 +141,129 @@ add_library(ChibiOS OBJECT ${CHIBIOS_XASM_SRC} ${CHIBIOS_C_SRC} ${CHIBIOS_CPP_SR
 # NOTICE: UPDATE README IF THE CONFIGURATIONS IS UPDATED
 
 # ========================== Robot's Control Programs ===========================
-set(INFANTRY_SRC
-        ${VEHICLE_COMMON_SRC}
-        ${AHRS_SRC}
-        ${CHASSIS_SRC}
-        ${VISION_SRC}
-        ${REFEREE_SRC}
+if(BUILD_INFANTRY3 OR BUILD_INFANTRY4 OR BUILD_INFANTRY5)
+    set(INFANTRY_SRC
+            ${VEHICLE_COMMON_SRC}
+            ${AHRS_SRC}
+            ${CHASSIS_SRC}
+            ${VISION_SRC}
+            ${REFEREE_SRC}
 
-        # Infantry gimbal
-        dev/scheduler/gimbal_scheduler.cpp
-        dev/logic/gimbal_logic.cpp
+            # Infantry gimbal
+            dev/scheduler/gimbal_scheduler.cpp
+            dev/logic/gimbal_logic.cpp
 
-        # Infantry shoot
-        dev/scheduler/shoot_scheduler.cpp
-        dev/logic/shoot_logic.cpp
+            # Infantry shoot
+            dev/scheduler/shoot_scheduler.cpp
+            dev/logic/shoot_logic.cpp
 
-        # Infantry has super capacitor
-        dev/interface/capacitor/capacitor_interface.cpp
+            # Infantry has super capacitor
+            dev/interface/capacitor/capacitor_interface.cpp
 
-        # Main
-        dev/application/vehicles/infantry/can_motor_config.cpp
-        dev/application/vehicles/infantry/inspector_infantry.cpp
-        dev/application/vehicles/infantry/user_infantry.cpp
-        dev/application/vehicles/infantry/main_infantry.cpp)
+            # Main
+            dev/application/vehicles/infantry/can_motor_config.cpp
+            dev/application/vehicles/infantry/inspector_infantry.cpp
+            dev/application/vehicles/infantry/user_infantry.cpp
+            dev/application/vehicles/infantry/main_infantry.cpp)
 
-set(INFANTRY_DEFS
-        INFANTRY
-        INFANTRY_GIMBAL_ENABLE=1
-        INFANTRY_CHASSIS_ENABLE=1
-        INFANTRY_SUPER_CAPACITOR_ENABLE=1
-        INFANTRY_VISION_ENABLE=1)
+    set(INFANTRY_DEFS
+            INFANTRY
+            INFANTRY_GIMBAL_ENABLE=1
+            INFANTRY_CHASSIS_ENABLE=1
+            INFANTRY_SUPER_CAPACITOR_ENABLE=1
+            INFANTRY_VISION_ENABLE=1)
 
-set(INFANTRY_LIBS
-        ${AHRS_LIB})
-
+    set(INFANTRY_LIBS
+            ${AHRS_LIB})
+endif()
 # Main Program -- Infantry #3
-add_executable(INFANTRY_THREE ${INFANTRY_SRC})
-target_include_directories(INFANTRY_THREE PRIVATE dev/application/vehicles/infantry)
-target_compile_definitions(INFANTRY_THREE PRIVATE ${INFANTRY_DEFS} INFANTRY_THREE)
-target_link_libraries(INFANTRY_THREE ${INFANTRY_LIBS})
-
-# Main Program -- Infantry #4
-add_executable(INFANTRY_FOUR ${INFANTRY_SRC})
-target_include_directories(INFANTRY_FOUR PRIVATE dev/application/vehicles/infantry)
-target_compile_definitions(INFANTRY_FOUR PRIVATE ${INFANTRY_DEFS} INFANTRY_FOUR)
-target_link_libraries(INFANTRY_FOUR ${INFANTRY_LIBS})
-
+if(BUILD_INFANTRY3)
+    add_executable(INFANTRY_THREE ${INFANTRY_SRC})
+    target_include_directories(INFANTRY_THREE PRIVATE dev/application/vehicles/infantry)
+    target_compile_definitions(INFANTRY_THREE PRIVATE ${INFANTRY_DEFS} INFANTRY_THREE)
+    target_link_libraries(INFANTRY_THREE ${INFANTRY_LIBS})
+endif()
+## Main Program -- Infantry #4
+if(BUILD_INFANTRY4)
+    add_executable(INFANTRY_FOUR ${INFANTRY_SRC})
+    target_include_directories(INFANTRY_FOUR PRIVATE dev/application/vehicles/infantry)
+    target_compile_definitions(INFANTRY_FOUR PRIVATE ${INFANTRY_DEFS} INFANTRY_FOUR)
+    target_link_libraries(INFANTRY_FOUR ${INFANTRY_LIBS})
+endif()
 # Main Program -- Infantry #5
-add_executable(INFANTRY_FIVE ${INFANTRY_SRC})
-target_include_directories(INFANTRY_FIVE PRIVATE dev/application/vehicles/infantry)
-target_compile_definitions(INFANTRY_FIVE PRIVATE ${INFANTRY_DEFS} INFANTRY_FIVE)
-target_link_libraries(INFANTRY_FIVE ${INFANTRY_LIBS})
-
+if(BUILD_INFANTRY5)
+    add_executable(INFANTRY_FIVE ${INFANTRY_SRC})
+    target_include_directories(INFANTRY_FIVE PRIVATE dev/application/vehicles/infantry)
+    target_compile_definitions(INFANTRY_FIVE PRIVATE ${INFANTRY_DEFS} INFANTRY_FIVE)
+    target_link_libraries(INFANTRY_FIVE ${INFANTRY_LIBS})
+endif()
 # Main Program -- Hero
-add_executable(HERO
-        ${VEHICLE_COMMON_SRC}
-        ${AHRS_SRC}
-        ${CHASSIS_SRC}
-        ${VISION_SRC}
-        ${REFEREE_SRC}
+if(BUILD_HERO)
+    add_executable(HERO
+            ${VEHICLE_COMMON_SRC}
+            ${AHRS_SRC}
+            ${CHASSIS_SRC}
+            ${VISION_SRC}
+            ${REFEREE_SRC}
 
-        # Hero gimbal
-        dev/scheduler/gimbal_scheduler.cpp
-        dev/logic/gimbal_logic.cpp
+            # Hero gimbal
+            dev/scheduler/gimbal_scheduler.cpp
+            dev/logic/gimbal_logic.cpp
 
-        # Hero shoot
-        dev/scheduler/shoot_scheduler.cpp
-        dev/logic/shoot_logic.cpp
+            # Hero shoot
+            dev/scheduler/shoot_scheduler.cpp
+            dev/logic/shoot_logic.cpp
 
-        # Hero has super capacitor
-        dev/interface/capacitor/capacitor_interface.cpp
-        dev/interface/lidar/lidar_interface.cpp
+            # Hero has super capacitor
+            dev/interface/capacitor/capacitor_interface.cpp
+            dev/interface/lidar/lidar_interface.cpp
 
-        # Main
-        dev/application/vehicles/hero/can_motor_config.cpp
-        dev/application/vehicles/hero/inspector_hero.cpp
-        dev/application/vehicles/hero/user_hero.cpp
-        dev/application/vehicles/hero/main_hero.cpp)
-target_include_directories(HERO PRIVATE dev/application/vehicles/hero)
-target_compile_definitions(HERO PRIVATE HERO)
-target_link_libraries(HERO ${AHRS_LIB})
+            # Main
+            dev/application/vehicles/hero/can_motor_config.cpp
+            dev/application/vehicles/hero/inspector_hero.cpp
+            dev/application/vehicles/hero/user_hero.cpp
+            dev/application/vehicles/hero/main_hero.cpp)
+    target_include_directories(HERO PRIVATE dev/application/vehicles/hero)
+    target_compile_definitions(HERO PRIVATE HERO)
+    target_link_libraries(HERO ${AHRS_LIB})
+endif()
+#add_executable(HAPTIC_DVC
+#        ${VEHICLE_COMMON_SRC}
+#        ${AHRS_SRC}
+#        dev/application/vehicles/haptic_device/Communicator.cpp
+#        dev/application/vehicles/haptic_device/can_motor_config.cpp
+#        dev/application/vehicles/haptic_device/Inspector.cpp
+#        dev/logic/haptic_logic.cpp
+#        dev/module/low_pass_filter.hpp
+#        dev/application/vehicles/haptic_device/main_haptic.cpp)
+#target_include_directories(HAPTIC_DVC PRIVATE dev/application/vehicles/haptic_device)
+#target_compile_definitions(HAPTIC_DVC PRIVATE HAPTIC_DVC)
+#target_link_libraries(HAPTIC_DVC ${AHRS_LIB})
+if(BUILD_SENTRY)
+    # Main Program -- Sentry
+    add_executable(SENTRY
+            ${VEHICLE_COMMON_SRC}
+            #        ${AHRS_EXT_SRC}
 
-add_executable(HAPTIC_DVC
-        ${VEHICLE_COMMON_SRC}
-        ${AHRS_SRC}
-        dev/application/vehicles/haptic_device/Communicator.cpp
-        dev/application/vehicles/haptic_device/can_motor_config.cpp
-        dev/application/vehicles/haptic_device/Inspector.cpp
-        dev/logic/haptic_logic.cpp
-        dev/module/low_pass_filter.hpp
-        dev/application/vehicles/haptic_device/main_haptic.cpp)
-target_include_directories(HAPTIC_DVC PRIVATE dev/application/vehicles/haptic_device)
-target_compile_definitions(HAPTIC_DVC PRIVATE HAPTIC_DVC)
-target_link_libraries(HAPTIC_DVC ${AHRS_LIB})
+            dev/interface/referee/referee_interface.cpp
 
-# Main Program -- Sentry
-add_executable(SENTRY
-        ${VEHICLE_COMMON_SRC}
-#        ${AHRS_EXT_SRC}
+            dev/scheduler/sentry_chassis_scheduler.cpp
+            dev/scheduler/gimbal_scheduler.cpp
+            dev/scheduler/shoot_scheduler.cpp
 
-        dev/interface/referee/referee_interface.cpp
+            dev/logic/sentry_chassis_logic.cpp
+            dev/logic/gimbal_logic.cpp
+            dev/logic/shoot_logic.cpp
 
-        dev/scheduler/sentry_chassis_scheduler.cpp
-        dev/scheduler/gimbal_scheduler.cpp
-        dev/scheduler/shoot_scheduler.cpp
-
-        dev/logic/sentry_chassis_logic.cpp
-        dev/logic/gimbal_logic.cpp
-        dev/logic/shoot_logic.cpp
-
-        dev/application/vehicles/sentry/inspector_sentry.cpp
-        dev/application/vehicles/sentry/can_motor_config.cpp
-        dev/application/vehicles/sentry/user_sentry.cpp
-        dev/application/vehicles/sentry/main_sentry.cpp
-        )
-target_include_directories(SENTRY PRIVATE dev/application/vehicles/sentry)
-target_compile_definitions(SENTRY PRIVATE SENTRY)
-target_link_libraries(SENTRY ${AHRS_LIB})
-
+            dev/application/vehicles/sentry/inspector_sentry.cpp
+            dev/application/vehicles/sentry/can_motor_config.cpp
+            dev/application/vehicles/sentry/user_sentry.cpp
+            dev/application/vehicles/sentry/main_sentry.cpp
+            )
+    target_include_directories(SENTRY PRIVATE dev/application/vehicles/sentry)
+    target_compile_definitions(SENTRY PRIVATE SENTRY)
+    target_link_libraries(SENTRY ${AHRS_LIB})
+endif()
 # Main Program -- Engineer
 
 
@@ -395,8 +406,6 @@ target_compile_definitions(ca_ahrs_hero PRIVATE HERO)
 
 # Make all targets compile to this filename to allow upload script to work properly
 set(ELF_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/build)
-set(ELF_OUTPUT_NAME meta.elf)
-message("[Notice] All executables are built to ${ELF_OUTPUT_PATH}/${ELF_OUTPUT_NAME}")
 
 add_definitions(-DBUILD_TARGET_NAME="$<TARGET_PROPERTY:NAME>")
 
@@ -416,12 +425,12 @@ foreach (target ${TARGET_LIST})
         # Run size utility after link to show the size of elf file
         add_custom_command(TARGET ${target} POST_BUILD
                 COMMAND echo
-                COMMAND ${CMAKE_SIZE_UTILITY} ${ELF_OUTPUT_PATH}/${ELF_OUTPUT_NAME}
+                COMMAND ${CMAKE_SIZE_UTILITY} ${ELF_OUTPUT_PATH}/${target}.elf
                 COMMAND echo)  # execute size utility to show size of executable file
 
         # Set unique output file
         set_target_properties(${target} PROPERTIES
                 RUNTIME_OUTPUT_DIRECTORY ${ELF_OUTPUT_PATH}
-                OUTPUT_NAME ${ELF_OUTPUT_NAME})  #
+                OUTPUT_NAME ${target}.elf)  #
     endif ()
 endforeach (target)

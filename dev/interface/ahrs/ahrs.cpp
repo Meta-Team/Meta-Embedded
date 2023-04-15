@@ -60,7 +60,7 @@ DEF_SHELL_CMD_START(AHRSOnBoard::cmdInfo)
 DEF_SHELL_CMD_END
 
 void AHRSOnBoard::cmdFeedback(void *arg) {
-    auto ahrs = reinterpret_cast<AHRSOnBoard *>(arg);
+    auto ahrs = reinterpret_cast<AHRSOnBoard *>(arg);// AHRSOnBoard object
     for (int i = 0; i < 4; i++) {
         if (ahrs->feedbackEnabled[i]) {
             Vector3D v;
@@ -80,6 +80,7 @@ DEF_SHELL_CMD_START(AHRSOnBoard::cmdEnableFeedback)
     int id;
     bool enabled;
     if (!Shell::parseIDAndBool(argc, argv, 4, id, enabled)) return false;
+    // id(channel) feedback(enabled) there are 4 channels angle gyro magnet
     if (id == -1) {
         for (bool &e : ahrs->feedbackEnabled) e = enabled;
     } else {

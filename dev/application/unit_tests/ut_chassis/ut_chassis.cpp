@@ -59,7 +59,9 @@ int main() {
     can2.start(NORMALPRIO+1);
     CANMotorController::start(NORMALPRIO + 2, NORMALPRIO + 3, &can1, &can2);
     Remote::start();
+
     MecanumChassisSKD::init(HIGHPRIO-4,550.0f,500.0f,478.0f);
+
     ChassisLG::init(NORMALPRIO+4, NORMALPRIO+5, 180.0f);
     ChassisLG::set_mode(ChassisLG::CHASSIS_REF_MODE);
     ControlThread.start(NORMALPRIO + 6);

@@ -15,12 +15,19 @@
 
 #if (CAN_INTERFACE_ENABLE_ERROR_FEEDBACK_THREAD == TRUE)
 
-void CANInterface::ErrorFeedbackThread::main() {
+void CANInterface::ErrorFeedbackThread::main()  {
     setName("CAN_Err_FB");
 
     event_listener_t el;
     chEvtRegister(&(can_driver->error_event), &el, 0);
-
+    int iCanBusID;
+    if(can_driver == &CAND1){
+        iCanBusID = 1;
+    }else if(can_driver == &CAND2){
+        iCanBusID = 2;
+    }else{
+        iCanBusID = -1;
+    }
     while (!shouldTerminate()) {
 
         if (waitAnyEventTimeout(ALL_EVENTS, TIME_MS2I(10000)) == 0) {
@@ -29,7 +36,7 @@ void CANInterface::ErrorFeedbackThread::main() {
         }
 
         eventflags_t flags = chEvtGetAndClearFlags(&el);
-        LOG_ERR("CAN Error %u", flags);
+        LOG_ERR("CAN%d Error %u", iCanBusID,flags);
         last_error_time = SYSTIME;
     }
 
