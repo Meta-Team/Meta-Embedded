@@ -64,7 +64,7 @@ int main() {
     Remote::start();
     MecanumChassisSKD::init(HIGHPRIO-4,550.0f,500.0f,478.0f);
     ChassisLG::init(NORMALPRIO+4, NORMALPRIO+5, 180.0f);
-    ChassisLG::set_mode(ChassisLG::CHASSIS_REF_MODE);
+    ChassisLG::set_mode(ChassisLG::FORCE_RELAX_MODE);
     ControlThread.start(NORMALPRIO + 6);
 
 
