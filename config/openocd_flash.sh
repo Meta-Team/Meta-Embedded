@@ -9,6 +9,9 @@
 #
 # ----------------------------------------------------------------
 
+config_base=$(dirname $(realpath $0))
+cd "$config_base"
+
 # default behavior: exit
 exit_cmd="exit"
 # default flash file: hero
