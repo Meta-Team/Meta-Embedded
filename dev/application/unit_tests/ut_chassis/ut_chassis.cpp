@@ -18,6 +18,8 @@
 #include "hardware_conf.h"
 // Other headers here
 
+//#define UT_CHASSIS_SHELL_CONTROL
+
 using namespace chibios_rt;
 CANInterface can1(&CAND1);
 CANInterface can2(&CAND2);
@@ -47,24 +49,55 @@ private:
         }
     }
 } ControlThread;
+// tweak the speed of a specified motor
+DEF_SHELL_CMD_START(MotorVelocity)
+    if(argc != 2){
+        return false;
+    }
+    LOG("Set motor%d's velocity:%.2f",(CANMotorCFG::motor_id_t)Shell::atoi(argv[0]), Shell::atof(argv[1]));
+    CANMotorController::set_target_vel((CANMotorCFG::motor_id_t)Shell::atoi(argv[0]), Shell::atof(argv[1]));
+
+    return true;
+DEF_SHELL_CMD_END
+// turn a specific motor on/off
+DEF_SHELL_CMD_START(MotorFB)
+    if(argc != 2){
+        return false;
+    }
+    CANMotorController::shell_display((CANMotorCFG::motor_id_t)Shell::atoi(argv[0]),(CANMotorCFG::motor_id_t)Shell::atoi(argv[1]));
+    return true;
+DEF_SHELL_CMD_END
+// switch to the mode of controlling each motor's speed in the shell console
 
 
+const Shell::Command debugCmds[4] = {
+        {"motorVelocity","motorVelocity [id0-3] [speed(float)]", MotorVelocity, nullptr},
+        {"motorFB","motorFB [id0-3] [on/off0-1]", MotorFB, nullptr},
+        {nullptr,nullptr,nullptr,nullptr}
+};
 int main() {
     halInit();
     System::init();
 
     // Start ChibiOS shell at high priority, so even if a thread stucks, we still have access to shell.
     Shell::start(HIGHPRIO);
+    Shell::addCommands(debugCmds);
     can1.start(NORMALPRIO);
     can2.start(NORMALPRIO+1);
     CANMotorController::start(NORMALPRIO + 2, NORMALPRIO + 3, &can1, &can2);
     Remote::start();
-
+#ifndef UT_CHASSIS_SHELL_CONTROL
     MecanumChassisSKD::init(HIGHPRIO-4,550.0f,500.0f,478.0f);
 
     ChassisLG::init(NORMALPRIO+4, NORMALPRIO+5, 180.0f);
     ChassisLG::set_mode(ChassisLG::CHASSIS_REF_MODE);
     ControlThread.start(NORMALPRIO + 6);
+#else
+    CANMotorCFG::enable_v2i[CANMotorCFG::FL] = true;
+    CANMotorCFG::enable_v2i[CANMotorCFG::FR] = true;
+    CANMotorCFG::enable_v2i[CANMotorCFG::BR] = true;
+    CANMotorCFG::enable_v2i[CANMotorCFG::BL] = true;
+#endif
 
 
 #if CH_CFG_NO_IDLE_THREAD // see chconf.h for what this #define means
