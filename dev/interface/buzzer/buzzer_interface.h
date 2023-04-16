@@ -68,6 +68,21 @@ private:
     static note_t now_playing_note; // Single note to play.
 
     // PWM configuration for buzzer
+#if defined(BOARD_RM_2018_A) || defined(BOARD_RM_2017)
+    static constexpr PWMConfig pwm_config = {
+            1000000,
+            1000000, // Default playing_note: 1Hz
+            nullptr,
+            {
+                    {PWM_OUTPUT_ACTIVE_HIGH, nullptr},  // it's all CH1 for 2017 and A
+                    {PWM_OUTPUT_DISABLED, nullptr},
+                    {PWM_OUTPUT_DISABLED, nullptr},     // CH3 for C
+                    {PWM_OUTPUT_DISABLED, nullptr}
+            },
+            0,
+            0
+    };
+#elif defined(BOARD_RM_C)
     static constexpr PWMConfig pwm_config = {
             1000000,
             1000000, // Default playing_note: 1Hz
@@ -75,13 +90,13 @@ private:
             {
                     {PWM_OUTPUT_DISABLED, nullptr},  // it's all CH1 for 2017 and A
                     {PWM_OUTPUT_DISABLED, nullptr},
-                    {PWM_OUTPUT_DISABLED, nullptr},
-                    {PWM_OUTPUT_ACTIVE_HIGH, nullptr}  // CH3 for C
+                    {PWM_OUTPUT_ACTIVE_HIGH, nullptr}, // CH3 for C
+                    {PWM_OUTPUT_DISABLED, nullptr}
             },
             0,
             0
     };
-
+#endif
     static constexpr int ALERT_NOTE = Do1M;  // continuous alert playing_note
 };
 
