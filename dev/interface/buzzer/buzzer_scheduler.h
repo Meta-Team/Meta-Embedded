@@ -163,6 +163,10 @@ public:
             {So5L, 250}, {Si7L, 250}, {Re2M, 250}, {Do1M, 250}, {Mi3M, 250}, {So5M, 250}, {Silent, 250}, {Finish, 250}
     };
 
+    static constexpr note_with_time_t sound_startup_dji[] = {
+            {Do1M, 250}, {Re2M, 250}, {So5M, 250},  {Silent, 250}, {Finish, 250}
+    };
+
     static constexpr note_with_time_t sound_startup_intel[] = {
             {Fa4H, 250}, {Fa4H, 250}, {Silent, 250}, {So5M, 250}, {Do1H, 250}, {So5M, 250}, {Re2H, 250}, {Re2H, 250},
             {Re2H, 250}, {Finish, 250}

@@ -8,6 +8,7 @@
 #include "hal.h"
 
 #include "led.h"
+#include "buzzer_scheduler.h"
 #include "shell.h"
 
 #include "bmi088_interface.h"
@@ -83,6 +84,8 @@ int main(void) {
 
     // Indicating thread running
     LED::green_on();
+    BuzzerSKD::init(LOWPRIO);
+    BuzzerSKD::play_sound(BuzzerSKD::sound_startup_dji);
 
     feedbackThread.start(NORMALPRIO+1);
 

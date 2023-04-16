@@ -15,6 +15,7 @@
 
 constexpr BuzzerSKD::note_with_time_t BuzzerSKD::sound_alert[];
 constexpr BuzzerSKD::note_with_time_t BuzzerSKD::sound_startup[];
+constexpr BuzzerSKD::note_with_time_t BuzzerSKD::sound_startup_dji[];
 constexpr BuzzerSKD::note_with_time_t BuzzerSKD::sound_startup_intel[];
 constexpr BuzzerSKD::note_with_time_t BuzzerSKD::sound_infinity_warning[];
 constexpr BuzzerSKD::note_with_time_t BuzzerSKD::sound_little_star[];
