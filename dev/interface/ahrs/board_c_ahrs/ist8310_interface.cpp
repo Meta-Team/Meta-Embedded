@@ -85,21 +85,15 @@ uint8_t IST8310Interface::init() {
     return error;
 }
 
-void IST8310Interface::load_calibration_data(Vector3D compass_bias_) {
-    compass_bias = compass_bias_;
-    last_calibration_time = SYSTIME;
-}
-
 void IST8310Interface::update() {
-    int16_t temp_ist8310_data = 0;
     ist8310_read_reg(IST8310_DATAXL, rx_buf, 6);
 
-    temp_ist8310_data = (int16_t)((rx_buf[1] << 8) | rx_buf[0]);
-    compass.x = MAG_SEN * temp_ist8310_data;
-    temp_ist8310_data = (int16_t)((rx_buf[3] << 8) | rx_buf[2]);
-    compass.y = MAG_SEN * temp_ist8310_data;
-    temp_ist8310_data = (int16_t)((rx_buf[5] << 8) | rx_buf[4]);
-    compass.z = MAG_SEN * temp_ist8310_data;
+    raw_temp = (int16_t)((rx_buf[1] << 8) | rx_buf[0]);
+    compass.x = MAG_SEN * raw_temp;
+    raw_temp = (int16_t)((rx_buf[3] << 8) | rx_buf[2]);
+    compass.y = MAG_SEN * raw_temp;
+    raw_temp = (int16_t)((rx_buf[5] << 8) | rx_buf[4]);
+    compass.z = MAG_SEN * raw_temp;
 }
 
 void IST8310Interface::main() {

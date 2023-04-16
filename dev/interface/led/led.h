@@ -160,11 +160,11 @@ public:
         if (i >= 1 && i <= 8) palTogglePad(GPIOG, i);
     }
 #else
-    static void led_on(unsigned i) {}
-
-    static void led_off(unsigned i) {}
-
-    static void led_toggle(unsigned i) {}
+//    static void led_on(unsigned i) {}
+//
+//    static void led_off(unsigned i) {}
+//
+//    static void led_toggle(unsigned i) {}
 #endif
 
     /**

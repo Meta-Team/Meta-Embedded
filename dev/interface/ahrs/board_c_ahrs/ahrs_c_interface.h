@@ -24,14 +24,6 @@
  */
 class AHRSOnBoard_C : public AbstractAHRS, protected chibios_rt::BaseStaticThread<512> {
 public:
-
-    /**
-     * Load external calibration data
-     * @param gyro_bias_   Gyro bias value
-     * @note To skip initial calibration at start(), call this function BEFORE start()
-     */
-    void load_calibration_data(Vector3D gyro_bias_) { imu.load_calibration_data(gyro_bias_); }
-
     /**
      * Start MPUOnBoard, ISTOnBoard and AHRS update thread
      * @note Should be called from NORMAL state (not in locks)
@@ -64,11 +56,6 @@ public:
      * @note x - yaw, y - pitch, z - roll
      */
     Vector3D get_angle() override { return angle; }
-
-    /**
-     * Get whether AHRS has been calibrated.
-     */
-    bool ready() { return imu.ready(); }
 
     time_msecs_t get_ahrs_update_time() const override { return ahrs_update_time; }
 

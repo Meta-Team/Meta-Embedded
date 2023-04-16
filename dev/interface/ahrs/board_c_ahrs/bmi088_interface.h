@@ -17,19 +17,11 @@
 #define BMI088_WRITE_ACCEL_REG_NUM 6
 #define BMI088_WRITE_GYRO_REG_NUM 6
 
-#define BMI088_GYRO_DATA_READY_BIT 0
-#define BMI088_ACCEL_DATA_READY_BIT 1
-#define BMI088_ACCEL_TEMP_DATA_READY_BIT 2
-
-#define BMI088_LONG_DELAY_TIME 80
 #define BMI088_COM_WAIT_SENSOR_TIME_US 150
 #define BMI088_SENSOR_RESET_TIME_MS 1
 
 #define BMI088_ACCEL_READ_OFFSET 2
 #define BMI088_GYRO_READ_OFFSET 1
-
-#define BMI088_ACCEL_IIC_ADDRESSE (0x18 << 1)
-#define BMI088_GYRO_IIC_ADDRESSE (0x68 << 1)
 
 #define BMI088_ACCEL_RANGE_3G
 //#define BMI088_ACCEL_RANGE_6G
@@ -42,12 +34,10 @@
 //#define BMI088_GYRO_RANGE_250
 //#define BMI088_GYRO_RANGE_125
 
-
 #define BMI088_ACCEL_3G_SEN 0.0008974358974f
 #define BMI088_ACCEL_6G_SEN 0.00179443359375f
 #define BMI088_ACCEL_12G_SEN 0.0035888671875f
 #define BMI088_ACCEL_24G_SEN 0.007177734375f
-
 
 #define BMI088_GYRO_2000_SEN 0.00106526443603169529841533860381f
 #define BMI088_GYRO_1000_SEN 0.00053263221801584764920766930190693f
@@ -78,18 +68,6 @@ public:
      */
     chibios_rt::ThreadReference start(tprio_t prio) override;
 
-    /**
-     * Load external calibration data
-     * @param gyro_bias_   Gyro bias value
-     * @note To skip initial calibration at init(), call this function BEFORE init()
-     */
-    void load_calibration_data(Vector3D gyro_bias_);
-
-    /**
-     * Return whether the device is ready
-     */
-    bool ready() const { return imu_startup_calibrated; };
-
     Vector3D get_gyro() const { return gyro; }
     Vector3D get_accel() const { return accel; }
     float get_temp() const { return temperature; }
@@ -106,32 +84,15 @@ private:
 
     Vector3D gyro;    // data from gyroscope [deg/s]
     Vector3D accel;   // data from accelerometer [m/s^2]
-    float temperature;
-
-    Vector3D gyro_raw;   // raw (biased) data of gyro
-
-    float gyro_psc;   // the coefficient converting the raw data to degree
-    float accel_psc;  // the coefficient converting the raw data to m/s^2
-
-    // TODO: calculate RX_BUF_SIZE
-    static constexpr size_t RX_BUF_SIZE = 6 /* gyro */ + 2 /* temperature */ + 6 /* accel */ + 7 /* ist8310*/;
-    uint8_t rx_buf[RX_BUF_SIZE];
-
     Vector3D gyro_bias;        // averaged gyro value when "static"
     Vector3D temp_gyro_bias;   // temp sum of gyro for calibration
 
+    static constexpr size_t RX_BUF_SIZE = 6 /* gyro */ + 2 /* temperature */ + 6 /* accel */ + 7 /* ist8310*/;
+    uint8_t rx_buf[RX_BUF_SIZE];
+    int16_t raw_temp;
+
+    float temperature;
     const float TEMPERATURE_BIAS = 0.0f;
-
-    // If changes in x, y, z of gyro is in this range BMI088 is regarded as "static"
-    const float STATIC_RANGE = 0.5f;
-
-    const unsigned BIAS_SAMPLE_COUNT = 500;
-    unsigned static_measurement_count;
-    // When static_measurement_count reaches BIAS_SAMPLE_COUNT, calibration is performed.
-
-    bool imu_startup_calibrated = false;
-
-    time_msecs_t last_calibration_time = 0;
 
     static constexpr int UPDATE_THREAD_INTERVAL = 1;  // [ms]
 
