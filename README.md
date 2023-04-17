@@ -1,4 +1,6 @@
-# Meta Team - Infantry 2021
+# Meta Team - Infantry 2023
+## Current project status
+master![C/C++ CI](https://github.com/Meta-Team/Meta-Embedded/actions/workflows/release.yml/badge.svg?branch=master)
 
 => 请务必阅读 [Project Wiki](https://github.com/Meta-Team/Meta-Infantry/wiki) :smiley:
 
@@ -17,8 +19,8 @@ and RM board 2017. With CMake, the code for each robot could be built by switchi
 # 基本结构 | Basic Structures
 
 
-更新日期：Nov.24, 2021
-Updated Time: Nov.24, 2021
+更新日期：April.17, 2023
+Updated Time: April.17, 2023
 
 ```
 Meta-Embedded
@@ -36,7 +38,7 @@ The project use C++ class for encapsulation and modularization. The modules will
 
 ```
 .
-├── board                               - STM32配置 | Configuration for STM32 -
+├── board_pin                            - STM32配置 | Configuration for STM32 -
 │   ├── rm_board_2017
 │   │     ├── board.c
 │   │     ├── board.h
@@ -47,6 +49,28 @@ The project use C++ class for encapsulation and modularization. The modules will
 │         ├── board.h
 │         ├── board.mk
 │         └── mcuconf.h
+├── application                         - 应用层程序 | Higher level Applications -
+│   ├───param_adjusts                   - 参数整调程序 | Parameter Adjust Programs -
+│   │   ├───pa_chassis               
+│   │   └───pa_infantry              
+│   ├───unit_tests                      - 单元测试 | Unit Tests-
+│   │   ├───ut_ahrs
+│   │   ├───ut_buzzer
+│   │   ├───ut_chassis
+│   │   ├───ut_led
+│   │   ├───ut_oled
+│   │   ├───ut_referee_if
+│   │   ├───ut_remote_if
+│   │   ├───ut_sd_card
+│   │   ├───ut_sentry_chassis
+│   │   └───ut_usb_com
+│   └───vehicles                        - 各类车辆 | Vehicles
+│       ├───aerial
+│       ├───engineer
+│       ├───haptic_device
+│       ├───hero
+│       ├───infantry
+│       └───sentry
 ├── interface                           - 较低层次的接口模块 | Low Level Interfaces -
 │   ├── ahrs                            - IMU 模块 | IMU Module -
 │   │   ├── ahrs.cpp                      综合运算模块 | Comprehensive Calculation Module -
@@ -65,7 +89,7 @@ The project use C++ class for encapsulation and modularization. The modules will
 │   │   ├── can_motor_feedback.h
 │   │   ├── CANMotorIF.cpp       大疆CAN电机整体接口 | Overall Interface for DJI Motors -
 │   │   └── CANMotorIF.h
-│   ├── virtual_COM                     - 虚拟串口 | STM32 Virtual COM port (CDC) -
+│   ├── usb_com                          - 虚拟串口 | STM32 Virtual COM port (CDC) -
 │   │   ├── usb_serial_port.cpp                   USB配置文件 | USB configuration file
 │   │   ├── usb_serial_port.h
 │   │   ├── VirtualCOMPort.cpp                       虚拟串口收发接口 | Interface for Virtual COM Port
@@ -89,21 +113,6 @@ The project use C++ class for encapsulation and modularization. The modules will
 │   ├── CRC8.h
 │   ├── CRC16.cpp
 │   └── CRC16.h
-├── debug                               - 调试相关代码 | Code for Tests -
-│   ├── shell                             内嵌终端 | Integrated Shell -
-│   │   ├── printf.c
-│   │   ├── printf.h
-│   │   ├── shell.cpp                     Shell 终端接口 | Shell Interface -
-│   │   ├── shell.h
-│   │   ├── shell_base.c
-│   │   ├── shell_base.h
-│   │   ├── shell_base_cmd.c
-│   │   ├── shell_base_cmd.h
-│   │   ├── shell_dbg_cmd.cpp             Shell 通用调试命令 | Universal Shell Commands -
-│   │   ├── shell_dbg_cmd.h
-│   │   └── shellconf.h                   Shell 配置文件 | Shell configuration -
-│   ├── unit_tests                      - 单元测试 | Unit Tests-
-│   └── param_adjusts                   - 参数整调程序 | Parameter Adjust Programs -
 ├── module                              - 模块（将来可能与common合并） | common modules (might merge with common soon) -                       
 ├── chconf.h                            ChibiOS 配置文件 | ChibiOS configuration
 └── halconf.h                           ChibiOS HAL 配置文件 | ChibiOS HAL configuraion

@@ -1,4 +1,4 @@
-name: CMake
+name: ReleaseBuildTest
 
 on:
   push:
@@ -25,7 +25,7 @@ jobs:
         
     - name: Configure CMake
     # Leave SDK_CLEAR_ENV to be unset to use the default compiler in this action
-      run: cmake -B $GITHUB_WORKSPACE/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} $GITHUB_WORKSPACE
+      run: cmake -B $GITHUB_WORKSPACE/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -GNinja $GITHUB_WORKSPACE
 
     - name: Build
       run: cmake --build $GITHUB_WORKSPACE/build --config ${{env.BUILD_TYPE}}
