@@ -38,6 +38,8 @@ public:
      */
     static void load_PID_params(motor_id_t id, bool is_a2v, PIDController::pid_params_t params);
 
+    static PIDController::pid_params_t getPIDParams(motor_id_t id, bool is_a2v);
+
     /**
      * @brief           Start/stop showing feedback data in shell.
      * @details         Feedback format in shell:

@@ -38,6 +38,22 @@ void CANMotorController::load_PID_params(motor_id_t id, bool is_a2v, PIDControll
     }
 }
 
+PIDController::pid_params_t CANMotorController::getPIDParams(motor_id_t id, bool is_a2v) {
+    PIDController::pid_params_t nullObj={
+            .kp=0.0f,
+            .ki=0.0f,
+            .kd=0.0f,
+            .i_limit=0.0f,
+            .out_limit=0.0f
+    };
+    if(id >= MOTOR_COUNT) return nullObj; // Check validation
+    if(is_a2v) {
+        return a2vController[id].get_parameters();
+    } else {
+        return v2iController[id].get_parameters();
+    }
+}
+
 void CANMotorController::shell_display(motor_id_t id, bool enable) {
     FeedbackThread.enable_feedback[id] = enable;
 }
