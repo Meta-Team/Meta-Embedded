@@ -2,8 +2,6 @@
 // Created by Tianyi Han on 3/19/2023.
 //
 
-#include "ut_ahrs_c.h"
-
 #include "ch.hpp"
 #include "hal.h"
 

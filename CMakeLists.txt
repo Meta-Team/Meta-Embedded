@@ -203,7 +203,7 @@ add_executable(HERO
         dev/application/vehicles/hero/can_motor_config.cpp
         dev/application/vehicles/hero/inspector_hero.cpp
         dev/application/vehicles/hero/user_hero.cpp
-        dev/application/vehicles/hero/main_hero.cpp)
+        dev/application/vehicles/hero/main_hero.cpp dev/scheduler/balancing_scheduler.cpp dev/scheduler/balancing_scheduler.h)
 target_include_directories(HERO PRIVATE dev/application/vehicles/hero)
 target_compile_definitions(HERO PRIVATE HERO)
 target_link_libraries(HERO ${AHRS_LIB})
@@ -244,6 +244,24 @@ add_executable(SENTRY
 target_include_directories(SENTRY PRIVATE dev/application/vehicles/sentry)
 target_compile_definitions(SENTRY PRIVATE SENTRY)
 target_link_libraries(SENTRY ${AHRS_LIB})
+
+# Main Program -- Balancing Prototype
+add_executable(BALANCING_PROTOTYPE
+        ${VEHICLE_COMMON_SRC}
+        # ahrs_c
+        dev/interface/ahrs/ahrs_lib_middleware.c
+        dev/interface/ahrs/board_c_ahrs/ahrs_c_interface.cpp
+        dev/interface/ahrs/board_c_ahrs/bmi088_interface.cpp
+        dev/interface/ahrs/board_c_ahrs/ist8310_interface.cpp
+        dev/application/vehicles/balancing_prototype/hardware_conf.h
+        dev/application/vehicles/balancing_prototype/can_motor_config.cpp
+        dev/application/vehicles/balancing_prototype/can_motor_config.h
+        dev/scheduler/balancing_scheduler.cpp dev/scheduler/balancing_scheduler.h
+        dev/application/vehicles/balancing_prototype/main_balancing_prototype.cpp)
+target_include_directories(BALANCING_PROTOTYPE PRIVATE dev/interface/ahrs/board_c_ahrs)
+target_include_directories(BALANCING_PROTOTYPE PRIVATE dev/interface/ahrs)
+target_include_directories(BALANCING_PROTOTYPE PRIVATE dev/application/vehicles/balancing_prototype)
+target_link_libraries(BALANCING_PROTOTYPE ${AHRS_LIB})
 
 # Main Program -- Engineer
 
