@@ -71,32 +71,40 @@ AHRSOnBoard ahrs;
 
 DEF_SHELL_CMD_START(cmd_motor_angle_enable)
     (void) argv;
-
+    if(argc != 1){
+        return false;
+    }
     unsigned motor_id = Shell::atoi(argv[0]);
     if (motor_id >= CANMotorCFG::MOTOR_COUNT) {
         Shell::printf("Invalid motor ID %d" SHELL_NEWLINE_STR, motor_id);
-        return true;
+        return false;
     }
     CANMotorCFG::enable_a2v[motor_id] = true;
     CANMotorCFG::enable_v2i[motor_id] = true;
+    return true; // command executed successfully
 DEF_SHELL_CMD_END
 
 DEF_SHELL_CMD_START(cmd_motor_angle_disable)
     (void) argv;
-
+    if(argc != 1){
+        return false;
+    }
     unsigned motor_id = Shell::atoi(argv[0]);
     if (motor_id >= CANMotorCFG::MOTOR_COUNT) {
         Shell::printf("Invalid motor ID %d" SHELL_NEWLINE_STR, motor_id);
-        return true;
+        return false;
     }
     CANMotorCFG::enable_a2v[motor_id] = false;
     CANMotorCFG::enable_v2i[motor_id] = false;
     CANMotorController::set_target_current((CANMotorCFG::motor_id_t)motor_id, 0);
+    return true; // command executed successfully
 DEF_SHELL_CMD_END
 
 DEF_SHELL_CMD_START(cmd_motor_velocity_enable)
     (void) argv;
-
+    if(argc != 1){
+        return false;
+    }
     unsigned motor_id = Shell::atoi(argv[0]);
     if (motor_id >= CANMotorCFG::MOTOR_COUNT) {
         Shell::printf("Invalid motor ID %d" SHELL_NEWLINE_STR, motor_id);
@@ -104,15 +112,19 @@ DEF_SHELL_CMD_START(cmd_motor_velocity_enable)
     }
     CANMotorCFG::enable_a2v[motor_id] = false;
     CANMotorCFG::enable_v2i[motor_id] = true;
+    return true; // command executed successfully
 DEF_SHELL_CMD_END
 
 DEF_SHELL_CMD_START(cmd_motor_velocity_disable)
     (void) argv;
-
+    if(argc != 1){
+        return false;
+    }
     unsigned motor_id = Shell::atoi(argv[0]);
     CANMotorCFG::enable_a2v[motor_id] = false;
     CANMotorCFG::enable_v2i[motor_id] = false;
     CANMotorController::set_target_current((CANMotorCFG::motor_id_t)motor_id, 0);
+    return true; // command executed successfully
 DEF_SHELL_CMD_END
 
 
@@ -121,45 +133,54 @@ DEF_SHELL_CMD_START(cmd_get_sid)
     unsigned motor_id = Shell::atoi(argv[0]);
     if (motor_id >= CANMotorCFG::MOTOR_COUNT) {
         Shell::printf("Invalid motor ID %d" SHELL_NEWLINE_STR, motor_id);
-        return true;
+        return false;
     }
-    Shell::printf("motor type: %d, motor sid: %d" SHELL_NEWLINE_STR,
+    Shell::printf("motor type: %d, motor sid: %x" SHELL_NEWLINE_STR,
                   CANMotorCFG::CANMotorProfile[motor_id].motor_type,
                   CANMotorCFG::CANMotorProfile[motor_id].CAN_SID);
+    return true; // command executed successfully
 DEF_SHELL_CMD_END
 
 DEF_SHELL_CMD_START(cmd_enable_feedback)
-    unsigned feedback_id = Shell::atoi(argv[0]);
-    if (feedback_id > 9) {
-        Shell::printf("Invalid feedback ID %d" SHELL_NEWLINE_STR, feedback_id);
-        return true;
+    if(argc != 1){
+        return false;
     }
-    Shell::printf("%s feedback enabled" SHELL_NEWLINE_STR, motor_name[feedback_id]);
-    CANMotorController::shell_display((CANMotorCFG::motor_id_t) feedback_id, true);
+    unsigned feedback_motor_id = Shell::atoi(argv[0]);
+    if (feedback_motor_id >= CANMotorCFG::MOTOR_COUNT) {
+        Shell::printf("Invalid feedback ID %d" SHELL_NEWLINE_STR, feedback_motor_id);
+        return false;
+    }
+    Shell::printf("%s feedback enabled" SHELL_NEWLINE_STR, motor_name[feedback_motor_id]);
+    CANMotorController::shell_display((CANMotorCFG::motor_id_t) feedback_motor_id, true);
+    return true; // command executed successfully
 DEF_SHELL_CMD_END
 
 DEF_SHELL_CMD_START(cmd_disable_feedback)
     (void) argv;
-    unsigned feedback_id = Shell::atoi(argv[0]);
-    if (feedback_id > 9) {
-        Shell::printf("Invalid feedback ID %d" SHELL_NEWLINE_STR, feedback_id);
-        return true;
+    if (argc != 1) {
+        return false;
     }
-    Shell::printf("%s feedback disabled" SHELL_NEWLINE_STR, motor_name[feedback_id]);
-    CANMotorController::shell_display((CANMotorCFG::motor_id_t) feedback_id, false);
+    unsigned feedback_motor_id = Shell::atoi(argv[0]);
+    if (feedback_motor_id >= CANMotorCFG::MOTOR_COUNT) {
+        Shell::printf("Invalid feedback ID %d" SHELL_NEWLINE_STR, feedback_motor_id);
+        return false;
+    }
+    Shell::printf("%s feedback disabled" SHELL_NEWLINE_STR, motor_name[feedback_motor_id]);
+    CANMotorController::shell_display((CANMotorCFG::motor_id_t) feedback_motor_id, false);
+    return true; // command executed successfully
 DEF_SHELL_CMD_END
 
 DEF_SHELL_CMD_START(cmd_set_param)
     (void) argv;
     unsigned motor_id = Shell::atoi(argv[0]);
-    if (motor_id > 5) {
+    if (motor_id >= CANMotorCFG::MOTOR_COUNT) {
         Shell::printf("Invalid motor ID %d" SHELL_NEWLINE_STR, motor_id);
-        return true;
+        return false;
     }
     unsigned pid_id = Shell::atoi(argv[1]);
     if (pid_id > 1) {
         Shell::printf("Invalid pid ID %d" SHELL_NEWLINE_STR, pid_id);
-        return true;
+        return false;
     }
     PIDController::pid_params_t pid_param = {Shell::atof(argv[2]),
                                              Shell::atof(argv[3]),
@@ -170,6 +191,7 @@ DEF_SHELL_CMD_START(cmd_set_param)
     CANMotorController::load_PID_params((CANMotorCFG::motor_id_t) motor_id,  pid_id == 0, pid_param);
 
     Shell::printf("ps!" SHELL_NEWLINE_STR);
+    return true; // command executed successfully
 DEF_SHELL_CMD_END
 
 DEF_SHELL_CMD_START(cmd_echo_param)
@@ -177,47 +199,46 @@ DEF_SHELL_CMD_START(cmd_echo_param)
     unsigned motor_id = Shell::atoi(argv[0]);
     if (motor_id >= CANMotorCFG::MOTOR_COUNT) {
         Shell::printf("Invalid motor ID %d" SHELL_NEWLINE_STR, motor_id);
-        return true;
+        return false;
     }
 
     unsigned pid_id = Shell::atoi(argv[1]);
     if (pid_id > 1) {
         Shell::printf("Invalid pid ID %d" SHELL_NEWLINE_STR, pid_id);
-        return true;
+        return false;
     }
 
     PIDController::pid_params_t pid_param = {0,0,0,0,0};
-    if (pid_id == 0) {
-        pid_param = CANMotorCFG::a2vParams[motor_id];
-    } else {
-        pid_param = CANMotorCFG::v2iParams[motor_id];
-    }
-    Shell::printf("ki: %.2f, kp: %.2f, kd: %.2f, i_limit: %.2f, out_limit: %.2f" SHELL_NEWLINE_STR,
-                 pid_param.ki, pid_param.kp, pid_param.kd, pid_param.i_limit, pid_param.out_limit);
+    pid_param = CANMotorController::getPIDParams((CANMotorCFG::motor_id_t)motor_id, (pid_id == 0));
+    Shell::printf("kp: %.2f, ki: %.2f, kd: %.2f, i_limit: %.2f, out_limit: %.2f" SHELL_NEWLINE_STR,
+                 pid_param.kp, pid_param.ki, pid_param.kd, pid_param.i_limit, pid_param.out_limit);
+    return true; // command executed successfully
 DEF_SHELL_CMD_END
 
 DEF_SHELL_CMD_START(cmd_set_target_angle)
     (void) argv;
     unsigned motor_id = Shell::atoi(argv[0]);
-    if (motor_id > 3) {
+    if (motor_id >= CANMotorCFG::MOTOR_COUNT) {
         Shell::printf("Invalid motor ID %d" SHELL_NEWLINE_STR, motor_id);
-        return true;
+        return false;
     }
     float angle = Shell::atof(argv[1]);
     CANMotorController::set_target_angle((CANMotorCFG::motor_id_t)motor_id, angle);
     Shell::printf("ps!" SHELL_NEWLINE_STR);
+    return true; // command executed successfully
 DEF_SHELL_CMD_END
 
 DEF_SHELL_CMD_START(cmd_set_target_velocity)
     (void) argv;
     unsigned motor_id = Shell::atoi(argv[0]);
-    if (motor_id > 3) {
+    if (motor_id >= CANMotorCFG::MOTOR_COUNT) {
         Shell::printf("Invalid motor ID %d" SHELL_NEWLINE_STR, motor_id);
-        return true;
+        return false;
     }
     float velocity = Shell::atof(argv[1]);
     CANMotorController::set_target_vel((CANMotorCFG::motor_id_t)motor_id, velocity);
     Shell::printf("ps!" SHELL_NEWLINE_STR);
+    return true; // command executed successfully
 DEF_SHELL_CMD_END
 
 DEF_SHELL_CMD_START(cmd_echo_actual_angle)
@@ -225,11 +246,12 @@ DEF_SHELL_CMD_START(cmd_echo_actual_angle)
     unsigned motor_id = Shell::atoi(argv[0]);
     if (motor_id >= CANMotorCFG::MOTOR_COUNT) {
         Shell::printf("Invalid motor ID %d" SHELL_NEWLINE_STR, motor_id);
-        return true;
+        return false;
     }
     float angle = 0;
     angle = CANMotorIF::motor_feedback[motor_id].accumulate_angle();
     Shell::printf("%.2f" SHELL_NEWLINE_STR, angle);
+    return true; // command executed successfully
 DEF_SHELL_CMD_END
 
 DEF_SHELL_CMD_START(cmd_echo_raw_angle)
@@ -237,9 +259,10 @@ DEF_SHELL_CMD_START(cmd_echo_raw_angle)
     unsigned motor_id = Shell::atoi(argv[0]);
     if (motor_id >= CANMotorCFG::MOTOR_COUNT) {
         Shell::printf("Invalid motor ID %d" SHELL_NEWLINE_STR, motor_id);
-        return true;
+        return false;
     }
     Shell::printf("%d" SHELL_NEWLINE_STR, CANMotorIF::motor_feedback[motor_id].rotor_angle_raw);
+    return true; // command executed successfully
 DEF_SHELL_CMD_END
 
 
@@ -259,7 +282,7 @@ private:
                 if(previous_rcs1_state == Remote::S_DOWN) {
                     /// Wake from safe mode
                     /// Initialize velocity PID
-                    for(auto &i : vel_group) {
+                    /*for(auto &i : vel_group) {
                         CANMotorCFG::enable_a2v[i] = false;
                         CANMotorCFG::enable_v2i[i] = true;
                     }
@@ -267,7 +290,7 @@ private:
                     for(auto &i : angle_group) {
                         CANMotorCFG::enable_a2v[i] = true;
                         CANMotorCFG::enable_v2i[i] = true;
-                    }
+                    }*/
                 }
                 /// Gimbal Response Test through Remote Controller
                 gimbal_yaw_target_angle_ +=
@@ -280,18 +303,20 @@ private:
                 // ch1 use up as positive direction, while GimbalLG also use up as positive direction
 
                 VAL_CROP(pitch_target, gimbal_pitch_max_angle, gimbal_pitch_min_angle);
-                CANMotorController::set_target_angle(CANMotorCFG::YAW, gimbal_yaw_target_angle_);
-                CANMotorController::set_target_angle(CANMotorCFG::PITCH, pitch_target);
+                /// Do not let the remote thread to affect those target motors, YAW,PITCH & FW_DOWN FW_UP, add by tz61
+
+                //CANMotorController::set_target_angle(CANMotorCFG::YAW, gimbal_yaw_target_angle_);
+                //CANMotorController::set_target_angle(CANMotorCFG::PITCH, pitch_target);
                 /// Shoot Response Test through Remote Controller
-                if (!ABS_IN_RANGE(Remote::rc.wheel, 0.5)) {  // down
-                    CANMotorController::set_target_vel(CANMotorCFG::FW_DOWN,friction_velocity);
-                    CANMotorController::set_target_vel(CANMotorCFG::FW_UP,-friction_velocity);
-                    CANMotorController::set_target_vel(CANMotorCFG::BULLET_LOADER, loader_velocity);
-                } else {
-                    CANMotorController::set_target_vel(CANMotorCFG::FW_DOWN,0.0f);
-                    CANMotorController::set_target_vel(CANMotorCFG::FW_UP,0.0f);
-                    CANMotorController::set_target_vel(CANMotorCFG::BULLET_LOADER, 0.0f);
-                }
+                // if (!ABS_IN_RANGE(Remote::rc.wheel, 0.5)) {  // down
+                //    CANMotorController::set_target_vel(CANMotorCFG::FW_DOWN,friction_velocity);
+                //    CANMotorController::set_target_vel(CANMotorCFG::FW_UP,-friction_velocity);
+                //    CANMotorController::set_target_vel(CANMotorCFG::BULLET_LOADER, loader_velocity);
+                // } else {
+                //    CANMotorController::set_target_vel(CANMotorCFG::FW_DOWN,0.0f);
+                //    CANMotorController::set_target_vel(CANMotorCFG::FW_UP,0.0f);
+                //    CANMotorController::set_target_vel(CANMotorCFG::BULLET_LOADER, 0.0f);
+                // }
                 /// TODO: Add chassis response test through remote controller.
             }
 
@@ -321,7 +346,7 @@ Shell::Command mainProgramCommands[] = {
         {"get_sid",           "motor_id",                                                             cmd_get_sid,               nullptr},
         {"fb_enable",         "motor_id",                                                             cmd_enable_feedback,       nullptr},
         {"fb_disable",        "motor_id",                                                             cmd_disable_feedback,      nullptr},
-        {"set_pid",           "motor_id pid_id(0: angle_to_v, 1: v_to_i) ki kp kd i_limit out_limit", cmd_set_param,             nullptr},
+        {"set_pid",           "motor_id pid_id(0: angle_to_v, 1: v_to_i) kp ki kd i_limit out_limit", cmd_set_param,             nullptr},
         {"echo_pid",          "motor_id pid_id(0: angle_to_v, 1: v_to_i)",                            cmd_echo_param,            nullptr},
         {"set_target_angle",  "motor_id target_angle",                                                cmd_set_target_angle,      nullptr},
         {"set_target_vel",    "motor_id target_vel",                                                  cmd_set_target_velocity,  nullptr},
