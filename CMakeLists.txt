@@ -263,6 +263,20 @@ if(BUILD_SENTRY)
     target_include_directories(SENTRY PRIVATE dev/application/vehicles/sentry)
     target_compile_definitions(SENTRY PRIVATE SENTRY)
     target_link_libraries(SENTRY ${AHRS_LIB})
+    file(GLOB AUTO_SENTRY_SRC dev/application/vehicles/auto_sentry/*.cpp)
+    add_executable(AUTO_SENTRY
+            ${VEHICLE_COMMON_SRC}
+            ${AUTO_SENTRY_SRC}
+            dev/interface/can_motor/can_motor_controller.cpp
+            dev/scheduler/mecanum_chassis_scheduler.cpp
+            dev/logic/chassis_logic.cpp
+            dev/module/low_pass_filter.hpp
+            )
+    target_include_directories(AUTO_SENTRY PRIVATE dev/application/vehicles/auto_sentry)
+    target_compile_definitions(AUTO_SENTRY PRIVATE AUTO_SENTRY)
+    target_link_libraries(AUTO_SENTRY ${AHRS_LIB})
+    # TODO this defines the ut_chassis macro to use mecanum chassis, later we need to switch to omnichassis(WIP)
+    target_compile_definitions(AUTO_SENTRY PRIVATE ut_chassis)
 endif()
 # Main Program -- Engineer
 
@@ -317,6 +331,7 @@ target_include_directories(ut_buzzer PRIVATE dev/application/unit_tests/ut_buzze
 
 # Referee
 # temporarily disabled by Tony Zhang
+# TODO re-enable this one, since referee is outdated
 #add_executable(ut_referee_interface
 #        dev/common/CRC8.cpp
 #        dev/common/CRC16.cpp
