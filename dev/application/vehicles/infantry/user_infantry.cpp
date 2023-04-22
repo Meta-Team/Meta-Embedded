@@ -42,7 +42,10 @@ float UserI::chassis_pc_shift_ratio = 1.8f;  // 180% when Shift is pressed
 float UserI::chassis_pc_ctrl_ratio = 0.5f;    // 50% when Ctrl is pressed
 
 float UserI::shoot_feed_rate = 5.0f;   // [bullet/s]
+
+// adjust for infantry4 in rmul2023 shanghai
 float UserI::shoot_fw_speed[3] = {23300, 23300, 23300};  // [Slow, Normal, Fast] [deg/s]
+
 
 
 /// Variables
