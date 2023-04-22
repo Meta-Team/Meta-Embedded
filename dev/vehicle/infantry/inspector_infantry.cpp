@@ -145,7 +145,7 @@ bool InspectorI::remote_failure() {
 
 bool InspectorI::check_gimbal_failure() {
     bool ret = false;
-    if(Referee::bullet_remaining.bullet_remaining_num_17mm > 0) {
+    /*if(Referee::bullet_remaining.bullet_remaining_num_17mm > 0) {
         for (unsigned i = 0; i < 6; i++) {
             if (not WITHIN_RECENT_TIME(GimbalIF::feedback[i]->last_update_time, 250) &&
                                                 GimbalIF::feedback[i]->type != CANInterface::NONE_MOTOR) {
@@ -155,7 +155,7 @@ bool InspectorI::check_gimbal_failure() {
                 ret = true;
             }
         }
-    } else {
+    } else {*/
         for (unsigned i = 0; i < 2; i++) {
             if (not WITHIN_RECENT_TIME(GimbalIF::feedback[i]->last_update_time, 250) &&
                 GimbalIF::feedback[i]->type != CANInterface::NONE_MOTOR) {
@@ -165,7 +165,7 @@ bool InspectorI::check_gimbal_failure() {
                 ret = true;
             }
         }
-    }
+    //}
     return ret;
 }
 

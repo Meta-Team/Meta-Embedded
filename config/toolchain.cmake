@@ -10,12 +10,12 @@ set(CMAKE_SYSTEM_PROCESSOR arm)
 
 # The following lines set the toolchain. Setting toolchain in CLion preference is also valid.
 
-set(TOOLCHAIN_PREFIX arm-none-eabi-)
-set(CMAKE_C_COMPILER   ${TOOLCHAIN_PREFIX}gcc    )
-set(CMAKE_ASM_COMPILER ${TOOLCHAIN_PREFIX}gcc    )
-set(CMAKE_CXX_COMPILER ${TOOLCHAIN_PREFIX}g++    )
-set(CMAKE_OBJCOPY      ${TOOLCHAIN_PREFIX}objcopy)
-set(CMAKE_SIZE_UTILITY ${TOOLCHAIN_PREFIX}size)
+set(TOOLCHAIN_PREFIX "C:/Program Files (x86)/GNU Arm Embedded Toolchain/10 2021.10/bin/arm-none-eabi-")
+set(CMAKE_C_COMPILER   ${TOOLCHAIN_PREFIX}gcc.exe    )
+set(CMAKE_ASM_COMPILER ${TOOLCHAIN_PREFIX}gcc.exe    )
+set(CMAKE_CXX_COMPILER ${TOOLCHAIN_PREFIX}g++.exe    )
+set(CMAKE_OBJCOPY      ${TOOLCHAIN_PREFIX}objcopy.exe)
+set(CMAKE_SIZE_UTILITY ${TOOLCHAIN_PREFIX}size.exe)
 set(CMAKE_EXE_LINKER_FLAGS "--specs=nosys.specs")
 
 

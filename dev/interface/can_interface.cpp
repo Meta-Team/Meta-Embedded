@@ -175,7 +175,11 @@ void CANInterface::RxThread::main() {
 
         // Process every received message
         while (canReceive(can_driver, CAN_ANY_MAILBOX, &rxmsg, TIME_IMMEDIATE) == MSG_OK) {
-
+            /*if(can_driver == &CAND1){
+                LOG("[CAN1BUS]rxmsg->SID = [%x]",rxmsg.SID);
+            }else if (can_driver == &CAND2){
+                LOG("[CAN2BUS]rxmsg->SID = [%x]",rxmsg.SID);
+            }*/
             if(rxmsg.SID <= 0x20B && rxmsg.SID >= 0x201) {
                 uint16_t new_actual_angle_raw = (rxmsg.data8[0] << 8 | rxmsg.data8[1]);
 
