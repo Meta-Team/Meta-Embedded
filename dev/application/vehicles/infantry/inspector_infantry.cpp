@@ -155,8 +155,10 @@ bool InspectorI::remote_failure() {
 bool InspectorI::check_gimbal_failure() {
     bool ret = false;
     /// TODO: Modified with referee.
+
+    // DON'T GROUP THE Motors in the Ammo booster group to the gimbal group(categorized by the power supply port)
 //    if(Referee::bullet_remaining.bullet_remaining_num_17mm > 0) {
-    for (unsigned i = CANMotorCFG::YAW; i < CANMotorCFG::FW_DOWN + 1; i++) {
+    for (unsigned i = CANMotorCFG::YAW; i < CANMotorCFG::PITCH + 1; i++) {
         if (not WITHIN_RECENT_TIME(CANMotorIF::motor_feedback[i].last_update_time, 250)) {
             if (!gimbal_failure_) {  // avoid repeating printing
                 LOG_ERR("Gimbal motor %u offline (at %u)", i, CANMotorIF::motor_feedback[i].last_update_time);
