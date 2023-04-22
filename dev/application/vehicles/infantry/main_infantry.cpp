@@ -205,7 +205,7 @@ int main() {
     UserI::start(THREAD_USER_PRIO, THREAD_USER_ACTION_PRIO);
 
     /// Complete Period 2
-    BuzzerSKD::play_sound(BuzzerSKD::sound_kong_fu_FC);  // Now play the startup sound
+    BuzzerSKD::play_sound(BuzzerSKD::Touhou15Stage5Boss);  // Now play the startup sound
 
 
     /*** ------------------------ Period 3. End of main thread ----------------------- ***/
