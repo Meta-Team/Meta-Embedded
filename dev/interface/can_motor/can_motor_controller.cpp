@@ -160,10 +160,6 @@ void CANMotorController::feedbackThread::main() {
                                 CANMotorIF::motor_feedback[disp_id].actual_velocity, CANMotorController::SKDThread.targetV[disp_id],
                                 CANMotorIF::motor_feedback[disp_id].torque_current(), (int)CANMotorController::SKDThread.PID_output[disp_id]);
             */
-            Shell::printf("%.2f\t%.2f\t%.2f\t%.2f\t%d\t%d" ENDL,
-                          CANMotorIF::motor_feedback[disp_id].actual_angle, CANMotorController::SKDThread.targetA[disp_id],
-                          CANMotorIF::motor_feedback[disp_id].actual_velocity, CANMotorController::SKDThread.targetV[disp_id],
-                          CANMotorIF::motor_feedback[disp_id].torque_current(), (int)CANMotorController::SKDThread.PID_output[disp_id]);
         }
         sleep(TIME_MS2I(20));
     }
