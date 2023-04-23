@@ -50,9 +50,6 @@ do
 		"hero")
 			flash_file="../build/HERO.elf"
 			;;
-		"infantry5")
-			flash_file="../build/INFANTRY_FIVE.elf"
-			;;
 		"infantry4")
 			flash_file="../build/INFANTRY_FOUR.elf"
 			;;
@@ -61,6 +58,9 @@ do
 			;;
 		"sentry")
 			flash_file="../build/SENTRY.elf"
+			;;
+		"autosentry")
+			flash_file="../build/AUTO_SENTRY.elf"
 			;;
 		"ca_ahrs_hero")
 			flash_file="../build/ca_ahrs_hero.elf"
@@ -97,7 +97,7 @@ do
 			;;
 		*)
 			echo "$0:Invalid argument $1, valid options:"
-			echo "hero infantry5 infantry4 infantry3 sentry"
+			echo "hero infantry4 infantry3 sentry auto_sentry"
 			echo "ca_ahrs_hero ca_ahrs_infantry"
 			echo "pa_gimbal"
 			echo "ut_ahrs ut_ahrs_ext ut_blink ut_buzzer ut_chassis ut_oled" 
