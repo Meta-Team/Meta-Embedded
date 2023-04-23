@@ -44,11 +44,13 @@
 #define BUZZER_SKD_INTERVAL 10
 
 
+
 class BuzzerSKD {
 
 public:
 
     typedef enum {
+        Si7LL = 247,       // 246.94Hz
         Do1L = 262,     // 261.63Hz
         Re2L = 294,     // 293.66Hz 
         Mi3L = 330,     // 329.63Hz 
@@ -373,6 +375,14 @@ public:
             { 880,  204}, {   0,   12}, { 698,  204}, {   0,   12}, { 783,  204}, {   0,   12}, { 698, 1846},
             {   0,  962}, { 880,  204}, {   0,   12}, { 932,  204}, {   0,   12}, { 880,  204}, {   0,   12},
             { 698, 3488},*/ {  -1,    0}
+    };
+    // added in RMUL2023 Shanghai 4/23/23
+    static constexpr note_with_time_t Touhou15Stage5Boss[] = {
+            {La6L,100},{Mi3L,100},{La6L,100},{Mi3L,100},{La6L,200},{Mi3M,200},{Re2M,400},
+            {Do1M,100},{Si7L,100},{La6L,100},{Mi3L,100},{Re2L,100},{La6L,100},{Mi3L,100},{Re2L,100},{Do1L,100},{Re2L,100},{Si7LL,400},
+            {Si7LL,100},{Do1L,100},{Re2L,100},{Mi3L,100},{La6L,100},{Mi3L,100},{La6L,100},{Mi3L,100},{La6L,200},{Mi3M,200},{Re2M,400},
+            {Re2M,100},{Mi3M,100},{Do1M,100},{Si7L,100},{La6L,200},{So5L,100},{La6L,100},{Mi3L,200},{La6L,400},
+            {Finish, 150}
     };
 };
 

@@ -23,6 +23,8 @@
 #include "referee_UI_logic.h"
 #endif
 
+//for debug use, otherwise please set it to 1.0f
+#define SpeedAdjustCoefficient 1.0f
 /// Gimbal Config
 float UserI::gimbal_rc_yaw_max_speed = 180;  // [degree/s]
 float UserI::gimbal_pc_yaw_sensitivity[3] = {100000, 200000, 300000};  // [Slow, Normal, Fast] [degree/s]
@@ -40,7 +42,10 @@ float UserI::chassis_pc_shift_ratio = 1.8f;  // 180% when Shift is pressed
 float UserI::chassis_pc_ctrl_ratio = 0.5f;    // 50% when Ctrl is pressed
 
 float UserI::shoot_feed_rate = 5.0f;   // [bullet/s]
-float UserI::shoot_fw_speed[3] = {SHOOT_FW_SPEED*15, SHOOT_FW_SPEED*15, SHOOT_FW_SPEED*15};  // [Slow, Normal, Fast] [deg/s]
+
+// adjust for infantry4 in rmul2023 shanghai
+float UserI::shoot_fw_speed[3] = {23300, 23300, 23300};  // [Slow, Normal, Fast] [deg/s]
+
 
 
 /// Variables
@@ -224,6 +229,7 @@ void UserI::UserThread::main() {
                 if (Remote::mouse.press_left) {
 #if ENABLE_REFEREE == TRUE
                     // Read shoot limit
+                    //TODO  check the version of referee system!!!, the current protocol might be deprecated
                     if (Referee::robot_state.shooter_id1_17mm_cooling_rate >= 40) {
                         shoot_feed_rate = Referee::robot_state.shooter_id1_17mm_cooling_rate / 10 * 1.25;
                     } else {
@@ -242,10 +248,11 @@ void UserI::UserThread::main() {
                     if (ShootLG::get_shoot_speed() == 0) {  // force start friction wheels
                         ShootLG::set_shoot_speed(shoot_fw_speed[1]);
                     }
-
+                    ///
                     if (ShootLG::get_shooter_state() == ShootLG::STOP) {  // set target once
-                        ShootLG::shoot(ignore_shoot_constraints ? 999 : ShootLG::get_bullet_count_to_heat_limit(),
-                                       shoot_feed_rate);
+                        //ShootLG::shoot(ignore_shoot_constraints ? 999 : ShootLG::get_bullet_count_to_heat_limit(),
+                        //               shoot_feed_rate);
+                        ShootLG::shoot(999 ,shoot_feed_rate);
                     }
                 } else {
 
@@ -276,10 +283,10 @@ void UserI::UserThread::main() {
 #else
                 ChassisLG::set_mode(ChassisLG::CHASSIS_REF_MODE);
 #endif
-                ChassisLG::set_target(Remote::rc.ch2 * chassis_v_left_right,  // Both use right as positive direction
-                                      (Remote::rc.ch3 > 0 ?
+                ChassisLG::set_target(SpeedAdjustCoefficient*Remote::rc.ch2 * chassis_v_left_right,  // Both use right as positive direction
+                                      (SpeedAdjustCoefficient*(Remote::rc.ch3 > 0 ?
                                        Remote::rc.ch3 * 1000 :
-                                       Remote::rc.ch3 * 800)   // Both use up as positive direction
+                                       Remote::rc.ch3 * 800))   // Both use up as positive direction
                 );
 
             } else if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_MIDDLE) {
@@ -336,7 +343,7 @@ void UserI::UserThread::main() {
                 }
                 // No need to echo to user since it has been done above
 
-                ChassisLG::set_target(target_vx, target_vy);
+                ChassisLG::set_target(SpeedAdjustCoefficient*target_vx, SpeedAdjustCoefficient*target_vy);
 
             } else {
 

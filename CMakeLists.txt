@@ -7,7 +7,6 @@ set (BUILD_HERO TRUE)
 set (BUILD_SENTRY TRUE)
 set (BUILD_INFANTRY3 TRUE)
 set (BUILD_INFANTRY4 TRUE)
-set (BUILD_INFANTRY5 TRUE)
 
 
 include(config/toolchain.cmake)  # include cross compile configurations
@@ -141,7 +140,7 @@ add_library(ChibiOS OBJECT ${CHIBIOS_XASM_SRC} ${CHIBIOS_C_SRC} ${CHIBIOS_CPP_SR
 # NOTICE: UPDATE README IF THE CONFIGURATIONS IS UPDATED
 
 # ========================== Robot's Control Programs ===========================
-if(BUILD_INFANTRY3 OR BUILD_INFANTRY4 OR BUILD_INFANTRY5)
+if(BUILD_INFANTRY3 OR BUILD_INFANTRY4)
     set(INFANTRY_SRC
             ${VEHICLE_COMMON_SRC}
             ${AHRS_SRC}
@@ -189,13 +188,6 @@ if(BUILD_INFANTRY4)
     target_include_directories(INFANTRY_FOUR PRIVATE dev/application/vehicles/infantry)
     target_compile_definitions(INFANTRY_FOUR PRIVATE ${INFANTRY_DEFS} INFANTRY_FOUR)
     target_link_libraries(INFANTRY_FOUR ${INFANTRY_LIBS})
-endif()
-# Main Program -- Infantry #5
-if(BUILD_INFANTRY5)
-    add_executable(INFANTRY_FIVE ${INFANTRY_SRC})
-    target_include_directories(INFANTRY_FIVE PRIVATE dev/application/vehicles/infantry)
-    target_compile_definitions(INFANTRY_FIVE PRIVATE ${INFANTRY_DEFS} INFANTRY_FIVE)
-    target_link_libraries(INFANTRY_FIVE ${INFANTRY_LIBS})
 endif()
 # Main Program -- Hero
 if(BUILD_HERO)
@@ -263,6 +255,20 @@ if(BUILD_SENTRY)
     target_include_directories(SENTRY PRIVATE dev/application/vehicles/sentry)
     target_compile_definitions(SENTRY PRIVATE SENTRY)
     target_link_libraries(SENTRY ${AHRS_LIB})
+    file(GLOB AUTO_SENTRY_SRC dev/application/vehicles/auto_sentry/*.cpp)
+    add_executable(AUTO_SENTRY
+            ${VEHICLE_COMMON_SRC}
+            ${AUTO_SENTRY_SRC}
+            dev/interface/can_motor/can_motor_controller.cpp
+            dev/scheduler/mecanum_chassis_scheduler.cpp
+            dev/logic/chassis_logic.cpp
+            dev/module/low_pass_filter.hpp
+            )
+    target_include_directories(AUTO_SENTRY PRIVATE dev/application/vehicles/auto_sentry)
+    target_compile_definitions(AUTO_SENTRY PRIVATE AUTO_SENTRY)
+    target_link_libraries(AUTO_SENTRY ${AHRS_LIB})
+    # TODO this defines the ut_chassis macro to use mecanum chassis, later we need to switch to omnichassis(WIP)
+    target_compile_definitions(AUTO_SENTRY PRIVATE ut_chassis)
 endif()
 # Main Program -- Engineer
 
@@ -317,6 +323,7 @@ target_include_directories(ut_buzzer PRIVATE dev/application/unit_tests/ut_buzze
 
 # Referee
 # temporarily disabled by Tony Zhang
+# TODO re-enable this one, since referee is outdated
 #add_executable(ut_referee_interface
 #        dev/common/CRC8.cpp
 #        dev/common/CRC16.cpp

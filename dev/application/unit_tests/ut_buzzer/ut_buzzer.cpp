@@ -86,7 +86,7 @@ int main(void) {
     Shell::addCommands(buzzerShellCommands);
 
     BuzzerSKD::init(NORMALPRIO);
-
+    BuzzerSKD::play_sound(BuzzerSKD::Touhou15Stage5Boss);
     // See chconf.h for what this #define means.
 #if CH_CFG_NO_IDLE_THREAD
     // ChibiOS idle thread has been disabled,
