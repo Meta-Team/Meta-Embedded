@@ -428,9 +428,8 @@ foreach (target ${TARGET_LIST})
 
         # Run size utility after link to show the size of elf file
         add_custom_command(TARGET ${target} POST_BUILD
-                COMMAND echo
                 COMMAND ${CMAKE_SIZE_UTILITY} ${ELF_OUTPUT_PATH}/${target}.elf
-                COMMAND echo)  # execute size utility to show size of executable file
+                )  # execute size utility to show size of executable file
 
         # Set unique output file
         set_target_properties(${target} PROPERTIES
