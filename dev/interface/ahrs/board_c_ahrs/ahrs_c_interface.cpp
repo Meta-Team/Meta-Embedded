@@ -4,11 +4,16 @@
 
 #include "ahrs_c_interface.h"
 
-void AHRSOnBoard_C::start(const Matrix33 mpu_rotation_matrix_, tprio_t update_thread_prio) {
+void AHRSOnBoard_C::start(const Matrix33 imu_rotation_matrix_, const Matrix33 board_rotation_matrix_, tprio_t update_thread_prio) {
 
     for (int i = 0; i < 3; i++) {
         for (int j = 0; j < 3; j++) {
-            mpu_rotation_matrix[i][j] = mpu_rotation_matrix_[i][j];
+            imu_rotation_matrix[i][j] = imu_rotation_matrix_[i][j];
+        }
+    }
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 3; j++) {
+            board_rotation_matrix[i][j] = board_rotation_matrix_[i][j];
         }
     }
 
@@ -25,9 +30,9 @@ void AHRSOnBoard_C::start(const Matrix33 mpu_rotation_matrix_, tprio_t update_th
 void AHRSOnBoard_C::fetch_data() {
      chSysLock();  /// --- ENTER S-Locked state. DO NOT use LOG, printf, non S/I-Class functions or return ---
      {
-        gyro_rad = mpu_rotation_matrix * imu.get_gyro();  // rotated
-        accel = mpu_rotation_matrix * imu.get_accel();    // rotated
-        magnet = compass.get_compass();
+        gyro_rad = board_rotation_matrix * (imu_rotation_matrix * imu.get_gyro());  // rotated
+        accel = board_rotation_matrix * (imu_rotation_matrix * imu.get_accel());    // rotated
+        magnet = board_rotation_matrix * compass.get_compass();
      }
      chSysUnlock();  /// --- EXIT S-Locked state ---
 }

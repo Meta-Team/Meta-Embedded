@@ -15,18 +15,13 @@
 
 using namespace chibios_rt;
 
-static constexpr Matrix33 MPU_ROTATION_MATRIX = {{-1.0f, 0.0f, 0.0f},
+static constexpr Matrix33 IMU_ROTATION_MATRIX = {{-1.0f, 0.0f, 0.0f},
                                                  {0.0f, -1.0f, 0.0f},
                                                  {0.0f, 0.0f, 1.0f}};
 
-static constexpr Matrix33 ANGLE_INSTALLATION_MATRIX = {{1.0f, 0.0f, 0.0f},
-                                                       {0.0f, 1.0f, 0.0f},
-                                                       {0.0f, 0.0f, 1.0f}};
-
-
-static constexpr Matrix33 GYRO_INSTALLATION_MATRIX = {{1.0f,  0.0f, 0.0f},
-                                                      {0.0f,  1.0f,  0.0f},
-                                                      {0.0f, 0.0f,  1.0f}};
+static constexpr Matrix33 BOARD_ROTATION_MATRIX = {{0.0f,  0.0f, 1.0f},
+                                                   {0.0f,  1.0f,  0.0f},
+                                                   {-1.0f, 0.0f,  0.0f}};
 
 AHRSOnBoard_C ahrs;
 
@@ -50,7 +45,7 @@ protected:
                           compass.x,
                           compass.y,
                           compass.z);*/
-            Vector3D angle = ANGLE_INSTALLATION_MATRIX * ahrs.get_angle();
+            Vector3D angle = ahrs.get_angle();
             Shell::printf("!angle\t%.2f\t%.2f\t%.2f" ENDL,
                           angle.x,
                           angle.y,
@@ -78,7 +73,7 @@ int main(void) {
     // Shell::addCommands(ahrsShellCommands);
     LED::all_off();
 
-    ahrs.start(MPU_ROTATION_MATRIX, NORMALPRIO);
+    ahrs.start(IMU_ROTATION_MATRIX, BOARD_ROTATION_MATRIX, NORMALPRIO);
 
     // Indicating thread running
     LED::green_on();

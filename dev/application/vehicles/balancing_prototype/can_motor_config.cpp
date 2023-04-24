@@ -17,9 +17,9 @@ PIDController::pid_params_t CANMotorCFG::v2iParams[MOTOR_COUNT] = {
 };
 
 bool CANMotorCFG::enable_a2v[MOTOR_COUNT] {
-        true,
+        false,
 };
 
 bool CANMotorCFG::enable_v2i[MOTOR_COUNT] {
-        true,
+        false,
 };

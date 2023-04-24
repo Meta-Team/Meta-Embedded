@@ -255,7 +255,6 @@ add_executable(BALANCING_PROTOTYPE
         dev/interface/ahrs/board_c_ahrs/ist8310_interface.cpp
         dev/application/vehicles/balancing_prototype/hardware_conf.h
         dev/application/vehicles/balancing_prototype/can_motor_config.cpp
-        dev/application/vehicles/balancing_prototype/can_motor_config.h
         dev/scheduler/balancing_scheduler.cpp dev/scheduler/balancing_scheduler.h
         dev/application/vehicles/balancing_prototype/main_balancing_prototype.cpp)
 target_include_directories(BALANCING_PROTOTYPE PRIVATE dev/interface/ahrs/board_c_ahrs)
