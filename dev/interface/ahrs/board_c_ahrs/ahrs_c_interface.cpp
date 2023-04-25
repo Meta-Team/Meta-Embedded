@@ -4,16 +4,16 @@
 
 #include "ahrs_c_interface.h"
 
-void AHRSOnBoard_C::start(const Matrix33 imu_rotation_matrix_, const Matrix33 board_rotation_matrix_, tprio_t update_thread_prio) {
+void AHRSOnBoard_C::start(const Matrix33 imu_compass_rotation_matrix_, const Matrix33 compass_board_rotation_matrix_, tprio_t update_thread_prio) {
 
     for (int i = 0; i < 3; i++) {
         for (int j = 0; j < 3; j++) {
-            imu_rotation_matrix[i][j] = imu_rotation_matrix_[i][j];
+            imu_compass_rotation_matrix[i][j] = imu_compass_rotation_matrix_[i][j];
         }
     }
     for (int i = 0; i < 3; i++) {
         for (int j = 0; j < 3; j++) {
-            board_rotation_matrix[i][j] = board_rotation_matrix_[i][j];
+            compass_board_rotation_matrix[i][j] = compass_board_rotation_matrix_[i][j];
         }
     }
 
@@ -28,13 +28,11 @@ void AHRSOnBoard_C::start(const Matrix33 imu_rotation_matrix_, const Matrix33 bo
 }
 
 void AHRSOnBoard_C::fetch_data() {
-     chSysLock();  /// --- ENTER S-Locked state. DO NOT use LOG, printf, non S/I-Class functions or return ---
-     {
-        gyro_rad = board_rotation_matrix * (imu_rotation_matrix * imu.get_gyro());  // rotated
-        accel = board_rotation_matrix * (imu_rotation_matrix * imu.get_accel());    // rotated
-        magnet = board_rotation_matrix * compass.get_compass();
-     }
-     chSysUnlock();  /// --- EXIT S-Locked state ---
+    // Rotate gyro and accel data from BMI088 to compass frame and then to board frame
+    gyro_rad = compass_board_rotation_matrix * (imu_compass_rotation_matrix * imu.get_gyro());
+    accel = compass_board_rotation_matrix * (imu_compass_rotation_matrix * imu.get_accel());
+    // Rotate compass data from IST8310 to board frame
+    magnet = compass_board_rotation_matrix * compass.get_compass();
 }
 
 void AHRSOnBoard_C::update() {
@@ -44,7 +42,7 @@ void AHRSOnBoard_C::update() {
     {
         ::AHRS_update(q, 0.001f, (const fp32 *) &gyro_rad, (const fp32 *) &accel, (const fp32 *) &magnet);
         ::get_angle(q, &angle.x, &angle.y, &angle.z);
-        angle = angle * RAD2DEG;
+        // angle = angle * RAD2DEG;
         ahrs_update_time = SYSTIME;
     }
     chSysUnlock();  /// --- EXIT S-Locked state ---

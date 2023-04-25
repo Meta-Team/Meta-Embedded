@@ -15,13 +15,15 @@
 
 using namespace chibios_rt;
 
-static constexpr Matrix33 IMU_ROTATION_MATRIX = {{-1.0f, 0.0f, 0.0f},
-                                                 {0.0f, -1.0f, 0.0f},
-                                                 {0.0f, 0.0f, 1.0f}};
+// Rotation matrix from the IMU frame to compass frame
+static constexpr Matrix33 IMU_COMPASS_ROTATION_MATRIX = {{-1.0f, 0.0f, 0.0f},
+                                                         {0.0f, -1.0f, 0.0f},
+                                                         {0.0f, 0.0f, 1.0f}};
 
-static constexpr Matrix33 BOARD_ROTATION_MATRIX = {{0.0f,  0.0f, 1.0f},
-                                                   {0.0f,  1.0f,  0.0f},
-                                                   {-1.0f, 0.0f,  0.0f}};
+// Rotation matrix from the compass frame to board frame
+static constexpr Matrix33 COMPASS_BOARD_ROTATION_MATRIX = {{0.0f,  0.0f, 1.0f},
+                                                           {0.0f,  1.0f,  0.0f},
+                                                           {-1.0f, 0.0f,  0.0f}};
 
 AHRSOnBoard_C ahrs;
 
@@ -50,16 +52,6 @@ protected:
                           angle.x,
                           angle.y,
                           angle.z);
-            /*Vector3D gyro = GYRO_INSTALLATION_MATRIX * ahrs.get_gyro();
-            Shell::printf("gyro ,%.4f,%.4f,%.4f" SHELL_NEWLINE_STR,
-                          gyro.x,
-                          gyro.y,
-                          gyro.z);
-            Shell::printf("gyro.x = %.2f, gyro.z = %.2f, angle.y = %.2f ,ans = %.2f" SHELL_NEWLINE_STR,
-                          gyro.x,
-                          gyro.z,
-                          angle.y,
-                          gyro.x * cosf(angle.y / 180.0f * M_PI) + gyro.z * sinf(angle.y / 180.0f * M_PI));*/
             sleep(TIME_MS2I(10));
         }
     }
@@ -73,14 +65,14 @@ int main(void) {
     // Shell::addCommands(ahrsShellCommands);
     LED::all_off();
 
-    ahrs.start(IMU_ROTATION_MATRIX, BOARD_ROTATION_MATRIX, NORMALPRIO);
+    ahrs.start(IMU_COMPASS_ROTATION_MATRIX, COMPASS_BOARD_ROTATION_MATRIX, NORMALPRIO);
+
+    feedbackThread.start(NORMALPRIO+1);
 
     // Indicating thread running
     LED::green_on();
     BuzzerSKD::init(LOWPRIO);
     BuzzerSKD::play_sound(BuzzerSKD::sound_startup_dji);
-
-    feedbackThread.start(NORMALPRIO+1);
 
     // See chconf.h for what this #define means.
 #if CH_CFG_NO_IDLE_THREAD

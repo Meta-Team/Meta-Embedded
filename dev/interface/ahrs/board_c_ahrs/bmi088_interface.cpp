@@ -108,12 +108,12 @@ bool BMI088Interface::init_accel() {
     bmi088_read_reg(BMI088_ACC_CHIP_ID, &res, 1, BMI088_ACCEL_READ_OFFSET);
     chThdSleepMicroseconds(BMI088_COM_WAIT_SENSOR_TIME_US);
 
-    /// Check chip ID
+    // Check chip ID
     if (res != BMI088_ACC_CHIP_ID_VALUE) {
         return BMI088_NO_SENSOR;
     }
 
-    /// Set accel sensor config and check
+    // Set accel sensor config and check
     for (write_reg_num = 0; write_reg_num < BMI088_WRITE_ACCEL_REG_NUM; write_reg_num++) {
 
         bmi088_write_reg(write_bmi088_accel_reg_data_error[write_reg_num][0], write_bmi088_accel_reg_data_error[write_reg_num][1]);
@@ -141,13 +141,13 @@ bool BMI088Interface::init_gyro() {
     // Start gyroscope communication
     spiStart(&BMI088_SPI_DRIVER, &SPI1_gyro_cfg);
 
-    /// Check communication
+    // Check communication
     bmi088_read_reg(BMI088_GYRO_CHIP_ID, &res, 1, BMI088_GYRO_READ_OFFSET);
     chThdSleepMicroseconds(BMI088_COM_WAIT_SENSOR_TIME_US);
     bmi088_read_reg(BMI088_GYRO_CHIP_ID, &res, 1, BMI088_GYRO_READ_OFFSET);
     chThdSleepMicroseconds(BMI088_COM_WAIT_SENSOR_TIME_US);
 
-    /// Reset the gyro sensor
+    // Reset the gyro sensor
     bmi088_write_reg(BMI088_GYRO_SOFTRESET, BMI088_GYRO_SOFTRESET_VALUE);
     chThdSleepMilliseconds(BMI088_SENSOR_RESET_TIME_MS);
 
@@ -157,12 +157,12 @@ bool BMI088Interface::init_gyro() {
     bmi088_read_reg(BMI088_GYRO_CHIP_ID, &res, 1, BMI088_GYRO_READ_OFFSET);
     chThdSleepMicroseconds(BMI088_COM_WAIT_SENSOR_TIME_US);
 
-    /// Check chip ID
+    // Check chip ID
     if (res != BMI088_GYRO_CHIP_ID_VALUE) {
         return BMI088_NO_SENSOR;
     }
 
-    /// Set gyro sensor config and check
+    // Set gyro sensor config and check
     for (write_reg_num = 0; write_reg_num < BMI088_WRITE_GYRO_REG_NUM; write_reg_num++) {
         bmi088_write_reg(write_bmi088_gyro_reg_data_error[write_reg_num][0], write_bmi088_gyro_reg_data_error[write_reg_num][1]);
         chThdSleepMicroseconds(BMI088_COM_WAIT_SENSOR_TIME_US);
@@ -181,13 +181,14 @@ bool BMI088Interface::init_gyro() {
 }
 
 void BMI088Interface::update() {
-//    chSysLock();  // --- ENTER S-Locked state. DO NOT use LOG, printf, non S/I-Class functions or return ---
-//    {
-        // Start accelerometer communication
-        spiStart(&BMI088_SPI_DRIVER, &SPI1_accel_cfg);
+    // Start accelerometer communication
+    spiStart(&BMI088_SPI_DRIVER, &SPI1_accel_cfg);
 
-        // Fetch data from SPI
-        bmi088_read_reg(BMI088_ACCEL_XOUT_L, rx_buf, 6, BMI088_ACCEL_READ_OFFSET);
+    // Fetch data from SPI
+    bmi088_read_reg(BMI088_ACCEL_XOUT_L, rx_buf, 6, BMI088_ACCEL_READ_OFFSET);
+
+    chSysLock();  // --- ENTER S-Locked state. DO NOT use LOG, printf, non S/I-Class functions or return ---
+    {
         // Decode data
         raw_temp = (int16_t)((rx_buf[1]) << 8) | rx_buf[0];
         accel.x = raw_temp * BMI088_ACCEL_SEN;
@@ -195,23 +196,28 @@ void BMI088Interface::update() {
         accel.y = raw_temp * BMI088_ACCEL_SEN;
         raw_temp = (int16_t)((rx_buf[5]) << 8) | rx_buf[4];
         accel.z = raw_temp * BMI088_ACCEL_SEN;
+    }
+    chSysUnlock();  // --- EXIT S-Locked state ---
 
-        // Fetch data from SPI
-        bmi088_read_reg(BMI088_TEMP_M, rx_buf, 2, BMI088_ACCEL_READ_OFFSET);
-        // Decode data
-        raw_temp = (int16_t)((rx_buf[0] << 3) | (rx_buf[1] >> 5));
+    // Fetch data from SPI
+    bmi088_read_reg(BMI088_TEMP_M, rx_buf, 2, BMI088_ACCEL_READ_OFFSET);
+    // Decode data
+    raw_temp = (int16_t)((rx_buf[0] << 3) | (rx_buf[1] >> 5));
 
-        if (raw_temp > 1023) raw_temp -= 2048;
-        temperature = raw_temp * BMI088_TEMP_FACTOR + BMI088_TEMP_OFFSET;
+    if (raw_temp > 1023) raw_temp -= 2048;
+    temperature = raw_temp * BMI088_TEMP_FACTOR + BMI088_TEMP_OFFSET;
 
-        // Stop accelerometer communication
-        spiStop(&BMI088_SPI_DRIVER);
+    // Stop accelerometer communication
+    spiStop(&BMI088_SPI_DRIVER);
 
-        // Start gyroscope communication
-        spiStart(&BMI088_SPI_DRIVER, &SPI1_gyro_cfg);
+    // Start gyroscope communication
+    spiStart(&BMI088_SPI_DRIVER, &SPI1_gyro_cfg);
 
-        // Fetch data from SPI
-        bmi088_read_reg(BMI088_GYRO_X_L, rx_buf, 6, BMI088_GYRO_READ_OFFSET);
+    // Fetch data from SPI
+    bmi088_read_reg(BMI088_GYRO_X_L, rx_buf, 6, BMI088_GYRO_READ_OFFSET);
+
+    chSysLock();  // --- ENTER S-Locked state. DO NOT use LOG, printf, non S/I-Class functions or return ---
+    {
         // Decode data
         raw_temp = (int16_t)((rx_buf[1]) << 8) | rx_buf[0];
         gyro.x = raw_temp * BMI088_GYRO_SEN;
@@ -219,11 +225,11 @@ void BMI088Interface::update() {
         gyro.y = raw_temp * BMI088_GYRO_SEN;
         raw_temp = (int16_t)((rx_buf[5]) << 8) | rx_buf[4];
         gyro.z = raw_temp * BMI088_GYRO_SEN;
+    }
+    chSysUnlock();  // --- EXIT S-Locked state ---
 
-        // Stop gyroscope communication
-        spiStop(&BMI088_SPI_DRIVER);
-//    }
-//    chSysUnlock();  /// --- EXIT S-Locked state ---
+    // Stop gyroscope communication
+    spiStop(&BMI088_SPI_DRIVER);
 }
 
 void BMI088Interface::main() {

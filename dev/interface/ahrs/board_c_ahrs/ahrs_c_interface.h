@@ -27,19 +27,19 @@ public:
     /**
      * Start MPUOnBoard, ISTOnBoard and AHRS update thread
      * @note Should be called from NORMAL state (not in locks)
-     * @param imu_rotation_matrix  3x3 Matrix maps gyro and accel to desired coordinate system
+     * @param imu_compass_rotation_matrix  3x3 Matrix maps gyro and accel to desired coordinate system
      * @param update_thread_prio   priority of updating thread
      */
-    void start(const Matrix33 imu_rotation_matrix, const Matrix33 board_rotation_matrix, tprio_t update_thread_prio);
+    void start(const Matrix33 imu_compass_rotation_matrix, const Matrix33 compass_board_rotation_matrix, tprio_t update_thread_prio);
 
     /**
-     * Get data from gyroscope (rotated with imu_rotation_matrix)
+     * Get data from gyroscope (rotated with imu_compass_rotation_matrix)
      * @return Rotated gyro data from gyroscope [deg/s]
      */
     Vector3D get_gyro() override { return gyro_deg;  /* rotated */ }
 
     /**
-     * Get data from accelerometer (rotated with imu_rotation_matrix)
+     * Get data from accelerometer (rotated with imu_compass_rotation_matrix)
      * @return Rotated acceleration data from accelerometer [m/s^2]
      */
     Vector3D get_accel() override { return accel;  /* rotated */ }
@@ -79,8 +79,8 @@ private:
     Vector3D angle;  // board angle
     time_msecs_t ahrs_update_time = 0;  // last update time from system start [ms]
 
-    Matrix33 imu_rotation_matrix;
-    Matrix33 board_rotation_matrix;
+    Matrix33 imu_compass_rotation_matrix;
+    Matrix33 compass_board_rotation_matrix;
 
     // Local storage (MPU rotated)
     Vector3D gyro_deg;  // angular speed [deg/s]
