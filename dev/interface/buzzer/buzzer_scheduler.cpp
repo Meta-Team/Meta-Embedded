@@ -22,7 +22,8 @@ constexpr BuzzerSKD::note_with_time_t BuzzerSKD::sound_orange[];
 constexpr BuzzerSKD::note_with_time_t BuzzerSKD::sound_da_bu_zi_duo_ge[];
 constexpr BuzzerSKD::note_with_time_t BuzzerSKD::sound_kong_fu_FC[];
 constexpr BuzzerSKD::note_with_time_t BuzzerSKD::sound_nyan_cat[];
-constexpr BuzzerSKD::note_with_time_t BuzzerSKD::Touhou15Stage5Boss[];
+constexpr BuzzerSKD::note_with_time_t BuzzerSKD::sound_Touhou15Stage5Boss[];
+constexpr BuzzerSKD::note_with_time_t BuzzerSKD::sound_zenzenzense[];
 
 chibios_rt::ThreadReference BuzzerSKD::skdThreadReference;
 

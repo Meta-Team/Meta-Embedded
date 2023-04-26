@@ -46,8 +46,14 @@ DEF_SHELL_CMD_START(cmd_play)
         case 7:
             BuzzerSKD::play_sound(BuzzerSKD::sound_nyan_cat);
             break;
+        case 8:
+            BuzzerSKD::play_sound(BuzzerSKD::sound_Touhou15Stage5Boss);
+            break;
+        case 9:
+            BuzzerSKD::play_sound(BuzzerSKD::sound_zenzenzense);
+            break;
         default:
-            chprintf(chp,"buzzer 0-7");
+            chprintf(chp,"buzzer 0-9");
     }
     return true; // command executed successfully
 DEF_SHELL_CMD_END
@@ -70,7 +76,7 @@ DEF_SHELL_CMD_START(cmd_alarm)
 DEF_SHELL_CMD_END
 
 Shell::Command buzzerShellCommands[] = {
-        {"buzzer", "buzzer 0-7", cmd_play, nullptr},
+        {"buzzer", "buzzer 0-9", cmd_play, nullptr},
         {"alarm" , "alarm (0/1)", cmd_alarm, nullptr},
         {nullptr,    nullptr,nullptr,    nullptr}
 };
@@ -86,7 +92,7 @@ int main(void) {
     Shell::addCommands(buzzerShellCommands);
 
     BuzzerSKD::init(NORMALPRIO);
-    BuzzerSKD::play_sound(BuzzerSKD::Touhou15Stage5Boss);
+    BuzzerSKD::play_sound(BuzzerSKD::sound_zenzenzense);
     // See chconf.h for what this #define means.
 #if CH_CFG_NO_IDLE_THREAD
     // ChibiOS idle thread has been disabled,

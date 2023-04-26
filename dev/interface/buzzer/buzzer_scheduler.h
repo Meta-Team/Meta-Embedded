@@ -377,12 +377,19 @@ public:
             { 698, 3488},*/ {  -1,    0}
     };
     // added in RMUL2023 Shanghai 4/23/23
-    static constexpr note_with_time_t Touhou15Stage5Boss[] = {
+    static constexpr note_with_time_t sound_Touhou15Stage5Boss[] = {
             {La6L,100},{Mi3L,100},{La6L,100},{Mi3L,100},{La6L,200},{Mi3M,200},{Re2M,400},
             {Do1M,100},{Si7L,100},{La6L,100},{Mi3L,100},{Re2L,100},{La6L,100},{Mi3L,100},{Re2L,100},{Do1L,100},{Re2L,100},{Si7LL,400},
             {Si7LL,100},{Do1L,100},{Re2L,100},{Mi3L,100},{La6L,100},{Mi3L,100},{La6L,100},{Mi3L,100},{La6L,200},{Mi3M,200},{Re2M,400},
             {Re2M,100},{Mi3M,100},{Do1M,100},{Si7L,100},{La6L,200},{So5L,100},{La6L,100},{Mi3L,200},{La6L,400},
             {Finish, 150}
+    };
+    // added by Wu Feiyang after RMUL 2023. Coming from the movie Kiminonawa.
+    static constexpr note_with_time_t sound_zenzenzense[] = {
+            {Silent,200},{La6L,200},{Re2M,300},{Mi3M,100},{Re2M,400},{Silent,200},{Re2M,200},{So5M,400/3},{Fa4M+50,400/3},
+            {Mi3M,400/3},{Re2M,400},{Silent,400},{Re2M,200},{Mi3M,200},{Fa4M+50,100},{Mi3M,100},{Fa4M+50,100},{So5M,100},{Fa4M+50,100},
+            {Mi3M,100},{Re2M,100}, {Mi3M,100},{Fa4M+50,100},{Fa4M+50,100},{Fa4M+50,100},{So5M,100},{Fa4M+50,200},{Mi3M,100},
+            {Re2M,100},{Re2M,400}, {-1,0}
     };
 };
 
