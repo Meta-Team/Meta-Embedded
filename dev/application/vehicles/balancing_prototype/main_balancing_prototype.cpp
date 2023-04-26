@@ -32,9 +32,17 @@ static constexpr Matrix33 COMPASS_BOARD_ROTATION_MATRIX = {{0.0f,  0.0f, 1.0f},
                                                            {-1.0f, 0.0f,  0.0f}};
 
 class BalancingControlThread : public BaseStaticThread<1024> {
+public:
+    chibios_rt::ThreadReference start(tprio_t control_thread_prio) override{
+        theta_desired = CANMotorIF::motor_feedback[CANMotorCFG::MOTOR1].actual_angle;
+        theta_desired = theta_desired / 180.0 * PI + PI;
+
+        return chibios_rt::BaseStaticThread<1024>::start(control_thread_prio);
+    }
+
 protected:
     // Balancing controller
-    const float kp = 250000.0, kd = 10000.0, ki = 0.0;
+    const float kp = 250000.0, kd = 5000.0, ki = 0.0;
     float phi_desired = -0.050;
     float phi_current = 0;
     float error_phi;
@@ -45,7 +53,7 @@ protected:
     int tau = 0;
 
     // Trajectory tracking feedback controller
-    const float kp_t = 0.1, kd_t = 0.0, ki_t = 0.0;
+    const float kp_t = 0.001, kd_t = 0.0, ki_t = 0.0;
     float theta_desired = 0;
     float theta_current;
     int theta_revolution = 0;
@@ -84,8 +92,8 @@ protected:
             theta_integral = fmax(fmin(theta_integral, 1), -1);
 
             // Calculate body angle compensation
-            phi_compensation = fmax(fmin(kp_t * error_theta - kd_t * theta_dot_filtered + ki_t * theta_integral, PI), -PI);
-            Shell::printf("%.4f\t%.4f" ENDL, error_theta, phi_compensation);
+            phi_compensation = fmax(fmin(kp_t * error_theta + kd_t * theta_dot_filtered - ki_t * theta_integral, PI/100.0), -PI/100.0);
+            Shell::printf("%.4f\t%.4f" ENDL, theta_dot_filtered, phi_compensation);
 
             // Save state
             theta_dot_old[3] = theta_dot_old[2];
@@ -97,7 +105,7 @@ protected:
             /// Balancing controller
 
             // Calculate state
-            error_phi = phi_compensation + phi_desired- phi_current;
+            error_phi = - phi_compensation + phi_desired- phi_current;
             phi_dot = (phi_current - phi_old) * 1000.0;
             phi_dot_filtered = (phi_dot + phi_dot_old[0] + phi_dot_old[1]) / 3.0;
             phi_integral += phi_current * 0.001;
