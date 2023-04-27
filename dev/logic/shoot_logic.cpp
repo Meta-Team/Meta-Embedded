@@ -88,7 +88,7 @@ void ShootLG::shoot(int number_of_bullet, float number_per_second) {
     shooter_state = SHOOTING;
     ShootSKD::reset_loader_accumulated_angle();
     ShootSKD::set_mode(ShootSKD::LIMITED_SHOOTING_MODE);
-    ShootSKD::set_loader_target_velocity(target_bullet_loader_velocity);
+    ShootSKD::set_loader_target_velocity(target_bullet_loader_velocity); // set out_limit
     ShootSKD::set_loader_target_angle(target_bullet_count * angle_per_bullet);
     chSysLock();  /// --- ENTER S-Locked state. DO NOT use LOG, printf, non S/I-Class functions or return ---
     {
@@ -105,6 +105,7 @@ void ShootLG::stop() {
     // just stop the loader, keep the friction wheel working
     chSysLock();  /// --- ENTER S-Locked state. DO NOT use LOG, printf, non S/I-Class functions or return ---
     {
+        // calculate the remaining bullet if the number of bullet set from the last call, has not been shot out
         remaining_bullet_count -= (int) roundf((float) ShootSKD::get_loader_accumulated_angle() / angle_per_bullet);
     }
     chSysUnlock();  /// --- EXIT S-Locked state ---
