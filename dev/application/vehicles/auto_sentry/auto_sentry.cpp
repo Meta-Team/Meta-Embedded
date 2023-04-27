@@ -98,7 +98,7 @@ int main() {
     ChassisLG::set_mode(ChassisLG::CHASSIS_REF_MODE);
     ControlThread.start(NORMALPRIO + 6);
     BuzzerSKD::init(NORMALPRIO);
-    BuzzerSKD::play_sound(BuzzerSKD::Touhou15Stage5Boss);
+    BuzzerSKD::play_sound(BuzzerSKD::sound_Touhou15Stage5Boss);
 #else
     CANMotorCFG::enable_v2i[CANMotorCFG::FL] = true;
     CANMotorCFG::enable_v2i[CANMotorCFG::FR] = true;
