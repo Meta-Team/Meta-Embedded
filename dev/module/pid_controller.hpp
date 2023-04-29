@@ -29,11 +29,10 @@ public:
 
     float out;
 
-    float abs_float(float val){
-        if (val < 0){
-            return (-1*val);
-        }
-        else{
+    float abs_float(float val) {
+        if (val < 0) {
+            return (-1 * val);
+        } else {
             return val;
         }
     }
@@ -67,11 +66,6 @@ public:
      * @return out
      */
     float calc(float now, float target) {
-
-        /*for (int i=1; i<=5; i++){
-            error[i]=error[i-1];
-        }*/
-
         error[1] = error[0];
         error[0] = target - now;
 
@@ -79,21 +73,19 @@ public:
 
         p_out = p.kp * error[0];
         i_out += p.ki * error[0];
-        //d_out = p.kd * (error[0] - error[1]);
         d_out = p.kd * (1 - alpha) * (error[0] - error[1]) + alpha * last_d_out; // low pass filter
 
         if (i_out > p.i_limit) i_out = p.i_limit;
         if (i_out < -p.i_limit) i_out = -p.i_limit;
 
         out = p_out + i_out + d_out;
-        if (abs_float(error[0]) <= abs_float(target*0.03) && i_clip_enabled){
+        if (abs_float(error[0]) <= abs_float(target * 0.03) && i_clip_enabled) {
             i_out = 0.0f;
         }
         if (out > p.out_limit) out = p.out_limit;
         if (out < -p.out_limit) out = -p.out_limit;
 
         return out;
-
     }
 
     /**
@@ -103,23 +95,24 @@ public:
         i_out = 0.0f;
     }
 
-    float get_i_out(){
+    float get_i_out() {
         return i_out;
     }
 
-    float get_error_0(){
+    float get_error_0() {
         return error[0];
     }
 
     void enable_i_clip() {
         i_clip_enabled = true;
     }
+
 private:
 
     pid_params_t p;
 
     float error[10];  // error[0]: error of this time, error[1]: error of last time
-    float alpha=0.8;      // 0-1, low pass filter parameter, 0 -> no filter, 1 -> no Pd
+    float alpha = 0.8;      // 0-1, low pass filter parameter, 0 -> no filter, 1 -> no Pd
     float last_d_out;     // for LP filter
 
     float p_out;
@@ -129,7 +122,6 @@ private:
     bool i_clip_enabled = false;
 
 };
-
 
 
 #endif //META_INFANTRY_PID_CONTROLLER_HPP
