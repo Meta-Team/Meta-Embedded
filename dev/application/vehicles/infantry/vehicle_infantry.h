@@ -28,8 +28,8 @@
 /*               Gimbal and Shoot Installation Configurations                */
 /*===========================================================================*/
 
-#define GIMBAL_PITCH_MIN_ANGLE  (-30)  // up range for pitch [degree]
-#define GIMBAL_PITCH_MAX_ANGLE  (10)   //  down range for pitch [degree]
+#define GIMBAL_PITCH_MIN_ANGLE  (-20)  // up range for pitch [degree]
+#define GIMBAL_PITCH_MAX_ANGLE  (5)   //  down range for pitch [degree]
 
 #define SHOOT_DEGREE_PER_BULLET 45.0f  // rotation degree of bullet loader for each bullet
 
