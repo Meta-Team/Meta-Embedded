@@ -1,5 +1,5 @@
 //
-// Created by liuzikai on 2019-04-22.
+// Created by liuzikai on 2019-04-22. Modified by ShaoXihe, May 2023
 // This file contains common parameters for infantry
 //
 
@@ -28,8 +28,8 @@
 /*               Gimbal and Shoot Installation Configurations                */
 /*===========================================================================*/
 
-#define GIMBAL_PITCH_MIN_ANGLE  (-30)  // up range for pitch [degree]
-#define GIMBAL_PITCH_MAX_ANGLE  (10)   //  down range for pitch [degree]
+#define GIMBAL_PITCH_MIN_ANGLE  (-20)  // up range for pitch [degree]
+#define GIMBAL_PITCH_MAX_ANGLE  (5)   //  down range for pitch [degree]
 
 #define SHOOT_DEGREE_PER_BULLET 45.0f  // rotation degree of bullet loader for each bullet
 
@@ -52,10 +52,10 @@
     CHASSIS_CLIP_PID_THETA2V_I_LIMIT, CHASSIS_CLIP_PID_THETA2V_OUT_LIMIT}
 
 #define CHASSIS_FOLLOW_PID_THETA2V_KP 12.5f
-#define CHASSIS_FOLLOW_PID_THETA2V_KI 0.00f
-#define CHASSIS_FOLLOW_PID_THETA2V_KD 10.0f
-#define CHASSIS_FOLLOW_PID_THETA2V_I_LIMIT 0.0f
-#define CHASSIS_FOLLOW_PID_THETA2V_OUT_LIMIT 540.0f
+#define CHASSIS_FOLLOW_PID_THETA2V_KI 0
+#define CHASSIS_FOLLOW_PID_THETA2V_KD 20.0f
+#define CHASSIS_FOLLOW_PID_THETA2V_I_LIMIT 0
+#define CHASSIS_FOLLOW_PID_THETA2V_OUT_LIMIT 500.0f
 #define CHASSIS_FOLLOW_PID_THETA2V_PARAMS \
     {CHASSIS_FOLLOW_PID_THETA2V_KP, CHASSIS_FOLLOW_PID_THETA2V_KI, CHASSIS_FOLLOW_PID_THETA2V_KD, \
     CHASSIS_FOLLOW_PID_THETA2V_I_LIMIT, CHASSIS_FOLLOW_PID_THETA2V_OUT_LIMIT}
@@ -64,7 +64,7 @@
 #define CHASSIS_LOGIC_DODGE_OMEGA2VOLT_KI 15.0f
 #define CHASSIS_LOGIC_DODGE_OMEGA2VOLT_KD 0.0f
 #define CHASSIS_LOGIC_DODGE_OMEGA2VOLT_I_LIMIT 720.0f
-#define CHASSIS_LOGIC_DODGE_OMEGA2VOLT_OUT_LIMIT 720.0f
+#define CHASSIS_LOGIC_DODGE_OMEGA2VOLT_OUT_LIMIT 600.0f
 #define CHASSIS_LOGIC_DODGE_OMEGA2VOLT_PARAMS \
     {CHASSIS_LOGIC_DODGE_OMEGA2VOLT_KP, CHASSIS_LOGIC_DODGE_OMEGA2VOLT_KI, CHASSIS_LOGIC_DODGE_OMEGA2VOLT_KD,\
      CHASSIS_LOGIC_DODGE_OMEGA2VOLT_I_LIMIT, CHASSIS_LOGIC_DODGE_OMEGA2VOLT_OUT_LIMIT}
@@ -110,12 +110,10 @@
 //#define USER_CLIENT_ACTUAL_POWER_NUM              2
 #define USER_CLIENT_SUPER_CAPACITOR_VOLTAGE_NUM     1
 
-
 /*===========================================================================*/
 /*                     Chassis Capacitor Configurations                      */
 /*===========================================================================*/
 
 #define SUPER_CAPACITOR_WARNING_VOLTAGE   15
-
 
 #endif //META_INFANTRY_VEHICLE_INFANTRY_H
