@@ -7,20 +7,16 @@ master![C/C++ CI](https://github.com/Meta-Team/Meta-Embedded/actions/workflows/r
 => Please read [Project Wiki](https://github.com/Meta-Team/Meta-Infantry/wiki) :smiley:
 
 ZJU-UIUC Meta 战队 RoboMaster 嵌入式程序工程，基于 ChibiOS 操作系统，使用 C 和 C++。
-
 ZJU-UIUC Meta RoboMaster Team's Embedded Control Program, based on ChibiOS/RT. The program mainly use C and C++.
 
-工程包含步兵、工程、英雄、哨兵机器人源代码，适用于 RM 2018 A 型、RM 2017 开发板，通过条件编译控制编译目标。
-
-The project contains the standard, engineer, hero and sentry vehicles source code and is compatible with RM board 2018 A
-and RM board 2017. With CMake, the code for each robot could be built by switching the target of CMake.
+本工程包含步兵、工程、英雄、哨兵机器人源代码，适用于RoboMaster 开发板A型，通过条件编译控制编译目标。
+The project contains the standard, engineer, hero and sentry vehicles' source code. This is compatible with RoboMaster Development Board Type A.
+The code for each robot could be built by switching the target of CMake.
 
 
 # 基本结构 | Basic Structures
-
-
-更新日期：April.17, 2023
-Updated Time: April.17, 2023
+更新日期：May 1, 2023
+Updated: May 1, 2023
 
 ```
 Meta-Embedded
@@ -38,7 +34,7 @@ The project use C++ class for encapsulation and modularization. The modules will
 
 ```
 .
-├── board_pin                            - STM32配置 | Configuration for STM32 -
+├── board_pin                           - STM32配置 | Configuration for STM32 -
 │   ├── rm_board_2017
 │   │     ├── board.c
 │   │     ├── board.h
@@ -50,7 +46,7 @@ The project use C++ class for encapsulation and modularization. The modules will
 │         ├── board.mk
 │         └── mcuconf.h
 ├── application                         - 应用层程序 | Higher level Applications -
-│   ├───param_adjusts                   - 参数整调程序 | Parameter Adjust Programs -
+│   ├───param_adjusts                       - 参数整调程序 | Parameter Adjust Programs -
 │   │   ├───pa_chassis               
 │   │   └───pa_infantry              
 │   ├───unit_tests                      - 单元测试 | Unit Tests-
@@ -64,7 +60,7 @@ The project use C++ class for encapsulation and modularization. The modules will
 │   │   ├───ut_sd_card
 │   │   ├───ut_sentry_chassis
 │   │   └───ut_usb_com
-│   └───vehicles                        - 各类车辆 | Vehicles
+│   └───vehicles                        - 车辆配置文件（电机ID，PID参数等） | Vehicles Configuration -
 │       ├───aerial
 │       ├───engineer
 │       ├───haptic_device
@@ -72,41 +68,41 @@ The project use C++ class for encapsulation and modularization. The modules will
 │       ├───infantry
 │       └───sentry
 ├── interface                           - 较低层次的接口模块 | Low Level Interfaces -
-│   ├── ahrs                            - IMU 模块 | IMU Module -
-│   │   ├── ahrs.cpp                      综合运算模块 | Comprehensive Calculation Module -
+│   ├── ahrs                                - IMU 模块 | IMU Module -
+│   │   ├── ahrs.cpp                            - 综合运算模块 | Comprehensive Calculation Module -
 │   │   ├── ahrs.h
 │   │   ├── imu_math.hpp
-│   │   ├── ist8310.cpp                   IST8310 接口 | Interface for IST8310 -
+│   │   ├── ist8310.cpp                         - IST8310 接口 | Interface for IST8310 -
 │   │   ├── ist8310.h
 │   │   ├── ist8310_reg.h
-│   │   ├── mpu6500.cpp                   MPU6500 陀螺仪接口 | Interface for MPU 6500 -
+│   │   ├── mpu6500.cpp                         - MPU6500 陀螺仪接口 | Interface for MPU 6500 -
 │   │   ├── mpu6500.h
 │   │   └── mpu6500_reg.h
-│   ├── can                             - CAN总下相关接口 | Interfaces for CAN-BUS -
-│   │   ├── can_interface.cpp             CAN总线收发程序 | CAN-BUS Tx/RX Module
+│   ├── can                                 - CAN总下相关接口 | Interfaces for CAN-BUS -
+│   │   ├── can_interface.cpp                   - CAN总线收发程序 | CAN-BUS Tx/RX Module
 │   │   ├── can_interface.h
-│   │   ├── can_motor_feedback.cpp        大疆CAN电机接口 | DJI Motors' Feedback Class Using CAN-BUS -
+│   │   ├── can_motor_feedback.cpp              - 大疆CAN电机接口 | DJI Motors' Feedback Class Using CAN-BUS -
 │   │   ├── can_motor_feedback.h
-│   │   ├── CANMotorIF.cpp       大疆CAN电机整体接口 | Overall Interface for DJI Motors -
+│   │   ├── CANMotorIF.cpp                      - 大疆CAN电机整体接口 | Overall Interface for DJI Motors -
 │   │   └── CANMotorIF.h
-│   ├── usb_com                          - 虚拟串口 | STM32 Virtual COM port (CDC) -
-│   │   ├── usb_serial_port.cpp                   USB配置文件 | USB configuration file
+│   ├── usb_com                             - 虚拟串口 | STM32 Virtual COM port (CDC) -
+│   │   ├── usb_serial_port.cpp                 - USB配置文件 | USB configuration file
 │   │   ├── usb_serial_port.h
-│   │   ├── VirtualCOMPort.cpp                       虚拟串口收发接口 | Interface for Virtual COM Port
+│   │   ├── VirtualCOMPort.cpp                  - 虚拟串口收发接口 | Interface for Virtual COM Port
 │   │   └── VirtualCOMPort.h
-│   └── ...                               其他接口（可能会频繁更新） | Other Interfaces (Varies Over Time)
+│   └── ...                                 - 其他接口（可能会频繁更新） | Other Interfaces (Varies Over Time)
 ├── scheduler                           - 调度程序（包含控制算法） | Schedulers, contains thread performing control algorithms -
-│   ├── buzzer_scheduler.cpp              蜂鸣器 | Buzzer
+│   ├── buzzer_scheduler.cpp                - 蜂鸣器 | Buzzer
 │   ├── buzzer_scheduler.h
-│   ├── CANMotorController.cpp           CAN电机调度程序 | Schedulers for CAN motors. Performing control algorithms (like PID)
+│   ├── CANMotorController.cpp              - CAN电机调度程序 | Schedulers for CAN motors. Performing control algorithms (like PID)
 │   ├── CANMotorController.h
-│   └── ...                               其他调度程序（近期更新） | Other Schedulers (Might Refactor Soon)
+│   └── ...                                 - 其他调度程序（近期更新） | Other Schedulers (Might Refactor Soon)
 ├── logic                               - 高级逻辑控制 | Higher Level Logic Control -
-│   ├── HapticLG.cpp                  重力模拟器逻辑控制，包含开机校准以及多种模式控制 | Haptic device logic control, contains startup calibration and multiple control modes
+│   ├── HapticLG.cpp                        - 重力模拟器逻辑控制，包含开机校准以及多种模式控制 | Haptic device logic control, contains startup calibration and multiple control modes
 │   ├── HapticLG.h
-│   ├── chassis_logic.cpp                 麦克纳姆轮底盘控制程序，包含速度分解 | Control Algorithm for chassises with Mecanum wheel, including velocity decompose
+│   ├── chassis_logic.cpp                   - 麦克纳姆轮底盘控制程序，包含速度分解 | Control Algorithm for chassises with Mecanum wheel, including velocity decompose
 │   ├── chassis_logic.h
-│   └── ...                               其他逻辑控制程序（近期更新） | Other high level logical control algorithms (Might Refactor Soon)
+│   └── ...                                 - 其他逻辑控制程序（近期更新） | Other high level logical control algorithms (Might Refactor Soon)
 ├── common                              - 通用组件 | Universal Components -
 │   ├── common_macro.h
 │   ├── CRC8.cpp
@@ -114,8 +110,8 @@ The project use C++ class for encapsulation and modularization. The modules will
 │   ├── CRC16.cpp
 │   └── CRC16.h
 ├── module                              - 模块（将来可能与common合并） | common modules (might merge with common soon) -                       
-├── chconf.h                            ChibiOS 配置文件 | ChibiOS configuration
-└── halconf.h                           ChibiOS HAL 配置文件 | ChibiOS HAL configuraion
+├── chconf.h                            - ChibiOS 配置文件 | ChibiOS configuration
+└── halconf.h                           - ChibiOS HAL 配置文件 | ChibiOS HAL configuraion
 ```
 
 # 前置阅读资料 | Pre-request
