@@ -110,4 +110,10 @@
 //#define USER_CLIENT_ACTUAL_POWER_NUM              2
 #define USER_CLIENT_SUPER_CAPACITOR_VOLTAGE_NUM     1
 
+/*===========================================================================*/
+/*                     Chassis Capacitor Configurations                      */
+/*===========================================================================*/
+
+#define SUPER_CAPACITOR_WARNING_VOLTAGE   15
+
 #endif //META_INFANTRY_VEHICLE_INFANTRY_H
