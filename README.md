@@ -7,9 +7,11 @@ master![C/C++ CI](https://github.com/Meta-Team/Meta-Embedded/actions/workflows/r
 => Please read [Project Wiki](https://github.com/Meta-Team/Meta-Infantry/wiki) :smiley:
 
 ZJU-UIUC Meta 战队 RoboMaster 嵌入式程序工程，基于 ChibiOS 操作系统，使用 C 和 C++。
+
 ZJU-UIUC Meta RoboMaster Team's Embedded Control Program, based on ChibiOS/RT. The program mainly use C and C++.
 
 本工程包含步兵、工程、英雄、哨兵机器人源代码，适用于RoboMaster 开发板A型，通过条件编译控制编译目标。
+
 The project contains the standard, engineer, hero and sentry vehicles' source code. This is compatible with RoboMaster Development Board Type A.
 The code for each robot could be built by switching the target of CMake.
 
