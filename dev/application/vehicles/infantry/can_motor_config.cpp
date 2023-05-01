@@ -3,7 +3,7 @@
 //
 
 #include "can_motor_config.h"
-//TODO Hardware sync the CAN settings on infantry 3&4
+//TODO Hardware sync the CAN settings on infantry 3
 #if defined(INFANTRY_THREE)                                                 /** Infantry #3  (The old hardware wire connection and CANID sid, the 8/4/21 version)**/
 CANMotorBase CANMotorCFG::CANMotorProfile[MOTOR_COUNT] = {
         {CANMotorBase::can_channel_2, 0x202, CANMotorBase::M3508, 3572},
@@ -62,7 +62,7 @@ PIDController::pid_params_t CANMotorCFG::a2vParams[MOTOR_COUNT] = {
         {10, 0, 0.2, 100, 500},
         {10, 0, 0.2, 100, 500},
         {10, 0, 0.2, 100, 500},
-        {22, 0, 200, 000, 600},//YAW
+        {22, 0, 500, 000, 600},//YAW
         {30, 0, 400, 000, 720},
         {20, 0, 0.0, 000, 360},
         {10, 0, 0.2, 100, 500},
