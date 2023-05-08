@@ -42,10 +42,20 @@ void ChassisLG::set_mode(ChassisLG::chassis_mode_t mode) {
     chassis_mode = mode;
     switch (mode) {
         case FORCE_RELAX_MODE:
+#ifdef CHASSIS_USE_MECANUM
             MecanumChassisSKD::set_mode(SKDBase::FORCED_RELAX_MODE);
+#endif
+#ifdef CHASSIS_USE_STEER
+            SteerChassisSKD::set_mode(SKDBase::FORCED_RELAX_MODE);
+#endif
             break;
         case CHASSIS_REF_MODE:
+#ifdef CHASSIS_USE_MECANUM
             MecanumChassisSKD::set_mode(SKDBase::CHASSIS_REF_MODE);
+#endif
+#ifdef CHASSIS_USE_STEER
+            SteerChassisSKD::set_mode(SKDBase::CHASSIS_REF_MODE);
+#endif
             target_omega = 0;
             break;
 #if ENABLE_AHRS
@@ -87,7 +97,12 @@ void ChassisLG::MotionControllerThread::main() {
             case FORCE_RELAX_MODE:
                 break;
             case CHASSIS_REF_MODE:
+#ifdef CHASSIS_USE_MECANUM
                 MecanumChassisSKD::set_target(target_vx, target_vy, target_omega);
+#endif
+#ifdef CHASSIS_USE_STEER
+                SteerChassisSKD::set_target(target_vx, target_vy, target_omega);
+#endif
                 break;
 #if ENABLE_AHRS
             case GIMBAL_REF_MODE:

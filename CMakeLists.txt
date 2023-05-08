@@ -366,6 +366,19 @@ target_include_directories(ut_chassis PRIVATE dev/application/unit_tests/ut_chas
 target_compile_definitions(ut_chassis PRIVATE ut_chassis)
 target_link_libraries(ut_chassis ${AHRS_LIB})
 
+add_executable(ut_steer_chassis
+        ${VEHICLE_COMMON_SRC}
+        ${AHRS_SRC}
+        dev/application/unit_tests/ut_steer_chassis/can_motor_config.cpp
+        dev/interface/can_motor/can_motor_controller.cpp
+        dev/scheduler/steering_chassis_scheduler.cpp
+        dev/logic/chassis_logic.cpp
+        dev/module/low_pass_filter.hpp
+        dev/application/unit_tests/ut_steer_chassis/ut_chassis.cpp)
+target_include_directories(ut_steer_chassis PRIVATE dev/application/unit_tests/ut_steer_chassis)
+target_compile_definitions(ut_steer_chassis PRIVATE ut_steer_chassis)
+target_link_libraries(ut_steer_chassis ${AHRS_LIB})
+
 # --------------------------------------- Param Adjusts ---------------------------------------
 
 

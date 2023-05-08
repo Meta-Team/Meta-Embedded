@@ -18,17 +18,20 @@
 #include "hardware_conf.h"
 
 #include "pid_controller.hpp"
-#include "mecanum_chassis_scheduler.h"
 
 #include "capacitor_interface.h"
 #include "referee_interface.h"
 
 #if defined(INFANTRY)
 #include "vehicle_infantry.h"
+#include "mecanum_chassis_scheduler.h"
 #elif defined(HERO)
 #include "vehicle_hero.h"
+#include "mecanum_chassis_scheduler.h"
 # elif defined(ut_chassis)
-
+#include "mecanum_chassis_scheduler.h"
+# elif defined(ut_steer_chassis)
+#include "steering_chassis_scheduler.h"
 #else
 #error "Files infantry_shoot_logic.h/cpp can only be used for Infantry or Hero main program now"
 #endif

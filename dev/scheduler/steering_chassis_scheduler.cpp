@@ -1,45 +1,38 @@
 //
-// Created by Administrator on 2019/1/11 0011.
+// Created by Wu Feiyang on 2023/5/8.
 //
 
-/**
- * @file    chassis_scheduler.cpp
- * @brief   Scheduler to control chassis to meet the target, including a thread to invoke PID calculation in period.
- *
- * @addtogroup chassis
- * @{
- */
-
-#include "mecanum_chassis_scheduler.h"
+#include "steering_chassis_scheduler.h"
 
 float SKDBase::target_vx = 0.0f;
 float SKDBase::target_vy = 0.0f;
 float SKDBase::target_omega = 0.0f;
 
-MecanumChassisSKD::install_mode_t MecanumChassisSKD::install_mode = POSITIVE;
-float MecanumChassisSKD::w_to_v_ratio = 0.0f;
-float MecanumChassisSKD::v_to_wheel_angular_velocity = 0.0f;
+SteerChassisSKD::install_mode_t SteerChassisSKD::install_mode = POSITIVE;
+float SteerChassisSKD::w_to_v_ratio = 0.0f;
+float SteerChassisSKD::v_to_wheel_angular_velocity = 0.0f;
 float SKDBase::chassis_gimbal_offset_ = 0.0f;
 
-MecanumChassisSKD::SKDThread MecanumChassisSKD::skd_thread;
-SKDBase::mode_t MecanumChassisSKD::mode;
+SteerChassisSKD::SKDThread SteerChassisSKD::skd_thread;
+SKDBase::mode_t SteerChassisSKD::mode;
 
-void MecanumChassisSKD::init(tprio_t skd_prio, float wheel_base, float wheel_thread, float wheel_circumference, float gimbal_offset) {
+void SteerChassisSKD::init(tprio_t skd_prio, float wheel_base, float wheel_dist_from_center, float wheel_circumference, float gimbal_offset){
     skd_thread.start(skd_prio);
-    w_to_v_ratio = (wheel_base + wheel_thread) / 2.0f / 360.0f * 3.14159f;
+    w_to_v_ratio = (wheel_base + wheel_dist_from_center) / 2.0f / 360.0f * 3.14159f;
     v_to_wheel_angular_velocity = (360.0f / wheel_circumference);
     chassis_gimbal_offset_ = gimbal_offset;
 }
 
-void MecanumChassisSKD::set_target(float vx, float vy, float omega) {
-    target_vx = vx;
-    target_vy = vy;
-    target_omega = omega;
-    // For DODGE_MODE keep current target_theta unchanged
+
+void SteerChassisSKD::set_target(float vx, float vy, float omega) {
+        target_vx = vx;
+        target_vy = vy;
+        target_omega = omega;
+        // For DODGE_MODE keep current target_theta unchanged
 }
 
-void MecanumChassisSKD::set_mode(SKDBase::mode_t mode_) {
-    MecanumChassisSKD::mode = mode_;
+void SteerChassisSKD::set_mode(SKDBase::mode_t mode_) {
+    SteerChassisSKD::mode = mode_;
     if(mode != FORCED_RELAX_MODE) {
         CANMotorCFG::enable_v2i[CANMotorCFG::FL] = true;
         CANMotorCFG::enable_v2i[CANMotorCFG::FR] = true;
@@ -57,7 +50,7 @@ void MecanumChassisSKD::set_mode(SKDBase::mode_t mode_) {
     }
 }
 
-void MecanumChassisSKD::SKDThread::main() {
+void SteerChassisSKD::SKDThread::main() {
     setName("ChassisSKDThread");
     while(!shouldTerminate()) {
         chSysLock();  /// --- ENTER S-Locked state. DO NOT use LOG, printf, non S/I-Class functions or return ---
@@ -70,10 +63,18 @@ void MecanumChassisSKD::SKDThread::main() {
                     CANMotorCFG::enable_v2i[CANMotorCFG::FR] = false;
                     CANMotorCFG::enable_v2i[CANMotorCFG::BR] = false;
                     CANMotorCFG::enable_v2i[CANMotorCFG::BL] = false;
+                    CANMotorCFG::enable_v2i[CANMotorCFG::FLSTEER] = false;
+                    CANMotorCFG::enable_v2i[CANMotorCFG::FRSTEER] = false;
+                    CANMotorCFG::enable_v2i[CANMotorCFG::BRSTEER] = false;
+                    CANMotorCFG::enable_v2i[CANMotorCFG::BLSTEER] = false;
                     CANMotorController::set_target_current(CANMotorCFG::FL, 0);
                     CANMotorController::set_target_current(CANMotorCFG::FR, 0);
                     CANMotorController::set_target_current(CANMotorCFG::BR, 0);
                     CANMotorController::set_target_current(CANMotorCFG::BL, 0);
+                    CANMotorController::set_target_current(CANMotorCFG::FLSTEER, 0);
+                    CANMotorController::set_target_current(CANMotorCFG::FRSTEER, 0);
+                    CANMotorController::set_target_current(CANMotorCFG::BRSTEER, 0);
+                    CANMotorController::set_target_current(CANMotorCFG::BLSTEER, 0);
                     break;
                 case CHASSIS_REF_MODE:
                     // Set the velocity in chassis coordinate.
@@ -87,7 +88,7 @@ void MecanumChassisSKD::SKDThread::main() {
                                                                         (-target_vx-target_vy+ target_omega * w_to_v_ratio) * v_to_wheel_angular_velocity);
                     break;
 #if ENABLE_AHRS
-                case GIMBAL_REF_MODE:
+                    case GIMBAL_REF_MODE:
 
                     // Set the velocity in gimbal coordinate.
 
@@ -199,5 +200,3 @@ DEF_SHELL_CMD_START(ChassisSKD::cmdPID)
     return true;
 DEF_SHELL_CMD_END
 #endif
-
-/** @} */
