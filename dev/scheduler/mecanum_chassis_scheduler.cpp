@@ -12,14 +12,14 @@
 
 #include "mecanum_chassis_scheduler.h"
 
-float SKDBase::target_vx = 0.0f;
-float SKDBase::target_vy = 0.0f;
-float SKDBase::target_omega = 0.0f;
+float MecanumChassisSKD::target_vx = 0.0f;
+float MecanumChassisSKD::target_vy = 0.0f;
+float MecanumChassisSKD::target_omega = 0.0f;
 
 MecanumChassisSKD::install_mode_t MecanumChassisSKD::install_mode = POSITIVE;
 float MecanumChassisSKD::w_to_v_ratio = 0.0f;
 float MecanumChassisSKD::v_to_wheel_angular_velocity = 0.0f;
-float SKDBase::chassis_gimbal_offset_ = 0.0f;
+float MecanumChassisSKD::chassis_gimbal_offset_ = 0.0f;
 
 MecanumChassisSKD::SKDThread MecanumChassisSKD::skd_thread;
 SKDBase::mode_t MecanumChassisSKD::mode;

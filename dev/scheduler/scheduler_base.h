@@ -19,25 +19,7 @@ public:
 #endif
     };
 
-    /**
-     * @brief Input target velocity in X axis (orthogonal to gimbal vehicle's direction)
-     */
-    static float target_vx;
 
-    /**
-     * @brief Input target velocity in X axis (parallel to gimbal vehicle's direction)
-     */
-    static float target_vy;
-
-    /**
-     * @brief Input target chassis angular velocity.
-     */
-    static float target_omega;
-
-    /**
-     * @brief The distance of chassis and gimbal's geometric centers.
-     */
-    static float chassis_gimbal_offset_;
 
 };
 

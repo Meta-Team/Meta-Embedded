@@ -4,14 +4,14 @@
 
 #include "steering_chassis_scheduler.h"
 
-float SKDBase::target_vx = 0.0f;
-float SKDBase::target_vy = 0.0f;
-float SKDBase::target_omega = 0.0f;
+float SteerChassisSKD::target_vx = 0.0f;
+float SteerChassisSKD::target_vy = 0.0f;
+float SteerChassisSKD::target_omega = 0.0f;
 
 SteerChassisSKD::install_mode_t SteerChassisSKD::install_mode = POSITIVE;
 float SteerChassisSKD::w_to_v_ratio = 0.0f;
 float SteerChassisSKD::v_to_wheel_angular_velocity = 0.0f;
-float SKDBase::chassis_gimbal_offset_ = 0.0f;
+float SteerChassisSKD::chassis_gimbal_offset_ = 0.0f;
 
 SteerChassisSKD::SKDThread SteerChassisSKD::skd_thread;
 SKDBase::mode_t SteerChassisSKD::mode;
