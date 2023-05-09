@@ -91,7 +91,7 @@ void ChassisLG::MotionControllerThread::main() {
 #if ENABLE_CAPACITOR == TRUE
     float voltage_decrement;
 #endif
-    while(!shouldTerminate()) {
+    while (!shouldTerminate()) {
         chSysLock();
         switch (chassis_mode) {
             case FORCE_RELAX_MODE:
@@ -107,12 +107,23 @@ void ChassisLG::MotionControllerThread::main() {
 #if ENABLE_AHRS
             case GIMBAL_REF_MODE:
                 yaw_accumulate_angle = CANMotorIF::motor_feedback[CANMotorCFG::YAW].accumulate_angle();
-                yaw_auto_straightening_angle = (float)((int)(yaw_accumulate_angle/360.0f)) * 360.0f;
-                if (yaw_accumulate_angle - yaw_auto_straightening_angle > 180.0f) yaw_auto_straightening_angle += 360.0f;
-                if (yaw_accumulate_angle - yaw_auto_straightening_angle < -180.0f) yaw_auto_straightening_angle -= 360.0f;
-                target_omega = ChassisLG::auto_straightening_pid.calc(yaw_accumulate_angle, yaw_auto_straightening_angle);
-                MecanumChassisSKD::set_target(target_vx, target_vy, target_omega);
+                yaw_auto_straightening_angle = (float) ((int) (yaw_accumulate_angle / 360.0f)) * 360.0f;
+                if (yaw_accumulate_angle - yaw_auto_straightening_angle > 180.0f)
+                    yaw_auto_straightening_angle += 360.0f;
+                if (yaw_accumulate_angle - yaw_auto_straightening_angle < -180.0f)
+                    yaw_auto_straightening_angle -= 360.0f;
+                target_omega = ChassisLG::auto_straightening_pid.calc(yaw_accumulate_angle,
+                                                                      yaw_auto_straightening_angle);
+
+                //this is to reduce the shake at 0 of gimbal, but there is unknown shift (3 to r and 4 to left)
+                if (abs(yaw_accumulate_angle - yaw_auto_straightening_angle) < 3) {
+                    MecanumChassisSKD::set_target(target_vx, target_vy, target_omega / 10);
+                } else {
+                    MecanumChassisSKD::set_target(target_vx, target_vy, target_omega);
+                }
                 break;
+
+
             case DODGE:
                 // Control the target omega to keep super capacitor voltage at 20V.
 #if ENABLE_CAPACITOR == TRUE
@@ -133,11 +144,13 @@ void ChassisLG::MotionControllerThread::main() {
         sleep(TIME_MS2I(MTN_CTL_INTERVAL));
     }
 }
+
 #if ENABLE_CAPACITOR == TRUE && ENABLE_REFEREE == TRUE
+
 void ChassisLG::CapacitorSetThread::main() {
 
     setName("capacitor_set_thread");
-    while(!shouldTerminate()) {
+    while (!shouldTerminate()) {
         if ((float) Referee::power_heat.chassis_power_buffer - Referee::power_heat.chassis_power * 0.1 > 5.0) {
             CapacitorIF::set_power(95.0);
         } else {

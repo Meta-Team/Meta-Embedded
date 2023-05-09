@@ -29,8 +29,7 @@ void ShootSKD::set_mode(ShootSKD::mode_t skd_mode) {
     if(skd_mode == FORCED_RELAX_MODE) {
         CANMotorCFG::enable_a2v[CANMotorCFG::BULLET_LOADER] = false;
         CANMotorCFG::enable_v2i[CANMotorCFG::BULLET_LOADER] = false;
-        CANMotorCFG::enable_v2i[CANMotorCFG::FW_UP] = true;
-        CANMotorCFG::enable_v2i[CANMotorCFG::FW_DOWN] = true;
+        // leave the v2i pid for friction wheels alone, since it will be disabled in SKDThread
     } else {
         CANMotorCFG::enable_a2v[CANMotorCFG::BULLET_LOADER] = true;
         CANMotorCFG::enable_v2i[CANMotorCFG::BULLET_LOADER] = true;

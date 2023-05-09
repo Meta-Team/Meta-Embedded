@@ -1,7 +1,7 @@
 //
 // Created by liuzikai on 2019-05-13.
 //
-
+#define ENABLE_USB_SHELL TRUE
 #include "ch.hpp"
 #include "hal.h"
 
@@ -12,7 +12,6 @@
 #include "ahrs_abstract.h"
 #include "buzzer_scheduler.h"
 #include <cmath>
-//TODO there is a deadlock in the feedbackThread, fix it
 using namespace chibios_rt;
 
 static constexpr Matrix33 AHRS_MATRIX = {{0.0f, 0.0f, 1.0f},
@@ -46,9 +45,6 @@ protected:
     void main() final {
         setName("AHRS");
 //        ahrs.load_calibration_data({0.682773649f, -0.682926177f, -0.257317185f});
-        ahrs.start(AHRS_MATRIX, HIGHPRIO - 2);
-        BuzzerSKD::init(LOWPRIO);
-        BuzzerSKD::play_sound(BuzzerSKD::sound_startup);
         while (!shouldTerminate()) {
             Vector3D angle = ANGLE_INSTALLATION_MATRIX * abstract_ahrs -> get_angle();
             Shell::printf("!a,%.4f,%.4f,%.4f" SHELL_NEWLINE_STR,
@@ -56,15 +52,15 @@ protected:
                           angle.y,
                           angle.z);
             Vector3D gyro = GYRO_INSTALLATION_MATRIX * abstract_ahrs -> get_gyro();
-//            Shell::printf("gyro ,%.4f,%.4f,%.4f" SHELL_NEWLINE_STR,
-//                          gyro.x,
-//                          gyro.y,
-//                          gyro.z);
-//            Shell::printf("gyro.x = %.2f, gyro.z = %.2f, angle.y = %.2f ,ans = %.2f" SHELL_NEWLINE_STR,
-//                          gyro.x,
-//                          gyro.z,
-//                          angle.y,
-//                          gyro.x * cosf(angle.y / 180.0f * M_PI) + gyro.z * sinf(angle.y / 180.0f * M_PI));
+            Shell::printf("gyro ,%.4f,%.4f,%.4f" SHELL_NEWLINE_STR,
+                          gyro.x,
+                          gyro.y,
+                          gyro.z);
+            Shell::printf("gyro.x = %.2f, gyro.z = %.2f, angle.y = %.2f ,ans = %.2f" SHELL_NEWLINE_STR,
+                          gyro.x,
+                          gyro.z,
+                          angle.y,
+                          gyro.x * cosf(angle.y / 180.0f * M_PI) + gyro.z * sinf(angle.y / 180.0f * M_PI));
             sleep(TIME_MS2I(100));
         }
     }
@@ -95,14 +91,16 @@ int main(void) {
     halInit();
     System::init();
 
-    Shell::start(HIGHPRIO-10 );
+    Shell::start(LOWPRIO+1 );
 //    Shell::addCommands(ahrsShellCommands);
     LED::all_off();
 
+    BuzzerSKD::init(NORMALPRIO-1);
+    BuzzerSKD::play_sound(BuzzerSKD::sound_startup);
     ahrs.start(AHRS_MATRIX, NORMALPRIO - 1);
 
     abstract_ahrs = &ahrs;
-    //feedbackThread.start(NORMALPRIO);
+    feedbackThread.start(NORMALPRIO);
 
     // See chconf.h for what this #define means.
 #if CH_CFG_NO_IDLE_THREAD

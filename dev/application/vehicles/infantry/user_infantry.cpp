@@ -189,6 +189,7 @@ void UserI::UserThread::main() {
                     }
                 } else {
                     if (ShootLG::get_shooter_state() != ShootLG::STOP) {
+                        // stop the bullet loader
                         ShootLG::stop();
                     }
                 }
