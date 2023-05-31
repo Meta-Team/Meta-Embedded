@@ -26,4 +26,8 @@
 #define ENABLE_USB_SHELL                TRUE
 #endif
 
+#if !defined(ENABLE_AHRS) || defined(__DOXYGEN__)
+#define ENABLE_AHRS                     FALSE
+#endif
+
 #endif //META_INFANTRY_HARDWARE_CONF_H

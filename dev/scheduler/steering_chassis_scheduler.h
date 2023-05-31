@@ -25,7 +25,7 @@ public:
     * @param wheel_circumference   Circumference of wheels [mm]
     * @param gimbal_offset offset from gimbal
     */
-    static void init(tprio_t skd_prio, float wheel_base, float wheel_dist_from_center, float wheel_circumference, float gimbal_offset = 0);
+    static void init(tprio_t skd_prio, float wheel_base,float wheel_circumference, float gimbal_offset = 0);
 
     /**
      * Set the mode for chassis.
@@ -44,6 +44,12 @@ public:
     static float w_to_v_ratio;
 
     static float v_to_wheel_angular_velocity;
+
+    /**
+     * @brief The Radius from the center to the wheel
+     */
+     static float radius;
+
 
 private:
 

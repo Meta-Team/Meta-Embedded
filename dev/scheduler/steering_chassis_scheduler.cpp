@@ -1,12 +1,16 @@
 //
 // Created by Wu Feiyang on 2023/5/8.
 //
-
+/**
+ * The control analysis comes from github
+ * https://github.com/scutrobotlab/RM2010_AGVinfantry
+ */
 #include "steering_chassis_scheduler.h"
 
 float SteerChassisSKD::target_vx = 0.0f;
 float SteerChassisSKD::target_vy = 0.0f;
 float SteerChassisSKD::target_omega = 0.0f;
+float SteerChassisSKD::radius = 50.0f;
 
 SteerChassisSKD::install_mode_t SteerChassisSKD::install_mode = POSITIVE;
 float SteerChassisSKD::w_to_v_ratio = 0.0f;
@@ -16,9 +20,9 @@ float SteerChassisSKD::chassis_gimbal_offset_ = 0.0f;
 SteerChassisSKD::SKDThread SteerChassisSKD::skd_thread;
 SKDBase::mode_t SteerChassisSKD::mode;
 
-void SteerChassisSKD::init(tprio_t skd_prio, float wheel_base, float wheel_dist_from_center, float wheel_circumference, float gimbal_offset){
+void SteerChassisSKD::init(tprio_t skd_prio, float wheel_base, float wheel_circumference, float gimbal_offset){
     skd_thread.start(skd_prio);
-    w_to_v_ratio = (wheel_base + wheel_dist_from_center) / 2.0f / 360.0f * 3.14159f;
+    w_to_v_ratio = (wheel_base + radius) / 2.0f / 360.0f * 3.14159f;
     v_to_wheel_angular_velocity = (360.0f / wheel_circumference);
     chassis_gimbal_offset_ = gimbal_offset;
 }
@@ -78,14 +82,30 @@ void SteerChassisSKD::SKDThread::main() {
                     break;
                 case CHASSIS_REF_MODE:
                     // Set the velocity in chassis coordinate.
-                    CANMotorController::set_target_vel(CANMotorCFG::FR, (float)install_mode *
-                                                                        (target_vx-target_vy + target_omega * w_to_v_ratio) * v_to_wheel_angular_velocity);
-                    CANMotorController::set_target_vel(CANMotorCFG::FL, (float)install_mode *
-                                                                        (target_vx+target_vy + target_omega * w_to_v_ratio) * v_to_wheel_angular_velocity);
-                    CANMotorController::set_target_vel(CANMotorCFG::BL, (float)install_mode *
-                                                                        (-target_vx+target_vy+ target_omega * w_to_v_ratio) * v_to_wheel_angular_velocity);
-                    CANMotorController::set_target_vel(CANMotorCFG::BR, (float)install_mode *
-                                                                        (-target_vx-target_vy+ target_omega * w_to_v_ratio) * v_to_wheel_angular_velocity);
+                    double rotartion_v = radius * target_omega;
+                    double cos45 = cos((double)PI/4);
+                    double sin45 = sin((double)PI/4);
+                    CANMotorController::set_target_vel(CANMotorCFG::FR,
+                                                       (float)sqrt((target_vy+cos45*rotartion_v)*(target_vy+cos45*rotartion_v)+
+                                                                          (target_vx-sin45*rotartion_v)*(target_vx-sin45*rotartion_v)));
+                    CANMotorController::set_target_vel(CANMotorCFG::FL,
+                                                       (float)sqrt((target_vy-cos45*rotartion_v)*(target_vy-cos45*rotartion_v)+
+                                                                          (target_vx-sin45*rotartion_v)*(target_vx-sin45*rotartion_v)));
+                    CANMotorController::set_target_vel(CANMotorCFG::BL,
+                                                       (float)sqrt((target_vy-cos45*rotartion_v)*(target_vy-cos45*rotartion_v)+
+                                                                          (target_vx+sin45*rotartion_v)*(target_vx+sin45*rotartion_v)));
+                    CANMotorController::set_target_vel(CANMotorCFG::BR,
+                                                       (float)sqrt((target_vy+cos45*rotartion_v)*(target_vy+cos45*rotartion_v)+
+                                                                          (target_vx+sin45*rotartion_v)*(target_vx+sin45*rotartion_v)));
+                    double thetaFL = atan((target_vy-rotartion_v*cos45)/(target_vx-rotartion_v*sin45));
+                    double thetaFR = atan((target_vy+rotartion_v*cos45)/(target_vx-rotartion_v*sin45));
+                    double thetaBL = atan((target_vy-rotartion_v*cos45)/(target_vx+rotartion_v*sin45));
+                    double thetaBR = atan((target_vy+rotartion_v*cos45)/(target_vx+rotartion_v*sin45));
+
+                    CANMotorController::set_target_angle(CANMotorCFG::FLSTEER,(float)thetaFL);//TODO:Do not know the unit of the angle
+                    CANMotorController::set_target_angle(CANMotorCFG::FRSTEER,(float)thetaFR);
+                    CANMotorController::set_target_angle(CANMotorCFG::BRSTEER,(float)thetaBR);
+                    CANMotorController::set_target_angle(CANMotorCFG::BLSTEER,(float)thetaBL);
                     break;
 #if ENABLE_AHRS
                     case GIMBAL_REF_MODE:
