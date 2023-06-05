@@ -247,7 +247,7 @@ void UserH::UserThread::main() {
 #ifndef DEBUG_NO_CHASSIS
         /*** ---------------------------------- Chassis --------------------------------- ***/
         if (!InspectorH::remote_failure() && !InspectorH::chassis_failure() /*&& !InspectorH::gimbal_failure()*/) {
-            if ((Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_MIDDLE)) {
+            if ((Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_UP)) {
                 /// Remote - Chassis Move + Chassis Follow
                 ChassisLG::set_mode(ChassisLG::CHASSIS_REF_MODE);
                 ChassisLG::set_target(Remote::rc.ch2 * chassis_v_left_right,  // Both use right as positive direction
