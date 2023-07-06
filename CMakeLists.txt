@@ -272,6 +272,15 @@ if(BUILD_SENTRY)
 endif()
 # Main Program -- Engineer
 
+# Main Program -- Dart
+add_executable(DART
+        ${VEHICLE_COMMON_SRC}
+        dev/interface/referee/referee_interface.cpp
+        dev/application/vehicles/dart/can_motor_config.cpp
+        dev/application/vehicles/dart/main_dart.cpp
+        )
+target_include_directories(DART PRIVATE dev/application/vehicles/dart)
+target_compile_definitions(DART PRIVATE DART)
 
 # ======================================= Unit Tests Programs =======================================
 
