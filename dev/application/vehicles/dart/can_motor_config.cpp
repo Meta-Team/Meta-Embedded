@@ -9,11 +9,11 @@ CANMotorBase CANMotorCFG::CANMotorProfile[MOTOR_COUNT] = {
 };
 
 PIDController::pid_params_t CANMotorCFG::a2vParams[MOTOR_COUNT] = {
-        {20, 0.0f, 500,  000, 500}
+        {20, 0.0f, 500,  000, 550}
 };
 
 PIDController::pid_params_t CANMotorCFG::v2iParams[MOTOR_COUNT] = {
-        {30.0f,0.1f,0.02f,5000,30000.0},
+        {15.0f,0.0f,5.0f,5000,30000.0},
 
 };
 
