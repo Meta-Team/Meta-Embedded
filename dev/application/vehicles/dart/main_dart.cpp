@@ -5,47 +5,14 @@
 #include "hal.h"
 #include "can_motor_controller.h"
 #include "can_motor_interface.h"
-#include "chprintf.h"
 #include "shell.h"
 #include "remote_interpreter.h"
 #include "user_dart.h"
+#include "led.h"
+#include "referee_interface.h"
 
 CANInterface can1(&CAND1);
 CANInterface can2(&CAND2);
-
-//class remoteThread:public BaseStaticThread<512>{
-//private:
-//    void main() final;
-//    CANMotorFeedback feedback;
-//}remote_thread;
-//
-//void remoteThread::main(){
-//    setName("RemoteControl");
-//    static float angle;
-//    feedback = CANMotorIF::motor_feedback[CANMotorCFG::MOTOR_ONE];
-//    angle = feedback.accumulate_angle();
-//    while(!shouldTerminate()){
-//        chSysLock();
-//        if(Remote::rc.s1 == Remote::S_UP){
-//            CANMotorCFG::enable_v2i[CANMotorCFG::MOTOR_ONE] = false;
-//            CANMotorCFG::enable_a2v[CANMotorCFG::MOTOR_ONE] = false;
-//            CANMotorController::set_target_current(CANMotorCFG::MOTOR_ONE,0);
-//        }else if(Remote::rc.s1 == Remote::S_MIDDLE){
-//            CANMotorCFG::enable_v2i[CANMotorCFG::MOTOR_ONE] = true;
-//            CANMotorCFG::enable_a2v[CANMotorCFG::MOTOR_ONE] = false;
-//            CANMotorController::set_target_vel(CANMotorCFG::MOTOR_ONE, 200*Remote::rc.ch0);
-//        }else if(Remote::rc.s1 == Remote::S_DOWN){
-//            CANMotorCFG::enable_v2i[CANMotorCFG::MOTOR_ONE] = true;
-//            CANMotorCFG::enable_a2v[CANMotorCFG::MOTOR_ONE] = true;
-//            CANMotorController::set_target_angle(CANMotorCFG::MOTOR_ONE,angle);
-//        }
-//
-//        chSysUnlock();
-//        feedback = CANMotorIF::motor_feedback[CANMotorCFG::MOTOR_ONE];
-//        LOG("initial angle: %f, current angle: %f\r\n",angle,feedback.accumulate_angle());
-//        chThdSleepMilliseconds(100);
-//    }
-//}
 
 class printThread: public BaseStaticThread<512>{
 private:
@@ -53,11 +20,10 @@ private:
     void main() final{
         setName("print");
         while(!shouldTerminate()){
-            feedback = CANMotorIF::motor_feedback[CANMotorCFG::MOTOR_ONE];
+            feedback = CANMotorIF::motor_feedback[CANMotorCFG::YAW];
             LOG("%f\n\r",feedback.accumulate_angle());
             chThdSleepMilliseconds(500);
         }
-
     }
 }print_thread;
 
@@ -66,12 +32,17 @@ int main(){
     chibios_rt::System::init();
     Shell::start(LOWPRIO);
     Remote::start();
+
+    LED::led_on(0); // number 0 led turned on now
     can1.start(NORMALPRIO+3);
     can2.start(NORMALPRIO+4);
+    LED::led_on(1);// number 1 led turned on now
+
+    /// Setup Referee
+    Referee::init();
+
     UserDart::start(NORMALPRIO-1);
-//    remote_thread.start(NORMALPRIO-1);
     CANMotorController::start(HIGHPRIO-1,HIGHPRIO-2,&can1,&can2);
-//    print_thread.start(HIGHPRIO);
     chThdSleepSeconds(5);
 
 #if CH_CFG_NO_IDLE_THREAD // see chconf.h for what this #define means
