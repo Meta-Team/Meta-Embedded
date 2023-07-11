@@ -33,10 +33,10 @@ int main(){
     Shell::start(LOWPRIO);
     Remote::start();
 
-    LED::led_on(0); // number 0 led turned on now
+    LED::led_on(1); // led 1 turned on now
     can1.start(NORMALPRIO+3);
     can2.start(NORMALPRIO+4);
-    LED::led_on(1);// number 1 led turned on now
+    LED::led_on(2);//  led 2 turned on now
 
     /// Setup Referee
     Referee::init();

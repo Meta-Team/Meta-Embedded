@@ -17,6 +17,10 @@ void UserDart::UserThread::main(){
         if(Remote::rc.s1 == Remote::S_UP){                  // Forced Relax Mode
             CANMotorCFG::enable_v2i[CANMotorCFG::YAW] = false;
             CANMotorCFG::enable_a2v[CANMotorCFG::YAW] = false;
+            CANMotorCFG::enable_v2i[CANMotorCFG::STORE_ENERGY_LEFT] = false;
+            CANMotorCFG::enable_a2v[CANMotorCFG::STORE_ENERGY_LEFT] = false;
+            CANMotorCFG::enable_v2i[CANMotorCFG::STORE_ENERGY_RIGHT] = false;
+            CANMotorCFG::enable_a2v[CANMotorCFG::STORE_ENERGY_RIGHT] = false;
             CANMotorController::set_target_current(CANMotorCFG::YAW,0);
         }else if(Remote::rc.s1 == Remote::S_MIDDLE){        // Remote contorl mode
             CANMotorCFG::enable_v2i[CANMotorCFG::YAW] = true;
@@ -31,7 +35,18 @@ void UserDart::UserThread::main(){
         }else if(Remote::rc.s1 == Remote::S_DOWN){          // PC control mode, goes back to initial encoder angle
             CANMotorCFG::enable_v2i[CANMotorCFG::YAW] = true;
             CANMotorCFG::enable_a2v[CANMotorCFG::YAW] = true;
+            CANMotorCFG::enable_v2i[CANMotorCFG::STORE_ENERGY_LEFT] = false;
+            CANMotorCFG::enable_a2v[CANMotorCFG::STORE_ENERGY_LEFT] = false;
+            CANMotorCFG::enable_v2i[CANMotorCFG::STORE_ENERGY_RIGHT] = false;
+            CANMotorCFG::enable_a2v[CANMotorCFG::STORE_ENERGY_RIGHT] = false;
             CANMotorController::set_target_angle(CANMotorCFG::YAW,angle);
+            uint8_t remain_time = Referee::ext_dart_remaining_time.dart_remaining_time;
+            if(remain_time == 0){
+                CANMotorCFG::enable_v2i[CANMotorCFG::STORE_ENERGY_LEFT] = true;
+                CANMotorCFG::enable_a2v[CANMotorCFG::STORE_ENERGY_LEFT] = true;
+                CANMotorCFG::enable_v2i[CANMotorCFG::STORE_ENERGY_RIGHT] = true;
+                CANMotorCFG::enable_a2v[CANMotorCFG::STORE_ENERGY_RIGHT] = true;
+            }
         }
 
         chSysUnlock();

@@ -9,6 +9,7 @@
 #include "can_motor_feedback.h"
 #include "can_motor_controller.h"
 #include "remote_interpreter.h"
+#include "referee_interface.h"
 
 
 class UserDart{
