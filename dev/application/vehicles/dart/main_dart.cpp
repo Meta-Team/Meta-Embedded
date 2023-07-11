@@ -1,5 +1,5 @@
 //
-// Created by Wu Feiyang on 2023/76.
+// Created by Wu Feiyang on 2023/7/6.
 //
 #include "ch.hpp"
 #include "hal.h"
@@ -8,43 +8,44 @@
 #include "chprintf.h"
 #include "shell.h"
 #include "remote_interpreter.h"
+#include "user_dart.h"
 
 CANInterface can1(&CAND1);
 CANInterface can2(&CAND2);
 
-class remoteThread:public BaseStaticThread<512>{
-private:
-    void main() final;
-    CANMotorFeedback feedback;
-}remote_thread;
-
-void remoteThread::main(){
-    setName("RemoteControl");
-    static float angle;
-    feedback = CANMotorIF::motor_feedback[CANMotorCFG::MOTOR_ONE];
-    angle = feedback.accumulate_angle();
-    while(!shouldTerminate()){
-        chSysLock();
-        if(Remote::rc.s1 == Remote::S_UP){
-            CANMotorCFG::enable_v2i[CANMotorCFG::MOTOR_ONE] = false;
-            CANMotorCFG::enable_a2v[CANMotorCFG::MOTOR_ONE] = false;
-            CANMotorController::set_target_current(CANMotorCFG::MOTOR_ONE,0);
-        }else if(Remote::rc.s1 == Remote::S_MIDDLE){
-            CANMotorCFG::enable_v2i[CANMotorCFG::MOTOR_ONE] = true;
-            CANMotorCFG::enable_a2v[CANMotorCFG::MOTOR_ONE] = false;
-            CANMotorController::set_target_vel(CANMotorCFG::MOTOR_ONE, 200*Remote::rc.ch0);
-        }else if(Remote::rc.s1 == Remote::S_DOWN){
-            CANMotorCFG::enable_v2i[CANMotorCFG::MOTOR_ONE] = true;
-            CANMotorCFG::enable_a2v[CANMotorCFG::MOTOR_ONE] = true;
-            CANMotorController::set_target_angle(CANMotorCFG::MOTOR_ONE,angle);
-        }
-
-        chSysUnlock();
-        feedback = CANMotorIF::motor_feedback[CANMotorCFG::MOTOR_ONE];
-        LOG("initial angle: %f, current angle: %f\r\n",angle,feedback.accumulate_angle());
-        chThdSleepMilliseconds(100);
-    }
-}
+//class remoteThread:public BaseStaticThread<512>{
+//private:
+//    void main() final;
+//    CANMotorFeedback feedback;
+//}remote_thread;
+//
+//void remoteThread::main(){
+//    setName("RemoteControl");
+//    static float angle;
+//    feedback = CANMotorIF::motor_feedback[CANMotorCFG::MOTOR_ONE];
+//    angle = feedback.accumulate_angle();
+//    while(!shouldTerminate()){
+//        chSysLock();
+//        if(Remote::rc.s1 == Remote::S_UP){
+//            CANMotorCFG::enable_v2i[CANMotorCFG::MOTOR_ONE] = false;
+//            CANMotorCFG::enable_a2v[CANMotorCFG::MOTOR_ONE] = false;
+//            CANMotorController::set_target_current(CANMotorCFG::MOTOR_ONE,0);
+//        }else if(Remote::rc.s1 == Remote::S_MIDDLE){
+//            CANMotorCFG::enable_v2i[CANMotorCFG::MOTOR_ONE] = true;
+//            CANMotorCFG::enable_a2v[CANMotorCFG::MOTOR_ONE] = false;
+//            CANMotorController::set_target_vel(CANMotorCFG::MOTOR_ONE, 200*Remote::rc.ch0);
+//        }else if(Remote::rc.s1 == Remote::S_DOWN){
+//            CANMotorCFG::enable_v2i[CANMotorCFG::MOTOR_ONE] = true;
+//            CANMotorCFG::enable_a2v[CANMotorCFG::MOTOR_ONE] = true;
+//            CANMotorController::set_target_angle(CANMotorCFG::MOTOR_ONE,angle);
+//        }
+//
+//        chSysUnlock();
+//        feedback = CANMotorIF::motor_feedback[CANMotorCFG::MOTOR_ONE];
+//        LOG("initial angle: %f, current angle: %f\r\n",angle,feedback.accumulate_angle());
+//        chThdSleepMilliseconds(100);
+//    }
+//}
 
 class printThread: public BaseStaticThread<512>{
 private:
@@ -67,7 +68,8 @@ int main(){
     Remote::start();
     can1.start(NORMALPRIO+3);
     can2.start(NORMALPRIO+4);
-    remote_thread.start(NORMALPRIO-1);
+    UserDart::start(NORMALPRIO-1);
+//    remote_thread.start(NORMALPRIO-1);
     CANMotorController::start(HIGHPRIO-1,HIGHPRIO-2,&can1,&can2);
 //    print_thread.start(HIGHPRIO);
     chThdSleepSeconds(5);
