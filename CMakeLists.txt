@@ -352,6 +352,12 @@ add_executable(ut_oled
         dev/interface/oled/oled_interface.cpp)
 target_include_directories(ut_oled PRIVATE dev/application/unit_tests/ut_oled)
 
+add_executable(ut_rudder
+        dev/application/unit_tests/ut_rudder/main.cpp
+        dev/interface/rudder/rudder_interface.cpp)
+target_include_directories(ut_rudder PRIVATE dev/interface/rudder
+        dev/application/unit_tests/ut_rudder)
+
 # Added by Tony Zhang
 # Note, this Unit test is deprecated since advance of new sentry
 #

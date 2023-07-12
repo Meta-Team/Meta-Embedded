@@ -127,7 +127,7 @@
 #define GPIOD_USART3_RX             9U
 #define GPIOD_PIN10                 10U
 #define GPIOD_PIN11                 11U
-#define GPIOD_LED4                  12U
+#define RUDDER                  12U
 #define GPIOD_LED3                  13U
 #define GPIOD_LED5                  14U
 #define GPIOD_LED6                  15U
@@ -675,7 +675,7 @@
                                      PIN_MODE_ALTERNATE(GPIOD_USART3_RX) |           \
                                      PIN_MODE_INPUT(GPIOD_PIN10) |          \
                                      PIN_MODE_INPUT(GPIOD_PIN11) |          \
-                                     PIN_MODE_OUTPUT(GPIOD_LED4) |          \
+                                     PIN_MODE_ALTERNATE(RUDDER) |          \
                                      PIN_MODE_OUTPUT(GPIOD_LED3) |          \
                                      PIN_MODE_OUTPUT(GPIOD_LED5) |          \
                                      PIN_MODE_OUTPUT(GPIOD_LED6))
@@ -691,7 +691,7 @@
                                      PIN_OTYPE_PUSHPULL(GPIOD_USART3_RX) |       \
                                      PIN_OTYPE_PUSHPULL(GPIOD_PIN10) |      \
                                      PIN_OTYPE_PUSHPULL(GPIOD_PIN11) |      \
-                                     PIN_OTYPE_PUSHPULL(GPIOD_LED4) |       \
+                                     PIN_OTYPE_PUSHPULL(RUDDER) |       \
                                      PIN_OTYPE_PUSHPULL(GPIOD_LED3) |       \
                                      PIN_OTYPE_PUSHPULL(GPIOD_LED5) |       \
                                      PIN_OTYPE_PUSHPULL(GPIOD_LED6))
@@ -707,7 +707,7 @@
                                      PIN_OSPEED_HIGH(GPIOD_USART3_RX) |          \
                                      PIN_OSPEED_HIGH(GPIOD_PIN10) |         \
                                      PIN_OSPEED_HIGH(GPIOD_PIN11) |         \
-                                     PIN_OSPEED_HIGH(GPIOD_LED4) |          \
+                                     PIN_OSPEED_HIGH(RUDDER) |          \
                                      PIN_OSPEED_HIGH(GPIOD_LED3) |          \
                                      PIN_OSPEED_HIGH(GPIOD_LED5) |          \
                                      PIN_OSPEED_HIGH(GPIOD_LED6))
@@ -723,7 +723,7 @@
                                      PIN_PUPDR_PULLUP(GPIOD_USART3_RX) |         \
                                      PIN_PUPDR_PULLUP(GPIOD_PIN10) |        \
                                      PIN_PUPDR_PULLUP(GPIOD_PIN11) |        \
-                                     PIN_PUPDR_FLOATING(GPIOD_LED4) |       \
+                                     PIN_PUPDR_FLOATING(RUDDER) |       \
                                      PIN_PUPDR_FLOATING(GPIOD_LED3) |       \
                                      PIN_PUPDR_FLOATING(GPIOD_LED5) |       \
                                      PIN_PUPDR_FLOATING(GPIOD_LED6))
@@ -739,7 +739,7 @@
                                      PIN_ODR_HIGH(GPIOD_USART3_RX) |             \
                                      PIN_ODR_HIGH(GPIOD_PIN10) |            \
                                      PIN_ODR_HIGH(GPIOD_PIN11) |            \
-                                     PIN_ODR_LOW(GPIOD_LED4) |              \
+                                     PIN_ODR_LOW(RUDDER) |              \
                                      PIN_ODR_LOW(GPIOD_LED3) |              \
                                      PIN_ODR_LOW(GPIOD_LED5) |              \
                                      PIN_ODR_LOW(GPIOD_LED6))
@@ -755,7 +755,7 @@
                                      PIN_AFIO_AF(GPIOD_USART3_RX, 7U) |          \
                                      PIN_AFIO_AF(GPIOD_PIN10, 0U) |         \
                                      PIN_AFIO_AF(GPIOD_PIN11, 0U) |         \
-                                     PIN_AFIO_AF(GPIOD_LED4, 0U) |          \
+                                     PIN_AFIO_AF(RUDDER, 2U) |          \
                                      PIN_AFIO_AF(GPIOD_LED3, 0U) |          \
                                      PIN_AFIO_AF(GPIOD_LED5, 0U) |          \
                                      PIN_AFIO_AF(GPIOD_LED6, 0U))
