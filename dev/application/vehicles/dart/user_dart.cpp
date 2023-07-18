@@ -22,12 +22,6 @@ void UserDart::UserThread::main(){
                 CANMotorCFG::enable_a2v[i] = false;
                 CANMotorCFG::enable_v2i[i] = false;
             }
-//            CANMotorCFG::enable_v2i[CANMotorCFG::YAW] = false;
-//            CANMotorCFG::enable_a2v[CANMotorCFG::YAW] = false;
-//            CANMotorCFG::enable_v2i[CANMotorCFG::STORE_ENERGY_LEFT] = false;
-//            CANMotorCFG::enable_a2v[CANMotorCFG::STORE_ENERGY_LEFT] = false;
-//            CANMotorCFG::enable_v2i[CANMotorCFG::STORE_ENERGY_RIGHT] = false;
-//            CANMotorCFG::enable_a2v[CANMotorCFG::STORE_ENERGY_RIGHT] = false;
             CANMotorController::set_target_current(CANMotorCFG::YAW,0);
             CANMotorController::set_target_current(CANMotorCFG::STORE_ENERGY_LEFT,0);
             CANMotorController::set_target_current(CANMotorCFG::STORE_ENERGY_RIGHT,0);
@@ -41,16 +35,12 @@ void UserDart::UserThread::main(){
             CANMotorCFG::enable_v2i[CANMotorCFG::TRIGGER_ADJUST] = true;
             CANMotorCFG::enable_a2v[CANMotorCFG::TRIGGER_ADJUST] = false;
             CANMotorController::set_target_vel(CANMotorCFG::YAW, 200*Remote::rc.ch2);
-            CANMotorController::set_target_vel(CANMotorCFG::STORE_ENERGY_LEFT,500*Remote::rc.ch3);
-            CANMotorController::set_target_vel(CANMotorCFG::STORE_ENERGY_RIGHT,-500*Remote::rc.ch3);
+            CANMotorController::set_target_vel(CANMotorCFG::STORE_ENERGY_LEFT,-500*Remote::rc.ch3);
+            CANMotorController::set_target_vel(CANMotorCFG::STORE_ENERGY_RIGHT,500*Remote::rc.ch3);
             CANMotorController::set_target_vel(CANMotorCFG::TRIGGER_ADJUST,2000*Remote::rc.ch1);
-            if(Remote::rc.wheel > 0.5){
-                chSysLockFromISR();
-                rudder1.set_rudder_angle(90);
-                chSysUnlockFromISR();
-            }else{
-//                rudder1.set_rudder_angle(0);
-            }
+            chSysUnlock();
+            rudder1.set_rudder_angle(180 - (int)Remote::rc.ch0 * 180);
+            chSysLock();
         }else if(Remote::rc.s1 == Remote::S_DOWN){          // PC control mode, goes back to initial encoder angle
             CANMotorCFG::enable_v2i[CANMotorCFG::YAW] = true;
             CANMotorCFG::enable_a2v[CANMotorCFG::YAW] = true;
