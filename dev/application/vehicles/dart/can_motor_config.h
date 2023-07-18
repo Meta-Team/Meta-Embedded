@@ -14,6 +14,7 @@ public:
         YAW,
         STORE_ENERGY_LEFT,
         STORE_ENERGY_RIGHT,
+        TRIGGER_ADJUST,
         MOTOR_COUNT
     };
     static CANMotorBase CANMotorProfile[MOTOR_COUNT];

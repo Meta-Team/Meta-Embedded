@@ -5,7 +5,8 @@
 
 
 /**
- * @brief   Constructor of the rudder
+ * @brief   Constructor of the rudder. TO learn how to use this interface, please refer to the unit
+ * test.
  *
  * @param[in] driver     pointer to a @p PWMDriver object
  * @param[in] config     pointer to a @p PWMConfig object

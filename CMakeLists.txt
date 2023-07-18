@@ -276,6 +276,7 @@ endif()
 add_executable(DART
         ${VEHICLE_COMMON_SRC}
         dev/interface/referee/referee_interface.cpp
+        dev/interface/rudder/rudder_interface.cpp
         dev/application/vehicles/dart/can_motor_config.cpp
         dev/application/vehicles/dart/main_dart.cpp
         dev/application/vehicles/dart/user_dart.cpp
