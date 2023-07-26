@@ -18,11 +18,21 @@ public:
     static void start(tprio_t user_thd_prio);
 private:
     class UserThread:public BaseStaticThread<512>{
+    public:
+        static bool start_flag;
     private:
         void main() final;
         CANMotorFeedback feedback;
     };
+    static bool timer_started;
+
     static UserThread userThread;
+
+    static void return_puller();
+
+    static void release_dart();
+
+
 };
 
 

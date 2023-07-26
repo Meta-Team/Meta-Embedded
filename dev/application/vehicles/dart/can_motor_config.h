@@ -1,5 +1,5 @@
 //
-// Created by 钱晨 on 11/14/21.
+// Created by Wu Feiyang on 7/6/23.
 //
 
 #ifndef META_INFANTRY_CANBUS_MOTOR_CFG_H

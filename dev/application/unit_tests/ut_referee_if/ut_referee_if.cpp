@@ -21,21 +21,23 @@ private:
         setName("referee_echo");
         while(!shouldTerminate()) {
 
-//            LOG("chassis_volt = %u" , (unsigned int) Referee::power_heat_data.chassis_volt);
-//            LOG("chassis_current = %u" , (unsigned int) Referee::power_heat_data.chassis_current);
-//            LOG("chassis_power = %f" , Referee::power_heat_data.chassis_power);
-//            LOG("chassis_power_buffer = %u" , (unsigned int) Referee::power_heat_data.chassis_power_buffer);
-//            LOG("shooter_heat0 = %u" , (unsigned int) Referee::power_heat_data.shooter_id1_17mm_cooling_heat);
-//            LOG("");
+            LOG("chassis_volt = %u" , (unsigned int) Referee::power_heat.chassis_volt);
+            LOG("chassis_current = %u" , (unsigned int) Referee::power_heat.chassis_current);
+            LOG("chassis_power = %f" , Referee::power_heat.chassis_power);
+            LOG("chassis_power_buffer = %u" , (unsigned int) Referee::power_heat.chassis_power_buffer);
+            LOG("shooter_heat0 = %u" , (unsigned int) Referee::power_heat.shooter_id1_17mm_cooling_heat);
+            LOG("");
+
 //
-//            LOG("bullet_type = %u" , (unsigned int) Referee::shoot_data.bullet_type);
-//            LOG("bullet_freq = %u" , (unsigned int) Referee::shoot_data.bullet_freq);
-//            LOG("bullet_speed = %u" , (unsigned int) Referee::shoot_data.bullet_speed);
-//            LOG("");
-//
-//            LOG("armor_id = %u" , (unsigned int) Referee::robot_hurt.armor_id);
-//            LOG("hurt_type = %u" , (unsigned int) Referee::robot_hurt.hurt_type);
-//            LOG("");
+            LOG("armor_id = %u" , (unsigned int) Referee::robot_hurt.armor_id);
+            LOG("hurt_type = %u" , (unsigned int) Referee::robot_hurt.hurt_type);
+            LOG("launch opening status = %u", (unsigned int) Referee::dart_client.dart_launch_opening_status);
+            LOG("attack target = %u", (unsigned int) Referee::dart_client.dart_attack_target);
+            LOG("target change time = %u", (unsigned int) Referee::dart_client.target_change_time);
+            LOG("launch cmd time = %u", (unsigned int) Referee::dart_client.operate_launch_cmd_time);
+            LOG("remain_time = %u ",(unsigned int) Referee::ext_dart_remaining_time.dart_remaining_time);
+
+            LOG("");
             sleep(TIME_MS2I(200));
         }
     }
@@ -71,7 +73,8 @@ DEF_SHELL_CMD_START(cmd_add_rect)
 
     rect.radius = 200;
 
-    Referee::set_graphic(rect);
+//    Referee::set_graphic(rect);
+    Referee::add_tx_graphic(rect);
     enabled_send = true;
     chprintf(chp, "added" SHELL_NEWLINE_STR);
     return true; // command executed successfully
@@ -107,7 +110,8 @@ DEF_SHELL_CMD_START(cmd_modify_rect)
 
     rect.radius = 200;
 
-    Referee::set_graphic(rect);
+//    Referee::set_graphic(rect);
+    Referee::add_tx_graphic(rect);
     chprintf(chp, "modified" SHELL_NEWLINE_STR);
     return true; // command executed successfully
 DEF_SHELL_CMD_END
@@ -142,7 +146,8 @@ DEF_SHELL_CMD_START(cmd_del_rect)
 
     rect.radius = 200;
 
-    Referee::set_graphic(rect);
+//    Referee::set_graphic(rect);
+    Referee::add_tx_graphic(rect);
     enabled_send = false;
     chprintf(chp, "deleted" SHELL_NEWLINE_STR);
     return true; // command executed successfully
@@ -165,7 +170,7 @@ int main() {
     // Start ChibiOS shell at high priority, so even if a thread stucks, we still have access to shell.
     Shell::start(HIGHPRIO);
 
-    Referee::init(NORMALPRIO);
+    Referee::init();
     refereeEchoThread.start(NORMALPRIO+1);
 
     // See chconf.h for what this #define means.

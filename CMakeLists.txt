@@ -335,12 +335,12 @@ target_include_directories(ut_buzzer PRIVATE dev/application/unit_tests/ut_buzze
 # Referee
 # temporarily disabled by Tony Zhang
 # TODO re-enable this one, since referee is outdated
-#add_executable(ut_referee_interface
-#        dev/common/CRC8.cpp
-#        dev/common/CRC16.cpp
-#        dev/interface/referee/referee_interface.cpp
-#        dev/application/unit_tests/ut_referee_if/ut_referee_if.cpp)
-#target_include_directories(ut_referee_interface PRIVATE dev/application/unit_tests/ut_referee_if)
+add_executable(ut_referee_interface
+        dev/common/CRC8.cpp
+        dev/common/CRC16.cpp
+        dev/interface/referee/referee_interface.cpp
+        dev/application/unit_tests/ut_referee_if/ut_referee_if.cpp)
+target_include_directories(ut_referee_interface PRIVATE dev/application/unit_tests/ut_referee_if)
 
 add_executable(ut_sd_card
         dev/interface/sd_card/sd_card_interface.cpp
