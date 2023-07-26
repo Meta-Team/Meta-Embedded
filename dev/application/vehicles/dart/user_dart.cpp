@@ -33,7 +33,7 @@ void UserDart::UserThread::main(){
     angle = feedback.accumulate_angle();
     Rudder rudder1(&PWMD4, nullptr,0,Rudder::MG995);
     rudder1.start();
-    start_flag = true;
+    start_flag = false;
     timer_started = false;
     static virtual_timer_t release_vt;
     chVTObjectInit(&release_vt);
@@ -78,7 +78,7 @@ void UserDart::UserThread::main(){
             CANMotorController::set_target_angle(CANMotorCFG::YAW,angle);
             uint8_t status = Referee::dart_client.dart_launch_opening_status;
             if(status == 0){
-                if(Remote::rc.ch3 > 0.2){
+                if(Remote::rc.wheel > 0.2){
                     start_flag = true;
                 }
                 if(start_flag){
@@ -87,11 +87,11 @@ void UserDart::UserThread::main(){
                         timer_started = true;
                     }
                     current_time = TIME_I2MS(chVTGetSystemTimeX());
-                    if(current_time - start_time < 12000){
+                    if(current_time - start_time < 2000){
                         CANMotorController::set_target_angle(CANMotorCFG::STORE_ENERGY_LEFT,3900);
                         CANMotorController::set_target_angle(CANMotorCFG::STORE_ENERGY_RIGHT,-3900);
 
-                        chThdSleepSeconds(1);
+                        chThdSleepMilliseconds(5);
                         CANMotorCFG::enable_a2v[CANMotorCFG::STORE_ENERGY_LEFT] = false;
                         CANMotorCFG::enable_v2i[CANMotorCFG::STORE_ENERGY_LEFT] = false;
                         CANMotorCFG::enable_a2v[CANMotorCFG::STORE_ENERGY_RIGHT] = false;
@@ -101,9 +101,17 @@ void UserDart::UserThread::main(){
                         CANMotorCFG::enable_v2i[CANMotorCFG::STORE_ENERGY_LEFT] = true;
                         CANMotorCFG::enable_a2v[CANMotorCFG::STORE_ENERGY_RIGHT] = true;
                         CANMotorCFG::enable_v2i[CANMotorCFG::STORE_ENERGY_RIGHT] = true;
-                    }else if(current_time - start_time >= 12000){
+                    }else if(current_time - start_time >= 2000 && current_time - start_time < 4000){
                         CANMotorController::set_target_angle(CANMotorCFG::STORE_ENERGY_LEFT,0);
                         CANMotorController::set_target_angle(CANMotorCFG::STORE_ENERGY_RIGHT,0);
+
+                    }else if(current_time -start_time >= 4000 && current_time - start_time < 6000){
+                        rudder1.set_rudder_angle(0);
+                        chThdSleepMilliseconds(900);
+                        rudder1.set_rudder_angle(180);
+                        chThdSleepMilliseconds(900);
+                    }else if(current_time > 8000){
+                        start_flag = false;
                         timer_started = false;
                     }
                 }
