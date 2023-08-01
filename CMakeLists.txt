@@ -396,6 +396,17 @@ target_include_directories(ut_steer_chassis PRIVATE dev/application/unit_tests/u
 target_compile_definitions(ut_steer_chassis PRIVATE ut_steer_chassis)
 target_link_libraries(ut_steer_chassis ${AHRS_LIB})
 
+add_executable(ut_damiao_motor
+        dev/application/unit_tests/ut_damiao_motor/main.cpp
+        dev/interface/damiao_motor/damiao_motor_interface.cpp
+        dev/interface/damiao_motor/damiao_motor_controller.cpp
+        dev/interface/damiao_motor/damiao_motor_feedback.cpp
+        dev/interface/can/can_interface.cpp)
+target_include_directories(ut_damiao_motor PRIVATE dev/application/unit_tests/ut_damiao_motor
+        dev/interface/damiao_motor
+        dev/interface/can)
+target_compile_definitions(ut_damiao_motor PRIVATE ut_damiao_motor)
+
 # --------------------------------------- Param Adjusts ---------------------------------------
 
 
