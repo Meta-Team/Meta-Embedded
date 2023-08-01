@@ -2,6 +2,7 @@
 // Created by Wu Feiyang on 2023/7/11.
 //
 #include "user_dart.h"
+#include "damiao_motor_controller.h"
 UserDart::UserThread UserDart::userThread;
 bool UserDart::UserThread::start_flag;
 bool UserDart::timer_started;
@@ -43,7 +44,7 @@ void UserDart::UserThread::main(){
 
 
     while(!shouldTerminate()){
-
+//        DamiaoMotorController::set_target_POSVEL(DamiaoMotorCFG::DART_LOADER,90,2);
         if(Remote::rc.s1 == Remote::S_UP){                  // Forced Relax Mode
             chSysLock();
             for(uint i=0;i<CANMotorCFG::MOTOR_COUNT;i++){
@@ -105,12 +106,16 @@ void UserDart::UserThread::main(){
                         CANMotorController::set_target_angle(CANMotorCFG::STORE_ENERGY_LEFT,0);
                         CANMotorController::set_target_angle(CANMotorCFG::STORE_ENERGY_RIGHT,0);
 
-                    }else if(current_time -start_time >= 4000 && current_time - start_time < 6000){
+                    }else if(current_time - start_time >= 4000 && current_time -start_time < 8000){
+                        DamiaoMotorController::set_target_POSVEL(DamiaoMotorCFG::DART_LOADER,90,3);
+                        chThdSleepSeconds(1);
+                        DamiaoMotorController::set_target_POSVEL(DamiaoMotorCFG::DART_LOADER,0,3);
+                    }else if(current_time -start_time >= 8000 && current_time - start_time < 10000){
                         rudder1.set_rudder_angle(0);
                         chThdSleepMilliseconds(900);
                         rudder1.set_rudder_angle(180);
                         chThdSleepMilliseconds(900);
-                    }else if(current_time > 8000){
+                    }else if(current_time > 10000){
                         start_flag = false;
                         timer_started = false;
                     }

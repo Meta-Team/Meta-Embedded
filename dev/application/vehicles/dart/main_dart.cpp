@@ -10,6 +10,7 @@
 #include "user_dart.h"
 #include "led.h"
 #include "referee_interface.h"
+#include "damiao_motor_controller.h"
 
 CANInterface can1(&CAND1);
 CANInterface can2(&CAND2);
@@ -34,16 +35,21 @@ int main(){
     Remote::start();
 
     LED::led_on(1); // led 1 turned on now
-    can1.start(NORMALPRIO+3);
-    can2.start(NORMALPRIO+4);
+    can1.start(HIGHPRIO-1);
+    can2.start(HIGHPRIO-2);
     LED::led_on(2);//  led 2 turned on now
 
     /// Setup Referee
     Referee::init();
 
     UserDart::start(NORMALPRIO-1);
-    CANMotorController::start(HIGHPRIO-1,HIGHPRIO-2,&can1,&can2);
-    chThdSleepSeconds(5);
+    CANMotorController::start(HIGHPRIO-3,HIGHPRIO-4,&can1,&can2);
+    DamiaoMotorController::start(NORMALPRIO+3,NORMALPRIO+2,&can1,&can2);
+    DamiaoMotorController::motor_enable(DamiaoMotorCFG::DART_LOADER);
+    DamiaoMotorController::shell_display(DamiaoMotorCFG::DART_LOADER,true);
+    DamiaoMotorController::set_target_POSVEL(DamiaoMotorCFG::DART_LOADER,0,2);
+//
+//    DamiaoMotorController::set_target_POSVEL(DamiaoMotorCFG::DART_LOADER,0,2);
 
 #if CH_CFG_NO_IDLE_THREAD // see chconf.h for what this #define means
     // ChibiOS idle thread has been disabled, main() should implement infinite loop

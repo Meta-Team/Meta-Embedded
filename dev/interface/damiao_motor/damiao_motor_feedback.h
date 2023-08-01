@@ -15,7 +15,7 @@
 
 //#include "damiao_motor_interface.h"
 #include "common_macro.h"
-#include "application/unit_tests/ut_damiao_motor/damiao_motor_config.h"
+#include "damiao_motor_config.h"
 
 /**
  * @author  Wu Feiyang

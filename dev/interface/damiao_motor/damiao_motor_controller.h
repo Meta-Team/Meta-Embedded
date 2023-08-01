@@ -6,7 +6,7 @@
  * @file can_motor_scheduler.h
  * @brief Class to drive can motors.
  *
- * @addtogroup CAN Driver
+ * @addtogroup Damiao Driver
  * @{
  */
 

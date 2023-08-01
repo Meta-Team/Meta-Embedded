@@ -40,18 +40,11 @@ void DamiaoMotorIF::init(CANInterface *can1_, CANInterface *can2_) {
 void DamiaoMotorIF::start(DamiaoMotorCFG::MotorName motorProfile) {
     DamiaoMotorIF::set_mode(motorProfile,DamiaoMotorCFG::motorCfg[motorProfile].mode);
     chThdSleepMilliseconds(1500);
-    for(int i=10;i > 0;i--){
-        chSysLock();
-        motors_can_tx_frame[motorProfile].DLC = 0x08;
-        motors_can_tx_frame[motorProfile].data64[0] = start_cmd;
-        chSysUnlock();
-        if(DamiaoMotorCFG::motorCfg[motorProfile].can_driver == &CAND1){
-            can1->send_msg(&motors_can_tx_frame[motorProfile]);
-        }else if(DamiaoMotorCFG::motorCfg[motorProfile].can_driver == &CAND2){
-            can2->send_msg(&motors_can_tx_frame[motorProfile]);
-        }
-        chThdSleepMilliseconds(10);
-    }
+    chSysLock();
+    motors_can_tx_frame[motorProfile].DLC = 0x08;
+    motors_can_tx_frame[motorProfile].data64[0] = start_cmd;
+    chSysUnlock();
+    chThdSleepMilliseconds(500);
     chSysLock();
     if(motors_mode[motorProfile] != VEL_MODE){
         motors_can_tx_frame[motorProfile].DLC = 0x08;
