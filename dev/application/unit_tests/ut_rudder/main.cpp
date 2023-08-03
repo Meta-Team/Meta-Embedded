@@ -14,20 +14,29 @@
 int main(){
     halInit();
     chibios_rt::System::init();
-    // nullptr means using the default configuration, which is advised
-    Rudder rudder1(&PWMD4,nullptr,0,Rudder::MG995);
 
-    rudder1.start();
-    rudder1.set_rudder_angle(90);
+    Rudder::init();
+    Rudder rudder1(&PWMD4,0,Rudder::MG995);
+    Rudder rudder2(&PWMD4,1,Rudder::MG995);
+    rudder1.enable();
+    rudder2.enable();
+    Rudder::start(&PWMD4, nullptr);
+    rudder1.set_rudder_angle(0);
+    rudder2.set_rudder_angle(90);
     while(1){
         chThdSleepMilliseconds(2000);
+        rudder1.set_rudder_angle(60);
+        rudder2.set_rudder_angle(0);
+        chThdSleepMilliseconds(2000);
+        rudder1.set_rudder_angle(120);
+        rudder2.set_rudder_angle(90);
+        chThdSleepMilliseconds(2000);
+        rudder1.set_rudder_angle(60);
+        rudder2.set_rudder_angle(180);
+        chThdSleepMilliseconds(2000);
         rudder1.set_rudder_angle(0);
-        chThdSleepMilliseconds(2000);
-        rudder1.set_rudder_angle(90);
-        chThdSleepMilliseconds(2000);
-        rudder1.set_rudder_angle(180);
-        chThdSleepMilliseconds(2000);
-        rudder1.set_rudder_angle(90);
+        rudder2.set_rudder_angle(90);
+
 
     }
 }

@@ -34,10 +34,12 @@ void UserDart::UserThread::main(){
     angle = feedback.accumulate_angle();
     Rudder rudder1(&PWMD4, nullptr,0,Rudder::MG995);
     rudder1.start();
+    Rudder rudder2(&PWMD4, nullptr,1,Rudder::MG995);
+//    rudder2.start();
+//    rudder2.set_rudder_angle(0);
     start_flag = false;
     timer_started = false;
-    static virtual_timer_t release_vt;
-    chVTObjectInit(&release_vt);
+    time = 1;
     int start_time;
     int current_time;
 
@@ -72,7 +74,7 @@ void UserDart::UserThread::main(){
             chSysUnlock();
             rudder1.set_rudder_angle(180 - (int)Remote::rc.ch0 * 180);
 
-        }else if(Remote::rc.s1 == Remote::S_DOWN && Remote::rc.s2 == Remote::S_UP){          // PC control mode, goes back to initial encoder angle
+        }else if((Remote::rc.s1 == Remote::S_DOWN && Remote::rc.s2 == Remote::S_UP) || Remote::key.f){          // PC control mode, goes back to initial encoder angle
 
             CANMotorCFG::enable_v2i[CANMotorCFG::YAW] = true;
             CANMotorCFG::enable_a2v[CANMotorCFG::YAW] = true;
@@ -106,10 +108,14 @@ void UserDart::UserThread::main(){
                         CANMotorController::set_target_angle(CANMotorCFG::STORE_ENERGY_LEFT,0);
                         CANMotorController::set_target_angle(CANMotorCFG::STORE_ENERGY_RIGHT,0);
 
-                    }else if(current_time - start_time >= 4000 && current_time -start_time < 8000){
-                        DamiaoMotorController::set_target_POSVEL(DamiaoMotorCFG::DART_LOADER,90,3);
-                        chThdSleepSeconds(1);
-                        DamiaoMotorController::set_target_POSVEL(DamiaoMotorCFG::DART_LOADER,0,3);
+                    }else if(current_time - start_time >= 4000 && current_time -start_time < 5000){
+                        DamiaoMotorController::set_target_POSVEL(DamiaoMotorCFG::DART_LOADER,90,4);
+                    }else if(current_time - start_time >= 5000 && current_time -start_time < 5500) {
+                        //rudder2.set_rudder_angle(10);
+                    }else if(current_time - start_time >= 5500 && current_time -start_time < 6000){
+                        //rudder2.set_rudder_angle(0);
+                    }else if(current_time - start_time >= 6000 && current_time -start_time < 8000){
+                        DamiaoMotorController::set_target_POSVEL(DamiaoMotorCFG::DART_LOADER,0,4);
                     }else if(current_time -start_time >= 8000 && current_time - start_time < 10000){
                         rudder1.set_rudder_angle(0);
                         chThdSleepMilliseconds(900);

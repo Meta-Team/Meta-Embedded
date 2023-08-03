@@ -23,14 +23,13 @@ private:
     private:
         void main() final;
         CANMotorFeedback feedback;
+        int time;
     };
     static bool timer_started;
 
     static UserThread userThread;
 
     static void return_puller();
-
-    static void release_dart();
 
 
 };

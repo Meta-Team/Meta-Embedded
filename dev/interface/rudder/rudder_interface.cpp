@@ -2,7 +2,7 @@
 // Created by Wu Feiyang on 2023/7/11.
 //
 #include "rudder_interface.h"
-
+PWMConfig Rudder::config_;
 
 /**
  * @brief   Constructor of the rudder
@@ -14,23 +14,19 @@
  *
  * @api
  */
-Rudder::Rudder(PWMDriver *driver, PWMConfig *config, pwmchannel_t channel,rudderType_t rudderType) {
-    if(config == nullptr && rudderType == MG995){
-        config_ = &mg995_pwm_default_config;
-    }else if(config == nullptr && rudderType == AFD30T60MG){
-        config_ = &afd30t60mg_default_config;
-    }
+Rudder::Rudder(PWMDriver *driver, pwmchannel_t channel,rudderType_t rudderType) {
     driver_ = driver;
     channel_ = channel;
     rudderType_ = rudderType;
+    config_.channels[channel_].mode = PWM_OUTPUT_ACTIVE_HIGH;
 }
 
 Rudder::~Rudder() {
-    pwmStop(driver_);
+    disable();
 }
-void Rudder::start() {
-    config_->channels[channel_].mode = PWM_OUTPUT_ACTIVE_HIGH;
-    pwmStart(driver_,config_);
+
+void Rudder::start(PWMDriver *driver, PWMConfig *config) {
+    pwmStart(driver,&config_);
 }
 
 void Rudder::set_rudder_angle(int angle) {
@@ -54,10 +50,26 @@ void Rudder::set_rudder_angle(int angle) {
     }
     pwmEnableChannel(driver_,channel_,PWM_PERCENTAGE_TO_WIDTH(driver_, percentage));
 }
-void Rudder::stop() {
-    pwmDisableChannel(driver_,channel_);
-    pwmStop(driver_);
-    config_->channels[channel_].mode = PWM_COMPLEMENTARY_OUTPUT_DISABLED;
+void Rudder::stop(PWMDriver *driver) {
+    pwmStop(driver);
+    for(int i = 0; i< 4; i++){
+        if(config_.channels[i].mode == PWM_OUTPUT_ACTIVE_HIGH) {
+            pwmDisableChannel(driver,i);
+        }
+        config_.channels[i].mode = PWM_OUTPUT_DISABLED;
+    }
+}
+
+void Rudder::init() {
+    config_ = pwm_default_config;
+}
+
+void Rudder::disable() {
+    config_.channels[channel_].mode = PWM_OUTPUT_DISABLED;
+}
+
+void Rudder::enable() {
+    config_.channels[channel_].mode = PWM_OUTPUT_ACTIVE_HIGH;
 }
 
 
