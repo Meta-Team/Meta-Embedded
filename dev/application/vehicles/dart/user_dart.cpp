@@ -32,11 +32,14 @@ void UserDart::UserThread::main(){
     static float angle;
     feedback = CANMotorIF::motor_feedback[CANMotorCFG::YAW];
     angle = feedback.accumulate_angle();
-    Rudder rudder1(&PWMD4, nullptr,0,Rudder::MG995);
-    rudder1.start();
-    Rudder rudder2(&PWMD4, nullptr,1,Rudder::MG995);
-//    rudder2.start();
-//    rudder2.set_rudder_angle(0);
+
+    Rudder::init();
+    Rudder rudder1(&PWMD4,0,Rudder::MG995);
+    Rudder rudder2(&PWMD4,1,Rudder::MG995);
+    rudder1.enable();
+    rudder2.enable();
+    Rudder::start(&PWMD4, nullptr);
+    rudder2.set_rudder_angle(0);
     start_flag = false;
     timer_started = false;
     time = 1;
