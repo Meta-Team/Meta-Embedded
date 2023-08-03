@@ -11,20 +11,6 @@ void UserDart::start(tprio_t user_thd_prio) {
     userThread.start(user_thd_prio);
 }
 
-void UserDart::return_puller() {
-    CANMotorController::set_target_angle(CANMotorCFG::STORE_ENERGY_LEFT,0);
-    CANMotorController::set_target_angle(CANMotorCFG::STORE_ENERGY_RIGHT,0);
-    CANMotorCFG::enable_a2v[CANMotorCFG::STORE_ENERGY_LEFT] = false;
-    CANMotorCFG::enable_v2i[CANMotorCFG::STORE_ENERGY_LEFT] = false;
-    CANMotorCFG::enable_a2v[CANMotorCFG::STORE_ENERGY_RIGHT] = false;
-    CANMotorCFG::enable_v2i[CANMotorCFG::STORE_ENERGY_RIGHT] = false;
-    chThdSleepMilliseconds(10);
-    CANMotorCFG::enable_a2v[CANMotorCFG::STORE_ENERGY_LEFT] = true;
-    CANMotorCFG::enable_v2i[CANMotorCFG::STORE_ENERGY_LEFT] = true;
-    CANMotorCFG::enable_a2v[CANMotorCFG::STORE_ENERGY_RIGHT] = true;
-    CANMotorCFG::enable_v2i[CANMotorCFG::STORE_ENERGY_RIGHT] = true;
-    timer_started = false;
-}
 
 
 void UserDart::UserThread::main(){
@@ -87,6 +73,42 @@ void UserDart::UserThread::main(){
                 if(Remote::rc.wheel > 0.2){
                     start_flag = true;
                 }
+                if(time == 0){ // first time of launch.
+                    if(start_flag){
+                        if(!timer_started){
+                            start_time = TIME_I2MS(chVTGetSystemTimeX());
+                            timer_started = true;
+                        }
+                        current_time = TIME_I2MS(chVTGetSystemTimeX());
+                        if(current_time - start_time < 2000){
+                            CANMotorController::set_target_angle(CANMotorCFG::STORE_ENERGY_LEFT,3900);
+                            CANMotorController::set_target_angle(CANMotorCFG::STORE_ENERGY_RIGHT,-3900);
+                            rudder1.set_rudder_angle(180);
+                            chThdSleepMilliseconds(5);
+                            CANMotorCFG::enable_a2v[CANMotorCFG::STORE_ENERGY_LEFT] = false;
+                            CANMotorCFG::enable_v2i[CANMotorCFG::STORE_ENERGY_LEFT] = false;
+                            CANMotorCFG::enable_a2v[CANMotorCFG::STORE_ENERGY_RIGHT] = false;
+                            CANMotorCFG::enable_v2i[CANMotorCFG::STORE_ENERGY_RIGHT] = false;
+                            chThdSleepMilliseconds(5);
+                            CANMotorCFG::enable_a2v[CANMotorCFG::STORE_ENERGY_LEFT] = true;
+                            CANMotorCFG::enable_v2i[CANMotorCFG::STORE_ENERGY_LEFT] = true;
+                            CANMotorCFG::enable_a2v[CANMotorCFG::STORE_ENERGY_RIGHT] = true;
+                            CANMotorCFG::enable_v2i[CANMotorCFG::STORE_ENERGY_RIGHT] = true;
+                        }else if(current_time - start_time >= 2000 && current_time - start_time < 4000){
+                            CANMotorController::set_target_angle(CANMotorCFG::STORE_ENERGY_LEFT,0);
+                            CANMotorController::set_target_angle(CANMotorCFG::STORE_ENERGY_RIGHT,0);
+                        }else if(current_time -start_time >=4000 && current_time - start_time < 4500) {
+                            rudder1.set_rudder_angle(0);
+                        }else if(current_time -start_time >=4500 && current_time - start_time < 5000){
+                            rudder1.set_rudder_angle(180);
+                        }else if(current_time > 5000){
+                            start_flag = false;
+                            timer_started = false;
+                            time++;
+                        }
+                    }
+                }
+            }else if(time==1){
                 if(start_flag){
                     if(!timer_started){
                         start_time = TIME_I2MS(chVTGetSystemTimeX());
@@ -96,7 +118,7 @@ void UserDart::UserThread::main(){
                     if(current_time - start_time < 2000){
                         CANMotorController::set_target_angle(CANMotorCFG::STORE_ENERGY_LEFT,3900);
                         CANMotorController::set_target_angle(CANMotorCFG::STORE_ENERGY_RIGHT,-3900);
-
+                        rudder1.set_rudder_angle(180);
                         chThdSleepMilliseconds(5);
                         CANMotorCFG::enable_a2v[CANMotorCFG::STORE_ENERGY_LEFT] = false;
                         CANMotorCFG::enable_v2i[CANMotorCFG::STORE_ENERGY_LEFT] = false;
@@ -110,28 +132,65 @@ void UserDart::UserThread::main(){
                     }else if(current_time - start_time >= 2000 && current_time - start_time < 4000){
                         CANMotorController::set_target_angle(CANMotorCFG::STORE_ENERGY_LEFT,0);
                         CANMotorController::set_target_angle(CANMotorCFG::STORE_ENERGY_RIGHT,0);
-
-                    }else if(current_time - start_time >= 4000 && current_time -start_time < 5000){
                         DamiaoMotorController::set_target_POSVEL(DamiaoMotorCFG::DART_LOADER,90,4);
-                    }else if(current_time - start_time >= 5000 && current_time -start_time < 5500) {
-                        //rudder2.set_rudder_angle(10);
-                    }else if(current_time - start_time >= 5500 && current_time -start_time < 6000){
-                        //rudder2.set_rudder_angle(0);
-                    }else if(current_time - start_time >= 6000 && current_time -start_time < 8000){
+                    }else if(current_time - start_time >= 4000 && current_time -start_time < 5500){
+                        rudder2.set_rudder_angle(10);
+                    }else if(current_time - start_time >= 5500 && current_time -start_time < 6000) {
+                        rudder2.set_rudder_angle(0);
+                    }else if(current_time - start_time >= 6000 && current_time -start_time < 7000){
                         DamiaoMotorController::set_target_POSVEL(DamiaoMotorCFG::DART_LOADER,0,4);
-                    }else if(current_time -start_time >= 8000 && current_time - start_time < 10000){
-                        rudder1.set_rudder_angle(0);
-                        chThdSleepMilliseconds(900);
+                    }else if(current_time -start_time >= 7000 && current_time - start_time < 7500){
                         rudder1.set_rudder_angle(180);
-                        chThdSleepMilliseconds(900);
-                    }else if(current_time > 10000){
+                    }else if(current_time -start_time >= 7500 && current_time - start_time < 8000){
+                        rudder1.set_rudder_angle(0);
+                    }else if(current_time > 8000){
                         start_flag = false;
                         timer_started = false;
+                        time++;
                     }
                 }
-
+            }else if(time == 2){
+                if(start_flag){
+                    if(!timer_started){
+                        start_time = TIME_I2MS(chVTGetSystemTimeX());
+                        timer_started = true;
+                    }
+                    current_time = TIME_I2MS(chVTGetSystemTimeX());
+                    if(current_time - start_time < 2000){
+                        CANMotorController::set_target_angle(CANMotorCFG::STORE_ENERGY_LEFT,3900);
+                        CANMotorController::set_target_angle(CANMotorCFG::STORE_ENERGY_RIGHT,-3900);
+                        rudder1.set_rudder_angle(180);
+                        chThdSleepMilliseconds(5);
+                        CANMotorCFG::enable_a2v[CANMotorCFG::STORE_ENERGY_LEFT] = false;
+                        CANMotorCFG::enable_v2i[CANMotorCFG::STORE_ENERGY_LEFT] = false;
+                        CANMotorCFG::enable_a2v[CANMotorCFG::STORE_ENERGY_RIGHT] = false;
+                        CANMotorCFG::enable_v2i[CANMotorCFG::STORE_ENERGY_RIGHT] = false;
+                        chThdSleepMilliseconds(5);
+                        CANMotorCFG::enable_a2v[CANMotorCFG::STORE_ENERGY_LEFT] = true;
+                        CANMotorCFG::enable_v2i[CANMotorCFG::STORE_ENERGY_LEFT] = true;
+                        CANMotorCFG::enable_a2v[CANMotorCFG::STORE_ENERGY_RIGHT] = true;
+                        CANMotorCFG::enable_v2i[CANMotorCFG::STORE_ENERGY_RIGHT] = true;
+                    }else if(current_time - start_time >= 2000 && current_time - start_time < 4000){
+                        CANMotorController::set_target_angle(CANMotorCFG::STORE_ENERGY_LEFT,0);
+                        CANMotorController::set_target_angle(CANMotorCFG::STORE_ENERGY_RIGHT,0);
+                        DamiaoMotorController::set_target_POSVEL(DamiaoMotorCFG::DART_LOADER,-90,4);
+                    }else if(current_time - start_time >= 4000 && current_time -start_time < 5500){
+                        rudder2.set_rudder_angle(10);
+                    }else if(current_time - start_time >= 5500 && current_time -start_time < 6000) {
+                        rudder2.set_rudder_angle(0);
+                    }else if(current_time - start_time >= 6000 && current_time -start_time < 7000){
+                        DamiaoMotorController::set_target_POSVEL(DamiaoMotorCFG::DART_LOADER,0,4);
+                    }else if(current_time -start_time >= 7000 && current_time - start_time < 7500){
+                        rudder1.set_rudder_angle(180);
+                    }else if(current_time -start_time >= 7500 && current_time - start_time < 8000){
+                        rudder1.set_rudder_angle(0);
+                    }else if(current_time > 8000){
+                        start_flag = false;
+                        timer_started = false;
+                        time++;
+                    }
+                }
             }
-
         }else if(Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_MIDDLE){
             chSysLock();
             CANMotorCFG::enable_v2i[CANMotorCFG::YAW] = true;

@@ -28,10 +28,6 @@ private:
     static bool timer_started;
 
     static UserThread userThread;
-
-    static void return_puller();
-
-
 };
 
 
