@@ -79,18 +79,11 @@ private:
     static void uart_rx_callback(UARTDriver *uartp);
     static void uart_err_callback(UARTDriver *uartp, uartflags_t e);
     static void uart_char_callback(UARTDriver *uartp, uint16_t c);
-#if 0
-    enum rx_status_t {
-        WAIT_STARTING_BYTE,  // receive bytes one by one, waiting for 0xA5
-        WAIT_CMD_ID,         // receive cmd_id
-        WAIT_DATA_TAIL       // receive data section and 1-byte CRC8 data
-    };
-#else
+
     enum rx_status_t {
         WAIT_STARTING_BYTE,  // receive bytes one by one, waiting for 0xA5
         WAIT_DATA_TAIL       // receive data section and 1-byte CRC8 data
     };
-#endif
 
     static rx_status_t rx_status;
 

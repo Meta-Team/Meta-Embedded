@@ -33,7 +33,13 @@ int VisionSKD::IMAGE_TO_USER_OFFSET_Y = 400;
 uint32_t VisionSKD::user_view_x = 0;
 uint32_t VisionSKD::user_view_y = 0;
 VisionSKD::CalculationThread VisionSKD::calculation_thread;
-
+extern time_msecs_t lastRecvTime;
+__PACKED_STRUCT VISION_RECV_YP{
+    uint8_t startOfFrame = 0x5A;
+    float yaw,pitch;
+    uint8_t crc8;
+};
+extern VISION_RECV_YP visionRecvYP;
 void VisionSKD::start(time_msecs_t basic_gimbal_delay_, tprio_t thread_prio) {
     for (int i = 0; i < 3; i++) {
         armor_ypd[i].set_Q_position(ARMOR_Q_POSITION[i]);
@@ -46,19 +52,18 @@ void VisionSKD::start(time_msecs_t basic_gimbal_delay_, tprio_t thread_prio) {
 }
 
 bool VisionSKD::is_detected() {
-    return WITHIN_RECENT_TIME(last_detected_time, DETECTION_LOSE_TIME);
+    // Added in RMUC2023, if valid yaw and pitch are received from Orin Nano, then it is detected
+    // HOW it works: lastRecvTime is updated once the uart8(VISION) receive valid YAW and PITCH
+    return WITHIN_RECENT_TIME(lastRecvTime, DETECTION_LOSE_TIME);
 }
 
 bool VisionSKD::get_gimbal_target_angles(float &yaw, float &pitch) {
-    if (WITHIN_RECENT_TIME(last_detected_time, DETECTION_LOSE_TIME)) {
-        if (!can_reach_target) {
-            return false;
-        } else {
-            yaw = latest_target_yaw;
-            pitch = latest_target_pitch;
-            return true;
-        }
-    } else {
+
+    if (WITHIN_RECENT_TIME(lastRecvTime, DETECTION_LOSE_TIME)) {
+        yaw = visionRecvYP.yaw;
+        pitch = visionRecvYP.pitch;
+        return true;
+    }else{
         return false;
     }
 }

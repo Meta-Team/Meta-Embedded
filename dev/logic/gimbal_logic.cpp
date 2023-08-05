@@ -11,7 +11,8 @@
  */
 
 #include "gimbal_logic.h"
-
+#define GIMBAL_PITCH_MIN_ANGLE  (-20)  // up range for pitch [degree]
+#define GIMBAL_PITCH_MAX_ANGLE  (15)   //  down range for pitch [degree]
 GimbalLG::mode_t GimbalLG::mode;
 #if ENABLE_VISION == TRUE
 GimbalLG::VisionControlThread GimbalLG::vision_control_thread;
@@ -80,11 +81,8 @@ float GimbalLG::get_feedback_velocity(GimbalSKD::angle_id_t angle) {
 void GimbalLG::VisionControlThread::main() {
     setName("GimbalLG_Vision");
 
-    chEvtRegisterMask(&VisionSKD::gimbal_updated_event, &vision_listener, EVENT_MASK(0));
 
     while (!shouldTerminate()) {
-
-        chEvtWaitAny(ALL_EVENTS);
 
         if (mode == VISION_MODE) {
 
@@ -96,14 +94,16 @@ void GimbalLG::VisionControlThread::main() {
                 can_reach_the_target = VisionSKD::get_gimbal_target_angles(yaw, pitch);
             }
             chSysUnlock();  /// --- EXIT S-Locked state ---
-
             if (can_reach_the_target) {
                 /// TODO: define the angles in vehicles.h
-                VAL_CROP(pitch, PITCH_MAX_ANGLE, PITCH_MIN_ANGLE);
+                VAL_CROP(pitch, GIMBAL_PITCH_MAX_ANGLE, GIMBAL_PITCH_MIN_ANGLE);
+
+                //LOG("[VISION set target]YAW=%.f,PITCH=%.f",yaw,pitch);
                 GimbalSKD::set_target_angle(yaw, pitch);
 
             }  // otherwise, keep current target angles
         }
+        chThdSleepMilliseconds(10);
     }
 }
 #endif
