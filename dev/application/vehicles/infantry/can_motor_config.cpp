@@ -51,7 +51,7 @@ CANMotorBase CANMotorCFG::CANMotorProfile[MOTOR_COUNT] = {
         {CANMotorBase::can_channel_2, 0x203, CANMotorBase::M3508, 3572},
         {CANMotorBase::can_channel_2, 0x204, CANMotorBase::M3508, 3572},
         {CANMotorBase::can_channel_2, 0x205, CANMotorBase::GM6020, 2080},//2100 increase this num let yaw turn to left
-        {CANMotorBase::can_channel_1, 0x205, CANMotorBase::GM6020, 3572},
+        {CANMotorBase::can_channel_1, 0x205, CANMotorBase::GM6020, 4666},
         {CANMotorBase::can_channel_1, 0x207, CANMotorBase::M2006, 3572},
         {CANMotorBase::can_channel_1, 0x204, CANMotorBase::M3508_without_deceleration, 3572},
         {CANMotorBase::can_channel_1, 0x203, CANMotorBase::M3508_without_deceleration, 3572}

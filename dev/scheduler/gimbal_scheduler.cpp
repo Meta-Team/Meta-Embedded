@@ -89,8 +89,8 @@ void GimbalSKD::SKDThread::main() {
                 feedback_angle[GimbalSKD::YAW]      +=  yaw_angle_movement;
                 feedback_velocity[GimbalSKD::YAW]   =   ahrs_gyro.x * cosf((float)(ahrs_angle.y / 180.0f * M_PI)) +
                                                         ahrs_gyro.z * sinf((float)(ahrs_angle.y / 180.0f * M_PI));
-                feedback_angle[GimbalSKD::PITCH]    =   ahrs_angle.y;
-                feedback_velocity[GimbalSKD::PITCH] =   ahrs_gyro.y;
+                feedback_angle[GimbalSKD::PITCH]    =  CANMotorIF::motor_feedback[CANMotorCFG::PITCH].accumulate_angle(); /*ahrs_angle.y;*/
+                feedback_velocity[GimbalSKD::PITCH] =  CANMotorIF::motor_feedback[CANMotorCFG::PITCH].actual_velocity; /*ahrs_gyro.y;*/
             } else
 #endif
                 if (mode == CHASSIS_REF_MODE) {
@@ -100,9 +100,9 @@ void GimbalSKD::SKDThread::main() {
                 feedback_velocity[GimbalSKD::YAW] =
                         CANMotorIF::motor_feedback[CANMotorCFG::YAW].actual_velocity;
                 feedback_angle[GimbalSKD::PITCH] =
-                        CANMotorIF::motor_feedback[CANMotorCFG::YAW].accumulate_angle();
+                        CANMotorIF::motor_feedback[CANMotorCFG::PITCH].accumulate_angle();
                 feedback_velocity[GimbalSKD::PITCH] =
-                        CANMotorIF::motor_feedback[CANMotorCFG::YAW].actual_velocity;
+                        CANMotorIF::motor_feedback[CANMotorCFG::PITCH].actual_velocity;
             }
 #if ENABLE_SUBPITCH == TRUE
             feedback_angle[SUB_PITCH] =
@@ -162,12 +162,13 @@ void GimbalSKD::set_mode(GimbalSKD::mode_t skd_mode) {
             CANMotorController::register_custom_feedback(&feedback_velocity[GimbalSKD::YAW],
                                                          CANMotorController::velocity,
                                                          CANMotorCFG::YAW);
-            CANMotorController::register_custom_feedback(&feedback_angle[GimbalSKD::PITCH],
+            /*CANMotorController::register_custom_feedback(&feedback_angle[GimbalSKD::PITCH],
                                                          CANMotorController::angle,
                                                          CANMotorCFG::PITCH);
             CANMotorController::register_custom_feedback(&feedback_velocity[GimbalSKD::PITCH],
                                                          CANMotorController::velocity,
                                                          CANMotorCFG::PITCH);
+                                                         */
             CANMotorCFG::enable_a2v[CANMotorCFG::YAW] = true;
             CANMotorCFG::enable_v2i[CANMotorCFG::YAW] = true;
             CANMotorCFG::enable_a2v[CANMotorCFG::PITCH] = true;
