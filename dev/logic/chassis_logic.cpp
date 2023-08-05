@@ -116,11 +116,16 @@ void ChassisLG::MotionControllerThread::main() {
                                                                       yaw_auto_straightening_angle);
 
                 //this is to reduce the shake at 0 of gimbal, but there is unknown shift (3 to r and 4 to left)
+#if 0
                 if (abs(yaw_accumulate_angle - yaw_auto_straightening_angle) < 3) {
                     MecanumChassisSKD::set_target(target_vx, target_vy, target_omega / 10);
                 } else {
                     MecanumChassisSKD::set_target(target_vx, target_vy, target_omega);
                 }
+#else
+
+                MecanumChassisSKD::set_target(target_vx, target_vy, target_omega);
+#endif
                 break;
 
 
