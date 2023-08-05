@@ -24,7 +24,7 @@
 #endif
 
 //for debug use, otherwise please set it to 1.0f
-#define SpeedAdjustCoefficient 1.0f
+#define SpeedAdjustCoefficient 0.7f
 /// Gimbal Config
 float UserI::gimbal_rc_yaw_max_speed = 180;  // [degree/s]
 float UserI::gimbal_pc_yaw_sensitivity[3] = {100000, 200000, 300000};  // [Slow, Normal, Fast] [degree/s]
@@ -64,8 +64,13 @@ void UserI::UserThread::main() {
     setName("UserI");
     float pitch_target = 0;
     while (!shouldTerminate()) {
+        //LOG("Heat=%d",Referee::power_heat.shooter_id1_17mm_cooling_heat);
+        //LOG("Failure:Remote=%d,Chassis=%d,Gimbal=%d,gimbal_yaw_target_angle_=%.f,gimbal_yaw_feedback=%.f",InspectorI::remote_failure() ,InspectorI::chassis_failure() ,InspectorI::gimbal_failure(),gimbal_yaw_target_angle_,GimbalLG::get_feedback_angle(GimbalSKD::YAW));
+        bool remote_not_failure = !InspectorI::remote_failure();
+        bool chassis_not_failure = !InspectorI::chassis_failure();
+        bool gimbal_not_failure = !InspectorI::gimbal_failure();
         /*** ---------------------------------- Gimbal --------------------------------- ***/
-        if (!InspectorI::remote_failure() && !InspectorI::chassis_failure() && !InspectorI::gimbal_failure()) {
+        if (remote_not_failure) {
             if ((Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_UP) ||
                 (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_MIDDLE)) {
 
@@ -95,6 +100,15 @@ void UserI::UserThread::main() {
 
                 /// Vision - Yaw + Pitch
                 GimbalLG::set_mode(GimbalLG::VISION_MODE);
+
+                // sync target with current feedback angle
+                // because when in vision mode, it read from
+                // otherwise when switching to normal mode(Remote - Yaw + Pitch), it will
+                // rotate to the original YAW(gimbal_yaw_target_angle_)
+
+                gimbal_yaw_target_angle_ = GimbalLG::get_feedback_angle(GimbalSKD::YAW);
+                gimbal_pc_pitch_target_angle_ = GimbalLG::get_feedback_angle(GimbalSKD::PITCH);
+
 
                 if (Remote::rc.ch1 > 0.5) VisionSKD::set_bullet_speed(VisionSKD::get_bullet_speed() - 0.001f);
                 else if (Remote::rc.ch1 <= -0.5) VisionSKD::set_bullet_speed(VisionSKD::get_bullet_speed() + 0.001f);
@@ -167,7 +181,7 @@ void UserI::UserThread::main() {
         }
 
         /*** ---------------------------------- Shoot --------------------------------- ***/
-        if (!InspectorI::remote_failure() && !InspectorI::chassis_failure() && !InspectorI::gimbal_failure()) {
+        if (remote_not_failure) {
             if ((Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_UP) ||
                 (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_MIDDLE)) {
 
@@ -237,11 +251,16 @@ void UserI::UserThread::main() {
                         shoot_feed_rate = Referee::robot_state.shooter_id1_17mm_cooling_limit / 25;
                     }
 #if ENABLE_VISION == TRUE
+                    // removed in RMUC2023, since trajectory calculation is moved to Orin Nano, thus
+                    // the calculation method in vision_scheduler.cpp, thus no shoot_update event will be broadcast
+                    // and auto fire will not work
+                    /*
                     if (!ignore_shoot_constraints && Remote::mouse.press_right) {
                         ShootLG::set_limit_mode(ShootLG::VISION_LIMITED_MODE);
                     } else {
                         ShootLG::set_limit_mode(ShootLG::UNLIMITED_MODE);
                     }
+                     */
 #endif
 #else
                     ShootLG::set_limit_mode(ShootLG::UNLIMITED_MODE);
@@ -274,7 +293,7 @@ void UserI::UserThread::main() {
         }
 
         /*** ---------------------------------- Chassis --------------------------------- ***/
-        if (!InspectorI::remote_failure() && !InspectorI::chassis_failure() && !InspectorI::gimbal_failure()) {
+        if (remote_not_failure) {
 
             if ((Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_UP) ||
                 (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_DOWN)) {
@@ -290,7 +309,7 @@ void UserI::UserThread::main() {
                                        Remote::rc.ch3 * 800))   // Both use up as positive direction
                 );
 
-            } else if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_MIDDLE) {
+            } /*else if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_MIDDLE) {
 
                 /// Remote - Chassis Move + Chassis Dodge
 #if ENABLE_AHRS
@@ -304,7 +323,7 @@ void UserI::UserThread::main() {
                                        Remote::rc.ch3 * 800)   // Both use up as positive direction
                 );
 
-            } else if (Remote::rc.s1 == Remote::S_DOWN) {
+            } */else if (Remote::rc.s1 == Remote::S_DOWN) {
 
                 /// PC control mode: Chassis - Movement
 
