@@ -121,4 +121,4 @@ The project use C++ class for encapsulation and modularization. The modules will
 * Toolchain, [Meta-Infantry Wiki](https://github.com/Meta-Team/Meta-Infantry/wiki)
 * [CMake 构建系统简介](https://github.com/Meta-Team/Meta-Infantry/wiki/CMake-%E6%9E%84%E5%BB%BA%E7%B3%BB%E7%BB%9F%E7%AE%80%E4%BB%8B)
 * CMake[Brief Introduction to CMake](https://github.com/Meta-Team/Meta-Infantry/wiki/CMake-%E6%9E%84%E5%BB%BA%E7%B3%BB%E7%BB%9F%E7%AE%80%E4%BB%8B)
-* [Meta Team C++ Style Guide](https://github.com/Meta-Team/Meta-Infantry/wiki/Meta-Team-C---Style-Guide)
+* [Meta Team C++ Style Guide](https://github.com/Meta-Team/Meta-Embedded/wiki/Meta-Embedded-C---Style-Guide)
