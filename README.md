@@ -16,7 +16,7 @@ The project contains the standard, engineer, hero and sentry vehicles' source co
 The code for each robot could be built by switching the target of CMake.
 
 
-# 基本结构 | Basic Structures
+## 基本结构 | Basic Structures
 更新日期：May 1, 2023
 Updated: May 1, 2023
 
@@ -115,10 +115,3 @@ The project use C++ class for encapsulation and modularization. The modules will
 ├── chconf.h                            - ChibiOS 配置文件 | ChibiOS configuration
 └── halconf.h                           - ChibiOS HAL 配置文件 | ChibiOS HAL configuraion
 ```
-
-# 前置阅读资料 | Pre-request
-* 工具链相关资料，参考 [Meta-Infantry Wiki](https://github.com/Meta-Team/Meta-Infantry/wiki)
-* Toolchain, [Meta-Infantry Wiki](https://github.com/Meta-Team/Meta-Infantry/wiki)
-* [CMake 构建系统简介](https://github.com/Meta-Team/Meta-Infantry/wiki/CMake-%E6%9E%84%E5%BB%BA%E7%B3%BB%E7%BB%9F%E7%AE%80%E4%BB%8B)
-* CMake[Brief Introduction to CMake](https://github.com/Meta-Team/Meta-Infantry/wiki/CMake-%E6%9E%84%E5%BB%BA%E7%B3%BB%E7%BB%9F%E7%AE%80%E4%BB%8B)
-* [Meta Team C++ Style Guide](https://github.com/Meta-Team/Meta-Embedded/wiki/Meta-Embedded-C---Style-Guide)
