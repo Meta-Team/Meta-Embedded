@@ -417,16 +417,27 @@ target_compile_definitions(ut_damiao_motor PRIVATE ut_damiao_motor)
 
 # Gimbal: include CANInterface, GimbalInterface, GimbalController, GimbalFeedbackThread and adjustment modules.
 
-set(pa_gimbal_dir dev/application/param_adjusts/pa_infantry/)
-add_executable(pa_gimbal
+set(pa_infantry_dir dev/application/param_adjusts/pa_infantry)
+add_executable(pa_infantry
         ${COMMON_SRC}
         ${AHRS_SRC}
         ${CAN_SRC}
         dev/interface/remote/remote_interpreter.cpp
-        ${pa_gimbal_dir}can_motor_config.cpp
-        ${pa_gimbal_dir}pa_infantry.cpp)
-target_link_libraries(pa_gimbal ${AHRS_LIB})
-target_include_directories(pa_gimbal PRIVATE ${pa_gimbal_dir})
+        ${pa_infantry_dir}/can_motor_config.cpp
+        ${pa_infantry_dir}/pa_infantry.cpp)
+target_link_libraries(pa_infantry ${AHRS_LIB})
+target_include_directories(pa_infantry PRIVATE ${pa_infantry_dir})
+
+set(pa_hero_dir dev/application/param_adjusts/pa_hero)
+add_executable(pa_hero
+        ${COMMON_SRC}
+        ${AHRS_SRC}
+        ${CAN_SRC}
+        dev/interface/remote/remote_interpreter.cpp
+        ${pa_hero_dir}/can_motor_config.cpp
+        ${pa_hero_dir}/pa_hero.cpp)
+target_link_libraries(pa_hero ${AHRS_LIB})
+target_include_directories(pa_hero PRIVATE ${pa_hero_dir})
 
 add_executable(ca_ahrs_infantry
         dev/interface/ahrs/ahrs_math.hpp

@@ -30,7 +30,7 @@ THD_WORKING_AREA(wa, SHELL_RX_WORK_AREA_SIZE);  // the working area for the shel
 static ShellConfig shellConfig;
 // Serial config for Serial Driver
 #if ENABLE_USB_SHELL == FALSE
-static constexpr SerialConfig SHELL_SERIAL_CONFIG = {921600,
+static constexpr SerialConfig SHELL_SERIAL_CONFIG = {230400,
                                                      0,
                                                      USART_CR2_STOP1_BITS,
                                                      0};
