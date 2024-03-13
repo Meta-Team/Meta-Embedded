@@ -16,8 +16,8 @@ cd "$config_base"
 exit_cmd="exit"
 # default flash file: hero
 flash_file="../build/HERO.elf"
-# default flash config file: RM_Board_Win.cfg
-config_file="RM_Board_Win.cfg"
+# default flash config file: RM_F4_Stlink.cfg
+config_file="RM_F4_Stlink.cfg"
 
 
 
