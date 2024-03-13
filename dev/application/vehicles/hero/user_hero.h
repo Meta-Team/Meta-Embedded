@@ -20,7 +20,7 @@
 
 // Added by TonyZhangZTN for debug
 //#define DEBUG_NO_CHASSIS
-#define DEBUG_NO_GIMBAL
+//#define DEBUG_NO_GIMBAL
 //#define DEBUG_NO_SHOOT
 #define DEBUG_NO_VISION
 class UserH {

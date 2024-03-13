@@ -197,7 +197,9 @@ int main() {
 
     /// Start LGs
 #ifndef DEBUG_NO_GIMBAL
-    GimbalLG::init(THREAD_GIMBAL_LG_VISION_PRIO, THREAD_GIMBAL_LG_SENTRY_PRIO);
+// Those two priorities are vision and subpitch, subpitch is already gone so no use of those two params temporarily
+// 24/03/14
+    GimbalLG::init(THREAD_GIMBAL_SKD_PRIO, THREAD_GIMBAL_SKD_PRIO);
 #endif
 #ifndef DEBUG_NO_SHOOT
     ShootLG::init(SHOOT_DEGREE_PER_BULLET, true, THREAD_STUCK_DETECT_PRIO,  THREAD_SHOOT_BULLET_COUNTER_PRIO, THREAD_SHOOT_LG_VISION_PRIO);
@@ -215,7 +217,7 @@ int main() {
 
     /// Start Inspector and User Threads
 #if !defined(DEBUG_NO_SHOOT) && !defined(DEBUG_NO_CHASSIS) && !defined(DEBUG_NO_GIMBAL)
-    InspectorH::start_inspection(THREAD_INSPECTOR_PRIO);
+//    InspectorH::start_inspection(THREAD_INSPECTOR_PRIO);
 #endif
     UserH::start(THREAD_USER_PRIO, THREAD_USER_ACTION_PRIO);
 

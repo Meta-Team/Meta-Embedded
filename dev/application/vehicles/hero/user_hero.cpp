@@ -10,8 +10,9 @@ float UserH::gimbal_rc_yaw_max_speed = 60;  // [degree/s]
 float UserH::gimbal_pc_yaw_sensitivity[3] = {50000, 100000, 150000};  // [Slow, Normal, Fast] [degree/s]
 
 float UserH::gimbal_pc_pitch_sensitivity[3] = {20000, 50000, 60000};   // [Slow, Normal, Fast] [degree/s]
-float UserH::gimbal_pitch_min_angle = -12; // down range for pitch [degree]
-float UserH::gimbal_pitch_max_angle = 18; //  up range for pitch [degree]
+// update: 2024/03/14 up to 12, down to -35 is ok.
+float UserH::gimbal_pitch_min_angle = -25; // down range for pitch [degree]
+float UserH::gimbal_pitch_max_angle = 10; //  up range for pitch [degree]
 
 /// Chassis Config
 float UserH::base_power = 40.0f;
@@ -50,7 +51,8 @@ void UserH::UserThread::main() {
     while (!shouldTerminate()) {
 #ifndef DEBUG_NO_GIMBAL
         /*** ---------------------------------- Gimbal --------------------------------- ***/
-        if (!InspectorH::remote_failure() /*&& !InspectorI::chassis_failure()*/ && !InspectorH::gimbal_failure()) {
+//        if (!InspectorH::remote_failure() /*&& !InspectorI::chassis_failure()*/ && !InspectorH::gimbal_failure()) {
+            if(true){ // a stupid hack due to Gimbal's Yaw is broken 2024/03/13
             if ((Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_UP)) {
                 /// Remote - Yaw + Pitch
                 GimbalLG::set_mode(GimbalLG::CHASSIS_REF_MODE);
