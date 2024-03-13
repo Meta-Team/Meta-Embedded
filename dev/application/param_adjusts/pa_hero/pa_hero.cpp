@@ -211,7 +211,7 @@ DEF_SHELL_CMD_START(cmd_echo_param)
 
     PIDController::pid_params_t pid_param = {0,0,0,0,0};
     pid_param = CANMotorController::getPIDParams((CANMotorCFG::motor_id_t)motor_id, (pid_id == 0));
-    Shell::printf("!kp:%u,%.2f,ki:%.2f,kd:%.2f,il:%.2f,ol:%.2f" SHELL_NEWLINE_STR,pid_id,
+    Shell::printf("!kp,%u,%u,%.2f,ki:%.2f,kd:%.2f,il:%.2f,ol:%.2f" SHELL_NEWLINE_STR,motor_id,pid_id,
                  pid_param.kp, pid_param.ki, pid_param.kd, pid_param.i_limit, pid_param.out_limit);
     return true; // command executed successfully
 DEF_SHELL_CMD_END

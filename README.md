@@ -1,4 +1,4 @@
-# Meta Team - Infantry 2023
+# Meta Team - Infantry 2024
 ## Current project status
 master![C/C++ CI](https://github.com/Meta-Team/Meta-Embedded/actions/workflows/release.yml/badge.svg?branch=master)
 
@@ -17,8 +17,8 @@ The code for each robot could be built by switching the target of CMake.
 
 
 ## 基本结构 | Basic Structures
-更新日期：May 1, 2023
-Updated: May 1, 2023
+更新日期：March 13, 2024
+Updated: March 13, 2024
 
 ```
 Meta-Embedded
