@@ -177,7 +177,7 @@ void CANMotorController::feedbackThread::main() {
             Shell::printf("!fb,%u,%u,%.2f,%.2f,%.2f,%.2f,%d,%d" SHELL_NEWLINE_STR,
                           SYSTIME,
                           i, // Motor ID
-                          CANMotorIF::motor_feedback[i].actual_angle, CANMotorController::SKDThread.targetA[i],
+                          CANMotorIF::motor_feedback[i].accumulate_angle(), CANMotorController::SKDThread.targetA[i],
                           CANMotorIF::motor_feedback[i].actual_velocity, CANMotorController::SKDThread.targetV[i],
                           CANMotorIF::motor_feedback[i].torque_current(), (int)CANMotorController::SKDThread.PID_output[i]);
             }

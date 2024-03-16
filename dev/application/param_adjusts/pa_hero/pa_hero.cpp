@@ -36,6 +36,7 @@ const char *motor_name[10] = {
 constexpr unsigned USER_THREAD_INTERVAL = 7;  // [ms]
 
 float gimbal_yaw_target_angle_ = 0;
+float gimbal_pitch_target_angle_= 0.0f;
 float gimbal_rc_yaw_max_speed = 180;  // [degree/s]
 
 float gimbal_pitch_min_angle = -30; // down range for pitch [degree]
@@ -273,15 +274,35 @@ private:
         setName("TopControlThread");
         Remote::rc_status_t previous_rcs1_state = Remote::rc.s1;
         CANMotorCFG::motor_id_t vel_group[] = {CANMotorCFG::YAW, CANMotorCFG::PITCH};
-        CANMotorCFG::motor_id_t angle_group[] = {CANMotorCFG::FL, CANMotorCFG::FR,
-                                                 CANMotorCFG::BL, CANMotorCFG::BR,
-                                                 CANMotorCFG::FW_UP, CANMotorCFG::FW_DOWN,
-                                                 CANMotorCFG::BULLET_LOADER};
+        CANMotorCFG::motor_id_t angle_group[] = {CANMotorCFG::YAW, CANMotorCFG::PITCH};
         while (!shouldTerminate()) {
-
             if (Remote::rc.s1 == Remote::S_DOWN) {
+                if(previous_rcs1_state == Remote::S_DOWN) {
+                    for(auto &i : angle_group) {
+                        CANMotorCFG::enable_a2v[i] = true;
+                        CANMotorCFG::enable_v2i[i] = true;
+                    }
+                }
+                /// Gimbal Response Test through Remote Controller
+                gimbal_yaw_target_angle_ +=
+                        -Remote::rc.ch0 * 0.7f;
+                gimbal_pitch_target_angle_ += Remote::rc.ch1 * 0.3f;
 
-
+                VAL_CROP(gimbal_pitch_target_angle_, gimbal_pitch_max_angle, gimbal_pitch_min_angle);
+                // if the right button is up, adjust Pitch only, if it is down, adjust Yaw only
+                // if it it in the middle then both
+                switch(Remote::rc.s2) {
+                    case Remote::S_UP:
+                        gimbal_yaw_target_angle_ = 0.0f;
+                        break;
+                    case Remote::S_DOWN:
+                        gimbal_pitch_target_angle_ = 0.0f;
+                        break;
+                    default:
+                        break;
+                }
+                CANMotorController::set_target_angle(CANMotorCFG::PITCH, gimbal_pitch_target_angle_);
+                CANMotorController::set_target_angle(CANMotorCFG::YAW, gimbal_yaw_target_angle_);
             }
 
             if(Remote::rc.s1 == Remote::S_UP){
