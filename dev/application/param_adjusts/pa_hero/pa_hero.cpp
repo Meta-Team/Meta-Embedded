@@ -286,11 +286,13 @@ private:
                 /// Gimbal Response Test through Remote Controller
                 gimbal_yaw_target_angle_ +=
                         -Remote::rc.ch0 * 0.7f;
-                gimbal_pitch_target_angle_ += Remote::rc.ch1 * 0.3f;
-
+                if (Remote::rc.ch1 > 0)
+                    gimbal_pitch_target_angle_ += Remote::rc.ch1 * gimbal_pitch_max_angle * 0.1;
+                else
+                    gimbal_pitch_target_angle_ -= Remote::rc.ch1 * gimbal_pitch_min_angle * 0.1;
                 VAL_CROP(gimbal_pitch_target_angle_, gimbal_pitch_max_angle, gimbal_pitch_min_angle);
                 // if the right button is up, adjust Pitch only, if it is down, adjust Yaw only
-                // if it it in the middle then both
+                // if it is in the middle then both
                 switch(Remote::rc.s2) {
                     case Remote::S_UP:
                         gimbal_yaw_target_angle_ = 0.0f;
