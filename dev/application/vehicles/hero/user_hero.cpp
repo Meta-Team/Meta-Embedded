@@ -11,7 +11,7 @@ float UserH::gimbal_pc_yaw_sensitivity[3] = {50000, 100000, 150000};  // [Slow, 
 
 float UserH::gimbal_pc_pitch_sensitivity[3] = {20000, 50000, 60000};   // [Slow, Normal, Fast] [degree/s]
 // update: 2024/03/14 up to 12, down to -35 is ok.
-float UserH::gimbal_pitch_min_angle = -25; // down range for pitch [degree]
+float UserH::gimbal_pitch_min_angle = -35; // down range for pitch [degree]
 float UserH::gimbal_pitch_max_angle = 10; //  up range for pitch [degree]
 
 /// Chassis Config
@@ -166,7 +166,7 @@ void UserH::UserThread::main() {
                 if (Remote::rc.wheel > 0.5) {  // down
                     ShootLG::set_limit_mode(ShootLG::UNLIMITED_MODE);
                     if (ShootLG::get_shooter_state() == ShootLG::STOP) {
-                        ShootLG::shoot(1, shoot_feed_rate);
+                        ShootLG::shoot(-999, shoot_feed_rate);
                     }
                 } else if (Remote::rc.wheel < -0.5) {  // up
                     ShootLG::set_limit_mode(ShootLG::UNLIMITED_MODE);
