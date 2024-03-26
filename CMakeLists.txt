@@ -5,8 +5,7 @@
 cmake_minimum_required(VERSION 3.10)
 set (BUILD_HERO TRUE)
 set (BUILD_SENTRY TRUE)
-set (BUILD_INFANTRY3 TRUE)
-set (BUILD_INFANTRY4 TRUE)
+set (BUILD_INFANTRY TRUE)
 
 
 include(config/toolchain.cmake)  # include cross compile configurations
@@ -140,7 +139,7 @@ add_library(ChibiOS OBJECT ${CHIBIOS_XASM_SRC} ${CHIBIOS_C_SRC} ${CHIBIOS_CPP_SR
 # NOTICE: UPDATE README IF THE CONFIGURATIONS IS UPDATED
 
 # ========================== Robot's Control Programs ===========================
-if(BUILD_INFANTRY3 OR BUILD_INFANTRY4)
+if(BUILD_INFANTRY)
     set(INFANTRY_SRC
             ${VEHICLE_COMMON_SRC}
             ${AHRS_SRC}
@@ -175,19 +174,12 @@ if(BUILD_INFANTRY3 OR BUILD_INFANTRY4)
     set(INFANTRY_LIBS
             ${AHRS_LIB})
 endif()
-# Main Program -- Infantry #3
-if(BUILD_INFANTRY3)
-    add_executable(INFANTRY_THREE ${INFANTRY_SRC})
-    target_include_directories(INFANTRY_THREE PRIVATE dev/application/vehicles/infantry)
-    target_compile_definitions(INFANTRY_THREE PRIVATE ${INFANTRY_DEFS} INFANTRY_THREE)
-    target_link_libraries(INFANTRY_THREE ${INFANTRY_LIBS})
-endif()
-## Main Program -- Infantry #4
-if(BUILD_INFANTRY4)
-    add_executable(INFANTRY_FOUR ${INFANTRY_SRC})
-    target_include_directories(INFANTRY_FOUR PRIVATE dev/application/vehicles/infantry)
-    target_compile_definitions(INFANTRY_FOUR PRIVATE ${INFANTRY_DEFS} INFANTRY_FOUR)
-    target_link_libraries(INFANTRY_FOUR ${INFANTRY_LIBS})
+## Main Program -- Infantry
+if(BUILD_INFANTRY)
+    add_executable(INFANTRY ${INFANTRY_SRC})
+    target_include_directories(INFANTRY PRIVATE dev/application/vehicles/infantry)
+    target_compile_definitions(INFANTRY PRIVATE ${INFANTRY_DEFS})
+    target_link_libraries(INFANTRY ${INFANTRY_LIBS})
 endif()
 # Main Program -- Hero
 if(BUILD_HERO)

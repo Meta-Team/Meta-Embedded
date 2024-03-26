@@ -6,18 +6,8 @@
 
 #include "hardware_conf.h"
 
-// FIXME: change as input parameter from main()
+#include "vehicle_infantry.h"
 
-/// Vehicle Specific Configurations
-#if defined(INFANTRY_THREE)                                                 /** Infantry #3 **/
-#include "vehicle_infantry_three.h"
-#elif defined(INFANTRY_FOUR)                                                /** Infantry #4 **/
-#include "vehicle_infantry_four.h"
-#elif defined(INFANTRY_FIVE)                                                /** Infantry #5 **/
-#include "vehicle_infantry_five.h"
-#else
-#error "File main_infantry.cpp should only be used for Infantry #3, #4, #5."
-#endif
 
 #if ENABLE_REFEREE == TRUE
 #include "referee_UI_logic.h"

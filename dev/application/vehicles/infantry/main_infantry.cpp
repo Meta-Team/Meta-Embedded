@@ -36,15 +36,8 @@
 #include "thread_priorities.h"
 
 /// Vehicle Specific Configurations
-#if defined(INFANTRY_THREE)                                                 /** Infantry #3 **/
-#include "vehicle_infantry_three.h"
-#elif defined(INFANTRY_FOUR)                                                /** Infantry #4 **/
-#include "vehicle_infantry_four.h"
-#elif defined(INFANTRY_FIVE)                                                /** Infantry #5 **/
-#include "vehicle_infantry_five.h"
-#else
-#error "File main_infantry.cpp should only be used for Infantry #3, #4, #5."
-#endif
+#include "vehicle_infantry.h"
+
 
 /// Board Guard
 #if defined(BOARD_RM_2018_A)
