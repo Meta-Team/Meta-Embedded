@@ -24,6 +24,7 @@ constexpr BuzzerSKD::note_with_time_t BuzzerSKD::sound_kong_fu_FC[];
 constexpr BuzzerSKD::note_with_time_t BuzzerSKD::sound_nyan_cat[];
 constexpr BuzzerSKD::note_with_time_t BuzzerSKD::sound_Touhou15Stage5Boss[];
 constexpr BuzzerSKD::note_with_time_t BuzzerSKD::sound_zenzenzense[];
+constexpr BuzzerSKD::note_with_time_t BuzzerSKD::cambodia[];
 
 chibios_rt::ThreadReference BuzzerSKD::skdThreadReference;
 

@@ -391,6 +391,10 @@ public:
             {Mi3M,100},{Re2M,100}, {Mi3M,100},{Fa4M+50,100},{Fa4M+50,100},{Fa4M+50,100},{So5M,100},{Fa4M+50,200},{Mi3M,100},
             {Re2M,100},{Re2M,400}, {Finish,0}
     };
+    //RMUL 2024
+    static constexpr note_with_time_t cambodia[] = {
+            {La6M,200},{La6M,200},{La6M,200},{Do1H,200},{La6M,400},{La6M,200},{Do1H,200},{Re2H,200},{Mi3H,66},{Re2H,66},{Do1H,66},{Re2H,400},{La6M,200},{La6M,200},{La6M,200},{Do1H,200},{La6M,400},{La6M,200},{Do1H,200},{Re2H,200},{Mi3H,66},{Re2H,66},{Do1H,66},{Re2H,400}
+    };
 };
 
 
