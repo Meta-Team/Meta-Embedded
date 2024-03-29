@@ -51,8 +51,11 @@ void UserH::UserThread::main() {
     while (!shouldTerminate()) {
 #ifndef DEBUG_NO_GIMBAL
         /*** ---------------------------------- Gimbal --------------------------------- ***/
-//        if (!InspectorH::remote_failure() /*&& !InspectorI::chassis_failure()*/ && !InspectorH::gimbal_failure()) {
-            if(true){ // a stupid hack due to Gimbal's Yaw is broken 2024/03/13
+        LOG("RefereeGimbalOutput:%d,ChassisPowerLimit:%.2f",Referee::robot_state.power_management_gimbal_output,Referee::robot_state.chassis_power_limit);
+
+//        LOG("YAW,TG:%.2f,Actual:%.2f; PITCH,TG:%.2f,Actual:%.2f",GimbalSKD::get_target_angle(GimbalSKD::YAW),GimbalSKD::get_feedback_angle(GimbalSKD::YAW),GimbalSKD::get_target_angle(GimbalSKD::PITCH),GimbalSKD::get_feedback_angle(GimbalSKD::PITCH));
+
+        if (!InspectorH::remote_failure() /*&& !InspectorI::chassis_failure()*/ && !InspectorH::gimbal_failure() && Referee::robot_state.power_management_gimbal_output) {
             if ((Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_UP)) {
                 /// Remote - Yaw + Pitch
                 GimbalLG::set_mode(GimbalLG::CHASSIS_REF_MODE);
@@ -69,7 +72,7 @@ void UserH::UserThread::main() {
                 // ch1 use up as positive direction, while GimbalLG also use up as positive direction
 
                 VAL_CROP(pitch_target, gimbal_pitch_max_angle, gimbal_pitch_min_angle);
-                GimbalLG::set_target_angle(gimbal_yaw_target_angle_, pitch_target);
+                GimbalLG::set_target_angle(0, pitch_target);
 
             } else if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_MIDDLE) {
             } else if (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_DOWN) {

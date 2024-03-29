@@ -9,8 +9,8 @@ CANMotorBase CANMotorCFG::CANMotorProfile[MOTOR_COUNT] = {
         {CANMotorBase::can_channel_2, 0x201, CANMotorBase::M3508, 3572},//Front Right
         {CANMotorBase::can_channel_2, 0x204, CANMotorBase::M3508, 3572},//Back Right
         {CANMotorBase::can_channel_2, 0x203, CANMotorBase::M3508, 3572},//Back Left
-        {CANMotorBase::can_channel_2, 0x208, CANMotorBase::GM6020, 70},//Yaw
-        {CANMotorBase::can_channel_1, 0x205, CANMotorBase::GM6020, 3208},//PITCH 侧面的6020
+        {CANMotorBase::can_channel_2, 0x208, CANMotorBase::GM6020, 5598},//Yaw
+        {CANMotorBase::can_channel_1, 0x205, CANMotorBase::GM6020, 3221},//PITCH 侧面的6020
         {CANMotorBase::can_channel_1, 0x201, CANMotorBase::M3508_without_deceleration, 3344},
         {CANMotorBase::can_channel_2, 0x206, CANMotorBase::M3508, 3572}, //Bullet Loader
         {CANMotorBase::can_channel_1, 0x203, CANMotorBase::M3508_without_deceleration, 3572},//FW_UP(左边)
