@@ -55,8 +55,8 @@ void UserI::UserThread::main() {
     float pitch_target = 0;
     while (!shouldTerminate()) {
         /*** ---------------------------------- Gimbal --------------------------------- ***/
-        //LOG("ActualPower:%.2f; PowerLimit:%u; CapV:%.2f,YawFB:%.2f,YawTG:%.2f",Referee::power_heat.chassis_power,Referee::robot_state.chassis_power_limit, CapacitorIF::capacitor_voltage,GimbalSKD::get_feedback_angle(GimbalSKD::YAW),GimbalSKD::get_target_angle(GimbalSKD::YAW));
-        LOG("Heat:%.2f,CoolRate:%.2f.HeatLimit:%.2f",Referee::power_heat.shooter_17mm_1_barrel_heat,Referee::robot_state.shooter_barrel_cooling_value,Referee::robot_state.shooter_barrel_heat_limit);
+        LOG("ActualPower:%.2f; PowerLimit:%u; CapV:%.2f,YawFB:%.2f,YawTG:%.2f",Referee::power_heat.chassis_power,Referee::robot_state.chassis_power_limit, CapacitorIF::capacitor_voltage,GimbalSKD::get_feedback_angle(GimbalSKD::YAW),GimbalSKD::get_target_angle(GimbalSKD::YAW));
+//        LOG("Heat:%u,CoolRate:%u.HeatLimit:%u",Referee::power_heat.shooter_17mm_1_barrel_heat,Referee::robot_state.shooter_barrel_cooling_value,Referee::robot_state.shooter_barrel_heat_limit);
         bool overallStatus = !InspectorI::remote_failure() && !InspectorI::chassis_failure() && !InspectorI::gimbal_failure();
         // bypass not check
         overallStatus = true;
@@ -270,7 +270,7 @@ void UserI::UserThread::main() {
         /*** ---------------------------------- Chassis --------------------------------- ***/
         if (overallStatus) {
 
-            if ((Remote::rc.s1 == Remote::S_MIDDLE) && (Remote::rc.s2 == Remote::S_UP || Remote::rc.s2 == Remote::S_MIDDLE)) {
+            if ((Remote::rc.s1 == Remote::S_MIDDLE) && (Remote::rc.s2 == Remote::S_UP)) {
                 /// Remote - Chassis Move + Chassis Follow
 #if ENABLE_AHRS
                 ChassisLG::set_mode(ChassisLG::GIMBAL_REF_MODE);
