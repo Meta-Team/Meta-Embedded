@@ -23,6 +23,7 @@ ChassisLG::chassis_mode_t ChassisLG::chassis_mode;
 ChassisLG::MotionControllerThread ChassisLG::motion_controller_thread;
 #if ENABLE_CAPACITOR == TRUE && ENABLE_REFEREE == TRUE
 ChassisLG::CapacitorSetThread ChassisLG::capacitor_set_thread;
+bool ChassisLG::autoStraighteningFBEnabled = false;
 #endif
 
 void ChassisLG::set_target(float vx, float vy) {
@@ -114,21 +115,20 @@ void ChassisLG::MotionControllerThread::main() {
                     yaw_auto_straightening_angle -= 360.0f;
                 target_omega = ChassisLG::auto_straightening_pid.calc(yaw_accumulate_angle,
                                                                       yaw_auto_straightening_angle);
-
                 //this is to reduce the shake at 0 of gimbal, but there is unknown shift (3 to r and 4 to left)
-                if (abs(yaw_accumulate_angle - yaw_auto_straightening_angle) < 3) {
-                    MecanumChassisSKD::set_target(target_vx, target_vy, target_omega / 10);
-                } else {
+//                if (abs(yaw_accumulate_angle - yaw_auto_straightening_angle) < 1.f) {
+//                    MecanumChassisSKD::set_target(target_vx, target_vy, target_omega / 10);
+//                } else {
                     MecanumChassisSKD::set_target(target_vx, target_vy, target_omega);
-                }
+//                }
                 break;
 
 
             case DODGE:
                 // Control the target omega to keep super capacitor voltage at 20V.
 #if ENABLE_CAPACITOR == TRUE
-                voltage_decrement = 24 - CapacitorIF::capacitor_voltage;
-                target_omega = (dodge_omega_power_pid.calc(voltage_decrement, 4));
+                voltage_decrement = 21 - CapacitorIF::capacitor_voltage;
+                target_omega = (dodge_omega_power_pid.calc(voltage_decrement, 2));
                 VAL_CROP(target_omega, 720.0f, 0.0f);
 #else
                 target_omega = 100.0f;
@@ -154,11 +154,32 @@ void ChassisLG::CapacitorSetThread::main() {
         if ((float) Referee::power_heat.chassis_power_buffer - Referee::power_heat.chassis_power * 0.1 > 5.0) {
             CapacitorIF::set_power(95.0);
         } else {
-            CapacitorIF::set_power((float) Referee::robot_state.chassis_power_limit * 0.9f);
+            CapacitorIF::set_power((float) Referee::robot_state.chassis_power_limit * 0.8f);
         }
         sleep(TIME_MS2I(CAPACITOR_SET_INTERVAL));
     }
 }
 
+void ChassisLG::cmd_feedback(void *) {
+
+    if (autoStraighteningFBEnabled) {
+        //TODO print yaw_accumulate_angle and yaw_auto_straightening_angle
+        Shell::printf("Auto" ENDL);
+    }
+}
+const Shell::Command ChassisLG::shell_commands[] = {
+        {"_chassis_enable_fb", "[1 on/0 off]",          ChassisLG::cmd_enable_feedback, nullptr},
+        {nullptr,        nullptr,                                  nullptr,                       nullptr}
+};
+
+DEF_SHELL_CMD_START(ChassisLG::cmd_enable_feedback)
+    (void) argv;
+    if (argc != 1) {
+        return false;
+    }
+    unsigned isEnable = Shell::atoi(argv[0]);
+    autoStraighteningFBEnabled = isEnable;
+    return true;// command executed successfully
+DEF_SHELL_CMD_END
 #endif
 /** @} */

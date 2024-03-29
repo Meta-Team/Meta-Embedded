@@ -109,6 +109,19 @@ public:
      */
     static chassis_mode_t get_mode();
 
+    /**
+     * Callback for feedback to print auto straightening params for debugging
+     */
+    static void cmd_feedback(void *);
+    /**
+     * flag to enable printing auto straightening params
+     */
+    static bool autoStraighteningFBEnabled;
+    /**
+     * shell commands to toggle whether to print fb params and to set auto straightening pid params
+     */
+    static const Shell::Command shell_commands[];
+    static DECL_SHELL_CMD(cmd_enable_feedback);
 private:
 
     /**

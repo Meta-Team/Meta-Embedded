@@ -186,6 +186,8 @@ int main() {
     ChassisLG::init(THREAD_CHASSIS_LG_PRIO, THREAD_CHASSIS_LG_PRIO, THREAD_CHASSIS_LG_PRIO);
     ChassisLG::set_auto_straightening_pid_params(CHASSIS_FOLLOW_PID_THETA2V_PARAMS);
     ChassisLG::set_dodge_omega_power_pid(CHASSIS_LOGIC_DODGE_OMEGA2VOLT_PARAMS);
+    Shell::addFeedbackCallback(ChassisLG::cmd_feedback);
+    Shell::addCommands(ChassisLG::shell_commands);
     /// Setup Vision
     VisionIF::init();  // must be put after initialization of GimbalSKD
     VisionSKD::start(VISION_BASIC_CONTROL_DELAY, THREAD_VISION_SKD_PRIO);
