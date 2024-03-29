@@ -55,7 +55,7 @@ void UserH::UserThread::main() {
 
 //        LOG("YAW,TG:%.2f,Actual:%.2f; PITCH,TG:%.2f,Actual:%.2f",GimbalSKD::get_target_angle(GimbalSKD::YAW),GimbalSKD::get_feedback_angle(GimbalSKD::YAW),GimbalSKD::get_target_angle(GimbalSKD::PITCH),GimbalSKD::get_feedback_angle(GimbalSKD::PITCH));
 
-        if (!InspectorH::remote_failure() /*&& !InspectorI::chassis_failure()*/ && !InspectorH::gimbal_failure() && Referee::robot_state.power_management_gimbal_output) {
+        if (!InspectorH::remote_failure() /*&& !InspectorI::chassis_failure()*/ && !InspectorH::gimbal_failure() /*&& Referee::robot_state.power_management_gimbal_output*/) {
             if ((Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_UP)) {
                 /// Remote - Yaw + Pitch
                 GimbalLG::set_mode(GimbalLG::CHASSIS_REF_MODE);
