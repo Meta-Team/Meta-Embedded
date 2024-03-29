@@ -29,7 +29,7 @@
 /*===========================================================================*/
 
 #define GIMBAL_PITCH_MIN_ANGLE  (-20)  // up range for pitch [degree]
-#define GIMBAL_PITCH_MAX_ANGLE  (5)   //  down range for pitch [degree]
+#define GIMBAL_PITCH_MAX_ANGLE  (20)   //  down range for pitch [degree]
 
 #define SHOOT_DEGREE_PER_BULLET 45.0f  // rotation degree of bullet loader for each bullet
 
@@ -51,9 +51,9 @@
     {CHASSIS_CLIP_PID_THETA2V_KP, CHASSIS_CLIP_PID_THETA2V_KI, CHASSIS_CLIP_PID_THETA2V_KD, \
     CHASSIS_CLIP_PID_THETA2V_I_LIMIT, CHASSIS_CLIP_PID_THETA2V_OUT_LIMIT}
 
-#define CHASSIS_FOLLOW_PID_THETA2V_KP 14.0f
+#define CHASSIS_FOLLOW_PID_THETA2V_KP 40.0f
 #define CHASSIS_FOLLOW_PID_THETA2V_KI 0
-#define CHASSIS_FOLLOW_PID_THETA2V_KD 25.0f
+#define CHASSIS_FOLLOW_PID_THETA2V_KD 0.1f
 #define CHASSIS_FOLLOW_PID_THETA2V_I_LIMIT 0
 #define CHASSIS_FOLLOW_PID_THETA2V_OUT_LIMIT 400.0f
 #define CHASSIS_FOLLOW_PID_THETA2V_PARAMS \
