@@ -8,7 +8,7 @@
 
 #include "vehicle_infantry.h"
 
-
+#include "capacitor_interface.h"
 #if ENABLE_REFEREE == TRUE
 #include "referee_UI_logic.h"
 #endif
@@ -55,26 +55,31 @@ void UserI::UserThread::main() {
     float pitch_target = 0;
     while (!shouldTerminate()) {
         /*** ---------------------------------- Gimbal --------------------------------- ***/
-        if (!InspectorI::remote_failure() && !InspectorI::chassis_failure() && !InspectorI::gimbal_failure()) {
-            if ((Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_UP) ||
-                (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_MIDDLE)) {
+        //LOG("ActualPower:%.2f; PowerLimit:%u; CapV:%.2f,YawFB:%.2f,YawTG:%.2f",Referee::power_heat.chassis_power,Referee::robot_state.chassis_power_limit, CapacitorIF::capacitor_voltage,GimbalSKD::get_feedback_angle(GimbalSKD::YAW),GimbalSKD::get_target_angle(GimbalSKD::YAW));
+        LOG("Heat:%.2f,CoolRate:%.2f.HeatLimit:%.2f",Referee::power_heat.shooter_17mm_1_barrel_heat,Referee::robot_state.shooter_barrel_cooling_value,Referee::robot_state.shooter_barrel_heat_limit);
+        bool overallStatus = !InspectorI::remote_failure() && !InspectorI::chassis_failure() && !InspectorI::gimbal_failure();
+        // bypass not check
+        overallStatus = true;
 
+        if (overallStatus) {
+            if ((Remote::rc.s1 == Remote::S_MIDDLE) && (Remote::rc.s2 == Remote::S_UP || Remote::rc.s2 == Remote::S_MIDDLE)) {
                 /// Remote - Yaw + Pitch
 #if ENABLE_AHRS
                 GimbalLG::set_mode(GimbalLG::GIMBAL_REF_MODE);
 #else
                 GimbalLG::set_mode(GimbalLG::CHASSIS_REF_MODE);
 #endif
-
                 gimbal_yaw_target_angle_ +=
                         -Remote::rc.ch0 * (gimbal_rc_yaw_max_speed * USER_THREAD_INTERVAL / 1000.0f);
                 // ch0 use right as positive direction, while GimbalLG use CCW (left) as positive direction
 
-                if (Remote::rc.ch1 > 0) pitch_target += (float) (Remote::rc.ch1 * GIMBAL_PITCH_MAX_ANGLE * 0.1);
-                else
-                    pitch_target -=
-                            (float) (Remote::rc.ch1 * GIMBAL_PITCH_MIN_ANGLE * 0.1);  // GIMBAL_PITCH_MIN_ANGLE is negative
-                // ch1 use up as positive direction, while GimbalLG also use up as positive direction
+                // uniform scale on pitch axis
+                pitch_target += (float) (Remote::rc.ch1 * 15 * 0.1);
+//                if (Remote::rc.ch1 > 0) pitch_target += (float) (Remote::rc.ch1 * GIMBAL_PITCH_MAX_ANGLE * 0.1);
+//                else
+//                    pitch_target -=
+//                            (float) (Remote::rc.ch1 * GIMBAL_PITCH_MIN_ANGLE * 0.1);  // GIMBAL_PITCH_MIN_ANGLE is negative
+//                // ch1 use up as positive direction, while GimbalLG also use up as positive direction
 
                 VAL_CROP(pitch_target, GIMBAL_PITCH_MAX_ANGLE, GIMBAL_PITCH_MIN_ANGLE);
                 GimbalLG::set_target_angle(gimbal_yaw_target_angle_, pitch_target);
@@ -157,9 +162,8 @@ void UserI::UserThread::main() {
         }
 
         /*** ---------------------------------- Shoot --------------------------------- ***/
-        if (!InspectorI::remote_failure() && !InspectorI::chassis_failure() && !InspectorI::gimbal_failure()) {
-            if ((Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_UP) ||
-                (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_MIDDLE)) {
+        if (overallStatus) {
+            if ((Remote::rc.s1 == Remote::S_MIDDLE) && (Remote::rc.s2 == Remote::S_UP || Remote::rc.s2 == Remote::S_MIDDLE)) {
 
                 /// Remote - Shoot with Scrolling Wheel
 
@@ -220,11 +224,11 @@ void UserI::UserThread::main() {
                 if (Remote::mouse.press_left) {
 #if ENABLE_REFEREE == TRUE
                     // Read shoot limit
-                    //TODO  check the version of referee system!!!, the current protocol might be deprecated
-                    if (Referee::robot_state.shooter_id1_17mm_cooling_rate >= 40) {
-                        shoot_feed_rate = Referee::robot_state.shooter_id1_17mm_cooling_rate / 10 * 1.25;
+                    // 如果冷却速率大于40(爆发优先7级/冷却优先1级), 射速与冷却速率成0.1关系
+                    if (Referee::robot_state.shooter_barrel_cooling_value >= 40) {
+                        shoot_feed_rate = Referee::robot_state.shooter_barrel_cooling_value / 10 * 1.25;
                     } else {
-                        shoot_feed_rate = Referee::robot_state.shooter_id1_17mm_cooling_limit / 25;
+                        shoot_feed_rate = Referee::robot_state.shooter_barrel_cooling_value / 25;
                     }
 #if ENABLE_VISION == TRUE
                     if (!ignore_shoot_constraints && Remote::mouse.press_right) {
@@ -264,10 +268,9 @@ void UserI::UserThread::main() {
         }
 
         /*** ---------------------------------- Chassis --------------------------------- ***/
-        if (!InspectorI::remote_failure() && !InspectorI::chassis_failure() && !InspectorI::gimbal_failure()) {
+        if (overallStatus) {
 
-            if ((Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_UP) ||
-                (Remote::rc.s1 == Remote::S_MIDDLE && Remote::rc.s2 == Remote::S_DOWN)) {
+            if ((Remote::rc.s1 == Remote::S_MIDDLE) && (Remote::rc.s2 == Remote::S_UP || Remote::rc.s2 == Remote::S_MIDDLE)) {
                 /// Remote - Chassis Move + Chassis Follow
 #if ENABLE_AHRS
                 ChassisLG::set_mode(ChassisLG::GIMBAL_REF_MODE);

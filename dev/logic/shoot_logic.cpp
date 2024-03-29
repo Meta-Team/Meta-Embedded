@@ -68,11 +68,11 @@ ShootLG::shooter_state_t ShootLG::get_shooter_state() {
 
 int ShootLG::get_bullet_count_to_heat_limit() {
     if (!use_42mm_bullet) {
-        return (Referee::robot_state.shooter_id1_17mm_cooling_limit -
-                Referee::power_heat.shooter_id1_17mm_cooling_heat) / HEAT_PER_17MM_BULLET;
+        return (Referee::robot_state.shooter_barrel_heat_limit -
+                Referee::power_heat.shooter_17mm_1_barrel_heat) / HEAT_PER_17MM_BULLET;
     } else {
-        return (Referee::robot_state.shooter_id1_42mm_cooling_limit -
-                Referee::power_heat.shooter_id1_42mm_cooling_heat) / HEAT_PER_42MM_BULLET;
+        return (Referee::robot_state.shooter_barrel_heat_limit -
+                Referee::power_heat.shooter_42mm_barrel_heat) / HEAT_PER_42MM_BULLET;
     }
 }
 

@@ -121,33 +121,28 @@ public:
     static constexpr uint16_t REFEREE_WARNING_CMD_ID = 0x0104;
     __PACKED_STRUCT referee_warning_t {
         uint8_t level;
-        uint8_t foul_robot_id;
+        uint8_t offending_robot_id;
+        uint8_t count;
     };
 
     static constexpr uint16_t EXT_DART_REMAINING_TIME_CMD_ID = 0x0105;
     __PACKED_STRUCT ext_dart_remaining_time_t {
         uint8_t dart_remaining_time;
+        uint16_t dart_info;
     };
 
     static constexpr uint16_t GAME_ROBOT_STATE_CMD_ID = 0x0201;
     __PACKED_STRUCT game_robot_state_t {
         uint8_t robot_id;
         uint8_t robot_level;
-        uint16_t remain_HP;
-        uint16_t max_HP;
-        uint16_t shooter_id1_17mm_cooling_rate;
-        uint16_t shooter_id1_17mm_cooling_limit;
-        uint16_t shooter_id1_17mm_speed_limit;
-        uint16_t shooter_id2_17mm_cooling_rate;
-        uint16_t shooter_id2_17mm_cooling_limit;
-        uint16_t shooter_id2_17mm_speed_limit;
-        uint16_t shooter_id1_42mm_cooling_rate;
-        uint16_t shooter_id1_42mm_cooling_limit;
-        uint16_t shooter_id1_42mm_speed_limit;
+        uint16_t current_HP;
+        uint16_t maximum_HP; // 机器人血量上限
+        uint16_t shooter_barrel_cooling_value; // 机器人枪口热量每秒冷却值
+        uint16_t shooter_barrel_heat_limit; // 机器人枪口热量上限
         uint16_t chassis_power_limit;
-        uint8_t mains_power_gimbal_output: 1;
-        uint8_t mains_power_chassis_output: 1;
-        uint8_t mains_power_shooter_output: 1;
+        uint8_t power_management_gimbal_output: 1;
+        uint8_t power_management_chassis_output: 1;
+        uint8_t power_management_shooter_output: 1;
     };
 
     static constexpr uint16_t POWER_HEAT_DATA_CMD_ID = 0x0202;
@@ -156,17 +151,16 @@ public:
         uint16_t chassis_current;
         float chassis_power;
         uint16_t chassis_power_buffer;
-        uint16_t shooter_id1_17mm_cooling_heat;
-        uint16_t shooter_id2_17mm_cooling_heat;
-        uint16_t shooter_id1_42mm_cooling_heat;
+        uint16_t shooter_17mm_1_barrel_heat;
+        uint16_t shooter_17mm_2_barrel_heat;
+        uint16_t shooter_42mm_barrel_heat;
     };
 
     static constexpr uint16_t GAME_ROBOT_POS_CMD_ID = 0x0203;
     __PACKED_STRUCT game_robot_pos_t {
         float x;
         float y;
-        float z;
-        float yaw;
+        float angle;
     };
 
     static constexpr uint16_t BUFF_MUSK_CMD_ID = 0x0204;
